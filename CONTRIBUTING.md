@@ -7,7 +7,8 @@
 
 ## Flujo de Trabajo
 
-1. Crea una rama desde `develop`: `feature/<HT-XXX>-<descripcion_snake_case>`
+1. Crea una rama desde `develop` siguiendo la convención: `<prefijo>/<id>-<descripcion_snake_case>`
+   - Ejemplo: `feature/HT-010-scaffolding_react`
 2. Implementa los cambios siguiendo las convenciones del proyecto
 3. Ejecuta tests y linting: `npm run test && npm run lint`
 4. Crea un Pull Request hacia `develop` usando el template provisto
@@ -16,7 +17,9 @@
 ## Convenciones
 
 - **Commits:** Conventional Commits en español — `feat(componente): descripción`
-- **Branching:** GitFlow simplificado — `feature/`, `bugfix/`, `hotfix/`
+- **Branching:** GitFlow simplificado
+  - Prefijos válidos: `feature/`, `fix/`, `refactor/`, `hotfix/`, `docs/`, `test/`, `chore/`, `spike/`
+  - Formato: `<prefijo>/<id>-<descripcion_snake_case>`
 - **Nomenclatura:** Español para términos de negocio, inglés para sufijos técnicos
 
 ## Estructura del PR
