@@ -42,3 +42,9 @@ coverage/
 *.tmp
 *.temp
 *.bak
+
+# ESLint cache
+.eslintcache
+
+# TypeScript build info
+*.tsbuildinfo
