@@ -1,0 +1,15 @@
+# ==============================================================================
+# Arquisoft Frontend — CODEOWNERS
+# ==============================================================================
+# Asigna reviewers automáticos a Pull Requests según las rutas modificadas
+# ==============================================================================
+
+# Default: todo el repo requiere review del equipo
+* @arquisoft-uco/developers
+
+# Configuración de CI/CD
+.github/ @arquisoft-uco/devops
+
+# Docker
+Dockerfile @arquisoft-uco/devops
+nginx.conf @arquisoft-uco/devops
