@@ -1,51 +1,59 @@
-# Arquisoft - Frontend Angular SPA
+# Arquisoft
 
-> Interfaz de usuario para la Plataforma de Gestión de Proyectos de Grado — Universidad Católica de Oriente (UCO)
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.5.
 
-## Stack Tecnológico
+## Development server
 
-- **Framework:** Angular 21
-- **Lenguaje:** TypeScript
-- **Build:** Angular CLI
-- **Estilos:** (Por definir en HT-010)
-- **Autenticación:** Keycloak (SSO UCO)
-
-## Prerequisitos
-
-- Node.js 18+
-- npm o yarn
-
-## Inicio Rápido
+To start a local development server, run:
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/arquisoft-uco/arquisoft-frontend.git
-cd arquisoft-frontend
-
-# Instalar dependencias
-npm install
-
-# Iniciar en modo desarrollo
 ng serve
 ```
 
-## Estructura del Proyecto
+Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-> Se definirá en la historia HT-010 (Scaffolding Angular).
+## Code scaffolding
 
-## Ecosistema Multi-Repo
+Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
 
-| Repositorio | Descripción |
-|-------------|-------------|
-| [arquisoft-docs](https://github.com/arquisoft-uco/arquisoft-docs) | Documentación global |
-| [arquisoft-infra](https://github.com/arquisoft-uco/arquisoft-infra) | Infraestructura Docker Compose |
-| [arquisoft-backend](https://github.com/arquisoft-uco/arquisoft-backend) | Backend Spring Boot |
-| **arquisoft-frontend** *(este repo)* | Frontend Angular SPA |
+```bash
+ng generate component component-name
+```
 
-## Convenciones
+For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
 
-Consulta los [Estándares de Código](https://github.com/arquisoft-uco/arquisoft-docs/blob/main/docs/architecture/coding-standards.md) del proyecto.
+```bash
+ng generate --help
+```
 
-## Contribución
+## Building
 
-Consulta [CONTRIBUTING.md](CONTRIBUTING.md) antes de contribuir.
+To build the project run:
+
+```bash
+ng build
+```
+
+This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+## Running unit tests
+
+To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+
+```bash
+ng test
+```
+
+## Running end-to-end tests
+
+For end-to-end (e2e) testing, run:
+
+```bash
+ng e2e
+```
+
+Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+
+## Additional Resources
+
+For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
