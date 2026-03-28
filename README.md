@@ -1,12 +1,12 @@
-# Arquisoft - Frontend React SPA
+# Arquisoft - Frontend Angular SPA
 
 > Interfaz de usuario para la Plataforma de Gestión de Proyectos de Grado — Universidad Católica de Oriente (UCO)
 
 ## Stack Tecnológico
 
-- **Framework:** React 18+
+- **Framework:** Angular 21
 - **Lenguaje:** TypeScript
-- **Build:** Vite
+- **Build:** Angular CLI
 - **Estilos:** (Por definir en HT-010)
 - **Autenticación:** Keycloak (SSO UCO)
 
@@ -26,12 +26,12 @@ cd arquisoft-frontend
 npm install
 
 # Iniciar en modo desarrollo
-npm run dev
+ng serve
 ```
 
 ## Estructura del Proyecto
 
-> Se definirá en la historia HT-010 (Scaffolding React).
+> Se definirá en la historia HT-010 (Scaffolding Angular).
 
 ## Ecosistema Multi-Repo
 
@@ -40,7 +40,7 @@ npm run dev
 | [arquisoft-docs](https://github.com/arquisoft-uco/arquisoft-docs) | Documentación global |
 | [arquisoft-infra](https://github.com/arquisoft-uco/arquisoft-infra) | Infraestructura Docker Compose |
 | [arquisoft-backend](https://github.com/arquisoft-uco/arquisoft-backend) | Backend Spring Boot |
-| **arquisoft-frontend** *(este repo)* | Frontend React SPA |
+| **arquisoft-frontend** *(este repo)* | Frontend Angular SPA |
 
 ## Convenciones
 
