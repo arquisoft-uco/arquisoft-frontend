@@ -1,19 +1,13 @@
 import { Injectable, signal, computed } from '@angular/core';
 import Keycloak from 'keycloak-js';
-
-export interface KeycloakConfig {
-  url: string;
-  realm: string;
-  clientId: string;
-}
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
-  private readonly _win = window as unknown as Record<string, unknown>;
   private readonly _keycloak = new Keycloak({
-    url: (this._win['KEYCLOAK_URL'] as string | undefined) ?? 'http://localhost:8080',
-    realm: (this._win['KEYCLOAK_REALM'] as string | undefined) ?? 'master',
-    clientId: (this._win['KEYCLOAK_CLIENT_ID'] as string | undefined) ?? 'angular-client',
+    url: environment.keycloak.url,
+    realm: environment.keycloak.realm,
+    clientId: environment.keycloak.clientId,
   });
 
   private readonly _authenticated = signal(false);
