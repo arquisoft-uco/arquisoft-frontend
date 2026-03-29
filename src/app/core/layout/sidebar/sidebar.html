@@ -1,5 +1,5 @@
 <mat-nav-list aria-label="Application navigation">
-  @for (item of navItems; track item.route) {
+  @for (item of navItems(); track item.route) {
     <a
       mat-list-item
       [routerLink]="item.route"
