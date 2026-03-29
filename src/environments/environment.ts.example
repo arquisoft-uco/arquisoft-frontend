@@ -1,0 +1,11 @@
+// Copia este archivo como environment.ts y completa los valores reales.
+// NUNCA hagas commit de environment.ts con datos reales.
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8082/api',
+  keycloak: {
+    url: 'http://localhost:8080/',
+    realm: 'your-realm',
+    clientId: 'your-client-id',
+  },
+};
