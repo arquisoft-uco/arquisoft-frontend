@@ -96,6 +96,12 @@ export const routes: Routes = [
         title: 'Solicitudes',
         data: { navItem: { label: 'Solicitudes', icon: 'assignment', order: 9 } satisfies NavItemData },
       },
+      {
+        path: 'seleccionar-rol',
+        loadComponent: () =>
+          import('./features/seleccionar-rol/seleccionar-rol').then(m => m.SeleccionarRolComponent),
+        title: 'Seleccionar Rol',
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
