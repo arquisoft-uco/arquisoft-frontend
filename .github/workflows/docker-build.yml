@@ -56,7 +56,7 @@ jobs:
       - name: Extraer metadata Docker
         if: steps.check.outputs.ready == 'true'
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
