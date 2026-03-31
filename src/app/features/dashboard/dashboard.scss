@@ -1,0 +1,11 @@
+.hero-icon {
+  color: var(--color-primary-muted-foreground);
+}
+
+.card-icon {
+  color: var(--color-primary-muted-foreground);
+}
+
+.quick-card:active {
+  transform: scale(0.98);
+}

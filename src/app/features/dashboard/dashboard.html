@@ -1,0 +1,48 @@
+<div class="flex flex-col gap-8 animate-fade-up">
+  <!-- Welcome hero -->
+  <section class="rounded-xl border border-border bg-surface p-6 shadow-sm">
+    <div class="flex items-start gap-4">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-muted">
+        <lucide-angular [img]="SparklesIcon" [size]="24" class="hero-icon" aria-hidden="true" />
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-on-surface">
+          Bienvenido, {{ keycloak.username() }}
+        </h1>
+        <p class="mt-1 text-sm text-on-surface-secondary">
+          Selecciona un módulo del menú lateral o usa los accesos rápidos para comenzar.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick access -->
+  <section aria-labelledby="acceso-rapido-titulo">
+    <h2
+      id="acceso-rapido-titulo"
+      class="mb-4 text-xs font-semibold uppercase tracking-widest text-on-surface-secondary">
+      Acceso rápido
+    </h2>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (card of quickCards; track card.route) {
+        <a
+          [routerLink]="card.route"
+          class="quick-card group flex items-center gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm outline-none transition-all duration-200 hover:border-primary hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-muted transition-colors duration-200 group-hover:bg-primary">
+            <lucide-angular [img]="card.icon" [size]="20" class="card-icon transition-colors duration-200 group-hover:text-primary-foreground" aria-hidden="true" />
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold text-on-surface">{{ card.label }}</p>
+            <p class="truncate text-xs text-on-surface-secondary">{{ card.description }}</p>
+          </div>
+          <lucide-angular
+            [img]="ArrowRightIcon"
+            [size]="16"
+            class="arrow-icon ml-auto shrink-0 text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            aria-hidden="true" />
+        </a>
+      }
+    </div>
+  </section>
+</div>
