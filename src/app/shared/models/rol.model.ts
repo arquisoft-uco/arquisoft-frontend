@@ -1,3 +1,9 @@
+import type { LucideIconData } from 'lucide-angular';
+import {
+  ShieldCheck, UserPen, UserCheck, GraduationCap, Scale,
+  Briefcase, Library, BookMarked,
+} from 'lucide-angular';
+
 /**
  * Roles de usuario reconocidos por el sistema.
  * Los valores coinciden con los roles configurados en el cliente de Keycloak.
@@ -25,14 +31,14 @@ export const ETIQUETAS_ROL: Record<Rol, string> = {
   [Rol.RepresentanteComiteCurriculum]: 'Representante del Comité de Currículum',
 };
 
-/** Iconos de Material Design para cada rol */
-export const ICONOS_ROL: Record<Rol, string> = {
-  [Rol.Administrador]: 'admin_panel_settings',
-  [Rol.Asesor]: 'supervisor_account',
-  [Rol.AsesorFicha]: 'assignment_ind',
-  [Rol.Estudiante]: 'school',
-  [Rol.Jurado]: 'gavel',
-  [Rol.Coordinador]: 'manage_accounts',
-  [Rol.Bibliotecario]: 'menu_book',
-  [Rol.RepresentanteComiteCurriculum]: 'groups',
+/** Iconos de Lucide para cada rol */
+export const ICONOS_ROL: Record<Rol, LucideIconData> = {
+  [Rol.Administrador]: ShieldCheck,
+  [Rol.Asesor]: UserPen,
+  [Rol.AsesorFicha]: UserCheck,
+  [Rol.Estudiante]: GraduationCap,
+  [Rol.Jurado]: Scale,
+  [Rol.Coordinador]: Briefcase,
+  [Rol.Bibliotecario]: Library,
+  [Rol.RepresentanteComiteCurriculum]: BookMarked,
 };
