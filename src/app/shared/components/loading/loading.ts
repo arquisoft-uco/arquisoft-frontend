@@ -1,22 +1,16 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-loading',
   template: `
-    <div class="loading-wrapper" role="status" aria-live="polite" aria-label="Cargando...">
-      <mat-spinner diameter="48" />
+    <div class="flex items-center justify-center p-12" role="status" aria-live="polite" aria-label="Cargando...">
+      <div
+        class="h-10 w-10 animate-spin rounded-full border-4 border-border border-t-primary"
+        aria-hidden="true">
+      </div>
     </div>
   `,
-  styles: `
-    .loading-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 48px;
-    }
-  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatProgressSpinnerModule],
+  imports: [],
 })
 export class LoadingComponent {}
