@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideAngularModule, University } from 'lucide-angular';
+import type { LucideIconData } from 'lucide-angular';
 import { RolActivoService } from '../../core/auth/rol-activo.service';
 import { Rol, ETIQUETAS_ROL, ICONOS_ROL } from '../../shared/models/rol.model';
 
@@ -9,7 +10,8 @@ import { Rol, ETIQUETAS_ROL, ICONOS_ROL } from '../../shared/models/rol.model';
   templateUrl: './seleccionar-rol.html',
   styleUrl: './seleccionar-rol.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconModule],
+  imports: [LucideAngularModule],
+  host: { class: 'flex min-h-full' },
 })
 export class SeleccionarRolComponent {
   protected readonly rolActivoService = inject(RolActivoService);
@@ -17,6 +19,7 @@ export class SeleccionarRolComponent {
 
   protected readonly etiquetasRol = ETIQUETAS_ROL;
   protected readonly iconosRol = ICONOS_ROL;
+  protected readonly UniversityIcon: LucideIconData = University;
 
   seleccionarRol(rol: Rol): void {
     this.rolActivoService.seleccionarRol(rol);

@@ -1,9 +1,6 @@
-:host {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100%;
-}
+// Styles managed via Tailwind utility classes in the template.
+// See tailwind.css for design tokens.
+
 
 .contenedor {
   max-width: 960px;
