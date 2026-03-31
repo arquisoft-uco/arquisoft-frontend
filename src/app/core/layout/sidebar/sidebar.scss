@@ -1,4 +1,35 @@
-.active-link {
-  background-color: rgba(0, 0, 0, 0.08);
-  font-weight: 600;
+:host {
+  display: block;
+  height: 100%;
 }
+
+.nav-link {
+  color: var(--color-on-surface-secondary);
+
+  .nav-icon {
+    color: var(--color-on-surface-secondary);
+    transition: color 0.15s;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: var(--color-nav-hover-bg);
+      color: var(--color-on-surface);
+
+      .nav-icon {
+        color: var(--color-on-surface);
+      }
+    }
+  }
+
+  &.nav-active {
+    background-color: var(--color-nav-active-bg);
+    color: var(--color-nav-active-text);
+    font-weight: 600;
+
+    .nav-icon {
+      color: var(--color-nav-active-text);
+    }
+  }
+}
+

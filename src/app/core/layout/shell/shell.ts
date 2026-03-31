@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { AppHeaderComponent } from '../header/header';
 import { AppSidebarComponent } from '../sidebar/sidebar';
 
@@ -9,7 +8,7 @@ import { AppSidebarComponent } from '../sidebar/sidebar';
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, MatSidenavModule, AppHeaderComponent, AppSidebarComponent],
+  imports: [RouterOutlet, AppHeaderComponent, AppSidebarComponent],
 })
 export class ShellComponent {
   protected readonly sidenavOpen = signal(true);

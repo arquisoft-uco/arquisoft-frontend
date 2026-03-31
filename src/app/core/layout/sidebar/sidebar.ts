@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { MatListModule } from '@angular/material/list';
-import { MatIconModule } from '@angular/material/icon';
+import { LucideAngularModule, University } from 'lucide-angular';
+import type { LucideIconData } from 'lucide-angular';
 import { ShellComponent } from '../shell/shell';
 import { RolActivoService } from '../../auth/rol-activo.service';
 import { NavItemData } from '../../../app.routes';
 
 export interface NavItem {
   label: string;
-  icon: string;
+  icon: LucideIconData;
   route: string;
   roles?: string[];
 }
@@ -18,21 +18,14 @@ export interface NavItem {
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive, MatListModule, MatIconModule],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule],
 })
 export class AppSidebarComponent {
   private readonly _router = inject(Router);
   private readonly _rolActivoService = inject(RolActivoService);
 
-  /**
-   * Deriva los elementos del menú lateral desde la configuración de rutas.
-   *
-   * Una ruta se incluye cuando tiene `data.navItem` definido.
-   * Si además tiene `data.roles`, el elemento se muestra solo cuando
-   * el rol activo del usuario está entre los roles requeridos.
-   *
-   * Actualiza `app.routes.ts` para agregar o quitar entradas — sin cambios aquí.
-   */
+  protected readonly UniversityIcon: LucideIconData = University;
+
   protected readonly navItems = computed<NavItem[]>(() => {
     const rolActivo = this._rolActivoService.rolActivo();
 

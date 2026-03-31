@@ -1,17 +1,17 @@
-<mat-sidenav-container class="app-shell-container">
-  <mat-sidenav
-    [opened]="sidenavOpen()"
-    mode="side"
-    class="app-sidenav"
-    role="navigation"
-    aria-label="Main navigation">
-    <app-sidebar />
-  </mat-sidenav>
+<div class="flex h-full">
+  @if (sidenavOpen()) {
+    <aside
+      class="w-[260px] shrink-0 overflow-y-auto border-r border-border bg-surface"
+      role="navigation"
+      aria-label="Navegación principal">
+      <app-sidebar />
+    </aside>
+  }
 
-  <mat-sidenav-content class="app-content">
+  <div class="flex min-w-0 flex-1 flex-col">
     <app-header (menuToggled)="toggleSidenav()" />
-    <main class="app-main" id="main-content">
+    <main class="flex-1 overflow-y-auto p-6" id="main-content">
       <router-outlet />
     </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </div>
+</div>
