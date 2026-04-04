@@ -1,28 +1,47 @@
 @import 'tailwindcss';
 
 @theme {
-  /* ── Brand / Primary ── */
-  --color-primary: oklch(44% 0.19 264);
-  --color-primary-hover: oklch(38% 0.21 264);
+  /* ── Brand / Primary (deep teal-navy) ── */
+  --color-primary: oklch(35% 0.08 230);
+  --color-primary-hover: oklch(30% 0.09 230);
   --color-primary-foreground: oklch(99% 0 0);
-  --color-primary-muted: oklch(93% 0.06 264);
-  --color-primary-muted-foreground: oklch(40% 0.2 264);
+  --color-primary-muted: oklch(95% 0.03 230);
+  --color-primary-muted-foreground: oklch(35% 0.08 230);
+
+  /* ── Secondary (emerald) ── */
+  --color-secondary: oklch(55% 0.14 165);
+  --color-secondary-hover: oklch(48% 0.14 165);
+  --color-secondary-foreground: oklch(99% 0 0);
+  --color-secondary-muted: oklch(94% 0.04 165);
+  --color-secondary-muted-foreground: oklch(40% 0.12 165);
+
+  /* ── Tertiary (warm gold) ── */
+  --color-tertiary: oklch(78% 0.16 75);
+  --color-tertiary-hover: oklch(72% 0.16 75);
+  --color-tertiary-foreground: oklch(25% 0.04 75);
+  --color-tertiary-muted: oklch(95% 0.04 75);
+  --color-tertiary-muted-foreground: oklch(55% 0.12 75);
+
+  /* ── Danger ── */
+  --color-danger: oklch(55% 0.22 27);
+  --color-danger-foreground: oklch(99% 0 0);
 
   /* ── Surfaces ── */
   --color-surface: oklch(100% 0 0);
-  --color-background: oklch(96.5% 0.008 264);
+  --color-background: oklch(97% 0.005 230);
 
   /* ── Text ── */
-  --color-on-surface: oklch(13% 0.02 264);
-  --color-on-surface-secondary: oklch(43% 0.015 264);
+  --color-on-surface: oklch(20% 0.02 230);
+  --color-on-surface-secondary: oklch(45% 0.015 230);
 
   /* ── Border ── */
-  --color-border: oklch(89% 0.01 264);
+  --color-border: oklch(91% 0.008 230);
+  --color-border-strong: oklch(85% 0.015 230);
 
   /* ── Sidebar nav ── */
-  --color-nav-active-bg: oklch(92% 0.07 264);
-  --color-nav-active-text: oklch(38% 0.22 264);
-  --color-nav-hover-bg: oklch(96% 0.025 264);
+  --color-nav-active-bg: oklch(93% 0.04 230);
+  --color-nav-active-text: oklch(35% 0.08 230);
+  --color-nav-hover-bg: oklch(96% 0.01 230);
 
   /* ── Radius tokens ── */
   --radius-sm: 0.375rem;
@@ -34,17 +53,46 @@
   /* ── Custom easing ── */
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
 
+  /* ── Shadows ── */
+  --shadow-card: 0 1px 3px 0 oklch(0% 0 0 / 0.04), 0 1px 2px -1px oklch(0% 0 0 / 0.04);
+  --shadow-card-hover: 0 4px 12px 0 oklch(0% 0 0 / 0.08), 0 2px 4px -2px oklch(0% 0 0 / 0.04);
+  --shadow-dropdown: 0 8px 24px -4px oklch(0% 0 0 / 0.12), 0 4px 8px -4px oklch(0% 0 0 / 0.06);
+
   /* ── Animations ── */
-  --animate-fade-up: fade-up 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-fade-up: fade-up 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-slide-in-left: slide-in-left 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-scale-in: scale-in 0.15s ease-out;
 
   @keyframes fade-up {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(12px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }

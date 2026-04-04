@@ -1,16 +1,22 @@
-<div class="brand flex items-center gap-2.5 border-b border-border px-4 py-4">
-  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-    <lucide-angular [img]="UniversityIcon" [size]="16" class="text-primary-foreground" aria-hidden="true" />
+<div class="flex h-16 items-center gap-3 border-b border-border px-5">
+  <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary">
+    <lucide-angular [img]="UniversityIcon" [size]="18" class="text-primary-foreground" aria-hidden="true" />
   </div>
-  <span class="font-semibold tracking-tight text-on-surface">ArquiSoft</span>
+  <div class="flex flex-col">
+    <span class="text-sm font-bold tracking-tight text-on-surface">ArquiSoft</span>
+    <span class="text-[11px] leading-tight text-on-surface-secondary">Gestión Académica</span>
+  </div>
 </div>
 
-<nav class="flex flex-col gap-0.5 p-3" aria-label="Navegación principal">
+<nav class="flex flex-col gap-0.5 px-3 pt-4 pb-3" aria-label="Navegación principal">
+  <span class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-on-surface-secondary">
+    Módulos
+  </span>
   @for (item of navItems(); track item.route) {
     <a
       [routerLink]="item.route"
       routerLinkActive="nav-active"
-      class="nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+      class="nav-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
       [attr.aria-label]="item.label">
       <lucide-angular [img]="item.icon" [size]="18" class="nav-icon shrink-0" aria-hidden="true" />
       <span>{{ item.label }}</span>

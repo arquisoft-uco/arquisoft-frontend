@@ -8,7 +8,7 @@
 
   .nav-icon {
     color: var(--color-on-surface-secondary);
-    transition: color 0.15s;
+    transition: color 0.15s ease-out;
   }
 
   @media (hover: hover) and (pointer: fine) {
