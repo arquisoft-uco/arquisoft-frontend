@@ -1,0 +1,77 @@
+@import './tailwind.css';
+
+html {
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  color-scheme: light;
+  margin: 0;
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+/* Sidebar nav link states */
+.nav-link {
+  color: var(--color-on-surface-secondary);
+}
+
+.nav-link .nav-icon {
+  color: var(--color-on-surface-secondary);
+  transition: color 0.15s ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover {
+    background-color: var(--color-nav-hover-bg);
+    color: var(--color-on-surface);
+  }
+
+  .nav-link:hover .nav-icon {
+    color: var(--color-on-surface);
+  }
+}
+
+.nav-active {
+  background-color: var(--color-nav-active-bg);
+  color: var(--color-nav-active-text);
+  font-weight: 600;
+}
+
+.nav-active .nav-icon {
+  color: var(--color-nav-active-text);
+}
+
+/* Dashboard */
+.hero-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, oklch(42% 0.07 210) 100%);
+}
+
+.hero-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image:
+    radial-gradient(circle at 25% 25%, white 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, white 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.card-icon {
+  color: var(--color-primary-muted-foreground);
+}
+
+.quick-card:active {
+  transform: scale(0.98);
+}
