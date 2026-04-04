@@ -1,8 +1,11 @@
 @import './tailwind.css';
 
+/* ── Base ─────────────────────────────────────────────── */
 html {
   height: 100%;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -13,23 +16,54 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+#root {
+  height: 100%;
 }
 
-/* Sidebar nav link states */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* ── Thin elegant scrollbars ─────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: 99px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-on-surface-secondary);
+}
+
+/* ── Global focus baseline ────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Sidebar nav link states ─────────────────────────── */
 .nav-link {
   color: var(--color-on-surface-secondary);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .nav-link .nav-icon {
   color: var(--color-on-surface-secondary);
-  transition: color 0.15s ease-out;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -40,6 +74,7 @@ h6 {
 
   .nav-link:hover .nav-icon {
     color: var(--color-on-surface);
+    transform: translateX(2px);
   }
 }
 
@@ -53,25 +88,42 @@ h6 {
   color: var(--color-nav-active-text);
 }
 
-/* Dashboard */
+/* ── Skeleton shimmer ────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-border) 0%,
+    var(--color-surface-secondary) 50%,
+    var(--color-border) 100%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+  border-radius: 0.5rem;
+}
+
+/* ── Dashboard hero ──────────────────────────────────── */
 .hero-gradient {
-  background: linear-gradient(135deg, var(--color-primary) 0%, oklch(42% 0.07 210) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    oklch(38% 0.10 215) 50%,
+    oklch(45% 0.09 200) 100%
+  );
 }
 
 .hero-pattern {
   position: absolute;
   inset: 0;
-  opacity: 0.06;
+  opacity: 0.05;
   background-image:
-    radial-gradient(circle at 25% 25%, white 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, white 1px, transparent 1px);
-  background-size: 40px 40px;
+    radial-gradient(circle at 20% 30%, white 1px, transparent 1px),
+    radial-gradient(circle at 80% 70%, white 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, white 0.5px, transparent 0.5px);
+  background-size: 32px 32px, 48px 48px, 20px 20px;
 }
 
-.card-icon {
-  color: var(--color-primary-muted-foreground);
-}
-
+/* ── Quick cards ─────────────────────────────────────── */
 .quick-card:active {
   transform: scale(0.98);
 }
+

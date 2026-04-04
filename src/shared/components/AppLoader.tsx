@@ -6,16 +6,24 @@ export default function AppLoader() {
       aria-live="polite"
       aria-label="Cargando aplicación..."
     >
-      <div className="flex flex-col items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg">
-          <span className="text-xl font-bold text-primary-foreground">A</span>
+      <div className="flex flex-col items-center gap-5">
+        {/* Brand mark with pulse ring */}
+        <div className="relative">
+          <div className="absolute inset-0 animate-ping rounded-2xl bg-primary/20" aria-hidden />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg">
+            <span className="text-2xl font-bold text-primary-foreground">A</span>
+          </div>
         </div>
+
+        {/* Spinner */}
         <div
-          className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary"
+          className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-primary"
           aria-hidden
         />
-        <p className="text-sm text-on-surface-secondary">ArquiSoft</p>
+
+        <p className="text-sm font-medium text-on-surface-secondary">Iniciando ArquiSoft…</p>
       </div>
     </div>
   );
 }
+

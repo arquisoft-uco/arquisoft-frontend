@@ -1,13 +1,12 @@
+import { Map } from 'lucide-react';
+import ComingSoon from '../../shared/components/ComingSoon';
+
 export default function MapasRuta() {
   return (
-    <div className="flex flex-col gap-6 animate-fade-up">
-      <header>
-        <h1 className="text-2xl font-bold text-on-surface">Mapas de Ruta</h1>
-        <p className="mt-1 text-sm text-on-surface-secondary">Planificación y seguimiento de rutas de aprendizaje</p>
-      </header>
-      <section className="rounded-xl border border-border bg-surface p-6 shadow-sm">
-        {/* TODO: contenido principal */}
-      </section>
-    </div>
+    <ComingSoon
+      title="Mapas de Ruta"
+      description="Planificación e itinerarios de proyectos académicos"
+      icon={Map}
+    />
   );
 }
