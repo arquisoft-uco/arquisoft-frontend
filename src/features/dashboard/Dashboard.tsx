@@ -11,15 +11,30 @@ import {
   Clock,
   BarChart3,
   Sparkles,
+  BookOpen,
+  CloudUpload,
+  Map,
+  ChevronRight,
+  GitBranch,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useUsername } from '../../hooks/useAuth';
 
-interface QuickCard {
+interface FlowCard {
+  step: number;
   route: string;
   icon: LucideIcon;
   label: string;
   description: string;
+  accent: 'primary' | 'secondary' | 'tertiary';
+}
+
+interface SupportCard {
+  route: string;
+  icon: LucideIcon;
+  label: string;
+  description: string;
+  dependsLabel: string;
   accent: 'primary' | 'secondary' | 'tertiary';
 }
 
@@ -35,14 +50,17 @@ const QUICK_ACCENT = {
   primary: {
     wrapper: 'bg-primary-muted group-hover:bg-primary',
     icon: 'text-primary group-hover:text-white',
+    step: 'bg-primary/15 text-primary',
   },
   secondary: {
     wrapper: 'bg-secondary-muted group-hover:bg-secondary',
     icon: 'text-secondary group-hover:text-white',
+    step: 'bg-secondary/15 text-secondary',
   },
   tertiary: {
     wrapper: 'bg-tertiary-muted group-hover:bg-tertiary',
     icon: 'text-tertiary-muted-foreground group-hover:text-white',
+    step: 'bg-tertiary-muted text-tertiary-muted-foreground',
   },
 } as const;
 
@@ -52,13 +70,21 @@ const STAT_ACCENT = {
   tertiary: { bg: 'bg-tertiary-muted', icon: 'text-tertiary-muted-foreground', trend: 'text-tertiary-muted-foreground' },
 } as const;
 
-const quickCards: QuickCard[] = [
-  { route: '/fichas-perfil', icon: FileText, label: 'Fichas de Perfil', description: 'Gestionar expedientes académicos', accent: 'primary' },
-  { route: '/proyectos-grado', icon: GraduationCap, label: 'Proyectos de Grado', description: 'Seguimiento de tesis e investigación', accent: 'secondary' },
-  { route: '/artefactos', icon: Folder, label: 'Artefactos', description: 'Arquitecturas y diseños técnicos', accent: 'tertiary' },
-  { route: '/entregables', icon: Send, label: 'Entregables', description: 'Control de envíos y entregas', accent: 'primary' },
-  { route: '/evaluaciones', icon: ClipboardCheck, label: 'Evaluaciones', description: 'Calificar y revisar desempeño', accent: 'secondary' },
-  { route: '/solicitudes', icon: ClipboardList, label: 'Solicitudes', description: 'Trámites institucionales', accent: 'tertiary' },
+/** Main linear flow: steps 1 → 6 */
+const flowCards: FlowCard[] = [
+  { step: 1, route: '/fichas-perfil',     icon: FileText,       label: 'Fichas de Perfil',     description: 'Expedientes académicos', accent: 'primary'   },
+  { step: 2, route: '/proyectos-grado',   icon: GraduationCap,  label: 'Proyectos de Grado',   description: 'Tesis e investigación',  accent: 'secondary' },
+  { step: 3, route: '/artefactos',        icon: Folder,         label: 'Artefactos',           description: 'Diseños y arquitecturas', accent: 'tertiary' },
+  { step: 4, route: '/entregables',       icon: Send,           label: 'Entregables',          description: 'Control de entregas',    accent: 'primary'   },
+  { step: 5, route: '/evaluaciones',      icon: ClipboardCheck, label: 'Evaluaciones',         description: 'Calificación y revisión', accent: 'secondary' },
+  { step: 6, route: '/biblioteca',        icon: BookOpen,       label: 'Biblioteca',           description: 'Recursos académicos',    accent: 'tertiary'  },
+];
+
+/** Modules that branch off / depend on flow nodes */
+const supportCards: SupportCard[] = [
+  { route: '/repositorio-artefactos', icon: CloudUpload,    label: 'Repositorio de Artefactos', description: 'Repositorio centralizado de artefactos técnicos', dependsLabel: 'Requerido por Artefactos',      accent: 'tertiary'  },
+  { route: '/mapas-ruta',             icon: Map,            label: 'Mapas de Ruta',             description: 'Planificación e itinerarios de proyectos',       dependsLabel: 'Requiere Proyectos de Grado',  accent: 'secondary' },
+  { route: '/solicitudes',            icon: ClipboardList,  label: 'Solicitudes',               description: 'Trámites y solicitudes institucionales',          dependsLabel: 'Requiere Proyectos de Grado',  accent: 'primary'   },
 ];
 
 const statCards: StatCard[] = [
@@ -128,43 +154,115 @@ export default function Dashboard() {
         })}
       </section>
 
-      {/* Quick access */}
-      <section aria-labelledby="acceso-rapido-titulo">
+      {/* Main flow */}
+      <section aria-labelledby="flujo-titulo">
         <div className="mb-3 flex items-center justify-between sm:mb-4">
           <h2
-            id="acceso-rapido-titulo"
+            id="flujo-titulo"
             className="text-[11px] font-semibold uppercase tracking-widest text-on-surface-secondary"
           >
-            Módulos de Gestión
+            Flujo de Gestión
           </h2>
-          <span className="text-[11px] text-on-surface-secondary">{quickCards.length} módulos</span>
+          <span className="text-[11px] text-on-surface-secondary">{flowCards.length} pasos</span>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-          {quickCards.map((card) => {
+
+        {/* On lg+: inline flex row with ChevronRight separators.
+            On smaller: 2-col then 3-col grid. */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:flex lg:items-stretch lg:gap-0">
+          {flowCards.map((card, idx) => {
+            const Icon = card.icon;
+            const styles = QUICK_ACCENT[card.accent];
+            const isLast = idx === flowCards.length - 1;
+            return (
+              <div key={card.route} className="lg:flex lg:flex-1 lg:items-stretch">
+                <Link
+                  to={card.route}
+                  className="group flex flex-1 flex-col gap-2.5 rounded-xl border border-border bg-surface p-3.5 shadow-card outline-none transition-all duration-200 hover:border-border-strong hover:shadow-card-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`inline-flex h-5 min-w-[1.75rem] items-center justify-center rounded px-1 text-[10px] font-bold ${styles.step}`}
+                    >
+                      {String(card.step).padStart(2, '0')}
+                    </span>
+                    <ArrowRight
+                      size={12}
+                      className="text-on-surface-secondary opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-60"
+                      aria-hidden
+                    />
+                  </div>
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-200 ${styles.wrapper}`}
+                  >
+                    <Icon size={15} className={`transition-colors duration-200 ${styles.icon}`} aria-hidden />
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-semibold leading-tight text-on-surface">{card.label}</p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-on-surface-secondary">
+                      {card.description}
+                    </p>
+                  </div>
+                </Link>
+
+                {/* Arrow connector — desktop only, between cards */}
+                {!isLast && (
+                  <div className="hidden lg:flex lg:shrink-0 lg:items-center lg:px-0.5" aria-hidden>
+                    <ChevronRight size={13} className="text-border-strong" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Complementary / dependent modules */}
+      <section aria-labelledby="complementarios-titulo">
+        <div className="mb-3 flex items-center justify-between sm:mb-4">
+          <h2
+            id="complementarios-titulo"
+            className="text-[11px] font-semibold uppercase tracking-widest text-on-surface-secondary"
+          >
+            Módulos Complementarios
+          </h2>
+          <span className="text-[11px] text-on-surface-secondary">{supportCards.length} módulos</span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          {supportCards.map((card) => {
             const Icon = card.icon;
             const styles = QUICK_ACCENT[card.accent];
             return (
               <Link
                 key={card.route}
                 to={card.route}
-                className="quick-card group flex items-start gap-4 rounded-xl border border-border bg-surface p-4 shadow-card outline-none transition-all duration-200 hover:border-border-strong hover:shadow-card-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:p-5"
+                className="group flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-card outline-none transition-all duration-200 hover:border-border-strong hover:shadow-card-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:p-5"
               >
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 sm:h-11 sm:w-11 ${styles.wrapper}`}
-                >
-                  <Icon size={19} className={`transition-colors duration-200 ${styles.icon}`} aria-hidden />
+                {/* Dependency badge */}
+                <div className="flex items-center gap-1.5">
+                  <GitBranch size={10} className="shrink-0 text-on-surface-secondary" aria-hidden />
+                  <span className="truncate text-[10px] font-medium text-on-surface-secondary">
+                    {card.dependsLabel}
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-on-surface">{card.label}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-on-surface-secondary">
-                    {card.description}
-                  </p>
+                {/* Icon + text */}
+                <div className="flex items-start gap-3">
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${styles.wrapper}`}
+                  >
+                    <Icon size={17} className={`transition-colors duration-200 ${styles.icon}`} aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-on-surface">{card.label}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-on-surface-secondary">
+                      {card.description}
+                    </p>
+                  </div>
+                  <ArrowRight
+                    size={13}
+                    className="mt-1 shrink-0 text-on-surface-secondary opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-60"
+                    aria-hidden
+                  />
                 </div>
-                <ArrowRight
-                  size={15}
-                  className="mt-1 shrink-0 text-on-surface-secondary opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-60"
-                  aria-hidden
-                />
               </Link>
             );
           })}
