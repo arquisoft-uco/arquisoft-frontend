@@ -1,13 +1,11 @@
 import { useState, useCallback, useEffect, Suspense } from 'react';
 import { Outlet } from 'react-router';
-import { useRolActivo } from '../hooks/useAuth';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import PageSkeleton from '../shared/components/PageSkeleton';
 import { ChunkErrorBoundary } from '../shared/components/ChunkErrorBoundary';
 
 export default function AppLayout() {
-  const rolActivo = useRolActivo();
   // On desktop the sidebar starts open; on mobile it starts closed.
   const [sidenavOpen, setSidenavOpen] = useState(() => window.innerWidth >= 1024);
 
@@ -24,14 +22,10 @@ export default function AppLayout() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [sidenavOpen, closeSidenav]);
 
-  // Close sidebar when route changes on mobile
-  const showSidebar = sidenavOpen && rolActivo !== null;
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Mobile backdrop overlay */}
-      {showSidebar && isMobile && (
+      {/* Mobile backdrop overlay — lg:hidden handles desktop via CSS */}
+      {sidenavOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[2px] animate-fade-in lg:hidden"
           aria-hidden
@@ -44,11 +38,11 @@ export default function AppLayout() {
         className={[
           'fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-border bg-surface transition-transform duration-300 ease-out',
           'lg:static lg:z-auto lg:w-[260px] lg:translate-x-0',
-          showSidebar ? 'translate-x-0 shadow-lg' : '-translate-x-full',
+          sidenavOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full',
         ].join(' ')}
         role="navigation"
         aria-label="Navegación principal"
-        aria-hidden={!showSidebar}
+        aria-hidden={!sidenavOpen}
       >
         <Sidebar onClose={closeSidenav} />
       </aside>
