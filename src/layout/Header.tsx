@@ -49,7 +49,7 @@ export default function Header({ onMenuToggle }: Props) {
 
   return (
     <header
-      className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-surface/95 px-3 backdrop-blur-sm sm:h-16 sm:px-4"
+      className="flex h-14 shrink-0 items-center gap-2 border-b border-border/50 bg-white/70 px-3 backdrop-blur-xl sm:h-16 sm:px-4"
       role="banner"
     >
       {/* Skip to main content */}
@@ -68,17 +68,6 @@ export default function Header({ onMenuToggle }: Props) {
       >
         <Menu size={19} aria-hidden />
       </button>
-
-      {/* Brand — hidden on very small screens */}
-      <div className="ml-0.5 hidden items-center gap-2.5 sm:flex">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm">
-          <span className="text-sm font-bold text-primary-foreground">A</span>
-        </div>
-        <div>
-          <span className="text-[15px] font-bold tracking-tight text-on-surface">ArquiSoft</span>
-          <span className="ml-1.5 hidden text-xs text-on-surface-secondary lg:inline">Portal Académico</span>
-        </div>
-      </div>
 
       <span className="flex-1" aria-hidden />
 
@@ -107,7 +96,7 @@ export default function Header({ onMenuToggle }: Props) {
 
           {rolMenuOpen && (
             <div
-              className="animate-scale-in absolute right-0 top-full z-50 mt-1.5 min-w-[210px] overflow-hidden rounded-xl border border-border bg-surface shadow-dropdown"
+              className="animate-scale-in absolute right-0 top-full z-50 mt-1.5 min-w-[210px] overflow-hidden rounded-xl border border-white/40 bg-white/85 shadow-dropdown backdrop-blur-xl"
               role="menu"
               aria-label="Cambiar rol activo"
               onClick={(e) => e.stopPropagation()}
@@ -161,7 +150,7 @@ export default function Header({ onMenuToggle }: Props) {
 
         {userMenuOpen && (
           <div
-            className="animate-scale-in absolute right-0 top-full z-50 mt-1.5 min-w-[210px] overflow-hidden rounded-xl border border-border bg-surface shadow-dropdown"
+            className="animate-scale-in absolute right-0 top-full z-50 mt-1.5 min-w-[210px] overflow-hidden rounded-xl border border-white/40 bg-white/85 shadow-dropdown backdrop-blur-xl"
             role="menu"
             onClick={(e) => e.stopPropagation()}
           >

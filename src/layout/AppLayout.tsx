@@ -36,9 +36,9 @@ export default function AppLayout() {
       {/* Sidebar — fixed drawer on mobile, static column on desktop */}
       <aside
         className={[
-          'fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-border bg-surface transition-transform duration-300 ease-out',
+          'fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-border/50 bg-white/80 backdrop-blur-xl transition-transform duration-300 ease-out',
           'lg:static lg:z-auto lg:w-[260px] lg:translate-x-0',
-          sidenavOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full',
+          sidenavOpen ? 'translate-x-0 shadow-[4px_0_32px_-4px_oklch(0%_0_0/0.12)]' : '-translate-x-full',
         ].join(' ')}
         role="navigation"
         aria-label="Navegación principal"

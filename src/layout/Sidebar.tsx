@@ -26,7 +26,7 @@ export default function Sidebar({ onClose }: Props) {
   return (
     <div className="flex h-full flex-col">
       {/* Sidebar header */}
-      <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-4 sm:h-16">
+      <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border/50 px-4 sm:h-16">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary shadow-sm">
             <University size={16} className="text-primary-foreground" aria-hidden />
@@ -77,7 +77,7 @@ export default function Sidebar({ onClose }: Props) {
       </nav>
 
       {/* Footer */}
-      <div className="shrink-0 border-t border-border px-4 py-3">
+      <div className="shrink-0 border-t border-border/50 px-4 py-3">
         <p className="text-[11px] text-on-surface-secondary">
           ArquiSoft &copy; {new Date().getFullYear()}
         </p>
