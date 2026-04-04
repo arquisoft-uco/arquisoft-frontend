@@ -3,6 +3,7 @@ import { Outlet } from 'react-router';
 import { keycloak, scheduleRefresh } from '../keycloak';
 import { useAuthStore } from '../stores/authStore';
 import AppLoader from '../shared/components/AppLoader';
+import { initDevAuth } from '../dev/devAuth';
 
 /**
  * AuthGuard — layout route element that:
@@ -22,6 +23,12 @@ export default function AuthGuard() {
     // StrictMode mounts/unmounts twice — this ref prevents a second init() call.
     if (initRef.current) return;
     initRef.current = true;
+
+    // Dev bypass: omite Keycloak e inyecta un usuario ficticio desde .env.development.
+    if (import.meta.env.VITE_AUTH_BYPASS === 'true') {
+      initDevAuth();
+      return;
+    }
 
     let cleanup: (() => void) | undefined;
 
