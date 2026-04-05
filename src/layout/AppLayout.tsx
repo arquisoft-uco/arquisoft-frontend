@@ -27,7 +27,7 @@ export default function AppLayout() {
       {/* Mobile backdrop overlay — lg:hidden handles desktop via CSS */}
       {sidenavOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[2px] animate-fade-in lg:hidden"
+          className="fixed inset-0 z-30 cursor-pointer bg-black/40 backdrop-blur-[2px] animate-fade-in lg:hidden"
           aria-hidden
           onClick={closeSidenav}
         />

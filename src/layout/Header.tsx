@@ -49,7 +49,7 @@ export default function Header({ onMenuToggle }: Props) {
 
   return (
     <header
-      className="flex h-14 shrink-0 items-center gap-2 border-b border-border/50 bg-white/70 px-3 backdrop-blur-xl sm:h-16 sm:px-4"
+      className="relative z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border/50 bg-white/70 px-3 backdrop-blur-xl sm:h-16 sm:px-4"
       role="banner"
     >
       {/* Skip to main content */}
