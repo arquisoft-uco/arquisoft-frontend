@@ -51,7 +51,7 @@ export default function AppLayout() {
 
       {/* Main content column */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Header onMenuToggle={() => setSidenavOpen((v) => !v)} />
+        <Header onMenuToggle={() => setSidenavOpen((v) => !v)} isSidenavOpen={sidenavOpen} />
         <main
           className="flex-1 overflow-y-auto bg-background p-4 sm:p-6 lg:p-8"
           id="main-content"

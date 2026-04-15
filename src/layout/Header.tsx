@@ -7,9 +7,10 @@ import { ETIQUETAS_ROL, Rol } from '../shared/models/rol';
 
 interface Props {
   onMenuToggle: () => void;
+  isSidenavOpen: boolean;
 }
 
-export default function Header({ onMenuToggle }: Props) {
+export default function Header({ onMenuToggle, isSidenavOpen }: Props) {
   const username = useUsername();
   const rolActivo = useRolActivo();
   const rolesDisponibles = useRolesDisponibles();
@@ -60,14 +61,16 @@ export default function Header({ onMenuToggle }: Props) {
         Ir al contenido principal
       </a>
 
-      <button
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-secondary transition-all duration-150 hover:bg-primary-muted hover:text-primary active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        onClick={onMenuToggle}
-        aria-label="Alternar menú de navegación"
-        type="button"
-      >
-        <Menu size={19} aria-hidden />
-      </button>
+      {!isSidenavOpen && (
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-secondary transition-all duration-150 hover:bg-primary-muted hover:text-primary active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          onClick={onMenuToggle}
+          aria-label="Abrir menú de navegación"
+          type="button"
+        >
+          <Menu size={19} aria-hidden />
+        </button>
+      )}
 
       <span className="flex-1" aria-hidden />
 

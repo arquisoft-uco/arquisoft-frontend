@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router';
-import { University, X } from 'lucide-react';
+import { University, ChevronsLeft } from 'lucide-react';
 import { NAV_ITEMS } from './nav-items';
 import { useRolActivo } from '../hooks/useAuth';
 
@@ -37,14 +37,14 @@ export default function Sidebar({ onClose }: Props) {
           </div>
         </div>
 
-        {/* Close button — only visible on mobile */}
+        {/* Close / collapse button */}
         <button
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-primary-muted hover:text-primary lg:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-primary-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
           onClick={onClose}
-          aria-label="Cerrar navegación"
+          aria-label="Ocultar menú de navegación"
           type="button"
         >
-          <X size={17} aria-hidden />
+          <ChevronsLeft size={17} aria-hidden />
         </button>
       </div>
 
