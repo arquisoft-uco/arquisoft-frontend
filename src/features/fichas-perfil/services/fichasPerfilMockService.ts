@@ -4,7 +4,7 @@ import type {
   EstadoRevision,
   EstadoObservacionRevision,
   TipoItem,
-  Estudiante,
+  Estudiante as EstudianteInterno,
   AsesorFicha,
   RepresentanteComiteCurriculum,
   FichaPerfil as FichaPerfilInterna,
@@ -34,6 +34,7 @@ import type {
 } from '../models/fichas-perfil';
 import type { Page } from '../../../shared/models/api-response';
 import type { Asesor } from '../models/Asesor';
+import type { Estudiante } from '../models/Estudiante';
 import type { FichaPerfil } from '../models/FichaPerfil';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -76,7 +77,7 @@ const TIPOS_ITEM: TipoItem[] = [
   { id: 'ti-6', nombre: 'Alcance', descripcion: 'Alcance del proyecto' },
 ];
 
-const ESTUDIANTES: Estudiante[] = [
+const ESTUDIANTES: EstudianteInterno[] = [
   { id: 'est-1', identificador: '20201001', nombre: 'Carlos Martínez', email: 'carlos@est.edu.co' },
   { id: 'est-2', identificador: '20201002', nombre: 'María López', email: 'maria@est.edu.co' },
   { id: 'est-3', identificador: '20201003', nombre: 'Juan García', email: 'juan@est.edu.co' },
@@ -219,7 +220,7 @@ export function consultarTodosTipoItem(): Promise<TipoItem[]> {
   return delay([...TIPOS_ITEM]);
 }
 
-export function consultarEstudiante(identificador: string): Promise<Estudiante | undefined> {
+export function consultarEstudiante(identificador: string): Promise<EstudianteInterno | undefined> {
   return delay(ESTUDIANTES.find((e) => e.identificador === identificador || e.id === identificador));
 }
 
@@ -231,8 +232,9 @@ export function consultarRepresentanteComite(identificador: string): Promise<Rep
   return delay(REPRESENTANTES.find((r) => r.identificador === identificador || r.id === identificador));
 }
 
-export function consultarTodosEstudiantes(): Promise<Estudiante[]> {
-  return delay([...ESTUDIANTES]);
+export function consultarEstudiantesDisponibles(): Promise<Estudiante[]> {
+  const estudiantes: Estudiante[] = ESTUDIANTES.map((e) => ({ id: e.id, nombre: e.nombre, email: e.email }));
+  return delay(estudiantes);
 }
 
 export function consultarAsesoresDisponibles(): Promise<Asesor[]> {
@@ -268,7 +270,7 @@ export function asignarEstudianteAFichaPerfil(fichaPerfilId: string, req: Asigna
   return delay(rel);
 }
 
-export function consultarEstudiantesFichaPerfil(fichaPerfilId: string): Promise<Estudiante[]> {
+export function consultarEstudiantesFichaPerfil(fichaPerfilId: string): Promise<EstudianteInterno[]> {
   const ids = estudiantesFichaPerfil.filter((e) => e.fichaPerfilId === fichaPerfilId).map((e) => e.estudianteId);
   return delay(ESTUDIANTES.filter((e) => ids.includes(e.id)));
 }
@@ -296,7 +298,7 @@ export function modificarTituloFichaPerfil(req: { tituloProyecto: string }): Pro
   return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID)!);
 }
 
-export function consultarCompanerosFichaPerfil(): Promise<Estudiante[]> {
+export function consultarCompanerosFichaPerfil(): Promise<EstudianteInterno[]> {
   return consultarEstudiantesFichaPerfil(MI_FICHA_ID);
 }
 
@@ -488,7 +490,7 @@ export function removerObservacionEvaluacion(observacionEvaluacionId: string): P
   return delay(undefined);
 }
 
-export function consultarFichasDisponiblesParaEvaluar(): Promise<FichaPerfil[]> {
+export function consultarFichasDisponiblesParaEvaluar(): Promise<FichaPerfilInterna[]> {
   const fichasDisponibles = estadosFichaPerfil
     .filter((e) => e.estadoFichaId === 'ef-4')
     .map((e) => e.fichaPerfilId);
