@@ -66,6 +66,11 @@ jobs:
             type=semver,pattern=v{{version}}
             type=semver,pattern=v{{major}}.{{minor}}
 
+      # ── Setup Buildx ──
+      - name: Configurar Docker Buildx
+        if: steps.check.outputs.ready == 'true'
+        uses: docker/setup-buildx-action@v3
+
       # ── Build & Push ──
       - name: Build y push imagen Docker
         if: steps.check.outputs.ready == 'true'

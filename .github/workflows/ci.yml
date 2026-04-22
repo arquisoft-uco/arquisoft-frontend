@@ -54,6 +54,11 @@ jobs:
         if: steps.check.outputs.exists == 'true'
         run: npm ci
 
+      # ── Generar environment.ts para CI ──
+      - name: Generar environment.ts
+        if: steps.check.outputs.exists == 'true'
+        run: cp src/environments/environment.ts.example src/environments/environment.ts
+
       # ── Lint (ESLint) ──
       - name: Lint — ESLint
         if: steps.check.outputs.exists == 'true'
