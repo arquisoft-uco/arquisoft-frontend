@@ -62,7 +62,7 @@ jobs:
       # ── Tests ──
       - name: Tests
         if: steps.check.outputs.exists == 'true'
-        run: npm test -- --passWithNoTests
+        run: npm test -- --run --passWithNoTests
 
       # ── Build ──
       - name: Build de producción
