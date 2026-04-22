@@ -4,6 +4,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import PageSkeleton from '../shared/components/PageSkeleton';
 import { ChunkErrorBoundary } from '../shared/components/ChunkErrorBoundary';
+import Toaster from '../shared/components/Toaster';
 
 export default function AppLayout() {
   // On desktop the sidebar starts open; on mobile it starts closed.
@@ -64,6 +65,7 @@ export default function AppLayout() {
           </ChunkErrorBoundary>
         </main>
       </div>
+      <Toaster />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
 import { consultarAsesoresDisponibles, consultarEstudiantesDisponibles } from '../services/fichasPerfilMockService';
+import { toast } from '../../../shared/hooks/useToast';
 
 const MAX_ESTUDIANTES = 3;
 
@@ -28,7 +29,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     queryFn: consultarEstudiantesDisponibles,
   });
 
-  const { mutate, isPending, isError, error, reset: resetMutation } = useRegistrarFichaPerfil();
+  const { mutate, isPending, reset: resetMutation } = useRegistrarFichaPerfil();
 
   const estudiantesDisponiblesParaAgregar = estudiantes.filter(
     (e) => !idEstudiantes.includes(e.id),
@@ -66,8 +67,15 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
       { titulo: titulo.trim(), idAsesorFicha, idEstudiantes },
       {
         onSuccess: () => {
+          toast.success('Ficha de perfil registrada', `"${titulo.trim()}" fue creada correctamente.`);
           resetForm();
           onCerrar();
+        },
+        onError: (err) => {
+          toast.error(
+            'Error al registrar la ficha',
+            err instanceof Error ? err.message : 'Verifica los datos e inténtalo nuevamente.',
+          );
         },
       },
     );
@@ -174,13 +182,6 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             <p className="text-xs text-on-surface-secondary">Máximo de estudiantes alcanzado.</p>
           )}
         </div>
-
-        {/* Error */}
-        {isError && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600" role="alert">
-            {error instanceof Error ? error.message : 'Error al registrar la ficha'}
-          </p>
-        )}
 
         {/* Acciones */}
         <div className="flex justify-end gap-2 border-t border-border pt-4">
