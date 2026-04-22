@@ -1,0 +1,1866 @@
+openapi: 3.0.3
+info:
+  title: API Fichas de Perfil - Arquisoft
+  description: |
+    Especificación OpenAPI para el bounded context de Fichas de Perfil.
+    
+    Derivada del Event Storming del dominio. Cada endpoint corresponde a una acción (caso de uso)
+    identificada en el Event Storming. Los endpoints están agrupados por el **rol/actor** que los consume.
+
+    ## Roles
+    - **Coordinador** — Crea fichas, asigna estudiantes y asesores.
+    - **Estudiante** — Desarrolla la ficha, gestiona ítems, consulta revisiones y evaluaciones.
+    - **Asesor Ficha** — Asesora fichas, revisa ítems, genera observaciones sobre ítems.
+    - **Representante Comité Currículum** — Evalúa fichas, genera observaciones de evaluación, aprueba/rechaza.
+
+  version: 1.0.0
+  contact:
+    name: Equipo Arquisoft
+
+servers:
+  - url: /api/v1/fichas-perfil
+    description: Base path del bounded context Fichas de Perfil
+
+tags:
+  # ── Por Actor ──
+  - name: Coordinador
+    description: Endpoints consumidos por el Coordinador
+  - name: Estudiante
+    description: Endpoints consumidos por el Estudiante
+  - name: Asesor Ficha
+    description: Endpoints consumidos por el Asesor Ficha
+  - name: Representante Comité Currículum
+    description: Endpoints consumidos por el Representante Comité Currículum
+  # ── Compartidos ──
+  - name: Compartido
+    description: Endpoints accesibles por múltiples roles (tablas de referencia y consultas de identidad)
+
+# ═══════════════════════════════════════════════════════════════════
+# PATHS
+# ═══════════════════════════════════════════════════════════════════
+paths:
+
+  # ────────────────────────────────────────────────────────────────
+  # COMPARTIDO — Tablas de referencia e identidad
+  # ────────────────────────────────────────────────────────────────
+
+  /estados-ficha:
+    get:
+      tags: [Compartido]
+      operationId: consultarTodosEstadosFicha
+      summary: Consultar todos los estados ficha
+      description: |
+        Permite conocer los estados ficha que pueden ser asignados a un estado ficha perfil.
+        
+        **Evento:** Todos los estados ficha consultados  
+        **Actores:** Estudiante, RepresentanteComiteCurriculum, Asesor Ficha
+      responses:
+        '200':
+          description: Lista de estados ficha
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstadoFicha'
+
+  /estados-evaluacion:
+    get:
+      tags: [Compartido]
+      operationId: consultarTodosEstadosEvaluacion
+      summary: Consultar todos los estados de evaluación
+      description: |
+        Tabla de referencia de estados de evaluación.  
+        **Actores:** RepresentanteComiteCurriculum, Estudiante, Asesor Ficha
+      responses:
+        '200':
+          description: Lista de estados de evaluación
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstadoEvaluacion'
+
+  /estados-revision:
+    get:
+      tags: [Compartido]
+      operationId: consultarTodosEstadosRevision
+      summary: Consultar todos los estados de revisión
+      description: |
+        Tabla de referencia de estados de revisión.  
+        **Actores:** Asesor Ficha, Estudiante
+      responses:
+        '200':
+          description: Lista de estados de revisión
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstadoRevision'
+
+  /estados-observacion-revision:
+    get:
+      tags: [Compartido]
+      operationId: consultarTodosEstadosObservacionRevision
+      summary: Consultar todos los estados de observación revisión
+      description: |
+        Tabla de referencia de estados de observación revisión.  
+        **Actores:** Asesor Ficha, Estudiante
+      responses:
+        '200':
+          description: Lista de estados de observación revisión
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstadoObservacionRevision'
+
+  /tipos-item:
+    get:
+      tags: [Compartido, Asesor Ficha]
+      operationId: consultarTodosTipoItem
+      summary: Consultar todos los tipo item disponibles
+      description: |
+        Permite conocer los tipos que pueden ser asignados a un item de una ficha de perfil.
+        
+        **Evento:** Todos los tipo item consultados  
+        **Actores:** Asesor Ficha
+      responses:
+        '200':
+          description: Lista de tipos de item
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TipoItem'
+
+  /estudiantes/{identificador}:
+    get:
+      tags: [Compartido]
+      operationId: consultarEstudiante
+      summary: Consultar información de un estudiante
+      description: |
+        Permite aplicar criterios de búsqueda para consultar la información de un estudiante.
+        
+        **Evento:** Estudiante consultado  
+        **Actores:** Asesor Ficha, RepresentanteComiteCurriculum, Estudiante  
+        **Política:** Estudiante-POL-1
+      parameters:
+        - $ref: '#/components/parameters/IdentificadorPath'
+      responses:
+        '200':
+          description: Información del estudiante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Estudiante'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /asesores-ficha/{identificador}:
+    get:
+      tags: [Compartido]
+      operationId: consultarAsesorFicha
+      summary: Consultar información de un asesor ficha
+      description: |
+        Permite aplicar criterios de búsqueda para consultar la información de un Asesor Ficha.
+        
+        **Evento:** Asesor Ficha Consultado  
+        **Actores:** Asesor Ficha, RepresentanteComiteCurriculum, Estudiante  
+        **Política:** AsesorFicha-POL-01
+      parameters:
+        - $ref: '#/components/parameters/IdentificadorPath'
+      responses:
+        '200':
+          description: Información del asesor ficha
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsesorFicha'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /representantes-comite/{identificador}:
+    get:
+      tags: [Compartido]
+      operationId: consultarRepresentanteComiteCurriculum
+      summary: Consultar información Representante Comité Currículum
+      description: |
+        Permite aplicar criterios de búsqueda para consultar la información de un Representante Comité Currículum.
+        
+        **Evento:** Representante Comite Curricullum consultado  
+        **Actores:** Asesor Ficha, Estudiante, Representante Comité Currículum  
+        **Política:** RepresentanteComiteCurricullum-POL-01
+      parameters:
+        - $ref: '#/components/parameters/IdentificadorPath'
+      responses:
+        '200':
+          description: Información del representante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepresentanteComiteCurriculum'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ────────────────────────────────────────────────────────────────
+  # COORDINADOR
+  # ────────────────────────────────────────────────────────────────
+
+  /coordinador/fichas-perfil:
+    post:
+      tags: [Coordinador]
+      operationId: registrarFichaPerfilCoordinador
+      summary: Registrar nueva información Ficha Perfil
+      description: |
+        Permite registrar información de una nueva ficha de perfil para ser visualizada y desarrollada por los usuarios.
+        
+        **Evento:** Nueva Ficha Perfil Asignada  
+        **Actores:** Coordinador, Asesor Ficha  
+        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-02, FichaPerfil-POL-03
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearFichaPerfilRequest'
+      responses:
+        '201':
+          description: Ficha perfil creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: El título de la ficha perfil ya existe (FichaPerfil-POL-02)
+
+    get:
+      tags: [Coordinador]
+      operationId: consultarFichasPerfilCoordinador
+      summary: Consultar información de Fichas Perfil generadas por el Coordinador
+      description: |
+        Permite aplicar criterios de búsqueda para la información de las fichas de perfil en general.
+        
+        **Evento:** Información de Ficha Perfil Generada por Coordinador Consultada  
+        **Actores:** Coordinador  
+        **Política:** FichaPerfil-POL-01
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista de fichas perfil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaFichasPerfil'
+
+  /coordinador/fichas-perfil/{fichaPerfilId}/asesor:
+    put:
+      tags: [Coordinador]
+      operationId: cambiarAsesorFichaPerfil
+      summary: Cambiar Asesor Ficha para Ficha Perfil
+      description: |
+        Permite cambiar el Asesor Ficha de una Ficha Perfil en específico.
+        
+        **Evento:** Asesor Ficha Cambiado  
+        **Actores:** Coordinador  
+        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-05
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CambiarAsesorRequest'
+      responses:
+        '200':
+          description: Asesor cambiado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: El asesor nuevo es el mismo que el anterior (FichaPerfil-POL-05)
+
+  /coordinador/fichas-perfil/{fichaPerfilId}/estudiantes:
+    post:
+      tags: [Coordinador]
+      operationId: asignarEstudianteAFichaPerfil
+      summary: Asignar estudiante a una ficha de perfil
+      description: |
+        Permite vincular los estudiantes responsables de desarrollar una ficha de perfil.
+        
+        **Evento:** Estudiante asignado a Ficha Perfil  
+        **Actores:** Coordinador  
+        **Políticas:** EstudianteFichaPerfil-POL-1, POL-2, POL-3
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AsignarEstudianteRequest'
+      responses:
+        '201':
+          description: Estudiante asignado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstudianteFichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Estudiante ya asignado o máximo de 3 estudiantes alcanzado
+
+    get:
+      tags: [Coordinador]
+      operationId: consultarEstudiantesFichaPerfil
+      summary: Consultar estudiantes vínculados a una ficha perfil
+      description: |
+        Permite conocer los estudiantes vinculados a una ficha de perfil específica.
+        
+        **Evento:** Estudiante de una Ficha Perfil Consultados  
+        **Actores:** Coordinador  
+        **Política:** EstudianteFichaPerfil-POL-1
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      responses:
+        '200':
+          description: Lista de estudiantes vinculados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Estudiante'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /coordinador/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}:
+    delete:
+      tags: [Coordinador]
+      operationId: removerEstudianteDeFichaPerfil
+      summary: Remover estudiante de una ficha perfil
+      description: |
+        Permite remover los estudiantes responsables de desarrollar una ficha de perfil.
+        
+        **Evento:** Estudiante Removido de Ficha Perfil  
+        **Actores:** Coordinador  
+        **Políticas:** EstudianteFichaPerfil-POL-1, POL-4
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+        - $ref: '#/components/parameters/EstudianteIdPath'
+      responses:
+        '204':
+          description: Estudiante removido
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ────────────────────────────────────────────────────────────────
+  # ESTUDIANTE
+  # ────────────────────────────────────────────────────────────────
+
+  /estudiante/mi-ficha-perfil:
+    get:
+      tags: [Estudiante]
+      operationId: consultarMiFichaPerfil
+      summary: Consultar información de la Ficha Perfil a la que pertenece
+      description: |
+        Permite consultar información de la ficha perfil en la cual el estudiante está asignado.
+        
+        **Evento:** Información de Ficha Perfil del Estudiante Consultada  
+        **Actores:** Estudiante  
+        **Política:** FichaPerfil-POL-01
+      responses:
+        '200':
+          description: Ficha perfil del estudiante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FichaPerfil'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /estudiante/mi-ficha-perfil/titulo:
+    put:
+      tags: [Estudiante]
+      operationId: modificarFichaPerfil
+      summary: Modificar título de Ficha Perfil
+      description: |
+        Permite modificar el título de la ficha de perfil.
+        
+        **Evento:** Ficha Perfil Modificada  
+        **Actores:** Estudiante  
+        **Política:** FichaPerfil-POL-01
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificarFichaPerfilRequest'
+      responses:
+        '200':
+          description: Ficha perfil modificada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /estudiante/mi-ficha-perfil/companeros:
+    get:
+      tags: [Estudiante]
+      operationId: consultarCompanerosFichaPerfil
+      summary: Consultar compañeros Estudiantes vinculados a la ficha de perfil
+      description: |
+        Permite conocer los estudiantes vinculados a la ficha de perfil a la que pertenece el estudiante.
+        
+        **Evento:** Compañeros de una Ficha Perfil Consultados  
+        **Actores:** Estudiante  
+        **Política:** EstudianteFichaPerfil-POL-1
+      responses:
+        '200':
+          description: Lista de compañeros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Estudiante'
+
+  /estudiante/mi-ficha-perfil/estados:
+    post:
+      tags: [Estudiante]
+      operationId: agregarEstadoFichaPerfilEstudiante
+      summary: Agregar Estado Ficha Perfil
+      description: |
+        Permite agregar un nuevo estado a la ficha perfil (ej. "En Construccion", "Disponible para revisar").
+        
+        **Evento:** Nuevo Estado Ficha Perfil Agregado  
+        **Actores:** Estudiante, Asesor Ficha  
+        **Políticas:** EstadoFichaPerfil-POL-01 a POL-06
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgregarEstadoFichaPerfilRequest'
+      responses:
+        '201':
+          description: Estado ficha perfil agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoFichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Estado duplicado o transición no permitida
+
+    get:
+      tags: [Estudiante]
+      operationId: consultarEstadoFichaPerfilEstudiante
+      summary: Consultar información de Estado Ficha Perfil
+      description: |
+        Permite consultar información del Estado Ficha Perfil de la ficha que desarrolla el estudiante.
+        
+        **Evento:** Estado Ficha Perfil Consultado  
+        **Actores:** Estudiante  
+        **Política:** EstadoFichaPerfil-POL-02
+      responses:
+        '200':
+          description: Estados de la ficha perfil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstadoFichaPerfil'
+
+  /estudiante/mi-ficha-perfil/items:
+    post:
+      tags: [Estudiante]
+      operationId: agregarItemFichaPerfil
+      summary: Agregar Item a ficha perfil
+      description: |
+        Permite agregar información importante para una ficha de perfil.
+        
+        **Evento:** Item Agregado a la ficha perfil  
+        **Actores:** Estudiante  
+        **Políticas:** Item-POL-1, Item-POL-02, Item-POL-03
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearItemRequest'
+      responses:
+        '201':
+          description: Item agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Tipo item duplicado en la ficha (Item-POL-02)
+
+    get:
+      tags: [Estudiante]
+      operationId: consultarItemsMiFichaPerfil
+      summary: Consultar información de los items de su Ficha Perfil
+      description: |
+        Permite la búsqueda de los items de la Ficha Perfil del estudiante.
+        
+        **Evento:** Información Item del Estudiante Consultada  
+        **Actores:** Estudiante  
+        **Políticas:** Item-POL-01, Item-POL-06
+      responses:
+        '200':
+          description: Lista de items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+
+  /estudiante/mi-ficha-perfil/items/{itemId}:
+    put:
+      tags: [Estudiante]
+      operationId: modificarItem
+      summary: Modificar información de un Item
+      description: |
+        Permite modificar el contenido de un item existente.
+        
+        **Evento:** Información Item Modificada  
+        **Actores:** Estudiante  
+        **Políticas:** Item-POL-01, Item-POL-04
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificarItemRequest'
+      responses:
+        '200':
+          description: Item modificado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Estudiante]
+      operationId: removerItem
+      summary: Remover información de un Item
+      description: |
+        Permite remover un item de la ficha de perfil.
+        
+        **Evento:** Información Item Removida  
+        **Actores:** Estudiante  
+        **Políticas:** Item-POL-01, Item-POL-05
+      parameters:
+        - $ref: '#/components/parameters/ItemIdPath'
+      responses:
+        '204':
+          description: Item removido
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: No se puede remover un item con revisión generada (Item-POL-05)
+
+  /estudiante/mi-ficha-perfil/evaluaciones:
+    get:
+      tags: [Estudiante]
+      operationId: consultarEvaluacionesMiFichaPerfil
+      summary: Consultar evaluaciones de la Ficha Perfil que pertenece
+      description: |
+        Permite buscar las evaluaciones de la ficha perfil a la que pertenece el estudiante.
+        
+        **Evento:** Información Evaluacion Ficha Perfil que Pertenece Consultada  
+        **Actores:** Estudiante  
+        **Política:** EvaluacionFichaPerfil-POL-1
+      responses:
+        '200':
+          description: Lista de evaluaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluacionFichaPerfil'
+
+  /estudiante/mi-ficha-perfil/revisiones-items:
+    get:
+      tags: [Estudiante]
+      operationId: consultarRevisionesItemsMiFichaPerfil
+      summary: Consultar Revisiones Item de su Ficha Perfil
+      description: |
+        Permite consultar las revisiones de items de la ficha perfil del estudiante.
+        
+        **Evento:** Revision Item de su Ficha Perfil Consultada  
+        **Actores:** Estudiante  
+        **Política:** RevisionItem-POL-01
+      responses:
+        '200':
+          description: Lista de revisiones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RevisionItem'
+
+  /estudiante/mi-ficha-perfil/observaciones-items:
+    get:
+      tags: [Estudiante]
+      operationId: consultarObservacionesItemsMiFichaPerfil
+      summary: Consultar Observaciones Item de su Ficha Perfil
+      description: |
+        Permite consultar las observaciones de items de la ficha perfil del estudiante.
+        
+        **Evento:** Observacion Item de su Ficha Perfil Consultada  
+        **Actores:** Estudiante  
+        **Política:** ObservacionEvaluacion-POL-01
+      responses:
+        '200':
+          description: Lista de observaciones de items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObservacionItem'
+
+  /estudiante/mi-ficha-perfil/observaciones-evaluacion:
+    get:
+      tags: [Estudiante]
+      operationId: consultarObservacionesEvaluacionMiFichaPerfil
+      summary: Consultar Observaciones Evaluación de su Ficha Perfil
+      description: |
+        Permite consultar las observaciones de evaluación de la ficha perfil del estudiante.
+        
+        **Evento:** Observacion Evaluacion de su Ficha Perfil Consultada  
+        **Actores:** Estudiante  
+        **Política:** ObservacionEvaluacion-POL-01
+      responses:
+        '200':
+          description: Lista de observaciones de evaluación
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObservacionEvaluacion'
+
+  # ────────────────────────────────────────────────────────────────
+  # ASESOR FICHA
+  # ────────────────────────────────────────────────────────────────
+
+  /asesor/fichas-perfil:
+    post:
+      tags: [Asesor Ficha]
+      operationId: registrarFichaPerfilAsesor
+      summary: Registrar nueva información Ficha Perfil
+      description: |
+        Permite registrar información de una nueva ficha de perfil.
+        
+        **Evento:** Nueva Ficha Perfil Asignada  
+        **Actores:** Coordinador, Asesor Ficha  
+        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-02, FichaPerfil-POL-03
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearFichaPerfilRequest'
+      responses:
+        '201':
+          description: Ficha perfil creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: El título de la ficha perfil ya existe
+
+  /asesor/mis-fichas-perfil:
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarFichasPerfilQueAsesora
+      summary: Consultar Fichas Perfil que asesora
+      description: |
+        Permite consultar las fichas de perfil que asesora el Asesor Ficha.
+        
+        **Evento:** Información de Ficha Perfil Consultada Por Asesor Ficha  
+        **Actores:** Asesor Ficha  
+        **Política:** FichaPerfil-POL-01
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista de fichas perfil
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaFichasPerfil'
+
+  /asesor/mis-fichas-perfil/{fichaPerfilId}/estados:
+    post:
+      tags: [Asesor Ficha]
+      operationId: agregarEstadoFichaPerfilAsesor
+      summary: Agregar Estado Ficha Perfil (como asesor)
+      description: |
+        Permite agregar estado a la ficha perfil que asesora.
+        
+        **Evento:** Nuevo Estado Ficha Perfil Agregado  
+        **Actores:** Estudiante, Asesor Ficha  
+        **Políticas:** EstadoFichaPerfil-POL-01 a POL-08
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgregarEstadoFichaPerfilRequest'
+      responses:
+        '201':
+          description: Estado agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoFichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Transición de estado no permitida
+
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarEstadosFichaPerfilQueAsesora
+      summary: Consultar Estados Ficha Perfil que asesora
+      description: |
+        Permite consultar los estados de las fichas perfil que asesora.
+        
+        **Evento:** Estado Ficha Perfil que Asesora Consultado  
+        **Actores:** Asesor Ficha  
+        **Política:** EstadoFichaPerfil-POL-02
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      responses:
+        '200':
+          description: Estados de la ficha perfil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstadoFichaPerfil'
+
+  /asesor/mis-fichas-perfil/{fichaPerfilId}/items:
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarItemsFichaPerfilAsesorada
+      summary: Consultar items de una Ficha Perfil a Asesorar
+      description: |
+        Permite consultar los items de una ficha perfil que asesora.
+        
+        **Evento:** Información Items del Asesor Ficha Consultada  
+        **Actores:** Asesor Ficha  
+        **Políticas:** Item-POL-01, Item-POL-06
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      responses:
+        '200':
+          description: Lista de items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /asesor/mis-fichas-perfil/{fichaPerfilId}/evaluaciones:
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarEvaluacionesFichaPerfilAsesorada
+      summary: Consultar evaluaciones de fichas que asesora
+      description: |
+        Permite consultar las evaluaciones de las fichas de perfil que asesora.
+        
+        **Evento:** Información Evaluacion Ficha Perfil Consultada Por Asesor Ficha  
+        **Actores:** Asesor Ficha  
+        **Política:** EvaluacionFichaPerfil-POL-1
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      responses:
+        '200':
+          description: Lista de evaluaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluacionFichaPerfil'
+
+  /asesor/revisiones-items:
+    post:
+      tags: [Asesor Ficha]
+      operationId: agregarRevisionItem
+      summary: Agregar Revisión Item
+      description: |
+        Permite agregar una revisión a un item de una ficha de perfil.
+        
+        **Evento:** Revision Item Agregado  
+        **Actores:** Asesor Ficha  
+        **Políticas:** RevisionItem-POL-01, RevisionItem-POL-02
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearRevisionItemRequest'
+      responses:
+        '201':
+          description: Revisión creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Ya existe una revisión para el mismo item (RevisionItem-POL-02)
+
+  /asesor/mis-revisiones-items:
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarRevisionesItemElaboradas
+      summary: Consultar Revisiones Item elaboradas
+      description: |
+        Permite consultar las revisiones de items que ha elaborado el asesor.
+        
+        **Evento:** Revision Item Elaborada por Asesor Ficha Consultada  
+        **Actores:** Asesor Ficha  
+        **Política:** RevisionItem-POL-01
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista de revisiones elaboradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RevisionItem'
+
+  /asesor/revisiones-items/{revisionItemId}:
+    put:
+      tags: [Asesor Ficha]
+      operationId: modificarRevisionItem
+      summary: Modificar Revisión Item
+      description: |
+        Permite modificar una revisión de item (estado de revisión).
+        
+        **Evento:** Revision Item Modificado  
+        **Actores:** Asesor Ficha  
+        **Políticas:** RevisionItem-POL-01, RevisionItem-POL-02
+      parameters:
+        - $ref: '#/components/parameters/RevisionItemIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificarRevisionItemRequest'
+      responses:
+        '200':
+          description: Revisión modificada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevisionItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Asesor Ficha]
+      operationId: removerRevisionItem
+      summary: Remover Revisión Item
+      description: |
+        Permite remover una revisión de item junto con sus observaciones.
+        
+        **Evento:** Revision Item Removido  
+        **Actores:** Asesor Ficha  
+        **Políticas:** RevisionItem-POL-01, RevisionItem-POL-03
+      parameters:
+        - $ref: '#/components/parameters/RevisionItemIdPath'
+      responses:
+        '204':
+          description: Revisión removida (junto con observaciones asociadas)
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /asesor/observaciones-items:
+    post:
+      tags: [Asesor Ficha]
+      operationId: agregarObservacionItem
+      summary: Agregar Observación Item
+      description: |
+        Permite agregar una observación a una revisión de item.
+        
+        **Evento:** Observacion Evaluacion Agregada (Observacion Item)  
+        **Actores:** Asesor Ficha  
+        **Políticas:** ObservacionEvaluacion-POL-01, POL-02
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearObservacionItemRequest'
+      responses:
+        '201':
+          description: Observación creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservacionItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /asesor/mis-observaciones-items:
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarObservacionesItemElaboradas
+      summary: Consultar Observaciones Item elaboradas
+      description: |
+        Permite consultar las observaciones de items que ha elaborado el asesor.
+        
+        **Evento:** Observacion Item Elaborada por Asesor Ficha Consultada  
+        **Actores:** Asesor Ficha  
+        **Política:** ObservacionEvaluacion-POL-01
+      responses:
+        '200':
+          description: Lista de observaciones elaboradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObservacionItem'
+
+  /asesor/observaciones-items/{observacionItemId}:
+    put:
+      tags: [Asesor Ficha]
+      operationId: modificarObservacionItem
+      summary: Modificar Observación Item
+      description: |
+        Permite modificar el contenido de una observación de item.
+        
+        **Evento:** Observacion Evaluacion Modificada (Observacion Item)  
+        **Actores:** Asesor Ficha  
+        **Políticas:** ObservacionEvaluacion-POL-01, POL-03
+      parameters:
+        - $ref: '#/components/parameters/ObservacionItemIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificarObservacionRequest'
+      responses:
+        '200':
+          description: Observación modificada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservacionItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Asesor Ficha]
+      operationId: removerObservacionItem
+      summary: Remover Observación Item
+      description: |
+        Permite remover una observación de item.
+        
+        **Evento:** Observacion Evaluacion Removida (Observacion Item)  
+        **Actores:** Asesor Ficha  
+        **Política:** ObservacionEvaluacion-POL-01
+      parameters:
+        - $ref: '#/components/parameters/ObservacionItemIdPath'
+      responses:
+        '204':
+          description: Observación removida
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /asesor/mis-fichas-perfil/{fichaPerfilId}/observaciones-evaluacion:
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarObservacionesEvaluacionAsesor
+      summary: Consultar Observaciones Evaluación elaboradas (Asesor)
+      description: |
+        Permite consultar las observaciones de evaluación de las fichas que asesora.
+        
+        **Evento:** Observacion Evaluacion Elaborada por Asesor Ficha Consultada  
+        **Actores:** Asesor Ficha  
+        **Política:** ObservacionEvaluacion-POL-01
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      responses:
+        '200':
+          description: Lista de observaciones de evaluación
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ObservacionEvaluacion'
+
+  # ────────────────────────────────────────────────────────────────
+  # REPRESENTANTE COMITÉ CURRÍCULUM
+  # ────────────────────────────────────────────────────────────────
+
+  /representante/fichas-perfil/{fichaPerfilId}/estados:
+    get:
+      tags: [Representante Comité Currículum]
+      operationId: consultarEstadoFichaPerfilAEvaluar
+      summary: Consultar Estado Ficha Perfil que evalúa
+      description: |
+        Permite consultar el estado de una ficha perfil que está evaluando.
+        
+        **Evento:** Estado Ficha Perfil a Evaluar consultado  
+        **Actores:** RepresentanteComiteCurriculum  
+        **Política:** EstadoFichaPerfil-POL-02
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      responses:
+        '200':
+          description: Estados de la ficha perfil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EstadoFichaPerfil'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /representante/fichas-perfil/{fichaPerfilId}/estados/aprobacion:
+    post:
+      tags: [Representante Comité Currículum]
+      operationId: agregarEstadoFichaPerfilAprobacion
+      summary: Agregar Estado Ficha Perfil de aprobación
+      description: |
+        Permite agregar un estado de aprobación/rechazo a una ficha perfil.
+        
+        **Evento:** Nuevo Estado Ficha Perfil con aprobacion Agregado  
+        **Actores:** RepresentanteComiteCurriculum  
+        **Políticas:** EstadoFichaPerfil-POL-02, POL-04, POL-06, POL-07, POL-08
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgregarEstadoAprobacionRequest'
+      responses:
+        '201':
+          description: Estado de aprobación agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoFichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Transición de estado no permitida o ficha no está "Disponible Para Evaluación"
+
+  /representante/fichas-perfil/{fichaPerfilId}/items:
+    get:
+      tags: [Representante Comité Currículum]
+      operationId: consultarItemsFichaPerfilAAprobar
+      summary: Consultar items de la Ficha Perfil a aprobar
+      description: |
+        Permite consultar los items de una ficha perfil para evaluación y aprobación.
+        
+        **Evento:** Información Items que se aprueban Consultada  
+        **Actores:** Representante Comité Currículum  
+        **Políticas:** Item-POL-01, Item-POL-06
+      parameters:
+        - $ref: '#/components/parameters/FichaPerfilIdPath'
+      responses:
+        '200':
+          description: Lista de items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /representante/evaluaciones-ficha-perfil:
+    post:
+      tags: [Representante Comité Currículum]
+      operationId: registrarEvaluacionFichaPerfil
+      summary: Registrar nueva evaluación de ficha de perfil
+      description: |
+        Permite registrar una nueva evaluación de una ficha de perfil.
+        
+        **Evento:** Evaluacion Ficha Perfil Registrado  
+        **Actores:** RepresentanteComiteCurriculum  
+        **Políticas:** EvaluacionFichaPerfil-POL-1, POL-02
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearEvaluacionFichaPerfilRequest'
+      responses:
+        '201':
+          description: Evaluación registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluacionFichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Ya existe evaluación para la misma ficha/representante
+
+  /representante/mis-evaluaciones:
+    get:
+      tags: [Representante Comité Currículum]
+      operationId: consultarEvaluacionesGeneradas
+      summary: Consultar evaluaciones de ficha de perfil generadas
+      description: |
+        Permite consultar las evaluaciones generadas por el representante.
+        
+        **Evento:** Información Evaluacion Ficha Perfil Consultada  
+        **Actores:** RepresentanteComiteCurriculum  
+        **Política:** EvaluacionFichaPerfil-POL-1
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista de evaluaciones generadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluacionFichaPerfil'
+
+  /representante/evaluaciones-ficha-perfil/{evaluacionId}/estados:
+    post:
+      tags: [Representante Comité Currículum]
+      operationId: agregarEstadoEvaluacionFicha
+      summary: Agregar Estado Evaluación Ficha
+      description: |
+        Permite agregar un nuevo estado a una evaluación de ficha perfil.
+        
+        **Evento:** Nuevo Estado Evaluacion Ficha Agregado  
+        **Actores:** RepresentanteComiteCurriculum  
+        **Políticas:** EstadoEvaluacionFicha-POL-01 a POL-06
+      parameters:
+        - $ref: '#/components/parameters/EvaluacionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgregarEstadoEvaluacionRequest'
+      responses:
+        '201':
+          description: Estado de evaluación agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoEvaluacionFicha'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Estado duplicado o transición no permitida
+
+  /representante/evaluaciones-ficha-perfil/{evaluacionId}/observaciones:
+    post:
+      tags: [Representante Comité Currículum]
+      operationId: agregarObservacionEvaluacion
+      summary: Agregar Observación Evaluación
+      description: |
+        Permite agregar una observación a una evaluación de ficha perfil.
+        
+        **Evento:** Observacion Evaluacion Agregada  
+        **Actores:** Representante Comité Currículum  
+        **Políticas:** ObservacionEvaluacion-POL-01, POL-02
+      parameters:
+        - $ref: '#/components/parameters/EvaluacionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearObservacionEvaluacionRequest'
+      responses:
+        '201':
+          description: Observación agregada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservacionEvaluacion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /representante/evaluaciones-ficha-perfil/{evaluacionId}/observaciones/{observacionEvaluacionId}:
+    put:
+      tags: [Representante Comité Currículum]
+      operationId: modificarObservacionEvaluacion
+      summary: Modificar Observación Evaluación
+      description: |
+        Permite modificar el contenido de una observación de evaluación.
+        
+        **Evento:** Observacion Evaluacion Modificada  
+        **Actores:** Representante Comité Currículum  
+        **Políticas:** ObservacionEvaluacion-POL-01, POL-03
+      parameters:
+        - $ref: '#/components/parameters/EvaluacionIdPath'
+        - $ref: '#/components/parameters/ObservacionEvaluacionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificarObservacionRequest'
+      responses:
+        '200':
+          description: Observación modificada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObservacionEvaluacion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Representante Comité Currículum]
+      operationId: removerObservacionEvaluacion
+      summary: Remover Observación Evaluación
+      description: |
+        Permite remover una observación de evaluación.
+        
+        **Evento:** Observacion Evaluacion Removida  
+        **Actores:** Representante Comité Currículum  
+        **Política:** ObservacionEvaluacion-POL-01
+      parameters:
+        - $ref: '#/components/parameters/EvaluacionIdPath'
+        - $ref: '#/components/parameters/ObservacionEvaluacionIdPath'
+      responses:
+        '204':
+          description: Observación removida
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ═══════════════════════════════════════════════════════════════════
+# COMPONENTS
+# ═══════════════════════════════════════════════════════════════════
+components:
+
+  # ── Parameters ──
+  parameters:
+    IdentificadorPath:
+      name: identificador
+      in: path
+      required: true
+      schema:
+        type: string
+        maxLength: 30
+
+    FichaPerfilIdPath:
+      name: fichaPerfilId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    EstudianteIdPath:
+      name: estudianteId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ItemIdPath:
+      name: itemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    RevisionItemIdPath:
+      name: revisionItemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ObservacionItemIdPath:
+      name: observacionItemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    EvaluacionIdPath:
+      name: evaluacionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ObservacionEvaluacionIdPath:
+      name: observacionEvaluacionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    SizeParam:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  # ── Responses ──
+  responses:
+    BadRequest:
+      description: Datos de entrada inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  # ── Schemas ──
+  schemas:
+
+    # ─── Tablas de referencia ───
+    EstadoFicha:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+          maxLength: 20
+        descripcion:
+          type: string
+          maxLength: 200
+
+    EstadoEvaluacion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+          maxLength: 20
+        descripcion:
+          type: string
+          maxLength: 200
+
+    EstadoObservacionRevision:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+          maxLength: 20
+        descripcion:
+          type: string
+          maxLength: 200
+
+    EstadoRevision:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+          maxLength: 20
+        descripcion:
+          type: string
+          maxLength: 200
+
+    TipoItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+          maxLength: 20
+        descripcion:
+          type: string
+          maxLength: 200
+
+    # ─── Identidad ───
+    Estudiante:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        identificador:
+          type: string
+          maxLength: 30
+        nombre:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 50
+
+    AsesorFicha:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        identificador:
+          type: string
+          maxLength: 30
+        nombre:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 50
+
+    RepresentanteComiteCurriculum:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        identificador:
+          type: string
+          maxLength: 30
+        nombre:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 50
+
+    # ─── Ficha Perfil ───
+    FichaPerfil:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tituloProyecto:
+          type: string
+          maxLength: 100
+        asesorFichaId:
+          type: string
+          format: uuid
+
+    PaginaFichasPerfil:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/FichaPerfil'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    CrearFichaPerfilRequest:
+      type: object
+      required:
+        - tituloProyecto
+        - asesorFichaId
+      properties:
+        tituloProyecto:
+          type: string
+          maxLength: 100
+          minLength: 1
+        asesorFichaId:
+          type: string
+          format: uuid
+
+    ModificarFichaPerfilRequest:
+      type: object
+      required:
+        - tituloProyecto
+      properties:
+        tituloProyecto:
+          type: string
+          maxLength: 100
+          minLength: 1
+
+    CambiarAsesorRequest:
+      type: object
+      required:
+        - nuevoAsesorFichaId
+      properties:
+        nuevoAsesorFichaId:
+          type: string
+          format: uuid
+
+    # ─── Estudiante Ficha Perfil ───
+    EstudianteFichaPerfil:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fichaPerfilId:
+          type: string
+          format: uuid
+        estudianteId:
+          type: string
+          format: uuid
+
+    AsignarEstudianteRequest:
+      type: object
+      required:
+        - estudianteId
+      properties:
+        estudianteId:
+          type: string
+          format: uuid
+
+    # ─── Estado Ficha Perfil ───
+    EstadoFichaPerfil:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fichaPerfilId:
+          type: string
+          format: uuid
+        estadoFichaId:
+          type: string
+          format: uuid
+        fechaActualizacion:
+          type: string
+          format: date-time
+
+    AgregarEstadoFichaPerfilRequest:
+      type: object
+      required:
+        - estadoFichaId
+      properties:
+        estadoFichaId:
+          type: string
+          format: uuid
+
+    AgregarEstadoAprobacionRequest:
+      type: object
+      required:
+        - estadoFichaId
+      properties:
+        estadoFichaId:
+          type: string
+          format: uuid
+          description: ID del estado de ficha (Aprobada, Aprobada con observaciones, No aprobada)
+
+    # ─── Item ───
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipoItemId:
+          type: string
+          format: uuid
+        contenido:
+          type: string
+          maxLength: 200
+        fichaPerfilId:
+          type: string
+          format: uuid
+
+    CrearItemRequest:
+      type: object
+      required:
+        - tipoItemId
+        - contenido
+      properties:
+        tipoItemId:
+          type: string
+          format: uuid
+        contenido:
+          type: string
+          maxLength: 200
+          minLength: 1
+
+    ModificarItemRequest:
+      type: object
+      required:
+        - contenido
+      properties:
+        contenido:
+          type: string
+          maxLength: 200
+          minLength: 1
+
+    # ─── Revisión Item ───
+    RevisionItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        itemId:
+          type: string
+          format: uuid
+        estadoRevisionId:
+          type: string
+          format: uuid
+        fechaCreacion:
+          type: string
+          format: date-time
+
+    CrearRevisionItemRequest:
+      type: object
+      required:
+        - itemId
+        - estadoRevisionId
+      properties:
+        itemId:
+          type: string
+          format: uuid
+        estadoRevisionId:
+          type: string
+          format: uuid
+
+    ModificarRevisionItemRequest:
+      type: object
+      required:
+        - estadoRevisionId
+      properties:
+        estadoRevisionId:
+          type: string
+          format: uuid
+
+    # ─── Observación Item ───
+    ObservacionItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        revisionItemId:
+          type: string
+          format: uuid
+        observacion:
+          type: string
+          maxLength: 200
+        estadoObservacionRevisionId:
+          type: string
+          format: uuid
+
+    CrearObservacionItemRequest:
+      type: object
+      required:
+        - revisionItemId
+        - observacion
+        - estadoObservacionRevisionId
+      properties:
+        revisionItemId:
+          type: string
+          format: uuid
+        observacion:
+          type: string
+          maxLength: 200
+          minLength: 1
+        estadoObservacionRevisionId:
+          type: string
+          format: uuid
+
+    # ─── Evaluación Ficha Perfil ───
+    EvaluacionFichaPerfil:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        representanteComiteId:
+          type: string
+          format: uuid
+        fichaPerfilId:
+          type: string
+          format: uuid
+        fechaCreacion:
+          type: string
+          format: date-time
+
+    CrearEvaluacionFichaPerfilRequest:
+      type: object
+      required:
+        - fichaPerfilId
+      properties:
+        fichaPerfilId:
+          type: string
+          format: uuid
+
+    # ─── Estado Evaluación Ficha ───
+    EstadoEvaluacionFicha:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        evaluacionFichaPerfilId:
+          type: string
+          format: uuid
+        estadoEvaluacionId:
+          type: string
+          format: uuid
+        fechaActualizacion:
+          type: string
+          format: date-time
+
+    AgregarEstadoEvaluacionRequest:
+      type: object
+      required:
+        - estadoEvaluacionId
+      properties:
+        estadoEvaluacionId:
+          type: string
+          format: uuid
+
+    # ─── Observación Evaluación ───
+    ObservacionEvaluacion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        evaluacionFichaPerfilId:
+          type: string
+          format: uuid
+        observacion:
+          type: string
+          maxLength: 200
+
+    CrearObservacionEvaluacionRequest:
+      type: object
+      required:
+        - observacion
+      properties:
+        observacion:
+          type: string
+          maxLength: 200
+          minLength: 1
+
+    ModificarObservacionRequest:
+      type: object
+      required:
+        - observacion
+      properties:
+        observacion:
+          type: string
+          maxLength: 200
+          minLength: 1
+
+    # ─── Error ───
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
