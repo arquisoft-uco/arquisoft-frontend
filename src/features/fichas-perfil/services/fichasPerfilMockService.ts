@@ -33,6 +33,7 @@ import type {
   AgregarEstadoEvaluacionRequest,
 } from '../models/fichas-perfil';
 import type { Page } from '../../../shared/models/api-response';
+import type { Asesor } from '../models/Asesor';
 import type { FichaPerfil } from '../models/FichaPerfil';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -234,8 +235,9 @@ export function consultarTodosEstudiantes(): Promise<Estudiante[]> {
   return delay([...ESTUDIANTES]);
 }
 
-export function consultarTodosAsesores(): Promise<AsesorFicha[]> {
-  return delay([...ASESORES]);
+export function consultarAsesoresDisponibles(): Promise<Asesor[]> {
+  const asesores: Asesor[] = ASESORES.map((a) => ({ id: a.id, nombre: a.nombre, email: a.email }));
+  return delay(asesores);
 }
 
 // ═══════════════════════════════════════════════════════════════════
