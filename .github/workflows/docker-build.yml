@@ -35,6 +35,8 @@ jobs:
       # ── Checkout ──
       - name: Checkout código
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       # ── Verificar Dockerfile ──
       - name: Verificar Dockerfile
@@ -89,8 +91,15 @@ jobs:
 
       # ── Deploy a Coolify ──
       - name: Trigger deploy en Coolify
-        if: steps.check.outputs.ready == 'true' && secrets.COOLIFY_WEBHOOK_URL != ''
+        if: steps.check.outputs.ready == 'true'
+        env:
+          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
         run: |
+          if [ -z "$COOLIFY_WEBHOOK_URL" ]; then
+            echo "⚠️ COOLIFY_WEBHOOK_URL no configurado, saltando deploy."
+            exit 0
+          fi
           curl --silent --fail --show-error \
-            --request GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
-            --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+            --request GET "$COOLIFY_WEBHOOK_URL" \
+            --header "Authorization: Bearer $COOLIFY_TOKEN"
