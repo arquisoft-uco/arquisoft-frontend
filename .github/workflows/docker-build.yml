@@ -9,8 +9,11 @@
 name: Docker Build & Push
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Frontend"]
     branches: [develop, main]
+    types: [completed]
+  push:
     tags: ['v*']
 
 env:
@@ -22,6 +25,7 @@ jobs:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
@@ -85,7 +89,7 @@ jobs:
 
       # ── Deploy a Coolify ──
       - name: Trigger deploy en Coolify
-        if: steps.check.outputs.ready == 'true'
+        if: steps.check.outputs.ready == 'true' && secrets.COOLIFY_WEBHOOK_URL != ''
         run: |
           curl --silent --fail --show-error \
             --request GET "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
