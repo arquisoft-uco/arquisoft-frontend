@@ -12,9 +12,27 @@ RUN npm ci --production=false
 # Copiar código fuente
 COPY . .
 
-# Generar archivos de entorno desde los ejemplos (los reales están en .gitignore)
-RUN cp src/environments/environment.ts.example src/environments/environment.ts && \
-    cp src/environments/environment.production.ts.example src/environments/environment.production.ts
+# Build args para inyectar valores de entorno en tiempo de build
+ARG API_URL=/api
+ARG KEYCLOAK_URL=http://localhost:8080/
+ARG KEYCLOAK_REALM=your-realm
+ARG KEYCLOAK_CLIENT_ID=your-client-id
+
+# Generar environment.ts (desarrollo, usa .example)
+RUN cp src/environments/environment.ts.example src/environments/environment.ts
+
+# Generar environment.production.ts con valores reales inyectados
+RUN printf "export const environment = {\n\
+  production: true,\n\
+  apiUrl: '%s',\n\
+  keycloak: {\n\
+    url: '%s',\n\
+    realm: '%s',\n\
+    clientId: '%s',\n\
+  },\n\
+};\n" \
+  "$API_URL" "$KEYCLOAK_URL" "$KEYCLOAK_REALM" "$KEYCLOAK_CLIENT_ID" \
+  > src/environments/environment.production.ts
 
 # Build de producción (Vite)
 RUN npm run build

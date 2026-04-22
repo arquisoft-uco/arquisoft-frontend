@@ -86,6 +86,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            API_URL=${{ secrets.API_URL }}
+            KEYCLOAK_URL=${{ secrets.KEYCLOAK_URL }}
+            KEYCLOAK_REALM=${{ secrets.KEYCLOAK_REALM }}
+            KEYCLOAK_CLIENT_ID=${{ secrets.KEYCLOAK_CLIENT_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
