@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Eye, Plus, RefreshCw, Trash2, MessageSquare, ClipboardCheck } from 'lucide-react';
 import type { FichaPerfil, PaginaFichasPerfil, Item, RevisionItem, ObservacionItem, EstadoFichaPerfil, EvaluacionFichaPerfil, TipoItem, EstadoFicha, EstadoRevision, EstadoObservacionRevision, ObservacionEvaluacion } from '../models/fichas-perfil';
+import RegistrarFichaPerfil from './RegistrarFichaPerfil';
+import { useQuery } from '@tanstack/react-query';
+import { consultarAsesoresDisponibles } from '../services/fichasPerfilMockService';
 import {
   consultarFichasPerfilQueAsesora,
   consultarItemsFichaPerfilAsesorada,
@@ -26,6 +29,15 @@ export default function AsesorFichaView() {
   const [pagina, setPagina] = useState<PaginaFichasPerfil | null>(null);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel] = useState<Panel>('fichas');
+  const [registrarAbierto, setRegistrarAbierto] = useState(false);
+
+  const { data: asesores = [] } = useQuery({
+    queryKey: ['asesores-disponibles'],
+    queryFn: consultarAsesoresDisponibles,
+  });
+
+  // En producción vendrá del token de identidad; en mock usamos el primero disponible.
+  const miAsesorId = asesores[0]?.id;
 
   // Detail state
   const [fichaSeleccionada, setFichaSeleccionada] = useState<FichaPerfil | null>(null);
@@ -130,10 +142,28 @@ export default function AsesorFichaView() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-on-surface">Fichas de Perfil — Asesor</h2>
-          <button onClick={cargarFichas} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-muted" type="button">
-            <RefreshCw size={16} aria-hidden /> Actualizar
-          </button>
+          <div className="flex items-center gap-2">
+            {!registrarAbierto && (
+              <button
+                type="button"
+                onClick={() => setRegistrarAbierto(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Plus size={16} aria-hidden />
+                Nueva Ficha de Perfil
+              </button>
+            )}
+            <button onClick={cargarFichas} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-muted" type="button">
+              <RefreshCw size={16} aria-hidden /> Actualizar
+            </button>
+          </div>
         </div>
+        {registrarAbierto && miAsesorId && (
+          <RegistrarFichaPerfil
+            asesorFijoId={miAsesorId}
+            onCerrar={() => setRegistrarAbierto(false)}
+          />
+        )}
 
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">

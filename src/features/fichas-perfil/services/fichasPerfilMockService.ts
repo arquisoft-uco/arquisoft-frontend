@@ -35,7 +35,9 @@ import type {
 import type { Page } from '../../../shared/models/api-response';
 import type { Asesor } from '../models/Asesor';
 import type { Estudiante } from '../models/Estudiante';
+import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
+import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 
 // ═══════════════════════════════════════════════════════════════════
 // MOCK DATA
@@ -251,6 +253,22 @@ export function registrarFichaPerfilCoordinador(req: CrearFichaPerfilRequest): P
   fichasPerfil = [...fichasPerfil, ficha];
   estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
   return delay(ficha);
+}
+
+export function registrarFichaPerfil(req: RegistrarFichaPerfilRequest): Promise<FichaPerfilCreadaResponse> {
+  if (req.idEstudiantes.length < 1 || req.idEstudiantes.length > 3) {
+    return Promise.reject(new Error('Debe asignar entre 1 y 3 estudiantes'));
+  }
+  if (new Set(req.idEstudiantes).size !== req.idEstudiantes.length) {
+    return Promise.reject(new Error('No se puede asignar el mismo estudiante más de una vez'));
+  }
+  const ficha: FichaPerfilInterna = { id: uid(), tituloProyecto: req.titulo, asesorFichaId: req.idAsesorFicha };
+  fichasPerfil = [...fichasPerfil, ficha];
+  estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
+  req.idEstudiantes.forEach((estudianteId) => {
+    estudiantesFichaPerfil = [...estudiantesFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estudianteId }];
+  });
+  return delay({ id: ficha.id });
 }
 
 export function consultarFichasPerfilCoordinador(page = 0, size = 10): Promise<Page<FichaPerfil>> {
