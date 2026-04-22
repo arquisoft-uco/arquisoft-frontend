@@ -7,7 +7,7 @@ import type {
   Estudiante,
   AsesorFicha,
   RepresentanteComiteCurriculum,
-  FichaPerfil,
+  FichaPerfil as FichaPerfilInterna,
   PaginaFichasPerfil,
   EstudianteFichaPerfil,
   EstadoFichaPerfil,
@@ -32,6 +32,8 @@ import type {
   AgregarEstadoAprobacionRequest,
   AgregarEstadoEvaluacionRequest,
 } from '../models/fichas-perfil';
+import type { Page } from '../../../shared/models/api-response';
+import type { FichaPerfil } from '../models/FichaPerfil';
 
 // ═══════════════════════════════════════════════════════════════════
 // MOCK DATA
@@ -90,10 +92,19 @@ const REPRESENTANTES: RepresentanteComiteCurriculum[] = [
   { id: 'rep-2', identificador: 'REP002', nombre: 'Ing. Laura Mendoza', email: 'lmendoza@edu.co' },
 ];
 
-let fichasPerfil: FichaPerfil[] = [
+let fichasPerfil: FichaPerfilInterna[] = [
   { id: 'fp-1', tituloProyecto: 'Sistema de Gestión Académica con Microservicios', asesorFichaId: 'asf-1' },
   { id: 'fp-2', tituloProyecto: 'Plataforma IoT para Monitoreo Ambiental', asesorFichaId: 'asf-2' },
   { id: 'fp-3', tituloProyecto: 'Análisis de Sentimientos en Redes Sociales con IA', asesorFichaId: 'asf-1' },
+  { id: 'fp-4', tituloProyecto: 'Aplicación Móvil para Gestión de Inventarios', asesorFichaId: 'asf-2' },
+  { id: 'fp-5', tituloProyecto: 'Sistema de Recomendación Basado en Machine Learning', asesorFichaId: 'asf-1' },
+  { id: 'fp-6', tituloProyecto: 'Plataforma de E-Learning con Gamificación', asesorFichaId: 'asf-2' },
+  { id: 'fp-7', tituloProyecto: 'Integración de Blockchain en Cadenas de Suministro', asesorFichaId: 'asf-1' },
+  { id: 'fp-8', tituloProyecto: 'Dashboard de Business Intelligence para PYMES', asesorFichaId: 'asf-2' },
+  { id: 'fp-9', tituloProyecto: 'Chatbot Universitario con Procesamiento de Lenguaje Natural', asesorFichaId: 'asf-1' },
+  { id: 'fp-10', tituloProyecto: 'Sistema de Detección de Fraude en Transacciones Bancarias', asesorFichaId: 'asf-2' },
+  { id: 'fp-11', tituloProyecto: 'Plataforma de Telemedicina con Videoconsultas', asesorFichaId: 'asf-1' },
+  { id: 'fp-12', tituloProyecto: 'Automatización de Pruebas con Inteligencia Artificial', asesorFichaId: 'asf-2' },
 ];
 
 let estudiantesFichaPerfil: EstudianteFichaPerfil[] = [
@@ -152,7 +163,7 @@ function delay<T>(data: T, ms = 300): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(data), ms));
 }
 
-function paginate(list: FichaPerfil[], page: number, size: number): PaginaFichasPerfil {
+function paginate(list: FichaPerfilInterna[], page: number, size: number): PaginaFichasPerfil {
   const start = page * size;
   return {
     content: list.slice(start, start + size),
@@ -160,6 +171,26 @@ function paginate(list: FichaPerfil[], page: number, size: number): PaginaFichas
     totalPages: Math.ceil(list.length / size),
     page,
     size,
+  };
+}
+
+function paginateDTO(list: FichaPerfilInterna[], page: number, size: number): Page<FichaPerfil> {
+  const start = page * size;
+  const slice = list.slice(start, start + size);
+  const content: FichaPerfil[] = slice.map((f) => {
+    const asesorData = ASESORES.find((a) => a.id === f.asesorFichaId)!;
+    return {
+      id: f.id,
+      titulo: f.tituloProyecto,
+      asesor: { id: asesorData.id, nombre: asesorData.nombre, email: asesorData.email },
+    };
+  });
+  return {
+    content,
+    totalElements: list.length,
+    totalPages: Math.ceil(list.length / size),
+    size,
+    number: page,
   };
 }
 
@@ -211,18 +242,18 @@ export function consultarTodosAsesores(): Promise<AsesorFicha[]> {
 // COORDINADOR
 // ═══════════════════════════════════════════════════════════════════
 
-export function registrarFichaPerfilCoordinador(req: CrearFichaPerfilRequest): Promise<FichaPerfil> {
-  const ficha: FichaPerfil = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: req.asesorFichaId };
+export function registrarFichaPerfilCoordinador(req: CrearFichaPerfilRequest): Promise<FichaPerfilInterna> {
+  const ficha: FichaPerfilInterna = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: req.asesorFichaId };
   fichasPerfil = [...fichasPerfil, ficha];
   estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
   return delay(ficha);
 }
 
-export function consultarFichasPerfilCoordinador(page = 0, size = 20): Promise<PaginaFichasPerfil> {
-  return delay(paginate(fichasPerfil, page, size));
+export function consultarFichasPerfilCoordinador(page = 0, size = 10): Promise<Page<FichaPerfil>> {
+  return delay(paginateDTO(fichasPerfil, page, size));
 }
 
-export function cambiarAsesorFichaPerfil(fichaPerfilId: string, req: CambiarAsesorRequest): Promise<FichaPerfil> {
+export function cambiarAsesorFichaPerfil(fichaPerfilId: string, req: CambiarAsesorRequest): Promise<FichaPerfilInterna> {
   const idx = fichasPerfil.findIndex((f) => f.id === fichaPerfilId);
   if (idx === -1) return Promise.reject(new Error('Ficha no encontrada'));
   fichasPerfil = fichasPerfil.map((f) => (f.id === fichaPerfilId ? { ...f, asesorFichaId: req.nuevoAsesorFichaId } : f));
@@ -254,11 +285,11 @@ export function removerEstudianteDeFichaPerfil(fichaPerfilId: string, estudiante
 /** In a real app, the backend resolves "mi ficha" from the JWT. Here we default to fp-1. */
 const MI_FICHA_ID = 'fp-1';
 
-export function consultarMiFichaPerfil(): Promise<FichaPerfil | undefined> {
+export function consultarMiFichaPerfil(): Promise<FichaPerfilInterna | undefined> {
   return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID));
 }
 
-export function modificarTituloFichaPerfil(req: { tituloProyecto: string }): Promise<FichaPerfil> {
+export function modificarTituloFichaPerfil(req: { tituloProyecto: string }): Promise<FichaPerfilInterna> {
   fichasPerfil = fichasPerfil.map((f) => (f.id === MI_FICHA_ID ? { ...f, tituloProyecto: req.tituloProyecto } : f));
   return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID)!);
 }
@@ -323,14 +354,14 @@ export function consultarObservacionesEvaluacionMiFichaPerfil(): Promise<Observa
 
 const MI_ASESOR_ID = 'asf-1';
 
-export function registrarFichaPerfilAsesor(req: CrearFichaPerfilRequest): Promise<FichaPerfil> {
-  const ficha: FichaPerfil = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: MI_ASESOR_ID };
+export function registrarFichaPerfilAsesor(req: CrearFichaPerfilRequest): Promise<FichaPerfilInterna> {
+  const ficha: FichaPerfilInterna = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: MI_ASESOR_ID };
   fichasPerfil = [...fichasPerfil, ficha];
   estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
   return delay(ficha);
 }
 
-export function consultarFichasPerfilQueAsesora(page = 0, size = 20): Promise<PaginaFichasPerfil> {
+export function consultarFichasPerfilQueAsesora(page = 0, size = 10): Promise<PaginaFichasPerfil> {
   const misFichas = fichasPerfil.filter((f) => f.asesorFichaId === MI_ASESOR_ID);
   return delay(paginate(misFichas, page, size));
 }
