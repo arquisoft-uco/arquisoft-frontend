@@ -12,6 +12,10 @@ RUN npm ci --production=false
 # Copiar código fuente
 COPY . .
 
+# Generar archivos de entorno desde los ejemplos (los reales están en .gitignore)
+RUN cp src/environments/environment.ts.example src/environments/environment.ts && \
+    cp src/environments/environment.production.ts.example src/environments/environment.production.ts
+
 # Build de producción (Vite)
 RUN npm run build
 
