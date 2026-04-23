@@ -40,6 +40,7 @@ import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
+import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 
 // ═══════════════════════════════════════════════════════════════════
 // MOCK DATA
@@ -331,6 +332,23 @@ const MI_FICHA_ID = 'fp-1';
 
 export function consultarMiFichaPerfil(): Promise<FichaPerfilInterna | undefined> {
   return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID));
+}
+
+export function getMiFichaPerfil(): Promise<MiFichaPerfilResponse> {
+  const ficha = fichasPerfil.find((f) => f.id === MI_FICHA_ID);
+  if (!ficha) return Promise.reject(new Error('El estudiante no está vinculado a ninguna ficha de perfil'));
+  const asesorData = ASESORES.find((a) => a.id === ficha.asesorFichaId)!;
+  const estadosOrdenados = estadosFichaPerfil
+    .filter((e) => e.fichaPerfilId === MI_FICHA_ID)
+    .sort((a, b) => new Date(b.fechaActualizacion).getTime() - new Date(a.fechaActualizacion).getTime());
+  const ultimoEstado = estadosOrdenados[0];
+  const estadoData = ultimoEstado ? ESTADOS_FICHA.find((ef) => ef.id === ultimoEstado.estadoFichaId)! : ESTADOS_FICHA[0];
+  return delay({
+    id: ficha.id,
+    tituloProyecto: ficha.tituloProyecto,
+    asesor: { id: asesorData.id, nombre: asesorData.nombre, email: asesorData.email },
+    estadoActual: { id: estadoData.id, nombre: estadoData.nombre, fechaActualizacion: ultimoEstado?.fechaActualizacion ?? new Date().toISOString() },
+  });
 }
 
 export function modificarTituloFichaPerfil(req: { tituloProyecto: string }): Promise<FichaPerfilInterna> {

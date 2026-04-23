@@ -9,8 +9,15 @@ import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
+import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 
 export const fichasPerfilService = {
+  getMiFichaPerfil: (): Promise<MiFichaPerfilResponse> =>
+    apiClient
+      .get<MiFichaPerfilResponse>('/fichas-perfil/estudiante/mi-ficha')
+      .then((r) => r.data),
+
+
   getFichasCoordinador: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
     apiClient
       .get<Page<FichaPerfil>>('/fichas-perfil/coordinador', { params: { page, size } })
