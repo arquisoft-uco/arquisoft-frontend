@@ -313,10 +313,8 @@ export function consultarEstudiantesVinculados(fichaPerfilId: string): Promise<E
   return delay(result);
 }
 
-export function removerEstudianteDeFichaPerfil(fichaPerfilId: string, estudianteId: string): Promise<void> {
-  estudiantesFichaPerfil = estudiantesFichaPerfil.filter(
-    (e) => !(e.fichaPerfilId === fichaPerfilId && e.estudianteId === estudianteId),
-  );
+export function removerEstudiante(idVinculo: string): Promise<void> {
+  estudiantesFichaPerfil = estudiantesFichaPerfil.filter((e) => e.id !== idVinculo);
   return delay(undefined);
 }
 

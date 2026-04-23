@@ -39,4 +39,9 @@ export const fichasPerfilService = {
     apiClient
       .post<AsignarEstudianteResponse>('/fichas-perfil/estudiantes', req)
       .then((r) => r.data),
+
+  removerEstudiante: (idVinculo: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/estudiantes/${idVinculo}`)
+      .then(() => undefined),
 };

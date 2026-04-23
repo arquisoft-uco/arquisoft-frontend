@@ -1,5 +1,9 @@
-import { Mail, User } from 'lucide-react';
+import { Mail, User, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { useEstudiantesVinculados } from '../../hooks/useEstudiantesVinculados';
+import { useRemoverEstudiante } from '../../hooks/useRemoverEstudiante';
+import { toast } from '../../../../shared/hooks/useToast';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import AsignarEstudianteForm from './AsignarEstudianteForm';
 
 interface Props {
@@ -8,6 +12,26 @@ interface Props {
 
 export default function EstudiantesVinculadosPanel({ idFichaPerfil }: Props) {
   const { data, isLoading, isError } = useEstudiantesVinculados(idFichaPerfil);
+  const { mutate: remover, isPending: removiendo } = useRemoverEstudiante(idFichaPerfil);
+  const [pendienteRemover, setPendienteRemover] = useState<{ idVinculo: string; nombre: string } | null>(null);
+
+  function handleConfirmarRemover() {
+    if (!pendienteRemover) return;
+    const { idVinculo, nombre } = pendienteRemover;
+    remover(idVinculo, {
+      onSuccess: () => {
+        toast.success('Estudiante removido', `${nombre} fue removido de la ficha correctamente.`);
+        setPendienteRemover(null);
+      },
+      onError: (err) => {
+        toast.error(
+          'Error al remover estudiante',
+          err instanceof Error ? err.message : 'Inténtalo nuevamente.',
+        );
+        setPendienteRemover(null);
+      },
+    });
+  }
 
   if (isLoading) {
     return (
@@ -59,10 +83,31 @@ export default function EstudiantesVinculadosPanel({ idFichaPerfil }: Props) {
               <Mail size={13} aria-hidden />
               {est.email}
             </span>
+            <button
+              type="button"
+              onClick={() => setPendienteRemover({ idVinculo: est.idVinculo, nombre: est.nombre })}
+              disabled={removiendo}
+              aria-label={`Remover a ${est.nombre} de la ficha`}
+              className="ml-2 rounded-md p-1 text-on-surface-secondary transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Trash2 size={14} aria-hidden />
+            </button>
           </li>
         ))}
       </ul>
       <AsignarEstudianteForm idFichaPerfil={idFichaPerfil} vinculados={estudiantes} />
+
+      {pendienteRemover && (
+        <ConfirmDialog
+          titulo="¿Remover estudiante?"
+          descripcion={`${pendienteRemover.nombre} será removido de esta ficha de perfil.`}
+          labelConfirmar="Remover"
+          variante="peligro"
+          cargando={removiendo}
+          onConfirmar={handleConfirmarRemover}
+          onCancelar={() => setPendienteRemover(null)}
+        />
+      )}
     </div>
   );
 }
