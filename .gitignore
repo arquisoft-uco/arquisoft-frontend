@@ -38,6 +38,10 @@ Thumbs.db
 src/environments/environment.ts
 src/environments/environment.production.ts
 
+# Documentación de contexto e historias — ignoradas temporalmente
+**/docs/contexto/
+**/docs/historias/
+
 # Local shell config files
 .zshrc
 .bashrc
