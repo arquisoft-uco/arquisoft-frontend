@@ -10,6 +10,7 @@ import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaRespo
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
+import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 
 export const fichasPerfilService = {
   getMiFichaPerfil: (): Promise<MiFichaPerfilResponse> =>
@@ -17,6 +18,10 @@ export const fichasPerfilService = {
       .get<MiFichaPerfilResponse>('/fichas-perfil/estudiante/mi-ficha')
       .then((r) => r.data),
 
+  modificarTituloFichaPerfil: (req: ModificarFichaPerfilRequest): Promise<void> =>
+    apiClient
+      .put('/fichas-perfil/estudiante/mi-ficha', req)
+      .then(() => undefined),
 
   getFichasCoordinador: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
     apiClient

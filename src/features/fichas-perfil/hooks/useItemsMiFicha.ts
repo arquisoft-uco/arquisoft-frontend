@@ -6,7 +6,7 @@ import {
   modificarItem,
   removerItem,
 } from '../services/fichasPerfilMockService';
-import type { CrearItemRequest, ModificarItemRequest } from '../models/fichas-perfil';
+import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
 
 export function useItemsMiFicha() {
   const queryClient = useQueryClient();
@@ -21,25 +21,31 @@ export function useItemsMiFicha() {
     queryFn: consultarTodosTipoItem,
   });
 
+  const ITEMS_KEY = ['fichas-perfil', 'estudiante', 'items'];
+
   const agregar = useMutation({
     mutationFn: (req: CrearItemRequest) => agregarItemFichaPerfil(req),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'estudiante', 'items'] });
+    onSuccess: (nuevoItem) => {
+      queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) => [...prev, nuevoItem]);
     },
   });
 
   const modificar = useMutation({
     mutationFn: ({ itemId, req }: { itemId: string; req: ModificarItemRequest }) =>
       modificarItem(itemId, req),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'estudiante', 'items'] });
+    onSuccess: (itemActualizado) => {
+      queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
+        prev.map((i) => (i.id === itemActualizado.id ? itemActualizado : i)),
+      );
     },
   });
 
   const remover = useMutation({
     mutationFn: (itemId: string) => removerItem(itemId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'estudiante', 'items'] });
+    onSuccess: (_, itemId) => {
+      queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
+        prev.filter((i) => i.id !== itemId),
+      );
     },
   });
 

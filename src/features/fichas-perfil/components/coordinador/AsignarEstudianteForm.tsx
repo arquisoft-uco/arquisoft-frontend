@@ -38,8 +38,9 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
   function handleSubmit(e: SyntheticEvent) {
     e.preventDefault();
     if (!idEstudiante) return;
+    const estudiante = opciones.find((e) => e.id === idEstudiante)!;
     mutate(
-      { idFichaPerfil, idEstudiante },
+      { idFichaPerfil, idEstudiante, nombre: estudiante.nombre, email: estudiante.email },
       {
         onSuccess: () => {
           toast.success('Estudiante asignado', 'El estudiante fue vinculado a la ficha correctamente.');

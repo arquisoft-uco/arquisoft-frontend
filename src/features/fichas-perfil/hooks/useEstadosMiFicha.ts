@@ -4,7 +4,7 @@ import {
   consultarTodosEstadosFicha,
   agregarEstadoFichaPerfilEstudiante,
 } from '../services/fichasPerfilMockService';
-import type { AgregarEstadoFichaPerfilRequest } from '../models/fichas-perfil';
+import type { AgregarEstadoFichaPerfilRequest, EstadoFichaPerfil } from '../models/fichas-perfil';
 
 export function useEstadosMiFicha() {
   const queryClient = useQueryClient();
@@ -21,8 +21,11 @@ export function useEstadosMiFicha() {
 
   const agregar = useMutation({
     mutationFn: (req: AgregarEstadoFichaPerfilRequest) => agregarEstadoFichaPerfilEstudiante(req),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'estudiante', 'estados'] });
+    onSuccess: (nuevoEstado) => {
+      queryClient.setQueryData(
+        ['fichas-perfil', 'estudiante', 'estados'],
+        (prev: EstadoFichaPerfil[] = []) => [...prev, nuevoEstado],
+      );
     },
   });
 

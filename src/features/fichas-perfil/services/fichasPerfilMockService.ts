@@ -41,6 +41,7 @@ import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaRespo
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
+import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 
 // ═══════════════════════════════════════════════════════════════════
 // MOCK DATA
@@ -351,9 +352,9 @@ export function getMiFichaPerfil(): Promise<MiFichaPerfilResponse> {
   });
 }
 
-export function modificarTituloFichaPerfil(req: { tituloProyecto: string }): Promise<FichaPerfilInterna> {
+export function modificarTituloFichaPerfil(req: ModificarFichaPerfilRequest): Promise<void> {
   fichasPerfil = fichasPerfil.map((f) => (f.id === MI_FICHA_ID ? { ...f, tituloProyecto: req.tituloProyecto } : f));
-  return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID)!);
+  return delay(undefined);
 }
 
 export function consultarCompanerosFichaPerfil(): Promise<EstudianteInterno[]> {

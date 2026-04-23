@@ -4,6 +4,7 @@ import {
   consultarCompanerosFichaPerfil,
   modificarTituloFichaPerfil,
 } from '../services/fichasPerfilMockService';
+import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 
 export function useMiFichaPerfil() {
   const queryClient = useQueryClient();
@@ -20,8 +21,11 @@ export function useMiFichaPerfil() {
 
   const modificarTitulo = useMutation({
     mutationFn: (tituloProyecto: string) => modificarTituloFichaPerfil({ tituloProyecto }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'estudiante', 'mi-ficha'] });
+    onSuccess: (_, tituloProyecto) => {
+      queryClient.setQueryData(
+        ['fichas-perfil', 'estudiante', 'mi-ficha'],
+        (prev: MiFichaPerfilResponse) => ({ ...prev, tituloProyecto }),
+      );
     },
   });
 
