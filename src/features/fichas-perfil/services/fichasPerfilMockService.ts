@@ -27,7 +27,6 @@ import type {
   ModificarItemRequest,
   ModificarRevisionItemRequest,
   CambiarAsesorRequest,
-  AsignarEstudianteRequest,
   AgregarEstadoFichaPerfilRequest,
   AgregarEstadoAprobacionRequest,
   AgregarEstadoEvaluacionRequest,
@@ -35,6 +34,8 @@ import type {
 import type { Page } from '../../../shared/models/api-response';
 import type { Asesor } from '../models/Asesor';
 import type { Estudiante } from '../models/Estudiante';
+import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { AsignarEstudianteResponse } from '../models/AsignarEstudianteResponse';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
@@ -283,10 +284,19 @@ export function cambiarAsesorFichaPerfil(fichaPerfilId: string, req: CambiarAses
   return delay(fichasPerfil[idx]);
 }
 
-export function asignarEstudianteAFichaPerfil(fichaPerfilId: string, req: AsignarEstudianteRequest): Promise<EstudianteFichaPerfil> {
-  const rel: EstudianteFichaPerfil = { id: uid(), fichaPerfilId, estudianteId: req.estudianteId };
+export function asignarEstudiante(req: AsignarEstudianteRequest): Promise<AsignarEstudianteResponse> {
+  const actuales = estudiantesFichaPerfil.filter((e) => e.fichaPerfilId === req.idFichaPerfil);
+  if (actuales.length >= 3) {
+    return Promise.reject(new Error('No se pueden asignar más de 3 estudiantes a una ficha de perfil'));
+  }
+  const yaAsignado = actuales.some((e) => e.estudianteId === req.idEstudiante);
+  if (yaAsignado) {
+    return Promise.reject(new Error('El estudiante ya está vinculado a esta ficha de perfil'));
+  }
+  const idVinculo = uid();
+  const rel: EstudianteFichaPerfil = { id: idVinculo, fichaPerfilId: req.idFichaPerfil, estudianteId: req.idEstudiante };
   estudiantesFichaPerfil = [...estudiantesFichaPerfil, rel];
-  return delay(rel);
+  return delay({ idVinculo });
 }
 
 export function consultarEstudiantesFichaPerfil(fichaPerfilId: string): Promise<EstudianteInterno[]> {

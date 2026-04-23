@@ -1,6 +1,8 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { Asesor } from '../models/Asesor';
+import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { AsignarEstudianteResponse } from '../models/AsignarEstudianteResponse';
 import type { Estudiante } from '../models/Estudiante';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
@@ -31,5 +33,10 @@ export const fichasPerfilService = {
   consultarEstudiantesVinculados: (idFichaPerfil: string): Promise<EstudianteVinculado[]> =>
     apiClient
       .get<EstudianteVinculado[]>(`/fichas-perfil/${idFichaPerfil}/estudiantes`)
+      .then((r) => r.data),
+
+  asignarEstudiante: (req: AsignarEstudianteRequest): Promise<AsignarEstudianteResponse> =>
+    apiClient
+      .post<AsignarEstudianteResponse>('/fichas-perfil/estudiantes', req)
       .then((r) => r.data),
 };

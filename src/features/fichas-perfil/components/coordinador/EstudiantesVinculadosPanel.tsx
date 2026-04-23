@@ -1,5 +1,6 @@
 import { Mail, User } from 'lucide-react';
 import { useEstudiantesVinculados } from '../../hooks/useEstudiantesVinculados';
+import AsignarEstudianteForm from './AsignarEstudianteForm';
 
 interface Props {
   idFichaPerfil: string;
@@ -38,24 +39,30 @@ export default function EstudiantesVinculadosPanel({ idFichaPerfil }: Props) {
 
   if (estudiantes.length === 0) {
     return (
-      <p className="py-3 px-4 text-sm text-on-surface-secondary">
-        No hay estudiantes vinculados a esta ficha.
-      </p>
+      <div>
+        <p className="py-3 px-4 text-sm text-on-surface-secondary">
+          No hay estudiantes vinculados a esta ficha.
+        </p>
+        <AsignarEstudianteForm idFichaPerfil={idFichaPerfil} vinculados={[]} />
+      </div>
     );
   }
 
   return (
-    <ul className="divide-y divide-border" aria-label="Estudiantes vinculados">
-      {estudiantes.map((est) => (
-        <li key={est.idVinculo} className="flex items-center gap-3 px-4 py-2">
-          <User size={15} className="shrink-0 text-on-surface-secondary" aria-hidden />
-          <span className="text-sm font-medium text-on-surface">{est.nombre}</span>
-          <span className="flex items-center gap-1 ml-auto text-xs text-on-surface-secondary">
-            <Mail size={13} aria-hidden />
-            {est.email}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <ul className="divide-y divide-border" aria-label="Estudiantes vinculados">
+        {estudiantes.map((est) => (
+          <li key={est.idVinculo} className="flex items-center gap-3 px-4 py-2">
+            <User size={15} className="shrink-0 text-on-surface-secondary" aria-hidden />
+            <span className="text-sm font-medium text-on-surface">{est.nombre}</span>
+            <span className="flex items-center gap-1 ml-auto text-xs text-on-surface-secondary">
+              <Mail size={13} aria-hidden />
+              {est.email}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <AsignarEstudianteForm idFichaPerfil={idFichaPerfil} vinculados={estudiantes} />
+    </div>
   );
 }

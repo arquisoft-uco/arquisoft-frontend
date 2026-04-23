@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type SyntheticEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
@@ -60,7 +60,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     onCerrar();
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: SyntheticEvent) {
     e.preventDefault();
     if (!titulo.trim() || !idAsesorFicha || idEstudiantes.length === 0) return;
     mutate(
