@@ -1,5 +1,7 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, Fragment } from 'react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import type { FichaPerfil } from '../../models/FichaPerfil';
+import EstudiantesVinculadosPanel from './EstudiantesVinculadosPanel';
 
 interface Props {
   fichas: FichaPerfil[];
@@ -18,8 +20,14 @@ export default function FichasPerfilTable({
   pageSize,
   onPageChange,
 }: Props) {
+  const [fichaExpandida, setFichaExpandida] = useState<string | null>(null);
+
   const from = totalElements === 0 ? 0 : page * pageSize + 1;
   const to = Math.min(page * pageSize + fichas.length, totalElements);
+
+  function toggleExpandir(id: string) {
+    setFichaExpandida((prev) => (prev === id ? null : id));
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -30,23 +38,48 @@ export default function FichasPerfilTable({
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Título del Proyecto</th>
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Asesor</th>
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Correo del Asesor</th>
+              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Estudiantes</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {fichas.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-10 text-center text-sm text-on-surface-secondary">
+                <td colSpan={4} className="px-4 py-10 text-center text-sm text-on-surface-secondary">
                   No hay fichas de perfil registradas.
                 </td>
               </tr>
             ) : (
-              fichas.map((ficha) => (
-                <tr key={ficha.id} className="transition-colors hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium text-on-surface">{ficha.titulo}</td>
-                  <td className="px-4 py-3 text-on-surface">{ficha.asesor.nombre}</td>
-                  <td className="px-4 py-3 text-on-surface-secondary">{ficha.asesor.email}</td>
-                </tr>
-              ))
+              fichas.map((ficha) => {
+                const expandida = fichaExpandida === ficha.id;
+                return (
+                  <Fragment key={ficha.id}>
+                    <tr className="transition-colors hover:bg-muted/30">
+                      <td className="px-4 py-3 font-medium text-on-surface">{ficha.titulo}</td>
+                      <td className="px-4 py-3 text-on-surface">{ficha.asesor.nombre}</td>
+                      <td className="px-4 py-3 text-on-surface-secondary">{ficha.asesor.email}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleExpandir(ficha.id)}
+                          aria-expanded={expandida}
+                          aria-label={expandida ? 'Ocultar estudiantes' : 'Ver estudiantes vinculados'}
+                          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-on-surface transition-colors hover:bg-muted"
+                        >
+                          {expandida ? <ChevronUp size={13} aria-hidden /> : <ChevronDown size={13} aria-hidden />}
+                          Estudiantes
+                        </button>
+                      </td>
+                    </tr>
+                    {expandida && (
+                      <tr className="bg-surface-secondary">
+                        <td colSpan={4} className="p-0">
+                          <EstudiantesVinculadosPanel idFichaPerfil={ficha.id} />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })
             )}
           </tbody>
         </table>

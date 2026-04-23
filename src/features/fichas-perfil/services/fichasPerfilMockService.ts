@@ -35,6 +35,7 @@ import type {
 import type { Page } from '../../../shared/models/api-response';
 import type { Asesor } from '../models/Asesor';
 import type { Estudiante } from '../models/Estudiante';
+import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
@@ -291,6 +292,15 @@ export function asignarEstudianteAFichaPerfil(fichaPerfilId: string, req: Asigna
 export function consultarEstudiantesFichaPerfil(fichaPerfilId: string): Promise<EstudianteInterno[]> {
   const ids = estudiantesFichaPerfil.filter((e) => e.fichaPerfilId === fichaPerfilId).map((e) => e.estudianteId);
   return delay(ESTUDIANTES.filter((e) => ids.includes(e.id)));
+}
+
+export function consultarEstudiantesVinculados(fichaPerfilId: string): Promise<EstudianteVinculado[]> {
+  const vinculos = estudiantesFichaPerfil.filter((e) => e.fichaPerfilId === fichaPerfilId);
+  const result: EstudianteVinculado[] = vinculos.map((v) => {
+    const est = ESTUDIANTES.find((e) => e.id === v.estudianteId)!;
+    return { idVinculo: v.id, id: est.id, nombre: est.nombre, email: est.email };
+  });
+  return delay(result);
 }
 
 export function removerEstudianteDeFichaPerfil(fichaPerfilId: string, estudianteId: string): Promise<void> {
