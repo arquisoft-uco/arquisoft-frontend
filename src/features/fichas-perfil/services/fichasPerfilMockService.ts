@@ -127,7 +127,7 @@ let estadosFichaPerfil: EstadoFichaPerfil[] = [
   { id: 'esfp-3', fichaPerfilId: 'fp-3', estadoFichaId: 'ef-4', fechaActualizacion: '2026-04-01T09:00:00Z' },
 ];
 
-let items: Item[] = [
+let items: ItemInterno[] = [
   { id: 'item-1', tipoItemId: 'ti-1', contenido: 'Sistema de Gestión Académica con Microservicios', fichaPerfilId: 'fp-1' },
   { id: 'item-2', tipoItemId: 'ti-2', contenido: 'Las universidades requieren sistemas escalables para la gestión académica moderna.', fichaPerfilId: 'fp-1' },
   { id: 'item-3', tipoItemId: 'ti-3', contenido: 'Mejorar la eficiencia y escalabilidad de los procesos académicos.', fichaPerfilId: 'fp-1' },
@@ -162,6 +162,13 @@ let observacionesEvaluacion: ObservacionEvaluacion[] = [
 // ═══════════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════
+
+type ItemInterno = { id: string; tipoItemId: string; contenido: string; fichaPerfilId: string };
+
+function enrichItem(item: ItemInterno): Item {
+  const tipo = TIPOS_ITEM.find((t) => t.id === item.tipoItemId) ?? { id: item.tipoItemId, nombre: item.tipoItemId };
+  return { id: item.id, tipoItem: { id: tipo.id, nombre: tipo.nombre }, contenido: item.contenido, fichaPerfilId: item.fichaPerfilId };
+}
 
 function uid(): string {
   return crypto.randomUUID();
@@ -372,18 +379,18 @@ export function consultarEstadoFichaPerfilEstudiante(): Promise<EstadoFichaPerfi
 }
 
 export function agregarItemFichaPerfil(req: CrearItemRequest): Promise<Item> {
-  const item: Item = { id: uid(), tipoItemId: req.tipoItemId, contenido: req.contenido, fichaPerfilId: MI_FICHA_ID };
-  items = [...items, item];
-  return delay(item);
+  const interno: ItemInterno = { id: uid(), tipoItemId: req.tipoItemId, contenido: req.contenido, fichaPerfilId: MI_FICHA_ID };
+  items = [...items, interno];
+  return delay(enrichItem(interno));
 }
 
 export function consultarItemsMiFichaPerfil(): Promise<Item[]> {
-  return delay(items.filter((i) => i.fichaPerfilId === MI_FICHA_ID));
+  return delay(items.filter((i) => i.fichaPerfilId === MI_FICHA_ID).map(enrichItem));
 }
 
 export function modificarItem(itemId: string, req: ModificarItemRequest): Promise<Item> {
   items = items.map((i) => (i.id === itemId ? { ...i, contenido: req.contenido } : i));
-  return delay(items.find((i) => i.id === itemId)!);
+  return delay(enrichItem(items.find((i) => i.id === itemId)!));
 }
 
 export function removerItem(itemId: string): Promise<void> {
@@ -440,7 +447,7 @@ export function consultarEstadosFichaPerfilQueAsesora(fichaPerfilId: string): Pr
 }
 
 export function consultarItemsFichaPerfilAsesorada(fichaPerfilId: string): Promise<Item[]> {
-  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId));
+  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId).map(enrichItem));
 }
 
 export function consultarEvaluacionesFichaPerfilAsesorada(fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> {
@@ -510,7 +517,7 @@ export function agregarEstadoFichaPerfilAprobacion(fichaPerfilId: string, req: A
 }
 
 export function consultarItemsFichaPerfilAAprobar(fichaPerfilId: string): Promise<Item[]> {
-  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId));
+  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId).map(enrichItem));
 }
 
 export function registrarEvaluacionFichaPerfil(req: CrearEvaluacionFichaPerfilRequest): Promise<EvaluacionFichaPerfil> {

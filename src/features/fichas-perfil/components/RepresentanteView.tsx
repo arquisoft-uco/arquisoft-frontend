@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Eye, Plus, RefreshCw, Trash2, Edit3, MessageSquare, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import type { FichaPerfil, Item, EstadoFichaPerfil, EvaluacionFichaPerfil, ObservacionEvaluacion, EstadoFicha, EstadoEvaluacion, TipoItem } from '../models/fichas-perfil';
+import type { FichaPerfil, Item, EstadoFichaPerfil, EvaluacionFichaPerfil, ObservacionEvaluacion, EstadoFicha, EstadoEvaluacion } from '../models/fichas-perfil';
 import {
   consultarFichasDisponiblesParaEvaluar,
   consultarItemsFichaPerfilAAprobar,
@@ -14,7 +14,6 @@ import {
   removerObservacionEvaluacion,
   consultarTodosEstadosFicha,
   consultarTodosEstadosEvaluacion,
-  consultarTodosTipoItem,
   agregarEstadoEvaluacionFicha,
 } from '../services/fichasPerfilMockService';
 
@@ -38,7 +37,6 @@ export default function RepresentanteView() {
   // Reference
   const [estadosFichaRef, setEstadosFichaRef] = useState<EstadoFicha[]>([]);
   const [estadosEvalRef, setEstadosEvalRef] = useState<EstadoEvaluacion[]>([]);
-  const [tiposItem, setTiposItem] = useState<TipoItem[]>([]);
 
   // Form state
   const [nuevaObs, setNuevaObs] = useState('');
@@ -47,18 +45,16 @@ export default function RepresentanteView() {
 
   const cargar = useCallback(async () => {
     setLoading(true);
-    const [fichas, evals, efRef, eeRef, tipos] = await Promise.all([
+    const [fichas, evals, efRef, eeRef] = await Promise.all([
       consultarFichasDisponiblesParaEvaluar(),
       consultarEvaluacionesGeneradas(),
       consultarTodosEstadosFicha(),
       consultarTodosEstadosEvaluacion(),
-      consultarTodosTipoItem(),
     ]);
     setFichasDisponibles(fichas);
     setEvaluaciones(evals);
     setEstadosFichaRef(efRef);
     setEstadosEvalRef(eeRef);
-    setTiposItem(tipos);
     setLoading(false);
   }, []);
 
@@ -116,7 +112,6 @@ export default function RepresentanteView() {
     await agregarEstadoEvaluacionFicha(evalSeleccionada.id, { estadoEvaluacionId });
   };
 
-  const getNombreTipo = (id: string) => tiposItem.find((t) => t.id === id)?.nombre ?? id;
   const getNombreEstadoFicha = (id: string) => estadosFichaRef.find((e) => e.id === id)?.nombre ?? id;
 
   if (loading) {
@@ -227,7 +222,7 @@ export default function RepresentanteView() {
           <div className="space-y-2">
             {itemsFicha.map((item) => (
               <div key={item.id} className="rounded-lg bg-muted/50 p-3">
-                <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{getNombreTipo(item.tipoItemId)}</span>
+                <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{item.tipoItem.nombre}</span>
                 <p className="mt-1 text-sm text-on-surface">{item.contenido}</p>
               </div>
             ))}

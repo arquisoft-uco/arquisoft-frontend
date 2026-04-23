@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Eye, Plus, RefreshCw, Trash2, MessageSquare, ClipboardCheck } from 'lucide-react';
-import type { FichaPerfil, PaginaFichasPerfil, Item, RevisionItem, ObservacionItem, EstadoFichaPerfil, EvaluacionFichaPerfil, TipoItem, EstadoFicha, EstadoRevision, EstadoObservacionRevision, ObservacionEvaluacion } from '../models/fichas-perfil';
+import type { FichaPerfil, PaginaFichasPerfil, Item, RevisionItem, ObservacionItem, EstadoFichaPerfil, EvaluacionFichaPerfil, EstadoFicha, EstadoRevision, EstadoObservacionRevision, ObservacionEvaluacion } from '../models/fichas-perfil';
 import RegistrarFichaPerfil from './RegistrarFichaPerfil';
 import { useQuery } from '@tanstack/react-query';
 import { consultarAsesoresDisponibles } from '../services/fichasPerfilMockService';
@@ -17,7 +17,6 @@ import {
   consultarObservacionesItemElaboradas,
   removerObservacionItem,
   consultarObservacionesEvaluacionAsesor,
-  consultarTodosTipoItem,
   consultarTodosEstadosFicha,
   consultarTodosEstadosRevision,
   consultarTodosEstadosObservacionRevision,
@@ -49,7 +48,6 @@ export default function AsesorFichaView() {
   const [obsEvaluacion, setObsEvaluacion] = useState<ObservacionEvaluacion[]>([]);
 
   // Reference
-  const [tiposItem, setTiposItem] = useState<TipoItem[]>([]);
   const [estadosFichaRef, setEstadosFichaRef] = useState<EstadoFicha[]>([]);
   const [estadosRevision, setEstadosRevision] = useState<EstadoRevision[]>([]);
   const [estadosObsRevision, setEstadosObsRevision] = useState<EstadoObservacionRevision[]>([]);
@@ -61,15 +59,13 @@ export default function AsesorFichaView() {
 
   const cargarFichas = useCallback(async () => {
     setLoading(true);
-    const [pag, tipos, efRef, eRev, eObsRev] = await Promise.all([
+    const [pag, efRef, eRev, eObsRev] = await Promise.all([
       consultarFichasPerfilQueAsesora(),
-      consultarTodosTipoItem(),
       consultarTodosEstadosFicha(),
       consultarTodosEstadosRevision(),
       consultarTodosEstadosObservacionRevision(),
     ]);
     setPagina(pag);
-    setTiposItem(tipos);
     setEstadosFichaRef(efRef);
     setEstadosRevision(eRev);
     setEstadosObsRevision(eObsRev);
@@ -129,7 +125,6 @@ export default function AsesorFichaView() {
     }
   };
 
-  const getNombreTipo = (id: string) => tiposItem.find((t) => t.id === id)?.nombre ?? id;
   const getNombreEstadoFicha = (id: string) => estadosFichaRef.find((e) => e.id === id)?.nombre ?? id;
   const getNombreEstadoRev = (id: string) => estadosRevision.find((e) => e.id === id)?.nombre ?? id;
 
@@ -233,7 +228,7 @@ export default function AsesorFichaView() {
               <div key={item.id} className="rounded-lg border border-border p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{getNombreTipo(item.tipoItemId)}</span>
+                    <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{item.tipoItem.nombre}</span>
                     <p className="mt-1 text-sm text-on-surface">{item.contenido}</p>
                   </div>
                   {!hasRevision && (

@@ -4,11 +4,7 @@ import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 
 export default function RevisionesMiFichaPanel() {
   const { revisiones, observacionesItems, isLoading } = useRevisionesMiFicha();
-  const { tiposItem } = useItemsMiFicha();
   const { items } = useItemsMiFicha();
-
-  const getNombreTipo = (tipoItemId: string) =>
-    tiposItem.find((t) => t.id === tipoItemId)?.nombre ?? tipoItemId;
 
   if (isLoading) return null;
 
@@ -25,7 +21,7 @@ export default function RevisionesMiFichaPanel() {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-on-surface">
                 <Eye size={14} className="mr-1 inline" aria-hidden />
-                {item ? getNombreTipo(item.tipoItemId) : rev.itemId}
+                {item ? item.tipoItem.nombre : rev.itemId}
               </span>
               <span className="text-xs text-on-surface-secondary">
                 {new Date(rev.fechaCreacion).toLocaleDateString('es-CO')}

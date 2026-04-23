@@ -11,9 +11,6 @@ export default function ItemsMiFichaPanel() {
   const [editandoItemId, setEditandoItemId] = useState<string | null>(null);
   const [editContenido, setEditContenido] = useState('');
 
-  const getNombreTipo = (tipoItemId: string) =>
-    tiposItem.find((t) => t.id === tipoItemId)?.nombre ?? tipoItemId;
-
   const handleAgregar = () => {
     if (!nuevoItemTipoId || !nuevoItemContenido.trim()) return;
     agregar.mutate(
@@ -107,7 +104,7 @@ export default function ItemsMiFichaPanel() {
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
               <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
-                {getNombreTipo(item.tipoItemId)}
+                {item.tipoItem.nombre}
               </span>
               {editandoItemId === item.id ? (
                 <div className="mt-2 flex items-center gap-2">
@@ -143,7 +140,7 @@ export default function ItemsMiFichaPanel() {
                 type="button"
                 onClick={() => handleIniciarEdicion(item.id, item.contenido)}
                 className="rounded p-1 text-on-surface-secondary hover:text-primary"
-                aria-label={`Editar ítem ${getNombreTipo(item.tipoItemId)}`}
+                aria-label={`Editar ítem ${item.tipoItem.nombre}`}
               >
                 <Edit3 size={14} aria-hidden />
               </button>
@@ -152,7 +149,7 @@ export default function ItemsMiFichaPanel() {
                 onClick={() => handleEliminar(item.id)}
                 disabled={remover.isPending}
                 className="rounded p-1 text-on-surface-secondary hover:text-red-500 disabled:opacity-50"
-                aria-label={`Eliminar ítem ${getNombreTipo(item.tipoItemId)}`}
+                aria-label={`Eliminar ítem ${item.tipoItem.nombre}`}
               >
                 <Trash2 size={14} aria-hidden />
               </button>
