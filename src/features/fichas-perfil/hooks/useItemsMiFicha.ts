@@ -19,6 +19,7 @@ export function useItemsMiFicha() {
   const tiposItemQuery = useQuery({
     queryKey: ['fichas-perfil', 'tipos-item'],
     queryFn: consultarTodosTipoItem,
+    staleTime: Infinity,
   });
 
   const ITEMS_KEY = ['fichas-perfil', 'estudiante', 'items'];
