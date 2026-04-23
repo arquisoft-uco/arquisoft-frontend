@@ -26,7 +26,6 @@ import type {
   ModificarObservacionRequest,
   ModificarItemRequest,
   ModificarRevisionItemRequest,
-  CambiarAsesorRequest,
   AgregarEstadoFichaPerfilRequest,
   AgregarEstadoAprobacionRequest,
   AgregarEstadoEvaluacionRequest,
@@ -36,6 +35,7 @@ import type { Asesor } from '../models/Asesor';
 import type { Estudiante } from '../models/Estudiante';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { AsignarEstudianteResponse } from '../models/AsignarEstudianteResponse';
+import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
@@ -277,11 +277,15 @@ export function consultarFichasPerfilCoordinador(page = 0, size = 10): Promise<P
   return delay(paginateDTO(fichasPerfil, page, size));
 }
 
-export function cambiarAsesorFichaPerfil(fichaPerfilId: string, req: CambiarAsesorRequest): Promise<FichaPerfilInterna> {
-  const idx = fichasPerfil.findIndex((f) => f.id === fichaPerfilId);
+export function cambiarAsesor(req: CambiarAsesorRequest): Promise<void> {
+  const idx = fichasPerfil.findIndex((f) => f.id === req.idFicha);
   if (idx === -1) return Promise.reject(new Error('Ficha no encontrada'));
-  fichasPerfil = fichasPerfil.map((f) => (f.id === fichaPerfilId ? { ...f, asesorFichaId: req.nuevoAsesorFichaId } : f));
-  return delay(fichasPerfil[idx]);
+  if (fichasPerfil[idx].asesorFichaId === req.idAsesorFicha)
+    return Promise.reject(new Error('El asesor nuevo es el mismo que el actual'));
+  fichasPerfil = fichasPerfil.map((f) =>
+    f.id === req.idFicha ? { ...f, asesorFichaId: req.idAsesorFicha } : f,
+  );
+  return delay(undefined);
 }
 
 export function asignarEstudiante(req: AsignarEstudianteRequest): Promise<AsignarEstudianteResponse> {

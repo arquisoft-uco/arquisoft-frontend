@@ -24,8 +24,8 @@ export default function ConfirmDialog({
 }: Props) {
   const colorConfirmar =
     variante === 'peligro'
-      ? 'bg-danger text-white hover:bg-danger/90'
-      : 'bg-warning text-white hover:bg-warning/90';
+      ? 'bg-danger text-danger-foreground hover:bg-danger/90'
+      : 'bg-tertiary text-tertiary-foreground hover:bg-tertiary-hover';
 
   return createPortal(
     <div

@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { Asesor } from '../models/Asesor';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { AsignarEstudianteResponse } from '../models/AsignarEstudianteResponse';
+import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
 import type { Estudiante } from '../models/Estudiante';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
@@ -43,5 +44,10 @@ export const fichasPerfilService = {
   removerEstudiante: (idVinculo: string): Promise<void> =>
     apiClient
       .delete(`/fichas-perfil/estudiantes/${idVinculo}`)
+      .then(() => undefined),
+
+  cambiarAsesor: (req: CambiarAsesorRequest): Promise<void> =>
+    apiClient
+      .put('/fichas-perfil/asesor', req)
       .then(() => undefined),
 };
