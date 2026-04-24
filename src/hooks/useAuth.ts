@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useAuthStore, parseRoles } from '../stores/authStore';
-import { useRoleStore } from '../stores/roleStore';
+import { useAuthStore, parseRoles } from '../auth/authStore';
+import { useRoleStore } from '../auth/roleStore';
 import { Rol } from '../shared/models/rol';
 
 const ROL_VALUES = new Set<string>(Object.values(Rol));

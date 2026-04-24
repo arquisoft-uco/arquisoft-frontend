@@ -33,10 +33,17 @@ yarn-error.log
 .DS_Store
 Thumbs.db
 
-# Environment files — contienen URLs y credenciales reales.
-# Copia environment.ts.example → environment.ts y rellena los valores.
-src/environments/environment.ts
-src/environments/environment.production.ts
+# Environment files — contienen credenciales reales. Solo se commitea .env.example.
+# Copia .env.example → .env.development.local y completa los valores.
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Los archivos de environment.ts ya no existen — se usa import.meta.env directamente.
+
+# Documentación de contexto e historias — ignoradas temporalmente
+**/docs/contexto/
+**/docs/historias/
 
 # Local shell config files
 .zshrc

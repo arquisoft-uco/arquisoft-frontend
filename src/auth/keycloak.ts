@@ -1,5 +1,4 @@
 import Keycloak from 'keycloak-js';
-import { environment } from './environments/environment';
 
 /** Seconds before expiry at which the proactive refresh fires. */
 const REFRESH_BUFFER_SECONDS = 30;
@@ -9,9 +8,9 @@ const REFRESH_BUFFER_SECONDS = 30;
  * React StrictMode double-mounts components but module-level code runs only once.
  */
 export const keycloak = new Keycloak({
-  url: environment.keycloak.url,
-  realm: environment.keycloak.realm,
-  clientId: environment.keycloak.clientId,
+  url: import.meta.env.VITE_KEYCLOAK_URL,
+  realm: import.meta.env.VITE_KEYCLOAK_REALM,
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
 });
 
 /**

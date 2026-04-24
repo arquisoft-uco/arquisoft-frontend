@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Menu, UserCog, CircleUser, LogOut, ChevronDown, Check } from 'lucide-react';
-import { keycloak } from '../keycloak';
+import { keycloak } from '../auth/keycloak';
 import { useUsername, useRolActivo, useRolesDisponibles } from '../hooks/useAuth';
-import { useRoleStore } from '../stores/roleStore';
+import { useRoleStore } from '../auth/roleStore';
 import { ETIQUETAS_ROL, Rol } from '../shared/models/rol';
 
 interface Props {

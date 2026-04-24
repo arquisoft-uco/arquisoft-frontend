@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Eye, Plus, RefreshCw, Trash2, MessageSquare, ClipboardCheck } from 'lucide-react';
-import type { FichaPerfil, PaginaFichasPerfil, Item, RevisionItem, ObservacionItem, EstadoFichaPerfil, EvaluacionFichaPerfil, TipoItem, EstadoFicha, EstadoRevision, EstadoObservacionRevision, ObservacionEvaluacion } from '../models/fichas-perfil';
+import type { FichaPerfil, PaginaFichasPerfil, Item, RevisionItem, ObservacionItem, EstadoFichaPerfil, EvaluacionFichaPerfil, EstadoFicha, EstadoRevision, EstadoObservacionRevision, ObservacionEvaluacion } from '../models/fichas-perfil';
+import RegistrarFichaPerfil from './RegistrarFichaPerfil';
+import { useQuery } from '@tanstack/react-query';
+import { consultarAsesoresDisponibles } from '../services/fichasPerfilMockService';
 import {
   consultarFichasPerfilQueAsesora,
   consultarItemsFichaPerfilAsesorada,
@@ -14,7 +17,6 @@ import {
   consultarObservacionesItemElaboradas,
   removerObservacionItem,
   consultarObservacionesEvaluacionAsesor,
-  consultarTodosTipoItem,
   consultarTodosEstadosFicha,
   consultarTodosEstadosRevision,
   consultarTodosEstadosObservacionRevision,
@@ -26,6 +28,15 @@ export default function AsesorFichaView() {
   const [pagina, setPagina] = useState<PaginaFichasPerfil | null>(null);
   const [loading, setLoading] = useState(true);
   const [panel, setPanel] = useState<Panel>('fichas');
+  const [registrarAbierto, setRegistrarAbierto] = useState(false);
+
+  const { data: asesores = [] } = useQuery({
+    queryKey: ['asesores-disponibles'],
+    queryFn: consultarAsesoresDisponibles,
+  });
+
+  // En producción vendrá del token de identidad; en mock usamos el primero disponible.
+  const miAsesorId = asesores[0]?.id;
 
   // Detail state
   const [fichaSeleccionada, setFichaSeleccionada] = useState<FichaPerfil | null>(null);
@@ -37,7 +48,6 @@ export default function AsesorFichaView() {
   const [obsEvaluacion, setObsEvaluacion] = useState<ObservacionEvaluacion[]>([]);
 
   // Reference
-  const [tiposItem, setTiposItem] = useState<TipoItem[]>([]);
   const [estadosFichaRef, setEstadosFichaRef] = useState<EstadoFicha[]>([]);
   const [estadosRevision, setEstadosRevision] = useState<EstadoRevision[]>([]);
   const [estadosObsRevision, setEstadosObsRevision] = useState<EstadoObservacionRevision[]>([]);
@@ -49,15 +59,13 @@ export default function AsesorFichaView() {
 
   const cargarFichas = useCallback(async () => {
     setLoading(true);
-    const [pag, tipos, efRef, eRev, eObsRev] = await Promise.all([
+    const [pag, efRef, eRev, eObsRev] = await Promise.all([
       consultarFichasPerfilQueAsesora(),
-      consultarTodosTipoItem(),
       consultarTodosEstadosFicha(),
       consultarTodosEstadosRevision(),
       consultarTodosEstadosObservacionRevision(),
     ]);
     setPagina(pag);
-    setTiposItem(tipos);
     setEstadosFichaRef(efRef);
     setEstadosRevision(eRev);
     setEstadosObsRevision(eObsRev);
@@ -117,7 +125,6 @@ export default function AsesorFichaView() {
     }
   };
 
-  const getNombreTipo = (id: string) => tiposItem.find((t) => t.id === id)?.nombre ?? id;
   const getNombreEstadoFicha = (id: string) => estadosFichaRef.find((e) => e.id === id)?.nombre ?? id;
   const getNombreEstadoRev = (id: string) => estadosRevision.find((e) => e.id === id)?.nombre ?? id;
 
@@ -130,10 +137,28 @@ export default function AsesorFichaView() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-on-surface">Fichas de Perfil — Asesor</h2>
-          <button onClick={cargarFichas} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-muted" type="button">
-            <RefreshCw size={16} aria-hidden /> Actualizar
-          </button>
+          <div className="flex items-center gap-2">
+            {!registrarAbierto && (
+              <button
+                type="button"
+                onClick={() => setRegistrarAbierto(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <Plus size={16} aria-hidden />
+                Nueva Ficha de Perfil
+              </button>
+            )}
+            <button onClick={cargarFichas} className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-muted" type="button">
+              <RefreshCw size={16} aria-hidden /> Actualizar
+            </button>
+          </div>
         </div>
+        {registrarAbierto && miAsesorId && (
+          <RegistrarFichaPerfil
+            asesorFijoId={miAsesorId}
+            onCerrar={() => setRegistrarAbierto(false)}
+          />
+        )}
 
         <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
           <table className="w-full text-left text-sm">
@@ -203,7 +228,7 @@ export default function AsesorFichaView() {
               <div key={item.id} className="rounded-lg border border-border p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{getNombreTipo(item.tipoItemId)}</span>
+                    <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{item.tipoItem.nombre}</span>
                     <p className="mt-1 text-sm text-on-surface">{item.contenido}</p>
                   </div>
                   {!hasRevision && (

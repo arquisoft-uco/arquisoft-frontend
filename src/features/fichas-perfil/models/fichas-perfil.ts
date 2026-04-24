@@ -90,7 +90,7 @@ export interface EstadoFichaPerfil {
 
 export interface Item {
   id: string;
-  tipoItemId: string;
+  tipoItem: { id: string; nombre: string };
   contenido: string;
   fichaPerfilId: string;
 }

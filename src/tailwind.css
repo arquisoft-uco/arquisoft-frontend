@@ -67,6 +67,8 @@
   --animate-slide-in-left: slide-in-left 0.25s cubic-bezier(0.23, 1, 0.32, 1);
   --animate-scale-in: scale-in 0.15s ease-out;
   --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-toast-in: toast-in 0.25s cubic-bezier(0.23, 1, 0.32, 1) both;
+  --animate-toast-out: toast-out 0.2s ease-in both;
 
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(12px); }
@@ -91,6 +93,16 @@
   @keyframes shimmer {
     from { background-position: -200% center; }
     to   { background-position: 200% center; }
+  }
+
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(calc(100% + 1.5rem)); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes toast-out {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(calc(100% + 1.5rem)); }
   }
 }
 

@@ -1,13 +1,12 @@
 import { create } from 'zustand';
 import type { KeycloakTokenParsed } from 'keycloak-js';
-import { environment } from '../environments/environment';
 
 /** Extracts client roles from the Keycloak token's resource_access claim. */
 export function parseRoles(tokenParsed: KeycloakTokenParsed | undefined): string[] {
   const access = tokenParsed?.['resource_access'] as
     | Record<string, { roles?: string[] }>
     | undefined;
-  return access?.[environment.keycloak.clientId]?.roles ?? [];
+  return access?.[import.meta.env.VITE_KEYCLOAK_CLIENT_ID]?.roles ?? [];
 }
 
 interface AuthState {

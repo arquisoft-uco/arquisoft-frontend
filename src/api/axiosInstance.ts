@@ -1,10 +1,9 @@
 import axios from 'axios';
-import { environment } from '../environments/environment';
-import { useAuthStore } from '../stores/authStore';
-import { keycloak } from '../keycloak';
+import { useAuthStore } from '../auth/authStore';
+import { keycloak } from '../auth/keycloak';
 
 const apiClient = axios.create({
-  baseURL: environment.apiUrl,
+  baseURL: import.meta.env.VITE_API_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 

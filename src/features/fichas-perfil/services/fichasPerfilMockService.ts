@@ -4,10 +4,10 @@ import type {
   EstadoRevision,
   EstadoObservacionRevision,
   TipoItem,
-  Estudiante,
+  Estudiante as EstudianteInterno,
   AsesorFicha,
   RepresentanteComiteCurriculum,
-  FichaPerfil,
+  FichaPerfil as FichaPerfilInterna,
   PaginaFichasPerfil,
   EstudianteFichaPerfil,
   EstadoFichaPerfil,
@@ -26,12 +26,22 @@ import type {
   ModificarObservacionRequest,
   ModificarItemRequest,
   ModificarRevisionItemRequest,
-  CambiarAsesorRequest,
-  AsignarEstudianteRequest,
   AgregarEstadoFichaPerfilRequest,
   AgregarEstadoAprobacionRequest,
   AgregarEstadoEvaluacionRequest,
 } from '../models/fichas-perfil';
+import type { Page } from '../../../shared/models/api-response';
+import type { Asesor } from '../models/Asesor';
+import type { Estudiante } from '../models/Estudiante';
+import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { AsignarEstudianteResponse } from '../models/AsignarEstudianteResponse';
+import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
+import type { EstudianteVinculado } from '../models/EstudianteVinculado';
+import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
+import type { FichaPerfil } from '../models/FichaPerfil';
+import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
+import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
+import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 
 // ═══════════════════════════════════════════════════════════════════
 // MOCK DATA
@@ -73,7 +83,7 @@ const TIPOS_ITEM: TipoItem[] = [
   { id: 'ti-6', nombre: 'Alcance', descripcion: 'Alcance del proyecto' },
 ];
 
-const ESTUDIANTES: Estudiante[] = [
+const ESTUDIANTES: EstudianteInterno[] = [
   { id: 'est-1', identificador: '20201001', nombre: 'Carlos Martínez', email: 'carlos@est.edu.co' },
   { id: 'est-2', identificador: '20201002', nombre: 'María López', email: 'maria@est.edu.co' },
   { id: 'est-3', identificador: '20201003', nombre: 'Juan García', email: 'juan@est.edu.co' },
@@ -90,10 +100,19 @@ const REPRESENTANTES: RepresentanteComiteCurriculum[] = [
   { id: 'rep-2', identificador: 'REP002', nombre: 'Ing. Laura Mendoza', email: 'lmendoza@edu.co' },
 ];
 
-let fichasPerfil: FichaPerfil[] = [
+let fichasPerfil: FichaPerfilInterna[] = [
   { id: 'fp-1', tituloProyecto: 'Sistema de Gestión Académica con Microservicios', asesorFichaId: 'asf-1' },
   { id: 'fp-2', tituloProyecto: 'Plataforma IoT para Monitoreo Ambiental', asesorFichaId: 'asf-2' },
   { id: 'fp-3', tituloProyecto: 'Análisis de Sentimientos en Redes Sociales con IA', asesorFichaId: 'asf-1' },
+  { id: 'fp-4', tituloProyecto: 'Aplicación Móvil para Gestión de Inventarios', asesorFichaId: 'asf-2' },
+  { id: 'fp-5', tituloProyecto: 'Sistema de Recomendación Basado en Machine Learning', asesorFichaId: 'asf-1' },
+  { id: 'fp-6', tituloProyecto: 'Plataforma de E-Learning con Gamificación', asesorFichaId: 'asf-2' },
+  { id: 'fp-7', tituloProyecto: 'Integración de Blockchain en Cadenas de Suministro', asesorFichaId: 'asf-1' },
+  { id: 'fp-8', tituloProyecto: 'Dashboard de Business Intelligence para PYMES', asesorFichaId: 'asf-2' },
+  { id: 'fp-9', tituloProyecto: 'Chatbot Universitario con Procesamiento de Lenguaje Natural', asesorFichaId: 'asf-1' },
+  { id: 'fp-10', tituloProyecto: 'Sistema de Detección de Fraude en Transacciones Bancarias', asesorFichaId: 'asf-2' },
+  { id: 'fp-11', tituloProyecto: 'Plataforma de Telemedicina con Videoconsultas', asesorFichaId: 'asf-1' },
+  { id: 'fp-12', tituloProyecto: 'Automatización de Pruebas con Inteligencia Artificial', asesorFichaId: 'asf-2' },
 ];
 
 let estudiantesFichaPerfil: EstudianteFichaPerfil[] = [
@@ -108,7 +127,7 @@ let estadosFichaPerfil: EstadoFichaPerfil[] = [
   { id: 'esfp-3', fichaPerfilId: 'fp-3', estadoFichaId: 'ef-4', fechaActualizacion: '2026-04-01T09:00:00Z' },
 ];
 
-let items: Item[] = [
+let items: ItemInterno[] = [
   { id: 'item-1', tipoItemId: 'ti-1', contenido: 'Sistema de Gestión Académica con Microservicios', fichaPerfilId: 'fp-1' },
   { id: 'item-2', tipoItemId: 'ti-2', contenido: 'Las universidades requieren sistemas escalables para la gestión académica moderna.', fichaPerfilId: 'fp-1' },
   { id: 'item-3', tipoItemId: 'ti-3', contenido: 'Mejorar la eficiencia y escalabilidad de los procesos académicos.', fichaPerfilId: 'fp-1' },
@@ -144,6 +163,13 @@ let observacionesEvaluacion: ObservacionEvaluacion[] = [
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════
 
+type ItemInterno = { id: string; tipoItemId: string; contenido: string; fichaPerfilId: string };
+
+function enrichItem(item: ItemInterno): Item {
+  const tipo = TIPOS_ITEM.find((t) => t.id === item.tipoItemId) ?? { id: item.tipoItemId, nombre: item.tipoItemId };
+  return { id: item.id, tipoItem: { id: tipo.id, nombre: tipo.nombre }, contenido: item.contenido, fichaPerfilId: item.fichaPerfilId };
+}
+
 function uid(): string {
   return crypto.randomUUID();
 }
@@ -152,7 +178,7 @@ function delay<T>(data: T, ms = 300): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(data), ms));
 }
 
-function paginate(list: FichaPerfil[], page: number, size: number): PaginaFichasPerfil {
+function paginate(list: FichaPerfilInterna[], page: number, size: number): PaginaFichasPerfil {
   const start = page * size;
   return {
     content: list.slice(start, start + size),
@@ -160,6 +186,26 @@ function paginate(list: FichaPerfil[], page: number, size: number): PaginaFichas
     totalPages: Math.ceil(list.length / size),
     page,
     size,
+  };
+}
+
+function paginateDTO(list: FichaPerfilInterna[], page: number, size: number): Page<FichaPerfil> {
+  const start = page * size;
+  const slice = list.slice(start, start + size);
+  const content: FichaPerfil[] = slice.map((f) => {
+    const asesorData = ASESORES.find((a) => a.id === f.asesorFichaId)!;
+    return {
+      id: f.id,
+      titulo: f.tituloProyecto,
+      asesor: { id: asesorData.id, nombre: asesorData.nombre, email: asesorData.email },
+    };
+  });
+  return {
+    content,
+    totalElements: list.length,
+    totalPages: Math.ceil(list.length / size),
+    size,
+    number: page,
   };
 }
 
@@ -187,7 +233,7 @@ export function consultarTodosTipoItem(): Promise<TipoItem[]> {
   return delay([...TIPOS_ITEM]);
 }
 
-export function consultarEstudiante(identificador: string): Promise<Estudiante | undefined> {
+export function consultarEstudiante(identificador: string): Promise<EstudianteInterno | undefined> {
   return delay(ESTUDIANTES.find((e) => e.identificador === identificador || e.id === identificador));
 }
 
@@ -199,51 +245,89 @@ export function consultarRepresentanteComite(identificador: string): Promise<Rep
   return delay(REPRESENTANTES.find((r) => r.identificador === identificador || r.id === identificador));
 }
 
-export function consultarTodosEstudiantes(): Promise<Estudiante[]> {
-  return delay([...ESTUDIANTES]);
+export function consultarEstudiantesDisponibles(): Promise<Estudiante[]> {
+  const estudiantes: Estudiante[] = ESTUDIANTES.map((e) => ({ id: e.id, nombre: e.nombre, email: e.email }));
+  return delay(estudiantes);
 }
 
-export function consultarTodosAsesores(): Promise<AsesorFicha[]> {
-  return delay([...ASESORES]);
+export function consultarAsesoresDisponibles(): Promise<Asesor[]> {
+  const asesores: Asesor[] = ASESORES.map((a) => ({ id: a.id, nombre: a.nombre, email: a.email }));
+  return delay(asesores);
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // COORDINADOR
 // ═══════════════════════════════════════════════════════════════════
 
-export function registrarFichaPerfilCoordinador(req: CrearFichaPerfilRequest): Promise<FichaPerfil> {
-  const ficha: FichaPerfil = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: req.asesorFichaId };
+export function registrarFichaPerfilCoordinador(req: CrearFichaPerfilRequest): Promise<FichaPerfilInterna> {
+  const ficha: FichaPerfilInterna = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: req.asesorFichaId };
   fichasPerfil = [...fichasPerfil, ficha];
   estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
   return delay(ficha);
 }
 
-export function consultarFichasPerfilCoordinador(page = 0, size = 20): Promise<PaginaFichasPerfil> {
-  return delay(paginate(fichasPerfil, page, size));
+export function registrarFichaPerfil(req: RegistrarFichaPerfilRequest): Promise<FichaPerfilCreadaResponse> {
+  if (req.idEstudiantes.length < 1 || req.idEstudiantes.length > 3) {
+    return Promise.reject(new Error('Debe asignar entre 1 y 3 estudiantes'));
+  }
+  if (new Set(req.idEstudiantes).size !== req.idEstudiantes.length) {
+    return Promise.reject(new Error('No se puede asignar el mismo estudiante más de una vez'));
+  }
+  const ficha: FichaPerfilInterna = { id: uid(), tituloProyecto: req.titulo, asesorFichaId: req.idAsesorFicha };
+  fichasPerfil = [...fichasPerfil, ficha];
+  estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
+  req.idEstudiantes.forEach((estudianteId) => {
+    estudiantesFichaPerfil = [...estudiantesFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estudianteId }];
+  });
+  return delay({ id: ficha.id });
 }
 
-export function cambiarAsesorFichaPerfil(fichaPerfilId: string, req: CambiarAsesorRequest): Promise<FichaPerfil> {
-  const idx = fichasPerfil.findIndex((f) => f.id === fichaPerfilId);
+export function consultarFichasPerfilCoordinador(page = 0, size = 10): Promise<Page<FichaPerfil>> {
+  return delay(paginateDTO(fichasPerfil, page, size));
+}
+
+export function cambiarAsesor(req: CambiarAsesorRequest): Promise<void> {
+  const idx = fichasPerfil.findIndex((f) => f.id === req.idFicha);
   if (idx === -1) return Promise.reject(new Error('Ficha no encontrada'));
-  fichasPerfil = fichasPerfil.map((f) => (f.id === fichaPerfilId ? { ...f, asesorFichaId: req.nuevoAsesorFichaId } : f));
-  return delay(fichasPerfil[idx]);
+  if (fichasPerfil[idx].asesorFichaId === req.idAsesorFicha)
+    return Promise.reject(new Error('El asesor nuevo es el mismo que el actual'));
+  fichasPerfil = fichasPerfil.map((f) =>
+    f.id === req.idFicha ? { ...f, asesorFichaId: req.idAsesorFicha } : f,
+  );
+  return delay(undefined);
 }
 
-export function asignarEstudianteAFichaPerfil(fichaPerfilId: string, req: AsignarEstudianteRequest): Promise<EstudianteFichaPerfil> {
-  const rel: EstudianteFichaPerfil = { id: uid(), fichaPerfilId, estudianteId: req.estudianteId };
+export function asignarEstudiante(req: AsignarEstudianteRequest): Promise<AsignarEstudianteResponse> {
+  const actuales = estudiantesFichaPerfil.filter((e) => e.fichaPerfilId === req.idFichaPerfil);
+  if (actuales.length >= 3) {
+    return Promise.reject(new Error('No se pueden asignar más de 3 estudiantes a una ficha de perfil'));
+  }
+  const yaAsignado = actuales.some((e) => e.estudianteId === req.idEstudiante);
+  if (yaAsignado) {
+    return Promise.reject(new Error('El estudiante ya está vinculado a esta ficha de perfil'));
+  }
+  const idVinculo = uid();
+  const rel: EstudianteFichaPerfil = { id: idVinculo, fichaPerfilId: req.idFichaPerfil, estudianteId: req.idEstudiante };
   estudiantesFichaPerfil = [...estudiantesFichaPerfil, rel];
-  return delay(rel);
+  return delay({ idVinculo });
 }
 
-export function consultarEstudiantesFichaPerfil(fichaPerfilId: string): Promise<Estudiante[]> {
+export function consultarEstudiantesFichaPerfil(fichaPerfilId: string): Promise<EstudianteInterno[]> {
   const ids = estudiantesFichaPerfil.filter((e) => e.fichaPerfilId === fichaPerfilId).map((e) => e.estudianteId);
   return delay(ESTUDIANTES.filter((e) => ids.includes(e.id)));
 }
 
-export function removerEstudianteDeFichaPerfil(fichaPerfilId: string, estudianteId: string): Promise<void> {
-  estudiantesFichaPerfil = estudiantesFichaPerfil.filter(
-    (e) => !(e.fichaPerfilId === fichaPerfilId && e.estudianteId === estudianteId),
-  );
+export function consultarEstudiantesVinculados(fichaPerfilId: string): Promise<EstudianteVinculado[]> {
+  const vinculos = estudiantesFichaPerfil.filter((e) => e.fichaPerfilId === fichaPerfilId);
+  const result: EstudianteVinculado[] = vinculos.map((v) => {
+    const est = ESTUDIANTES.find((e) => e.id === v.estudianteId)!;
+    return { idVinculo: v.id, id: est.id, nombre: est.nombre, email: est.email };
+  });
+  return delay(result);
+}
+
+export function removerEstudiante(idVinculo: string): Promise<void> {
+  estudiantesFichaPerfil = estudiantesFichaPerfil.filter((e) => e.id !== idVinculo);
   return delay(undefined);
 }
 
@@ -254,16 +338,33 @@ export function removerEstudianteDeFichaPerfil(fichaPerfilId: string, estudiante
 /** In a real app, the backend resolves "mi ficha" from the JWT. Here we default to fp-1. */
 const MI_FICHA_ID = 'fp-1';
 
-export function consultarMiFichaPerfil(): Promise<FichaPerfil | undefined> {
+export function consultarMiFichaPerfil(): Promise<FichaPerfilInterna | undefined> {
   return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID));
 }
 
-export function modificarTituloFichaPerfil(req: { tituloProyecto: string }): Promise<FichaPerfil> {
-  fichasPerfil = fichasPerfil.map((f) => (f.id === MI_FICHA_ID ? { ...f, tituloProyecto: req.tituloProyecto } : f));
-  return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID)!);
+export function getMiFichaPerfil(): Promise<MiFichaPerfilResponse> {
+  const ficha = fichasPerfil.find((f) => f.id === MI_FICHA_ID);
+  if (!ficha) return Promise.reject(new Error('El estudiante no está vinculado a ninguna ficha de perfil'));
+  const asesorData = ASESORES.find((a) => a.id === ficha.asesorFichaId)!;
+  const estadosOrdenados = estadosFichaPerfil
+    .filter((e) => e.fichaPerfilId === MI_FICHA_ID)
+    .sort((a, b) => new Date(b.fechaActualizacion).getTime() - new Date(a.fechaActualizacion).getTime());
+  const ultimoEstado = estadosOrdenados[0];
+  const estadoData = ultimoEstado ? ESTADOS_FICHA.find((ef) => ef.id === ultimoEstado.estadoFichaId)! : ESTADOS_FICHA[0];
+  return delay({
+    id: ficha.id,
+    tituloProyecto: ficha.tituloProyecto,
+    asesor: { id: asesorData.id, nombre: asesorData.nombre, email: asesorData.email },
+    estadoActual: { id: estadoData.id, nombre: estadoData.nombre, fechaActualizacion: ultimoEstado?.fechaActualizacion ?? new Date().toISOString() },
+  });
 }
 
-export function consultarCompanerosFichaPerfil(): Promise<Estudiante[]> {
+export function modificarTituloFichaPerfil(req: ModificarFichaPerfilRequest): Promise<void> {
+  fichasPerfil = fichasPerfil.map((f) => (f.id === MI_FICHA_ID ? { ...f, tituloProyecto: req.tituloProyecto } : f));
+  return delay(undefined);
+}
+
+export function consultarCompanerosFichaPerfil(): Promise<EstudianteInterno[]> {
   return consultarEstudiantesFichaPerfil(MI_FICHA_ID);
 }
 
@@ -278,18 +379,18 @@ export function consultarEstadoFichaPerfilEstudiante(): Promise<EstadoFichaPerfi
 }
 
 export function agregarItemFichaPerfil(req: CrearItemRequest): Promise<Item> {
-  const item: Item = { id: uid(), tipoItemId: req.tipoItemId, contenido: req.contenido, fichaPerfilId: MI_FICHA_ID };
-  items = [...items, item];
-  return delay(item);
+  const interno: ItemInterno = { id: uid(), tipoItemId: req.tipoItemId, contenido: req.contenido, fichaPerfilId: MI_FICHA_ID };
+  items = [...items, interno];
+  return delay(enrichItem(interno));
 }
 
 export function consultarItemsMiFichaPerfil(): Promise<Item[]> {
-  return delay(items.filter((i) => i.fichaPerfilId === MI_FICHA_ID));
+  return delay(items.filter((i) => i.fichaPerfilId === MI_FICHA_ID).map(enrichItem));
 }
 
 export function modificarItem(itemId: string, req: ModificarItemRequest): Promise<Item> {
   items = items.map((i) => (i.id === itemId ? { ...i, contenido: req.contenido } : i));
-  return delay(items.find((i) => i.id === itemId)!);
+  return delay(enrichItem(items.find((i) => i.id === itemId)!));
 }
 
 export function removerItem(itemId: string): Promise<void> {
@@ -323,14 +424,14 @@ export function consultarObservacionesEvaluacionMiFichaPerfil(): Promise<Observa
 
 const MI_ASESOR_ID = 'asf-1';
 
-export function registrarFichaPerfilAsesor(req: CrearFichaPerfilRequest): Promise<FichaPerfil> {
-  const ficha: FichaPerfil = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: MI_ASESOR_ID };
+export function registrarFichaPerfilAsesor(req: CrearFichaPerfilRequest): Promise<FichaPerfilInterna> {
+  const ficha: FichaPerfilInterna = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: MI_ASESOR_ID };
   fichasPerfil = [...fichasPerfil, ficha];
   estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
   return delay(ficha);
 }
 
-export function consultarFichasPerfilQueAsesora(page = 0, size = 20): Promise<PaginaFichasPerfil> {
+export function consultarFichasPerfilQueAsesora(page = 0, size = 10): Promise<PaginaFichasPerfil> {
   const misFichas = fichasPerfil.filter((f) => f.asesorFichaId === MI_ASESOR_ID);
   return delay(paginate(misFichas, page, size));
 }
@@ -346,7 +447,7 @@ export function consultarEstadosFichaPerfilQueAsesora(fichaPerfilId: string): Pr
 }
 
 export function consultarItemsFichaPerfilAsesorada(fichaPerfilId: string): Promise<Item[]> {
-  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId));
+  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId).map(enrichItem));
 }
 
 export function consultarEvaluacionesFichaPerfilAsesorada(fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> {
@@ -416,7 +517,7 @@ export function agregarEstadoFichaPerfilAprobacion(fichaPerfilId: string, req: A
 }
 
 export function consultarItemsFichaPerfilAAprobar(fichaPerfilId: string): Promise<Item[]> {
-  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId));
+  return delay(items.filter((i) => i.fichaPerfilId === fichaPerfilId).map(enrichItem));
 }
 
 export function registrarEvaluacionFichaPerfil(req: CrearEvaluacionFichaPerfilRequest): Promise<EvaluacionFichaPerfil> {
@@ -455,7 +556,7 @@ export function removerObservacionEvaluacion(observacionEvaluacionId: string): P
   return delay(undefined);
 }
 
-export function consultarFichasDisponiblesParaEvaluar(): Promise<FichaPerfil[]> {
+export function consultarFichasDisponiblesParaEvaluar(): Promise<FichaPerfilInterna[]> {
   const fichasDisponibles = estadosFichaPerfil
     .filter((e) => e.estadoFichaId === 'ef-4')
     .map((e) => e.fichaPerfilId);
