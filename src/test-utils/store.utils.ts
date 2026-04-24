@@ -1,5 +1,5 @@
-import { useAuthStore } from '../stores/authStore';
-import { useRoleStore } from '../stores/roleStore';
+import { useAuthStore } from '../auth/authStore';
+import { useRoleStore } from '../auth/roleStore';
 import type { Rol } from '../shared/models/rol';
 
 export function resetAllStores() {

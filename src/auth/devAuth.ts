@@ -1,6 +1,5 @@
 import type { KeycloakTokenParsed } from 'keycloak-js';
-import { environment } from '../environments/environment';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from './authStore';
 
 /**
  * Inyecta un estado de autenticación ficticio en el store cuando
@@ -23,7 +22,7 @@ export function initDevAuth(): void {
     sub: 'dev-bypass-user-id',
     preferred_username: username,
     resource_access: {
-      [environment.keycloak.clientId]: { roles },
+      [import.meta.env.VITE_KEYCLOAK_CLIENT_ID]: { roles },
     },
     exp: Math.floor(Date.now() / 1000) + 3600,
     iat: Math.floor(Date.now() / 1000),

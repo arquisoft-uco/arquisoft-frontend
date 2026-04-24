@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router';
-import { keycloak, scheduleRefresh } from '../keycloak';
-import { useAuthStore } from '../stores/authStore';
+import { keycloak, scheduleRefresh } from '../auth/keycloak';
+import { useAuthStore } from '../auth/authStore';
 import AppLoader from '../shared/components/AppLoader';
-import { initDevAuth } from '../dev/devAuth';
+import { initDevAuth } from '../auth/devAuth';
 
 /**
  * AuthGuard — layout route element that:

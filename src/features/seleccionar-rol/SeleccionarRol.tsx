@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { University } from 'lucide-react';
 import { useRolesDisponibles } from '../../hooks/useAuth';
-import { useRoleStore } from '../../stores/roleStore';
+import { useRoleStore } from '../../auth/roleStore';
 import { ETIQUETAS_ROL, ICONOS_ROL, Rol } from '../../shared/models/rol';
 
 export default function SeleccionarRol() {
