@@ -53,10 +53,14 @@ jobs:
         if: steps.check.outputs.exists == 'true'
         run: npm ci
 
-      # ── Generar environment.ts para CI ──
-      - name: Generar environment.ts
+      # ── Generar .env para CI ──
+      - name: Generar .env para CI
         if: steps.check.outputs.exists == 'true'
-        run: cp src/environments/environment.ts.example src/environments/environment.ts
+        run: |
+          echo "VITE_API_URL=http://localhost:8082/api" >> .env
+          echo "VITE_KEYCLOAK_URL=http://localhost:8080/" >> .env
+          echo "VITE_KEYCLOAK_REALM=ci-realm" >> .env
+          echo "VITE_KEYCLOAK_CLIENT_ID=ci-client" >> .env
 
       # ── Lint (ESLint) ──
       - name: Lint — ESLint
