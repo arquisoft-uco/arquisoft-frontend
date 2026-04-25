@@ -138,6 +138,28 @@ paths:
                 items:
                   $ref: '#/components/schemas/TipoItem'
 
+  /estudiantes:
+    get:
+      tags: [Compartido]
+      operationId: consultarEstudiantesDisponibles
+      summary: Consultar todos los estudiantes disponibles
+      description: |
+        Retorna la lista completa de estudiantes disponibles en el sistema.
+        Usado para poblar selectores en los formularios de registro y asignación de estudiantes.
+
+        **Evento:** Estudiantes Disponibles Consultados  
+        **Actores:** Coordinador  
+        **Política:** Estudiante-POL-01
+      responses:
+        '200':
+          description: Lista de estudiantes disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Estudiante'
+
   /estudiantes/{identificador}:
     get:
       tags: [Compartido]
@@ -160,6 +182,28 @@ paths:
                 $ref: '#/components/schemas/Estudiante'
         '404':
           $ref: '#/components/responses/NotFound'
+
+  /asesores:
+    get:
+      tags: [Compartido]
+      operationId: consultarAsesoresDisponibles
+      summary: Consultar todos los asesores de ficha disponibles
+      description: |
+        Retorna la lista completa de asesores de ficha disponibles en el sistema.
+        Usado para poblar selectores en los formularios de registro y cambio de asesor.
+
+        **Evento:** Asesores de Ficha Disponibles Consultados  
+        **Actores:** Coordinador
+        **Política:** AsesorFicha-POL-01
+      responses:
+        '200':
+          description: Lista de asesores disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Asesor'
 
   /asesores-ficha/{identificador}:
     get:
@@ -221,20 +265,20 @@ paths:
         
         **Evento:** Nueva Ficha Perfil Asignada  
         **Actores:** Coordinador, Asesor Ficha  
-        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-02, FichaPerfil-POL-03
+        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-02, FichaPerfil-POL-03, FichaPerfil-POL-04
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CrearFichaPerfilRequest'
+              $ref: '#/components/schemas/RegistrarFichaPerfilRequest'
       responses:
         '201':
-          description: Ficha perfil creada
+          description: Ficha perfil creada exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FichaPerfil'
+                $ref: '#/components/schemas/FichaPerfilCreadaResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -261,7 +305,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginaFichasPerfil'
 
-  /coordinador/fichas-perfil/{fichaPerfilId}/asesor:
+  /coordinador/fichas-perfil/asesor:
     put:
       tags: [Coordinador]
       operationId: cambiarAsesorFichaPerfil
@@ -272,8 +316,6 @@ paths:
         **Evento:** Asesor Ficha Cambiado  
         **Actores:** Coordinador  
         **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-05
-      parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
       requestBody:
         required: true
         content:
@@ -281,32 +323,26 @@ paths:
             schema:
               $ref: '#/components/schemas/CambiarAsesorRequest'
       responses:
-        '200':
-          description: Asesor cambiado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FichaPerfil'
+        '204':
+          description: Asesor cambiado exitosamente. Sin cuerpo de respuesta.
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: El asesor nuevo es el mismo que el anterior (FichaPerfil-POL-05)
+          description: El nuevo asesor es el mismo que el actual (FichaPerfil-POL-05)
 
-  /coordinador/fichas-perfil/{fichaPerfilId}/estudiantes:
+  /coordinador/fichas-perfil/estudiantes:
     post:
       tags: [Coordinador]
       operationId: asignarEstudianteAFichaPerfil
       summary: Asignar estudiante a una ficha de perfil
       description: |
-        Permite vincular los estudiantes responsables de desarrollar una ficha de perfil.
+        Permite vincular un estudiante a una Ficha Perfil.
         
-        **Evento:** Estudiante asignado a Ficha Perfil  
+        **Evento:** Estudiante Asignado a Ficha Perfil  
         **Actores:** Coordinador  
-        **Políticas:** EstudianteFichaPerfil-POL-1, POL-2, POL-3
-      parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
+        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-03, FichaPerfil-POL-04
       requestBody:
         required: true
         content:
@@ -314,16 +350,18 @@ paths:
             schema:
               $ref: '#/components/schemas/AsignarEstudianteRequest'
       responses:
-        '201':
-          description: Estudiante asignado
+        '200':
+          description: Estudiante asignado. Retorna el ID del vínculo creado.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EstudianteFichaPerfil'
+                $ref: '#/components/schemas/AsignarEstudianteResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
-          description: Estudiante ya asignado o máximo de 3 estudiantes alcanzado
+          description: Estudiante ya asignado (POL-04) o límite de 3 alcanzado (POL-03)
 
     get:
       tags: [Coordinador]
@@ -332,9 +370,9 @@ paths:
       description: |
         Permite conocer los estudiantes vinculados a una ficha de perfil específica.
         
-        **Evento:** Estudiante de una Ficha Perfil Consultados  
+        **Evento:** Estudiantes de una Ficha Perfil Consultados  
         **Actores:** Coordinador  
-        **Política:** EstudianteFichaPerfil-POL-1
+        **Política:** FichaPerfil-POL-01
       parameters:
         - $ref: '#/components/parameters/FichaPerfilIdPath'
       responses:
@@ -345,27 +383,32 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Estudiante'
+                  $ref: '#/components/schemas/EstudianteVinculadoResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /coordinador/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}:
+  /coordinador/fichas-perfil/estudiantes/{idVinculo}:
     delete:
       tags: [Coordinador]
       operationId: removerEstudianteDeFichaPerfil
       summary: Remover estudiante de una ficha perfil
       description: |
-        Permite remover los estudiantes responsables de desarrollar una ficha de perfil.
+        Permite remover el vínculo entre un estudiante y una Ficha Perfil.
         
         **Evento:** Estudiante Removido de Ficha Perfil  
         **Actores:** Coordinador  
-        **Políticas:** EstudianteFichaPerfil-POL-1, POL-4
+        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-06
       parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
-        - $ref: '#/components/parameters/EstudianteIdPath'
+        - name: idVinculo
+          in: path
+          required: true
+          description: ID del registro EstudianteFichaPerfil a eliminar.
+          schema:
+            type: string
+            format: uuid
       responses:
         '204':
-          description: Estudiante removido
+          description: Vínculo eliminado exitosamente. Sin cuerpo de respuesta.
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -692,20 +735,20 @@ paths:
         
         **Evento:** Nueva Ficha Perfil Asignada  
         **Actores:** Coordinador, Asesor Ficha  
-        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-02, FichaPerfil-POL-03
+        **Políticas:** FichaPerfil-POL-01, FichaPerfil-POL-02, FichaPerfil-POL-03, FichaPerfil-POL-04
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CrearFichaPerfilRequest'
+              $ref: '#/components/schemas/RegistrarFichaPerfilRequest'
       responses:
         '201':
-          description: Ficha perfil creada
+          description: Ficha perfil creada exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FichaPerfil'
+                $ref: '#/components/schemas/FichaPerfilCreadaResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -1478,6 +1521,28 @@ components:
           maxLength: 200
 
     # ─── Identidad ───
+    EstudianteVinculadoResponse:
+      type: object
+      description: Información de un estudiante vinculado a una Ficha Perfil (incluye el ID del vínculo).
+      properties:
+        idVinculo:
+          type: string
+          format: uuid
+          description: ID del registro EstudianteFichaPerfil. Usar para remover el vínculo.
+        id:
+          type: string
+          format: uuid
+          description: ID del estudiante.
+        nombre:
+          type: string
+          maxLength: 100
+          description: Nombre completo del estudiante.
+        email:
+          type: string
+          format: email
+          maxLength: 100
+          description: Correo institucional del estudiante.
+
     Estudiante:
       type: object
       properties:
@@ -1549,7 +1614,7 @@ components:
         content:
           type: array
           items:
-            $ref: '#/components/schemas/FichaPerfil'
+            $ref: '#/components/schemas/FichaPerfilResumen'
         totalElements:
           type: integer
         totalPages:
@@ -1558,6 +1623,68 @@ components:
           type: integer
         size:
           type: integer
+
+    FichaPerfilResumen:
+      type: object
+      description: Proyección resumida de una Ficha Perfil para listados del Coordinador.
+      properties:
+        id:
+          type: string
+          format: uuid
+        titulo:
+          type: string
+          maxLength: 100
+          description: Título del proyecto (alias de tituloProyecto).
+        asesor:
+          type: object
+          description: Asesor asignado a la ficha.
+          properties:
+            id:
+              type: string
+              format: uuid
+            nombre:
+              type: string
+              maxLength: 50
+            email:
+              type: string
+              format: email
+              maxLength: 50
+
+    RegistrarFichaPerfilRequest:
+      type: object
+      description: Payload para registrar una nueva Ficha de Perfil (Asesor Ficha o Coordinador).
+      required:
+        - titulo
+        - idAsesorFicha
+        - idEstudiantes
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Título del proyecto. Debe ser único en el sistema.
+        idAsesorFicha:
+          type: string
+          format: uuid
+          description: ID del asesor asignado a la ficha.
+        idEstudiantes:
+          type: array
+          minItems: 1
+          maxItems: 3
+          uniqueItems: true
+          description: Lista de IDs de estudiantes (1–3, sin duplicados).
+          items:
+            type: string
+            format: uuid
+
+    FichaPerfilCreadaResponse:
+      type: object
+      description: Respuesta al registrar una nueva Ficha de Perfil.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID de la ficha de perfil creada.
 
     CrearFichaPerfilRequest:
       type: object
@@ -1590,12 +1717,19 @@ components:
 
     CambiarAsesorRequest:
       type: object
+      description: Payload para cambiar el asesor asignado a una Ficha Perfil.
       required:
-        - nuevoAsesorFichaId
+        - idFicha
+        - idAsesorFicha
       properties:
-        nuevoAsesorFichaId:
+        idFicha:
           type: string
           format: uuid
+          description: ID de la ficha perfil a modificar.
+        idAsesorFicha:
+          type: string
+          format: uuid
+          description: ID del nuevo asesor. Debe ser distinto al asesor actual (POL-05).
 
     # ─── Estudiante Ficha Perfil ───
     EstudianteFichaPerfil:
@@ -1613,12 +1747,28 @@ components:
 
     AsignarEstudianteRequest:
       type: object
+      description: Payload para asignar un estudiante a una Ficha Perfil.
       required:
-        - estudianteId
+        - idFichaPerfil
+        - idEstudiante
       properties:
-        estudianteId:
+        idFichaPerfil:
           type: string
           format: uuid
+          description: ID de la ficha perfil a la que se asigna el estudiante.
+        idEstudiante:
+          type: string
+          format: uuid
+          description: ID del estudiante a vincular.
+
+    AsignarEstudianteResponse:
+      type: object
+      description: Respuesta al asignar un estudiante a una Ficha Perfil.
+      properties:
+        idVinculo:
+          type: string
+          format: uuid
+          description: ID del registro EstudianteFichaPerfil creado. Usar para remover el vínculo.
 
     # ─── Estado Ficha Perfil ───
     EstadoFichaPerfil:
