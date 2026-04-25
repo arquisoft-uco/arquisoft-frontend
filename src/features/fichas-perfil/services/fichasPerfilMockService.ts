@@ -361,7 +361,7 @@ export function getMiFichaPerfil(): Promise<MiFichaPerfilResponse> {
 }
 
 export function modificarTituloFichaPerfil(req: ModificarFichaPerfilRequest): Promise<void> {
-  fichasPerfil = fichasPerfil.map((f) => (f.id === MI_FICHA_ID ? { ...f, tituloProyecto: req.tituloProyecto } : f));
+  fichasPerfil = fichasPerfil.map((f) => (f.id === req.fichaPerfilId ? { ...f, tituloProyecto: req.tituloProyecto } : f));
   return delay(undefined);
 }
 

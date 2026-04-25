@@ -1576,8 +1576,13 @@ components:
     ModificarFichaPerfilRequest:
       type: object
       required:
+        - fichaPerfilId
         - tituloProyecto
       properties:
+        fichaPerfilId:
+          type: string
+          format: uuid
+          description: Identificador de la ficha de perfil a modificar.
         tituloProyecto:
           type: string
           maxLength: 100

@@ -5,6 +5,7 @@ import {
   modificarTituloFichaPerfil,
 } from '../services/fichasPerfilMockService';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
+import { toast } from '../../../shared/hooks/useToast';
 
 export function useMiFichaPerfil() {
   const queryClient = useQueryClient();
@@ -20,13 +21,16 @@ export function useMiFichaPerfil() {
   });
 
   const modificarTitulo = useMutation({
-    mutationFn: (tituloProyecto: string) => modificarTituloFichaPerfil({ tituloProyecto }),
+    mutationFn: (tituloProyecto: string) =>
+      modificarTituloFichaPerfil({ fichaPerfilId: fichaQuery.data?.id ?? '', tituloProyecto }),
     onSuccess: (_, tituloProyecto) => {
       queryClient.setQueryData(
         ['fichas-perfil', 'estudiante', 'mi-ficha'],
         (prev: MiFichaPerfilResponse) => ({ ...prev, tituloProyecto }),
       );
+      toast.success('Ficha actualizada', 'El título del proyecto se guardó correctamente.');
     },
+    onError: () => toast.error('Error al modificar', 'No se pudo actualizar el título de la ficha.'),
   });
 
   return {
