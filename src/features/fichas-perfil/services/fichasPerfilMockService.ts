@@ -369,16 +369,6 @@ export function consultarCompanerosFichaPerfil(): Promise<EstudianteInterno[]> {
   return consultarEstudiantesFichaPerfil(MI_FICHA_ID);
 }
 
-export function agregarEstadoFichaPerfilEstudiante(req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> {
-  const estado: EstadoFichaPerfil = { id: uid(), fichaPerfilId: MI_FICHA_ID, estadoFichaId: req.estadoFichaId, fechaActualizacion: new Date().toISOString() };
-  estadosFichaPerfil = [...estadosFichaPerfil, estado];
-  return delay(estado);
-}
-
-export function consultarEstadoFichaPerfilEstudiante(): Promise<EstadoFichaPerfil[]> {
-  return delay(estadosFichaPerfil.filter((e) => e.fichaPerfilId === MI_FICHA_ID));
-}
-
 export function agregarItemFichaPerfil(req: CrearItemRequest): Promise<ItemCreadoResponse> {
   const interno: ItemInterno = { id: uid(), tipoItemId: req.tipoItemId, contenido: req.contenido, fichaPerfilId: req.fichaPerfilId };
   items = [...items, interno];
@@ -397,26 +387,6 @@ export function modificarItem(req: ModificarItemRequest): Promise<void> {
 export function removerItem(itemId: string): Promise<void> {
   items = items.filter((i) => i.id !== itemId);
   return delay(undefined);
-}
-
-export function consultarEvaluacionesMiFichaPerfil(): Promise<EvaluacionFichaPerfil[]> {
-  return delay(evaluaciones.filter((e) => e.fichaPerfilId === MI_FICHA_ID));
-}
-
-export function consultarRevisionesItemsMiFichaPerfil(): Promise<RevisionItem[]> {
-  const myItemIds = items.filter((i) => i.fichaPerfilId === MI_FICHA_ID).map((i) => i.id);
-  return delay(revisionesItem.filter((r) => myItemIds.includes(r.itemId)));
-}
-
-export function consultarObservacionesItemsMiFichaPerfil(): Promise<ObservacionItem[]> {
-  const myItemIds = items.filter((i) => i.fichaPerfilId === MI_FICHA_ID).map((i) => i.id);
-  const myRevIds = revisionesItem.filter((r) => myItemIds.includes(r.itemId)).map((r) => r.id);
-  return delay(observacionesItem.filter((o) => myRevIds.includes(o.revisionItemId)));
-}
-
-export function consultarObservacionesEvaluacionMiFichaPerfil(): Promise<ObservacionEvaluacion[]> {
-  const myEvalIds = evaluaciones.filter((e) => e.fichaPerfilId === MI_FICHA_ID).map((e) => e.id);
-  return delay(observacionesEvaluacion.filter((o) => myEvalIds.includes(o.evaluacionFichaPerfilId)));
 }
 
 // ═══════════════════════════════════════════════════════════════════
