@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Edit3, Plus, Trash2 } from 'lucide-react';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
+import { toast } from '../../../../shared/hooks/useToast';
 
 export default function ItemsMiFichaPanel() {
-  const { items, tiposItem, agregar, modificar, remover } = useItemsMiFicha();
+  const { fichaId, items, tiposItem, agregar, modificar, remover } = useItemsMiFicha();
 
   const [mostrarFormAgregar, setMostrarFormAgregar] = useState(false);
   const [nuevoItemTipoId, setNuevoItemTipoId] = useState('');
@@ -12,15 +13,17 @@ export default function ItemsMiFichaPanel() {
   const [editContenido, setEditContenido] = useState('');
 
   const handleAgregar = () => {
-    if (!nuevoItemTipoId || !nuevoItemContenido.trim()) return;
+    if (!nuevoItemTipoId || !nuevoItemContenido.trim() || !fichaId) return;
     agregar.mutate(
-      { tipoItemId: nuevoItemTipoId, contenido: nuevoItemContenido },
+      { fichaPerfilId: fichaId, tipoItemId: nuevoItemTipoId, contenido: nuevoItemContenido },
       {
         onSuccess: () => {
           setNuevoItemTipoId('');
           setNuevoItemContenido('');
           setMostrarFormAgregar(false);
+          toast.success('Ítem agregado', 'El ítem se registró correctamente.');
         },
+        onError: () => toast.error('Error al agregar', 'No se pudo registrar el ítem.'),
       },
     );
   };
@@ -32,13 +35,22 @@ export default function ItemsMiFichaPanel() {
 
   const handleGuardarEdicion = (itemId: string) => {
     modificar.mutate(
-      { itemId, req: { contenido: editContenido } },
-      { onSuccess: () => setEditandoItemId(null) },
+      { itemId, contenido: editContenido },
+      {
+        onSuccess: () => {
+          setEditandoItemId(null);
+          toast.success('Ítem actualizado', 'El contenido se guardó correctamente.');
+        },
+        onError: () => toast.error('Error al modificar', 'No se pudo actualizar el ítem.'),
+      },
     );
   };
 
   const handleEliminar = (itemId: string) => {
-    remover.mutate(itemId);
+    remover.mutate(itemId, {
+      onSuccess: () => toast.success('Ítem eliminado', 'El ítem fue removido de tu ficha.'),
+      onError: () => toast.error('Error al eliminar', 'No se pudo eliminar el ítem.'),
+    });
   };
 
   return (
@@ -90,7 +102,7 @@ export default function ItemsMiFichaPanel() {
             <button
               type="button"
               onClick={handleAgregar}
-              disabled={!nuevoItemTipoId || !nuevoItemContenido.trim() || agregar.isPending}
+              disabled={!nuevoItemTipoId || !nuevoItemContenido.trim() || !fichaId || agregar.isPending}
               className="rounded-lg bg-primary px-2 py-1 text-xs font-medium text-primary-foreground disabled:opacity-50"
             >
               Agregar

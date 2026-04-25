@@ -11,7 +11,7 @@ import type { FichaPerfil } from '../models/FichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
-import type { Item, TipoItem } from '../models/fichas-perfil';
+import type { Item, TipoItem, CrearItemRequest, ItemCreadoResponse, ModificarItemRequest } from '../models/fichas-perfil';
 
 export const fichasPerfilService = {
   getMiFichaPerfil: (): Promise<MiFichaPerfilResponse> =>
@@ -28,6 +28,21 @@ export const fichasPerfilService = {
     apiClient
       .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items')
       .then((r) => r.data),
+
+  agregarItemFichaPerfil: (req: CrearItemRequest): Promise<ItemCreadoResponse> =>
+    apiClient
+      .post<ItemCreadoResponse>('/fichas-perfil/estudiante/mi-ficha/items', req)
+      .then((r) => r.data),
+
+  modificarItem: (req: ModificarItemRequest): Promise<void> =>
+    apiClient
+      .put('/fichas-perfil/estudiante/mi-ficha/items', req)
+      .then(() => undefined),
+
+  removerItem: (itemId: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/estudiante/mi-ficha/items/${itemId}`)
+      .then(() => undefined),
 
   consultarTodosTipoItem: (): Promise<TipoItem[]> =>
     apiClient

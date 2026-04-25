@@ -24,6 +24,7 @@ import type {
   CrearEvaluacionFichaPerfilRequest,
   CrearObservacionEvaluacionRequest,
   ModificarObservacionRequest,
+  ItemCreadoResponse,
   ModificarItemRequest,
   ModificarRevisionItemRequest,
   AgregarEstadoFichaPerfilRequest,
@@ -378,19 +379,19 @@ export function consultarEstadoFichaPerfilEstudiante(): Promise<EstadoFichaPerfi
   return delay(estadosFichaPerfil.filter((e) => e.fichaPerfilId === MI_FICHA_ID));
 }
 
-export function agregarItemFichaPerfil(req: CrearItemRequest): Promise<Item> {
-  const interno: ItemInterno = { id: uid(), tipoItemId: req.tipoItemId, contenido: req.contenido, fichaPerfilId: MI_FICHA_ID };
+export function agregarItemFichaPerfil(req: CrearItemRequest): Promise<ItemCreadoResponse> {
+  const interno: ItemInterno = { id: uid(), tipoItemId: req.tipoItemId, contenido: req.contenido, fichaPerfilId: req.fichaPerfilId };
   items = [...items, interno];
-  return delay(enrichItem(interno));
+  return delay({ id: interno.id });
 }
 
 export function consultarItemsMiFichaPerfil(): Promise<Item[]> {
   return delay(items.filter((i) => i.fichaPerfilId === MI_FICHA_ID).map(enrichItem));
 }
 
-export function modificarItem(itemId: string, req: ModificarItemRequest): Promise<Item> {
-  items = items.map((i) => (i.id === itemId ? { ...i, contenido: req.contenido } : i));
-  return delay(enrichItem(items.find((i) => i.id === itemId)!));
+export function modificarItem(req: ModificarItemRequest): Promise<void> {
+  items = items.map((i) => (i.id === req.itemId ? { ...i, contenido: req.contenido } : i));
+  return delay(undefined);
 }
 
 export function removerItem(itemId: string): Promise<void> {

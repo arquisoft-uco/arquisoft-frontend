@@ -7,12 +7,16 @@ import {
   removerItem,
 } from '../services/fichasPerfilMockService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
+import { useMiFichaPerfil } from './useMiFichaPerfil';
+
+const ITEMS_KEY = ['fichas-perfil', 'estudiante', 'items'];
 
 export function useItemsMiFicha() {
   const queryClient = useQueryClient();
+  const { ficha } = useMiFichaPerfil();
 
   const itemsQuery = useQuery({
-    queryKey: ['fichas-perfil', 'estudiante', 'items'],
+    queryKey: ITEMS_KEY,
     queryFn: consultarItemsMiFichaPerfil,
   });
 
@@ -22,21 +26,25 @@ export function useItemsMiFicha() {
     staleTime: Infinity,
   });
 
-  const ITEMS_KEY = ['fichas-perfil', 'estudiante', 'items'];
-
   const agregar = useMutation({
     mutationFn: (req: CrearItemRequest) => agregarItemFichaPerfil(req),
-    onSuccess: (nuevoItem) => {
+    onSuccess: ({ id }, req) => {
+      const tipoItem = tiposItemQuery.data?.find((t) => t.id === req.tipoItemId);
+      const nuevoItem: Item = {
+        id,
+        tipoItem: { id: req.tipoItemId, nombre: tipoItem?.nombre ?? req.tipoItemId },
+        contenido: req.contenido,
+        fichaPerfilId: req.fichaPerfilId,
+      };
       queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) => [...prev, nuevoItem]);
     },
   });
 
   const modificar = useMutation({
-    mutationFn: ({ itemId, req }: { itemId: string; req: ModificarItemRequest }) =>
-      modificarItem(itemId, req),
-    onSuccess: (itemActualizado) => {
+    mutationFn: (req: ModificarItemRequest) => modificarItem(req),
+    onSuccess: (_, req) => {
       queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
-        prev.map((i) => (i.id === itemActualizado.id ? itemActualizado : i)),
+        prev.map((i) => (i.id === req.itemId ? { ...i, contenido: req.contenido } : i)),
       );
     },
   });
@@ -51,6 +59,7 @@ export function useItemsMiFicha() {
   });
 
   return {
+    fichaId: ficha?.id,
     items: itemsQuery.data ?? [],
     tiposItem: tiposItemQuery.data ?? [],
     isLoading: itemsQuery.isLoading || tiposItemQuery.isLoading,

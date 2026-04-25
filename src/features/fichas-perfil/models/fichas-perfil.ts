@@ -167,11 +167,17 @@ export interface AgregarEstadoAprobacionRequest {
 }
 
 export interface CrearItemRequest {
+  fichaPerfilId: string;
   tipoItemId: string;
   contenido: string;
 }
 
+export interface ItemCreadoResponse {
+  id: string;
+}
+
 export interface ModificarItemRequest {
+  itemId: string;
   contenido: string;
 }
 

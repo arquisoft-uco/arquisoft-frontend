@@ -502,6 +502,9 @@ paths:
         **Evento:** Item Agregado a la ficha perfil  
         **Actores:** Estudiante  
         **Políticas:** Item-POL-1, Item-POL-02, Item-POL-03
+        
+        El response retorna únicamente el `id` generado. El cliente reconstruye
+        el objeto `Item` completo usando los datos ya conocidos del formulario.
       requestBody:
         required: true
         content:
@@ -510,13 +513,15 @@ paths:
               $ref: '#/components/schemas/CrearItemRequest'
       responses:
         '201':
-          description: Item agregado
+          description: Item agregado — retorna el id generado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Item'
+                $ref: '#/components/schemas/ItemCreadoResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
           description: Tipo item duplicado en la ficha (Item-POL-02)
 
@@ -540,19 +545,18 @@ paths:
                 items:
                   $ref: '#/components/schemas/Item'
 
-  /estudiante/mi-ficha-perfil/items/{itemId}:
+  /estudiante/mi-ficha-perfil/items:
     put:
       tags: [Estudiante]
       operationId: modificarItem
       summary: Modificar información de un Item
       description: |
         Permite modificar el contenido de un item existente.
+        El `itemId` viaja en el body (no en el path).
         
         **Evento:** Información Item Modificada  
         **Actores:** Estudiante  
         **Políticas:** Item-POL-01, Item-POL-04
-      parameters:
-        - $ref: '#/components/parameters/ItemIdPath'
       requestBody:
         required: true
         content:
@@ -560,17 +564,16 @@ paths:
             schema:
               $ref: '#/components/schemas/ModificarItemRequest'
       responses:
-        '200':
-          description: Item modificado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Item'
+        '204':
+          description: Item modificado exitosamente — sin body
         '400':
           $ref: '#/components/responses/BadRequest'
+        '403':
+          description: El ítem no pertenece a la ficha del estudiante autenticado
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /estudiante/mi-ficha-perfil/items/{itemId}:
     delete:
       tags: [Estudiante]
       operationId: removerItem
@@ -1668,9 +1671,13 @@ components:
     CrearItemRequest:
       type: object
       required:
+        - fichaPerfilId
         - tipoItemId
         - contenido
       properties:
+        fichaPerfilId:
+          type: string
+          format: uuid
         tipoItemId:
           type: string
           format: uuid
@@ -1679,11 +1686,25 @@ components:
           maxLength: 200
           minLength: 1
 
+    ItemCreadoResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador del ítem creado
+
     ModificarItemRequest:
       type: object
       required:
+        - itemId
         - contenido
       properties:
+        itemId:
+          type: string
+          format: uuid
         contenido:
           type: string
           maxLength: 200
