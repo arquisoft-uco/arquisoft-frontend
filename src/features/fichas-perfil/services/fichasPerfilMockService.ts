@@ -260,13 +260,6 @@ export function consultarAsesoresDisponibles(): Promise<Asesor[]> {
 // COORDINADOR
 // ═══════════════════════════════════════════════════════════════════
 
-export function registrarFichaPerfilCoordinador(req: CrearFichaPerfilRequest): Promise<FichaPerfilInterna> {
-  const ficha: FichaPerfilInterna = { id: uid(), tituloProyecto: req.tituloProyecto, asesorFichaId: req.asesorFichaId };
-  fichasPerfil = [...fichasPerfil, ficha];
-  estadosFichaPerfil = [...estadosFichaPerfil, { id: uid(), fichaPerfilId: ficha.id, estadoFichaId: 'ef-1', fechaActualizacion: new Date().toISOString() }];
-  return delay(ficha);
-}
-
 export function registrarFichaPerfil(req: RegistrarFichaPerfilRequest): Promise<FichaPerfilCreadaResponse> {
   if (req.idEstudiantes.length < 1 || req.idEstudiantes.length > 3) {
     return Promise.reject(new Error('Debe asignar entre 1 y 3 estudiantes'));
