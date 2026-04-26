@@ -1,8 +1,5 @@
-export interface MiFichaPerfilAsesor {
-  id: string;
-  nombre: string;
-  email: string;
-}
+import type { Asesor } from './Asesor';
+import type { Estudiante } from './Estudiante';
 
 export interface MiFichaPerfilEstadoActual {
   id: string;
@@ -13,6 +10,7 @@ export interface MiFichaPerfilEstadoActual {
 export interface MiFichaPerfilResponse {
   id: string;
   tituloProyecto: string;
-  asesor: MiFichaPerfilAsesor;
+  asesor: Asesor;
   estadoActual: MiFichaPerfilEstadoActual;
+  integrantes: Estudiante[];
 }

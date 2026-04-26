@@ -416,24 +416,32 @@ paths:
   # ESTUDIANTE
   # ────────────────────────────────────────────────────────────────
 
-  /estudiante/mi-ficha-perfil:
+  /estudiante/{estudianteId}/mi-ficha:
     get:
       tags: [Estudiante]
       operationId: consultarMiFichaPerfil
       summary: Consultar información de la Ficha Perfil a la que pertenece
       description: |
         Permite consultar información de la ficha perfil en la cual el estudiante está asignado.
+        La respuesta incluye los integrantes del grupo.
         
         **Evento:** Información de Ficha Perfil del Estudiante Consultada  
         **Actores:** Estudiante  
         **Política:** FichaPerfil-POL-01
+      parameters:
+        - name: estudianteId
+          in: path
+          required: true
+          description: ID del estudiante autenticado (sub del JWT).
+          schema:
+            type: string
       responses:
         '200':
-          description: Ficha perfil del estudiante
+          description: Ficha perfil del estudiante con integrantes
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FichaPerfil'
+                $ref: '#/components/schemas/MiFichaPerfilResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -463,27 +471,6 @@ paths:
                 $ref: '#/components/schemas/FichaPerfil'
         '400':
           $ref: '#/components/responses/BadRequest'
-
-  /estudiante/mi-ficha-perfil/companeros:
-    get:
-      tags: [Estudiante]
-      operationId: consultarCompanerosFichaPerfil
-      summary: Consultar compañeros Estudiantes vinculados a la ficha de perfil
-      description: |
-        Permite conocer los estudiantes vinculados a la ficha de perfil a la que pertenece el estudiante.
-        
-        **Evento:** Compañeros de una Ficha Perfil Consultados  
-        **Actores:** Estudiante  
-        **Política:** EstudianteFichaPerfil-POL-1
-      responses:
-        '200':
-          description: Lista de compañeros
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Estudiante'
 
   /estudiante/mi-ficha-perfil/estados:
     post:
@@ -1595,6 +1582,32 @@ components:
           maxLength: 50
 
     # ─── Ficha Perfil ───
+    MiFichaPerfilResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tituloProyecto:
+          type: string
+        asesor:
+          $ref: '#/components/schemas/Asesor'
+        estadoActual:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            nombre:
+              type: string
+            fechaActualizacion:
+              type: string
+              format: date-time
+        integrantes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Estudiante'
+
     FichaPerfil:
       type: object
       properties:

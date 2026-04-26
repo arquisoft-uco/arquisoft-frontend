@@ -329,14 +329,14 @@ export function removerEstudiante(idVinculo: string): Promise<void> {
 // ESTUDIANTE
 // ═══════════════════════════════════════════════════════════════════
 
-/** In a real app, the backend resolves "mi ficha" from the JWT. Here we default to fp-1. */
+/** En mock, se ignora el estudianteId y se usa fp-1 como ficha del estudiante autenticado. */
 const MI_FICHA_ID = 'fp-1';
 
 export function consultarMiFichaPerfil(): Promise<FichaPerfilInterna | undefined> {
   return delay(fichasPerfil.find((f) => f.id === MI_FICHA_ID));
 }
 
-export function getMiFichaPerfil(): Promise<MiFichaPerfilResponse> {
+export function getMiFichaPerfil(_estudianteId: string): Promise<MiFichaPerfilResponse> {
   const ficha = fichasPerfil.find((f) => f.id === MI_FICHA_ID);
   if (!ficha) return Promise.reject(new Error('El estudiante no está vinculado a ninguna ficha de perfil'));
   const asesorData = ASESORES.find((a) => a.id === ficha.asesorFichaId)!;
@@ -345,21 +345,24 @@ export function getMiFichaPerfil(): Promise<MiFichaPerfilResponse> {
     .sort((a, b) => new Date(b.fechaActualizacion).getTime() - new Date(a.fechaActualizacion).getTime());
   const ultimoEstado = estadosOrdenados[0];
   const estadoData = ultimoEstado ? ESTADOS_FICHA.find((ef) => ef.id === ultimoEstado.estadoFichaId)! : ESTADOS_FICHA[0];
+  const integrantes = estudiantesFichaPerfil
+    .filter((e) => e.fichaPerfilId === MI_FICHA_ID)
+    .map((v) => {
+      const est = ESTUDIANTES.find((e) => e.id === v.estudianteId)!;
+      return { id: est.id, nombre: est.nombre, email: est.email };
+    });
   return delay({
     id: ficha.id,
     tituloProyecto: ficha.tituloProyecto,
     asesor: { id: asesorData.id, nombre: asesorData.nombre, email: asesorData.email },
     estadoActual: { id: estadoData.id, nombre: estadoData.nombre, fechaActualizacion: ultimoEstado?.fechaActualizacion ?? new Date().toISOString() },
+    integrantes,
   });
 }
 
 export function modificarTituloFichaPerfil(req: ModificarFichaPerfilRequest): Promise<void> {
   fichasPerfil = fichasPerfil.map((f) => (f.id === req.fichaPerfilId ? { ...f, tituloProyecto: req.tituloProyecto } : f));
   return delay(undefined);
-}
-
-export function consultarCompanerosFichaPerfil(): Promise<EstudianteInterno[]> {
-  return consultarEstudiantesFichaPerfil(MI_FICHA_ID);
 }
 
 export function agregarItemFichaPerfil(req: CrearItemRequest): Promise<ItemCreadoResponse> {

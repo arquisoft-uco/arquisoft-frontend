@@ -14,9 +14,9 @@ import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfil
 import type { Item, TipoItem, CrearItemRequest, ItemCreadoResponse, ModificarItemRequest } from '../models/fichas-perfil';
 
 export const fichasPerfilService = {
-  getMiFichaPerfil: (): Promise<MiFichaPerfilResponse> =>
+  getMiFichaPerfil: (estudianteId: string): Promise<MiFichaPerfilResponse> =>
     apiClient
-      .get<MiFichaPerfilResponse>('/fichas-perfil/estudiante/mi-ficha')
+      .get<MiFichaPerfilResponse>(`/fichas-perfil/estudiante/${estudianteId}/mi-ficha`)
       .then((r) => r.data),
 
   modificarTituloFichaPerfil: (req: ModificarFichaPerfilRequest): Promise<void> =>
