@@ -118,7 +118,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/EstadoObservacionRevision'
 
-  /tipos-item:
+  /fichas-perfil/tipos-item:
     get:
       tags: [Compartido, Asesor Ficha]
       operationId: consultarTodosTipoItem
@@ -447,7 +447,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /estudiante/mi-ficha-perfil/titulo:
+  /fichas-perfil/estudiante/mi-ficha:
     put:
       tags: [Estudiante]
       operationId: modificarFichaPerfil
@@ -552,7 +552,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Item'
 
-  /estudiante/mi-ficha-perfil/items:
+  /fichas-perfil/estudiante/mi-ficha/items:
     post:
       tags: [Estudiante]
       operationId: agregarItemFichaPerfil

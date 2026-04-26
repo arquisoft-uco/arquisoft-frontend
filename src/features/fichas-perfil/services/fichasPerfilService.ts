@@ -46,7 +46,7 @@ export const fichasPerfilService = {
 
   consultarTodosTipoItem: (): Promise<TipoItem[]> =>
     apiClient
-      .get<TipoItem[]>('/tipos-item')
+      .get<TipoItem[]>('/fichas-perfil/tipos-item')
       .then((r) => r.data),
 
   getFichasCoordinador: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
