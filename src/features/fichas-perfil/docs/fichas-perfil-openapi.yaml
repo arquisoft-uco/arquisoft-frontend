@@ -585,7 +585,7 @@ paths:
         '409':
           description: Tipo item duplicado en la ficha (Item-POL-02)
 
-  /estudiante/mi-ficha-perfil/items:
+  /fichas-perfil/estudiante/mi-ficha/items:
     put:
       tags: [Estudiante]
       operationId: modificarItem
@@ -613,7 +613,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /estudiante/mi-ficha-perfil/items/{itemId}:
+  /fichas-perfil/estudiante/mi-ficha/items/{itemId}:
     delete:
       tags: [Estudiante]
       operationId: removerItem
