@@ -100,7 +100,11 @@ export default function FichasPerfilTable({
                     {asesorExpandida && (
                       <tr className="bg-surface-secondary">
                         <td colSpan={5} className="p-0">
-                          <CambiarAsesorForm idFichaPerfil={ficha.id} idAsesorActual={ficha.asesor.id} />
+                          <CambiarAsesorForm
+                            idFichaPerfil={ficha.id}
+                            idAsesorActual={ficha.asesor.id}
+                            onExito={() => setFichaAsesorExpandida(null)}
+                          />
                         </td>
                       </tr>
                     )}

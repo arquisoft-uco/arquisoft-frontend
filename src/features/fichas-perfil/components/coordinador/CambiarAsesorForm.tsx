@@ -9,9 +9,10 @@ import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 interface Props {
   idFichaPerfil: string;
   idAsesorActual: string;
+  onExito?: () => void;
 }
 
-export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual }: Props) {
+export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual, onExito }: Props) {
   const [idAsesorSeleccionado, setIdAsesorSeleccionado] = useState('');
   const [confirming, setConfirming] = useState(false);
 
@@ -31,13 +32,15 @@ export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual }: Pro
   }
 
   function handleConfirmar() {
+    if (!asesorNuevo) return;
     mutate(
-      { idFicha: idFichaPerfil, idAsesorFicha: idAsesorSeleccionado },
+      { idFicha: idFichaPerfil, idAsesorFicha: idAsesorSeleccionado, asesorNuevo },
       {
         onSuccess: () => {
           toast.success('Asesor actualizado', 'El asesor de la ficha fue cambiado correctamente.');
           setIdAsesorSeleccionado('');
           setConfirming(false);
+          onExito?.();
         },
         onError: (err) => {
           toast.error(
