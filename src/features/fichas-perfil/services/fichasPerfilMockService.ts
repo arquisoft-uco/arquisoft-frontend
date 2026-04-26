@@ -371,7 +371,7 @@ export function agregarItemFichaPerfil(req: CrearItemRequest): Promise<ItemCread
   return delay({ id: interno.id });
 }
 
-export function consultarItemsMiFichaPerfil(): Promise<Item[]> {
+export function consultarItemsMiFichaPerfil(_estudianteId: string): Promise<Item[]> {
   return delay(items.filter((i) => i.fichaPerfilId === MI_FICHA_ID).map(enrichItem));
 }
 

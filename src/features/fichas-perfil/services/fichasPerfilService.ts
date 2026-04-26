@@ -24,9 +24,9 @@ export const fichasPerfilService = {
       .put('/fichas-perfil/estudiante/mi-ficha', req)
       .then(() => undefined),
 
-  consultarItemsMiFichaPerfil: (): Promise<Item[]> =>
+  consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
     apiClient
-      .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items')
+      .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
       .then((r) => r.data),
 
   agregarItemFichaPerfil: (req: CrearItemRequest): Promise<ItemCreadoResponse> =>

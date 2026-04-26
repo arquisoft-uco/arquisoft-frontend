@@ -2,16 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
-
-const ITEMS_KEY = ['fichas-perfil', 'estudiante', 'items'];
+import { useAuthStore } from '../../../auth/authStore';
 
 export function useItemsMiFicha() {
   const queryClient = useQueryClient();
   const { ficha } = useMiFichaPerfil();
+  const estudianteId = useAuthStore((s) => s.tokenParsed?.sub ?? '');
+
+  const ITEMS_KEY = ['fichas-perfil', 'estudiante', estudianteId, 'items'];
 
   const itemsQuery = useQuery({
     queryKey: ITEMS_KEY,
-    queryFn: fichasPerfilService.consultarItemsMiFichaPerfil,
+    queryFn: () => fichasPerfilService.consultarItemsMiFichaPerfil(estudianteId),
+    enabled: !!estudianteId,
   });
 
   const tiposItemQuery = useQuery({

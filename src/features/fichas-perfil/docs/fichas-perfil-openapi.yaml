@@ -523,11 +523,39 @@ paths:
                 items:
                   $ref: '#/components/schemas/EstadoFichaPerfil'
 
+  /fichas-perfil/estudiante/mi-ficha/items:
+    get:
+      tags: [Estudiante]
+      operationId: consultarItemsMiFichaPerfil
+      summary: Consultar información de los items de su Ficha Perfil
+      description: |
+        Permite la búsqueda de los items de la Ficha Perfil del estudiante.
+        
+        **Evento:** Información Item del Estudiante Consultada  
+        **Actores:** Estudiante  
+        **Políticas:** Item-POL-01, Item-POL-06
+      parameters:
+        - name: estudianteId
+          in: query
+          required: true
+          description: ID del estudiante autenticado (sub del JWT)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+
   /estudiante/mi-ficha-perfil/items:
     post:
       tags: [Estudiante]
       operationId: agregarItemFichaPerfil
-      summary: Agregar Item a ficha perfil
       description: |
         Permite agregar información importante para una ficha de perfil.
         
@@ -556,26 +584,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           description: Tipo item duplicado en la ficha (Item-POL-02)
-
-    get:
-      tags: [Estudiante]
-      operationId: consultarItemsMiFichaPerfil
-      summary: Consultar información de los items de su Ficha Perfil
-      description: |
-        Permite la búsqueda de los items de la Ficha Perfil del estudiante.
-        
-        **Evento:** Información Item del Estudiante Consultada  
-        **Actores:** Estudiante  
-        **Políticas:** Item-POL-01, Item-POL-06
-      responses:
-        '200':
-          description: Lista de items
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Item'
 
   /estudiante/mi-ficha-perfil/items:
     put:
