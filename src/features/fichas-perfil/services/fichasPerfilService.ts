@@ -56,7 +56,7 @@ export const fichasPerfilService = {
 
   consultarAsesoresDisponibles: (): Promise<Asesor[]> =>
     apiClient
-      .get<Asesor[]>('/asesores')
+      .get<Asesor[]>('/fichas-perfil/asesores')
       .then((r) => r.data),
 
   consultarEstudiantesDisponibles: (): Promise<Estudiante[]> =>

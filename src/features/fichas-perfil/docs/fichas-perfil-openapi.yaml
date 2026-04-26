@@ -183,7 +183,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /asesores:
+  /fichas-perfil/asesores:
     get:
       tags: [Compartido]
       operationId: consultarAsesoresDisponibles
