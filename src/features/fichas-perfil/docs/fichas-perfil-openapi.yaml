@@ -18,8 +18,8 @@ info:
     name: Equipo Arquisoft
 
 servers:
-  - url: /api/v1/fichas-perfil
-    description: Base path del bounded context Fichas de Perfil
+  - url: /api/v1
+    description: Base path de la API
 
 tags:
   # ── Por Actor ──
@@ -255,7 +255,7 @@ paths:
   # COORDINADOR
   # ────────────────────────────────────────────────────────────────
 
-  /coordinador/fichas-perfil:
+  /fichas-perfil:
     post:
       tags: [Coordinador]
       operationId: registrarFichaPerfilCoordinador
@@ -284,6 +284,7 @@ paths:
         '409':
           description: El título de la ficha perfil ya existe (FichaPerfil-POL-02)
 
+  /fichas-perfil/coordinador:
     get:
       tags: [Coordinador]
       operationId: consultarFichasPerfilCoordinador
@@ -305,7 +306,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginaFichasPerfil'
 
-  /coordinador/fichas-perfil/asesor:
+  /fichas-perfil/asesor:
     put:
       tags: [Coordinador]
       operationId: cambiarAsesorFichaPerfil
@@ -332,7 +333,7 @@ paths:
         '409':
           description: El nuevo asesor es el mismo que el actual (FichaPerfil-POL-05)
 
-  /coordinador/fichas-perfil/estudiantes:
+  /fichas-perfil/estudiantes:
     post:
       tags: [Coordinador]
       operationId: asignarEstudianteAFichaPerfil
@@ -363,9 +364,10 @@ paths:
         '409':
           description: Estudiante ya asignado (POL-04) o límite de 3 alcanzado (POL-03)
 
+  /fichas-perfil/{fichaPerfilId}/estudiantes:
     get:
       tags: [Coordinador]
-      operationId: consultarEstudiantesFichaPerfil
+      operationId: consultarEstudiantesVinculados
       summary: Consultar estudiantes vínculados a una ficha perfil
       description: |
         Permite conocer los estudiantes vinculados a una ficha de perfil específica.
@@ -387,7 +389,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /coordinador/fichas-perfil/estudiantes/{idVinculo}:
+  /fichas-perfil/estudiantes/{idVinculo}:
     delete:
       tags: [Coordinador]
       operationId: removerEstudianteDeFichaPerfil
