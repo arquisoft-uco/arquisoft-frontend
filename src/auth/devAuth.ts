@@ -19,7 +19,7 @@ export function initDevAuth(): void {
 
   // El tokenParsed se construye con la misma estructura que parseRoles() espera.
   const tokenParsed = {
-    sub: 'dev-bypass-user-id',
+    sub: '0ea42337-9899-4190-a7ad-9c0f319151f8',
     preferred_username: username,
     resource_access: {
       [import.meta.env.VITE_KEYCLOAK_CLIENT_ID]: { roles },
