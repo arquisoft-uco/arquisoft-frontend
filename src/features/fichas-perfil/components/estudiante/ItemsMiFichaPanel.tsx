@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Edit3, Plus, Trash2 } from 'lucide-react';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 
 export default function ItemsMiFichaPanel() {
   const { fichaId, items, tiposItem, agregar, modificar, remover } = useItemsMiFicha();
@@ -11,6 +12,7 @@ export default function ItemsMiFichaPanel() {
   const [nuevoItemContenido, setNuevoItemContenido] = useState('');
   const [editandoItemId, setEditandoItemId] = useState<string | null>(null);
   const [editContenido, setEditContenido] = useState('');
+  const [itemIdAEliminar, setItemIdAEliminar] = useState<string | null>(null);
 
   const handleAgregar = () => {
     if (!nuevoItemTipoId || !nuevoItemContenido.trim() || !fichaId) return;
@@ -47,9 +49,20 @@ export default function ItemsMiFichaPanel() {
   };
 
   const handleEliminar = (itemId: string) => {
-    remover.mutate(itemId, {
-      onSuccess: () => toast.success('Ítem eliminado', 'El ítem fue removido de tu ficha.'),
-      onError: () => toast.error('Error al eliminar', 'No se pudo eliminar el ítem.'),
+    setItemIdAEliminar(itemId);
+  };
+
+  const handleConfirmarEliminar = () => {
+    if (!itemIdAEliminar) return;
+    remover.mutate(itemIdAEliminar, {
+      onSuccess: () => {
+        toast.success('Ítem eliminado', 'El ítem fue removido de tu ficha.');
+        setItemIdAEliminar(null);
+      },
+      onError: () => {
+        toast.error('Error al eliminar', 'No se pudo eliminar el ítem.');
+        setItemIdAEliminar(null);
+      },
     });
   };
 
@@ -174,6 +187,18 @@ export default function ItemsMiFichaPanel() {
         <p className="py-8 text-center text-sm text-on-surface-secondary">
           No hay ítems en la ficha
         </p>
+      )}
+
+      {itemIdAEliminar && (
+        <ConfirmDialog
+          titulo="¿Eliminar ítem?"
+          descripcion="Esta acción no se puede deshacer. El ítem será removido de tu ficha de perfil."
+          labelConfirmar="Eliminar"
+          variante="peligro"
+          cargando={remover.isPending}
+          onConfirmar={handleConfirmarEliminar}
+          onCancelar={() => setItemIdAEliminar(null)}
+        />
       )}
     </div>
   );
