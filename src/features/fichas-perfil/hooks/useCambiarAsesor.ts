@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { cambiarAsesor } from '../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
 
 export function useCambiarAsesor() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (req: CambiarAsesorRequest) => cambiarAsesor(req),
+    mutationFn: (req: CambiarAsesorRequest) => fichasPerfilService.cambiarAsesor(req),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'coordinador'] });
     },

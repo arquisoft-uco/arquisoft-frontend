@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { consultarEstudiantesVinculados } from '../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../services/fichasPerfilService';
 
 export function useEstudiantesVinculados(idFichaPerfil: string | null) {
   return useQuery({
     queryKey: ['fichas-perfil', idFichaPerfil, 'estudiantes'],
-    queryFn: () => consultarEstudiantesVinculados(idFichaPerfil!),
+    queryFn: () => fichasPerfilService.consultarEstudiantesVinculados(idFichaPerfil!),
     enabled: !!idFichaPerfil,
   });
 }

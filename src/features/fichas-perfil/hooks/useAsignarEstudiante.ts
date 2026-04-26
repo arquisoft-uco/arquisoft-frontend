@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { asignarEstudiante } from '../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 
@@ -13,7 +13,7 @@ export function useAsignarEstudiante(idFichaPerfil: string) {
 
   return useMutation({
     mutationFn: ({ nombre: _n, email: _e, ...req }: AsignarEstudiantePayload) =>
-      asignarEstudiante(req),
+      fichasPerfilService.asignarEstudiante(req),
     onSuccess: ({ idVinculo }, { idEstudiante, nombre, email }) => {
       queryClient.setQueryData(
         ['fichas-perfil', idFichaPerfil, 'estudiantes'],

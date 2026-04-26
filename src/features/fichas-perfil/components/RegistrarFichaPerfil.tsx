@@ -2,7 +2,7 @@ import { useState, type SyntheticEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
-import { consultarAsesoresDisponibles, consultarEstudiantesDisponibles } from '../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
 
 const MAX_ESTUDIANTES = 3;
@@ -21,12 +21,12 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
 
   const { data: asesores = [] } = useQuery({
     queryKey: ['asesores-disponibles'],
-    queryFn: consultarAsesoresDisponibles,
+    queryFn: fichasPerfilService.consultarAsesoresDisponibles,
   });
 
   const { data: estudiantes = [] } = useQuery({
     queryKey: ['estudiantes-disponibles'],
-    queryFn: consultarEstudiantesDisponibles,
+    queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
   });
 
   const { mutate, isPending, reset: resetMutation } = useRegistrarFichaPerfil();

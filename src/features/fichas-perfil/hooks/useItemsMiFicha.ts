@@ -1,11 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  consultarItemsMiFichaPerfil,
-  consultarTodosTipoItem,
-  agregarItemFichaPerfil,
-  modificarItem,
-  removerItem,
-} from '../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
 
@@ -17,17 +11,17 @@ export function useItemsMiFicha() {
 
   const itemsQuery = useQuery({
     queryKey: ITEMS_KEY,
-    queryFn: consultarItemsMiFichaPerfil,
+    queryFn: fichasPerfilService.consultarItemsMiFichaPerfil,
   });
 
   const tiposItemQuery = useQuery({
     queryKey: ['fichas-perfil', 'tipos-item'],
-    queryFn: consultarTodosTipoItem,
+    queryFn: fichasPerfilService.consultarTodosTipoItem,
     staleTime: Infinity,
   });
 
   const agregar = useMutation({
-    mutationFn: (req: CrearItemRequest) => agregarItemFichaPerfil(req),
+    mutationFn: (req: CrearItemRequest) => fichasPerfilService.agregarItemFichaPerfil(req),
     onSuccess: ({ id }, req) => {
       const tipoItem = tiposItemQuery.data?.find((t) => t.id === req.tipoItemId);
       const nuevoItem: Item = {
@@ -41,7 +35,7 @@ export function useItemsMiFicha() {
   });
 
   const modificar = useMutation({
-    mutationFn: (req: ModificarItemRequest) => modificarItem(req),
+    mutationFn: (req: ModificarItemRequest) => fichasPerfilService.modificarItem(req),
     onSuccess: (_, req) => {
       queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
         prev.map((i) => (i.id === req.itemId ? { ...i, contenido: req.contenido } : i)),
@@ -50,7 +44,7 @@ export function useItemsMiFicha() {
   });
 
   const remover = useMutation({
-    mutationFn: (itemId: string) => removerItem(itemId),
+    mutationFn: (itemId: string) => fichasPerfilService.removerItem(itemId),
     onSuccess: (_, itemId) => {
       queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
         prev.filter((i) => i.id !== itemId),

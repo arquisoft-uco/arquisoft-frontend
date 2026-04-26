@@ -2,7 +2,7 @@ import { useState, type SyntheticEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { UserPlus } from 'lucide-react';
 import { useAsignarEstudiante } from '../../hooks/useAsignarEstudiante';
-import { consultarEstudiantesDisponibles } from '../../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../../services/fichasPerfilService';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
 
@@ -18,7 +18,7 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
 
   const { data: disponibles = [] } = useQuery({
     queryKey: ['estudiantes-disponibles'],
-    queryFn: consultarEstudiantesDisponibles,
+    queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
   });
 
   const { mutate, isPending } = useAsignarEstudiante(idFichaPerfil);

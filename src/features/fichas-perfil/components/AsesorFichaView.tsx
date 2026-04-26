@@ -3,7 +3,7 @@ import { Eye, Plus, RefreshCw, Trash2, MessageSquare, ClipboardCheck } from 'luc
 import type { FichaPerfil, PaginaFichasPerfil, Item, RevisionItem, ObservacionItem, EstadoFichaPerfil, EvaluacionFichaPerfil, EstadoFicha, EstadoRevision, EstadoObservacionRevision, ObservacionEvaluacion } from '../models/fichas-perfil';
 import RegistrarFichaPerfil from './RegistrarFichaPerfil';
 import { useQuery } from '@tanstack/react-query';
-import { consultarAsesoresDisponibles } from '../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../services/fichasPerfilService';
 import {
   consultarFichasPerfilQueAsesora,
   consultarItemsFichaPerfilAsesorada,
@@ -32,7 +32,7 @@ export default function AsesorFichaView() {
 
   const { data: asesores = [] } = useQuery({
     queryKey: ['asesores-disponibles'],
-    queryFn: consultarAsesoresDisponibles,
+    queryFn: fichasPerfilService.consultarAsesoresDisponibles,
   });
 
   // En producción vendrá del token de identidad; en mock usamos el primero disponible.

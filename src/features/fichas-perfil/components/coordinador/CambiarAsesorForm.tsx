@@ -2,7 +2,7 @@ import { useState, type SyntheticEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { UserCog } from 'lucide-react';
 import { useCambiarAsesor } from '../../hooks/useCambiarAsesor';
-import { consultarAsesoresDisponibles } from '../../services/fichasPerfilMockService';
+import { fichasPerfilService } from '../../services/fichasPerfilService';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 
@@ -17,7 +17,7 @@ export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual }: Pro
 
   const { data: asesores = [] } = useQuery({
     queryKey: ['asesores-disponibles'],
-    queryFn: consultarAsesoresDisponibles,
+    queryFn: fichasPerfilService.consultarAsesoresDisponibles,
   });
 
   const { mutate, isPending } = useCambiarAsesor();
