@@ -138,7 +138,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/TipoItem'
 
-  /estudiantes:
+  /fichas-perfil/estudiantes:
     get:
       tags: [Compartido]
       operationId: consultarEstudiantesDisponibles

@@ -61,7 +61,7 @@ export const fichasPerfilService = {
 
   consultarEstudiantesDisponibles: (): Promise<Estudiante[]> =>
     apiClient
-      .get<Estudiante[]>('/estudiantes')
+      .get<Estudiante[]>('/fichas-perfil/estudiantes')
       .then((r) => r.data),
 
   registrarFichaPerfil: (req: RegistrarFichaPerfilRequest): Promise<FichaPerfilCreadaResponse> =>
