@@ -1,13 +1,29 @@
-import { Hammer } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../../../../auth/authStore';
+import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
+import type { MiFichaPerfilResponse } from '../../models/MiFichaPerfilResponse';
+import EstadosFichaPanel from '../EstadosFichaPanel';
 
 export default function EstadosMiFichaPanel() {
+  const { ficha } = useMiFichaPerfil();
+  const queryClient = useQueryClient();
+  const estudianteId = useAuthStore((s) => s.tokenParsed?.sub ?? '');
+
+  if (!ficha) return null;
+
+  const handleEstadoCambiado = (nuevoNombre: string) => {
+    queryClient.setQueryData(
+      ['fichas-perfil', 'estudiante', estudianteId, 'mi-ficha'],
+      (prev: MiFichaPerfilResponse) =>
+        prev ? { ...prev, estadoActual: { ...prev.estadoActual, nombre: nuevoNombre } } : prev,
+    );
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-surface py-12 text-center">
-      <Hammer size={24} className="text-on-surface-secondary" aria-hidden />
-      <p className="text-sm font-medium text-on-surface">Estados de la Ficha</p>
-      <p className="max-w-xs text-xs text-on-surface-secondary">
-        Esta funcionalidad está en proceso de construcción y estará disponible próximamente.
-      </p>
-    </div>
+    <EstadosFichaPanel
+      fichaPerfilId={ficha.id}
+      estadoActual={ficha.estadoActual?.nombre}
+      onEstadoCambiado={handleEstadoCambiado}
+    />
   );
 }

@@ -44,15 +44,16 @@ paths:
   # COMPARTIDO — Tablas de referencia e identidad
   # ────────────────────────────────────────────────────────────────
 
-  /estados-ficha:
+  /fichas-perfil/estados-ficha:
     get:
       tags: [Compartido]
       operationId: consultarTodosEstadosFicha
       summary: Consultar todos los estados ficha
       description: |
         Permite conocer los estados ficha que pueden ser asignados a un estado ficha perfil.
-        
-        **Evento:** Todos los estados ficha consultados  
+
+        **HU:** HU036 — Consultar todos los estados ficha
+        **Evento:** Todos los estados ficha consultados
         **Actores:** Estudiante, RepresentanteComiteCurriculum, Asesor Ficha
       responses:
         '200':
@@ -816,6 +817,43 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+
+  /fichas-perfil/estados:
+    post:
+      tags: [Estudiante, Asesor Ficha]
+      operationId: agregarEstadoFichaPerfil
+      summary: Agregar Estado Ficha Perfil
+      description: |
+        Permite agregar un nuevo estado a una ficha perfil.
+        Endpoint unificado para Estudiante y Asesor Ficha; el backend valida el rol del token y el acceso a la ficha.
+        Solo se permiten los estados "En Construcción" y "Disponible Para Evaluación".
+        No se puede cambiar el estado si la ficha ya tiene evaluaciones asignadas.
+
+        **HU:** HU206 — Agregar Estado Ficha Perfil
+        **Evento:** Nuevo Estado Ficha Perfil Agregado
+        **Actores:** Estudiante, Asesor Ficha
+        **Políticas:** EstadoFichaPerfil-POL-01 a POL-06
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgregarEstadoFichaPerfilRequest'
+      responses:
+        '201':
+          description: Estado ficha perfil agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoFichaPerfil'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: La ficha ya tiene evaluaciones asignadas, o el estado enviado es igual al estado actual
 
   /asesor/revisiones-items:
     post:
@@ -1768,11 +1806,17 @@ components:
     AgregarEstadoFichaPerfilRequest:
       type: object
       required:
+        - fichaPerfilId
         - estadoFichaId
       properties:
+        fichaPerfilId:
+          type: string
+          format: uuid
+          description: ID de la ficha perfil a actualizar
         estadoFichaId:
           type: string
           format: uuid
+          description: ID del estado ficha a asignar (solo "En Construcción" o "Disponible Para Evaluación")
 
     AgregarEstadoAprobacionRequest:
       type: object

@@ -11,6 +11,9 @@ export default function AsesorFichaView() {
       <DetalleFichaAsesor
         ficha={fichaSeleccionada}
         onVolver={() => setFichaSeleccionada(null)}
+        onEstadoCambiado={(nuevoEstado) =>
+          setFichaSeleccionada((prev) => prev ? { ...prev, estadoActual: nuevoEstado } : prev)
+        }
       />
     );
   }

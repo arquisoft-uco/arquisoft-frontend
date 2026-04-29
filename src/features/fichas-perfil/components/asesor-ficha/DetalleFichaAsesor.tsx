@@ -3,6 +3,7 @@ import { ChevronLeft } from 'lucide-react';
 import type { FichaPerfilAsesor } from '../../models/FichaPerfilAsesor';
 import ComingSoon from '../../../../shared/components/ComingSoon';
 import ItemsFichaAsesorPanel from './ItemsFichaAsesorPanel';
+import EstadosFichaPanel from '../EstadosFichaPanel';
 
 type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones';
 
@@ -16,10 +17,17 @@ const TABS: { key: Tab; label: string }[] = [
 interface Props {
   ficha: FichaPerfilAsesor;
   onVolver: () => void;
+  onEstadoCambiado?: (nuevoEstado: string) => void;
 }
 
-export default function DetalleFichaAsesor({ ficha, onVolver }: Props) {
+export default function DetalleFichaAsesor({ ficha, onVolver, onEstadoCambiado }: Props) {
   const [tab, setTab] = useState<Tab>('items');
+  const [estadoActual, setEstadoActual] = useState(ficha.estadoActual);
+
+  const handleEstadoCambiado = (nuevoEstado: string) => {
+    setEstadoActual(nuevoEstado);
+    onEstadoCambiado?.(nuevoEstado);
+  };
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -35,7 +43,7 @@ export default function DetalleFichaAsesor({ ficha, onVolver }: Props) {
         <div>
           <h2 className="text-xl font-semibold text-on-surface">{ficha.titulo}</h2>
           <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-on-surface-secondary">
-            {ficha.estadoActual}
+            {estadoActual}
           </span>
         </div>
       </header>
@@ -61,7 +69,11 @@ export default function DetalleFichaAsesor({ ficha, onVolver }: Props) {
 
       {tab === 'items' && <ItemsFichaAsesorPanel fichaPerfilId={ficha.id} />}
       {tab === 'estados' && (
-        <ComingSoon title="Estados" description="El historial de estados de la ficha estará disponible próximamente." />
+        <EstadosFichaPanel
+          fichaPerfilId={ficha.id}
+          estadoActual={estadoActual}
+          onEstadoCambiado={handleEstadoCambiado}
+        />
       )}
       {tab === 'revisiones' && (
         <ComingSoon title="Revisiones" description="Las revisiones de la ficha estarán disponibles próximamente." />

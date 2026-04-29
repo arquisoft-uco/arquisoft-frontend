@@ -9,12 +9,14 @@ import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
+import type { EstadoFichaPerfil, AgregarEstadoFichaPerfilRequest } from '../models/EstadoFichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 import type {
   Item,
   TipoItem,
+  EstadoFicha,
   CrearItemRequest,
   ItemCreadoResponse,
   ModificarItemRequest,
@@ -106,5 +108,17 @@ export const fichasPerfilService = {
   getItemsFichaAsesor: (fichaPerfilId: string): Promise<Item[]> =>
     apiClient
       .get<Item[]>('/fichas-perfil/asesor-items', { params: { fichaPerfilId } })
+      .then((r) => r.data),
+
+  // ─── Catálogo de estados ───
+
+  getEstadosFicha: (): Promise<EstadoFicha[]> =>
+    apiClient
+      .get<EstadoFicha[]>('/fichas-perfil/estados-ficha')
+      .then((r) => r.data),
+
+  agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
+    apiClient
+      .post<EstadoFichaPerfil>('/fichas-perfil/estados', req)
       .then((r) => r.data),
 };
