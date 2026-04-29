@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import type { FichaPerfilAsesor } from '../../models/FichaPerfilAsesor';
 import ComingSoon from '../../../../shared/components/ComingSoon';
+import ItemsFichaAsesorPanel from './ItemsFichaAsesorPanel';
 
 type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones';
 
@@ -58,9 +59,7 @@ export default function DetalleFichaAsesor({ ficha, onVolver }: Props) {
         ))}
       </div>
 
-      {tab === 'items' && (
-        <ComingSoon title="Ítems" description="La gestión de ítems de la ficha estará disponible próximamente." />
-      )}
+      {tab === 'items' && <ItemsFichaAsesorPanel fichaPerfilId={ficha.id} />}
       {tab === 'estados' && (
         <ComingSoon title="Estados" description="El historial de estados de la ficha estará disponible próximamente." />
       )}

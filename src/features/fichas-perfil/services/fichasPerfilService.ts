@@ -102,4 +102,9 @@ export const fichasPerfilService = {
     apiClient
       .get<Page<FichaPerfilAsesor>>('/fichas-perfil/asesor-ficha', { params: { asesorId, page, size } })
       .then((r) => r.data),
+
+  getItemsFichaAsesor: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<Item[]>('/fichas-perfil/asesor-items', { params: { fichaPerfilId } })
+      .then((r) => r.data),
 };

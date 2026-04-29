@@ -783,6 +783,40 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
+  /fichas-perfil/asesor-items:
+    get:
+      tags: [Asesor Ficha]
+      operationId: consultarItemsFichaPerfilAsesor
+      summary: Consultar ítems de una Ficha Perfil a Asesorar
+      description: |
+        Permite consultar los ítems de una ficha de perfil que asesora.
+
+        **HU:** HU197 — Consultar información de los ítems de una Ficha Perfil a Asesorar
+        **Evento:** Información Items del Asesor Ficha Consultada
+        **Actores:** Asesor Ficha
+        **Políticas:** Item-POL-01, Item-POL-06
+      parameters:
+        - name: fichaPerfilId
+          in: query
+          required: true
+          description: ID de la ficha perfil a consultar
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de ítems de la ficha perfil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /asesor/revisiones-items:
     post:
       tags: [Asesor Ficha]
