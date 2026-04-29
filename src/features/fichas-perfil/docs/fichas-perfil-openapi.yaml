@@ -751,7 +751,7 @@ paths:
         '409':
           description: El título de la ficha perfil ya existe
 
-  /asesor/mis-fichas-perfil:
+  /fichas-perfil/asesor-ficha:
     get:
       tags: [Asesor Ficha]
       operationId: consultarFichasPerfilQueAsesora
@@ -759,120 +759,29 @@ paths:
       description: |
         Permite consultar las fichas de perfil que asesora el Asesor Ficha.
         
+        **HU:** HU207 — Consultar fichas de perfil que asesora  
         **Evento:** Información de Ficha Perfil Consultada Por Asesor Ficha  
         **Actores:** Asesor Ficha  
         **Política:** FichaPerfil-POL-01
       parameters:
+        - name: asesorId
+          in: query
+          required: true
+          description: UUID del asesor (obtenido del token Keycloak, campo `sub`)
+          schema:
+            type: string
+            format: uuid
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/SizeParam'
       responses:
         '200':
-          description: Lista de fichas perfil
+          description: Lista paginada de fichas perfil del asesor
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginaFichasPerfil'
-
-  /asesor/mis-fichas-perfil/{fichaPerfilId}/estados:
-    post:
-      tags: [Asesor Ficha]
-      operationId: agregarEstadoFichaPerfilAsesor
-      summary: Agregar Estado Ficha Perfil (como asesor)
-      description: |
-        Permite agregar estado a la ficha perfil que asesora.
-        
-        **Evento:** Nuevo Estado Ficha Perfil Agregado  
-        **Actores:** Estudiante, Asesor Ficha  
-        **Políticas:** EstadoFichaPerfil-POL-01 a POL-08
-      parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AgregarEstadoFichaPerfilRequest'
-      responses:
-        '201':
-          description: Estado agregado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EstadoFichaPerfil'
+                $ref: '#/components/schemas/PaginaFichasAsesor'
         '400':
           $ref: '#/components/responses/BadRequest'
-        '409':
-          description: Transición de estado no permitida
-
-    get:
-      tags: [Asesor Ficha]
-      operationId: consultarEstadosFichaPerfilQueAsesora
-      summary: Consultar Estados Ficha Perfil que asesora
-      description: |
-        Permite consultar los estados de las fichas perfil que asesora.
-        
-        **Evento:** Estado Ficha Perfil que Asesora Consultado  
-        **Actores:** Asesor Ficha  
-        **Política:** EstadoFichaPerfil-POL-02
-      parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
-      responses:
-        '200':
-          description: Estados de la ficha perfil
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EstadoFichaPerfil'
-
-  /asesor/mis-fichas-perfil/{fichaPerfilId}/items:
-    get:
-      tags: [Asesor Ficha]
-      operationId: consultarItemsFichaPerfilAsesorada
-      summary: Consultar items de una Ficha Perfil a Asesorar
-      description: |
-        Permite consultar los items de una ficha perfil que asesora.
-        
-        **Evento:** Información Items del Asesor Ficha Consultada  
-        **Actores:** Asesor Ficha  
-        **Políticas:** Item-POL-01, Item-POL-06
-      parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
-      responses:
-        '200':
-          description: Lista de items
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Item'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /asesor/mis-fichas-perfil/{fichaPerfilId}/evaluaciones:
-    get:
-      tags: [Asesor Ficha]
-      operationId: consultarEvaluacionesFichaPerfilAsesorada
-      summary: Consultar evaluaciones de fichas que asesora
-      description: |
-        Permite consultar las evaluaciones de las fichas de perfil que asesora.
-        
-        **Evento:** Información Evaluacion Ficha Perfil Consultada Por Asesor Ficha  
-        **Actores:** Asesor Ficha  
-        **Política:** EvaluacionFichaPerfil-POL-1
-      parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
-      responses:
-        '200':
-          description: Lista de evaluaciones
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/EvaluacionFichaPerfil'
 
   /asesor/revisiones-items:
     post:
@@ -1072,29 +981,6 @@ paths:
           description: Observación removida
         '404':
           $ref: '#/components/responses/NotFound'
-
-  /asesor/mis-fichas-perfil/{fichaPerfilId}/observaciones-evaluacion:
-    get:
-      tags: [Asesor Ficha]
-      operationId: consultarObservacionesEvaluacionAsesor
-      summary: Consultar Observaciones Evaluación elaboradas (Asesor)
-      description: |
-        Permite consultar las observaciones de evaluación de las fichas que asesora.
-        
-        **Evento:** Observacion Evaluacion Elaborada por Asesor Ficha Consultada  
-        **Actores:** Asesor Ficha  
-        **Política:** ObservacionEvaluacion-POL-01
-      parameters:
-        - $ref: '#/components/parameters/FichaPerfilIdPath'
-      responses:
-        '200':
-          description: Lista de observaciones de evaluación
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ObservacionEvaluacion'
 
   # ────────────────────────────────────────────────────────────────
   # REPRESENTANTE COMITÉ CURRÍCULUM
@@ -1630,6 +1516,41 @@ components:
         asesorFichaId:
           type: string
           format: uuid
+
+    FichaPerfilAsesor:
+      type: object
+      description: Proyección resumida de una Ficha Perfil para el listado del Asesor.
+      properties:
+        id:
+          type: string
+          format: uuid
+        titulo:
+          type: string
+          maxLength: 100
+          description: Título del proyecto.
+        estadoActual:
+          type: string
+          description: Nombre del estado actual de la ficha perfil.
+      required:
+        - id
+        - titulo
+        - estadoActual
+
+    PaginaFichasAsesor:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/FichaPerfilAsesor'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
 
     PaginaFichasPerfil:
       type: object

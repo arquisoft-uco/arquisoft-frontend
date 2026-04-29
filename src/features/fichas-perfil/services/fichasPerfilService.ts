@@ -8,10 +8,17 @@ import type { Estudiante } from '../models/Estudiante';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
+import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
-import type { Item, TipoItem, CrearItemRequest, ItemCreadoResponse, ModificarItemRequest } from '../models/fichas-perfil';
+import type {
+  Item,
+  TipoItem,
+  CrearItemRequest,
+  ItemCreadoResponse,
+  ModificarItemRequest,
+} from '../models/fichas-perfil';
 
 export const fichasPerfilService = {
   getMiFichaPerfil: (estudianteId: string): Promise<MiFichaPerfilResponse> =>
@@ -88,4 +95,11 @@ export const fichasPerfilService = {
     apiClient
       .put('/fichas-perfil/asesor', req)
       .then(() => undefined),
+
+  // ─── Asesor Ficha ───
+
+  getFichasAsesor: (asesorId: string, page = 0, size = 10): Promise<Page<FichaPerfilAsesor>> =>
+    apiClient
+      .get<Page<FichaPerfilAsesor>>('/fichas-perfil/asesor-ficha', { params: { asesorId, page, size } })
+      .then((r) => r.data),
 };
