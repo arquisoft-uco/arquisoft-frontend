@@ -65,13 +65,16 @@ paths:
                 items:
                   $ref: '#/components/schemas/EstadoFicha'
 
-  /estados-evaluacion:
+  /fichas-perfil/estados-evaluacion:
     get:
-      tags: [Compartido]
+      tags: [Compartido, Representante Comité Currículum]
       operationId: consultarTodosEstadosEvaluacion
-      summary: Consultar todos los estados de evaluación
+      summary: Consultar todos los estados de evaluación disponibles
       description: |
-        Tabla de referencia de estados de evaluación.  
+        Retorna la tabla de referencia de los estados posibles para una evaluación de ficha de perfil.
+
+        **HU:** HU186 — Consultar información de todos los estados disponibles para las evaluaciones de ficha de perfil
+        **Evento:** Todos los estados de evaluación consultados
         **Actores:** RepresentanteComiteCurriculum, Estudiante, Asesor Ficha
       responses:
         '200':
@@ -82,6 +85,22 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EstadoEvaluacion'
+              example:
+                - id: "0a70777b-8a41-430c-b12f-78d6a4fee14f"
+                  nombre: "Aprobada"
+                  descripcion: "La ficha de perfil pasó por revisión de un representante del comité de currículum y fue aprobada."
+                - id: "d0db58ec-341d-4025-a961-3dfb18b4910e"
+                  nombre: "Aprobada Con Observaciones"
+                  descripcion: "La ficha de perfil pasó por revisión de un representante del comité de currículum y fue aprobada con observaciones."
+                - id: "56f001cb-d57f-4469-99f6-dad5e8b81a56"
+                  nombre: "No Aprobada"
+                  descripcion: "La ficha de perfil pasó por revisión de un representante del comité de currículum y no fue aprobada."
+                - id: "8317e6d5-fcb5-4b31-871f-83f43e8a9feb"
+                  nombre: "En Evaluación"
+                  descripcion: "La ficha de perfil se encuentra en evaluación por un representante del comité del currículum."
+                - id: "36a26082-caa3-4a66-bd78-810ac7774a29"
+                  nombre: "Descartada"
+                  descripcion: "La ficha de perfil pasó por revisión de un representante del comité de currículum y fue descartada."
 
   /estados-revision:
     get:

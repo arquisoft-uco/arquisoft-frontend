@@ -18,6 +18,7 @@ import type {
   Item,
   TipoItem,
   EstadoFicha,
+  EstadoEvaluacion,
   CrearItemRequest,
   ItemCreadoResponse,
   ModificarItemRequest,
@@ -139,6 +140,11 @@ export const fichasPerfilService = {
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
     apiClient
       .get<EstadoFicha[]>('/fichas-perfil/estados-ficha')
+      .then((r) => r.data),
+
+  getEstadosEvaluacion: (): Promise<EstadoEvaluacion[]> =>
+    apiClient
+      .get<EstadoEvaluacion[]>('/fichas-perfil/estados-evaluacion')
       .then((r) => r.data),
 
   agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
