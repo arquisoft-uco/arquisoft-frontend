@@ -9,6 +9,7 @@ import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
+import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { EstadoFichaPerfil, AgregarEstadoFichaPerfilRequest } from '../models/EstadoFichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
@@ -103,6 +104,11 @@ export const fichasPerfilService = {
   getFichasAsesor: (asesorId: string, page = 0, size = 10): Promise<Page<FichaPerfilAsesor>> =>
     apiClient
       .get<Page<FichaPerfilAsesor>>('/fichas-perfil/asesor-ficha', { params: { asesorId, page, size } })
+      .then((r) => r.data),
+
+  getFichasRepresentante: (representanteId: string, page = 0, size = 10): Promise<Page<FichaPerfilRepresentante>> =>
+    apiClient
+      .get<Page<FichaPerfilRepresentante>>('/fichas-perfil/representante', { params: { representanteId, page, size } })
       .then((r) => r.data),
 
   getItemsFichaAsesor: (fichaPerfilId: string): Promise<Item[]> =>

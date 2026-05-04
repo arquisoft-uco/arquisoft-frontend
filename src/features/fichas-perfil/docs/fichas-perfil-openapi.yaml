@@ -1058,6 +1058,38 @@ paths:
   # REPRESENTANTE COMITÉ CURRÍCULUM
   # ────────────────────────────────────────────────────────────────
 
+  /fichas-perfil/representante:
+    get:
+      tags: [Representante Comité Currículum]
+      operationId: consultarFichasPerfilAEvaluar
+      summary: Consultar Fichas Perfil a evaluar
+      description: |
+        Permite consultar las fichas de perfil asignadas al representante para evaluación.
+
+        **HU:** HU280 — Consultar información de las Fichas Perfil a evaluar
+        **Evento:** Información de Ficha Perfil Consultada Por Representante Comité Curriculum
+        **Actores:** RepresentanteComiteCurriculum
+        **Política:** EvaluacionFichaPerfil-POL-1
+      parameters:
+        - name: representanteId
+          in: query
+          required: true
+          description: UUID del representante (obtenido del token Keycloak, campo `sub`)
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Lista paginada de fichas perfil a evaluar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaFichasRepresentante'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
   /representante/fichas-perfil/{fichaPerfilId}/estados:
     get:
       tags: [Representante Comité Currículum]
@@ -1607,6 +1639,41 @@ components:
         - id
         - titulo
         - estadoActual
+
+    FichaPerfilRepresentante:
+      type: object
+      description: Proyección resumida de una Ficha Perfil para el listado del Representante Comité Currículum.
+      properties:
+        id:
+          type: string
+          format: uuid
+        titulo:
+          type: string
+          maxLength: 100
+          description: Título del proyecto.
+        estadoActual:
+          type: string
+          description: Nombre del estado actual de la ficha perfil.
+      required:
+        - id
+        - titulo
+        - estadoActual
+
+    PaginaFichasRepresentante:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/FichaPerfilRepresentante'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
 
     PaginaFichasAsesor:
       type: object
