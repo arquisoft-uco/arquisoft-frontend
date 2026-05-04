@@ -1310,34 +1310,44 @@ paths:
                 items:
                   $ref: '#/components/schemas/EvaluacionFichaPerfil'
 
-  /representante/evaluaciones-ficha-perfil/{evaluacionId}/estados:
+  /fichas-perfil/representante/evaluaciones/estados:
     post:
       tags: [Representante Comité Currículum]
       operationId: agregarEstadoEvaluacionFicha
       summary: Agregar Estado Evaluación Ficha
       description: |
-        Permite agregar un nuevo estado a una evaluación de ficha perfil.
-        
-        **Evento:** Nuevo Estado Evaluacion Ficha Agregado  
-        **Actores:** RepresentanteComiteCurriculum  
+        Permite agregar un nuevo estado a una evaluación de ficha de perfil existente.
+        El `evaluacionFichaPerfilId` y el `estadoEvaluacionId` se envían en el cuerpo de la petición.
+
+        **HU:** HU191 — Agregar información de un nuevo Estado Evaluación Ficha
+        **Evento:** Nuevo Estado Evaluacion Ficha Agregado
+        **Actores:** RepresentanteComiteCurriculum
         **Políticas:** EstadoEvaluacionFicha-POL-01 a POL-06
-      parameters:
-        - $ref: '#/components/parameters/EvaluacionIdPath'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/AgregarEstadoEvaluacionRequest'
+            example:
+              evaluacionFichaPerfilId: "c3d9a1b2-1234-5678-abcd-ef0123456789"
+              estadoEvaluacionId: "0a70777b-8a41-430c-b12f-78d6a4fee14f"
       responses:
         '201':
-          description: Estado de evaluación agregado
+          description: Estado de evaluación agregado exitosamente
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EstadoEvaluacionFicha'
+              example:
+                id: "a1b2c3d4-0000-1111-2222-333344445555"
+                evaluacionFichaPerfilId: "c3d9a1b2-1234-5678-abcd-ef0123456789"
+                estadoEvaluacionId: "0a70777b-8a41-430c-b12f-78d6a4fee14f"
+                fechaActualizacion: "04/05/2026 10:30:00"
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
           description: Estado duplicado o transición no permitida
 
@@ -2181,13 +2191,18 @@ components:
           format: uuid
         fechaActualizacion:
           type: string
-          format: date-time
+          example: "04/05/2026 10:30:00"
+          description: "Fecha y hora en formato DD/MM/YYYY HH:mm:ss"
 
     AgregarEstadoEvaluacionRequest:
       type: object
       required:
+        - evaluacionFichaPerfilId
         - estadoEvaluacionId
       properties:
+        evaluacionFichaPerfilId:
+          type: string
+          format: uuid
         estadoEvaluacionId:
           type: string
           format: uuid

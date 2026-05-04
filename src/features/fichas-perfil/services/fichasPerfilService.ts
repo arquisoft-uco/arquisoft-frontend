@@ -25,6 +25,8 @@ import type {
   CrearEvaluacionFichaPerfilRequest,
   EvaluacionCreadaResponse,
   EvaluacionFichaPerfil,
+  AgregarEstadoEvaluacionRequest,
+  EstadoEvaluacionFicha,
 } from '../models/fichas-perfil';
 
 export const fichasPerfilService = {
@@ -150,5 +152,10 @@ export const fichasPerfilService = {
   agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
     apiClient
       .post<EstadoFichaPerfil>('/fichas-perfil/estados', req)
+      .then((r) => r.data),
+
+  agregarEstadoEvaluacion: (req: AgregarEstadoEvaluacionRequest): Promise<EstadoEvaluacionFicha> =>
+    apiClient
+      .post<EstadoEvaluacionFicha>('/fichas-perfil/representante/evaluaciones/estados', req)
       .then((r) => r.data),
 };

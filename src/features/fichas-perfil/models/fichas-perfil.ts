@@ -209,6 +209,7 @@ export interface EvaluacionCreadaResponse {
 }
 
 export interface AgregarEstadoEvaluacionRequest {
+  evaluacionFichaPerfilId: string;
   estadoEvaluacionId: string;
 }
 
