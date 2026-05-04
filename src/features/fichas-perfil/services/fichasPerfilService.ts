@@ -23,6 +23,7 @@ import type {
   ModificarItemRequest,
   CrearEvaluacionFichaPerfilRequest,
   EvaluacionCreadaResponse,
+  EvaluacionFichaPerfil,
 } from '../models/fichas-perfil';
 
 export const fichasPerfilService = {
@@ -126,6 +127,11 @@ export const fichasPerfilService = {
   registrarEvaluacion: (req: CrearEvaluacionFichaPerfilRequest): Promise<EvaluacionCreadaResponse> =>
     apiClient
       .post<EvaluacionCreadaResponse>('/fichas-perfil/representante/evaluaciones-ficha-perfil', req)
+      .then((r) => r.data),
+
+  getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil> =>
+    apiClient
+      .get<EvaluacionFichaPerfil>('/fichas-perfil/representante/evaluacion', { params: { fichaPerfilId } })
       .then((r) => r.data),
 
   // ─── Catálogo de estados ───

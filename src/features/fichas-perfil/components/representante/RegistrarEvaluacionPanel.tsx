@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ClipboardCheck } from 'lucide-react';
 import { useRegistrarEvaluacion } from '../../hooks/useRegistrarEvaluacion';
+import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import type { EvaluacionCreadaResponse } from '../../models/fichas-perfil';
 
@@ -12,7 +13,8 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
   const [confirmarAbierto, setConfirmarAbierto] = useState(false);
   const [evaluacionCreada, setEvaluacionCreada] = useState<EvaluacionCreadaResponse | null>(null);
 
-  const { mutate, isPending, isError, error } = useRegistrarEvaluacion(fichaPerfilId);
+  const { data: evaluacionServidor, isLoading, isError: isErrorConsulta } = useEvaluacionFicha(fichaPerfilId);
+  const { mutate, isPending, isError: isErrorMutacion, error } = useRegistrarEvaluacion(fichaPerfilId);
 
   function handleIniciar() {
     setConfirmarAbierto(true);
@@ -30,7 +32,32 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
     });
   }
 
-  if (evaluacionCreada) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-10" aria-live="polite" aria-busy="true">
+        <div
+          className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"
+          role="status"
+        >
+          <span className="sr-only">Cargando evaluación...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isErrorConsulta) {
+    return (
+      <div className="rounded-xl border border-border bg-surface p-6 text-center" role="alert">
+        <p className="text-sm text-on-surface-secondary">
+          No se pudo cargar la evaluación. Intenta nuevamente.
+        </p>
+      </div>
+    );
+  }
+
+  const evaluacionMostrar = evaluacionServidor ?? evaluacionCreada ?? null;
+
+  if (evaluacionMostrar) {
     return (
       <div
         className="rounded-xl border border-border bg-surface p-4 space-y-3 animate-fade-up"
@@ -40,15 +67,15 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
           <ClipboardCheck size={20} className="shrink-0 text-primary" aria-hidden />
           <p className="text-sm font-semibold text-on-surface">Evaluación registrada</p>
           <span className="ml-auto inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-            {evaluacionCreada.estadoActual}
+            {evaluacionMostrar.estadoActual}
           </span>
         </div>
         <div className="space-y-1 pl-8">
           <p className="text-xs text-on-surface-secondary break-all">
-            <span className="font-medium">ID:</span> {evaluacionCreada.id}
+            <span className="font-medium">ID:</span> {evaluacionMostrar.id}
           </p>
           <p className="text-xs text-on-surface-secondary">
-            <span className="font-medium">Fecha de creación:</span> {evaluacionCreada.fechaCreacion}
+            <span className="font-medium">Fecha de creación:</span> {evaluacionMostrar.fechaCreacion}
           </p>
         </div>
       </div>
@@ -63,7 +90,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
           Aún no se ha iniciado la evaluación para esta ficha.
         </p>
 
-        {isError && (
+        {isErrorMutacion && (
           <p className="text-sm text-danger" role="alert">
             {(error as Error)?.message?.includes('409')
               ? 'Ya existe una evaluación para esta ficha.'

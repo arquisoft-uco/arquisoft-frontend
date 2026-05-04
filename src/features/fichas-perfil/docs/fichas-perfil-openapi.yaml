@@ -1236,7 +1236,38 @@ paths:
         '409':
           description: Ya existe evaluación para la misma ficha/representante
 
-  /representante/mis-evaluaciones:
+  /fichas-perfil/representante/evaluacion:
+    get:
+      tags: [Representante Comité Currículum]
+      operationId: consultarEvaluacionFichaPerfilGenerada
+      summary: Consultar evaluación de ficha de perfil generada
+      description: |
+        Permite consultar la evaluación de una ficha de perfil generada por el representante.
+        El representanteId se extrae automáticamente del token JWT (campo `sub`).
+
+        **HU:** HU182 — Consultar información de evaluación de ficha de perfil generada
+        **Evento:** Información Evaluacion Ficha Perfil Consultada
+        **Actores:** RepresentanteComiteCurriculum
+        **Política:** EvaluacionFichaPerfil-POL-1
+      parameters:
+        - name: fichaPerfilId
+          in: query
+          required: true
+          description: UUID de la ficha perfil cuya evaluación se desea consultar
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Evaluación encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluacionFichaPerfil'
+        '404':
+          description: No existe evaluación para esta ficha/representante
+
+
     get:
       tags: [Representante Comité Currículum]
       operationId: consultarEvaluacionesGeneradas
@@ -2079,7 +2110,12 @@ components:
           format: uuid
         fechaCreacion:
           type: string
-          format: date-time
+          example: '04/05/2026 14:30:00'
+          description: Fecha de creación en formato DD/MM/YYYY HH:mm:ss
+        estadoActual:
+          type: string
+          example: 'En Evaluación'
+          description: Estado actual de la evaluación
 
     CrearEvaluacionFichaPerfilRequest:
       type: object

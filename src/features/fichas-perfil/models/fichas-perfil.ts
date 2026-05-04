@@ -120,6 +120,7 @@ export interface EvaluacionFichaPerfil {
   representanteComiteId: string;
   fichaPerfilId: string;
   fechaCreacion: string;
+  estadoActual: string;
 }
 
 // ─── Estado Evaluación Ficha ───
