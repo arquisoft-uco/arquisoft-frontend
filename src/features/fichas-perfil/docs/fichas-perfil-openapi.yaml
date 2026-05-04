@@ -818,6 +818,40 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /fichas-perfil/representante-items:
+    get:
+      tags: [Representante Comité Currículum]
+      operationId: consultarItemsFichaPerfilRepresentante
+      summary: Consultar ítems de una Ficha Perfil a aprobar
+      description: |
+        Permite consultar los ítems de una ficha de perfil asignada al representante para evaluación.
+
+        **HU:** HU185 — Consultar información de los ítems de la Ficha Perfil a aprobar
+        **Evento:** Información Items del Representante Comité Curriculum Consultada
+        **Actores:** RepresentanteComiteCurriculum
+        **Políticas:** Item-POL-01, Item-POL-06
+      parameters:
+        - name: fichaPerfilId
+          in: query
+          required: true
+          description: ID de la ficha perfil a consultar
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Lista de ítems de la ficha perfil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /fichas-perfil/estados:
     post:
       tags: [Estudiante, Asesor Ficha]
