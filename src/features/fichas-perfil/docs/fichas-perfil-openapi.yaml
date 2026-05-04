@@ -1205,16 +1205,18 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /representante/evaluaciones-ficha-perfil:
+  /fichas-perfil/representante/evaluaciones-ficha-perfil:
     post:
       tags: [Representante Comité Currículum]
       operationId: registrarEvaluacionFichaPerfil
       summary: Registrar nueva evaluación de ficha de perfil
       description: |
         Permite registrar una nueva evaluación de una ficha de perfil.
-        
-        **Evento:** Evaluacion Ficha Perfil Registrado  
-        **Actores:** RepresentanteComiteCurriculum  
+        El representanteId se extrae automáticamente del token JWT (campo `sub`).
+
+        **HU:** HU190 — Registrar nueva evaluación de ficha de perfil
+        **Evento:** Evaluacion Ficha Perfil Registrado
+        **Actores:** RepresentanteComiteCurriculum
         **Políticas:** EvaluacionFichaPerfil-POL-1, POL-02
       requestBody:
         required: true
@@ -1224,11 +1226,11 @@ paths:
               $ref: '#/components/schemas/CrearEvaluacionFichaPerfilRequest'
       responses:
         '201':
-          description: Evaluación registrada
+          description: Evaluación registrada — retorna el ID generado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EvaluacionFichaPerfil'
+                $ref: '#/components/schemas/EvaluacionCreadaResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -2087,6 +2089,27 @@ components:
         fichaPerfilId:
           type: string
           format: uuid
+          description: ID de la ficha perfil a evaluar. El representanteId se extrae del token JWT.
+
+    EvaluacionCreadaResponse:
+      type: object
+      required:
+        - id
+        - fechaCreacion
+        - estadoActual
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID generado para la nueva evaluación
+        fechaCreacion:
+          type: string
+          example: '04/05/2026 14:30:00'
+          description: Fecha de creación en formato DD/MM/YYYY HH:mm:ss
+        estadoActual:
+          type: string
+          example: 'En Evaluación'
+          description: Estado inicial de la evaluación al ser creada
 
     # ─── Estado Evaluación Ficha ───
     EstadoEvaluacionFicha:

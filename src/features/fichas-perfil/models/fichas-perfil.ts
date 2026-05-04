@@ -201,6 +201,12 @@ export interface CrearEvaluacionFichaPerfilRequest {
   fichaPerfilId: string;
 }
 
+export interface EvaluacionCreadaResponse {
+  id: string;
+  fechaCreacion: string;
+  estadoActual: string;
+}
+
 export interface AgregarEstadoEvaluacionRequest {
   estadoEvaluacionId: string;
 }

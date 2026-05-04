@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
-import ComingSoon from '../../../../shared/components/ComingSoon';
 import ItemsFichaRepresentantePanel from './ItemsFichaRepresentantePanel';
+import RegistrarEvaluacionPanel from './RegistrarEvaluacionPanel';
 
 type Tab = 'items' | 'evaluaciones';
 
@@ -58,12 +58,7 @@ export default function DetalleFichaRepresentante({ ficha, onVolver }: Props) {
       </div>
 
       {tab === 'items' && <ItemsFichaRepresentantePanel fichaPerfilId={ficha.id} />}
-      {tab === 'evaluaciones' && (
-        <ComingSoon
-          title="Evaluaciones"
-          description="Las evaluaciones de la ficha estarán disponibles próximamente."
-        />
-      )}
+      {tab === 'evaluaciones' && <RegistrarEvaluacionPanel fichaPerfilId={ficha.id} />}
     </div>
   );
 }
