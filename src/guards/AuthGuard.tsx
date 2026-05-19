@@ -34,18 +34,14 @@ export default function AuthGuard() {
 
     keycloak
       .init({ onLoad: 'login-required', checkLoginIframe: false })
-      .then(async (authenticated) => {
+      .then((authenticated) => {
         if (authenticated) {
-          const profile = await keycloak.loadUserProfile().catch(() => ({} as Record<string, unknown>));
           // Single atomic setState to prevent intermediate renders with partial auth state.
           useAuthStore.getState().setAuth({
             authenticated: true,
             token: keycloak.token,
             tokenParsed: keycloak.tokenParsed,
-            username:
-              (keycloak.tokenParsed?.['preferred_username'] as string | undefined) ??
-              (profile?.['username'] as string | undefined) ??
-              '',
+            username: (keycloak.tokenParsed?.['preferred_username'] as string | undefined) ?? '',
           });
           cleanup = scheduleRefresh(
             (token) =>
