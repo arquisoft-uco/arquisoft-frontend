@@ -21,9 +21,7 @@ export function initDevAuth(): void {
   const tokenParsed = {
     sub: '0ea42337-9899-4190-a7ad-9c0f319151f8',
     preferred_username: username,
-    resource_access: {
-      [import.meta.env.VITE_KEYCLOAK_CLIENT_ID]: { roles },
-    },
+    realm_access: { roles },
     exp: Math.floor(Date.now() / 1000) + 3600,
     iat: Math.floor(Date.now() / 1000),
   } as unknown as KeycloakTokenParsed;

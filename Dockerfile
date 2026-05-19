@@ -12,19 +12,11 @@ RUN npm ci --production=false
 # Copiar código fuente
 COPY . .
 
-# Build args para inyectar las variables de entorno en tiempo de build.
-# En Coolify: configura estos valores en la sección "Build Variables".
-# Si no se proveen, el build fallará al intentar conectar con URLs vacías.
-ARG VITE_API_URL
-ARG VITE_KEYCLOAK_URL
-ARG VITE_KEYCLOAK_REALM
-ARG VITE_KEYCLOAK_CLIENT_ID
-
 # Vite lee las variables VITE_* del entorno durante el build
-ENV VITE_API_URL=$VITE_API_URL \
-    VITE_KEYCLOAK_URL=$VITE_KEYCLOAK_URL \
-    VITE_KEYCLOAK_REALM=$VITE_KEYCLOAK_REALM \
-    VITE_KEYCLOAK_CLIENT_ID=$VITE_KEYCLOAK_CLIENT_ID
+ENV VITE_API_URL=localhost:3000/api
+ENV VITE_KEYCLOAK_URL=localhost:8080/auth
+ENV VITE_KEYCLOAK_REALM=mi_realm
+ENV VITE_KEYCLOAK_CLIENT_ID=mi_cliente
 
 # Build de producción
 RUN npm run build
@@ -47,3 +39,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 # Nginx en foreground
 CMD ["nginx", "-g", "daemon off;"]
+
+# Para construir la imagen: docker build -t react-app:0.0.0 .
+# Para correr el contenedor: docker run -d --name react-app --env-file .env.development.local -p 5173:80 react-app:0.0.0
+# Para corroborar las variables de entorno: docker exec react-app env
+
+# Pasar al dockerfile del backend
+# docker build -t arquisoft-backend:local .

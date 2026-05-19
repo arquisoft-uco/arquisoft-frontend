@@ -1,12 +1,10 @@
 import { create } from 'zustand';
 import type { KeycloakTokenParsed } from 'keycloak-js';
 
-/** Extracts client roles from the Keycloak token's resource_access claim. */
+/** Extracts roles from the Keycloak token's realm_access claim. */
 export function parseRoles(tokenParsed: KeycloakTokenParsed | undefined): string[] {
-  const access = tokenParsed?.['resource_access'] as
-    | Record<string, { roles?: string[] }>
-    | undefined;
-  return access?.[import.meta.env.VITE_KEYCLOAK_CLIENT_ID]?.roles ?? [];
+  const realmAccess = tokenParsed?.['realm_access'] as { roles?: string[] } | undefined;
+  return realmAccess?.roles ?? [];
 }
 
 interface AuthState {
