@@ -4,6 +4,30 @@ import Keycloak from 'keycloak-js';
 const REFRESH_BUFFER_SECONDS = 30;
 
 /**
+ * Constructs the OIDC end-session URL and redirects the browser.
+ *
+ * keycloak.logout() is async (v21+) and requires id_token_hint to fully
+ * terminate the Keycloak SSO session. Without it, the session stays alive
+ * and keycloak.init({ onLoad: 'login-required' }) silently re-authenticates
+ * the user on the next load.
+ *
+ * When there is no id_token (openid scope not requested), we fall back to
+ * the client_id parameter, which Keycloak 18+ accepts for public clients.
+ */
+export function logout(redirectUri: string = window.location.origin): void {
+  const base = import.meta.env.VITE_KEYCLOAK_URL.replace(/\/$/, '');
+  const realm = import.meta.env.VITE_KEYCLOAK_REALM;
+  const url = new URL(`${base}/realms/${realm}/protocol/openid-connect/logout`);
+  url.searchParams.set('post_logout_redirect_uri', redirectUri);
+  if (keycloak.idToken) {
+    url.searchParams.set('id_token_hint', keycloak.idToken);
+  } else {
+    url.searchParams.set('client_id', import.meta.env.VITE_KEYCLOAK_CLIENT_ID);
+  }
+  window.location.href = url.href;
+}
+
+/**
  * Module-level singleton — created ONCE, never inside a hook or component.
  * React StrictMode double-mounts components but module-level code runs only once.
  */

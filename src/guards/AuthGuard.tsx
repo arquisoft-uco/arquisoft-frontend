@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router';
-import { keycloak, scheduleRefresh } from '../auth/keycloak';
+import { keycloak, scheduleRefresh, logout } from '../auth/keycloak';
 import { useAuthStore } from '../auth/authStore';
 import AppLoader from '../shared/components/AppLoader';
 import { initDevAuth } from '../auth/devAuth';
@@ -46,7 +46,7 @@ export default function AuthGuard() {
           cleanup = scheduleRefresh(
             (token) =>
               useAuthStore.setState({ token, tokenParsed: keycloak.tokenParsed }),
-            () => keycloak.logout({ redirectUri: window.location.origin }),
+            () => logout(),
           );
         } else {
           useAuthStore.getState().setInitializing(false);

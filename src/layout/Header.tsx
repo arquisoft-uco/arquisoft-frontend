@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Menu, UserCog, CircleUser, LogOut, ChevronDown, Check } from 'lucide-react';
-import { keycloak } from '../auth/keycloak';
+import { logout as keycloakLogout } from '../auth/keycloak';
 import { useUsername, useRolActivo, useRolesDisponibles } from '../hooks/useAuth';
 import { useRoleStore } from '../auth/roleStore';
 import { ETIQUETAS_ROL, Rol } from '../shared/models/rol';
@@ -45,12 +45,12 @@ export default function Header({ onMenuToggle, isSidenavOpen }: Props) {
 
   function logout() {
     closeMenus();
-    keycloak.logout({ redirectUri: window.location.origin });
+    keycloakLogout();
   }
 
   return (
     <header
-      className="relative z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border/50 bg-white/70 px-3 backdrop-blur-xl sm:h-16 sm:px-4"
+      className="relative z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border/50 bg-white/70 px-3 backdrop-blur-xl sm:h-16 sm:px-4"
       role="banner"
     >
       {/* Skip to main content */}
