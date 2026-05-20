@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import AuthGuard from './guards/AuthGuard';
 import AppLayout from './layout/AppLayout';
 import ForbiddenPage from './shared/components/ForbiddenPage';
+import RouteErrorPage from './shared/components/RouteErrorPage';
 
 // Lazy feature imports — AppLayout's <Suspense> handles loading states
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'));
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
   {
     // AuthGuard: shows AppLoader while Keycloak initializes, then renders Outlet
     element: <AuthGuard />,
+    errorElement: <RouteErrorPage />,
     children: [
       {
         // AppLayout: shell with Header + conditional Sidebar
