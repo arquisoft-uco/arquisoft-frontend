@@ -1,12 +1,14 @@
 import { Navigate } from 'react-router';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
+import AdministradorView from './components/AdministradorView';
 import CoordinadorView from './components/CoordinadorView';
 import EstudianteView from './components/EstudianteView';
 import AsesorFichaView from './components/AsesorFichaView';
 import RepresentanteView from './components/RepresentanteView';
 
 const VIEW_POR_ROL: Record<string, React.ComponentType> = {
+  [Rol.Administrador]: AdministradorView,
   [Rol.Coordinador]: CoordinadorView,
   [Rol.Estudiante]: EstudianteView,
   [Rol.AsesorFicha]: AsesorFichaView,

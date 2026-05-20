@@ -81,11 +81,14 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ---
 
-### 7. `RoleGuard` no aplicado en el router
+### 7. `RoleGuard` no aplicado en el router ✅ Corregido
 
 `src/guards/RoleGuard.tsx` existe y funciona, pero **ninguna ruta en `src/router.tsx` lo usa**. La protección por rol ocurre solo dentro de `FichasPerfil.tsx`. Rutas como `/proyectos-grado`, `/evaluaciones`, `/biblioteca`, etc. son accesibles por cualquier usuario autenticado independientemente de su rol.
 
-**Acción:** aplicar `RoleGuard` en cada ruta del router, o documentar explícitamente que la restricción es responsabilidad del componente de cada feature.
+**Acciones aplicadas:**
+- `src/layout/nav-items.ts`: tipado de `roles` corregido a `Rol[]` y exportado `ROLES_POR_RUTA` — mapa `path → Rol[]` derivado de `NAV_ITEMS`, fuente única de verdad para restricciones por ruta.
+- `src/router.tsx`: agregado helper `guarded(path, element)` que envuelve el elemento con `<RoleGuard>` si la ruta tiene restricción en `ROLES_POR_RUTA`. Aplicado a las 9 rutas protegidas; `dashboard` y `seleccionar-rol` permanecen sin restricción.
+- `src/features/fichas-perfil/components/AdministradorView.tsx`: creada vista "En construcción" para el rol `Administrador`, que estaba incluido en los roles permitidos de fichas-perfil pero no tenía vista asignada.
 
 ---
 
@@ -191,7 +194,7 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 | 🟠 | Eliminar `.env.development` del repo | ✅ Corregido |
 | 🟠 | Guard en `main.tsx` para `VITE_AUTH_BYPASS` en producción | Pendiente |
 | 🟠 | Corregir detección de errores en paneles (string parsing) | ✅ Corregido |
-| 🟠 | Aplicar `RoleGuard` en rutas del router | Pendiente |
+| 🟠 | Aplicar `RoleGuard` en rutas del router | ✅ Corregido |
 | 🟠 | Error boundary global en `main.tsx` | ✅ Corregido |
 | 🟡 | Validación de variables de entorno en arranque | ✅ Corregido |
 | 🟡 | Integrar observabilidad de errores en producción | Pendiente |

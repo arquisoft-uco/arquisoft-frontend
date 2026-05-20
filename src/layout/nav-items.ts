@@ -18,7 +18,7 @@ export interface NavItem {
   icon: LucideIcon;
   path: string;
   order: number;
-  roles?: string[];
+  roles?: Rol[];
 }
 
 /**
@@ -49,3 +49,12 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Biblioteca', icon: BookOpen, path: '/biblioteca', order: 8, roles: [...ROLES_GENERALES, Rol.AsesorFicha, Rol.RepresentanteComiteCurriculum, Rol.Bibliotecario] },
   { label: 'Solicitudes', icon: ClipboardList, path: '/solicitudes', order: 9, roles: [...ROLES_GENERALES, Rol.AsesorFicha, Rol.RepresentanteComiteCurriculum, Rol.Jurado, Rol.Bibliotecario] },
 ];
+
+/**
+ * Path → allowed roles map derived from NAV_ITEMS.
+ * Keys omit the leading slash to match React Router path strings (e.g. 'fichas-perfil').
+ * Routes absent from this map have no role restriction.
+ */
+export const ROLES_POR_RUTA: Record<string, Rol[]> = Object.fromEntries(
+  NAV_ITEMS.filter((item) => item.roles).map((item) => [item.path.slice(1), item.roles!]),
+);
