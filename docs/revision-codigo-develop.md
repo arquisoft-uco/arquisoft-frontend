@@ -186,17 +186,20 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ## Resumen de prioridades
 
-| Prioridad | Hallazgo | Estado |
-|---|---|---|
-| 🔴 | Eliminar ruta `example-domain` del router | ✅ Corregido |
-| 🔴 | Reemplazar datos hardcodeados en Dashboard | Pendiente |
-| 🔴 | Verificar campos de `RegistrarFichaPerfilRequest` contra contrato del backend | Pendiente |
-| 🟠 | Eliminar `.env.development` del repo | ✅ Corregido |
-| 🟠 | Guard en `main.tsx` para `VITE_AUTH_BYPASS` en producción | Pendiente |
-| 🟠 | Corregir detección de errores en paneles (string parsing) | ✅ Corregido |
-| 🟠 | Aplicar `RoleGuard` en rutas del router | ✅ Corregido |
-| 🟠 | Error boundary global en `main.tsx` | ✅ Corregido |
-| 🟡 | Validación de variables de entorno en arranque | ✅ Corregido |
-| 🟡 | Integrar observabilidad de errores en producción | Pendiente |
-| 🟡 | Mover `src/features/fichas-perfil/docs/` fuera de `src/` | Pendiente |
-| 🟡 | Migrar `RegistrarFichaPerfil` a `react-hook-form` + `zod` | Pendiente |
+| # | Prioridad | Hallazgo | Estado |
+|---|---|---|---|
+| 1 | 🔴 | Sin cobertura de tests | Pendiente |
+| 2 | 🔴 | Eliminar ruta `example-domain` del router | ✅ Corregido |
+| 3 | 🔴 | Reemplazar datos hardcodeados en Dashboard | Pendiente |
+| 4 | 🟠 | `VITE_AUTH_BYPASS` comprometido en el repo + guard en producción | ✅ Corregido |
+| 5 | 🟠 | Detección de errores por parsing de string | ✅ Corregido |
+| 6 | 🟠 | Inconsistencia de tipos en `RegistrarFichaPerfilRequest` | Pendiente |
+| 7 | 🟠 | `RoleGuard` no aplicado en el router | ✅ Corregido |
+| 8 | 🟠 | Sin error boundary global | ✅ Corregido |
+| 9 | 🟡 | Variables de entorno sin validación en arranque | ✅ Corregido |
+| 10 | 🟡 | `console.error` sin servicio de observabilidad | Pendiente |
+| 11 | 🟡 | Documentación SQL/YAML dentro de `src/` | ✅ Corregido |
+| 12 | 🟡 | Formulario `RegistrarFichaPerfil` sin validación estructurada | ✅ Corregido |
+| 13 | 🟡 | `staleTime` global sin `gcTime` explícito | ✅ Corregido |
+| 14 | 🔵 | `import React` innecesario en `FichasPerfil.tsx` | ✅ Corregido |
+| 15 | 🔵 | `BADGE_COLORS` con strings en español como claves | Pendiente |
