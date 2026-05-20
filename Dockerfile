@@ -12,11 +12,23 @@ RUN npm ci --production=false
 # Copiar código fuente
 COPY . .
 
-# Vite lee las variables VITE_* del entorno durante el build
-ENV VITE_API_URL=localhost:3000/api
-ENV VITE_KEYCLOAK_URL=localhost:8080/auth
-ENV VITE_KEYCLOAK_REALM=mi_realm
-ENV VITE_KEYCLOAK_CLIENT_ID=mi_cliente
+# Vite embebe VITE_* en el bundle durante el build — deben llegar como build args,
+# no como env vars del contenedor en runtime.
+ARG VITE_API_URL
+ARG VITE_KEYCLOAK_URL
+ARG VITE_KEYCLOAK_REALM
+ARG VITE_KEYCLOAK_CLIENT_ID
+
+# Fallar el build si alguna variable requerida no fue provista
+RUN test -n "$VITE_API_URL"         || (echo "ERROR: VITE_API_URL is required" && exit 1) && \
+    test -n "$VITE_KEYCLOAK_URL"    || (echo "ERROR: VITE_KEYCLOAK_URL is required" && exit 1) && \
+    test -n "$VITE_KEYCLOAK_REALM"  || (echo "ERROR: VITE_KEYCLOAK_REALM is required" && exit 1) && \
+    test -n "$VITE_KEYCLOAK_CLIENT_ID" || (echo "ERROR: VITE_KEYCLOAK_CLIENT_ID is required" && exit 1)
+
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_KEYCLOAK_URL=$VITE_KEYCLOAK_URL
+ENV VITE_KEYCLOAK_REALM=$VITE_KEYCLOAK_REALM
+ENV VITE_KEYCLOAK_CLIENT_ID=$VITE_KEYCLOAK_CLIENT_ID
 
 # Build de producción
 RUN npm run build
