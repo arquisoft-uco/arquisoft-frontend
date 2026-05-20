@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { monitoring } from '../utils/monitoring';
 
 interface Props {
   children: ReactNode;
@@ -23,7 +24,7 @@ export class RootErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[RootErrorBoundary]', { message: error.message, componentStack: info.componentStack });
+    monitoring.captureError(error, { componentStack: info.componentStack });
   }
 
   render() {

@@ -115,11 +115,14 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ---
 
-### 10. `console.error` sin servicio de observabilidad
+### 10. `console.error` sin servicio de observabilidad ✅ Corregido
 
 `src/api/axiosInstance.ts` (línea 62) y `src/shared/components/ChunkErrorBoundary.tsx` (línea 24) solo escriben a la consola del navegador. En producción los errores no llegan a ningún sistema de alertas.
 
-**Acción:** integrar un servicio de monitoreo de errores (Sentry u equivalente) en `componentDidCatch` y en el interceptor de respuesta.
+**Acciones aplicadas:**
+- Creado `src/shared/utils/monitoring.ts` — servicio compartido con dos métodos: `captureError(error, context?)` para errores de componentes y `captureHttpError(status, url?, method?)` para fallos HTTP. Actualmente delega a `console.error`; para migrar a Sentry basta reemplazar los cuerpos de esas dos funciones.
+- `ChunkErrorBoundary.tsx` y `RootErrorBoundary.tsx`: `componentDidCatch` reemplazado por `monitoring.captureError(error, { componentStack })`.
+- `axiosInstance.ts`: `console.error` del interceptor de respuesta reemplazado por `monitoring.captureHttpError(status, url, method)`.
 
 ---
 
@@ -197,7 +200,7 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 | 7 | 🟠 | `RoleGuard` no aplicado en el router | ✅ Corregido |
 | 8 | 🟠 | Sin error boundary global | ✅ Corregido |
 | 9 | 🟡 | Variables de entorno sin validación en arranque | ✅ Corregido |
-| 10 | 🟡 | `console.error` sin servicio de observabilidad | Pendiente |
+| 10 | 🟡 | `console.error` sin servicio de observabilidad | ✅ Corregido |
 | 11 | 🟡 | Documentación SQL/YAML dentro de `src/` | ✅ Corregido |
 | 12 | 🟡 | Formulario `RegistrarFichaPerfil` sin validación estructurada | ✅ Corregido |
 | 13 | 🟡 | `staleTime` global sin `gcTime` explícito | ✅ Corregido |

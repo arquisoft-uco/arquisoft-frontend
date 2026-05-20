@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../auth/authStore';
 import { keycloak } from '../auth/keycloak';
 import { API_URL } from '../config/env';
+import { monitoring } from '../shared/utils/monitoring';
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -59,8 +60,7 @@ apiClient.interceptors.response.use(
       import('../router').then(({ router }) => router.navigate('/forbidden'));
     }
 
-    // Log minimal info — never the full error.config (which contains the JWT)
-    console.error('[apiClient]', { status, url: config?.url, method: config?.method });
+    monitoring.captureHttpError(status, config?.url, config?.method);
 
     return Promise.reject(error);
   },
