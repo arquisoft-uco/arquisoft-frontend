@@ -1,4 +1,5 @@
 import Keycloak from 'keycloak-js';
+import { KEYCLOAK_CONFIG } from '../config/env';
 
 /** Seconds before expiry at which the proactive refresh fires. */
 const REFRESH_BUFFER_SECONDS = 30;
@@ -15,14 +16,13 @@ const REFRESH_BUFFER_SECONDS = 30;
  * the client_id parameter, which Keycloak 18+ accepts for public clients.
  */
 export function logout(redirectUri: string = window.location.origin): void {
-  const base = import.meta.env.VITE_KEYCLOAK_URL.replace(/\/$/, '');
-  const realm = import.meta.env.VITE_KEYCLOAK_REALM;
-  const url = new URL(`${base}/realms/${realm}/protocol/openid-connect/logout`);
+  const base = KEYCLOAK_CONFIG.url.replace(/\/$/, '');
+  const url = new URL(`${base}/realms/${KEYCLOAK_CONFIG.realm}/protocol/openid-connect/logout`);
   url.searchParams.set('post_logout_redirect_uri', redirectUri);
   if (keycloak.idToken) {
     url.searchParams.set('id_token_hint', keycloak.idToken);
   } else {
-    url.searchParams.set('client_id', import.meta.env.VITE_KEYCLOAK_CLIENT_ID);
+    url.searchParams.set('client_id', KEYCLOAK_CONFIG.clientId);
   }
   window.location.href = url.href;
 }
@@ -32,9 +32,9 @@ export function logout(redirectUri: string = window.location.origin): void {
  * React StrictMode double-mounts components but module-level code runs only once.
  */
 export const keycloak = new Keycloak({
-  url: import.meta.env.VITE_KEYCLOAK_URL,
-  realm: import.meta.env.VITE_KEYCLOAK_REALM,
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
+  url: KEYCLOAK_CONFIG.url,
+  realm: KEYCLOAK_CONFIG.realm,
+  clientId: KEYCLOAK_CONFIG.clientId,
 });
 
 /**

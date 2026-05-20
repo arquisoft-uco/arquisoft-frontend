@@ -99,11 +99,14 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ## 🟡 Medio — Mejoras recomendadas
 
-### 9. Variables de entorno sin validación en arranque
+### 9. Variables de entorno sin validación en arranque ✅ Corregido
 
-`src/auth/keycloak.ts` consume `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM` y `VITE_KEYCLOAK_CLIENT_ID` directamente. Si alguna es `undefined` en producción, Keycloak lanza errores opacos difíciles de diagnosticar.
+`keycloak.ts` y `axiosInstance.ts` leían `import.meta.env.*` directamente sin verificar si los valores existían.
 
-**Acción:** validar la presencia de estas variables al inicio de la aplicación y lanzar un mensaje claro si faltan.
+**Acciones aplicadas:**
+- Creado `src/config/env.ts` — módulo de configuración centralizado que valida todas las variables al cargarse. Si alguna requerida está ausente lanza un error inmediato con el nombre de la variable y las instrucciones de configuración. También bloquea `VITE_AUTH_BYPASS=true` en builds de producción (hallazgo #4, acción pendiente).
+- `keycloak.ts` y `axiosInstance.ts` leen ahora de `KEYCLOAK_CONFIG` y `API_URL` exportados por `env.ts`.
+- `main.tsx` importa `./config/env` como primera línea, garantizando que la validación se ejecuta antes de montar React o inicializar Keycloak.
 
 ---
 
@@ -188,7 +191,7 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 | 🟠 | Corregir detección de errores en paneles (string parsing) | ✅ Corregido |
 | 🟠 | Aplicar `RoleGuard` en rutas del router | Pendiente |
 | 🟠 | Error boundary global en `main.tsx` | Pendiente |
-| 🟡 | Validación de variables de entorno en arranque | Pendiente |
+| 🟡 | Validación de variables de entorno en arranque | ✅ Corregido |
 | 🟡 | Integrar observabilidad de errores en producción | Pendiente |
 | 🟡 | Mover `src/features/fichas-perfil/docs/` fuera de `src/` | Pendiente |
 | 🟡 | Migrar `RegistrarFichaPerfil` a `react-hook-form` + `zod` | Pendiente |
