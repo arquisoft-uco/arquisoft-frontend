@@ -3,6 +3,7 @@ import { Edit3, Plus, Trash2 } from 'lucide-react';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 
 export default function ItemsMiFichaPanel() {
   const { fichaId, items, tiposItem, agregar, modificar, remover } = useItemsMiFicha();
@@ -25,7 +26,7 @@ export default function ItemsMiFichaPanel() {
           setMostrarFormAgregar(false);
           toast.success('Ítem agregado', 'El ítem se registró correctamente.');
         },
-        onError: () => toast.error('Error al agregar', 'No se pudo registrar el ítem.'),
+        onError: (err) => toast.error('Error al agregar', getApiErrorMessage(err, 'No se pudo registrar el ítem.')),
       },
     );
   };
@@ -43,7 +44,7 @@ export default function ItemsMiFichaPanel() {
           setEditandoItemId(null);
           toast.success('Ítem actualizado', 'El contenido se guardó correctamente.');
         },
-        onError: () => toast.error('Error al modificar', 'No se pudo actualizar el ítem.'),
+        onError: (err) => toast.error('Error al modificar', getApiErrorMessage(err, 'No se pudo actualizar el ítem.')),
       },
     );
   };
@@ -59,8 +60,8 @@ export default function ItemsMiFichaPanel() {
         toast.success('Ítem eliminado', 'El ítem fue removido de tu ficha.');
         setItemIdAEliminar(null);
       },
-      onError: () => {
-        toast.error('Error al eliminar', 'No se pudo eliminar el ítem.');
+      onError: (err) => {
+        toast.error('Error al eliminar', getApiErrorMessage(err, 'No se pudo eliminar el ítem.'));
         setItemIdAEliminar(null);
       },
     });

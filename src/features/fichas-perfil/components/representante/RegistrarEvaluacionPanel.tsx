@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ClipboardCheck } from 'lucide-react';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useRegistrarEvaluacion } from '../../hooks/useRegistrarEvaluacion';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
@@ -102,9 +103,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
 
           {isErrorMutacion && (
             <p className="text-sm text-danger" role="alert">
-              {(error as Error)?.message?.includes('409')
-                ? 'Ya existe una evaluación para esta ficha.'
-                : 'Ocurrió un error al registrar la evaluación. Intenta nuevamente.'}
+              {getApiErrorMessage(error, 'Ocurrió un error al registrar la evaluación. Intenta nuevamente.')}
             </p>
           )}
 

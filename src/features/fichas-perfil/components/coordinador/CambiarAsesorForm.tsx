@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { UserCog } from 'lucide-react';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCambiarAsesor } from '../../hooks/useCambiarAsesor';
 import { fichasPerfilService } from '../../services/fichasPerfilService';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -45,7 +46,7 @@ export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual, onExi
         onError: (err) => {
           toast.error(
             'Error al cambiar asesor',
-            err instanceof Error ? err.message : 'Inténtalo nuevamente.',
+            getApiErrorMessage(err, 'Inténtalo nuevamente.'),
           );
           setConfirming(false);
         },

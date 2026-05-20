@@ -37,7 +37,7 @@ cp .env.example .env.development.local
 npm run dev
 ```
 
-> Con `VITE_AUTH_BYPASS=true` (valor por defecto en `.env.development`) no se necesita un servidor Keycloak para desarrollar.
+> Con `VITE_AUTH_BYPASS=true` en `.env.development.local` no se necesita un servidor Keycloak para desarrollar.
 
 ## Scripts disponibles
 
@@ -65,8 +65,7 @@ Archivos de entorno:
 | Archivo                    | En repo | Propósito                                    |
 | -------------------------- | ------- | -------------------------------------------- |
 | `.env.example`             | ✅      | Plantilla con todas las variables            |
-| `.env.development`         | ✅      | Defaults del equipo (valores genéricos)      |
-| `.env.development.local`   | ❌      | Overrides personales con valores reales      |
+| `.env.development.local`   | ❌      | Configuración local de cada desarrollador    |
 
 ## Estructura del proyecto
 
@@ -88,10 +87,6 @@ src/
 │   └── devAuth.ts            # Bypass de autenticación para desarrollo local
 │
 ├── features/                 # Módulos de negocio (feature-based)
-│   ├── example-domain/       # ← Referencia de implementación
-│   │   ├── components/       #   Componentes del feature
-│   │   ├── models/           #   Interfaces y tipos
-│   │   └── services/         #   Servicios HTTP y lógica de negocio
 │   ├── dashboard/
 │   ├── seleccionar-rol/
 │   ├── artefactos/
@@ -133,7 +128,7 @@ src/
 
 ### Convención de features
 
-Cada feature sigue la estructura `example-domain/` como referencia:
+Cada feature sigue la estructura de `fichas-perfil/` como referencia:
 
 ```
 features/<nombre-feature>/

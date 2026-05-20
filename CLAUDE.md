@@ -33,7 +33,7 @@ npm run lint       # TypeScript type-check only (no ESLint)
 
 Run a single test file:
 ```bash
-npx vitest run src/features/example-domain/components/ExampleList.test.tsx
+npx vitest run src/features/<feature>/components/<Component>.test.tsx
 ```
 
 ## Environment setup
@@ -46,7 +46,7 @@ Copy `.env.example` to `.env.development.local` and fill in real values. The key
 | `VITE_AUTH_BYPASS` | Set `true` to skip Keycloak in local dev |
 | `VITE_DEV_USERNAME` / `VITE_DEV_ROLES` | Fake user/roles injected when bypass is active |
 
-`.env.development` is committed and sets `VITE_AUTH_BYPASS=true` as the team default.
+`.env.development.local` is gitignored — never commit it. `.env.example` is the committed template.
 
 ## Architecture
 
@@ -77,7 +77,7 @@ features/<name>/
 └── services/           # Axios calls via apiClient
 ```
 
-`src/features/example-domain/` is the canonical reference implementation — copy its patterns for new features.
+`src/features/fichas-perfil/` is the canonical reference implementation — copy its patterns for new features.
 
 ### Shared types
 

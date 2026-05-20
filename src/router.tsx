@@ -17,9 +17,6 @@ const RepositorioArtefactos = lazy(
 );
 const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
-const ExampleList = lazy(
-  () => import('./features/example-domain/components/ExampleList'),
-);
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
 
 /**
@@ -46,7 +43,6 @@ export const router = createBrowserRouter([
           { path: 'repositorio-artefactos', element: <RepositorioArtefactos /> },
           { path: 'biblioteca', element: <Biblioteca /> },
           { path: 'solicitudes', element: <Solicitudes /> },
-          { path: 'example-domain', element: <ExampleList /> },
           { path: 'seleccionar-rol', element: <SeleccionarRol /> },
           { path: '*', element: <Navigate to="/dashboard" replace /> },
         ],

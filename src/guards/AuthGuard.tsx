@@ -24,7 +24,7 @@ export default function AuthGuard() {
     if (initRef.current) return;
     initRef.current = true;
 
-    // Dev bypass: omite Keycloak e inyecta un usuario ficticio desde .env.development.
+    // Dev bypass: omite Keycloak e inyecta un usuario ficticio desde .env.development.local.
     if (import.meta.env.VITE_AUTH_BYPASS === 'true') {
       initDevAuth();
       return;

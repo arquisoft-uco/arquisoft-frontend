@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
+import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
@@ -74,7 +75,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
         onError: (err) => {
           toast.error(
             'Error al registrar la ficha',
-            err instanceof Error ? err.message : 'Verifica los datos e inténtalo nuevamente.',
+            getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.'),
           );
         },
       },

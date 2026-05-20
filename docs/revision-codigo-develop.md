@@ -1,0 +1,185 @@
+# Revisión de Código — Rama `develop`
+
+**Fecha:** 2026-05-19  
+**Rama revisada:** `develop`  
+**Stack:** React 19 · TypeScript 5.9 · Vite 6 · TanStack Query 5 · Zustand 5 · Keycloak JS 26 · React Router 7  
+
+| Verificación | Estado |
+|---|---|
+| TypeScript (`npm run lint`) | ✅ Sin errores |
+| Tests (`npm run test`) | ❌ 0 archivos de prueba |
+
+---
+
+## 🔴 Crítico — Bloqueante para producción
+
+### 1. Sin cobertura de tests
+
+No existe ningún archivo `.test.tsx` / `.spec.ts` en `src/`. Las utilidades de prueba existen en `src/test-utils/` pero nadie las usa. Los flujos críticos `AuthGuard`, `RoleGuard` y `fichasPerfilService` no tienen ninguna validación automatizada.
+
+**Acción:** escribir al menos tests de humo para los guards de autenticación y el servicio de fichas de perfil.
+
+---
+
+### 2. Ruta `example-domain` expuesta en producción ✅ Corregido
+
+La ruta `{ path: 'example-domain', element: <ExampleList /> }` y su import lazy estaban registrados en `src/router.tsx`. Al no aparecer en `src/layout/nav-items.ts` ni en ningún otro componente fuera de su propio directorio, se confirmó que es código de plantilla/referencia que no debe estar en producción.
+
+**Acción aplicada:** se eliminó el import lazy y la entrada de ruta en `src/router.tsx`.
+
+---
+
+### 3. Dashboard con datos estáticos hardcodeados
+
+`src/features/dashboard/Dashboard.tsx` (líneas 91-94) muestra estadísticas fijas (`"12"`, `"5"`, `"3"`) y textos como `"Próximo vence hoy"`. Son valores de maqueta, no datos reales del backend, lo que confundirá a los usuarios en producción.
+
+**Acción:** reemplazar con llamadas reales a la API o eliminar la sección de estadísticas hasta tener los endpoints disponibles.
+
+---
+
+## 🟠 Alto — Riesgo significativo
+
+### 4. `VITE_AUTH_BYPASS=true` comprometido en el repositorio ✅ Corregido
+
+`.env.development` tenía `VITE_AUTH_BYPASS=true` commiteado como configuración por defecto del equipo, lo que suponía riesgo si un pipeline de CI construía sin sobreescribir esa variable.
+
+**Acción aplicada:** se eliminó `.env.development` del repositorio. Ahora cada desarrollador crea su propio `.env.development.local` (gitignored) a partir de `.env.example`. Se actualizaron `README.md`, `CLAUDE.md` y `AuthGuard.tsx` para reflejar el cambio.
+
+**Acción pendiente recomendada:** agregar una guardia en `src/main.tsx` como salvaguarda adicional:
+
+```ts
+if (import.meta.env.PROD && import.meta.env.VITE_AUTH_BYPASS === 'true') {
+  throw new Error('VITE_AUTH_BYPASS no puede ser true en producción.');
+}
+```
+
+---
+
+### 5. Detección de errores por parsing de string ✅ Corregido
+
+`RegistrarEvaluacionPanel.tsx` y `AgregarEstadoEvaluacionPanel.tsx` parseaban el mensaje del error de JavaScript para detectar códigos HTTP, lo cual es frágil e incorrecto.
+
+**Acciones aplicadas:**
+- Se creó `src/shared/utils/api-error.ts` con las funciones `getApiErrorMessage`, `getApiErrorStatus`, `isApiErrorWithStatus`, `hasApiErrorCode`, `getApiFieldErrors` y `classifyApiError`, alineadas con el `ErrorResponseDTO` del backend.
+- Se actualizó `src/shared/models/api-response.ts` para incluir `errorCode`, `fieldErrors` y la nueva interfaz `FieldError`.
+- Se reemplazaron todos los `(error as Error)?.message?.includes(...)` y `err instanceof Error ? err.message` por `getApiErrorMessage(err, fallback)` en todos los componentes y hooks del feature `fichas-perfil`.
+
+---
+
+### 6. Inconsistencia de tipos en `RegistrarFichaPerfilRequest`
+
+Hay dos interfaces para el mismo concepto con nombres de campo diferentes:
+
+| Archivo | Campos |
+|---|---|
+| `models/RegistrarFichaPerfilRequest.ts` | `titulo`, `idAsesorFicha`, `idEstudiantes` |
+| `models/fichas-perfil.ts` (`CrearFichaPerfilRequest`) | `tituloProyecto`, `asesorFichaId` |
+
+Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `/fichas-perfil` creará fichas sin título correctamente mapeado.
+
+**Acción:** verificar el contrato del backend y unificar en una sola interfaz con los nombres correctos.
+
+---
+
+### 7. `RoleGuard` no aplicado en el router
+
+`src/guards/RoleGuard.tsx` existe y funciona, pero **ninguna ruta en `src/router.tsx` lo usa**. La protección por rol ocurre solo dentro de `FichasPerfil.tsx`. Rutas como `/proyectos-grado`, `/evaluaciones`, `/biblioteca`, etc. son accesibles por cualquier usuario autenticado independientemente de su rol.
+
+**Acción:** aplicar `RoleGuard` en cada ruta del router, o documentar explícitamente que la restricción es responsabilidad del componente de cada feature.
+
+---
+
+### 8. Sin error boundary global
+
+`src/shared/components/ChunkErrorBoundary.tsx` solo envuelve el `<Outlet>` dentro de `AppLayout`. Si ocurre un error en `AuthGuard` o en `AppLayout` mismo, el usuario ve una pantalla en blanco sin posibilidad de recuperación.
+
+**Acción:** envolver `<RouterProvider>` en `src/main.tsx` con un error boundary de nivel superior.
+
+---
+
+## 🟡 Medio — Mejoras recomendadas
+
+### 9. Variables de entorno sin validación en arranque
+
+`src/auth/keycloak.ts` consume `VITE_KEYCLOAK_URL`, `VITE_KEYCLOAK_REALM` y `VITE_KEYCLOAK_CLIENT_ID` directamente. Si alguna es `undefined` en producción, Keycloak lanza errores opacos difíciles de diagnosticar.
+
+**Acción:** validar la presencia de estas variables al inicio de la aplicación y lanzar un mensaje claro si faltan.
+
+---
+
+### 10. `console.error` sin servicio de observabilidad
+
+`src/api/axiosInstance.ts` (línea 62) y `src/shared/components/ChunkErrorBoundary.tsx` (línea 24) solo escriben a la consola del navegador. En producción los errores no llegan a ningún sistema de alertas.
+
+**Acción:** integrar un servicio de monitoreo de errores (Sentry u equivalente) en `componentDidCatch` y en el interceptor de respuesta.
+
+---
+
+### 11. Documentación SQL/YAML dentro de `src/`
+
+`src/features/fichas-perfil/docs/` contiene archivos `.sql`, `.yaml` y `.md`. Esto los incluye en el ámbito de compilación de TypeScript y Vite los procesa innecesariamente.
+
+**Acción:** mover el directorio a `/docs/fichas-perfil/` en la raíz del proyecto.
+
+---
+
+### 12. Formulario `RegistrarFichaPerfil` sin validación estructurada
+
+`src/features/fichas-perfil/components/RegistrarFichaPerfil.tsx` usa `noValidate` y validación manual (`if (!titulo.trim() || ...)`). El proyecto ya tiene `react-hook-form` y `zod` como dependencias.
+
+**Acción:** migrar la validación del formulario a `react-hook-form` + `zod` para consistencia con el resto del proyecto.
+
+---
+
+### 13. `staleTime` global sin `gcTime` explícito
+
+`src/main.tsx` configura `staleTime: 5 min` pero el `gcTime` por defecto es también 5 minutos, lo que elimina los datos del caché casi inmediatamente tras quedarse stale.
+
+**Acción:** para queries de catálogo (tipos de ítem, estados de evaluación) que raramente cambian, definir `gcTime` más alto o configurar `staleTime` mayor por query.
+
+---
+
+## 🔵 Bajo — Calidad y convenciones
+
+### 14. `import React` innecesario en `FichasPerfil.tsx`
+
+`src/features/fichas-perfil/FichasPerfil.tsx` (línea 1) importa `React` manualmente. Con `"jsx": "react-jsx"` en `tsconfig.app.json` este import no es necesario.
+
+---
+
+### 15. `BADGE_COLORS` con strings en español como claves
+
+`src/features/fichas-perfil/components/representante/EstadosEvaluacionPanel.tsx` usa los nombres textuales de los estados como claves del objeto de colores. Si el backend cambia el texto de un estado, el badge no mostrará el color correcto sin lanzar ningún error.
+
+**Acción:** usar los IDs o los valores del enum `EstadoEvaluacion` como claves.
+
+---
+
+## ✅ Fortalezas del proyecto
+
+- **Arquitectura de autenticación sólida:** `keycloak.ts` como singleton de módulo, mutex de refresh en el interceptor de Axios, `scheduleRefresh` con Visibility API, token exclusivamente en memoria.
+- **Feature modules bien delimitados** con separación clara de `models/`, `hooks/`, `services/` y `components/`.
+- **Separación de concerns correcta:** Zustand para UI, TanStack Query para estado de servidor, Axios fuera del árbol React.
+- **Accesibilidad:** `aria-label`, `role`, `sr-only`, skip-to-content, manejo de teclado en `AppLayout` y `Header`.
+- **`ChunkErrorBoundary`** para recuperar de errores de lazy-loading con botón de recarga.
+- **`safeStorage`** con try/catch para Safari en modo privado.
+- **TypeScript estricto:** `strict: true`, `noUnusedLocals`, `noUnusedParameters` — sin errores.
+
+---
+
+## Resumen de prioridades
+
+| Prioridad | Hallazgo | Estado |
+|---|---|---|
+| 🔴 | Eliminar ruta `example-domain` del router | ✅ Corregido |
+| 🔴 | Reemplazar datos hardcodeados en Dashboard | Pendiente |
+| 🔴 | Verificar campos de `RegistrarFichaPerfilRequest` contra contrato del backend | Pendiente |
+| 🟠 | Eliminar `.env.development` del repo | ✅ Corregido |
+| 🟠 | Guard en `main.tsx` para `VITE_AUTH_BYPASS` en producción | Pendiente |
+| 🟠 | Corregir detección de errores en paneles (string parsing) | ✅ Corregido |
+| 🟠 | Aplicar `RoleGuard` en rutas del router | Pendiente |
+| 🟠 | Error boundary global en `main.tsx` | Pendiente |
+| 🟡 | Validación de variables de entorno en arranque | Pendiente |
+| 🟡 | Integrar observabilidad de errores en producción | Pendiente |
+| 🟡 | Mover `src/features/fichas-perfil/docs/` fuera de `src/` | Pendiente |
+| 🟡 | Migrar `RegistrarFichaPerfil` a `react-hook-form` + `zod` | Pendiente |
