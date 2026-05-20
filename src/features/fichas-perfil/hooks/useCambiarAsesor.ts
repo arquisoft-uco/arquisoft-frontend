@@ -23,7 +23,7 @@ export function useCambiarAsesor() {
           return {
             ...old,
             content: old.content.map((f) =>
-              f.id === idFicha ? { ...f, asesor: asesorNuevo } : f,
+              f.id === idFicha ? { ...f, asesorFicha: asesorNuevo } : f,
             ),
           };
         },

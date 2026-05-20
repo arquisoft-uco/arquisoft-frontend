@@ -62,9 +62,9 @@ export default function FichasPerfilTable({
                 return (
                   <Fragment key={ficha.id}>
                     <tr className="transition-colors hover:bg-muted/30">
-                      <td className="px-4 py-3 font-medium text-on-surface">{ficha.titulo}</td>
-                      <td className="px-4 py-3 text-on-surface">{ficha.asesor.nombre}</td>
-                      <td className="px-4 py-3 text-on-surface-secondary">{ficha.asesor.email}</td>
+                      <td className="px-4 py-3 font-medium text-on-surface">{ficha.tituloProyecto}</td>
+                      <td className="px-4 py-3 text-on-surface">{ficha.asesorFicha.nombre}</td>
+                      <td className="px-4 py-3 text-on-surface-secondary">{ficha.asesorFicha.email}</td>
                       <td className="px-4 py-3">
                         <button
                           type="button"
@@ -102,7 +102,7 @@ export default function FichasPerfilTable({
                         <td colSpan={5} className="p-0">
                           <CambiarAsesorForm
                             idFichaPerfil={ficha.id}
-                            idAsesorActual={ficha.asesor.id}
+                            idAsesorActual={ficha.asesorFicha.id}
                             onExito={() => setFichaAsesorExpandida(null)}
                           />
                         </td>
