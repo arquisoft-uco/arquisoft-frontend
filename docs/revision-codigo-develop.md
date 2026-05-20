@@ -115,11 +115,11 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ---
 
-### 11. Documentación SQL/YAML dentro de `src/`
+### 11. Documentación SQL/YAML dentro de `src/` ✅ Corregido
 
-`src/features/fichas-perfil/docs/` contiene archivos `.sql`, `.yaml` y `.md`. Esto los incluye en el ámbito de compilación de TypeScript y Vite los procesa innecesariamente.
+`src/features/fichas-perfil/docs/` contenía archivos `.sql`, `.yaml` y `.md` dentro del ámbito de compilación de TypeScript.
 
-**Acción:** mover el directorio a `/docs/fichas-perfil/` en la raíz del proyecto.
+**Acción aplicada:** directorio movido a `docs/fichas-perfil/` mediante `git mv` para preservar el historial de los archivos.
 
 ---
 
