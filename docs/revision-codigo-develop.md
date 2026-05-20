@@ -131,19 +131,23 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ---
 
-### 13. `staleTime` global sin `gcTime` explícito
+### 13. `staleTime` global sin `gcTime` explícito ✅ Corregido
 
-`src/main.tsx` configura `staleTime: 5 min` pero el `gcTime` por defecto es también 5 minutos, lo que elimina los datos del caché casi inmediatamente tras quedarse stale.
+`src/main.tsx` configuraba `staleTime: 5 min` pero el `gcTime` por defecto también era 5 minutos, lo que eliminaba los datos del caché casi inmediatamente tras desmontarse el componente.
 
-**Acción:** para queries de catálogo (tipos de ítem, estados de evaluación) que raramente cambian, definir `gcTime` más alto o configurar `staleTime` mayor por query.
+**Acciones aplicadas:**
+- `src/main.tsx`: `gcTime` global aumentado a 30 min — navegar entre páginas y volver reutiliza el caché sin re-fetch.
+- `useEstadosFicha`, `useEstadosEvaluacion`, `tiposItemQuery` (en `useItemsMiFicha`): agregado `gcTime: Infinity` junto al `staleTime: Infinity` ya existente — estos catálogos inmutables nunca se descartan del caché durante la sesión.
 
 ---
 
 ## 🔵 Bajo — Calidad y convenciones
 
-### 14. `import React` innecesario en `FichasPerfil.tsx`
+### 14. `import React` innecesario en `FichasPerfil.tsx` ✅ Corregido
 
-`src/features/fichas-perfil/FichasPerfil.tsx` (línea 1) importa `React` manualmente. Con `"jsx": "react-jsx"` en `tsconfig.app.json` este import no es necesario.
+`src/features/fichas-perfil/FichasPerfil.tsx` importaba `React` manualmente. Con `"jsx": "react-jsx"` en `tsconfig.app.json` el transform automático de JSX no lo requiere.
+
+**Acción aplicada:** eliminado el import.
 
 ---
 

@@ -6,5 +6,6 @@ export function useEstadosEvaluacion() {
     queryKey: ['estados-evaluacion'],
     queryFn: () => fichasPerfilService.getEstadosEvaluacion(),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }
