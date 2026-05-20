@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router';
 import './index.css';
 import { router } from './router';
+import { RootErrorBoundary } from './shared/components/RootErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,8 +19,10 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <RootErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </RootErrorBoundary>
   </StrictMode>,
 );

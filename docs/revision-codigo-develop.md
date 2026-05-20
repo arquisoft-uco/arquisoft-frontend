@@ -89,11 +89,13 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ---
 
-### 8. Sin error boundary global
+### 8. Sin error boundary global ✅ Corregido
 
-`src/shared/components/ChunkErrorBoundary.tsx` solo envuelve el `<Outlet>` dentro de `AppLayout`. Si ocurre un error en `AuthGuard` o en `AppLayout` mismo, el usuario ve una pantalla en blanco sin posibilidad de recuperación.
+`ChunkErrorBoundary` solo cubría el `<Outlet>` dentro de `AppLayout`. Errores en `AuthGuard` o `AppLayout` producían pantalla en blanco.
 
-**Acción:** envolver `<RouterProvider>` en `src/main.tsx` con un error boundary de nivel superior.
+**Acciones aplicadas:**
+- Creado `src/shared/components/RootErrorBoundary.tsx` — boundary de clase independiente de `ChunkErrorBoundary`, con mensaje genérico de error inesperado y el texto del error visible para diagnóstico.
+- `main.tsx` envuelve `<QueryClientProvider>` + `<RouterProvider>` con `<RootErrorBoundary>`, garantizando cobertura total del árbol React.
 
 ---
 
@@ -190,7 +192,7 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 | 🟠 | Guard en `main.tsx` para `VITE_AUTH_BYPASS` en producción | Pendiente |
 | 🟠 | Corregir detección de errores en paneles (string parsing) | ✅ Corregido |
 | 🟠 | Aplicar `RoleGuard` en rutas del router | Pendiente |
-| 🟠 | Error boundary global en `main.tsx` | Pendiente |
+| 🟠 | Error boundary global en `main.tsx` | ✅ Corregido |
 | 🟡 | Validación de variables de entorno en arranque | ✅ Corregido |
 | 🟡 | Integrar observabilidad de errores en producción | Pendiente |
 | 🟡 | Mover `src/features/fichas-perfil/docs/` fuera de `src/` | Pendiente |

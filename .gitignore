@@ -41,10 +41,6 @@ Thumbs.db
 .env.production.local
 # Los archivos de environment.ts ya no existen — se usa import.meta.env directamente.
 
-# Documentación de contexto e historias — ignoradas temporalmente
-**/docs/contexto/
-**/docs/historias/
-
 # Local shell config files
 .zshrc
 .bashrc
