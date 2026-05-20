@@ -1,12 +1,29 @@
-import { useState, type SyntheticEvent } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
-import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
+import { getApiErrorMessage } from '../../../shared/utils/api-error';
 
 const MAX_ESTUDIANTES = 3;
+
+const schema = z.object({
+  titulo: z
+    .string()
+    .min(1, 'El título es requerido')
+    .max(200, 'Máximo 200 caracteres'),
+  idAsesorFicha: z.string().min(1, 'Selecciona un asesor'),
+  idEstudiantes: z
+    .array(z.string())
+    .min(1, 'Agrega al menos un estudiante')
+    .max(MAX_ESTUDIANTES, `Máximo ${MAX_ESTUDIANTES} estudiantes`),
+});
+
+type FormValues = z.infer<typeof schema>;
 
 interface Props {
   onCerrar: () => void;
@@ -16,9 +33,29 @@ interface Props {
 }
 
 export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) {
-  const [titulo, setTitulo] = useState('');
-  const [idAsesorFicha, setIdAsesorFicha] = useState(asesorFijoId ?? '');
-  const [idEstudiantes, setIdEstudiantes] = useState<string[]>([]);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      titulo: '',
+      idAsesorFicha: asesorFijoId ?? '',
+      idEstudiantes: [],
+    },
+    mode: 'onChange',
+  });
+
+  const idEstudiantes = watch('idEstudiantes');
+
+  // Sync fixed asesor into the form when the prop is provided
+  useEffect(() => {
+    if (asesorFijoId) setValue('idAsesorFicha', asesorFijoId, { shouldValidate: true });
+  }, [asesorFijoId, setValue]);
 
   const { data: asesores = [] } = useQuery({
     queryKey: ['asesores-disponibles'],
@@ -42,34 +79,31 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
 
   function agregarEstudiante(id: string) {
     if (idEstudiantes.length >= MAX_ESTUDIANTES) return;
-    setIdEstudiantes((prev) => [...prev, id]);
+    setValue('idEstudiantes', [...idEstudiantes, id], { shouldValidate: true });
   }
 
   function quitarEstudiante(id: string) {
-    setIdEstudiantes((prev) => prev.filter((s) => s !== id));
-  }
-
-  function resetForm() {
-    setTitulo('');
-    if (!asesorFijoId) setIdAsesorFicha('');
-    setIdEstudiantes([]);
-    resetMutation();
+    setValue(
+      'idEstudiantes',
+      idEstudiantes.filter((s) => s !== id),
+      { shouldValidate: true },
+    );
   }
 
   function handleCancelar() {
-    resetForm();
+    reset();
+    resetMutation();
     onCerrar();
   }
 
-  function handleSubmit(e: SyntheticEvent) {
-    e.preventDefault();
-    if (!titulo.trim() || !idAsesorFicha || idEstudiantes.length === 0) return;
+  function onSubmit(values: FormValues) {
     mutate(
-      { titulo: titulo.trim(), idAsesorFicha, idEstudiantes },
+      { titulo: values.titulo, idAsesorFicha: values.idAsesorFicha, idEstudiantes: values.idEstudiantes },
       {
         onSuccess: () => {
-          toast.success('Ficha de perfil registrada', `"${titulo.trim()}" fue creada correctamente.`);
-          resetForm();
+          toast.success('Ficha de perfil registrada', `"${values.titulo}" fue creada correctamente.`);
+          reset();
+          resetMutation();
           onCerrar();
         },
         onError: (err) => {
@@ -88,7 +122,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
         Registrar nueva Ficha de Perfil
       </h3>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         {/* Título */}
         <div>
           <label htmlFor="fp-titulo" className="mb-1 block text-xs font-medium text-on-surface-secondary">
@@ -97,13 +131,18 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
           <input
             id="fp-titulo"
             type="text"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
             maxLength={200}
-            required
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
+            aria-invalid={!!errors.titulo}
+            aria-describedby={errors.titulo ? 'fp-titulo-error' : undefined}
             placeholder="Ej. Sistema de Gestión Académica"
+            {...register('titulo')}
           />
+          {errors.titulo && (
+            <p id="fp-titulo-error" className="mt-1 text-xs text-danger" role="alert">
+              {errors.titulo.message}
+            </p>
+          )}
         </div>
 
         {/* Asesor: dropdown (coordinador) o solo lectura (asesor) */}
@@ -121,10 +160,10 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             </label>
             <select
               id="fp-asesor"
-              value={idAsesorFicha}
-              onChange={(e) => setIdAsesorFicha(e.target.value)}
-              required
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
+              aria-invalid={!!errors.idAsesorFicha}
+              aria-describedby={errors.idAsesorFicha ? 'fp-asesor-error' : undefined}
+              {...register('idAsesorFicha')}
             >
               <option value="">Seleccionar asesor...</option>
               {asesores.map((a) => (
@@ -133,17 +172,26 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
                 </option>
               ))}
             </select>
+            {errors.idAsesorFicha && (
+              <p id="fp-asesor-error" className="mt-1 text-xs text-danger" role="alert">
+                {errors.idAsesorFicha.message}
+              </p>
+            )}
           </div>
         )}
 
         {/* Estudiantes */}
         <div>
-          <p className="mb-1 text-xs font-medium text-on-surface-secondary">
+          <p
+            className="mb-1 text-xs font-medium text-on-surface-secondary"
+            id="fp-estudiantes-label"
+          >
             Estudiantes ({idEstudiantes.length}/{MAX_ESTUDIANTES}){' '}
             <span aria-hidden className="text-red-500">*</span>
           </p>
+
           {idEstudiantes.length > 0 && (
-            <ul className="mb-2 flex flex-wrap gap-2">
+            <ul className="mb-2 flex flex-wrap gap-2" aria-label="Estudiantes seleccionados">
               {idEstudiantes.map((id) => {
                 const est = estudiantes.find((e) => e.id === id);
                 return (
@@ -164,7 +212,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
           )}
 
           {idEstudiantes.length < MAX_ESTUDIANTES && estudiantesDisponiblesParaAgregar.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" aria-labelledby="fp-estudiantes-label">
               {estudiantesDisponiblesParaAgregar.map((e) => (
                 <button
                   key={e.id}
@@ -182,6 +230,12 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
           {idEstudiantes.length === MAX_ESTUDIANTES && (
             <p className="text-xs text-on-surface-secondary">Máximo de estudiantes alcanzado.</p>
           )}
+
+          {errors.idEstudiantes && (
+            <p className="mt-1 text-xs text-danger" role="alert">
+              {errors.idEstudiantes.message}
+            </p>
+          )}
         </div>
 
         {/* Acciones */}
@@ -195,7 +249,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
           </button>
           <button
             type="submit"
-            disabled={isPending || !titulo.trim() || !idAsesorFicha || idEstudiantes.length === 0}
+            disabled={isPending || !isValid}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             {isPending ? 'Registrando...' : 'Registrar Ficha'}

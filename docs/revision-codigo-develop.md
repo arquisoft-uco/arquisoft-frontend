@@ -123,11 +123,16 @@ Si el backend espera `tituloProyecto` y el frontend envía `titulo`, el POST a `
 
 ---
 
-### 12. Formulario `RegistrarFichaPerfil` sin validación estructurada
+### 12. Formulario `RegistrarFichaPerfil` sin validación estructurada ✅ Corregido
 
-`src/features/fichas-perfil/components/RegistrarFichaPerfil.tsx` usa `noValidate` y validación manual (`if (!titulo.trim() || ...)`). El proyecto ya tiene `react-hook-form` y `zod` como dependencias.
+`RegistrarFichaPerfil.tsx` usaba `noValidate` y validación manual con condicionales dispersos.
 
-**Acción:** migrar la validación del formulario a `react-hook-form` + `zod` para consistencia con el resto del proyecto.
+**Acciones aplicadas:**
+- Instalada la dependencia `@hookform/resolvers`.
+- Schema Zod con reglas explícitas: `titulo` (requerido, máx. 200 chars), `idAsesorFicha` (requerido), `idEstudiantes` (mín. 1, máx. 3).
+- `useForm` con `zodResolver` y `mode: 'onChange'` — el botón "Registrar" se habilita solo cuando el form es válido.
+- Mensajes de error inline accesibles (`aria-invalid`, `aria-describedby`, `role="alert"`) bajo cada campo.
+- El campo de estudiantes (selección tag-style) se controla con `setValue` + `watch` de RHF.
 
 ---
 
