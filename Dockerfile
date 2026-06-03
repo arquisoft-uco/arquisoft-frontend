@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # ==================== STAGE 2: RUNTIME ====================
-FROM nginx:1.29-alpine
+FROM nginx:1.31-alpine
 
 # Copiar configuración personalizada de Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
