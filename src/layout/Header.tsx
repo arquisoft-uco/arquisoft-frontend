@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Menu, UserCog, CircleUser, LogOut, ChevronDown, Check } from 'lucide-react';
-import { logout as keycloakLogout } from '../auth/keycloak';
+import { cerrarSesion } from '../auth/session';
 import { useUsername, useRolActivo, useRolesDisponibles } from '../hooks/useAuth';
 import { useRoleStore } from '../auth/roleStore';
 import { ETIQUETAS_ROL, Rol } from '../shared/models/rol';
@@ -45,7 +45,8 @@ export default function Header({ onMenuToggle, isSidenavOpen }: Props) {
 
   function logout() {
     closeMenus();
-    keycloakLogout();
+    // Revoca el token en el backend (blacklist Redis) y luego cierra la sesión SSO.
+    void cerrarSesion();
   }
 
   return (
