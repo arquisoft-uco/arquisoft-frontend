@@ -141,16 +141,8 @@ export interface ObservacionEvaluacion {
 }
 
 // ─── Request DTOs ───
-
-export interface CrearFichaPerfilRequest {
-  tituloProyecto: string;
-  asesorFichaId: string;
-}
-
-export interface ModificarFichaPerfilRequest {
-  fichaPerfilId: string;
-  tituloProyecto: string;
-}
+// RegistrarFichaPerfilRequest vive en ./RegistrarFichaPerfilRequest.ts
+// ModificarFichaPerfilRequest vive en ./ModificarFichaPerfilRequest.ts
 
 export interface CambiarAsesorRequest {
   nuevoAsesorFichaId: string;

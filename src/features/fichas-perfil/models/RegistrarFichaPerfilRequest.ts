@@ -1,5 +1,6 @@
+// Nombres alineados con RegistrarFichaPerfilRequestDTO del backend.
 export interface RegistrarFichaPerfilRequest {
-  titulo: string;
-  idAsesorFicha: string;
-  idEstudiantes: string[];
+  tituloProyecto: string;
+  asesorFichaId: string;
+  estudiantesIds: string[];
 }

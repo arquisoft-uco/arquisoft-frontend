@@ -98,7 +98,11 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
 
   function onSubmit(values: FormValues) {
     mutate(
-      { titulo: values.titulo, idAsesorFicha: values.idAsesorFicha, idEstudiantes: values.idEstudiantes },
+      {
+        tituloProyecto: values.titulo,
+        asesorFichaId: values.idAsesorFicha,
+        estudiantesIds: values.idEstudiantes,
+      },
       {
         onSuccess: () => {
           toast.success('Ficha de perfil registrada', `"${values.titulo}" fue creada correctamente.`);
