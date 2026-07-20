@@ -2,8 +2,17 @@ openapi: 3.0.3
 info:
   title: API Fichas de Perfil - Arquisoft
   description: |
-    Especificación OpenAPI para el bounded context de Fichas de Perfil.
-    
+    Especificación OpenAPI (objetivo) para el bounded context de Fichas de Perfil.
+
+    > **Estado de implementación:** este documento describe el diseño objetivo del dominio y no
+    > coincide en su totalidad con la API actualmente expuesta por el backend. Para el contrato real
+    > (rutas, verbos y estado implementado/pendiente que consume el frontend) consulta
+    > `docs/integracion-backend-frontend.md`, que es la fuente autoritativa del mapeo actual.
+    > Divergencias vigentes conocidas: cambio de asesor es `PATCH /fichas-perfil/{id}/asesor-ficha`;
+    > agregar estado de evaluación es `POST /fichas-perfil/estado-evaluacion-ficha`; registrar
+    > evaluación es `POST /fichas-perfil/{fichaId}/evaluaciones` (sin body); modificar ítem es
+    > `PATCH /fichas-perfil/{itemId}/items`; el body para agregar ítem usa el campo `tipoItem`.
+
     Derivada del Event Storming del dominio. Cada endpoint corresponde a una acción (caso de uso)
     identificada en el Event Storming. Los endpoints están agrupados por el **rol/actor** que los consume.
 
@@ -18,8 +27,8 @@ info:
     name: Equipo Arquisoft
 
 servers:
-  - url: /api/v1
-    description: Base path de la API
+  - url: /api
+    description: Base path real del backend (server.servlet.context-path)
 
 tags:
   # ── Por Actor ──
