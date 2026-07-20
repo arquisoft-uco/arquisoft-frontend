@@ -1,0 +1,114 @@
+# ==============================================================================
+# Arquisoft Frontend — Deploy a Oracle Cloud (SSH)
+# ==============================================================================
+# Se dispara cuando "Docker Build & Push" termina en éxito. Se conecta por SSH
+# al servidor (usuario no-root "deploy") y reemplaza el contenedor con la
+# imagen recién publicada en GHCR, identificada por su tag inmutable sha-<short>.
+#
+# El frontend es una SPA estática (Vite + nginx): las variables VITE_* ya
+# quedaron embebidas en el bundle en build-time (ver docker-build.yml), así
+# que este workflow NO escribe ningún .env de runtime — el contenedor nginx
+# no necesita variables de entorno para servir los estáticos.
+# ==============================================================================
+
+name: Deploy a Oracle Cloud
+
+on:
+  workflow_run:
+    workflows: ['Docker Build & Push']
+    types: [completed]
+
+jobs:
+  deploy:
+    name: Deploy por SSH
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      # ── SHA corto (mismo tag que publicó docker-build.yml) ──
+      - name: Calcular short SHA
+        id: vars
+        run: echo "short_sha=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      # ── Deploy remoto ──
+      - name: Reemplazar contenedor vía SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GHCR_ACTOR,GHCR_TOKEN,IMAGE_REPO,SHORT_SHA,BASE_DOMAIN
+          script_stop: true
+          script: |
+            set -e
+
+            IMAGE="ghcr.io/${IMAGE_REPO}:sha-${SHORT_SHA}"
+            CONTAINER="arquisoft-frontend"
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_ACTOR" --password-stdin
+
+            # Esperar a que la imagen esté publicada (condición de carrera con
+            # el workflow de build): hasta 30 intentos cada 10s (~5 min).
+            ok=false
+            for i in $(seq 1 30); do
+              if docker pull "$IMAGE"; then
+                ok=true
+                break
+              fi
+              echo "Intento $i/30: $IMAGE aún no disponible, reintentando en 10s..."
+              sleep 10
+            done
+            if [ "$ok" != "true" ]; then
+              echo "ERROR: $IMAGE no estuvo disponible tras 30 intentos" >&2
+              exit 1
+            fi
+
+            docker rm -f "$CONTAINER" 2>/dev/null || true
+
+            docker run -d \
+              --name "$CONTAINER" \
+              --restart unless-stopped \
+              --network arquisoft-network \
+              --label traefik.enable=true \
+              --label traefik.docker.network=arquisoft-network \
+              --label "traefik.http.routers.${CONTAINER}.rule=Host(\`${BASE_DOMAIN}\`)" \
+              --label "traefik.http.routers.${CONTAINER}.entrypoints=websecure" \
+              --label "traefik.http.routers.${CONTAINER}.tls=true" \
+              --label "traefik.http.routers.${CONTAINER}.tls.certresolver=letsencrypt" \
+              --label "traefik.http.services.${CONTAINER}.loadbalancer.server.port=80" \
+              "$IMAGE"
+
+            # Health check: el Dockerfile ya define un HEALTHCHECK (wget a /);
+            # solo esperamos a que Docker lo reporte "healthy".
+            healthy=false
+            for i in $(seq 1 20); do
+              status=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER" 2>/dev/null || echo "starting")
+              if [ "$status" = "healthy" ]; then
+                healthy=true
+                break
+              fi
+              if [ "$status" = "unhealthy" ]; then
+                break
+              fi
+              sleep 3
+            done
+            if [ "$healthy" != "true" ]; then
+              echo "ERROR: health check falló, últimos logs:" >&2
+              docker logs "$CONTAINER" --tail 80
+              exit 1
+            fi
+            echo "Deploy OK: $IMAGE saludable en $CONTAINER."
+
+            docker image prune -f
+        env:
+          GHCR_ACTOR: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_REPO: ${{ github.repository }}
+          SHORT_SHA: ${{ steps.vars.outputs.short_sha }}
+          BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}

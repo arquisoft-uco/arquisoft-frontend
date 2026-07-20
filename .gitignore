@@ -1,50 +1,48 @@
-# ==============================================================================
-# .gitignore — arquisoft-frontend (React SPA)
-# ==============================================================================
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-# Dependencies
-node_modules/
+# Compiled output
+/dist
+/tmp
 
-# Build output
-dist/
-build/
-.next/
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
 
-# Environment variables
-.env
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/coverage
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment files — contienen credenciales reales. Solo se commitea .env.example.
+# Copia .env.example → .env.development.local y completa los valores.
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+# Los archivos de environment.ts ya no existen — se usa import.meta.env directamente.
 
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Testing
-coverage/
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-
-# ESLint cache
-.eslintcache
-
-# TypeScript build info
-*.tsbuildinfo
+# Local shell config files
+.zshrc
+.bashrc
+.bash_profile
+.zsh_profile

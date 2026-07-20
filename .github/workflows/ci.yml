@@ -42,17 +42,25 @@ jobs:
           fi
 
       # ── Setup Node 18 ──
-      - name: Setup Node.js 18
+      - name: Setup Node.js 20
         if: steps.check.outputs.exists == 'true'
         uses: actions/setup-node@v6
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
 
       # ── Instalar dependencias ──
       - name: Instalar dependencias
         if: steps.check.outputs.exists == 'true'
         run: npm ci
+
+      # ── Generar .env para CI ──
+      - name: Generar .env para CI
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "VITE_API_URL=http://localhost:8082/api" >> .env
+          echo "VITE_KEYCLOAK_URL=http://localhost:8080/" >> .env
+          echo "VITE_KEYCLOAK_REALM=ci-realm" >> .env
+          echo "VITE_KEYCLOAK_CLIENT_ID=ci-client" >> .env
 
       # ── Lint (ESLint) ──
       - name: Lint — ESLint
@@ -62,7 +70,7 @@ jobs:
       # ── Tests ──
       - name: Tests
         if: steps.check.outputs.exists == 'true'
-        run: npm test -- --passWithNoTests
+        run: npm test -- --run --passWithNoTests
 
       # ── Build ──
       - name: Build de producción
