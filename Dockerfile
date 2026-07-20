@@ -12,26 +12,14 @@ COPY package.json package-lock.json ./
 # Instalar dependencias
 RUN npm ci --production=false
 
-# Copiar código fuente
+# Copiar código fuente. El workflow de CI escribe .env.production.local (desde
+# el secreto VITE_ENV_FILE) en el checkout ANTES de este build, así que llega
+# incluido aquí — Vite lo carga automáticamente en "npm run build" y embebe
+# las VITE_* en el bundle. No se usan build ARGs.
 COPY . .
 
-# Vite embebe VITE_* en el bundle durante el build — deben llegar como build args,
-# no como env vars del contenedor en runtime.
-ARG VITE_API_URL
-ARG VITE_KEYCLOAK_URL
-ARG VITE_KEYCLOAK_REALM
-ARG VITE_KEYCLOAK_CLIENT_ID
-
-# Fallar el build si alguna variable requerida no fue provista
-RUN test -n "$VITE_API_URL"         || (echo "ERROR: VITE_API_URL is required" && exit 1) && \
-    test -n "$VITE_KEYCLOAK_URL"    || (echo "ERROR: VITE_KEYCLOAK_URL is required" && exit 1) && \
-    test -n "$VITE_KEYCLOAK_REALM"  || (echo "ERROR: VITE_KEYCLOAK_REALM is required" && exit 1) && \
-    test -n "$VITE_KEYCLOAK_CLIENT_ID" || (echo "ERROR: VITE_KEYCLOAK_CLIENT_ID is required" && exit 1)
-
-ENV VITE_API_URL=$VITE_API_URL
-ENV VITE_KEYCLOAK_URL=$VITE_KEYCLOAK_URL
-ENV VITE_KEYCLOAK_REALM=$VITE_KEYCLOAK_REALM
-ENV VITE_KEYCLOAK_CLIENT_ID=$VITE_KEYCLOAK_CLIENT_ID
+RUN test -f .env.production.local || \
+    (echo "ERROR: falta .env.production.local con las variables VITE_* requeridas" && exit 1)
 
 # Build de producción
 RUN npm run build
