@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react';
 import { useEstadosFicha } from '../hooks/useEstadosFicha';
 import { useAgregarEstadoFichaPerfil } from '../hooks/useAgregarEstadoFichaPerfil';
 import { toast } from '../../../shared/hooks/useToast';
+import { getApiErrorMessage } from '../../../shared/utils/api-error';
 
 const ESTADOS_PERMITIDOS = ['En Construcción', 'Disponible Para Evaluación'];
 
@@ -32,7 +33,7 @@ export default function EstadosFichaPanel({ fichaPerfilId, estadoActual, onEstad
         setEstadoSeleccionado('');
         toast.success('Estado actualizado', 'El estado de la ficha se registró correctamente.');
       },
-      onError: () => toast.error('Error al cambiar estado', 'No se pudo actualizar el estado de la ficha.'),
+      onError: (err) => toast.error('Error al cambiar estado', getApiErrorMessage(err, 'No se pudo actualizar el estado de la ficha.')),
     });
   };
 

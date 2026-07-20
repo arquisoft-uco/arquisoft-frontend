@@ -21,6 +21,7 @@ export function useItemsMiFicha() {
     queryKey: ['fichas-perfil', 'tipos-item'],
     queryFn: fichasPerfilService.consultarTodosTipoItem,
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   const agregar = useMutation({

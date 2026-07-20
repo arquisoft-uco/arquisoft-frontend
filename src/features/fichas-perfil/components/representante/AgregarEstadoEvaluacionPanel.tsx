@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PlusCircle } from 'lucide-react';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstadosEvaluacion } from '../../hooks/useEstadosEvaluacion';
 import { useAgregarEstadoEvaluacion } from '../../hooks/useAgregarEstadoEvaluacion';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
@@ -86,9 +87,7 @@ export default function AgregarEstadoEvaluacionPanel({ evaluacionId, fichaPerfil
 
         {isErrorMutacion && (
           <p className="text-sm text-danger" role="alert">
-            {(error as Error)?.message?.includes('409')
-              ? 'Ya existe un estado igual para esta evaluación.'
-              : 'Ocurrió un error al registrar el estado. Intenta nuevamente.'}
+            {getApiErrorMessage(error, 'Ocurrió un error al registrar el estado. Intenta nuevamente.')}
           </p>
         )}
 

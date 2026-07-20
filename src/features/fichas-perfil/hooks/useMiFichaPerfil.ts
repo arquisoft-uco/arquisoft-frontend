@@ -3,6 +3,7 @@ import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import { toast } from '../../../shared/hooks/useToast';
 import { useAuthStore } from '../../../auth/authStore';
+import { getApiErrorMessage } from '../../../shared/utils/api-error';
 
 export function useMiFichaPerfil() {
   const queryClient = useQueryClient();
@@ -24,7 +25,7 @@ export function useMiFichaPerfil() {
       );
       toast.success('Ficha actualizada', 'El título del proyecto se guardó correctamente.');
     },
-    onError: () => toast.error('Error al modificar', 'No se pudo actualizar el título de la ficha.'),
+    onError: (err) => toast.error('Error al modificar', getApiErrorMessage(err, 'No se pudo actualizar el título de la ficha.')),
   });
 
   return {

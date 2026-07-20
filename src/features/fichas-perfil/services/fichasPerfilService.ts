@@ -35,9 +35,11 @@ export const fichasPerfilService = {
       .get<MiFichaPerfilResponse>(`/fichas-perfil/estudiante/${estudianteId}/mi-ficha`)
       .then((r) => r.data),
 
+  // Backend: PATCH /fichas-perfil/{id} con body { tituloProyecto }.
+  // El estudianteId lo infiere el backend del `sub` del JWT (no se envía).
   modificarTituloFichaPerfil: (req: ModificarFichaPerfilRequest): Promise<void> =>
     apiClient
-      .put('/fichas-perfil/estudiante/mi-ficha', req)
+      .patch(`/fichas-perfil/${req.fichaPerfilId}`, { tituloProyecto: req.tituloProyecto })
       .then(() => undefined),
 
   consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
@@ -45,9 +47,17 @@ export const fichasPerfilService = {
       .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
       .then((r) => r.data),
 
+  // Backend: POST /fichas-perfil/{fichaPerfilId}/items con body { tipoItemCode, contenido }.
+  // El estudianteId lo infiere el backend del `sub` del JWT.
+  // NOTA: el backend espera `tipoItemCode` (código string); el FE maneja `tipoItemId`. El valor
+  // proviene de GET /fichas-perfil/tipos-item (aún no implementado en backend) — verificar que el
+  // `id` del catálogo corresponda al code esperado cuando ese endpoint exista.
   agregarItemFichaPerfil: (req: CrearItemRequest): Promise<ItemCreadoResponse> =>
     apiClient
-      .post<ItemCreadoResponse>('/fichas-perfil/estudiante/mi-ficha/items', req)
+      .post<ItemCreadoResponse>(`/fichas-perfil/${req.fichaPerfilId}/items`, {
+        tipoItemCode: req.tipoItemId,
+        contenido: req.contenido,
+      })
       .then((r) => r.data),
 
   modificarItem: (req: ModificarItemRequest): Promise<void> =>
@@ -67,7 +77,9 @@ export const fichasPerfilService = {
 
   getFichasCoordinador: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
     apiClient
-      .get<Page<FichaPerfil>>('/fichas-perfil/coordinador', { params: { page, size } })
+      // El backend expone POST /fichas-perfil/coordinador (query dinámica con body).
+      // Paginación en el body como pagina/tamanio (no page/size).
+      .post<Page<FichaPerfil>>('/fichas-perfil/coordinador', { pagina: page, tamanio: size })
       .then((r) => r.data),
 
   consultarAsesoresDisponibles: (): Promise<Asesor[]> =>

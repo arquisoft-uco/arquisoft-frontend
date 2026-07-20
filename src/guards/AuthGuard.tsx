@@ -24,7 +24,7 @@ export default function AuthGuard() {
     if (initRef.current) return;
     initRef.current = true;
 
-    // Dev bypass: omite Keycloak e inyecta un usuario ficticio desde .env.development.
+    // Dev bypass: omite Keycloak e inyecta un usuario ficticio desde .env.development.local.
     if (import.meta.env.VITE_AUTH_BYPASS === 'true') {
       initDevAuth();
       return;
@@ -33,7 +33,17 @@ export default function AuthGuard() {
     let cleanup: (() => void) | undefined;
 
     keycloak
-      .init({ onLoad: 'login-required', checkLoginIframe: false })
+      .init({
+        onLoad: 'login-required',
+        checkLoginIframe: false,
+        // PKCE S256 es el default desde keycloak-js 24, pero lo declaramos
+        // explícitamente para blindar el flujo ante cambios de config/versión.
+        // Authorization Code + PKCE es el flujo recomendado por OAuth 2.1 para SPAs.
+        pkceMethod: 'S256',
+        // Garantiza que Keycloak emita id_token (necesario para el logout con
+        // id_token_hint en logout()) y que la sesión sea OIDC estándar.
+        scope: 'openid',
+      })
       .then((authenticated) => {
         if (authenticated) {
           // Single atomic setState to prevent intermediate renders with partial auth state.

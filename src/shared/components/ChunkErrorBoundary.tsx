@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { monitoring } from '../utils/monitoring';
 
 interface Props {
   children: ReactNode;
@@ -21,7 +22,7 @@ export class ChunkErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[ChunkErrorBoundary]', { message: error.message, componentStack: info.componentStack });
+    monitoring.captureError(error, { componentStack: info.componentStack });
   }
 
   render() {

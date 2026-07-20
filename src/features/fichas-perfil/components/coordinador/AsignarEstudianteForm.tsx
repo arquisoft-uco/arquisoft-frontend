@@ -1,6 +1,7 @@
 import { useState, type SyntheticEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { UserPlus } from 'lucide-react';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useAsignarEstudiante } from '../../hooks/useAsignarEstudiante';
 import { fichasPerfilService } from '../../services/fichasPerfilService';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -49,7 +50,7 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
         onError: (err) => {
           toast.error(
             'Error al asignar estudiante',
-            err instanceof Error ? err.message : 'Verifica los datos e inténtalo nuevamente.',
+            getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.'),
           );
         },
       },

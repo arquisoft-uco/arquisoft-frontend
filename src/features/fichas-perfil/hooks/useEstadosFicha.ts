@@ -6,5 +6,6 @@ export function useEstadosFicha() {
     queryKey: ['fichas-perfil', 'estados-ficha'],
     queryFn: () => fichasPerfilService.getEstadosFicha(),
     staleTime: Infinity,
+    gcTime: Infinity,
   });
 }

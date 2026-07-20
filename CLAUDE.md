@@ -1,106 +1,108 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este archivo brinda guía a Claude Code (claude.ai/code) al trabajar con código en este repositorio.
 
-## Skill routing
+## Enrutamiento de skills
 
-When the user's request matches an available skill, ALWAYS invoke it using the Skill
-tool as your FIRST action. Do NOT answer directly, do NOT use other tools first.
-The skill has specialized workflows that produce better results than ad-hoc answers.
+Cuando la solicitud del usuario coincida con un skill disponible, SIEMPRE invócalo usando la
+herramienta Skill como tu PRIMERA acción. NO respondas directamente, NO uses otras herramientas primero.
+El skill tiene flujos de trabajo especializados que producen mejores resultados que respuestas improvisadas.
 
-Key routing rules:
-- Product ideas, "is this worth building", brainstorming → invoke office-hours
-- Bugs, errors, "why is this broken", 500 errors → invoke investigate
-- Ship, deploy, push, create PR → invoke ship
-- QA, test the site, find bugs → invoke qa
-- Code review, check my diff → invoke review
-- Update docs after shipping → invoke document-release
-- Weekly retro → invoke retro
-- Design system, brand → invoke design-consultation
-- Visual audit, design polish → invoke design-review
-- Architecture review → invoke plan-eng-review
-- Save progress, checkpoint, resume → invoke checkpoint
-- Code quality, health check → invoke health
+Reglas clave de enrutamiento:
+- Ideas de producto, "vale la pena construir esto", lluvia de ideas → invocar office-hours
+- Bugs, errores, "por qué está fallando esto", errores 500 → invocar investigate
+- Ship, deploy, push, crear PR → invocar ship
+- QA, probar el sitio, encontrar bugs → invocar qa
+- Code review, revisar mi diff → invocar review
+- Actualizar docs después de un release → invocar document-release
+- Retro semanal → invocar retro
+- Design system, marca → invocar design-consultation
+- Auditoría visual, pulido de diseño → invocar design-review
+- Revisión de arquitectura → invocar plan-eng-review
+- Guardar progreso, checkpoint, resume → invocar checkpoint
+- Calidad de código, health check → invocar health
 
-## Commands
+## Comandos
 
 ```bash
-npm run dev        # Dev server at http://localhost:5173
-npm run build      # Type-check + production bundle
-npm run test       # Run all tests with Vitest
-npm run lint       # TypeScript type-check only (no ESLint)
+npm run dev        # Servidor de desarrollo en http://localhost:5173
+npm run build      # Type-check + bundle de producción
+npm run test       # Ejecuta todos los tests con Vitest
+npm run lint       # Solo type-check de TypeScript (sin ESLint)
 ```
 
-Run a single test file:
+Ejecutar un solo archivo de test:
 ```bash
-npx vitest run src/features/example-domain/components/ExampleList.test.tsx
+npx vitest run src/features/<feature>/components/<Component>.test.tsx
 ```
 
-## Environment setup
+## Configuración del entorno
 
-Copy `.env.example` to `.env.development.local` and fill in real values. The key variables:
+Copia `.env.example` a `.env.development.local` y completa con valores reales. Las variables clave:
 
-| Variable | Purpose |
+| Variable | Propósito |
 |---|---|
-| `VITE_API_URL` | Backend base URL, e.g. `http://localhost:8082/api` |
-| `VITE_AUTH_BYPASS` | Set `true` to skip Keycloak in local dev |
-| `VITE_DEV_USERNAME` / `VITE_DEV_ROLES` | Fake user/roles injected when bypass is active |
+| `VITE_API_URL` | URL base del backend, ej. `http://localhost:8082/api` |
+| `VITE_AUTH_BYPASS` | Ponla en `true` para saltar Keycloak en desarrollo local |
+| `VITE_DEV_USERNAME` / `VITE_DEV_ROLES` | Usuario/roles falsos inyectados cuando el bypass está activo |
 
-`.env.development` is committed and sets `VITE_AUTH_BYPASS=true` as the team default.
+`.env.development.local` está en gitignore — nunca lo commitees. `.env.example` es la plantilla versionada.
 
-## Architecture
+## Arquitectura
 
-### Auth flow
+### Flujo de autenticación
 
-`AuthGuard` (layout route) calls `keycloak.init()` once on mount. While initialising it renders `<AppLoader />`. On success it populates `useAuthStore` atomically and starts proactive token refresh via `scheduleRefresh`. When `VITE_AUTH_BYPASS=true`, `initDevAuth()` replaces this flow with a fake user from env vars.
+`AuthGuard` (ruta de layout) llama a `keycloak.init()` una sola vez al montarse. Mientras inicializa, renderiza `<AppLoader />`. Al tener éxito, llena `useAuthStore` de forma atómica e inicia el refresco proactivo del token vía `scheduleRefresh`. Cuando `VITE_AUTH_BYPASS=true`, `initDevAuth()` reemplaza este flujo con un usuario falso tomado de variables de entorno.
 
-`useAuthStore` (Zustand, **in-memory only**) holds the current token and parsed claims. The Axios instance reads the token from `useAuthStore.getState()` — no React hooks — so it works in interceptors outside the React tree.
+`useAuthStore` (Zustand, **solo en memoria**) guarda el token actual y los claims parseados. La instancia de Axios lee el token desde `useAuthStore.getState()` — sin hooks de React — para que funcione en interceptores fuera del árbol de React.
 
-`useRoleStore` (Zustand, **persisted to localStorage** under key `arquisoft_rol_activo`) stores the user's active role selection. `RoleGuard` reads this to redirect to `/seleccionar-rol` or `/forbidden`.
+`useRoleStore` (Zustand, **persistido en localStorage** bajo la clave `arquisoft_rol_activo`) guarda el rol activo seleccionado por el usuario. `RoleGuard` lee este valor para redirigir a `/seleccionar-rol` o `/forbidden`.
 
-### HTTP layer
+### Capa HTTP
 
-`src/api/axiosInstance.ts` is the single Axios instance. It:
-- Attaches Bearer token via request interceptor.
-- On 401: uses a shared refresh mutex (`refreshPromise`) so concurrent failures trigger only one token refresh, then retries.
-- On 403: navigates to `/forbidden` by dynamically importing the router (avoids circular imports).
+`src/api/axiosInstance.ts` es la única instancia de Axios. Ella:
+- Adjunta el Bearer token vía interceptor de request.
+- Ante un 401: usa un mutex de refresco compartido (`refreshPromise`) para que fallos concurrentes disparen un solo refresco de token, y luego reintenta.
+- Ante un 403: navega a `/forbidden` importando el router dinámicamente (evita import circular).
 
-### Feature structure
+### Estructura de features
 
-Business logic is split into feature modules under `src/features/`. Each follows the same layout:
+La lógica de negocio se divide en módulos de features bajo `src/features/`. Cada uno sigue el mismo layout:
 
 ```
 features/<name>/
-├── <Name>.tsx          # Page component (route target)
-├── components/         # Internal components
-├── models/             # TypeScript interfaces for this domain
-└── services/           # Axios calls via apiClient
+├── <Name>.tsx          # Componente de página (destino de ruta)
+├── components/         # Componentes internos
+├── models/             # Interfaces TypeScript de este dominio
+└── services/           # Llamadas Axios vía apiClient
 ```
 
-`src/features/example-domain/` is the canonical reference implementation — copy its patterns for new features.
+`src/features/fichas-perfil/` es la implementación de referencia canónica — copia sus patrones para features nuevas.
 
-### Shared types
+### Tipos compartidos
 
-`src/shared/models/api-response.ts` exports `Page<T>`, `ApiResponse<T>`, and `ApiError` — the standard shapes returned by the backend. Services should type their responses with these.
+`src/shared/models/api-response.ts` exporta `Page<T>`, `ApiResponse<T>` y `ApiError` — las formas estándar que devuelve el backend. Los services deben tipar sus respuestas con estas.
 
-### Token structure
+### Estructura del token
 
-Roles are read from `realm_access.roles` in the Keycloak JWT (not `resource_access[clientId].roles`). `parseRoles()` in `authStore.ts` handles this. The dev bypass in `devAuth.ts` mirrors the same structure via `realm_access: { roles }` in the fake `tokenParsed`.
+Los roles se leen desde `realm_access.roles` en el JWT de Keycloak (no desde `resource_access[clientId].roles`). `parseRoles()` en `authStore.ts` se encarga de esto. El bypass de desarrollo en `devAuth.ts` refleja la misma estructura vía `realm_access: { roles }` en el `tokenParsed` falso.
 
-Tokens are kept **in-memory only** (Zustand without `persist` + Keycloak JS instance property). Nothing sensitive is ever written to `localStorage` or `sessionStorage`; only the selected role string is persisted (`arquisoft_rol_activo`).
+Los tokens se mantienen **solo en memoria** (Zustand sin `persist` + propiedad de instancia de Keycloak JS). Nada sensible se escribe jamás en `localStorage` o `sessionStorage`; solo se persiste el string del rol seleccionado (`arquisoft_rol_activo`).
 
-### Routing
+### Enrutamiento
 
-All routes are lazy-loaded in `src/router.tsx`. New feature routes go inside the `AppLayout` children array. The `router` instance is exported so the Axios interceptor can call `router.navigate()` outside the React tree.
+Todas las rutas se cargan de forma perezosa (lazy) en `src/router.tsx`. Las rutas de features nuevas van dentro del arreglo `children` de `AppLayout`. La instancia `router` se exporta para que el interceptor de Axios pueda llamar a `router.navigate()` fuera del árbol de React.
 
 ### Testing
 
-Tests use `@testing-library/react`. Import `render` from `src/test-utils/render.tsx` instead of testing-library directly — it wraps components in `QueryClientProvider` + `MemoryRouter` automatically. Keycloak is mocked via `src/test-utils/keycloak.mock.ts`.
+Los tests usan `@testing-library/react`. Importa `render` desde `src/test-utils/render.tsx` en lugar de testing-library directamente — envuelve los componentes en `QueryClientProvider` + `MemoryRouter` automáticamente. Keycloak se mockea vía `src/test-utils/keycloak.mock.ts`.
 
-## Conventions
+## Convenciones
 
-- **Branch naming:** `<prefix>/<id>-<description_snake_case>` — e.g. `feature/HU-042-registro_evaluacion`
-  - Valid prefixes: `feature/`, `fix/`, `refactor/`, `hotfix/`, `docs/`, `test/`, `chore/`, `spike/`
-- **Commits:** Conventional Commits in Spanish — `feat(fichas-perfil): descripción`
-- **Naming:** Spanish for business terms, English for technical suffixes (`.tsx`, `Service`, `Store`, etc.)
-- **PRs:** target `develop`; require 1 approved review before merging
+- **Nombres de rama:** `<prefix>/<id>-<descripcion_snake_case>` — ej. `feature/HU-042-registro_evaluacion`
+  - Prefijos válidos: `feature/`, `fix/`, `refactor/`, `hotfix/`, `docs/`, `test/`, `chore/`, `spike/`
+- **Commits:** Conventional Commits en español — `feat(fichas-perfil): descripción`
+  - Nunca agregar un trailer `Co-Authored-By` (ej. `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`) ni ningún otro footer de autoría de IA.
+- **Nombres:** Español para términos de negocio, inglés para sufijos técnicos (`.tsx`, `Service`, `Store`, etc.)
+- **PRs:** apuntan a `develop`; requieren 1 review aprobado antes de mergear
+- **Sin JSDoc:** el código debe autodocumentarse mediante el naming; no agregar bloques de documentación `/** ... */`.

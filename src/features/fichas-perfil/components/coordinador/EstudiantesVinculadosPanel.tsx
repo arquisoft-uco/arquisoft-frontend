@@ -1,5 +1,6 @@
 import { Mail, User, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstudiantesVinculados } from '../../hooks/useEstudiantesVinculados';
 import { useRemoverEstudiante } from '../../hooks/useRemoverEstudiante';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -26,7 +27,7 @@ export default function EstudiantesVinculadosPanel({ idFichaPerfil }: Props) {
       onError: (err) => {
         toast.error(
           'Error al remover estudiante',
-          err instanceof Error ? err.message : 'Inténtalo nuevamente.',
+          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
         );
         setPendienteRemover(null);
       },

@@ -14,11 +14,20 @@ export interface ApiResponse<T> {
   timestamp?: string;
 }
 
-/** Generic API error shape */
-export interface ApiError {
-  status: number;
-  error: string;
+/** Individual field validation error, present in 400 (MethodArgumentNotValidException) and 422 (DomainValidationException) responses. */
+export interface FieldError {
+  field: string;
   message: string;
+  rejectedValue?: string;
+}
+
+/** Matches the backend ErrorResponseDTO structure. */
+export interface ApiError {
+  error: string;
+  errorCode?: string;
+  message: string;
+  status: number;
   path?: string;
   timestamp?: string;
+  fieldErrors?: FieldError[] | null;
 }
