@@ -1,8 +1,10 @@
 # ==============================================================================
 # Arquisoft Frontend — Docker Build & Push
 # ==============================================================================
-# Construye imagen Docker y la publica en GitHub Container Registry (GHCR)
-# Trigger: merge a develop/main o tag de versión
+# Construye imagen Docker multi-arquitectura (amd64 + arm64) y la publica en
+# GitHub Container Registry (GHCR). Se dispara solo cuando "CI Frontend"
+# termina en éxito sobre main. El deploy a Oracle Cloud vive en un workflow
+# separado (deploy.yml) que se encadena vía workflow_run sobre este.
 # Runner: GitHub-hosted (ubuntu-latest) — gratis
 # ==============================================================================
 
@@ -10,11 +12,9 @@ name: Docker Build & Push
 
 on:
   workflow_run:
-    workflows: ["CI Frontend"]
-    branches: [develop, main]
+    workflows: ['CI Frontend']
+    branches: [main]
     types: [completed]
-  push:
-    tags: ['v*']
 
 env:
   REGISTRY: ghcr.io
@@ -24,68 +24,53 @@ jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 20
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
       packages: write
 
     steps:
-      # ── Checkout ──
+      # ── Checkout (el commit real que pasó CI, no el HEAD del workflow) ──
       - name: Checkout código
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event.workflow_run.head_sha }}
 
-      # ── Verificar Dockerfile ──
-      - name: Verificar Dockerfile
-        id: check
-        run: |
-          if [ -f "Dockerfile" ] && [ -f "package.json" ]; then
-            echo "ready=true" >> $GITHUB_OUTPUT
-          else
-            echo "ready=false" >> $GITHUB_OUTPUT
-            echo "⚠️ Dockerfile o package.json no encontrado. Saltando build (pendiente HT-010)."
-          fi
+      # ── SHA corto (tag inmutable) ──
+      - name: Calcular short SHA
+        id: vars
+        run: echo "short_sha=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
 
       # ── Login GHCR ──
       - name: Login a GitHub Container Registry
-        if: steps.check.outputs.ready == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── Metadata (tags y labels) ──
-      - name: Extraer metadata Docker
-        if: steps.check.outputs.ready == 'true'
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=dev-,enable=${{ github.ref == 'refs/heads/develop' }}
-            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
+      # ── QEMU (necesario para emitir el manifest arm64; la etapa builder del
+      #     Dockerfile fuerza --platform=$BUILDPLATFORM así que NO compila
+      #     bajo emulación, solo la etapa runtime nginx la usa) ──
+      - name: Configurar QEMU
+        uses: docker/setup-qemu-action@v3
 
       # ── Setup Buildx ──
       - name: Configurar Docker Buildx
-        if: steps.check.outputs.ready == 'true'
         uses: docker/setup-buildx-action@v3
 
-      # ── Build & Push ──
+      # ── Build & Push multi-arch ──
       - name: Build y push imagen Docker
-        if: steps.check.outputs.ready == 'true'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ steps.vars.outputs.short_sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
             VITE_KEYCLOAK_URL=${{ secrets.VITE_KEYCLOAK_URL }}
@@ -93,18 +78,3 @@ jobs:
             VITE_KEYCLOAK_CLIENT_ID=${{ secrets.VITE_KEYCLOAK_CLIENT_ID }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # ── Deploy a Coolify ──
-      - name: Trigger deploy en Coolify
-        if: steps.check.outputs.ready == 'true'
-        env:
-          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
-          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
-        run: |
-          if [ -z "$COOLIFY_WEBHOOK_URL" ]; then
-            echo "⚠️ COOLIFY_WEBHOOK_URL no configurado, saltando deploy."
-            exit 0
-          fi
-          curl --silent --fail --show-error \
-            --request GET "$COOLIFY_WEBHOOK_URL" \
-            --header "Authorization: Bearer $COOLIFY_TOKEN"

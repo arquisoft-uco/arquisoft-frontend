@@ -1,5 +1,8 @@
 # ==================== STAGE 1: BUILD ====================
-FROM node:20-alpine AS builder
+# --platform=$BUILDPLATFORM: esta etapa siempre compila nativa en el runner
+# (amd64), nunca bajo emulación QEMU aunque el target sea arm64 — evita que
+# el build de Vite se vuelva 10-20x más lento en el runner de GitHub Actions.
+FROM --platform=$BUILDPLATFORM node:20-alpine AS builder
 
 WORKDIR /app
 
