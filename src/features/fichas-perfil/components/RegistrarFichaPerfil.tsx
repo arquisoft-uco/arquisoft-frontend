@@ -8,19 +8,15 @@ import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
-
-const MAX_ESTUDIANTES = 3;
+import { LIMITES, textoRequerido } from '../../../shared/validation';
 
 const schema = z.object({
-  titulo: z
-    .string()
-    .min(1, 'El título es requerido')
-    .max(200, 'Máximo 200 caracteres'),
+  titulo: textoRequerido(LIMITES.TITULO_PROYECTO_MAX),
   idAsesorFicha: z.string().min(1, 'Selecciona un asesor'),
   idEstudiantes: z
     .array(z.string())
     .min(1, 'Agrega al menos un estudiante')
-    .max(MAX_ESTUDIANTES, `Máximo ${MAX_ESTUDIANTES} estudiantes`),
+    .max(LIMITES.ESTUDIANTES_MAX, `Máximo ${LIMITES.ESTUDIANTES_MAX} estudiantes`),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -78,7 +74,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     : undefined;
 
   function agregarEstudiante(id: string) {
-    if (idEstudiantes.length >= MAX_ESTUDIANTES) return;
+    if (idEstudiantes.length >= LIMITES.ESTUDIANTES_MAX) return;
     setValue('idEstudiantes', [...idEstudiantes, id], { shouldValidate: true });
   }
 
@@ -135,7 +131,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
           <input
             id="fp-titulo"
             type="text"
-            maxLength={200}
+            maxLength={LIMITES.TITULO_PROYECTO_MAX}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
             aria-invalid={!!errors.titulo}
             aria-describedby={errors.titulo ? 'fp-titulo-error' : undefined}
@@ -190,7 +186,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             className="mb-1 text-xs font-medium text-on-surface-secondary"
             id="fp-estudiantes-label"
           >
-            Estudiantes ({idEstudiantes.length}/{MAX_ESTUDIANTES}){' '}
+            Estudiantes ({idEstudiantes.length}/{LIMITES.ESTUDIANTES_MAX}){' '}
             <span aria-hidden className="text-red-500">*</span>
           </p>
 
@@ -215,7 +211,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             </ul>
           )}
 
-          {idEstudiantes.length < MAX_ESTUDIANTES && estudiantesDisponiblesParaAgregar.length > 0 && (
+          {idEstudiantes.length < LIMITES.ESTUDIANTES_MAX && estudiantesDisponiblesParaAgregar.length > 0 && (
             <div className="flex flex-wrap gap-2" aria-labelledby="fp-estudiantes-label">
               {estudiantesDisponiblesParaAgregar.map((e) => (
                 <button
@@ -231,7 +227,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             </div>
           )}
 
-          {idEstudiantes.length === MAX_ESTUDIANTES && (
+          {idEstudiantes.length === LIMITES.ESTUDIANTES_MAX && (
             <p className="text-xs text-on-surface-secondary">Máximo de estudiantes alcanzado.</p>
           )}
 
