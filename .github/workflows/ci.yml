@@ -28,7 +28,7 @@ jobs:
     steps:
       # ── Checkout ──
       - name: Checkout código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # ── Verificar si hay código frontend ──
       - name: Verificar package.json
@@ -44,7 +44,7 @@ jobs:
       # ── Setup Node 18 ──
       - name: Setup Node.js 20
         if: steps.check.outputs.exists == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
 

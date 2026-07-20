@@ -34,7 +34,7 @@ jobs:
     steps:
       # ── Checkout (el commit real que pasó CI, no el HEAD del workflow) ──
       - name: Checkout código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
@@ -49,7 +49,7 @@ jobs:
 
       # ── Login GHCR ──
       - name: Login a GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -67,7 +67,7 @@ jobs:
 
       # ── Build & Push multi-arch ──
       - name: Build y push imagen Docker
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
