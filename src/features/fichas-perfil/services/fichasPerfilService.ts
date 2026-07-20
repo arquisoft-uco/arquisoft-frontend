@@ -29,145 +29,153 @@ import type {
   EstadoEvaluacionFicha,
 } from '../models/fichas-perfil';
 
+// ─── Alineados con el backend expuesto ───
+
 export const fichasPerfilService = {
-  getMiFichaPerfil: (estudianteId: string): Promise<MiFichaPerfilResponse> =>
+  registrarFichaPerfil: (req: RegistrarFichaPerfilRequest): Promise<FichaPerfilCreadaResponse> =>
     apiClient
-      .get<MiFichaPerfilResponse>(`/fichas-perfil/estudiante/${estudianteId}/mi-ficha`)
+      .post<FichaPerfilCreadaResponse>('/fichas-perfil', req)
       .then((r) => r.data),
 
-  // Backend: PATCH /fichas-perfil/{id} con body { tituloProyecto }.
-  // El estudianteId lo infiere el backend del `sub` del JWT (no se envía).
   modificarTituloFichaPerfil: (req: ModificarFichaPerfilRequest): Promise<void> =>
     apiClient
       .patch(`/fichas-perfil/${req.fichaPerfilId}`, { tituloProyecto: req.tituloProyecto })
       .then(() => undefined),
 
-  consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
+  cambiarAsesor: (req: CambiarAsesorRequest): Promise<void> =>
     apiClient
-      .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
+      .patch(`/fichas-perfil/${req.idFicha}/asesor-ficha`, { asesorFichaId: req.idAsesorFicha })
+      .then(() => undefined),
+
+  getFichasCoordinador: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
+    apiClient
+      .post<Page<FichaPerfil>>('/fichas-perfil/coordinador', { pagina: page, tamanio: size })
       .then((r) => r.data),
 
-  // Backend: POST /fichas-perfil/{fichaPerfilId}/items con body { tipoItemCode, contenido }.
-  // El estudianteId lo infiere el backend del `sub` del JWT.
-  // NOTA: el backend espera `tipoItemCode` (código string); el FE maneja `tipoItemId`. El valor
-  // proviene de GET /fichas-perfil/tipos-item (aún no implementado en backend) — verificar que el
-  // `id` del catálogo corresponda al code esperado cuando ese endpoint exista.
   agregarItemFichaPerfil: (req: CrearItemRequest): Promise<ItemCreadoResponse> =>
     apiClient
       .post<ItemCreadoResponse>(`/fichas-perfil/${req.fichaPerfilId}/items`, {
-        tipoItemCode: req.tipoItemId,
+        tipoItem: req.tipoItemId,
         contenido: req.contenido,
       })
       .then((r) => r.data),
 
   modificarItem: (req: ModificarItemRequest): Promise<void> =>
     apiClient
-      .put('/fichas-perfil/estudiante/mi-ficha/items', req)
+      .patch(`/fichas-perfil/${req.itemId}/items`, { contenido: req.contenido })
       .then(() => undefined),
-
-  removerItem: (itemId: string): Promise<void> =>
-    apiClient
-      .delete(`/fichas-perfil/estudiante/mi-ficha/items/${itemId}`)
-      .then(() => undefined),
-
-  consultarTodosTipoItem: (): Promise<TipoItem[]> =>
-    apiClient
-      .get<TipoItem[]>('/fichas-perfil/tipos-item')
-      .then((r) => r.data),
-
-  getFichasCoordinador: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
-    apiClient
-      // El backend expone POST /fichas-perfil/coordinador (query dinámica con body).
-      // Paginación en el body como pagina/tamanio (no page/size).
-      .post<Page<FichaPerfil>>('/fichas-perfil/coordinador', { pagina: page, tamanio: size })
-      .then((r) => r.data),
-
-  consultarAsesoresDisponibles: (): Promise<Asesor[]> =>
-    apiClient
-      .get<Asesor[]>('/fichas-perfil/asesores')
-      .then((r) => r.data),
-
-  consultarEstudiantesDisponibles: (): Promise<Estudiante[]> =>
-    apiClient
-      .get<Estudiante[]>('/fichas-perfil/estudiantes')
-      .then((r) => r.data),
-
-  registrarFichaPerfil: (req: RegistrarFichaPerfilRequest): Promise<FichaPerfilCreadaResponse> =>
-    apiClient
-      .post<FichaPerfilCreadaResponse>('/fichas-perfil', req)
-      .then((r) => r.data),
-
-  consultarEstudiantesVinculados: (idFichaPerfil: string): Promise<EstudianteVinculado[]> =>
-    apiClient
-      .get<EstudianteVinculado[]>(`/fichas-perfil/${idFichaPerfil}/estudiantes`)
-      .then((r) => r.data),
-
-  asignarEstudiante: (req: AsignarEstudianteRequest): Promise<AsignarEstudianteResponse> =>
-    apiClient
-      .post<AsignarEstudianteResponse>('/fichas-perfil/estudiantes', req)
-      .then((r) => r.data),
-
-  removerEstudiante: (idVinculo: string): Promise<void> =>
-    apiClient
-      .delete(`/fichas-perfil/estudiantes/${idVinculo}`)
-      .then(() => undefined),
-
-  cambiarAsesor: (req: CambiarAsesorRequest): Promise<void> =>
-    apiClient
-      .put('/fichas-perfil/asesor', req)
-      .then(() => undefined),
-
-  // ─── Asesor Ficha ───
-
-  getFichasAsesor: (asesorId: string, page = 0, size = 10): Promise<Page<FichaPerfilAsesor>> =>
-    apiClient
-      .get<Page<FichaPerfilAsesor>>('/fichas-perfil/asesor-ficha', { params: { asesorId, page, size } })
-      .then((r) => r.data),
-
-  getFichasRepresentante: (representanteId: string, page = 0, size = 10): Promise<Page<FichaPerfilRepresentante>> =>
-    apiClient
-      .get<Page<FichaPerfilRepresentante>>('/fichas-perfil/representante', { params: { representanteId, page, size } })
-      .then((r) => r.data),
-
-  getItemsFichaAsesor: (fichaPerfilId: string): Promise<Item[]> =>
-    apiClient
-      .get<Item[]>('/fichas-perfil/asesor-items', { params: { fichaPerfilId } })
-      .then((r) => r.data),
-
-  getItemsFichaRepresentante: (fichaPerfilId: string): Promise<Item[]> =>
-    apiClient
-      .get<Item[]>('/fichas-perfil/representante-items', { params: { fichaPerfilId } })
-      .then((r) => r.data),
 
   registrarEvaluacion: (req: CrearEvaluacionFichaPerfilRequest): Promise<EvaluacionCreadaResponse> =>
     apiClient
-      .post<EvaluacionCreadaResponse>('/fichas-perfil/representante/evaluaciones-ficha-perfil', req)
+      .post<EvaluacionCreadaResponse>(`/fichas-perfil/${req.fichaPerfilId}/evaluaciones`)
       .then((r) => r.data),
 
-  getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil> =>
+  agregarEstadoEvaluacion: (req: AgregarEstadoEvaluacionRequest): Promise<EstadoEvaluacionFicha> =>
     apiClient
-      .get<EvaluacionFichaPerfil>('/fichas-perfil/representante/evaluacion', { params: { fichaPerfilId } })
+      .post<EstadoEvaluacionFicha>('/fichas-perfil/estado-evaluacion-ficha', req)
       .then((r) => r.data),
-
-  // ─── Catálogo de estados ───
 
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
     apiClient
       .get<EstadoFicha[]>('/fichas-perfil/estados-ficha')
       .then((r) => r.data),
 
+  // ─── Pendientes: el backend aún no expone estos endpoints ───
+
+  // Pendiente: sin endpoint en el backend.
+  getMiFichaPerfil: (estudianteId: string): Promise<MiFichaPerfilResponse> =>
+    apiClient
+      .get<MiFichaPerfilResponse>(`/fichas-perfil/estudiante/${estudianteId}/mi-ficha`)
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
+    apiClient
+      .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  removerItem: (itemId: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/estudiante/mi-ficha/items/${itemId}`)
+      .then(() => undefined),
+
+  // Pendiente: sin endpoint en el backend.
+  consultarTodosTipoItem: (): Promise<TipoItem[]> =>
+    apiClient
+      .get<TipoItem[]>('/fichas-perfil/tipos-item')
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  consultarAsesoresDisponibles: (): Promise<Asesor[]> =>
+    apiClient
+      .get<Asesor[]>('/fichas-perfil/asesores')
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  consultarEstudiantesDisponibles: (): Promise<Estudiante[]> =>
+    apiClient
+      .get<Estudiante[]>('/fichas-perfil/estudiantes')
+      .then((r) => r.data),
+
+  // Pendiente: el backend expone asignación por lista bajo /{fichaPerfilId}/estudiantes; el flujo
+  // por vínculo individual requiere rediseño coordinado con la lectura de vinculados.
+  consultarEstudiantesVinculados: (idFichaPerfil: string): Promise<EstudianteVinculado[]> =>
+    apiClient
+      .get<EstudianteVinculado[]>(`/fichas-perfil/${idFichaPerfil}/estudiantes`)
+      .then((r) => r.data),
+
+  // Pendiente: el backend recibe { estudiantesIds } y responde 204; el flujo por vínculo requiere rediseño.
+  asignarEstudiante: (req: AsignarEstudianteRequest): Promise<AsignarEstudianteResponse> =>
+    apiClient
+      .post<AsignarEstudianteResponse>('/fichas-perfil/estudiantes', req)
+      .then((r) => r.data),
+
+  // Pendiente: el backend elimina por /{fichaPerfilId}/estudiantes/{estudianteId}; el flujo por vínculo requiere rediseño.
+  removerEstudiante: (idVinculo: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/estudiantes/${idVinculo}`)
+      .then(() => undefined),
+
+  // Pendiente: sin endpoint en el backend.
+  getFichasAsesor: (asesorId: string, page = 0, size = 10): Promise<Page<FichaPerfilAsesor>> =>
+    apiClient
+      .get<Page<FichaPerfilAsesor>>('/fichas-perfil/asesor-ficha', { params: { asesorId, page, size } })
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  getFichasRepresentante: (representanteId: string, page = 0, size = 10): Promise<Page<FichaPerfilRepresentante>> =>
+    apiClient
+      .get<Page<FichaPerfilRepresentante>>('/fichas-perfil/representante', { params: { representanteId, page, size } })
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  getItemsFichaAsesor: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<Item[]>('/fichas-perfil/asesor-items', { params: { fichaPerfilId } })
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  getItemsFichaRepresentante: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<Item[]>('/fichas-perfil/representante-items', { params: { fichaPerfilId } })
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
+  getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil> =>
+    apiClient
+      .get<EvaluacionFichaPerfil>('/fichas-perfil/representante/evaluacion', { params: { fichaPerfilId } })
+      .then((r) => r.data),
+
+  // Pendiente: sin endpoint en el backend.
   getEstadosEvaluacion: (): Promise<EstadoEvaluacion[]> =>
     apiClient
       .get<EstadoEvaluacion[]>('/fichas-perfil/estados-evaluacion')
       .then((r) => r.data),
 
+  // Pendiente: sin endpoint en el backend.
   agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
     apiClient
       .post<EstadoFichaPerfil>('/fichas-perfil/estados', req)
-      .then((r) => r.data),
-
-  agregarEstadoEvaluacion: (req: AgregarEstadoEvaluacionRequest): Promise<EstadoEvaluacionFicha> =>
-    apiClient
-      .post<EstadoEvaluacionFicha>('/fichas-perfil/representante/evaluaciones/estados', req)
       .then((r) => r.data),
 };
