@@ -39,6 +39,7 @@ Thumbs.db
 .env.development.local
 .env.test.local
 .env.production.local
+.env.server
 # Los archivos de environment.ts ya no existen — se usa import.meta.env directamente.
 
 # Local shell config files
