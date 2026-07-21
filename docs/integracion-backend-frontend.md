@@ -62,6 +62,28 @@ Estos métodos permanecen en el servicio anotados como pendientes para no romper
 | `asignarEstudiante` | El backend recibe `{ estudiantesIds }` en `/fichas-perfil/{fichaPerfilId}/estudiantes` y responde `204`; el flujo por vínculo individual requiere rediseño |
 | `removerEstudiante` | El backend elimina por `/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}`; el flujo por vínculo individual requiere rediseño |
 
+### Por qué los pendientes responden 405 y no 404
+
+Varias rutas pendientes de 2 segmentos (`/fichas-perfil/asesores`, `/fichas-perfil/estudiantes`)
+colisionan con el mapping `PATCH /fichas-perfil/{id}` de `ModificarFichaPerfilInputAdapter`: Spring
+resuelve la ruta tomando `id = "asesores"` o `id = "estudiantes"`, encuentra que el método no coincide
+y responde **405 Method Not Allowed** (`El método HTTP no está permitido en este endpoint`) en lugar de
+404. Es un síntoma de que el endpoint no existe, no de que exista con otro verbo.
+
+### Degradación en la interfaz
+
+Como el backend no expone los catálogos de asesores ni de estudiantes, el flujo de **registro de ficha
+por coordinador no puede completarse** (se requieren `asesorFichaId` y `estudiantesIds` como UUID).
+Para evitar desplegables vacíos sin explicación, los formularios afectados muestran el componente
+compartido `AvisoNoDisponible` (`src/shared/components/AvisoNoDisponible.tsx`) y deshabilitan el envío:
+
+- `RegistrarFichaPerfil` — catálogos de asesores y estudiantes.
+- `CambiarAsesorForm` — catálogo de asesores.
+- `AsignarEstudianteForm` — catálogo de estudiantes.
+
+**Dependencia de backend:** exponer los endpoints de consulta de asesores y estudiantes disponibles
+para desbloquear el flujo del coordinador.
+
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
 Estos endpoints existen en el backend pero no se integran en esta iteración:
