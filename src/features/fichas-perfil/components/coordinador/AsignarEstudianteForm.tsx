@@ -6,8 +6,8 @@ import { useAsignarEstudiante } from '../../hooks/useAsignarEstudiante';
 import { fichasPerfilService } from '../../services/fichasPerfilService';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
-
-const MAX_ESTUDIANTES = 3;
+import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
+import { LIMITES } from '../../../../shared/validation';
 
 interface Props {
   idFichaPerfil: string;
@@ -17,7 +17,7 @@ interface Props {
 export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Props) {
   const [idEstudiante, setIdEstudiante] = useState('');
 
-  const { data: disponibles = [] } = useQuery({
+  const { data: disponibles = [], isError: estudiantesNoDisponibles } = useQuery({
     queryKey: ['estudiantes-disponibles'],
     queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
   });
@@ -26,12 +26,12 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
 
   const idsVinculados = new Set(vinculados.map((v) => v.id));
   const opciones = disponibles.filter((e) => !idsVinculados.has(e.id));
-  const limiteAlcanzado = vinculados.length >= MAX_ESTUDIANTES;
+  const limiteAlcanzado = vinculados.length >= LIMITES.ESTUDIANTES_MAX;
 
   if (limiteAlcanzado) {
     return (
       <p className="border-t border-border px-4 py-3 text-xs text-on-surface-secondary">
-        Límite alcanzado: esta ficha ya tiene {MAX_ESTUDIANTES} estudiantes asignados.
+        Límite alcanzado: esta ficha ya tiene {LIMITES.ESTUDIANTES_MAX} estudiantes asignados.
       </p>
     );
   }
@@ -54,6 +54,14 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
           );
         },
       },
+    );
+  }
+
+  if (estudiantesNoDisponibles) {
+    return (
+      <div className="border-t border-border px-4 py-3">
+        <AvisoNoDisponible recurso="estudiantes" />
+      </div>
     );
   }
 

@@ -8,19 +8,16 @@ import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
-
-const MAX_ESTUDIANTES = 3;
+import { LIMITES, textoRequerido } from '../../../shared/validation';
+import AvisoNoDisponible from '../../../shared/components/AvisoNoDisponible';
 
 const schema = z.object({
-  titulo: z
-    .string()
-    .min(1, 'El título es requerido')
-    .max(200, 'Máximo 200 caracteres'),
+  titulo: textoRequerido(LIMITES.TITULO_PROYECTO_MAX),
   idAsesorFicha: z.string().min(1, 'Selecciona un asesor'),
   idEstudiantes: z
     .array(z.string())
     .min(1, 'Agrega al menos un estudiante')
-    .max(MAX_ESTUDIANTES, `Máximo ${MAX_ESTUDIANTES} estudiantes`),
+    .max(LIMITES.ESTUDIANTES_MAX, `Máximo ${LIMITES.ESTUDIANTES_MAX} estudiantes`),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -57,12 +54,12 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     if (asesorFijoId) setValue('idAsesorFicha', asesorFijoId, { shouldValidate: true });
   }, [asesorFijoId, setValue]);
 
-  const { data: asesores = [] } = useQuery({
+  const { data: asesores = [], isError: asesoresNoDisponibles } = useQuery({
     queryKey: ['asesores-disponibles'],
     queryFn: fichasPerfilService.consultarAsesoresDisponibles,
   });
 
-  const { data: estudiantes = [] } = useQuery({
+  const { data: estudiantes = [], isError: estudiantesNoDisponibles } = useQuery({
     queryKey: ['estudiantes-disponibles'],
     queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
   });
@@ -78,7 +75,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     : undefined;
 
   function agregarEstudiante(id: string) {
-    if (idEstudiantes.length >= MAX_ESTUDIANTES) return;
+    if (idEstudiantes.length >= LIMITES.ESTUDIANTES_MAX) return;
     setValue('idEstudiantes', [...idEstudiantes, id], { shouldValidate: true });
   }
 
@@ -135,7 +132,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
           <input
             id="fp-titulo"
             type="text"
-            maxLength={200}
+            maxLength={LIMITES.TITULO_PROYECTO_MAX}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
             aria-invalid={!!errors.titulo}
             aria-describedby={errors.titulo ? 'fp-titulo-error' : undefined}
@@ -153,9 +150,18 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
         {asesorFijoId ? (
           <div>
             <p className="mb-1 text-xs font-medium text-on-surface-secondary">Asesor de Ficha</p>
-            <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-on-surface-secondary">
-              {asesorFijoNombre}
-            </div>
+            {asesoresNoDisponibles ? (
+              <AvisoNoDisponible recurso="asesores" />
+            ) : (
+              <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-on-surface-secondary">
+                {asesorFijoNombre}
+              </div>
+            )}
+          </div>
+        ) : asesoresNoDisponibles ? (
+          <div>
+            <p className="mb-1 text-xs font-medium text-on-surface-secondary">Asesor de Ficha</p>
+            <AvisoNoDisponible recurso="asesores" />
           </div>
         ) : (
           <div>
@@ -190,7 +196,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             className="mb-1 text-xs font-medium text-on-surface-secondary"
             id="fp-estudiantes-label"
           >
-            Estudiantes ({idEstudiantes.length}/{MAX_ESTUDIANTES}){' '}
+            Estudiantes ({idEstudiantes.length}/{LIMITES.ESTUDIANTES_MAX}){' '}
             <span aria-hidden className="text-red-500">*</span>
           </p>
 
@@ -215,23 +221,28 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             </ul>
           )}
 
-          {idEstudiantes.length < MAX_ESTUDIANTES && estudiantesDisponiblesParaAgregar.length > 0 && (
-            <div className="flex flex-wrap gap-2" aria-labelledby="fp-estudiantes-label">
-              {estudiantesDisponiblesParaAgregar.map((e) => (
-                <button
-                  key={e.id}
-                  type="button"
-                  onClick={() => agregarEstudiante(e.id)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs text-on-surface transition-colors hover:bg-primary/10 hover:text-primary"
-                >
-                  <UserPlus size={12} aria-hidden />
-                  {e.nombre}
-                </button>
-              ))}
-            </div>
+          {estudiantesNoDisponibles ? (
+            <AvisoNoDisponible recurso="estudiantes" />
+          ) : (
+            idEstudiantes.length < LIMITES.ESTUDIANTES_MAX &&
+            estudiantesDisponiblesParaAgregar.length > 0 && (
+              <div className="flex flex-wrap gap-2" aria-labelledby="fp-estudiantes-label">
+                {estudiantesDisponiblesParaAgregar.map((e) => (
+                  <button
+                    key={e.id}
+                    type="button"
+                    onClick={() => agregarEstudiante(e.id)}
+                    className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs text-on-surface transition-colors hover:bg-primary/10 hover:text-primary"
+                  >
+                    <UserPlus size={12} aria-hidden />
+                    {e.nombre}
+                  </button>
+                ))}
+              </div>
+            )
           )}
 
-          {idEstudiantes.length === MAX_ESTUDIANTES && (
+          {idEstudiantes.length === LIMITES.ESTUDIANTES_MAX && (
             <p className="text-xs text-on-surface-secondary">Máximo de estudiantes alcanzado.</p>
           )}
 
@@ -253,7 +264,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
           </button>
           <button
             type="submit"
-            disabled={isPending || !isValid}
+            disabled={isPending || !isValid || asesoresNoDisponibles || estudiantesNoDisponibles}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             {isPending ? 'Registrando...' : 'Registrar Ficha'}

@@ -6,6 +6,7 @@ import { useCambiarAsesor } from '../../hooks/useCambiarAsesor';
 import { fichasPerfilService } from '../../services/fichasPerfilService';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 
 interface Props {
   idFichaPerfil: string;
@@ -17,7 +18,7 @@ export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual, onExi
   const [idAsesorSeleccionado, setIdAsesorSeleccionado] = useState('');
   const [confirming, setConfirming] = useState(false);
 
-  const { data: asesores = [] } = useQuery({
+  const { data: asesores = [], isError: asesoresNoDisponibles } = useQuery({
     queryKey: ['asesores-disponibles'],
     queryFn: fichasPerfilService.consultarAsesoresDisponibles,
   });
@@ -55,6 +56,14 @@ export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual, onExi
   }
 
   const asesorNuevo = asesores.find((a) => a.id === idAsesorSeleccionado);
+
+  if (asesoresNoDisponibles) {
+    return (
+      <div className="border-t border-border px-4 py-3">
+        <AvisoNoDisponible recurso="asesores" />
+      </div>
+    );
+  }
 
   return (
     <>

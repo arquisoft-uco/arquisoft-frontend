@@ -39,6 +39,7 @@ Thumbs.db
 .env.development.local
 .env.test.local
 .env.production.local
+.env.server
 # Los archivos de environment.ts ya no existen — se usa import.meta.env directamente.
 
 # Local shell config files
@@ -46,3 +47,7 @@ Thumbs.db
 .bashrc
 .bash_profile
 .zsh_profile
+
+# Artefactos de los agentes de Claude Code (planes, reportes de validacion y cuerpos de PR).
+# Se publican en arquisoft-docs, no se versionan aqui.
+.workspace/

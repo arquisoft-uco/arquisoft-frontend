@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Edit3, Users, UserCheck } from 'lucide-react';
 import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
+import { LIMITES } from '../../../../shared/validation';
 
 export default function MiFichaHeader() {
   const { ficha, companeros, modificarTitulo } = useMiFichaPerfil();
@@ -39,7 +40,7 @@ export default function MiFichaHeader() {
                 type="text"
                 value={nuevoTitulo}
                 onChange={(e) => setNuevoTitulo(e.target.value)}
-                maxLength={100}
+                maxLength={LIMITES.TITULO_PROYECTO_MAX}
                 className="flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary"
                 aria-label="Nuevo título del proyecto"
               />

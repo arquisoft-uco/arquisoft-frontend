@@ -2,25 +2,66 @@
 
 Este archivo brinda guía a Claude Code (claude.ai/code) al trabajar con código en este repositorio.
 
-## Enrutamiento de skills
+## Comportamiento del asistente
 
-Cuando la solicitud del usuario coincida con un skill disponible, SIEMPRE invócalo usando la
-herramienta Skill como tu PRIMERA acción. NO respondas directamente, NO uses otras herramientas primero.
-El skill tiene flujos de trabajo especializados que producen mejores resultados que respuestas improvisadas.
+- **Idioma:** español colombiano en todo momento, sin excepciones.
+- **Estilo:** conciso y directo — solo lo relevante, sin relleno ni explicaciones de más.
+- **`README.md`:** si un cambio afecta el stack, los comandos, la estructura o las dependencias,
+  actualizarlo como parte de la misma tarea.
 
-Reglas clave de enrutamiento:
-- Ideas de producto, "vale la pena construir esto", lluvia de ideas → invocar office-hours
-- Bugs, errores, "por qué está fallando esto", errores 500 → invocar investigate
-- Ship, deploy, push, crear PR → invocar ship
-- QA, probar el sitio, encontrar bugs → invocar qa
-- Code review, revisar mi diff → invocar review
-- Actualizar docs después de un release → invocar document-release
-- Retro semanal → invocar retro
-- Design system, marca → invocar design-consultation
-- Auditoría visual, pulido de diseño → invocar design-review
-- Revisión de arquitectura → invocar plan-eng-review
-- Guardar progreso, checkpoint, resume → invocar checkpoint
-- Calidad de código, health check → invocar health
+## Enrutamiento de agentes y skills
+
+Cuando la solicitud del usuario coincida con una fila de las tablas de abajo, invoca el agente o el
+skill como **primera acción** — antes de responder y antes de tocar cualquier archivo. Traen el flujo
+verificado contra este repositorio; improvisar produce código que contradice las convenciones.
+
+### Ciclo de vida de una HU/HT — agentes (`.claude/agents/`)
+
+Se ejecutan en orden. Cada uno pide aprobación explícita del usuario en sus puntos de corte y deja su
+rastro en la sección de Trazabilidad del plan.
+
+| Cuando el usuario pide… | Agente | Produce |
+|---|---|---|
+| "planifica HU-XXX", "genera el plan de…" | `@1-planificador` | `.workspace/h-plan/PLAN-{HU\|HT}-{ID}.md`. No escribe código |
+| "implementa el plan", "ya está aprobado" | `@2-implementador` | Código, capa por capa: `models → services → hooks → components` |
+| "escribe los tests de…", "genera las pruebas" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
+| "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte de validación, como mensaje. No escribe archivos |
+| "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
+| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop`, con dos confirmaciones |
+
+Reglas de la cadena:
+
+- **No se saltan etapas.** `@2-implementador` exige un plan aprobado; `@4c-commit` no entrega un
+  reporte `⛔ RECHAZADO`.
+- **`.workspace/` está en `.gitignore`.** Planes, reportes y cuerpos de PR no se versionan aquí: los
+  publica `@4c-commit` en `arquisoft-docs`.
+- **Un cambio pequeño no necesita la cadena.** Un bug de una línea, un ajuste de copy o una duda
+  puntual se resuelven cargando las dos skills de contexto (abajo) y trabajando directo. La cadena es
+  para una HU/HT con criterios de aceptación.
+
+### Contexto del proyecto — skills propias (`.claude/skills/`)
+
+| Skill | Cargar cuando… |
+|---|---|
+| `arquisoft-frontend-arquitectura` | **Siempre** antes de crear o mover un archivo bajo `src/`. Capas de una feature, enrutamiento, capa HTTP, stores, contrato con el backend |
+| `arquisoft-frontend-estandares` | **Siempre junto con la anterior** al escribir código. Nomenclatura, formularios, validación, errores de API, accesibilidad, design tokens, testing, git |
+| `context7-stack-frontend` | Antes de generar código que use una librería del stack — trae los IDs de Context7 ya resueltos y las trampas de versión (el proyecto está en **Zod 3**, no 4) |
+| `gh-docs-reader` | Al buscar una HU/HT, el contrato real de un endpoint o los valores de un catálogo. Prioriza `docs/` local y `../arquisoft-backend` sobre GitHub |
+| `arquisoft-frontend-mcps` | Al decidir qué MCP usar (Context7, Claude in Chrome, GitHub, IDEA) y cuál es el fallback si no está cargado |
+
+Las dos primeras son la **fuente de verdad**: este archivo es un índice operativo y remite a ellas.
+Si discrepan con `CLAUDE.md`, ganan las skills.
+
+### Skills integradas de Claude Code
+
+| Cuando el usuario pide… | Skill | Nota |
+|---|---|---|
+| "revisa mi diff", "code review" | `code-review` | Para una HU completa prefiere `@4a-validator-analyze`: aplica además los checks de este proyecto |
+| "simplifica", "limpia esto" | `simplify` | Solo calidad; no busca bugs |
+| "revisión de seguridad" | `security-review` | Complementa el Nivel 2.10 de `@4a-validator-analyze` |
+| "abre la app", "pruébalo en el navegador", "captura la pantalla" | `claude-in-chrome` | Invocarla es requisito antes de cualquier `mcp__claude-in-chrome__*`. Levanta `npm run dev` con `VITE_AUTH_BYPASS=true` |
+| "arranca el proyecto", "muéstramelo funcionando" | `run` | Verifica un cambio contra la app real, no solo contra los tests |
+| "documentación de React / Query / Zod / Tailwind…" | `context7-mcp` | Usa primero `context7-stack-frontend`: ya trae los IDs resueltos |
 
 ## Comandos
 
@@ -73,11 +114,17 @@ La lógica de negocio se divide en módulos de features bajo `src/features/`. Ca
 features/<name>/
 ├── <Name>.tsx          # Componente de página (destino de ruta)
 ├── components/         # Componentes internos
+├── hooks/              # use<Accion|Recurso> — React Query sobre el service
 ├── models/             # Interfaces TypeScript de este dominio
 └── services/           # Llamadas Axios vía apiClient
 ```
 
-`src/features/fichas-perfil/` es la implementación de referencia canónica — copia sus patrones para features nuevas.
+La dirección de dependencias es `models ← services ← hooks ← components`: un `.tsx` nunca importa
+`apiClient`, un hook nunca devuelve JSX, un service nunca importa React ni React Query.
+
+`src/features/fichas-perfil/` es la implementación de referencia canónica — es la **única** feature
+completa, y las otras nueve rutas renderizan `<ComingSoon />` con sus carpetas vacías. Copia sus
+patrones para features nuevas; el detalle está en la skill `arquisoft-frontend-arquitectura`.
 
 ### Tipos compartidos
 

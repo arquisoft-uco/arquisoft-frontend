@@ -117,7 +117,9 @@ src/
 │   ├── components/           # Componentes reutilizables (loaders, dialogs, etc.)
 │   ├── hooks/                # Hooks reutilizables (useToast, etc.)
 │   ├── models/               # Interfaces compartidas (Page<T>, ApiResponse<T>, Rol)
-│   └── stores/               # Estado de UI global (toastStore)
+│   ├── stores/               # Estado de UI global (toastStore)
+│   ├── utils/                # Utilidades (manejo de errores de API, monitoring)
+│   └── validation/           # Validación reutilizable alineada al backend (límites, regex, mensajes, validadores Zod)
 │
 └── test-utils/               # Utilidades de testing
     ├── setup.ts
@@ -137,6 +139,20 @@ features/<nombre-feature>/
 ├── models/                   # Interfaces y tipos del dominio
 └── services/                 # Servicios HTTP y lógica de negocio
 ```
+
+### Validaciones compartidas
+
+Las reglas de validación reutilizables y alineadas al backend (límites `@Size`, formatos de correo y
+UUID, mensajes de error) viven centralizadas en `src/shared/validation/`. Los formularios las consumen
+para no duplicar límites ni mensajes; las validaciones propias de la lógica de negocio permanecen en
+cada formulario.
+
+### Integración con el backend
+
+El mapeo entre los endpoints realmente expuestos por el backend y los servicios del frontend (con su
+estado: implementado o pendiente) se documenta en
+[`docs/integracion-backend-frontend.md`](docs/integracion-backend-frontend.md). El backend es la
+fuente oficial del contrato de API.
 
 ## Docker
 
