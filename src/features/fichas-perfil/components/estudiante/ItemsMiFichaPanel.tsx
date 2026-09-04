@@ -4,6 +4,7 @@ import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { LIMITES } from '../../../../shared/validation';
 
 export default function ItemsMiFichaPanel() {
   const { fichaId, items, tiposItem, agregar, modificar, remover } = useItemsMiFicha();
@@ -101,7 +102,7 @@ export default function ItemsMiFichaPanel() {
               placeholder="Contenido del ítem"
               value={nuevoItemContenido}
               onChange={(e) => setNuevoItemContenido(e.target.value)}
-              maxLength={200}
+              maxLength={LIMITES.ITEM_CONTENIDO_MAX}
               className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary sm:col-span-2"
             />
           </div>
@@ -138,7 +139,7 @@ export default function ItemsMiFichaPanel() {
                     type="text"
                     value={editContenido}
                     onChange={(e) => setEditContenido(e.target.value)}
-                    maxLength={200}
+                    maxLength={LIMITES.ITEM_CONTENIDO_MAX}
                     className="flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button

@@ -1,10 +1,13 @@
-/** Generic paginated API response wrapper */
+// Refleja el PageResponseDTO del backend.
 export interface Page<T> {
   content: T[];
+  page: number;
+  size: number;
   totalElements: number;
   totalPages: number;
-  size: number;
-  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }
 
 /** Generic single-item API response wrapper */
