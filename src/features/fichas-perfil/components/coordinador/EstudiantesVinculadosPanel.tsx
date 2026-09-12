@@ -14,12 +14,12 @@ interface Props {
 export default function EstudiantesVinculadosPanel({ idFichaPerfil }: Props) {
   const { data, isLoading, isError } = useEstudiantesVinculados(idFichaPerfil);
   const { mutate: remover, isPending: removiendo } = useRemoverEstudiante(idFichaPerfil);
-  const [pendienteRemover, setPendienteRemover] = useState<{ idVinculo: string; nombre: string } | null>(null);
+  const [pendienteRemover, setPendienteRemover] = useState<{ estudianteId: string; nombre: string } | null>(null);
 
   function handleConfirmarRemover() {
     if (!pendienteRemover) return;
-    const { idVinculo, nombre } = pendienteRemover;
-    remover(idVinculo, {
+    const { estudianteId, nombre } = pendienteRemover;
+    remover(estudianteId, {
       onSuccess: () => {
         toast.success('Estudiante removido', `${nombre} fue removido de la ficha correctamente.`);
         setPendienteRemover(null);
@@ -86,7 +86,7 @@ export default function EstudiantesVinculadosPanel({ idFichaPerfil }: Props) {
             </span>
             <button
               type="button"
-              onClick={() => setPendienteRemover({ idVinculo: est.idVinculo, nombre: est.nombre })}
+              onClick={() => setPendienteRemover({ estudianteId: est.id, nombre: est.nombre })}
               disabled={removiendo}
               aria-label={`Remover a ${est.nombre} de la ficha`}
               className="ml-2 rounded-md p-1 text-on-surface-secondary transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"

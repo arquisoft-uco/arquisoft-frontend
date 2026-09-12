@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useFichasAsesor } from '../../hooks/useFichasAsesor';
+import type { FichaPerfil } from '../../models/FichaPerfil';
 import type { FichaPerfilAsesor } from '../../models/FichaPerfilAsesor';
 
 interface Props {
@@ -34,7 +35,7 @@ export default function ConsultarFichasAsesor({ onSeleccionar, accionHeader, for
     );
   }
 
-  const fichas = data?.content ?? [];
+  const fichas: FichaPerfil[] = data?.content ?? [];
   const totalElements = data?.totalElements ?? 0;
   const totalPages = data?.totalPages ?? 0;
   const from = totalElements === 0 ? 0 : page * pageSize + 1;
@@ -70,30 +71,24 @@ export default function ConsultarFichasAsesor({ onSeleccionar, accionHeader, for
           <thead className="border-b border-border bg-muted/50">
             <tr>
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Título del Proyecto</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Estado Actual</th>
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {fichas.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-10 text-center text-sm text-on-surface-secondary">
+                <td colSpan={2} className="px-4 py-10 text-center text-sm text-on-surface-secondary">
                   No tienes fichas de perfil asignadas.
                 </td>
               </tr>
             ) : (
               fichas.map((ficha) => (
                 <tr key={ficha.id} className="transition-colors hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium text-on-surface">{ficha.titulo}</td>
-                  <td className="px-4 py-3">
-                    <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-on-surface-secondary">
-                      {ficha.estadoActual}
-                    </span>
-                  </td>
+                  <td className="px-4 py-3 font-medium text-on-surface">{ficha.tituloProyecto}</td>
                   <td className="px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => onSeleccionar(ficha)}
+                      onClick={() => onSeleccionar({ id: ficha.id, titulo: ficha.tituloProyecto, estadoActual: '' })}
                       className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-on-surface transition-colors hover:bg-muted"
                     >
                       Ver detalle

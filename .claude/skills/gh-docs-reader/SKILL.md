@@ -1,202 +1,200 @@
 ---
 name: gh-docs-reader
-description: Localiza las fuentes de una Historia de Usuario o Tecnica para Arquisoft Frontend — historias locales en docs/fichas-perfil/historias/, el contrato real del backend en docs/integracion-backend-frontend.md y el codigo del repo hermano arquisoft-backend, y el repositorio privado arquisoft-uco/arquisoft-docs via GitHub CLI. Usar en la FASE 1 del agente planificador, antes de hacer cualquier pregunta al usuario.
+description: Localiza las fuentes de una Historia de Usuario o Tecnica para Arquisoft Frontend — historias locales en docs/fichas-perfil/historias/, el contrato real en docs/integracion-backend-frontend.md, el codigo del repo hermano arquisoft-backend, el repositorio privado arquisoft-uco/arquisoft-docs via GitHub CLI, y como descubrir ahi que HU ya entrego el equipo de backend (docs/hus/validaciones/) para desarrollar su contraparte de frontend. Usar en la FASE 1 del planificador, antes de preguntar nada al usuario.
 ---
 
 # Skill: gh-docs-reader
 
-Un plan de frontend necesita tres cosas y ninguna sale del mismo sitio:
+Un plan de frontend necesita tres cosas: **qué pide la historia**, **qué expone el backend de
+verdad** y **quién puede verlo**. Esta skill dice dónde está cada una.
 
-1. **Qué pide la historia** — actor, criterios de aceptación, reglas de negocio.
-2. **Qué expone el backend de verdad** — ruta, verbo, body, respuesta, y si el endpoint existe hoy.
-3. **Quién puede verlo** — roles del realm que alcanzan la ruta y la vista.
+El orden importa: **local → repo hermano → GitHub**. Lo local es más rápido y ya viene filtrado a lo
+que el frontend consume.
 
-Esta skill dice dónde está cada una. **El orden importa: primero local, después el repo hermano,
-después GitHub.** Lo local es más rápido, está versionado con este repo y ya viene filtrado a lo que
-el frontend consume.
+## Nivel 0 — Descubrir qué HU ya entregó el backend (sin un ID en mente)
 
----
-
-## Nivel 1 — Fuentes locales (siempre primero)
-
-| Ruta | Qué aporta | Cuándo |
-|---|---|---|
-| `docs/fichas-perfil/historias/HU{NNN}-*.md` | **23 HU del contexto de fichas**, ya extraídas: historia, precondiciones, reglas de negocio con su código `POL-XX`, event storming del comando, modelo de dominio enriquecido | Siempre que la HU sea de `fichas-perfil` |
-| `docs/integracion-backend-frontend.md` | **La fuente autoritativa del contrato vigente.** Tabla método del service → verbo → ruta → body → respuesta, más la lista de los 13 endpoints pendientes con su motivo, y la degradación con `AvisoNoDisponible` | **Siempre**, antes de tocar un service |
-| `docs/fichas-perfil/fichas-perfil-openapi.yaml` | Diseño **objetivo** de la API. Su propia cabecera avisa de que no coincide con lo expuesto | Solo para entender la intención de un endpoint futuro. **Nunca** para planificar contra él |
-| `docs/fichas-perfil/contexto/Ficha Perfil - Event Storming.md` | Comandos, políticas y eventos del contexto | Cuando la HU no está en `historias/` o hay una política ambigua |
-| `docs/fichas-perfil/contexto/06_fichas_trabajos_grado_modelo_enriquecido.md` | Atributos, tipos, longitudes y obligatoriedad por objeto de dominio | Para derivar los modelos TS y los límites de validación |
-| `docs/fichas-perfil/contexto/03_tablas_fichas_perfil.sql` | DDL real: anchos de columna, `NOT NULL`, únicos | Para alinear `LIMITES` con las restricciones del backend |
-| `docs/permisos-granulares.md` | Mapeo de permisos por rol | Cuando la HU restringe por rol |
-| `docs/revision-codigo-develop.md` | Hallazgos de la última revisión de código | Contexto de deuda técnica conocida |
-
-Listar lo disponible:
+Cuando el pedido es del estilo "desarrolla la contraparte de lo que ya hizo el equipo de backend",
+sin una HU puntual: el backend publica su propio plan y su propio reporte de validación en el
+**mismo repo** que usa este proyecto para publicar los suyos (`4c-commit`, Fase 10) —
+`arquisoft-uco/arquisoft-docs` — pero en carpetas separadas por equipo: backend en la raíz de
+`docs/hus/planes/` y `docs/hus/validaciones/`, frontend en `docs/hus/planes/frontend/` y
+`docs/hus/validaciones/frontend/`. La separación es deliberada para no volver a mezclar el plan
+gemelo de backend con el de frontend bajo el mismo nombre de archivo — no publiques frontend fuera de
+su subcarpeta.
 
 ```bash
-ls docs/fichas-perfil/historias/
-ls docs/fichas-perfil/contexto/
+# Cada VALIDATOR-HU-{ID}.md con "Veredicto: APROBADO" y un PR a arquisoft-backend = HU entregada
+gh api "repos/arquisoft-uco/arquisoft-docs/contents/docs/hus/validaciones" --jq ".[].name"
+gh api "repos/arquisoft-uco/arquisoft-docs/contents/docs/hus/validaciones/VALIDATOR-HU-{ID}.md" \
+  -H "Accept: application/vnd.github.raw+json"
 ```
 
-**Los `LIMITES` de `src/shared/validation/limites.ts` salen de este nivel**, no del criterio del
-planificador: `TITULO_PROYECTO_MAX = 100` refleja un `@Size` del backend, y `validadores-zod.test.ts`
-lo fija con un assert. Si la HU introduce un límite nuevo, cítalo con su fuente (DDL o modelo
-enriquecido) en el plan.
+- `## Veredicto: APROBADO` + una línea `**PR:**` apuntando a
+  `github.com/arquisoft-uco/arquisoft-backend/pull/...` → el endpoint ya está mergeado y usable.
+- `PLAN-HU-{ID}.md` en `docs/hus/planes/` (misma carpeta) es el plan gemelo — pero es del **equipo de
+  backend** (arquitectura hexagonal, módulos Gradle: `{contexto}:domain`, `:application`,
+  `:infrastructure`). Sirve para entender el endpoint real (rutas, DTOs, roles, reglas), **no** como
+  plantilla del plan de frontend — la Metadata y la sección de reglas de negocio son las partes más
+  útiles para no adivinar el contrato.
+- Un `PLAN-HU-{ID}.md` sin `VALIDATOR-HU-{ID}.md` (o con veredicto distinto de APROBADO) es un HU que
+  el backend aún no entregó — no lo tomes como base para planificar frontend todavía.
 
-## Nivel 2 — El repositorio hermano `arquisoft-backend`
+Cruza esa lista contra lo que el frontend ya tiene, para encontrar la diferencia (backend listo, sin
+contraparte de frontend):
 
-Está en disco, al mismo nivel que este repo: `../arquisoft-backend`. Es la **única forma de
-confirmar** una ruta, un verbo, la forma exacta de un DTO o el rol que autoriza un endpoint.
+- **`docs/hus/planes/frontend/PLAN-{HU|HT}-{ID}.md`** → si ya existe para ese ID, frontend ya lo
+  planificó (o lo entregó, revisa su `VALIDATOR-.../frontend/VALIDATOR-{ID}.md`). Dilo al usuario en
+  vez de replanificar desde cero.
+- `docs/fichas-perfil/historias/` (Nivel 1) → ya cubiertas o en curso por `fichas-perfil`
+- Las nueve rutas en `<ComingSoon />` (`src/features/*`, ver `arquisoft-frontend-arquitectura`) → sin
+  feature de frontend todavía; su bounded context sale de la tabla "Feature del frontend → archivos"
+  más abajo
+- **`// Pendiente:` en el service de una feature ya construida** (hoy, `fichasPerfilService.ts`) → no
+  es solo "falta planificar algo nuevo": puede ser una HU que backend **ya entregó** después de que el
+  frontend adivinara o marcara el endpoint como no disponible. Un `// Pendiente` cuya HU aparece
+  `APROBADO` en `docs/hus/validaciones/` es una corrección, no una historia nueva — verifícalo con los
+  tres pasos de "Verificar Nivel 2 es tres pasos, no uno" de `arquisoft-frontend-arquitectura` antes de
+  tocar el service, y actualiza `docs/integracion-backend-frontend.md` cuando lo resuelvas: ese
+  documento no se actualiza solo cuando cambia el service.
+
+El resultado de ese cruce es la lista real de HU por planificar. Cita en el plan el `VALIDATOR-HU-{ID}.md`
+consultado como evidencia de que el endpoint existe — así el Nivel 2 (repo hermano) confirma el DTO
+exacto, no si el endpoint existe.
+
+## Nivel 1 — Fuentes locales
+
+| Ruta | Aporta | Cuándo |
+|---|---|---|
+| `docs/fichas-perfil/historias/HU{NNN}-*.md` | 23 HU ya extraídas: historia, precondiciones, reglas `POL-XX`, event storming, modelo enriquecido | HU de `fichas-perfil` |
+| `docs/integracion-backend-frontend.md` | **Fuente autoritativa del contrato vigente**: método → verbo → ruta → body → respuesta, más los pendientes con su motivo y la degradación con `AvisoNoDisponible` (no cites cuántos son — se desactualiza) | **Siempre**, antes de tocar un service |
+| `docs/fichas-perfil/fichas-perfil-openapi.yaml` | Diseño **objetivo**; su cabecera avisa de que no coincide con lo expuesto | Para entender la intención de un endpoint futuro. **Nunca para planificar** |
+| `docs/fichas-perfil/contexto/Ficha Perfil - Event Storming.md` | Comandos, políticas, eventos | HU ausente de `historias/`, o política ambigua |
+| `.../contexto/06_fichas_trabajos_grado_modelo_enriquecido.md` | Atributos, tipos, longitudes, obligatoriedad | Derivar modelos TS y límites |
+| `.../contexto/03_tablas_fichas_perfil.sql` | DDL real: anchos, `NOT NULL`, únicos | Alinear `LIMITES` |
+| `docs/permisos-granulares.md` | Permisos por rol | La HU restringe por rol |
+
+```bash
+ls docs/fichas-perfil/historias/ docs/fichas-perfil/contexto/
+```
+
+### IDs no sincronizados con el catálogo maestro
+
+El catálogo maestro (`historias_usuario_priorizadas.md`) se reconsolida con el tiempo y **reutiliza
+números de HU** para historias completamente distintas (ver `HU278`/`HU279`/`HU280`: hoy son "Enviar
+Correcciones de Revisión Ítem", "Cerrar Observación Ítem" y "Reabrir Observación Ítem" — nada que ver
+con lo que esos archivos locales documentan). Antes de tomar un ID local como válido:
+
+1. Busca el título exacto del archivo local en el catálogo maestro vigente (`grep` por el comando, no
+   solo por el número).
+2. **Coincide** → el ID está sincronizado, úsalo tal cual.
+3. **El número existe pero apunta a otra historia** → busca si el concepto tiene un ID nuevo en el
+   catálogo (renombrado/reordenado). Si lo encuentra, ese es el ID correcto — renombra el archivo
+   local al nuevo número.
+4. **No aparece con ningún ID en el catálogo vigente** (ni con el número viejo ni con uno nuevo) →
+   conserva el ID local tal cual, pero agrega el sufijo `-NO_SINCRONIZADA` al nombre de archivo
+   (`HU278-NO_SINCRONIZADA-consultar-asesores-disponibles.md`) y una nota `⚠️ NO_SINCRONIZADA` al
+   inicio del archivo explicando qué se buscó y no se encontró. No lo cites como `HU-{N}` sin esa
+   salvedad en un plan — es un identificador de conveniencia, no confirmado contra backend.
+
+Esto aplica a cualquier HU local de cualquier feature, no solo a las tres ya marcadas en
+`fichas-perfil`.
+
+Los `LIMITES` salen de este nivel, no de tu criterio. Si la HU introduce uno nuevo, cita su fuente
+(DDL o modelo enriquecido) en el plan.
+
+## Nivel 2 — El repo hermano `../arquisoft-backend`
+
+Está en disco, al mismo nivel. Es la **única forma de confirmar** una ruta, un verbo, la forma de un
+DTO o el rol que autoriza un endpoint.
 
 ```bash
 BE=../arquisoft-backend
-
-# Rutas y verbos reales de un contexto (los Controllers son el contrato)
 grep -rn "Mapping" "$BE"/fichas/infrastructure/src/main/java --include=*Controller.java
-
-# Forma exacta de un request/response
-ls "$BE"/fichas/infrastructure/src/main/java/com/arquisoft/fichas/infrastructure/**/dto/
-
-# Client roles y qué rol de realm los tiene
 grep -rn "" "$BE"/fichas/infrastructure/src/main/java/com/arquisoft/fichas/infrastructure/security/FichasAuthorities.java
-
-# Restricciones de longitud que deben espejarse en LIMITES
 grep -rn "Limits" "$BE"/shared/message/src/main/java --include=*.java
 ```
 
-**El nombre de un campo del body lo manda el backend, no el modelo del frontend.** El service es
-donde se traduce (`asesorFicha` en el body ↔ `asesorFichaId` en el modelo). Confírmalo abriendo el
-DTO real antes de escribirlo en el plan; adivinarlo produce un 400 que parece un bug de UI.
+**El nombre de un campo del body lo manda el backend**, no el modelo del frontend; el service es
+donde se traduce. Confírmalo abriendo el DTO real: adivinarlo produce un 400 que parece bug de UI.
 
-Si el directorio no existe (`ls ../arquisoft-backend` falla), dilo explícitamente en el plan y
-marca el contrato como **no verificado** — no lo des por bueno desde `integracion-backend-frontend.md`
-si la HU añade un endpoint que ese documento todavía no lista.
+Si `ls ../arquisoft-backend` falla, dilo en el plan y marca el contrato como **no verificado**.
 
-## Nivel 3 — `arquisoft-uco/arquisoft-docs` por GitHub CLI
+## Nivel 3 — `arquisoft-uco/arquisoft-docs` por `gh`
 
-Solo cuando la HU **no** es de `fichas-perfil`, o cuando necesitas el catálogo completo de historias
-priorizadas. Es un repositorio privado; se lee sin clonarlo.
-
-### Prerrequisito
+Solo cuando la HU **no** es de `fichas-perfil`, o para el catálogo completo de historias priorizadas.
 
 ```bash
-gh auth status
+gh auth status   # si falla: "ejecuta gh auth login con acceso a arquisoft-uco"
+
+# Contenido crudo, sin decodificar base64 (funciona en Windows y Linux)
+gh api "repos/arquisoft-uco/arquisoft-docs/contents/{ruta}" -H "Accept: application/vnd.github.raw+json"
+
+# Listar una carpeta
+gh api "repos/arquisoft-uco/arquisoft-docs/contents/{carpeta}" --jq ".[].name"
 ```
 
-Si no está autenticado o no tiene acceso a la organización, detente y notifica:
+Rutas útiles:
 
-> "El GitHub CLI no está autenticado con acceso a `arquisoft-uco`. Ejecuta `gh auth login` y
-> asegúrate de otorgar acceso a la organización."
+- HU priorizadas: `artefactos/estrategicos/propuestas-hu/priorizacion/historias_usuario_priorizadas.md`
+  — **la carpeta dejó de ser plana**: el catálogo ya no está en la raíz de `propuestas-hu/`
+- Backlog por fase: `artefactos/estrategicos/propuestas-hu/backlog/fase-{1-mvp|2-entrega-completa|3-consolidacion}.md`
+- HT (trabajo de plataforma del frontend): `docs/stories/` → `HT-XXX.*.story.md`
+- Event Storming: `artefactos/estrategicos/event-storming/{Contexto} - Event Storming.md`
+- Modelo enriquecido: `artefactos/estrategicos/modelo-dominio/enriquecido/documentacion/{NN}_{contexto}_modelo_enriquecido.md`
+- DDL y catálogos: `mer/{NN}_tablas_{contexto}.sql` · `mer/data/{NN}_data_{contexto}.sql`
 
-### Leer un archivo — sin decodificar base64
+### Feature del frontend → archivos
 
-```bash
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/{ruta}" \
-  -H "Accept: application/vnd.github.raw+json"
-```
-
-Ese header devuelve el contenido crudo y funciona en Windows y Linux. **No uses `--jq '.content'` con
-`base64 -d`.**
-
-### Rutas útiles para el frontend
-
-```bash
-# Catalogo de HU priorizadas (Actor, Objeto de Dominio, Comando) — la fuente de toda HU
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/artefactos/estrategicos/propuestas-hu/historias_usuario_priorizadas.md" \
-  -H "Accept: application/vnd.github.raw+json"
-
-# Historias TECNICAS (HT), que es donde vive el trabajo de plataforma del frontend
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/docs/stories" --jq ".[].name"
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/docs/stories/{HT-XXX....story.md}" \
-  -H "Accept: application/vnd.github.raw+json"
-
-# Event Storming de un contexto (OJO: los nombres llevan espacios — comillas obligatorias)
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/artefactos/estrategicos/event-storming/Ficha Perfil - Event Storming.md" \
-  -H "Accept: application/vnd.github.raw+json"
-
-# Modelo enriquecido de un contexto (atributos, longitudes, obligatoriedad)
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/artefactos/estrategicos/modelo-dominio/enriquecido/documentacion/{NN}_{contexto}_modelo_enriquecido.md" \
-  -H "Accept: application/vnd.github.raw+json"
-
-# DDL del contexto (anchos que deben espejarse en LIMITES)
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/mer/{NN}_tablas_{contexto}.sql" \
-  -H "Accept: application/vnd.github.raw+json"
-
-# Data de referencia de los catalogos (valores de estados/tipos que la UI muestra)
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/mer/data/{NN}_data_{contexto}.sql" \
-  -H "Accept: application/vnd.github.raw+json"
-
-# Atributos de calidad (usabilidad, seguridad) cuando la HU los toca
-gh api "repos/arquisoft-uco/arquisoft-docs/contents/artefactos/tecnicos/diseno-arquitectonico/drivers-arquitectonicos/atributos-calidad" --jq ".[].name"
-```
-
-### Mapeo: feature del frontend → archivos en `arquisoft-docs`
-
-| Feature (`src/features/`) | Event Storming | Modelo Enriquecido | SQL del MER | Data de referencia |
-|---|---|---|---|---|
-| `fichas-perfil` | `Ficha Perfil - Event Storming.md` | `06_fichas_trabajos_grado_modelo_enriquecido.md` | `03_tablas_fichas_perfil.sql` | `data/03_data_fichas_perfil.sql` |
-| `artefactos` | `Artefactos - Event Storming.md` | `07_artefactos_modelo_enriquecido.md` | `04_tablas_artefactos.sql` | `data/04_data_artefactos.sql` |
-| `repositorio-artefactos` | `Repositorio Artefactos - Event Storming.md` | `08_repositorio_artefactos_modelo_enriquecido.md` | `05_tablas_repositorio_artefactos.sql` | *(sin catálogos)* |
-| `mapas-ruta` | `Mapa Ruta - Event Storming.md` | `09_mapas_ruta_modelo_enriquecido.md` | `06_tablas_mapas_ruta.sql` | `data/06_data_mapas_ruta.sql` |
-| `proyectos-grado` | `Proyecto Grado - Event Storming.md` | `10_proyectos_grado_modelo_enriquecido.md` | `07_tablas_proyectos_grado.sql` | `data/07_data_proyectos_grado.sql` |
-| `entregables` | `Entregables Proyectos de Grado - Event Storming.md` | `11_entregables_proyectos_grado_modelo_enriquecido.md` | `08_tablas_entregables.sql` | `data/08_data_entregables.sql` |
-| `evaluaciones` | `Evaluaciones Definitivas - Event Storming.md` | `12_evaluaciones_definitivas_modelo_enriquecido.md` | `09_tablas_evaluaciones.sql` | `data/09_data_evaluaciones.sql` |
-| `biblioteca` | `Biblioteca - Event Storming.md` | `14_biblioteca_modelo_enriquecido.md` | `10_tablas_biblioteca.sql` | `data/10_data_biblioteca.sql` |
-| `solicitudes` | `Solicitudes - Event Storming.md` | `15_solicitudes_modelo_enriquecido.md` | `11_tablas_solicitudes.sql` | `data/11_data_solicitudes.sql` |
-| `dashboard`, `seleccionar-rol` | — | — | — | — |
-
-Rutas base: Event Storming en `artefactos/estrategicos/event-storming/`; Modelo Enriquecido en
-`artefactos/estrategicos/modelo-dominio/enriquecido/documentacion/`; SQL en `mer/`.
-
-**Que un contexto tenga documentación no significa que el backend lo exponga.** De los nueve, solo
-`fichas` tiene endpoints consumibles hoy. Documentar una feature es planificable; integrarla contra
-un backend inexistente, no — eso se resuelve con `ComingSoon` o con la degradación de
-`AvisoNoDisponible`, y el plan tiene que decir cuál de las dos.
-
----
-
-## Protocolo de consulta para el planificador
-
-```
- 1. ¿Es HU o HT?
-      HU  → funcionalidad de negocio, tiene actor y criterios de aceptación
-      HT  → trabajo de plataforma (routing, auth, CI, design system). Vive en docs/stories/
- 2. ls docs/fichas-perfil/historias/            → ¿está la HU en local?
-      Sí  → léela. Es la fuente principal: trae reglas POL-XX y modelo de dominio
-      No  → Nivel 3: historias_usuario_priorizadas.md, y el Event Storming del contexto
- 3. LEER SIEMPRE docs/integracion-backend-frontend.md
-      Extraer, por cada endpoint que la HU necesita: ¿implementado o pendiente? ¿ruta y body exactos?
- 4. Para todo endpoint que la HU introduzca y ese documento no liste:
-      abrir el Controller real en ../arquisoft-backend y confirmar ruta, verbo, DTO y client role
-      Si el repo hermano no está disponible → marcar el contrato como NO VERIFICADO en el plan
- 5. Identificar los roles del realm que consumen la HU y cruzarlos con:
-      src/shared/models/rol.ts        (enum Rol — los valores válidos)
-      src/layout/nav-items.ts         (ROLES_POR_RUTA — quién entra a la ruta)
-      docs/permisos-granulares.md     (si la HU restringe dentro de la vista)
- 6. Si la HU toca un catálogo (estados, tipos de ítem):
-      leer la data de referencia y listar en el plan id/nombre/descripcion de cada fila
-      La UI muestra `nombre`; nunca hardcodees esa lista en un enum del frontend
- 7. Si la HU introduce o cambia un límite de longitud:
-      confirmarlo contra el DDL o el modelo enriquecido y anotarlo para LIMITES
- 8. Registrar en la Metadata del plan todos los archivos consultados, con su ruta
-```
-
----
-
-## Manejo de errores
-
-| Error | Causa probable | Acción |
+| Feature | `{NN}_{contexto}` del modelo enriquecido | DDL / data |
 |---|---|---|
-| `HTTP 401` | Token expirado o sin permisos | `gh auth refresh` o `gh auth login` |
-| `HTTP 404` | La ruta no existe | Lista la carpeta padre (`--jq ".[].name"`) y usa el nombre exacto |
-| `HTTP 403` | Sin acceso a la organización | Pedir al admin de `arquisoft-uco` que otorgue acceso al token |
-| `gh: command not found` | CLI no instalado | https://cli.github.com/ |
-| Contenido ilegible | Se usó `--jq '.content'` sin decodificar | Usar `-H "Accept: application/vnd.github.raw+json"` |
-| `ls ../arquisoft-backend` falla | El repo hermano no está clonado al mismo nivel | Sigue con las fuentes locales y marca el contrato como no verificado |
+| `fichas-perfil` | `06_fichas_trabajos_grado` | `03_tablas_fichas_perfil.sql` |
+| `artefactos` | `07_artefactos` | `04_tablas_artefactos.sql` |
+| `repositorio-artefactos` | `08_repositorio_artefactos` | `05_…` *(sin catálogos)* |
+| `mapas-ruta` | `09_mapas_ruta` | `06_…` |
+| `proyectos-grado` | `10_proyectos_grado` | `07_…` |
+| `entregables` | `11_entregables_proyectos_grado` | `08_…` |
+| `evaluaciones` | `12_evaluaciones_definitivas` | `09_…` |
+| `biblioteca` | `14_biblioteca` | `10_…` |
+| `solicitudes` | `15_solicitudes` | `11_…` |
+| `dashboard`, `seleccionar-rol` | — | — |
 
-### Notas
+El Event Storming lleva el nombre del contexto en prosa (`Ficha Perfil`, `Proyecto Grado`,
+`Entregables Proyectos de Grado`, `Evaluaciones Definitivas`…), **con espacios**: comillas dobles en
+la URL del `gh api`.
 
-- **Nombres con espacios:** los Event Storming los llevan (`Ficha Perfil - Event Storming.md`).
-  Comillas dobles en la URL del `gh api`.
-- **`.xlsx` y `.drawio.xml` no son legibles como texto.** Ignóralos; usa los `.md`.
-- **Los `HU*.md` locales son una copia filtrada**, no el original. Si uno contradice al catálogo
-  remoto, gana el remoto y se anota la discrepancia.
+**Que un contexto esté documentado no significa que el backend lo exponga.** De los nueve, solo
+`fichas` tiene endpoints consumibles hoy. El plan debe decir si la salida es `ComingSoon` o la
+degradación con `AvisoNoDisponible`.
+
+## Protocolo de consulta
+
+```
+0. ¿No hay HU puntual, sino "implementa lo que backend ya entregó"? → Nivel 0 primero,
+   para salir de ahí con uno o varios IDs concretos antes de seguir con el paso 1
+1. ¿HU (negocio, con actor y criterios) o HT (plataforma, en docs/stories/)?
+2. ls docs/fichas-perfil/historias/ → ¿está en local?
+     Sí → léela: trae reglas POL-XX y modelo de dominio
+     No → Nivel 3: historias priorizadas + Event Storming del contexto
+3. LEER SIEMPRE docs/integracion-backend-frontend.md
+     Por cada endpoint que la HU necesita: ¿implementado o pendiente? ¿ruta y body exactos?
+4. Endpoint que ese documento no liste → abrir el Controller en ../arquisoft-backend
+     Sin repo hermano → marcar el contrato como NO VERIFICADO
+5. Roles: cruzar src/shared/models/rol.ts, src/layout/nav-items.ts y docs/permisos-granulares.md
+6. Catálogo → listar id/nombre/descripcion de cada fila. La UI muestra el `nombre` del backend
+7. Límite nuevo → confirmarlo contra el DDL o el modelo enriquecido, para LIMITES
+8. Registrar todos los archivos consultados en la Metadata del plan
+```
+
+## Errores
+
+| Error | Acción |
+|---|---|
+| `HTTP 401` | `gh auth refresh` o `gh auth login` |
+| `HTTP 403` | Pedir al admin de `arquisoft-uco` acceso para el token |
+| `HTTP 404` | Listar la carpeta padre y usar el nombre exacto |
+| `gh: command not found` | https://cli.github.com/ |
+| Contenido ilegible | Se usó `--jq '.content'`; usa el header `raw+json` |
+| `ls ../arquisoft-backend` falla | Sigue con lo local y marca el contrato como no verificado |
+
+`.xlsx` y `.drawio.xml` no son legibles como texto: ignóralos. Los `HU*.md` locales son una copia
+filtrada; si contradicen al catálogo remoto, gana el remoto y se anota la discrepancia.

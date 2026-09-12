@@ -1,11 +1,9 @@
 <!--
-Plantilla de la cabecera invariable de un plan de frontend. La usan @1-planificador (al generar) y
-@4a-validator-analyze (al leer). Copia este bloque tal cual y sustituye los {marcadores}.
+Cabecera invariable de un plan de frontend. La usan @1-planificador (al generar) y
+@4a-validator-analyze (al leer). Copia este bloque y sustituye los {marcadores}.
 
-Lo que sigue a la seccion 3 NO vive aqui: las secciones 4 a 12 son condicionales — dependen de si la
-HU crea una vista, un formulario, una integracion nueva o solo trabajo de plataforma — y su forma la
-decide @1-planificador segun sus preguntas. Esta plantilla fija lo que no cambia nunca: el titulo, la
-metadata y las tres secciones que toda HU/HT tiene, haga lo que haga.
+Las secciones 4 a 12 NO viven aqui: son condicionales y su forma la decide @1-planificador segun sus
+preguntas. Esta plantilla fija lo que no cambia nunca.
 
 Destino: .workspace/h-plan/PLAN-{HU|HT}-{ID}.md
 -->
@@ -21,7 +19,7 @@ Destino: .workspace/h-plan/PLAN-{HU|HT}-{ID}.md
 - **Endpoints del backend:** {implementados / pendientes / ninguno — ver sección 5}
 - **Fecha de plan:** {yyyy-MM-dd}
 - **Rama sugerida:** `feature/{HU|HT}-{ID}-{descripcion_snake_case}`
-- **Fuentes consultadas:** {rutas locales + archivos de arquisoft-docs + Controllers del backend}
+- **Fuentes consultadas:** {rutas locales + arquisoft-docs + Controllers del backend}
 - **Observaciones del usuario:** {o "Ninguna"}
 
 ## 1. Resumen Funcional
@@ -35,22 +33,17 @@ Destino: .workspace/h-plan/PLAN-{HU|HT}-{ID}.md
 
 ## 3. Reglas de Negocio — dónde se valida cada una
 
-> **El frontend valida forma; el backend decide.** Una restricción de **forma** (obligatoriedad,
-> longitud, formato de correo o UUID, tamaño de una lista) se valida en el cliente con el schema Zod
-> del formulario, usando los builders de `src/shared/validation/` y las constantes de `LIMITES` —
-> nunca un número mágico. Una restricción de **conjunto** (unicidad de un título, existencia de un
-> recurso, propiedad, transición de estado permitida) **no se valida en el cliente**: el backend
-> responde 422 y la UI muestra ese mensaje con `getApiErrorMessage(err, '…')` o pinta los
-> `fieldErrors[]` con `getApiFieldErrors(err)`.
+> **El cliente valida forma; el backend decide conjunto.** Obligatoriedad, longitud, formato y tamaño
+> de lista → schema Zod con los builders de `src/shared/validation/` y las constantes de `LIMITES`,
+> nunca un número mágico. Unicidad, existencia, propiedad y transición permitida → **no se validan en
+> el cliente**: llegan como 422 y se muestran con `getApiErrorMessage` o `getApiFieldErrors`.
 >
-> Duplicar una regla de conjunto en el cliente es un hallazgo, no una mejora: el frontend no tiene
-> los datos para decidirla, así que la copia se desincroniza y da falsos negativos. Y una regla de
-> forma que el cliente **no** valide deja al usuario descubriendo por un 400 lo que el campo pudo
+> Duplicar una regla de conjunto da falsos negativos: el frontend no tiene los datos para decidirla.
+> Y una regla de forma sin validar deja al usuario descubriendo por un 400 lo que el campo pudo
 > decirle al teclear.
 >
-> **Si la HU no introduce ninguna regla de forma, no hay schema Zod nuevo** — no planifiques una
-> validación vacía. Y si el límite que necesitas no está en `LIMITES`, el plan dice de qué archivo
-> del backend o del MER se copia el valor.
+> Sin reglas de forma nuevas, no hay schema Zod nuevo. Si un límite no está en `LIMITES`, di de qué
+> archivo del backend o del MER se copia.
 
-| # | Regla | Dónde se valida (Zod cliente / backend 422) | Constante o builder | Mensaje al usuario |
+| # | Regla | Dónde (Zod cliente / backend 422) | Constante o builder | Mensaje al usuario |
 |---|---|---|---|---|

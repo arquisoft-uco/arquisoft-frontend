@@ -1,5 +1,11 @@
 # HU280 — Consultar Fichas Perfil a evaluar
 
+> ⚠️ **NO_SINCRONIZADA:** el catálogo maestro (`historias_usuario_priorizadas.md`) reasignó el ID
+> HU280 a otra historia distinta ("Reabrir Observación Ítem") en una consolidación posterior. Esta
+> historia no tiene un ID vigente confirmado contra el backend — se conserva el número original solo
+> como referencia hasta que se confirme o reasigne. No planificar ni citar como "HU-280" sin esta
+> salvedad.
+
 ## Historia de usuario
 
 **Como** Representante Comité Currículum  
