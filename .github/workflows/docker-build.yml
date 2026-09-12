@@ -34,7 +34,7 @@ jobs:
     steps:
       # ── Checkout (el commit real que pasó CI, no el HEAD del workflow) ──
       - name: Checkout código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
