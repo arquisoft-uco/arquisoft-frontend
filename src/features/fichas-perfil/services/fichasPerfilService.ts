@@ -166,6 +166,11 @@ export const fichasPerfilService = {
       .post<Page<FichaPerfil>>('/fichas-perfil/asesor', { pagina: page, tamanio: size })
       .then((r) => r.data),
 
+  getItemsFichaAsesor: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items`)
+      .then((r) => r.data.map(toItem)),
+
   getItemsFichaRepresentante: (fichaPerfilId: string): Promise<Item[]> =>
     apiClient
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/representante`)
@@ -214,12 +219,6 @@ export const fichasPerfilService = {
   getFichasRepresentante: (representanteId: string, page = 0, size = 10): Promise<Page<FichaPerfilRepresentante>> =>
     apiClient
       .get<Page<FichaPerfilRepresentante>>('/fichas-perfil/representante', { params: { representanteId, page, size } })
-      .then((r) => r.data),
-
-  // Pendiente: sin endpoint en el backend.
-  getItemsFichaAsesor: (fichaPerfilId: string): Promise<Item[]> =>
-    apiClient
-      .get<Item[]>('/fichas-perfil/asesor-items', { params: { fichaPerfilId } })
       .then((r) => r.data),
 
   // Pendiente: sin endpoint en el backend.

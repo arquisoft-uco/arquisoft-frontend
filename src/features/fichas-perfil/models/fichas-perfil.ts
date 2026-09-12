@@ -1,4 +1,8 @@
-// ─── Reference tables ───
+// Barril de catálogos y DTOs menores de fichas-perfil.
+// Las entidades y DTOs con peso propio viven en su archivo: FichaPerfil.ts, Estudiante.ts,
+// AsignarEstudianteRequest.ts, EstadoFichaPerfil.ts, etc. No los dupliques aquí.
+
+// ─── Catálogos ───
 
 export interface EstadoFicha {
   id: string;
@@ -12,152 +16,19 @@ export interface EstadoEvaluacion {
   descripcion: string;
 }
 
-export interface EstadoRevision {
-  id: string;
-  nombre: string;
-  descripcion: string;
-}
-
-export interface EstadoObservacionRevision {
-  id: string;
-  nombre: string;
-  descripcion: string;
-}
-
 export interface TipoItem {
   id: string;
   nombre: string;
   descripcion: string;
 }
 
-// ─── Identity ───
-
-export interface Estudiante {
-  id: string;
-  identificador: string;
-  nombre: string;
-  email: string;
-}
-
-export interface AsesorFicha {
-  id: string;
-  identificador: string;
-  nombre: string;
-  email: string;
-}
-
-export interface RepresentanteComiteCurriculum {
-  id: string;
-  identificador: string;
-  nombre: string;
-  email: string;
-}
-
-// ─── Ficha Perfil ───
-
-export interface FichaPerfil {
-  id: string;
-  tituloProyecto: string;
-  asesorFichaId: string;
-}
-
-export interface PaginaFichasPerfil {
-  content: FichaPerfil[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  size: number;
-}
-
-// ─── Estudiante Ficha Perfil ───
-
-export interface EstudianteFichaPerfil {
-  id: string;
-  fichaPerfilId: string;
-  estudianteId: string;
-}
-
-// ─── Estado Ficha Perfil ───
-
-export interface EstadoFichaPerfil {
-  id: string;
-  fichaPerfilId: string;
-  estadoFichaId: string;
-  fechaActualizacion: string;
-}
-
-// ─── Item ───
+// ─── Ítem ───
 
 export interface Item {
   id: string;
   tipoItem: { id: string; nombre: string };
   contenido: string;
   fichaPerfilId: string;
-}
-
-// ─── Revisión Item ───
-
-export interface RevisionItem {
-  id: string;
-  itemId: string;
-  estadoRevisionId: string;
-  fechaCreacion: string;
-}
-
-// ─── Observación Item ───
-
-export interface ObservacionItem {
-  id: string;
-  revisionItemId: string;
-  observacion: string;
-  estadoObservacionRevisionId: string;
-}
-
-// ─── Evaluación Ficha Perfil ───
-
-export interface EvaluacionFichaPerfil {
-  id: string;
-  fichaPerfilId: string;
-  fechaCreacion: string;
-  estadoEvaluacionId: string | null;
-  estadoEvaluacionNombre: string | null;
-}
-
-// ─── Estado Evaluación Ficha ───
-
-export interface EstadoEvaluacionFicha {
-  id: string;
-  evaluacionFichaPerfilId: string;
-  estadoEvaluacionId: string;
-  fechaActualizacion: string;
-}
-
-// ─── Observación Evaluación ───
-
-export interface ObservacionEvaluacion {
-  id: string;
-  evaluacionFichaPerfilId: string;
-  observacion: string;
-}
-
-// ─── Request DTOs ───
-// RegistrarFichaPerfilRequest vive en ./RegistrarFichaPerfilRequest.ts
-// ModificarFichaPerfilRequest vive en ./ModificarFichaPerfilRequest.ts
-
-export interface CambiarAsesorRequest {
-  nuevoAsesorFichaId: string;
-}
-
-export interface AsignarEstudianteRequest {
-  estudianteId: string;
-}
-
-export interface AgregarEstadoFichaPerfilRequest {
-  estadoFichaId: string;
-}
-
-export interface AgregarEstadoAprobacionRequest {
-  estadoFichaId: string;
 }
 
 export interface CrearItemRequest {
@@ -175,19 +46,14 @@ export interface ModificarItemRequest {
   contenido: string;
 }
 
-export interface CrearRevisionItemRequest {
-  itemId: string;
-  estadoRevisionId: string;
-}
+// ─── Evaluación de ficha perfil ───
 
-export interface ModificarRevisionItemRequest {
-  estadoRevisionId: string;
-}
-
-export interface CrearObservacionItemRequest {
-  revisionItemId: string;
-  observacion: string;
-  estadoObservacionRevisionId: string;
+export interface EvaluacionFichaPerfil {
+  id: string;
+  fichaPerfilId: string;
+  fechaCreacion: string;
+  estadoEvaluacionId: string | null;
+  estadoEvaluacionNombre: string | null;
 }
 
 export interface CrearEvaluacionFichaPerfilRequest {
@@ -198,15 +64,13 @@ export interface EvaluacionCreadaResponse {
   id: string;
 }
 
+// ─── Estado de la evaluación ───
+
 export interface AgregarEstadoEvaluacionRequest {
   evaluacionFichaPerfilId: string;
   estadoEvaluacionId: string;
 }
 
-export interface CrearObservacionEvaluacionRequest {
-  observacion: string;
-}
-
-export interface ModificarObservacionRequest {
-  observacion: string;
+export interface EstadoEvaluacionFicha {
+  id: string;
 }
