@@ -25,18 +25,36 @@ Servicio: `src/features/fichas-perfil/services/fichasPerfilService.ts`.
 
 | Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
 |---|---|---|---|---|
-| `registrarFichaPerfil` | POST | `/fichas-perfil` | `{ tituloProyecto, asesorFichaId, estudiantesIds }` | `201 { id }` |
-| `modificarTituloFichaPerfil` | PATCH | `/fichas-perfil/{id}` | `{ tituloProyecto }` | `204` |
-| `cambiarAsesor` | PATCH | `/fichas-perfil/{id}/asesor-ficha` | `{ asesorFichaId }` | `204` |
-| `getFichasCoordinador` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` |
-| `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` |
-| `modificarItem` | PATCH | `/fichas-perfil/{itemId}/items` | `{ contenido }` | `204` |
-| `registrarEvaluacion` | POST | `/fichas-perfil/{fichaId}/evaluaciones` | _(sin body)_ | `201 { id }` |
-| `agregarEstadoEvaluacion` | POST | `/fichas-perfil/estado-evaluacion-ficha` | `{ evaluacionFichaPerfilId, estadoEvaluacionId }` | `201 { id }` |
-| `getEstadosFicha` | GET | `/fichas-perfil/estados-ficha` | — | `200 EstadoFicha[]` |
+**El body es el del DTO real del backend**, no el del modelo del frontend: la traducción de nombres
+ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*ResponseDTO.java` de
+`../arquisoft-backend` el 2026-09-12.
 
-> Nota: `registrarEvaluacion` responde únicamente `{ id }` en el backend actual; los campos
-> `fechaCreacion` y `estadoActual` que consume la UI aún no llegan en la respuesta.
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
+|---|---|---|---|---|
+| `registrarFichaPerfil` | POST | `/fichas-perfil` | `{ tituloProyecto, asesorFicha, estudiantes[] }` | `201 { id }` |
+| `modificarTituloFichaPerfil` | PATCH | `/fichas-perfil/{id}` | `{ tituloProyecto }` | `204` |
+| `cambiarAsesor` | PATCH | `/fichas-perfil/{id}/asesor-ficha` | `{ asesorFicha }` | `204` |
+| `getFichasCoordinador` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` |
+| `getFichasAsesor` | POST | `/fichas-perfil/asesor` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` — el asesor sale del JWT |
+| `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` |
+| `modificarItem` | PATCH | `/fichas-perfil/items/{itemId}` | `{ contenido }` | `204` |
+| `removerItem` | DELETE | `/fichas-perfil/items/{itemId}` | — | `204` |
+| `consultarTodosTipoItem` | GET | `/fichas-perfil/tipos-item` | — | `200 TipoItem[]` |
+| `getItemsFichaAsesor` | GET | `/fichas-perfil/{fichaPerfilId}/items` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
+| `getItemsFichaRepresentante` | GET | `/fichas-perfil/{fichaPerfilId}/items/representante` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
+| `consultarEstudiantesVinculados` | GET | `/fichas-perfil/{fichaPerfilId}/estudiantes` | — | `200 EstudianteFichaPerfilResponseDTO[]` · `id` es el vínculo, `estudianteId` el estudiante |
+| `asignarEstudiantes` | POST | `/fichas-perfil/{fichaPerfilId}/estudiantes` | `{ estudiantes: string[] }` | `204` — asigna **por lote** |
+| `removerEstudiante` | DELETE | `/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}` | — | `204` |
+| `registrarEvaluacion` | POST | `/fichas-perfil/{fichaId}/evaluaciones` | _(sin body)_ | `201 { id }` |
+| `getEvaluacionFicha` | GET | `/fichas-perfil/{fichaPerfilId}/evaluaciones/representante` | — | `200 EvaluacionFichaPerfilResponseDTO[]` · **lista**, ordenada por `fechaCreacion` asc |
+| `agregarEstadoEvaluacion` | POST | `/fichas-perfil/estado-evaluacion-ficha` | `{ evaluacionFichaPerfil, estadoEvaluacion }` | `201 { id }` |
+| `getEstadosFicha` | GET | `/fichas-perfil/estados-ficha` | — | `200 EstadoFicha[]` |
+| `getEstadosEvaluacion` | GET | `/fichas-perfil/estados-evaluacion` | — | `200 EstadoEvaluacion[]` |
+
+> **Respuestas que devuelven menos de lo que parece.** `registrarEvaluacion` y
+> `agregarEstadoEvaluacion` responden **solo** `{ id }`: no traen `fechaCreacion` ni el estado. Quien
+> necesite esos datos después de la mutación invalida la query y los relee, no los deduce de la
+> respuesta.
 
 ### Pendientes (el backend aún no expone el endpoint o el contrato difiere)
 
@@ -45,22 +63,15 @@ Estos métodos permanecen en el servicio anotados como pendientes para no romper
 
 | Método del servicio | Motivo |
 |---|---|
-| `getMiFichaPerfil` | Sin endpoint en el backend |
-| `consultarItemsMiFichaPerfil` | Sin endpoint en el backend |
-| `removerItem` | Sin endpoint en el backend |
-| `consultarTodosTipoItem` | Sin endpoint en el backend |
-| `consultarAsesoresDisponibles` | Sin endpoint en el backend |
-| `consultarEstudiantesDisponibles` | Sin endpoint en el backend |
-| `getFichasAsesor` | Sin endpoint en el backend |
-| `getFichasRepresentante` | Sin endpoint en el backend |
-| `getItemsFichaAsesor` | Sin endpoint en el backend |
-| `getItemsFichaRepresentante` | Sin endpoint en el backend |
-| `getEvaluacionFicha` | Sin endpoint en el backend |
-| `getEstadosEvaluacion` | Sin endpoint en el backend |
-| `agregarEstadoFichaPerfil` | Sin endpoint en el backend |
-| `consultarEstudiantesVinculados` | Sin endpoint de lectura por ficha en el backend |
-| `asignarEstudiante` | El backend recibe `{ estudiantesIds }` en `/fichas-perfil/{fichaPerfilId}/estudiantes` y responde `204`; el flujo por vínculo individual requiere rediseño |
-| `removerEstudiante` | El backend elimina por `/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}`; el flujo por vínculo individual requiere rediseño |
+| `consultarAsesoresDisponibles` | Sin endpoint en el backend. Corresponde a la historia «Consultar todos los asesores de ficha disponibles» (`HU278-NO_SINCRONIZADA`), sin ID vigente en el catálogo maestro |
+| `consultarEstudiantesDisponibles` | Sin endpoint en el backend. Corresponde a «Consultar todos los estudiantes disponibles» (`HU279-NO_SINCRONIZADA`) |
+| `getFichasRepresentante` | Sin endpoint en el backend. Corresponde a `HU280-NO_SINCRONIZADA` |
+| `agregarEstadoFichaPerfil` | El backend **no expone controller REST**: `AsignarEstadoInicialFichaPerfilUseCase` es un mecanismo interno que corre al registrar la ficha, no una acción invocable desde la UI |
+| `getMiFichaPerfil` | El endpoint existe (`GET /fichas-perfil/{fichaPerfilId}/estudiante`) pero **exige el `fichaPerfilId` como entrada**, y el estudiante no tiene forma de descubrirlo: no hay consulta «mis fichas». Requiere una historia nueva de backend |
+| `consultarItemsMiFichaPerfil` | Mismo bloqueo: `GET /fichas-perfil/{fichaPerfilId}/items/estudiante` existe, pero depende de conocer el `fichaPerfilId` |
+
+> Las dos últimas filas no son un error de ruta: el contrato del backend está bien formado, lo que
+> falta es la puerta de entrada del estudiante a su propia ficha.
 
 ### Por qué los pendientes responden 405 y no 404
 

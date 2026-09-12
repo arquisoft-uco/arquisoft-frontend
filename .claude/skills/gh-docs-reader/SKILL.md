@@ -135,7 +135,9 @@ gh api "repos/arquisoft-uco/arquisoft-docs/contents/{carpeta}" --jq ".[].name"
 
 Rutas útiles:
 
-- HU priorizadas: `artefactos/estrategicos/propuestas-hu/historias_usuario_priorizadas.md`
+- HU priorizadas: `artefactos/estrategicos/propuestas-hu/priorizacion/historias_usuario_priorizadas.md`
+  — **la carpeta dejó de ser plana**: el catálogo ya no está en la raíz de `propuestas-hu/`
+- Backlog por fase: `artefactos/estrategicos/propuestas-hu/backlog/fase-{1-mvp|2-entrega-completa|3-consolidacion}.md`
 - HT (trabajo de plataforma del frontend): `docs/stories/` → `HT-XXX.*.story.md`
 - Event Storming: `artefactos/estrategicos/event-storming/{Contexto} - Event Storming.md`
 - Modelo enriquecido: `artefactos/estrategicos/modelo-dominio/enriquecido/documentacion/{NN}_{contexto}_modelo_enriquecido.md`

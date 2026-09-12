@@ -121,7 +121,8 @@ Con el "sí", haz una **segunda pregunta separada**:
 
 > "¿Subo también el plan y el reporte a `arquisoft-docs`? Irían a
 > `docs/hus/planes/frontend/PLAN-{HU|HT}-{ID}.md` y
-> `docs/hus/validaciones/frontend/VALIDATOR-{HU|HT}-{ID}.md`. (sí / no)"
+> `docs/hus/validaciones/frontend/VALIDATOR-{HU|HT}-{ID}.md`, en una rama desde `main` y con su
+> propio PR — no directo a `main`. (sí / no)"
 
 La subcarpeta `frontend/` es deliberada: backend publica en la raíz de `planes/`/`validaciones/`, y
 compartir la misma carpeta ya causó una colisión real de IDs entre ambos equipos. No publiques en la
@@ -152,29 +153,50 @@ El PR dispara `.github/workflows/ci.yml`. Si falla, dilo; no lo tapes con un com
 final. Publicar deja un commit en un repositorio compartido: ante una respuesta ambigua, no publiques
 y pregunta.
 
+**Nunca publiques directo sobre `main`.** Documentación nueva en `arquisoft-docs` entra por una rama
+creada desde `main` y se integra por Pull Request, igual que el código. Son tres pasos: crear la rama,
+subir los archivos a esa rama, abrir el PR.
+
 ```bash
+DOCS=arquisoft-uco/arquisoft-docs
+RAMA="docs/{HU|HT}-{ID}-plan_y_validacion"
+
+# 1. Rama desde main — la Contents API NO crea la rama sola al hacer PUT
+base=$(gh api "repos/$DOCS/git/ref/heads/main" --jq .object.sha)
+gh api "repos/$DOCS/git/refs" --method POST -f ref="refs/heads/$RAMA" -f sha="$base" --jq '.ref'
+# Si responde 422 "Reference already exists", la rama quedó de un intento previo: reutilízala.
+
+# 2. Subir cada archivo A ESA RAMA
 publicar() {   # $1 = archivo local, $2 = ruta destino, $3 = mensaje
   local sha extra
-  sha=$(gh api "repos/arquisoft-uco/arquisoft-docs/contents/$2" --jq .sha 2>/dev/null | grep -E '^[0-9a-f]{40}$')
+  sha=$(gh api "repos/$DOCS/contents/$2?ref=$RAMA" --jq .sha 2>/dev/null | grep -E '^[0-9a-f]{40}$')
   [ -n "$sha" ] && extra=",\"sha\":\"$sha\"" || extra=""
-  { printf '{"message":"%s","branch":"main"%s,"content":"' "$3" "$extra"
+  { printf '{"message":"%s","branch":"%s"%s,"content":"' "$3" "$RAMA" "$extra"
     base64 -w0 "$1"
     printf '"}'; } > /tmp/body.json
-  gh api "repos/arquisoft-uco/arquisoft-docs/contents/$2" --method PUT --input /tmp/body.json --jq '.content.path'
+  gh api "repos/$DOCS/contents/$2" --method PUT --input /tmp/body.json --jq '.content.path'
 }
 
 publicar .workspace/h-plan/PLAN-{HU|HT}-{ID}.md \
          docs/hus/planes/frontend/PLAN-{HU|HT}-{ID}.md "docs(hus): publicar PLAN-{HU|HT}-{ID}.md (frontend)"
 publicar .workspace/validator/validator-{HU|HT}-{ID}.md \
          docs/hus/validaciones/frontend/VALIDATOR-{HU|HT}-{ID}.md "docs(hus): publicar VALIDATOR-{HU|HT}-{ID}.md (frontend)"
+
+# 3. PR hacia main
+gh pr create --repo "$DOCS" --base main --head "$RAMA" \
+  --title "docs(hus): {HU|HT}-{ID} — plan y reporte de validación (frontend)" \
+  --body "Plan y reporte de validación de {HU|HT}-{ID}, generados en arquisoft-frontend.
+PR de código: {URL del PR del frontend}"
 ```
 
-Dos detalles verificados: el contenido va por `--input` (en base64 un plan supera el límite de
-argumentos y `gh` muere con `Argument list too long`), y el `sha` se filtra a 40 hexadecimales
-(cuando el archivo no existe, `gh` imprime el cuerpo del 404 en stdout y sin el `grep` lo mandarías
-como sha).
+Tres detalles verificados: el contenido va por `--input` (en base64 un plan supera el límite de
+argumentos y `gh` muere con `Argument list too long`); el `sha` se filtra a 40 hexadecimales (cuando
+el archivo no existe, `gh` imprime el cuerpo del 404 en stdout y sin el `grep` lo mandarías como
+sha); y la consulta del `sha` lleva `?ref=$RAMA`, porque el archivo puede existir en `main` con otro
+contenido y mandar ese sha rompe el PUT.
 
-Si una publicación falla, **detente y repórtalo**: el commit y el PR ya son válidos; solo queda eso.
+Si una publicación falla, **detente y repórtalo**: el commit y el PR del frontend ya son válidos;
+solo queda eso. Reporta la URL del PR de docs junto a la del PR de código.
 
 **Mensaje final:**
 
@@ -182,8 +204,8 @@ Si una publicación falla, **detente y repórtalo**: el commit y el PR ya son v�
 ✅ Entrega completada — {HU|HT}-{ID}
 Commit:  {hash} · Rama: {rama}
 PR:      {url}  →  develop
-Docs:    {publicados | no publicados — a petición del usuario}
-Siguiente paso: 1 aprobación requerida antes de mergear (CONTRIBUTING.md)
+Docs:    {PR en arquisoft-docs: {url} | no publicados — a petición del usuario}
+Siguiente paso: 1 aprobación requerida antes de mergear (CONTRIBUTING.md), en ambos PR
 ```
 
 No ejecutes nada después — ni `git status` ni `gh pr view` "para confirmar".

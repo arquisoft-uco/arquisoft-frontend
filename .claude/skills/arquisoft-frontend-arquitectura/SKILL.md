@@ -18,7 +18,7 @@ Solo **una** de las diez features enrutadas tiene código de negocio:
 
 | Feature | Estado |
 |---|---|
-| `fichas-perfil` | **Completa** — 5 vistas por rol, 17 hooks, 1 service, 14 archivos de modelos |
+| `fichas-perfil` | **Completa** — una vista por rol, un hook por caso de uso, **un** service, modelos en archivos propios más el barril |
 | `dashboard`, `seleccionar-rol` | Página propia, sin service ni hooks |
 | `artefactos`, `biblioteca`, `entregables`, `evaluaciones`, `mapas-ruta`, `proyectos-grado`, `repositorio-artefactos`, `solicitudes` | **Stubs** — `<ComingSoon />`; sus carpetas solo tienen `.gitkeep` |
 
