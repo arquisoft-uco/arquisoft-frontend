@@ -117,10 +117,10 @@ export interface ObservacionItem {
 
 export interface EvaluacionFichaPerfil {
   id: string;
-  representanteComiteId: string;
   fichaPerfilId: string;
   fechaCreacion: string;
-  estadoActual: string;
+  estadoEvaluacionId: string | null;
+  estadoEvaluacionNombre: string | null;
 }
 
 // ─── Estado Evaluación Ficha ───
@@ -196,8 +196,6 @@ export interface CrearEvaluacionFichaPerfilRequest {
 
 export interface EvaluacionCreadaResponse {
   id: string;
-  fechaCreacion: string;
-  estadoActual: string;
 }
 
 export interface AgregarEstadoEvaluacionRequest {

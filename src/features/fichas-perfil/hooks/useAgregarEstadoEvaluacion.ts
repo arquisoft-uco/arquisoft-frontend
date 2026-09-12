@@ -13,10 +13,15 @@ export function useAgregarEstadoEvaluacion(fichaPerfilId: string) {
   return useMutation({
     mutationFn: ({ req }: AgregarEstadoVariables) =>
       fichasPerfilService.agregarEstadoEvaluacion(req),
-    onSuccess: (_, { estadoNombre }) => {
-      queryClient.setQueryData<EvaluacionFichaPerfil | undefined>(
+    onSuccess: (_, { req, estadoNombre }) => {
+      queryClient.setQueryData<EvaluacionFichaPerfil[] | undefined>(
         ['evaluacion-representante', fichaPerfilId],
-        (prev) => (prev ? { ...prev, estadoActual: estadoNombre } : prev),
+        (prev) =>
+          prev?.map((e) =>
+            e.id === req.evaluacionFichaPerfilId
+              ? { ...e, estadoEvaluacionId: req.estadoEvaluacionId, estadoEvaluacionNombre: estadoNombre }
+              : e,
+          ),
       );
     },
   });
