@@ -1,5 +1,11 @@
 # HU279 — Consultar todos los estudiantes disponibles
 
+> ⚠️ **NO_SINCRONIZADA:** el catálogo maestro (`historias_usuario_priorizadas.md`) reasignó el ID
+> HU279 a otra historia distinta ("Cerrar Observación Ítem") en una consolidación posterior. Esta
+> historia no tiene un ID vigente confirmado contra el backend — se conserva el número original (de
+> los issues #42/#43 de `arquisoft-docs`) solo como referencia hasta que se confirme o reasigne. No
+> planificar ni citar como "HU-279" sin esta salvedad.
+
 ## Historia de usuario
 
 **Como** Coordinador  
