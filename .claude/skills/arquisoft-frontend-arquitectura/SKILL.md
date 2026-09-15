@@ -119,7 +119,14 @@ Nada sensible se escribe en `localStorage` ni `sessionStorage`. El `safeStorage`
 
 **Los roles se leen de `realm_access.roles`** (no de `resource_access[clientId].roles`), vía
 `parseRoles()`; `devAuth.ts` construye su `tokenParsed` falso con la misma forma. Un rol que no esté
-en el enum `Rol` se descarta en `useRolesDisponibles()`.
+en el enum `Rol` se descarta en `useRolesDisponibles()`, **sin error ni aviso**.
+
+**Los valores del enum son los nombres exactos de los roles de realm**, con guion: `asesor-ficha`,
+`representante-comite`. La fuente es `arquisoft-infra/components/keycloak/config/realm-arquisoft.json`,
+no el nombre de la tabla del MER (`asesor_ficha`). Un separador distinto hace desaparecer el rol del
+selector solo con login real: `VITE_DEV_ROLES` alimenta el bypass con los mismos valores del enum, así
+que el bypass nunca delata el error. Ante un rol que «no carga», compara `realm_access.roles` del token
+real contra el enum antes de tocar Keycloak.
 
 **El rol activo es derivado, no almacenado** (`useRolActivo()`): si el rol guardado sigue en el JWT
 se usa; si el usuario tiene exactamente uno, se auto-selecciona; si no, `null`. Nunca leas

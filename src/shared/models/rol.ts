@@ -12,17 +12,17 @@ import {
 
 /**
  * Roles recognised by the system.
- * Values match the roles configured in the Keycloak client.
+ * Values match the Keycloak realm role names exactly (realm_access.roles).
  */
 export enum Rol {
   Administrador = 'administrador',
   Asesor = 'asesor',
-  AsesorFicha = 'asesor_ficha',
+  AsesorFicha = 'asesor-ficha',
   Estudiante = 'estudiante',
   Jurado = 'jurado',
   Coordinador = 'coordinador',
   Bibliotecario = 'bibliotecario',
-  RepresentanteComiteCurriculum = 'representante_comite_curriculum',
+  RepresentanteComiteCurriculum = 'representante-comite',
 }
 
 export const ETIQUETAS_ROL: Record<Rol, string> = {
