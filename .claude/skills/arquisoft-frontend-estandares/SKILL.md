@@ -1,6 +1,6 @@
 ---
 name: arquisoft-frontend-estandares
-description: Estándares de código de Arquisoft Frontend — nomenclatura, componentes, services, models, stores, formularios con react-hook-form + Zod, validación compartida alineada al backend, manejo de errores de API, accesibilidad, design tokens de Tailwind, TypeScript, testing con Vitest + Testing Library, verificación y git. Cargar junto con arquisoft-frontend-arquitectura antes de implementar, testear o validar cualquier HU/HT.
+description: Estándares de código de Arquisoft Frontend — nomenclatura, componentes, services, models, stores, formularios con react-hook-form + Zod, validación compartida espejo del backend, retorno al listado tras registrar/editar/eliminar, manejo de errores de API, accesibilidad, design tokens de Tailwind, TypeScript, testing con Vitest + Testing Library, verificación y git. Cargar junto con arquisoft-frontend-arquitectura antes de implementar, testear o validar cualquier HU/HT.
 ---
 
 # Skill: arquisoft-frontend-estandares
@@ -110,8 +110,9 @@ const { register, handleSubmit, formState: { errors, isValid } } =
 
 ## Validación compartida
 
-`src/shared/validation/` centraliza **solo lo reutilizable y alineado al backend**; las reglas de un
-formulario concreto se quedan en su `z.object(...)`.
+`src/shared/validation/` es el espejo de `arquisoft-backend/shared/validation` (`ValidatorTexto`,
+`ValidatorLongitud`, `ValidatorColeccion`, `ValidatorUUID`, …): validadores **reutilizables y
+parametrizados** que cada formulario compone en su `z.object(...)`.
 
 | Archivo | Contenido |
 |---|---|
@@ -120,7 +121,30 @@ formulario concreto se quedan en su `z.object(...)`.
 | `mensajes-validacion.ts` | `MENSAJES_VALIDACION`, algunos como función (`longitudMaxima(max)`) |
 | `validadores-zod.ts` | `textoRequerido(max)`, `opcionRequerida()`, `emailValido()`, `uuidValido()`, `listaConMaximo(max)` |
 
-Importa siempre del barril `index.ts`.
+Importa siempre del barril `index.ts`. La tabla refleja lo que había al escribirla; abre el archivo
+antes de decidir que un validador no existe.
+
+**El frontend replica todas las reglas de forma del backend, sin excepción.** Cada campo que el DTO
+de entrada o el validador del caso de uso exija o restrinja lleva la misma regla en el schema Zod:
+obligatoriedad, longitud mínima y máxima, formato (regex), rango numérico y tamaño de lista. Antes de
+escribir el schema se abre el validador real en el repo hermano y se listan sus reglas campo por
+campo; el plan las transcribe en una tabla **campo → regla del backend → validador Zod**. Una regla
+de forma del backend sin su espejo en el cliente es un hallazgo.
+
+- **Regla compuesta** (el backend valida `nombres + " " + apellidos` entre 2 y 50): se replica igual,
+  con `superRefine` sobre el `z.object(...)` y el error asignado al campo que el usuario corrige. No
+  se inventa un tope por campo que el backend no impone, ni se deja la regla solo al 422.
+- Los valores mínimos y máximos salen de las constantes del backend (`{Modulo}Limits.java`) y van a
+  `LIMITES`, igual que los máximos.
+
+**Validadores reutilizables, nunca reglas en línea.** Un formulario compone los builders de
+`validadores-zod.ts` (`emailValido()`, `textoRequerido(max)`, …); no escribe `.regex(EMAIL_REGEX)`,
+`z.string().email()` ni un `.min/.max` suelto para una regla que ya tiene builder. Si falta, se crea
+en `validadores-zod.ts` **genérico y parametrizado** (como `ValidatorLongitud.longitudEntre(min, max)`
+del backend), con su mensaje en `mensajes-validacion.ts`, su regex en `expresiones-regulares.ts` y su
+caso en `validadores-zod.test.ts`. Ampliar un builder existente con parámetros opcionales
+retrocompatibles se prefiere a crear uno paralelo que haga casi lo mismo. Solo queda en línea lo que
+no tiene una regla del backend detrás.
 
 **Un número mágico en un `.max(...)` es un hallazgo.** Si el límite lo impone el backend va en
 `LIMITES`, y el `maxLength` del input lo lee de ahí. `validadores-zod.test.ts` fija esos cuatro
@@ -130,6 +154,43 @@ valores: cambiarlos sin actualizar el backend rompe el test, que es lo que se bu
 de lista → Zod. Unicidad, existencia, propiedad y transición permitida → llegan como 422 y se
 muestran. Duplicar una regla de conjunto en el cliente da falsos negativos: el frontend no tiene los
 datos para decidirla.
+
+El error del backend al enviar **siempre** produce `toast.error` (ver "Notificaciones") y, además, se
+pinta junto al campo cuando corresponde a uno: `hasApiErrorCode(err, 'USUARIO_EMAIL_DUPLICADO')` o
+`getApiFieldErrors(err)` → `setError('email', { message })` con el mensaje de
+`getApiErrorMessage(err, …)`. Un `field` del backend que no es un input (el `nombre` derivado de
+`nombres + apellidos`) se pinta en **todos** los inputs que lo componen. Los códigos salen de
+`arquisoft-backend/shared/message/.../constant/{Modulo}Codes.java`, verificados, nunca adivinados.
+
+**Los campos del formulario tienen la misma granularidad que el DTO de entrada del backend.** Si el
+DTO separa `nombres` y `apellidos`, hay dos inputs; si separara primer y segundo nombre, habría
+cuatro. Nunca se fusionan dos campos del backend en un input ni se parte uno en varios, porque el
+error de cada campo debe poder mostrarse en su input.
+
+Una regla compuesta del cliente se atribuye al input culpable cuando se puede (el formato de
+`nombre` falla en el input que tiene el carácter inválido); si depende de varios (la longitud total
+de `nombres + " " + apellidos`), el mensaje se pinta en todos los que la componen.
+
+## Retorno tras registrar, editar o eliminar
+
+Tras un registro, una edición o una eliminación **exitosos**, la UI vuelve de inmediato a la vista
+anterior: el listado desde el que se abrió la acción, con el mismo filtro y la misma página con que se
+consultó el objeto afectado. No se deja al usuario en el formulario limpio ni se lo manda al dashboard.
+
+- **Orden en el éxito:** el hook invalida la query del listado por prefijo (para que refleje el
+  cambio); el componente, en el `onSuccess` del `mutate(...)`, lanza el toast de éxito y cierra la
+  vista (`onCerrar()` / `onVolver()`). `CoordinadorView` → `RegistrarFichaPerfil onCerrar` y
+  `AsesorFichaView` → `onVolver` son la referencia.
+- **Filtros y paginación viven por encima del formulario**, en la `{Rol}View` o en el hook del listado
+  (`useFichasPerfilCoordinador`), nunca dentro del panel que se desmonta: si viven dentro, volver los
+  resetea.
+- **Con ruta propia** (`/{feature}/nuevo`, `/{feature}/:id/editar`), los filtros van en search params
+  y el retorno los conserva; no se reconstruyen a mano.
+- **Eliminar desde el detalle** vuelve al listado, no al detalle de un objeto que ya no existe.
+- **En error** se queda en el formulario, con los datos intactos y los errores pintados.
+- **Sin listado todavía** (el backend no expone el `GET`): el formulario abre desde la vista de la
+  feature y el retorno es a esa vista. El plan lo declara explícitamente para que, cuando llegue el
+  listado, el retorno se mueva a él.
 
 ## Estados de carga, vacío y error
 
@@ -163,6 +224,13 @@ Niveles: `success` (4 s), `info` (4 s), `debug` (8 s), `error` (6 s). Firma
 
 Va en el `onSuccess`/`onError` de la mutación — en el hook **o** en el `mutate(...)` del componente,
 en **uno solo**, o el usuario ve dos toasts.
+
+**Toda mutación da retroalimentación con un mensaje emergente, sin excepción:** `toast.success` al
+terminar bien y `toast.error` en **cualquier** error, aunque ese error también se pinte junto a su
+campo. El mensaje del campo dice *dónde* está el problema; el toast garantiza que el usuario sepa que
+el envío falló, aunque el campo quede fuera de la vista. Un `onError` que solo hace `setError`, o una
+mutación sin toast de éxito, es un hallazgo. Las validaciones de Zod mientras se escribe no llevan
+toast: se pintan en el campo.
 
 Acción destructiva → `<ConfirmDialog />` (`variante: 'peligro' | 'advertencia'`), nunca `window.confirm`.
 
@@ -233,8 +301,16 @@ vive en `vite.config.ts`; **no crees `vitest.config.ts`**.
 `useQuery` o `<Navigate>` revienta. Escribir `useAuthStore.setState` a mano también: usa
 `store.utils.ts`, con `resetAllStores()` en un `beforeEach`.
 
-**Qué se mockea:** el módulo del service (`vi.mock('../services/{feature}Service')`) o el hook.
-**Nunca `axios` ni `apiClient`** — eso prueba el interceptor, no la feature. Un test nunca llega a la red.
+**Qué se mockea:** el módulo del service o el hook de la feature. **Nunca `axios` ni `apiClient`** —
+eso prueba el interceptor, no la feature. Un test nunca llega a la red.
+
+**`vi.mock` de un hook o un service siempre lleva fábrica**, con la forma
+`vi.mock('../../hooks/useRegistrarUsuario', () => ({ useRegistrarUsuario: vi.fn() }))`. Sin ella,
+Vitest carga el módulo real para inspeccionar qué exporta, y esa carga arrastra la cadena
+`hook → service → apiClient → config/env.ts`, que lanza en test porque `VITE_API_URL` no está
+definida: el archivo falla entero con un error de entorno que no tiene que ver con lo que se prueba.
+La fábrica corta la cadena. `RegistrarUsuarioForm.test.tsx` y `test-utils/keycloak.mock.ts` son la
+referencia.
 
 `describe`/`it` en **español**, describiendo comportamiento observable. Marcadores
 `// Arrange / Act / Assert`. Consultas por rol y nombre accesible, no por `data-testid` ni clases.
