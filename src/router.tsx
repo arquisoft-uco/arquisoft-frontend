@@ -21,6 +21,7 @@ const RepositorioArtefactos = lazy(
 const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
+const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
 
 /** Wraps element with RoleGuard if the path has a role restriction in nav-items. */
 function guarded(path: string, element: ReactElement): ReactElement {
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
           { path: 'repositorio-artefactos', element: guarded('repositorio-artefactos', <RepositorioArtefactos />) },
           { path: 'biblioteca', element: guarded('biblioteca', <Biblioteca />) },
           { path: 'solicitudes', element: guarded('solicitudes', <Solicitudes />) },
+          { path: 'usuarios', element: guarded('usuarios', <Usuarios />) },
           { path: 'seleccionar-rol', element: <SeleccionarRol /> },
           { path: '*', element: <Navigate to="/dashboard" replace /> },
         ],

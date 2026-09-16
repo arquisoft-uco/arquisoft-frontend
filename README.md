@@ -97,7 +97,8 @@ src/
 │   ├── mapas-ruta/
 │   ├── proyectos-grado/
 │   ├── repositorio-artefactos/
-│   └── solicitudes/
+│   ├── solicitudes/
+│   └── usuarios/
 │
 ├── guards/                   # Guardias de ruta
 │   ├── AuthGuard.tsx         # Inicialización de Keycloak

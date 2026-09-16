@@ -1,6 +1,6 @@
 ---
 name: arquisoft-frontend-estandares
-description: Estándares de código de Arquisoft Frontend — nomenclatura, componentes, services, models, stores, formularios con react-hook-form + Zod, validación compartida alineada al backend, manejo de errores de API, accesibilidad, design tokens de Tailwind, TypeScript, testing con Vitest + Testing Library, verificación y git. Cargar junto con arquisoft-frontend-arquitectura antes de implementar, testear o validar cualquier HU/HT.
+description: Estándares de código de Arquisoft Frontend — nomenclatura, componentes, services, models, stores, formularios con react-hook-form + Zod, validación compartida espejo del backend, retorno al listado tras registrar/editar/eliminar, manejo de errores de API, accesibilidad, design tokens de Tailwind, TypeScript, testing con Vitest + Testing Library, verificación y git. Cargar junto con arquisoft-frontend-arquitectura antes de implementar, testear o validar cualquier HU/HT.
 ---
 
 # Skill: arquisoft-frontend-estandares
@@ -8,6 +8,32 @@ description: Estándares de código de Arquisoft Frontend — nomenclatura, comp
 Complementa a `arquisoft-frontend-arquitectura` (capas y estructura); esta cubre reglas de código.
 Las dos juntas son la fuente de verdad. Cada regla referencia un archivo real de `fichas-perfil` o de
 `src/shared/`.
+
+## Una decisión, un solo lugar
+
+**Toda decisión transversal se declara una vez, en su sitio compartido, y las features la componen.**
+Es la regla que sostiene el mantenimiento: cuando esa decisión cambie, debe alcanzar con tocar un
+archivo. La misma regla copiada en cinco vistas se desincroniza a la primera modificación, y nadie se
+entera hasta que un usuario ve dos comportamientos distintos en dos pantallas.
+
+| Tipo de decisión | Dónde vive |
+|---|---|
+| Color, sombra, radio, animación | `@theme` de `src/tailwind.css` |
+| Comportamiento visual repetible (responsive, área táctil, campo de formulario) | Clases globales de `src/index.css` |
+| Límite del backend | `LIMITES` en `shared/validation/limites.ts` |
+| Regla de validación | Builder en `shared/validation/validadores-zod.ts` |
+| Texto de error de validación | `MENSAJES_VALIDACION` |
+| Lectura de un error de API | Helpers de `shared/utils/api-error.ts` |
+| Restricción de rol por ruta | `NAV_ITEMS[].roles` |
+| Token, refresco y ruteo de 401/403 | `api/axiosInstance.ts` |
+
+**Cuándo se sube algo.** A la segunda vista que necesita lo mismo: la primera lo resuelve local, la
+segunda lo sube y migra a la primera. Subir con un solo consumidor es abstraer de más, y ahí la regla
+se invierte (un componente sube a `src/shared/components/` solo con dos features consumidoras).
+
+**Cómo se migra.** Lo que ya estaba escrito a mano antes de existir el sitio compartido no se migra en
+una pasada aparte: se migra cuando se toque ese archivo por otra razón. Un plan que proponga
+"normalizar todo" a la vez no pasa revisión — el diff deja de ser revisable y mezcla dos intenciones.
 
 ## Nomenclatura
 
@@ -110,8 +136,9 @@ const { register, handleSubmit, formState: { errors, isValid } } =
 
 ## Validación compartida
 
-`src/shared/validation/` centraliza **solo lo reutilizable y alineado al backend**; las reglas de un
-formulario concreto se quedan en su `z.object(...)`.
+`src/shared/validation/` es el espejo de `arquisoft-backend/shared/validation` (`ValidatorTexto`,
+`ValidatorLongitud`, `ValidatorColeccion`, `ValidatorUUID`, …): validadores **reutilizables y
+parametrizados** que cada formulario compone en su `z.object(...)`.
 
 | Archivo | Contenido |
 |---|---|
@@ -120,7 +147,30 @@ formulario concreto se quedan en su `z.object(...)`.
 | `mensajes-validacion.ts` | `MENSAJES_VALIDACION`, algunos como función (`longitudMaxima(max)`) |
 | `validadores-zod.ts` | `textoRequerido(max)`, `opcionRequerida()`, `emailValido()`, `uuidValido()`, `listaConMaximo(max)` |
 
-Importa siempre del barril `index.ts`.
+Importa siempre del barril `index.ts`. La tabla refleja lo que había al escribirla; abre el archivo
+antes de decidir que un validador no existe.
+
+**El frontend replica todas las reglas de forma del backend, sin excepción.** Cada campo que el DTO
+de entrada o el validador del caso de uso exija o restrinja lleva la misma regla en el schema Zod:
+obligatoriedad, longitud mínima y máxima, formato (regex), rango numérico y tamaño de lista. Antes de
+escribir el schema se abre el validador real en el repo hermano y se listan sus reglas campo por
+campo; el plan las transcribe en una tabla **campo → regla del backend → validador Zod**. Una regla
+de forma del backend sin su espejo en el cliente es un hallazgo.
+
+- **Regla compuesta** (el backend valida `nombres + " " + apellidos` entre 2 y 50): se replica igual,
+  con `superRefine` sobre el `z.object(...)` y el error asignado al campo que el usuario corrige. No
+  se inventa un tope por campo que el backend no impone, ni se deja la regla solo al 422.
+- Los valores mínimos y máximos salen de las constantes del backend (`{Modulo}Limits.java`) y van a
+  `LIMITES`, igual que los máximos.
+
+**Validadores reutilizables, nunca reglas en línea.** Un formulario compone los builders de
+`validadores-zod.ts` (`emailValido()`, `textoRequerido(max)`, …); no escribe `.regex(EMAIL_REGEX)`,
+`z.string().email()` ni un `.min/.max` suelto para una regla que ya tiene builder. Si falta, se crea
+en `validadores-zod.ts` **genérico y parametrizado** (como `ValidatorLongitud.longitudEntre(min, max)`
+del backend), con su mensaje en `mensajes-validacion.ts`, su regex en `expresiones-regulares.ts` y su
+caso en `validadores-zod.test.ts`. Ampliar un builder existente con parámetros opcionales
+retrocompatibles se prefiere a crear uno paralelo que haga casi lo mismo. Solo queda en línea lo que
+no tiene una regla del backend detrás.
 
 **Un número mágico en un `.max(...)` es un hallazgo.** Si el límite lo impone el backend va en
 `LIMITES`, y el `maxLength` del input lo lee de ahí. `validadores-zod.test.ts` fija esos cuatro
@@ -130,6 +180,43 @@ valores: cambiarlos sin actualizar el backend rompe el test, que es lo que se bu
 de lista → Zod. Unicidad, existencia, propiedad y transición permitida → llegan como 422 y se
 muestran. Duplicar una regla de conjunto en el cliente da falsos negativos: el frontend no tiene los
 datos para decidirla.
+
+El error del backend al enviar **siempre** produce `toast.error` (ver "Notificaciones") y, además, se
+pinta junto al campo cuando corresponde a uno: `hasApiErrorCode(err, 'USUARIO_EMAIL_DUPLICADO')` o
+`getApiFieldErrors(err)` → `setError('email', { message })` con el mensaje de
+`getApiErrorMessage(err, …)`. Un `field` del backend que no es un input (el `nombre` derivado de
+`nombres + apellidos`) se pinta en **todos** los inputs que lo componen. Los códigos salen de
+`arquisoft-backend/shared/message/.../constant/{Modulo}Codes.java`, verificados, nunca adivinados.
+
+**Los campos del formulario tienen la misma granularidad que el DTO de entrada del backend.** Si el
+DTO separa `nombres` y `apellidos`, hay dos inputs; si separara primer y segundo nombre, habría
+cuatro. Nunca se fusionan dos campos del backend en un input ni se parte uno en varios, porque el
+error de cada campo debe poder mostrarse en su input.
+
+Una regla compuesta del cliente se atribuye al input culpable cuando se puede (el formato de
+`nombre` falla en el input que tiene el carácter inválido); si depende de varios (la longitud total
+de `nombres + " " + apellidos`), el mensaje se pinta en todos los que la componen.
+
+## Retorno tras registrar, editar o eliminar
+
+Tras un registro, una edición o una eliminación **exitosos**, la UI vuelve de inmediato a la vista
+anterior: el listado desde el que se abrió la acción, con el mismo filtro y la misma página con que se
+consultó el objeto afectado. No se deja al usuario en el formulario limpio ni se lo manda al dashboard.
+
+- **Orden en el éxito:** el hook invalida la query del listado por prefijo (para que refleje el
+  cambio); el componente, en el `onSuccess` del `mutate(...)`, lanza el toast de éxito y cierra la
+  vista (`onCerrar()` / `onVolver()`). `CoordinadorView` → `RegistrarFichaPerfil onCerrar` y
+  `AsesorFichaView` → `onVolver` son la referencia.
+- **Filtros y paginación viven por encima del formulario**, en la `{Rol}View` o en el hook del listado
+  (`useFichasPerfilCoordinador`), nunca dentro del panel que se desmonta: si viven dentro, volver los
+  resetea.
+- **Con ruta propia** (`/{feature}/nuevo`, `/{feature}/:id/editar`), los filtros van en search params
+  y el retorno los conserva; no se reconstruyen a mano.
+- **Eliminar desde el detalle** vuelve al listado, no al detalle de un objeto que ya no existe.
+- **En error** se queda en el formulario, con los datos intactos y los errores pintados.
+- **Sin listado todavía** (el backend no expone el `GET`): el formulario abre desde la vista de la
+  feature y el retorno es a esa vista. El plan lo declara explícitamente para que, cuando llegue el
+  listado, el retorno se mueva a él.
 
 ## Estados de carga, vacío y error
 
@@ -163,6 +250,13 @@ Niveles: `success` (4 s), `info` (4 s), `debug` (8 s), `error` (6 s). Firma
 
 Va en el `onSuccess`/`onError` de la mutación — en el hook **o** en el `mutate(...)` del componente,
 en **uno solo**, o el usuario ve dos toasts.
+
+**Toda mutación da retroalimentación con un mensaje emergente, sin excepción:** `toast.success` al
+terminar bien y `toast.error` en **cualquier** error, aunque ese error también se pinte junto a su
+campo. El mensaje del campo dice *dónde* está el problema; el toast garantiza que el usuario sepa que
+el envío falló, aunque el campo quede fuera de la vista. Un `onError` que solo hace `setError`, o una
+mutación sin toast de éxito, es un hallazgo. Las validaciones de Zod mientras se escribe no llevan
+toast: se pintan en el campo.
 
 Acción destructiva → `<ConfirmDialog />` (`variante: 'peligro' | 'advertencia'`), nunca `window.confirm`.
 
@@ -204,6 +298,46 @@ runtime. Clases condicionales con array + `.join(' ')`, no ternarios anidados.
 `text-red-500` en el asterisco de `RegistrarFichaPerfil` es una desviación preexistente conocida: no
 se reporta como hallazgo nuevo, pero tampoco se copia.
 
+### Mobile first
+
+**El estilo base es el del celular; los breakpoints solo agregan.** Se escribe primero la versión
+angosta sin prefijo y `sm:`/`md:`/`lg:` amplían hacia pantallas grandes. Un `lg:flex-col` que deshace
+un layout de escritorio, o un ancho fijo que solo funciona ancho, es un hallazgo. `AppLayout` ya
+resuelve el turno del menú lateral (cajón con backdrop bajo `lg`, fijo encima) y el padding de la
+página (`p-4 sm:p-6 lg:p-8`): una feature no lo reimplementa.
+
+**El comportamiento responsive vive en `src/index.css`, no en cada vista.** Bajo
+`/* Mobile first: primitivas globales */` están las clases que cualquier feature compone; el único
+punto de corte del proyecto es **640 px** (el `sm` de Tailwind) y se declara ahí una sola vez, en una
+media query. Una vista que reescribe `text-base sm:text-sm` o `w-full sm:w-auto` a mano duplica esa
+decisión y se desincroniza el día que cambie: usa la clase.
+
+| Clase global | Qué resuelve |
+|---|---|
+| `.field-label` / `.field-input` / `.field-error` | El campo completo: etiqueta, control y mensaje. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
+| `.tap-target` | Área táctil de 44 px en celular, sin mínimo desde `sm` — para la etiqueta que envuelve una casilla o un radio |
+| `.checkbox-control` | Casilla de 20 px para el dedo, 16 px desde `sm` |
+| `.actions-row` | Fila de botones: apilada y de ancho completo en celular, con la acción principal arriba; en fila a la derecha desde `sm` |
+| `.section-header` + `.header-action` | Cabecera de título más acción: apilada con botón de ancho completo en celular, en fila y separada desde `sm` |
+
+Lo que todavía no tiene clase global se escribe mobile first con utilidades y, si se repite en una
+segunda vista, sube a `index.css`:
+
+| Regla | Cómo se escribe |
+|---|---|
+| Nada de anchos fijos | `w-full` + `max-w-*`; nunca `w-[720px]` ni `min-w` por encima de 320 px |
+| Columnas | apiladas por defecto, `sm:grid-cols-2` o `sm:flex-row` después |
+| Icono-botón | `h-11 w-11 sm:h-9 sm:w-9` |
+| Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
+
+Las vistas anteriores a esta regla (las de `fichas-perfil`) todavía traen las utilidades a mano: se
+migran a las clases globales cuando se toque el archivo, no en una pasada aparte.
+
+**Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
+desplazamiento horizontal (`document.documentElement.scrollWidth` igual a `window.innerWidth`) ni
+elementos que se salgan de su contenedor. Si la ventana del navegador no se deja redimensionar, monta
+la ruta en un `iframe` del ancho a probar: su viewport propio sí evalúa los breakpoints.
+
 ## TypeScript
 
 `strict`, `noUnusedLocals` y `noUnusedParameters` activos: **una variable o import sin usar rompe el
@@ -233,8 +367,16 @@ vive en `vite.config.ts`; **no crees `vitest.config.ts`**.
 `useQuery` o `<Navigate>` revienta. Escribir `useAuthStore.setState` a mano también: usa
 `store.utils.ts`, con `resetAllStores()` en un `beforeEach`.
 
-**Qué se mockea:** el módulo del service (`vi.mock('../services/{feature}Service')`) o el hook.
-**Nunca `axios` ni `apiClient`** — eso prueba el interceptor, no la feature. Un test nunca llega a la red.
+**Qué se mockea:** el módulo del service o el hook de la feature. **Nunca `axios` ni `apiClient`** —
+eso prueba el interceptor, no la feature. Un test nunca llega a la red.
+
+**`vi.mock` de un hook o un service siempre lleva fábrica**, con la forma
+`vi.mock('../../hooks/useRegistrarUsuario', () => ({ useRegistrarUsuario: vi.fn() }))`. Sin ella,
+Vitest carga el módulo real para inspeccionar qué exporta, y esa carga arrastra la cadena
+`hook → service → apiClient → config/env.ts`, que lanza en test porque `VITE_API_URL` no está
+definida: el archivo falla entero con un error de entorno que no tiene que ver con lo que se prueba.
+La fábrica corta la cadena. `RegistrarUsuarioForm.test.tsx` y `test-utils/keycloak.mock.ts` son la
+referencia.
 
 `describe`/`it` en **español**, describiendo comportamiento observable. Marcadores
 `// Arrange / Act / Assert`. Consultas por rol y nombre accesible, no por `data-testid` ni clases.

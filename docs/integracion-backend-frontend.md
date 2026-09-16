@@ -95,14 +95,31 @@ compartido `AvisoNoDisponible` (`src/shared/components/AvisoNoDisponible.tsx`) y
 **Dependencia de backend:** exponer los endpoints de consulta de asesores y estudiantes disponibles
 para desbloquear el flujo del coordinador.
 
+## Endpoints de Usuarios
+
+Servicio: `src/features/usuarios/services/usuariosService.ts`.
+
+### Implementados y alineados
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
+|---|---|---|---|---|
+| `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
+
+Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
+`RegistrarUsuarioResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-256.md`
+(✅ APROBADO, PR `arquisoft-backend#111` mergeado). Sin traducción de nombres en el service: el modelo
+del frontend coincide 1:1 con el DTO real.
+
+Errores mapeados por `errorCode` (`ErrorResponseDTO`): 422 `USUARIO_IDENTIFICADOR_DUPLICADO`,
+`USUARIO_EMAIL_DUPLICADO`, `USUARIO_CONTACTO_DUPLICADO`; 503 `USUARIO_IDP_NO_DISPONIBLE` (Keycloak no
+disponible). No hay `GET /usuarios` hoy: no hay listado ni edición de usuarios en esta iteración.
+
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
 Estos endpoints existen en el backend pero no se integran en esta iteración:
 
 - **Seguridad / Autenticación:** `POST /auth/login` (deprecado, ROPC), `POST /auth/refresh`,
   `POST /auth/logout`, `POST /auth/validate`. El frontend usa `keycloak-js` directamente.
-- **Usuarios:** `POST /usuarios` (`{ email, rol }` → `201 { id, email, rol }`), requiere autoridad
-  `usuarios:usuario:create`.
 - **Fichas / MinIO (PoC):** `/fichas/minio/guia/*` — marcado para eliminación en el backend, se ignora.
 
 ## Validación compartida alineada al backend
@@ -112,12 +129,16 @@ del backend; las reglas propias de la lógica de negocio permanecen en cada form
 
 - `limites.ts` — constantes de las restricciones `@Size` del backend:
   `TITULO_PROYECTO_MAX = 100`, `ITEM_CONTENIDO_MAX = 7000`, `ESTADO_EVALUACION_ID_MAX = 50`,
-  `ESTUDIANTES_MAX = 3`.
-- `expresiones-regulares.ts` — `EMAIL_REGEX`, `UUID_REGEX`.
+  `ESTUDIANTES_MAX = 3`, `USUARIO_IDENTIFICADOR_MIN/MAX = 4/30`, `USUARIO_NOMBRE_MIN/MAX = 2/50`,
+  `USUARIO_EMAIL_MIN/MAX = 6/50`, `USUARIO_CONTACTO_MIN/MAX = 10/15`.
+- `expresiones-regulares.ts` — `EMAIL_REGEX` (alineado a `PATRON_CORREO` del backend), `UUID_REGEX`,
+  `DIGITOS_REGEX`, `NOMBRE_COMPLETO_REGEX`.
 - `mensajes-validacion.ts` — mensajes de error en español reutilizables.
 - `validadores-zod.ts` — builders Zod reutilizables: `textoRequerido(max)`, `opcionRequerida()`,
-  `emailValido()`, `uuidValido()`, `listaConMaximo(max)`.
+  `emailValido(min?, max?)`, `uuidValido()`, `listaConMaximo(max)`, `textoEntre(min, max)`,
+  `textoNoVacio()`, `soloDigitosEntre(min, max)`.
 - `index.ts` — barrel del módulo.
 
 Formularios que ya consumen el módulo: `RegistrarFichaPerfil` (título), `MiFichaHeader` (título),
-`ItemsMiFichaPanel` (contenido de ítem).
+`ItemsMiFichaPanel` (contenido de ítem), `RegistrarUsuarioForm` (identificador, nombres/apellidos,
+email, contacto).
