@@ -9,6 +9,32 @@ Complementa a `arquisoft-frontend-arquitectura` (capas y estructura); esta cubre
 Las dos juntas son la fuente de verdad. Cada regla referencia un archivo real de `fichas-perfil` o de
 `src/shared/`.
 
+## Una decisión, un solo lugar
+
+**Toda decisión transversal se declara una vez, en su sitio compartido, y las features la componen.**
+Es la regla que sostiene el mantenimiento: cuando esa decisión cambie, debe alcanzar con tocar un
+archivo. La misma regla copiada en cinco vistas se desincroniza a la primera modificación, y nadie se
+entera hasta que un usuario ve dos comportamientos distintos en dos pantallas.
+
+| Tipo de decisión | Dónde vive |
+|---|---|
+| Color, sombra, radio, animación | `@theme` de `src/tailwind.css` |
+| Comportamiento visual repetible (responsive, área táctil, campo de formulario) | Clases globales de `src/index.css` |
+| Límite del backend | `LIMITES` en `shared/validation/limites.ts` |
+| Regla de validación | Builder en `shared/validation/validadores-zod.ts` |
+| Texto de error de validación | `MENSAJES_VALIDACION` |
+| Lectura de un error de API | Helpers de `shared/utils/api-error.ts` |
+| Restricción de rol por ruta | `NAV_ITEMS[].roles` |
+| Token, refresco y ruteo de 401/403 | `api/axiosInstance.ts` |
+
+**Cuándo se sube algo.** A la segunda vista que necesita lo mismo: la primera lo resuelve local, la
+segunda lo sube y migra a la primera. Subir con un solo consumidor es abstraer de más, y ahí la regla
+se invierte (un componente sube a `src/shared/components/` solo con dos features consumidoras).
+
+**Cómo se migra.** Lo que ya estaba escrito a mano antes de existir el sitio compartido no se migra en
+una pasada aparte: se migra cuando se toque ese archivo por otra razón. Un plan que proponga
+"normalizar todo" a la vez no pasa revisión — el diff deja de ser revisable y mezcla dos intenciones.
+
 ## Nomenclatura
 
 **Español para los términos de negocio, inglés para los sufijos técnicos.**
@@ -280,16 +306,32 @@ un layout de escritorio, o un ancho fijo que solo funciona ancho, es un hallazgo
 resuelve el turno del menú lateral (cajón con backdrop bajo `lg`, fijo encima) y el padding de la
 página (`p-4 sm:p-6 lg:p-8`): una feature no lo reimplementa.
 
+**El comportamiento responsive vive en `src/index.css`, no en cada vista.** Bajo
+`/* Mobile first: primitivas globales */` están las clases que cualquier feature compone; el único
+punto de corte del proyecto es **640 px** (el `sm` de Tailwind) y se declara ahí una sola vez, en una
+media query. Una vista que reescribe `text-base sm:text-sm` o `w-full sm:w-auto` a mano duplica esa
+decisión y se desincroniza el día que cambie: usa la clase.
+
+| Clase global | Qué resuelve |
+|---|---|
+| `.field-label` / `.field-input` / `.field-error` | El campo completo: etiqueta, control y mensaje. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
+| `.tap-target` | Área táctil de 44 px en celular, sin mínimo desde `sm` — para la etiqueta que envuelve una casilla o un radio |
+| `.checkbox-control` | Casilla de 20 px para el dedo, 16 px desde `sm` |
+| `.actions-row` | Fila de botones: apilada y de ancho completo en celular, con la acción principal arriba; en fila a la derecha desde `sm` |
+| `.section-header` + `.header-action` | Cabecera de título más acción: apilada con botón de ancho completo en celular, en fila y separada desde `sm` |
+
+Lo que todavía no tiene clase global se escribe mobile first con utilidades y, si se repite en una
+segunda vista, sube a `index.css`:
+
 | Regla | Cómo se escribe |
 |---|---|
 | Nada de anchos fijos | `w-full` + `max-w-*`; nunca `w-[720px]` ni `min-w` por encima de 320 px |
-| Input legible y sin zoom en iOS | `text-base sm:text-sm` — con menos de 16 px Safari hace zoom al enfocar |
-| Área táctil cómoda | `min-h-11` (44 px) en la etiqueta o el control; los iconos-botón, `h-11 w-11 sm:h-9 sm:w-9` |
-| Control pequeño | `h-5 w-5 sm:h-4 sm:w-4` — la casilla de 16 px es para puntero, no para dedo |
-| Fila de acciones | `flex flex-col-reverse gap-2 sm:flex-row sm:justify-end`, con `w-full sm:w-auto` en cada botón: la acción principal queda arriba en celular |
-| Cabecera de título + acción | `flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between` |
 | Columnas | apiladas por defecto, `sm:grid-cols-2` o `sm:flex-row` después |
+| Icono-botón | `h-11 w-11 sm:h-9 sm:w-9` |
 | Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
+
+Las vistas anteriores a esta regla (las de `fichas-perfil`) todavía traen las utilidades a mano: se
+migran a las clases globales cuando se toque el archivo, no en una pasada aparte.
 
 **Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
 desplazamiento horizontal (`document.documentElement.scrollWidth` igual a `window.innerWidth`) ni
