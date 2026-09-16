@@ -272,6 +272,30 @@ runtime. Clases condicionales con array + `.join(' ')`, no ternarios anidados.
 `text-red-500` en el asterisco de `RegistrarFichaPerfil` es una desviación preexistente conocida: no
 se reporta como hallazgo nuevo, pero tampoco se copia.
 
+### Mobile first
+
+**El estilo base es el del celular; los breakpoints solo agregan.** Se escribe primero la versión
+angosta sin prefijo y `sm:`/`md:`/`lg:` amplían hacia pantallas grandes. Un `lg:flex-col` que deshace
+un layout de escritorio, o un ancho fijo que solo funciona ancho, es un hallazgo. `AppLayout` ya
+resuelve el turno del menú lateral (cajón con backdrop bajo `lg`, fijo encima) y el padding de la
+página (`p-4 sm:p-6 lg:p-8`): una feature no lo reimplementa.
+
+| Regla | Cómo se escribe |
+|---|---|
+| Nada de anchos fijos | `w-full` + `max-w-*`; nunca `w-[720px]` ni `min-w` por encima de 320 px |
+| Input legible y sin zoom en iOS | `text-base sm:text-sm` — con menos de 16 px Safari hace zoom al enfocar |
+| Área táctil cómoda | `min-h-11` (44 px) en la etiqueta o el control; los iconos-botón, `h-11 w-11 sm:h-9 sm:w-9` |
+| Control pequeño | `h-5 w-5 sm:h-4 sm:w-4` — la casilla de 16 px es para puntero, no para dedo |
+| Fila de acciones | `flex flex-col-reverse gap-2 sm:flex-row sm:justify-end`, con `w-full sm:w-auto` en cada botón: la acción principal queda arriba en celular |
+| Cabecera de título + acción | `flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between` |
+| Columnas | apiladas por defecto, `sm:grid-cols-2` o `sm:flex-row` después |
+| Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
+
+**Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
+desplazamiento horizontal (`document.documentElement.scrollWidth` igual a `window.innerWidth`) ni
+elementos que se salgan de su contenedor. Si la ventana del navegador no se deja redimensionar, monta
+la ruta en un `iframe` del ancho a probar: su viewport propio sí evalúa los breakpoints.
+
 ## TypeScript
 
 `strict`, `noUnusedLocals` y `noUnusedParameters` activos: **una variable o import sin usar rompe el
