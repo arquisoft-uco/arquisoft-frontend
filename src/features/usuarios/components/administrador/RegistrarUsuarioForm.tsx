@@ -193,14 +193,11 @@ export default function RegistrarUsuarioForm({ onCerrar }: Props) {
           </legend>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             {Object.values(Rol).map((rol) => (
-              <label
-                key={rol}
-                className="inline-flex min-h-11 items-center gap-2 text-sm text-on-surface sm:min-h-0 sm:py-1"
-              >
+              <label key={rol} className="tap-target gap-2 text-sm text-on-surface">
                 <input
                   type="checkbox"
                   value={rol}
-                  className="h-5 w-5 rounded border-border text-primary focus:ring-primary sm:h-4 sm:w-4"
+                  className="checkbox-control rounded border-border text-primary focus:ring-primary"
                   {...register('roles')}
                 />
                 {ETIQUETAS_ROL[rol]}
@@ -209,18 +206,18 @@ export default function RegistrarUsuarioForm({ onCerrar }: Props) {
           </div>
         </fieldset>
 
-        <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
+        <div className="actions-row border-t border-border pt-4">
           <button
             type="button"
             onClick={onCerrar}
-            className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-on-surface transition-colors hover:bg-muted sm:w-auto sm:py-2"
+            className="rounded-lg border border-border px-4 py-2.5 text-sm text-on-surface transition-colors hover:bg-muted sm:py-2"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isPending || !isValid}
-            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:py-2"
+            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:py-2"
           >
             {isPending ? 'Registrando...' : 'Registrar'}
           </button>
