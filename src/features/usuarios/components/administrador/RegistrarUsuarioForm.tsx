@@ -146,7 +146,7 @@ export default function RegistrarUsuarioForm({ onCerrar }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5">
       <h3 className="mb-4 text-base font-semibold text-on-surface">Registrar nuevo usuario</h3>
 
       <form onSubmit={handleSubmit(onSubmit)} aria-busy={isPending} className="flex flex-col gap-4">
@@ -191,13 +191,16 @@ export default function RegistrarUsuarioForm({ onCerrar }: Props) {
           <legend className="mb-1 text-xs font-medium text-on-surface-secondary">
             Roles a asignar (opcional)
           </legend>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
             {Object.values(Rol).map((rol) => (
-              <label key={rol} className="inline-flex items-center gap-2 text-sm text-on-surface">
+              <label
+                key={rol}
+                className="inline-flex min-h-11 items-center gap-2 text-sm text-on-surface sm:min-h-0 sm:py-1"
+              >
                 <input
                   type="checkbox"
                   value={rol}
-                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  className="h-5 w-5 rounded border-border text-primary focus:ring-primary sm:h-4 sm:w-4"
                   {...register('roles')}
                 />
                 {ETIQUETAS_ROL[rol]}
@@ -206,18 +209,18 @@ export default function RegistrarUsuarioForm({ onCerrar }: Props) {
           </div>
         </fieldset>
 
-        <div className="flex justify-end gap-2 border-t border-border pt-4">
+        <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onCerrar}
-            className="rounded-lg border border-border px-4 py-2 text-sm text-on-surface transition-colors hover:bg-muted"
+            className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-on-surface transition-colors hover:bg-muted sm:w-auto sm:py-2"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isPending || !isValid}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto sm:py-2"
           >
             {isPending ? 'Registrando...' : 'Registrar'}
           </button>

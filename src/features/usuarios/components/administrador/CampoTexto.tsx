@@ -29,7 +29,7 @@ export default function CampoTexto({
         id={id}
         type={type}
         inputMode={inputMode}
-        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
+        className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-base text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger sm:py-2 sm:text-sm"
         aria-invalid={!!error}
         aria-describedby={error ? idError : undefined}
         {...registro}
