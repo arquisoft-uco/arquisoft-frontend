@@ -6,7 +6,6 @@ import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import EstadosEvaluacionPanel from './EstadosEvaluacionPanel';
 import AgregarEstadoEvaluacionPanel from './AgregarEstadoEvaluacionPanel';
-import type { EvaluacionCreadaResponse } from '../../models/fichas-perfil';
 
 interface Props {
   fichaPerfilId: string;
@@ -14,9 +13,8 @@ interface Props {
 
 export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
   const [confirmarAbierto, setConfirmarAbierto] = useState(false);
-  const [evaluacionCreada, setEvaluacionCreada] = useState<EvaluacionCreadaResponse | null>(null);
 
-  const { data: evaluacionServidor, isLoading, isError: isErrorConsulta } = useEvaluacionFicha(fichaPerfilId);
+  const { data: evaluaciones, isLoading, isError: isErrorConsulta } = useEvaluacionFicha(fichaPerfilId);
   const { mutate, isPending, isError: isErrorMutacion, error } = useRegistrarEvaluacion(fichaPerfilId);
 
   function handleIniciar() {
@@ -25,8 +23,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
 
   function handleConfirmar() {
     mutate(undefined, {
-      onSuccess: (data) => {
-        setEvaluacionCreada(data);
+      onSuccess: () => {
         setConfirmarAbierto(false);
       },
       onError: () => {
@@ -58,7 +55,10 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
     );
   }
 
-  const evaluacionMostrar = evaluacionServidor ?? evaluacionCreada ?? null;
+  // El backend ordena por fechaCreacion ascendente (CA-9 de HU-182): la última es la vigente.
+  const evaluacionMostrar = evaluaciones && evaluaciones.length > 0
+    ? evaluaciones[evaluaciones.length - 1]
+    : null;
 
   if (evaluacionMostrar) {
     return (
@@ -71,7 +71,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
             <ClipboardCheck size={20} className="shrink-0 text-primary" aria-hidden />
             <p className="text-sm font-semibold text-on-surface">Evaluación registrada</p>
             <span className="ml-auto inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-              {evaluacionMostrar.estadoActual}
+              {evaluacionMostrar.estadoEvaluacionNombre ?? 'Sin estado'}
             </span>
           </div>
           <div className="space-y-1 pl-8">

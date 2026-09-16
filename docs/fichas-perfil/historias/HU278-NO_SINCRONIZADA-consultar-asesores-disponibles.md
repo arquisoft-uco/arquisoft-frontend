@@ -1,5 +1,11 @@
 # HU278 — Consultar todos los asesores de ficha disponibles
 
+> ⚠️ **NO_SINCRONIZADA:** el catálogo maestro (`historias_usuario_priorizadas.md`) reasignó el ID
+> HU278 a otra historia distinta ("Enviar Correcciones de Revisión Ítem") en una consolidación
+> posterior. Esta historia no tiene un ID vigente confirmado contra el backend — se conserva el
+> número original (de los issues #42/#43 de `arquisoft-docs`) solo como referencia hasta que se
+> confirme o reasigne. No planificar ni citar como "HU-278" sin esta salvedad.
+
 ## Historia de usuario
 
 **Como** Coordinador

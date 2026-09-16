@@ -11,57 +11,53 @@ Este archivo brinda guía a Claude Code (claude.ai/code) al trabajar con código
 
 ## Enrutamiento de agentes y skills
 
-Cuando la solicitud del usuario coincida con una fila de las tablas de abajo, invoca el agente o el
-skill como **primera acción** — antes de responder y antes de tocar cualquier archivo. Traen el flujo
-verificado contra este repositorio; improvisar produce código que contradice las convenciones.
+Cuando la solicitud coincida con una fila, invoca el agente o el skill como **primera acción**, antes
+de responder y antes de tocar archivos.
 
 ### Ciclo de vida de una HU/HT — agentes (`.claude/agents/`)
 
-Se ejecutan en orden. Cada uno pide aprobación explícita del usuario en sus puntos de corte y deja su
-rastro en la sección de Trazabilidad del plan.
+En orden. Cada uno pide aprobación explícita en sus puntos de corte y deja rastro en la Trazabilidad
+del plan.
 
 | Cuando el usuario pide… | Agente | Produce |
 |---|---|---|
 | "planifica HU-XXX", "genera el plan de…" | `@1-planificador` | `.workspace/h-plan/PLAN-{HU\|HT}-{ID}.md`. No escribe código |
 | "implementa el plan", "ya está aprobado" | `@2-implementador` | Código, capa por capa: `models → services → hooks → components` |
-| "escribe los tests de…", "genera las pruebas" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
-| "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte de validación, como mensaje. No escribe archivos |
+| "escribe los tests de…" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
+| "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte, como mensaje. No escribe archivos |
 | "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
 | "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop`, con dos confirmaciones |
 
-Reglas de la cadena:
-
-- **No se saltan etapas.** `@2-implementador` exige un plan aprobado; `@4c-commit` no entrega un
+- **No se saltan etapas.** `@2-implementador` exige plan aprobado; `@4c-commit` no entrega un
   reporte `⛔ RECHAZADO`.
-- **`.workspace/` está en `.gitignore`.** Planes, reportes y cuerpos de PR no se versionan aquí: los
-  publica `@4c-commit` en `arquisoft-docs`.
-- **Un cambio pequeño no necesita la cadena.** Un bug de una línea, un ajuste de copy o una duda
-  puntual se resuelven cargando las dos skills de contexto (abajo) y trabajando directo. La cadena es
-  para una HU/HT con criterios de aceptación.
+- **`.workspace/` está en `.gitignore`.** Planes, reportes y cuerpos de PR se publican en
+  `arquisoft-docs`, no se versionan aquí.
+- **Un cambio pequeño no necesita la cadena.** Un bug de una línea o una duda puntual se resuelven
+  cargando las dos skills de contexto y trabajando directo.
 
 ### Contexto del proyecto — skills propias (`.claude/skills/`)
 
 | Skill | Cargar cuando… |
 |---|---|
-| `arquisoft-frontend-arquitectura` | **Siempre** antes de crear o mover un archivo bajo `src/`. Capas de una feature, enrutamiento, capa HTTP, stores, contrato con el backend |
-| `arquisoft-frontend-estandares` | **Siempre junto con la anterior** al escribir código. Nomenclatura, formularios, validación, errores de API, accesibilidad, design tokens, testing, git |
-| `context7-stack-frontend` | Antes de generar código que use una librería del stack — trae los IDs de Context7 ya resueltos y las trampas de versión (el proyecto está en **Zod 3**, no 4) |
-| `gh-docs-reader` | Al buscar una HU/HT, el contrato real de un endpoint o los valores de un catálogo. Prioriza `docs/` local y `../arquisoft-backend` sobre GitHub |
-| `arquisoft-frontend-mcps` | Al decidir qué MCP usar (Context7, Claude in Chrome, GitHub, IDEA) y cuál es el fallback si no está cargado |
+| `arquisoft-frontend-arquitectura` | **Siempre** antes de crear o mover algo en `src/`. Capas, enrutamiento, capa HTTP, stores, contrato con el backend |
+| `arquisoft-frontend-estandares` | **Siempre junto con la anterior** al escribir código. Nomenclatura, componentes, formularios, validación, errores, a11y, estilos, TypeScript, testing, git |
+| `context7-stack-frontend` | Antes de generar código que use una librería del stack — IDs ya resueltos y trampas de versión (el proyecto está en **Zod 3**) |
+| `gh-docs-reader` | Al buscar una HU/HT, el contrato real de un endpoint o los valores de un catálogo |
+| `arquisoft-frontend-mcps` | Al decidir qué MCP usar y cuál es su fallback |
 
-Las dos primeras son la **fuente de verdad**: este archivo es un índice operativo y remite a ellas.
-Si discrepan con `CLAUDE.md`, ganan las skills.
+Las dos primeras son la **fuente de verdad**: este archivo es un índice y remite a ellas. Si
+discrepan, ganan las skills.
 
 ### Skills integradas de Claude Code
 
 | Cuando el usuario pide… | Skill | Nota |
 |---|---|---|
-| "revisa mi diff", "code review" | `code-review` | Para una HU completa prefiere `@4a-validator-analyze`: aplica además los checks de este proyecto |
+| "revisa mi diff", "code review" | `code-review` | Para una HU completa prefiere `@4a-validator-analyze`: añade los checks del proyecto |
 | "simplifica", "limpia esto" | `simplify` | Solo calidad; no busca bugs |
 | "revisión de seguridad" | `security-review` | Complementa el Nivel 2.10 de `@4a-validator-analyze` |
-| "abre la app", "pruébalo en el navegador", "captura la pantalla" | `claude-in-chrome` | Invocarla es requisito antes de cualquier `mcp__claude-in-chrome__*`. Levanta `npm run dev` con `VITE_AUTH_BYPASS=true` |
-| "arranca el proyecto", "muéstramelo funcionando" | `run` | Verifica un cambio contra la app real, no solo contra los tests |
-| "documentación de React / Query / Zod / Tailwind…" | `context7-mcp` | Usa primero `context7-stack-frontend`: ya trae los IDs resueltos |
+| "pruébalo en el navegador", "captura la pantalla" | `claude-in-chrome` | Requisito antes de cualquier `mcp__claude-in-chrome__*`. Levanta `npm run dev` con `VITE_AUTH_BYPASS=true` |
+| "arranca el proyecto", "muéstramelo funcionando" | `run` | Verifica contra la app real, no solo contra los tests |
+| "documentación de React / Query / Zod / Tailwind…" | `context7-mcp` | Usa antes `context7-stack-frontend` |
 
 ## Comandos
 
@@ -91,58 +87,37 @@ Copia `.env.example` a `.env.development.local` y completa con valores reales. L
 
 ## Arquitectura
 
-### Flujo de autenticación
-
-`AuthGuard` (ruta de layout) llama a `keycloak.init()` una sola vez al montarse. Mientras inicializa, renderiza `<AppLoader />`. Al tener éxito, llena `useAuthStore` de forma atómica e inicia el refresco proactivo del token vía `scheduleRefresh`. Cuando `VITE_AUTH_BYPASS=true`, `initDevAuth()` reemplaza este flujo con un usuario falso tomado de variables de entorno.
-
-`useAuthStore` (Zustand, **solo en memoria**) guarda el token actual y los claims parseados. La instancia de Axios lee el token desde `useAuthStore.getState()` — sin hooks de React — para que funcione en interceptores fuera del árbol de React.
-
-`useRoleStore` (Zustand, **persistido en localStorage** bajo la clave `arquisoft_rol_activo`) guarda el rol activo seleccionado por el usuario. `RoleGuard` lee este valor para redirigir a `/seleccionar-rol` o `/forbidden`.
-
-### Capa HTTP
-
-`src/api/axiosInstance.ts` es la única instancia de Axios. Ella:
-- Adjunta el Bearer token vía interceptor de request.
-- Ante un 401: usa un mutex de refresco compartido (`refreshPromise`) para que fallos concurrentes disparen un solo refresco de token, y luego reintenta.
-- Ante un 403: navega a `/forbidden` importando el router dinámicamente (evita import circular).
-
-### Estructura de features
-
-La lógica de negocio se divide en módulos de features bajo `src/features/`. Cada uno sigue el mismo layout:
+Resumen operativo. **El detalle y el porqué están en la skill `arquisoft-frontend-arquitectura`**;
+si algo aquí discrepa, gana la skill.
 
 ```
-features/<name>/
-├── <Name>.tsx          # Componente de página (destino de ruta)
-├── components/         # Componentes internos
+src/features/<feature>/
+├── <Feature>.tsx       # Página, destino de ruta (lazy en router.tsx)
+├── components/         # Vistas por rol y componentes de la feature
 ├── hooks/              # use<Accion|Recurso> — React Query sobre el service
-├── models/             # Interfaces TypeScript de este dominio
-└── services/           # Llamadas Axios vía apiClient
+├── models/             # Solo interfaces y tipos
+└── services/           # <feature>Service.ts — un objeto plano sobre apiClient
 ```
 
-La dirección de dependencias es `models ← services ← hooks ← components`: un `.tsx` nunca importa
-`apiClient`, un hook nunca devuelve JSX, un service nunca importa React ni React Query.
+Dirección: `models ← services ← hooks ← components`. Un `.tsx` nunca importa `apiClient`, un hook
+nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/` no importa de
+`src/features/`.
 
-`src/features/fichas-perfil/` es la implementación de referencia canónica — es la **única** feature
-completa, y las otras nueve rutas renderizan `<ComingSoon />` con sus carpetas vacías. Copia sus
-patrones para features nuevas; el detalle está en la skill `arquisoft-frontend-arquitectura`.
+`src/features/fichas-perfil/` es la **única** feature completa y el único molde válido; las otras
+nueve rutas renderizan `<ComingSoon />`.
 
-### Tipos compartidos
-
-`src/shared/models/api-response.ts` exporta `Page<T>`, `ApiResponse<T>` y `ApiError` — las formas estándar que devuelve el backend. Los services deben tipar sus respuestas con estas.
-
-### Estructura del token
-
-Los roles se leen desde `realm_access.roles` en el JWT de Keycloak (no desde `resource_access[clientId].roles`). `parseRoles()` en `authStore.ts` se encarga de esto. El bypass de desarrollo en `devAuth.ts` refleja la misma estructura vía `realm_access: { roles }` en el `tokenParsed` falso.
-
-Los tokens se mantienen **solo en memoria** (Zustand sin `persist` + propiedad de instancia de Keycloak JS). Nada sensible se escribe jamás en `localStorage` o `sessionStorage`; solo se persiste el string del rol seleccionado (`arquisoft_rol_activo`).
-
-### Enrutamiento
-
-Todas las rutas se cargan de forma perezosa (lazy) en `src/router.tsx`. Las rutas de features nuevas van dentro del arreglo `children` de `AppLayout`. La instancia `router` se exporta para que el interceptor de Axios pueda llamar a `router.navigate()` fuera del árbol de React.
-
-### Testing
-
-Los tests usan `@testing-library/react`. Importa `render` desde `src/test-utils/render.tsx` en lugar de testing-library directamente — envuelve los componentes en `QueryClientProvider` + `MemoryRouter` automáticamente. Keycloak se mockea vía `src/test-utils/keycloak.mock.ts`.
+- **Capa HTTP** — `src/api/axiosInstance.ts` es la única instancia de Axios: adjunta el Bearer token,
+  resuelve el 401 con un mutex de refresco compartido y reintenta, y ante un 403 navega a
+  `/forbidden` importando el router de forma dinámica (evita el ciclo de imports).
+- **Sesión** — `useAuthStore` vive **solo en memoria**; el interceptor lo lee con `getState()`, no con
+  hooks. `useRoleStore` persiste en `localStorage` **únicamente** el string del rol activo. Los roles
+  salen de `realm_access.roles`, y el rol activo es derivado: léelo con `useRolActivo()`.
+- **Enrutamiento** — todas las rutas son perezosas. La restricción por rol se declara en
+  `NAV_ITEMS[].roles` (`src/layout/nav-items.ts`), no a mano en `router.tsx`.
+- **Tipos del backend** — `Page<T>`, `ApiResponse<T>` y `ApiError` en `src/shared/models/api-response.ts`.
+  `docs/integracion-backend-frontend.md` es la fuente autoritativa de qué endpoint existe hoy.
+- **Testing** — importa `render` de `src/test-utils/render.tsx` (trae `QueryClientProvider` +
+  `MemoryRouter`); Keycloak se mockea con `src/test-utils/keycloak.mock.ts`.
 
 ## Convenciones
 

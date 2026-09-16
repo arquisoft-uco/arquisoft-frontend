@@ -133,3 +133,116 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(0.98);
 }
 
+
+/* ── Mobile first: primitivas globales ───────────────── */
+/* Único punto de corte del proyecto: 640px (el `sm` de Tailwind). El estilo
+   base es el de celular; la media query solo amplía hacia pantallas grandes.
+   Una vista compone estas clases: no repite los breakpoints por su cuenta. */
+
+/* Área táctil cómoda (44px) en celular; en pantallas grandes basta el puntero. */
+.tap-target {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+/* Control pequeño (casilla, radio): dedo en celular, puntero en escritorio. */
+.checkbox-control {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+/* Campo de formulario: etiqueta, control y mensaje de error. */
+.field-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-on-surface-secondary);
+}
+
+.field-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  /* 16px evita el zoom automático de iOS al enfocar el campo. */
+  font-size: 1rem;
+  color: var(--color-on-surface);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.field-input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.field-error {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-danger);
+}
+
+/* Fila de acciones: apilada en celular, con la principal arriba. */
+.actions-row {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+}
+
+.actions-row > * {
+  width: 100%;
+}
+
+/* Cabecera de sección: título arriba y acción de ancho completo en celular. */
+.section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.section-header > .header-action {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .tap-target {
+    min-height: 0;
+  }
+
+  .checkbox-control {
+    height: 1rem;
+    width: 1rem;
+  }
+
+  .field-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .actions-row {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .actions-row > * {
+    width: auto;
+  }
+
+  .section-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-header > .header-action {
+    width: auto;
+  }
+}

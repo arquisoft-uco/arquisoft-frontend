@@ -1,139 +1,126 @@
 ---
 name: arquisoft-frontend-estandares
-description: Estándares de código de Arquisoft Frontend — nomenclatura, orden interno de un componente, formularios con react-hook-form + Zod, validación compartida alineada al backend, manejo de errores de API, accesibilidad, design tokens de Tailwind, testing con Vitest + Testing Library y git. Cargar junto con arquisoft-frontend-arquitectura antes de implementar, testear o validar cualquier HU/HT.
+description: Estándares de código de Arquisoft Frontend — nomenclatura, componentes, services, models, stores, formularios con react-hook-form + Zod, validación compartida espejo del backend, retorno al listado tras registrar/editar/eliminar, manejo de errores de API, accesibilidad, design tokens de Tailwind, TypeScript, testing con Vitest + Testing Library, verificación y git. Cargar junto con arquisoft-frontend-arquitectura antes de implementar, testear o validar cualquier HU/HT.
 ---
 
 # Skill: arquisoft-frontend-estandares
 
-Complementa a `arquisoft-frontend-arquitectura` (esa cubre capas y estructura; esta cubre reglas de
-código transversales). **Las dos juntas son la fuente de verdad**: `CLAUDE.md` es un índice operativo
-que remite aquí, y si discrepan gana la skill. Cada regla referencia un archivo real de
-`fichas-perfil` o de `src/shared/` en vez de un snippet — ábrelo con `Read` si necesitas el código
-exacto.
+Complementa a `arquisoft-frontend-arquitectura` (capas y estructura); esta cubre reglas de código.
+Las dos juntas son la fuente de verdad. Cada regla referencia un archivo real de `fichas-perfil` o de
+`src/shared/`.
+
+## Una decisión, un solo lugar
+
+**Toda decisión transversal se declara una vez, en su sitio compartido, y las features la componen.**
+Es la regla que sostiene el mantenimiento: cuando esa decisión cambie, debe alcanzar con tocar un
+archivo. La misma regla copiada en cinco vistas se desincroniza a la primera modificación, y nadie se
+entera hasta que un usuario ve dos comportamientos distintos en dos pantallas.
+
+| Tipo de decisión | Dónde vive |
+|---|---|
+| Color, sombra, radio, animación | `@theme` de `src/tailwind.css` |
+| Comportamiento visual repetible (responsive, área táctil, campo de formulario) | Clases globales de `src/index.css` |
+| Límite del backend | `LIMITES` en `shared/validation/limites.ts` |
+| Regla de validación | Builder en `shared/validation/validadores-zod.ts` |
+| Texto de error de validación | `MENSAJES_VALIDACION` |
+| Lectura de un error de API | Helpers de `shared/utils/api-error.ts` |
+| Restricción de rol por ruta | `NAV_ITEMS[].roles` |
+| Token, refresco y ruteo de 401/403 | `api/axiosInstance.ts` |
+
+**Cuándo se sube algo.** A la segunda vista que necesita lo mismo: la primera lo resuelve local, la
+segunda lo sube y migra a la primera. Subir con un solo consumidor es abstraer de más, y ahí la regla
+se invierte (un componente sube a `src/shared/components/` solo con dos features consumidoras).
+
+**Cómo se migra.** Lo que ya estaba escrito a mano antes de existir el sitio compartido no se migra en
+una pasada aparte: se migra cuando se toque ese archivo por otra razón. Un plan que proponga
+"normalizar todo" a la vez no pasa revisión — el diff deja de ser revisable y mezcla dos intenciones.
 
 ## Nomenclatura
 
-**Español para los términos de negocio, inglés para los sufijos técnicos.** `RegistrarFichaPerfil`,
-`useCambiarAsesor`, `fichasPerfilService`, `EstudianteVinculado`.
+**Español para los términos de negocio, inglés para los sufijos técnicos.**
 
-| Artefacto | Convención | Ejemplo real |
+| Artefacto | Convención | Ejemplo |
 |---|---|---|
-| Página de feature | `PascalCase.tsx`, mismo nombre que la carpeta en PascalCase | `FichasPerfil.tsx` |
+| Página de feature | `PascalCase.tsx` | `FichasPerfil.tsx` |
 | Componente | `PascalCase.tsx`, `export default function` | `FichasPerfilTable.tsx` |
-| Vista por rol | `{Rol}View.tsx` en `components/` | `CoordinadorView.tsx` |
+| Vista por rol | `{Rol}View.tsx` | `CoordinadorView.tsx` |
 | Panel/tabla/formulario de un rol | `components/{rol}/{Concepto}{Panel\|Table\|Form}.tsx` | `coordinador/EstudiantesVinculadosPanel.tsx` |
-| Hook | `use{Accion\|Recurso}.ts`, `export function` (no default) | `useRegistrarFichaPerfil.ts` |
-| Service | `{feature}Service.ts`, objeto plano exportado con `export const` | `fichasPerfilService.ts` |
-| Modelo | `PascalCase.ts` con la interfaz del mismo nombre | `FichaPerfilAsesor.ts` |
-| Request/Response | `{Accion}{Entidad}Request.ts` / `{Entidad}{Estado}Response.ts` | `AsignarEstudianteRequest.ts`, `FichaPerfilCreadaResponse.ts` |
-| Store Zustand | `{concepto}Store.ts`, hook `use{Concepto}Store` | `toastStore.ts` → `useToastStore` |
-| Test | `{ArchivoBajoPrueba}.test.ts(x)`, junto al archivo que prueba | `AvisoNoDisponible.test.tsx` |
+| Hook | `use{Accion\|Recurso}.ts`, `export function` | `useRegistrarFichaPerfil.ts` |
+| Service | `{feature}Service.ts`, `export const` | `fichasPerfilService.ts` |
+| Modelo | `PascalCase.ts` | `FichaPerfilAsesor.ts` |
+| Request/Response | `{Accion}{Entidad}Request.ts` / `{Entidad}{Estado}Response.ts` | `AsignarEstudianteRequest.ts` |
+| Store | `{concepto}Store.ts` → `use{Concepto}Store` | `toastStore.ts` |
+| Test | `{ArchivoBajoPrueba}.test.ts(x)`, junto al archivo | `AvisoNoDisponible.test.tsx` |
 
-**Sin JSDoc.** Es regla del proyecto (`CLAUDE.md`): el código se autodocumenta por el naming, y los
-bloques `/** ... */` no se agregan. El código anterior a esa decisión los conserva —`axiosInstance.ts`,
-`keycloak.ts`, `api-error.ts`— y **no se migra en masa**; simplemente no escribas ninguno nuevo. Un
-comentario de una línea sí es legítimo cuando explica un *porqué* que el nombre no puede llevar
-(el `// StrictMode monta dos veces` de `AuthGuard`).
+**Sin JSDoc** (regla de `CLAUDE.md`). El código anterior a esa decisión lo conserva
+(`axiosInstance.ts`, `keycloak.ts`, `api-error.ts`, `roleStore.ts`) y **no se migra**. Un comentario
+de una línea sí vale cuando explica un *porqué* que el nombre no puede llevar.
 
-## Orden interno de un componente
+## Componentes
 
-```tsx
-// 1. Imports
-// 2. Constantes del módulo (fuera del componente)
-// 3. const schema = z.object({ ... }) / type FormValues
-// 4. interface Props { ... }
-// 5. export default function NombreComponente({ prop }: Props) {
-//      6. Hooks (useState, useQuery/useMutation, hooks del proyecto, useForm)
-//      7. Variables derivadas
-//      8. Handlers (function handleX / verbo de acción)
-//      9. return ( JSX )
-//    }
-```
+Orden interno: imports → constantes del módulo → `schema` Zod + `type FormValues` → `interface Props`
+→ `export default function` → hooks → derivadas → handlers → `return`.
 
-Las constantes y el schema van **fuera** del componente: dentro se recrean en cada render y el
-`zodResolver` deja de ser estable. `PAGE_SIZE` en `useFichasPerfilCoordinador` y `VIEW_POR_ROL` en
-`FichasPerfil.tsx` son los ejemplos.
+**Constantes y schema van fuera del componente**: dentro se recrean en cada render y el
+`zodResolver` deja de ser estable. Handlers como `function` nombrada, salvo `useCallback`.
 
-Los handlers se declaran como `function` nombrada dentro del componente, no como `const` con arrow,
-salvo cuando la función es un `useCallback` (`AppLayout.closeSidenav`).
+**Una responsabilidad por componente.** Pasadas ~150 líneas, extrae sub-componentes — es el umbral
+en el que `fichas-perfil` se partió en `{Rol}View` → `{Concepto}Panel|Table|Form`. Si el componente
+mezcla fetch + transformación + estado, lo que sale es un **hook**, no un sub-componente.
 
-## Tamaño y composición
+- **`key` estable, nunca el índice.** Con el índice React reutiliza el nodo equivocado al insertar o
+  quitar, y el estado local de una fila se cuela en otra. Siempre hay `id`.
+- **Nunca mutes estado.** Un `push` sobre lo que devuelve `watch(...)` o `useQuery` no dispara render.
+- **`<button type="button">`** en todo botón que no envía el formulario.
 
-**Un componente, una responsabilidad.** Pasadas ~150 líneas, extrae sub-componentes: es el umbral en
-el que la feature de referencia se partió en `{Rol}View` → `{Concepto}Panel` / `Table` / `Form`.
-Cuando un componente mezcla fetch + transformación + estado local, lo que sale no es un
-sub-componente sino un **hook** de la feature.
-
-Dos detalles de renderizado que rompen cosas en silencio:
-
-- **`key` estable, nunca el índice del array.** Con el índice, React reutiliza el nodo equivocado al
-  insertar o quitar un elemento, y el estado local de una fila se cuela en otra. En este proyecto
-  siempre hay un `id` (`fichas.map((ficha) => <… key={ficha.id}>`).
-- **Nunca mutes estado.** Un `push`/`splice` sobre lo que devuelve `watch(...)` o `useQuery` no
-  dispara render. Se copia: `setValue('idEstudiantes', [...idEstudiantes, id])`,
-  `prev.filter(...)`.
-
-## Dónde vive cada pieza de estado
+### Dónde vive el estado
 
 | Situación | Solución |
 |---|---|
-| 1-2 valores de UI local (acordeón abierto, diálogo visible) | `useState` |
-| Datos que vienen del servidor | `useQuery` / `useMutation` dentro de un hook de la feature |
-| Sesión y rol | `useAuthStore` / `useRoleStore`, **leídos por los hooks de `src/hooks/useAuth.ts`** |
-| Compartido entre features sin ser del servidor | Store de Zustand en `src/shared/stores/` |
+| 1-2 valores de UI local | `useState` |
+| Datos del servidor | `useQuery`/`useMutation` en un hook de la feature |
+| Sesión y rol | `useRolActivo()` / `useRolesDisponibles()` / `useHasRole()` |
+| Compartido entre features, no del servidor | Store Zustand en `src/shared/stores/` |
 
-**Nunca `useEffect` + `axios`/`fetch` para cargar datos.** Eso es lo que existe React Query para
-evitar: pierdes caché, deduplicación, `isLoading`, `isError` y reintentos.
-
-Un `useEffect` sí es legítimo para sincronizar con algo externo al React tree: el
-`keycloak.init()` de `AuthGuard`, el listener de `Escape` de `AppLayout`, o el `setValue` de un prop
-que llega tarde en `RegistrarFichaPerfil`.
+**Nunca `useEffect` + `axios`/`fetch` para cargar datos.** `useEffect` es solo para sincronizar con
+algo externo a React: el `keycloak.init()` de `AuthGuard`, el listener de `Escape` de `AppLayout`, el
+`setValue` de un prop que llega tarde en `RegistrarFichaPerfil`.
 
 ## Services
 
-- Importan `apiClient` de `src/api/axiosInstance.ts`. **Nunca `axios` directamente.**
-- Objeto plano con métodos (`export const xService = { ... }`), **nunca una clase**.
-- Cada método tipa la respuesta con el genérico y desenvuelve: `.then((r) => r.data)`. Los `204`
-  devuelven `Promise<void>` con `.then(() => undefined)`.
-- **No atrapan errores.** Los propagan; los maneja React Query.
-- Las respuestas paginadas se tipan `Page<T>` de `src/shared/models/api-response.ts`.
-- Cuando el nombre del campo del backend no coincide con el del modelo del frontend, **la traducción
-  ocurre aquí**, en el literal del body, no en el componente:
-  `{ tituloProyecto: req.tituloProyecto, asesorFicha: req.asesorFichaId, estudiantes: req.estudiantesIds }`.
-  Es el único sitio donde el vocabulario del backend y el del frontend se tocan.
-- Un método cuyo endpoint el backend aún no expone lleva un comentario `// Pendiente: {motivo}` y
-  vive bajo el separador de pendientes del archivo. Ver `arquisoft-frontend-arquitectura`.
+- `apiClient` de `src/api/axiosInstance.ts`. **Nunca `axios` directamente.**
+- Objeto plano con métodos, **nunca clase**. Genérico tipado + `.then((r) => r.data)`; un `204`
+  devuelve `Promise<void>` con `.then(() => undefined)`.
+- **Sin `try/catch`.** El error sube a React Query. Un `catch` que devuelve `[]` esconde el fallo.
+- Respuestas paginadas tipadas `Page<T>`.
+- **La traducción de nombres backend ↔ frontend ocurre aquí**, en el literal del body
+  (`{ asesorFicha: req.asesorFichaId }`), no en el componente. Es el único sitio.
+- Endpoint no expuesto: comentario `// Pendiente: {motivo}` bajo el separador de pendientes.
 
-## Modelos
+## Models
 
-Solo `interface`/`type`. **Sin lógica, sin funciones, sin valores por defecto.**
+Solo `interface`/`type`. **Sin lógica, sin defaults.** Interfaces pequeñas y específicas (ISP).
+Un campo opcional (`?`) solo si el backend puede omitirlo de verdad.
 
-Interfaces pequeñas y específicas (ISP): `FichaPerfil` tiene tres campos y compone `Asesor`; no
-existe una interfaz gigante con veinte campos opcionales. Un campo opcional (`?`) se declara solo
-cuando el backend realmente puede omitirlo — no "por si acaso".
+Un catálogo del backend es `interface { id, nombre, descripcion }` — **nunca un enum del frontend**,
+que se desincroniza. El único enum es `Rol`.
 
-Los catálogos y DTOs menores del dominio se agrupan en el barril `models/{feature}.ts`
-(`fichas-perfil.ts`); las entidades con vida propia y los Request/Response de un caso de uso tienen
-archivo propio. El criterio: si un componente lo importa por su nombre, merece archivo.
-
-Los enums se usan solo para valores que el sistema reconoce y compara (el enum `Rol`). Para un
-catálogo que viene del backend, una `interface { id, nombre, descripcion }` — nunca un enum
-hardcodeado que se desincronice de la base.
+Archivo propio para entidades y DTOs de un caso de uso; barril `models/{feature}.ts` para catálogos y
+DTOs menores.
 
 ## Stores Zustand
 
-- Patrón: `create<State>()((set) => ({ ... }))`; con persistencia, `create<State>()(persist(..., { name, storage }))`.
-- `authStore` es **de solo lectura** desde las features. Solo `AuthGuard`, `devAuth` y el interceptor
-  de Axios lo escriben.
-- `roleStore` no se lee directo: se lee por `useRolActivo()` / `useRolesDisponibles()`.
-- **`persist` solo cuando el dato debe sobrevivir a un refresh** y no es sensible. Hoy el único caso
-  es el string del rol activo. Un token, un `tokenParsed` o cualquier dato personal **nunca** se
-  persiste.
-- Un store que se lee fuera del árbol de React se accede con `useStore.getState()`, nunca con el hook.
+`create<State>()((set) => ({ … }))`; con persistencia, `persist(..., { name, storage })`.
+
+- `authStore` es **de solo lectura** desde features; solo lo escriben `AuthGuard`, `devAuth` y el
+  interceptor.
+- **`persist` solo si el dato debe sobrevivir a un refresh y no es sensible.** Hoy, únicamente el
+  string del rol activo.
+- Fuera del árbol de React se accede con `getState()`, nunca con el hook.
 
 ## Formularios
 
-**3 o más campos → `react-hook-form` + Zod.** Con 1-2 campos, `useState` es aceptable.
+**3+ campos → `react-hook-form` + Zod.** Con 1-2, `useState` es aceptable.
 
 ```tsx
 const schema = z.object({ titulo: textoRequerido(LIMITES.TITULO_PROYECTO_MAX) });
@@ -142,112 +129,156 @@ const { register, handleSubmit, formState: { errors, isValid } } =
   useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { titulo: '' }, mode: 'onChange' });
 ```
 
-- `defaultValues` siempre presente — sin ellos React pasa de input no controlado a controlado y
-  avisa por consola.
-- `mode: 'onChange'` cuando el botón de envío se deshabilita con `!isValid` (que es el patrón del
-  proyecto).
-- Un campo que no es un `<input>` nativo (lista de chips, selección múltiple) se maneja con
-  `watch(...)` + `setValue(..., { shouldValidate: true })`, como los estudiantes de
-  `RegistrarFichaPerfil`.
-- Al cerrar o cancelar: `reset()` del formulario **y** `reset()` de la mutación (`resetMutation`),
-  para no dejar el estado de error de la mutación anterior colgando.
+- `defaultValues` siempre — sin ellos React salta de no controlado a controlado.
+- `mode: 'onChange'` si el submit se deshabilita con `!isValid` (el patrón del proyecto).
+- Campo no nativo (chips, selección múltiple): `watch(...)` + `setValue(..., { shouldValidate: true })`.
+- Al cancelar: `reset()` del formulario **y** de la mutación, o queda colgando el error anterior.
 
-## Validación compartida — alineada al backend
+## Validación compartida
 
-`src/shared/validation/` centraliza **solo lo reutilizable y alineado a las restricciones del
-backend**. Las reglas propias de un formulario concreto se quedan en su `z.object(...)`.
+`src/shared/validation/` es el espejo de `arquisoft-backend/shared/validation` (`ValidatorTexto`,
+`ValidatorLongitud`, `ValidatorColeccion`, `ValidatorUUID`, …): validadores **reutilizables y
+parametrizados** que cada formulario compone en su `z.object(...)`.
 
 | Archivo | Contenido |
 |---|---|
-| `limites.ts` | `LIMITES` — espejo de las restricciones `@Size` del backend: `TITULO_PROYECTO_MAX = 100`, `ITEM_CONTENIDO_MAX = 7000`, `ESTADO_EVALUACION_ID_MAX = 50`, `ESTUDIANTES_MAX = 3` |
+| `limites.ts` | `LIMITES` — espejo de los `@Size` del backend: `TITULO_PROYECTO_MAX 100`, `ITEM_CONTENIDO_MAX 7000`, `ESTADO_EVALUACION_ID_MAX 50`, `ESTUDIANTES_MAX 3` |
 | `expresiones-regulares.ts` | `EMAIL_REGEX`, `UUID_REGEX` |
-| `mensajes-validacion.ts` | `MENSAJES_VALIDACION` — textos en español, algunos como función (`longitudMaxima(max)`) |
-| `validadores-zod.ts` | Builders: `textoRequerido(max)`, `opcionRequerida()`, `emailValido()`, `uuidValido()`, `listaConMaximo(max)` |
-| `index.ts` | Barril — importa siempre desde `'../../../shared/validation'`, no de un archivo suelto |
+| `mensajes-validacion.ts` | `MENSAJES_VALIDACION`, algunos como función (`longitudMaxima(max)`) |
+| `validadores-zod.ts` | `textoRequerido(max)`, `opcionRequerida()`, `emailValido()`, `uuidValido()`, `listaConMaximo(max)` |
 
-**Un número mágico en un `.max(...)` de Zod es un hallazgo.** Si el límite lo impone el backend, va
-en `LIMITES` y el `maxLength` del `<input>` lo lee de ahí también. `validadores-zod.test.ts` fija
-esos cuatro valores con asserts explícitos: cambiarlos sin actualizar el backend rompe el test, que
-es justo lo que se busca.
+Importa siempre del barril `index.ts`. La tabla refleja lo que había al escribirla; abre el archivo
+antes de decidir que un validador no existe.
 
-**Un mensaje de error repetido en dos formularios va a `MENSAJES_VALIDACION`.** Uno específico de un
-campo concreto (`'Selecciona un asesor'`) se queda en su schema.
+**El frontend replica todas las reglas de forma del backend, sin excepción.** Cada campo que el DTO
+de entrada o el validador del caso de uso exija o restrinja lleva la misma regla en el schema Zod:
+obligatoriedad, longitud mínima y máxima, formato (regex), rango numérico y tamaño de lista. Antes de
+escribir el schema se abre el validador real en el repo hermano y se listan sus reglas campo por
+campo; el plan las transcribe en una tabla **campo → regla del backend → validador Zod**. Una regla
+de forma del backend sin su espejo en el cliente es un hallazgo.
 
-## Estados de carga y error
+- **Regla compuesta** (el backend valida `nombres + " " + apellidos` entre 2 y 50): se replica igual,
+  con `superRefine` sobre el `z.object(...)` y el error asignado al campo que el usuario corrige. No
+  se inventa un tope por campo que el backend no impone, ni se deja la regla solo al 422.
+- Los valores mínimos y máximos salen de las constantes del backend (`{Modulo}Limits.java`) y van a
+  `LIMITES`, igual que los máximos.
 
-Toda `useQuery` consumida por un componente maneja **las dos** ramas antes del contenido:
+**Validadores reutilizables, nunca reglas en línea.** Un formulario compone los builders de
+`validadores-zod.ts` (`emailValido()`, `textoRequerido(max)`, …); no escribe `.regex(EMAIL_REGEX)`,
+`z.string().email()` ni un `.min/.max` suelto para una regla que ya tiene builder. Si falta, se crea
+en `validadores-zod.ts` **genérico y parametrizado** (como `ValidatorLongitud.longitudEntre(min, max)`
+del backend), con su mensaje en `mensajes-validacion.ts`, su regex en `expresiones-regulares.ts` y su
+caso en `validadores-zod.test.ts`. Ampliar un builder existente con parámetros opcionales
+retrocompatibles se prefiere a crear uno paralelo que haga casi lo mismo. Solo queda en línea lo que
+no tiene una regla del backend detrás.
 
-```tsx
-if (isLoading) return <PageSkeleton />;          // o el spinner con role="status" + sr-only
-if (isError)   return <div role="alert">…</div>;
-```
+**Un número mágico en un `.max(...)` es un hallazgo.** Si el límite lo impone el backend va en
+`LIMITES`, y el `maxLength` del input lo lee de ahí. `validadores-zod.test.ts` fija esos cuatro
+valores: cambiarlos sin actualizar el backend rompe el test, que es lo que se busca.
 
-Formas del proyecto, en orden de preferencia:
+**El cliente valida forma; el backend decide conjunto.** Obligatoriedad, longitud, formato y tamaño
+de lista → Zod. Unicidad, existencia, propiedad y transición permitida → llegan como 422 y se
+muestran. Duplicar una regla de conjunto en el cliente da falsos negativos: el frontend no tiene los
+datos para decidirla.
 
-- Página completa cargando → `<PageSkeleton />` (ya es el `fallback` del `<Suspense>` del layout).
-- Sección dentro de una página → spinner con `role="status"`, `aria-live="polite"`,
-  `aria-busy="true"` y un `<span className="sr-only">` que diga qué carga
-  (`ConsultarFichasPerfilCoordinador`).
-- Error → contenedor con `role="alert"` y texto accionable. Nunca `error.message` crudo de Axios: usa
-  `getApiErrorMessage(err, 'mensaje de respaldo en español')`.
+El error del backend al enviar **siempre** produce `toast.error` (ver "Notificaciones") y, además, se
+pinta junto al campo cuando corresponde a uno: `hasApiErrorCode(err, 'USUARIO_EMAIL_DUPLICADO')` o
+`getApiFieldErrors(err)` → `setError('email', { message })` con el mensaje de
+`getApiErrorMessage(err, …)`. Un `field` del backend que no es un input (el `nombre` derivado de
+`nombres + apellidos`) se pinta en **todos** los inputs que lo componen. Los códigos salen de
+`arquisoft-backend/shared/message/.../constant/{Modulo}Codes.java`, verificados, nunca adivinados.
 
-Una lista vacía **no es un estado de error**: es una fila `<td colSpan={n}>` con el texto
-"No hay … registradas".
+**Los campos del formulario tienen la misma granularidad que el DTO de entrada del backend.** Si el
+DTO separa `nombres` y `apellidos`, hay dos inputs; si separara primer y segundo nombre, habría
+cuatro. Nunca se fusionan dos campos del backend en un input ni se parte uno en varios, porque el
+error de cada campo debe poder mostrarse en su input.
+
+Una regla compuesta del cliente se atribuye al input culpable cuando se puede (el formato de
+`nombre` falla en el input que tiene el carácter inválido); si depende de varios (la longitud total
+de `nombres + " " + apellidos`), el mensaje se pinta en todos los que la componen.
+
+## Retorno tras registrar, editar o eliminar
+
+Tras un registro, una edición o una eliminación **exitosos**, la UI vuelve de inmediato a la vista
+anterior: el listado desde el que se abrió la acción, con el mismo filtro y la misma página con que se
+consultó el objeto afectado. No se deja al usuario en el formulario limpio ni se lo manda al dashboard.
+
+- **Orden en el éxito:** el hook invalida la query del listado por prefijo (para que refleje el
+  cambio); el componente, en el `onSuccess` del `mutate(...)`, lanza el toast de éxito y cierra la
+  vista (`onCerrar()` / `onVolver()`). `CoordinadorView` → `RegistrarFichaPerfil onCerrar` y
+  `AsesorFichaView` → `onVolver` son la referencia.
+- **Filtros y paginación viven por encima del formulario**, en la `{Rol}View` o en el hook del listado
+  (`useFichasPerfilCoordinador`), nunca dentro del panel que se desmonta: si viven dentro, volver los
+  resetea.
+- **Con ruta propia** (`/{feature}/nuevo`, `/{feature}/:id/editar`), los filtros van en search params
+  y el retorno los conserva; no se reconstruyen a mano.
+- **Eliminar desde el detalle** vuelve al listado, no al detalle de un objeto que ya no existe.
+- **En error** se queda en el formulario, con los datos intactos y los errores pintados.
+- **Sin listado todavía** (el backend no expone el `GET`): el formulario abre desde la vista de la
+  feature y el retorno es a esa vista. El plan lo declara explícitamente para que, cuando llegue el
+  listado, el retorno se mueva a él.
+
+## Estados de carga, vacío y error
+
+Toda `useQuery` consumida por un componente maneja **las tres** ramas, y son distintas:
+
+- **Carga** → `<PageSkeleton />` (página) o spinner con `role="status"`, `aria-live="polite"`,
+  `aria-busy="true"` y un `<span className="sr-only">` que diga qué carga.
+- **Vacío** → texto en una fila o bloque. **No es un error.**
+- **Error** → contenedor con `role="alert"` y texto accionable.
 
 ## Errores de API
 
-`src/shared/utils/api-error.ts` es la única forma de inspeccionar un error de Axios. No escribas
-`error.response.data.message` a mano en un componente.
+`src/shared/utils/api-error.ts` es la única forma de inspeccionar un error de Axios. Nunca
+`error.response.data.message` a mano ni `error.message` crudo.
 
 | Helper | Cuándo |
 |---|---|
-| `getApiErrorMessage(err, fallback)` | El caso por defecto — el texto del `ErrorResponseDTO`, con respaldo para errores de red |
-| `getApiFieldErrors(err)` | 400/422 con `fieldErrors[]`, para pintarlos junto a cada campo |
-| `hasApiErrorCode(err, 'CODIGO')` | Distinguir subtipos de `DomainException` sin depender solo del status |
-| `isApiErrorWithStatus(err, 404)` | Tratar un 404 como "vacío" en vez de como fallo |
-| `classifyApiError(err)` | Ramificar la UI por categoría (`'network'`, `'domain'`, `'forbidden'`, …) |
+| `getApiErrorMessage(err, fallback)` | El caso por defecto, con respaldo para errores de red |
+| `getApiFieldErrors(err)` | 400/422, para pintar el error junto a cada campo |
+| `hasApiErrorCode(err, 'CODIGO')` | Distinguir subtipos de `DomainException` |
+| `isApiErrorWithStatus(err, 404)` | Tratar un 404 como "vacío" |
+| `classifyApiError(err)` | Ramificar por categoría (`'network'`, `'domain'`, …) |
 
-**401 y 403 no se manejan en la feature:** el interceptor ya refresca el token o navega a
-`/forbidden`. Un `if (status === 401)` en un hook es duplicación.
+**401 y 403 no se manejan en la feature:** el interceptor ya refresca o navega a `/forbidden`.
 
-## Notificaciones al usuario
+## Notificaciones
 
-`toast` de `src/shared/hooks/useToast.ts` — es un singleton, así que funciona igual dentro y fuera de
-un componente. Cuatro niveles: `success` (4 s), `info` (4 s), `debug` (8 s), `error` (6 s).
+`toast` de `src/shared/hooks/useToast.ts` — singleton, funciona dentro y fuera de un componente.
+Niveles: `success` (4 s), `info` (4 s), `debug` (8 s), `error` (6 s). Firma
+`toast.error(titulo, mensaje?)`, con el mensaje desde `getApiErrorMessage(...)`.
 
-Firma: `toast.error(titulo, mensaje?)`. El título es corto y en español ("Error al registrar la
-ficha"); el mensaje sale de `getApiErrorMessage(err, '…')`.
+Va en el `onSuccess`/`onError` de la mutación — en el hook **o** en el `mutate(...)` del componente,
+en **uno solo**, o el usuario ve dos toasts.
 
-**El toast va en el `onSuccess`/`onError` del `mutate`, no en el `catch` de un service.** Puede vivir
-en el hook (`useMiFichaPerfil`) o en el `mutate(..., { onSuccess, onError })` del componente
-(`RegistrarFichaPerfil`); elige uno y no los dupliques, o el usuario ve dos toasts.
+**Toda mutación da retroalimentación con un mensaje emergente, sin excepción:** `toast.success` al
+terminar bien y `toast.error` en **cualquier** error, aunque ese error también se pinte junto a su
+campo. El mensaje del campo dice *dónde* está el problema; el toast garantiza que el usuario sepa que
+el envío falló, aunque el campo quede fuera de la vista. Un `onError` que solo hace `setError`, o una
+mutación sin toast de éxito, es un hallazgo. Las validaciones de Zod mientras se escribe no llevan
+toast: se pintan en el campo.
 
-Una acción destructiva pasa por `<ConfirmDialog />` (`variante: 'peligro' | 'advertencia'`) antes de
-mutar. No uses `window.confirm`.
+Acción destructiva → `<ConfirmDialog />` (`variante: 'peligro' | 'advertencia'`), nunca `window.confirm`.
 
-## Accesibilidad — obligatoria, no opcional
+## Accesibilidad
 
-- `role="alert"` en todo mensaje de error; `role="status"` + `aria-live="polite"` en lo que cambia
-  solo; `aria-busy="true"` mientras carga.
-- `aria-label` en todo botón que solo lleva icono; los iconos de Lucide decorativos van con
-  `aria-hidden`.
-- Un input con error: `aria-invalid={!!errors.campo}` + `aria-describedby` apuntando al `id` del
-  `<p role="alert">` que lo explica. `RegistrarFichaPerfil` es la referencia completa.
-- `<label htmlFor>` con `id` explícito en cada campo; si el control no es un input (un grupo de
-  chips), el contenedor lleva `aria-labelledby` al `id` del texto que lo titula.
-- Un botón que expande contenido lleva `aria-expanded` y un `aria-label` que diga qué hará
-  (`FichasPerfilTable`).
-- Tablas: `<table aria-label="…">` y `<th scope="col">`.
-- `<button type="button">` **siempre** salvo el que envía el formulario. Un `<button>` sin `type`
-  dentro de un `<form>` envía.
+Obligatoria desde el primer commit:
 
-## Estilos y design tokens
+- `role="alert"` en errores; `role="status"` + `aria-live="polite"` + `aria-busy` en carga.
+- `aria-label` en botones solo-icono; `aria-hidden` en iconos decorativos.
+- Campo con error: `aria-invalid={!!errors.campo}` + `aria-describedby` al `id` del mensaje.
+  `RegistrarFichaPerfil` es la referencia completa.
+- `<label htmlFor>` con `id` en cada campo; si el control no es un input, contenedor con `aria-labelledby`.
+- `aria-expanded` en botones que despliegan (`FichasPerfilTable`).
+- Tablas: `<table aria-label>` y `<th scope="col">`.
+- Nunca un `<div>` con `onClick` haciendo de botón.
 
-Tailwind v4 con configuración CSS-first: los tokens se declaran en `@theme` dentro de
-`src/tailwind.css` y `src/index.css` importa ese archivo. **No hay `tailwind.config.js`** — añadir uno
-es un hallazgo.
+## Estilos
 
-Usa siempre las clases semánticas, nunca un color crudo de la paleta de Tailwind:
+Tailwind v4 CSS-first: los tokens se declaran en `@theme` de `src/tailwind.css`. **No hay
+`tailwind.config.js`** — crearlo es un hallazgo.
+
+Solo clases semánticas, nunca un color crudo de la paleta:
 
 | Rol | Clases |
 |---|---|
@@ -255,139 +286,178 @@ Usa siempre las clases semánticas, nunca un color crudo de la paleta de Tailwin
 | Texto | `text-on-surface`, `text-on-surface-secondary` |
 | Bordes | `border-border`, `border-border-strong` |
 | Marca | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted` |
-| Secundario / terciario | `*-secondary*`, `*-tertiary*` con la misma familia de sufijos |
+| Secundario / terciario | misma familia de sufijos con `-secondary` / `-tertiary` |
 | Peligro | `bg-danger`, `text-danger`, `text-danger-foreground` |
 | Navegación | `bg-nav-active-bg`, `text-nav-active-text`, `bg-nav-hover-bg` |
 | Sombras | `shadow-card`, `shadow-card-hover`, `shadow-dropdown`, `shadow-lg` |
-| Animaciones de entrada | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-scale-in` |
+| Animaciones | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-scale-in` |
 
-`text-red-500` aparece hoy en el asterisco de campo requerido de `RegistrarFichaPerfil`; es una
-desviación conocida —lo correcto es `text-danger`— y no es precedente.
+Sin CSS custom fuera de `index.css`/`tailwind.css`, sin `style={{}}` salvo valor calculado en
+runtime. Clases condicionales con array + `.join(' ')`, no ternarios anidados.
 
-**No escribas CSS custom** fuera de `src/index.css` / `src/tailwind.css`. Nada de `style={{ ... }}`
-salvo un valor calculado en tiempo de ejecución que no puede ser una clase.
+`text-red-500` en el asterisco de `RegistrarFichaPerfil` es una desviación preexistente conocida: no
+se reporta como hallazgo nuevo, pero tampoco se copia.
 
-Cuando una lista de clases es condicional, arma un array y únelo (`[...].join(' ')`, como
-`AppLayout`), no concatenes strings con ternarios anidados.
+### Mobile first
+
+**El estilo base es el del celular; los breakpoints solo agregan.** Se escribe primero la versión
+angosta sin prefijo y `sm:`/`md:`/`lg:` amplían hacia pantallas grandes. Un `lg:flex-col` que deshace
+un layout de escritorio, o un ancho fijo que solo funciona ancho, es un hallazgo. `AppLayout` ya
+resuelve el turno del menú lateral (cajón con backdrop bajo `lg`, fijo encima) y el padding de la
+página (`p-4 sm:p-6 lg:p-8`): una feature no lo reimplementa.
+
+**El comportamiento responsive vive en `src/index.css`, no en cada vista.** Bajo
+`/* Mobile first: primitivas globales */` están las clases que cualquier feature compone; el único
+punto de corte del proyecto es **640 px** (el `sm` de Tailwind) y se declara ahí una sola vez, en una
+media query. Una vista que reescribe `text-base sm:text-sm` o `w-full sm:w-auto` a mano duplica esa
+decisión y se desincroniza el día que cambie: usa la clase.
+
+| Clase global | Qué resuelve |
+|---|---|
+| `.field-label` / `.field-input` / `.field-error` | El campo completo: etiqueta, control y mensaje. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
+| `.tap-target` | Área táctil de 44 px en celular, sin mínimo desde `sm` — para la etiqueta que envuelve una casilla o un radio |
+| `.checkbox-control` | Casilla de 20 px para el dedo, 16 px desde `sm` |
+| `.actions-row` | Fila de botones: apilada y de ancho completo en celular, con la acción principal arriba; en fila a la derecha desde `sm` |
+| `.section-header` + `.header-action` | Cabecera de título más acción: apilada con botón de ancho completo en celular, en fila y separada desde `sm` |
+
+Lo que todavía no tiene clase global se escribe mobile first con utilidades y, si se repite en una
+segunda vista, sube a `index.css`:
+
+| Regla | Cómo se escribe |
+|---|---|
+| Nada de anchos fijos | `w-full` + `max-w-*`; nunca `w-[720px]` ni `min-w` por encima de 320 px |
+| Columnas | apiladas por defecto, `sm:grid-cols-2` o `sm:flex-row` después |
+| Icono-botón | `h-11 w-11 sm:h-9 sm:w-9` |
+| Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
+
+Las vistas anteriores a esta regla (las de `fichas-perfil`) todavía traen las utilidades a mano: se
+migran a las clases globales cuando se toque el archivo, no en una pasada aparte.
+
+**Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
+desplazamiento horizontal (`document.documentElement.scrollWidth` igual a `window.innerWidth`) ni
+elementos que se salgan de su contenedor. Si la ventana del navegador no se deja redimensionar, monta
+la ruta en un `iframe` del ancho a probar: su viewport propio sí evalúa los breakpoints.
 
 ## TypeScript
 
-`strict: true`, `noUnusedLocals` y `noUnusedParameters` están activos: **una variable o un import sin
-usar rompe `npm run lint` y por tanto el build**. Un parámetro que existe solo por posición se
-prefija con `_` (`({ nombre: _n, email: _e, ...req })` en `useAsignarEstudiante`).
+`strict`, `noUnusedLocals` y `noUnusedParameters` activos: **una variable o import sin usar rompe el
+build**. Parámetro que existe solo por posición → prefijo `_`
+(`({ nombre: _n, email: _e, ...req })` en `useAsignarEstudiante`).
 
-- `import type { ... }` para todo lo que solo se usa como tipo — `isolatedModules` está activo.
-- Nunca `any`. Un error capturado se tipa `unknown` y se estrecha con los helpers de `api-error.ts`.
-- Nada de `!` (non-null assertion) salvo donde el propio código acaba de garantizar la condición
-  (`item.roles!` tras un `filter((item) => item.roles)`).
-- Rutas de import relativas (`../../../shared/...`). No hay alias `@/` configurado; no lo introduzcas
-  sin tocar también `tsconfig.app.json` y `vite.config.ts`.
+- `import type` para lo que solo se usa como tipo (`isolatedModules`).
+- Nunca `any`, `@ts-ignore` ni `as unknown as`. Un error capturado se tipa `unknown` y se estrecha
+  con los helpers de `api-error.ts`.
+- `!` solo donde el código acaba de garantizar la condición (`item.roles!` tras su `filter`).
+- Rutas relativas: no hay alias `@/` configurado.
 
-Prettier: `printWidth: 100`, `singleQuote: true`. No hay ESLint en el proyecto — `npm run lint` es
-`tsc --noEmit`, nada más.
+Prettier: `printWidth: 100`, `singleQuote: true`. No hay ESLint — `npm run lint` es `tsc --noEmit`.
 
 ## Testing
 
-Vitest 4 + `@testing-library/react` + `@testing-library/jest-dom`, entorno `jsdom`, `globals: true`
-(configurado en `vite.config.ts`, setup en `src/test-utils/setup.ts`).
+Vitest 4 + `@testing-library/react` + `jest-dom`, entorno `jsdom`, `globals: true`. La configuración
+vive en `vite.config.ts`; **no crees `vitest.config.ts`**.
 
-- **Importa `render` de `src/test-utils/render.tsx`**, nunca de `@testing-library/react`: el wrapper
-  envuelve en `QueryClientProvider` (con `retry: false`, `gcTime: 0`) + `MemoryRouter`. Acepta
-  `{ initialPath }`. Reexporta todo testing-library, así que `screen`, `waitFor` y demás salen de ahí.
-- Keycloak se mockea con `src/test-utils/keycloak.mock.ts` (importarlo ya aplica el `vi.mock`).
-- Estado de sesión: `resetAllStores()`, `setAuthenticatedUser(...)`, `setActiveRole(rol)` de
-  `src/test-utils/store.utils.ts`. **No escribas `useAuthStore.setState` a mano en un test.**
-- Los services se mockean con `vi.mock('../services/{feature}Service')` cuando pruebas un hook o un
-  componente. Un test **nunca** llega a la red ni mockea `axios` a mano.
-- `describe`/`it` en **español**, describiendo comportamiento observable:
-  `it('se anuncia como alerta accesible')`, no `it('renders correctly')`.
-- Consulta por rol y texto accesible (`getByRole('alert')`, `getByRole('button', { name: /…/ })`),
-  no por `data-testid` ni por clase CSS.
-- Interacción con `@testing-library/user-event`, no con `fireEvent`.
-- Sin JSDoc en tests, igual que en producción.
+| Pieza | Para qué |
+|---|---|
+| `src/test-utils/render.tsx` | `render` con `QueryClientProvider` (`retry: false`, `gcTime: 0`) + `MemoryRouter`; acepta `{ initialPath }` y reexporta testing-library |
+| `src/test-utils/keycloak.mock.ts` | Importarlo aplica el `vi.mock` |
+| `src/test-utils/store.utils.ts` | `resetAllStores()`, `setAuthenticatedUser(...)`, `setActiveRole(rol)` |
 
-Las dos referencias vivas son `src/shared/components/AvisoNoDisponible.test.tsx` (componente) y
-`src/shared/validation/validadores-zod.test.ts` (lógica pura). **No hay todavía un test de hook ni de
-service en el repo**: el primero que escribas fija el patrón, así que ajústalo a estas reglas en vez
-de improvisar uno nuevo.
+**Importar `render` de `@testing-library/react` es un error**: sin el wrapper, un componente con
+`useQuery` o `<Navigate>` revienta. Escribir `useAuthStore.setState` a mano también: usa
+`store.utils.ts`, con `resetAllStores()` en un `beforeEach`.
 
-### Anti-patrones — no generes estos tests
+**Qué se mockea:** el módulo del service o el hook de la feature. **Nunca `axios` ni `apiClient`** —
+eso prueba el interceptor, no la feature. Un test nunca llega a la red.
+
+**`vi.mock` de un hook o un service siempre lleva fábrica**, con la forma
+`vi.mock('../../hooks/useRegistrarUsuario', () => ({ useRegistrarUsuario: vi.fn() }))`. Sin ella,
+Vitest carga el módulo real para inspeccionar qué exporta, y esa carga arrastra la cadena
+`hook → service → apiClient → config/env.ts`, que lanza en test porque `VITE_API_URL` no está
+definida: el archivo falla entero con un error de entorno que no tiene que ver con lo que se prueba.
+La fábrica corta la cadena. `RegistrarUsuarioForm.test.tsx` y `test-utils/keycloak.mock.ts` son la
+referencia.
+
+`describe`/`it` en **español**, describiendo comportamiento observable. Marcadores
+`// Arrange / Act / Assert`. Consultas por rol y nombre accesible, no por `data-testid` ni clases.
+Interacción con `userEvent`, no `fireEvent`. Sin JSDoc.
+
+Referencias vivas: `AvisoNoDisponible.test.tsx` (componente) y `validadores-zod.test.ts` (lógica
+pura). **No hay aún test de hook ni de service**: el primero fija el patrón.
+
+Un service casi nunca merece test propio — es delegación tipada. La excepción es el método que
+**traduce** nombres (`registrarFichaPerfil`): ahí sí hay lógica que romper.
+
+### Anti-patrones — no generar estos tests
 
 | # | Anti-patrón | Por qué |
 |---|---|---|
-| 1 | Test de un componente que solo devuelve JSX estático sin lógica | No hay comportamiento que romper |
-| 2 | Un test por cada campo inválido del mismo schema Zod | Un solo test con varios `safeParse` cubre lo mismo |
-| 3 | Assert sobre clases de Tailwind | Acopla el test al diseño; se rompe con cualquier retoque visual |
-| 4 | Snapshot de un árbol completo | Nadie lo revisa y se aprueba a ciegas |
-| 5 | Tests duplicados con el mismo "Act" y distintos asserts | Consolida en uno con varios asserts |
-| 6 | Test de un modelo (`interface`) | No hay runtime que probar |
-| 7 | Mock de `axios` en vez del service | Prueba el interceptor, no la feature |
-| 8 | `waitFor` alrededor de un assert síncrono | Esconde el fallo real detrás de un timeout |
+| 1 | Componente que solo devuelve JSX estático | No hay comportamiento que romper |
+| 2 | Un test por cada campo inválido del mismo schema | Uno con varios `safeParse` cubre lo mismo |
+| 3 | Assert sobre clases de Tailwind o estructura del DOM | Se rompe con cualquier retoque visual |
+| 4 | Snapshot de un árbol completo | Nadie lo revisa; se aprueba a ciegas |
+| 5 | Tests con el mismo Act y distintos asserts | Consolida en uno |
+| 6 | Test de un `models/*.ts` | Una `interface` no tiene runtime |
+| 7 | Mock de `axios`/`apiClient` en vez del service | Prueba el interceptor |
+| 8 | `waitFor` alrededor de un assert síncrono | Esconde el fallo tras un timeout |
+| 9 | Consultas por `data-testid` o clase CSS | API paralela que nadie mantiene |
+| 10 | Test de un archivo de configuración | No hay rama que cubrir |
 
-**Regla de consolidación:** 3+ tests con el mismo Act y distinto Assert → uno solo con varios asserts.
+**Consolidación:** 3+ tests con el mismo Act y distinto Assert → uno con varios asserts.
 
 ### Presupuesto orientativo
 
-| Tamaño de HU | Tests esperados |
+| Tamaño de HU | Tests |
 |---|---|
-| Pequeña (1 vista, 1 hook) | 6-12 |
-| Mediana (2-3 vistas o un formulario completo) | 12-25 |
-| Grande (una feature nueva entera) | 25-45 |
-| Más de 45 | revisa contra los anti-patrones — casi siempre sobre-testeo |
+| Pequeña (1 vista o 1 hook) | 6-12 |
+| Mediana (2-3 vistas, o un formulario completo) | 12-25 |
+| Grande (feature nueva entera) | 25-45 |
+| Más de 45 | revisar contra los anti-patrones — casi siempre sobre-testeo |
 
 **No hay umbral de cobertura.** `@vitest/coverage-v8` no está instalado y `vite.config.ts` no declara
-sección `coverage`. El gate real es el de CI: `npm run lint`, `npm test`, `npm run build`. No
-inventes un porcentaje ni añadas la dependencia sin que el usuario lo pida.
+`coverage`. No inventes un porcentaje ni instales la dependencia.
 
-## Verificación local — el gate
+## Verificación — el gate
 
 ```bash
-npm run lint     # tsc -p tsconfig.app.json --noEmit
-npm test -- --run
-npm run build    # type-check + bundle de producción
+npm run lint          # tsc -p tsconfig.app.json --noEmit
+npm test -- --run     # sin --run entra en watch y no termina
+npm run build         # type-check + bundle
 ```
 
-`npm test` sin `--run` entra en modo watch y no termina: **en un agente siempre `--run`**. Un solo
-archivo: `npx vitest run src/features/<feature>/components/<Componente>.test.tsx`.
+Un archivo suelto: `npx vitest run src/features/<feature>/<Archivo>.test.tsx`.
 
-`npm run build` vuelve a hacer type-check, así que un `lint` verde y un `build` rojo significa que
-falló el bundling (import inexistente, asset ausente), no los tipos.
+`npm run build` repite el type-check, así que `lint` verde con `build` rojo significa fallo de
+bundling, no de tipos. `.github/workflows/ci.yml` corre los tres en cada push y PR con Node 20.
 
-`.github/workflows/ci.yml` corre esos tres pasos en cada push y en cada PR hacia `develop`/`main`,
-con Node 20 y un `.env` sintético. Reportar verde habiendo corrido solo los tests es un error.
+El aviso de build sobre `router.tsx` importado dinámica y estáticamente a la vez es el patrón
+deliberado del interceptor; no es un hallazgo.
 
 ## Entorno
 
-`.env.example` es la plantilla versionada; `.env.development.local` está en `.gitignore` y **nunca**
-se commitea. `src/config/env.ts` valida al cargar el módulo y lanza con un mensaje accionable si
-falta una variable requerida — por eso se importa primero en `main.tsx`.
+`.env.example` es la plantilla versionada; `.env.development.local` está en `.gitignore`.
+`src/config/env.ts` valida al cargar y lanza si falta una variable requerida — por eso se importa
+primero en `main.tsx`, y lanza si `VITE_AUTH_BYPASS=true` llega a un build de producción.
 
-`VITE_AUTH_BYPASS=true` salta Keycloak e inyecta el usuario de `VITE_DEV_USERNAME`/`VITE_DEV_ROLES`.
-`env.ts` lanza si ese flag llega a `true` en un build de producción; no relajes esa comprobación.
+Toda variable `VITE_*` **queda embebida en el bundle**: ahí no va ningún secreto.
 
-Toda variable expuesta al navegador lleva el prefijo `VITE_` y **queda embebida en el bundle**: ahí
-no va ningún secreto.
+## Git
 
-## Git y commits
+Conventional Commits en español: `<tipo>(<ámbito>): <descripción>`, ámbito = feature o módulo
+(`fichas-perfil`, `auth`, `router`). Tipos: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`,
+`style`, `hotfix`.
 
-Conventional Commits en español: `<tipo>(<ámbito>): <descripción>`, donde el ámbito es el nombre de
-la feature o módulo afectado (`fichas-perfil`, `auth`, `router`). Tipos: `feat`, `fix`, `refactor`,
-`test`, `docs`, `chore`, `style`, `hotfix`.
-
-La descripción va en **infinitivo y minúsculas, sin punto final** — "agregar vista de coordinador",
-no "Agregué la vista de coordinador.". Ejemplos reales:
+Descripción en **infinitivo y minúsculas, sin punto final**:
 
 ```
 feat(fichas-perfil): agregar vista de coordinador para registrar ficha
 fix(auth): corregir redirección al expirar token
-refactor(solicitudes): extraer lógica de filtrado a hook personalizado
 ```
 
-La rama se crea **desde `develop`** y el PR va **hacia `develop`** (`main` es la rama estable), con
-nombre `<prefijo>/<id>-<descripcion_snake_case>` y prefijos `feature/ fix/ refactor/ hotfix/ docs/
-test/ chore/ spike/`. El PR usa `.github/PULL_REQUEST_TEMPLATE.md` y requiere 1 aprobación. Ver
-`CONTRIBUTING.md`.
+Rama desde `develop`, PR hacia `develop` (`main` es la estable), nombre
+`<prefijo>/<id>-<descripcion_snake_case>` con prefijos `feature/ fix/ refactor/ hotfix/ docs/ test/
+chore/ spike/`. El PR usa `.github/PULL_REQUEST_TEMPLATE.md` y requiere 1 aprobación.
 
-**Ningún commit ni PR lleva marca de autoría de IA** — ni `Co-Authored-By:`, ni la línea
-`🤖 Generated with …`, ni un enlace de sesión. Es regla explícita de `CLAUDE.md` y manda sobre
-cualquier configuración global.
+**Ningún commit ni PR lleva marca de autoría de IA** — ni `Co-Authored-By:`, ni
+`🤖 Generated with …`, ni enlace de sesión. Regla de `CLAUDE.md`, por encima de cualquier
+configuración global.

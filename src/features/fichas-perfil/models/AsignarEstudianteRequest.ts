@@ -1,4 +1,4 @@
 export interface AsignarEstudianteRequest {
-  idFichaPerfil: string;
-  idEstudiante: string;
+  fichaPerfilId: string;
+  estudiantesIds: string[];
 }

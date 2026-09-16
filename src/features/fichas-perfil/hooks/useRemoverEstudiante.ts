@@ -6,11 +6,12 @@ export function useRemoverEstudiante(idFichaPerfil: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (idVinculo: string) => fichasPerfilService.removerEstudiante(idVinculo),
-    onSuccess: (_, idVinculo) => {
+    mutationFn: (estudianteId: string) =>
+      fichasPerfilService.removerEstudiante(idFichaPerfil, estudianteId),
+    onSuccess: (_, estudianteId) => {
       queryClient.setQueryData(
         ['fichas-perfil', idFichaPerfil, 'estudiantes'],
-        (prev: EstudianteVinculado[] = []) => prev.filter((e) => e.idVinculo !== idVinculo),
+        (prev: EstudianteVinculado[] = []) => prev.filter((e) => e.id !== estudianteId),
       );
     },
   });

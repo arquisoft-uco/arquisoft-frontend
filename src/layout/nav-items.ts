@@ -10,6 +10,7 @@ import {
   CloudUpload,
   BookOpen,
   ClipboardList,
+  Users,
 } from 'lucide-react';
 import { Rol } from '../shared/models/rol';
 
@@ -48,6 +49,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Repositorio', icon: CloudUpload, path: '/repositorio-artefactos', order: 7, roles: ROLES_GENERALES },
   { label: 'Biblioteca', icon: BookOpen, path: '/biblioteca', order: 8, roles: [...ROLES_GENERALES, Rol.AsesorFicha, Rol.RepresentanteComiteCurriculum, Rol.Bibliotecario] },
   { label: 'Solicitudes', icon: ClipboardList, path: '/solicitudes', order: 9, roles: [...ROLES_GENERALES, Rol.AsesorFicha, Rol.RepresentanteComiteCurriculum, Rol.Jurado, Rol.Bibliotecario] },
+  { label: 'Usuarios', icon: Users, path: '/usuarios', order: 10, roles: [Rol.Administrador] },
 ];
 
 /**

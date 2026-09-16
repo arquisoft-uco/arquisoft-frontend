@@ -25,18 +25,36 @@ Servicio: `src/features/fichas-perfil/services/fichasPerfilService.ts`.
 
 | Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
 |---|---|---|---|---|
-| `registrarFichaPerfil` | POST | `/fichas-perfil` | `{ tituloProyecto, asesorFichaId, estudiantesIds }` | `201 { id }` |
-| `modificarTituloFichaPerfil` | PATCH | `/fichas-perfil/{id}` | `{ tituloProyecto }` | `204` |
-| `cambiarAsesor` | PATCH | `/fichas-perfil/{id}/asesor-ficha` | `{ asesorFichaId }` | `204` |
-| `getFichasCoordinador` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` |
-| `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` |
-| `modificarItem` | PATCH | `/fichas-perfil/{itemId}/items` | `{ contenido }` | `204` |
-| `registrarEvaluacion` | POST | `/fichas-perfil/{fichaId}/evaluaciones` | _(sin body)_ | `201 { id }` |
-| `agregarEstadoEvaluacion` | POST | `/fichas-perfil/estado-evaluacion-ficha` | `{ evaluacionFichaPerfilId, estadoEvaluacionId }` | `201 { id }` |
-| `getEstadosFicha` | GET | `/fichas-perfil/estados-ficha` | — | `200 EstadoFicha[]` |
+**El body es el del DTO real del backend**, no el del modelo del frontend: la traducción de nombres
+ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*ResponseDTO.java` de
+`../arquisoft-backend` el 2026-09-12.
 
-> Nota: `registrarEvaluacion` responde únicamente `{ id }` en el backend actual; los campos
-> `fechaCreacion` y `estadoActual` que consume la UI aún no llegan en la respuesta.
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
+|---|---|---|---|---|
+| `registrarFichaPerfil` | POST | `/fichas-perfil` | `{ tituloProyecto, asesorFicha, estudiantes[] }` | `201 { id }` |
+| `modificarTituloFichaPerfil` | PATCH | `/fichas-perfil/{id}` | `{ tituloProyecto }` | `204` |
+| `cambiarAsesor` | PATCH | `/fichas-perfil/{id}/asesor-ficha` | `{ asesorFicha }` | `204` |
+| `getFichasCoordinador` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` |
+| `getFichasAsesor` | POST | `/fichas-perfil/asesor` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` — el asesor sale del JWT |
+| `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` |
+| `modificarItem` | PATCH | `/fichas-perfil/items/{itemId}` | `{ contenido }` | `204` |
+| `removerItem` | DELETE | `/fichas-perfil/items/{itemId}` | — | `204` |
+| `consultarTodosTipoItem` | GET | `/fichas-perfil/tipos-item` | — | `200 TipoItem[]` |
+| `getItemsFichaAsesor` | GET | `/fichas-perfil/{fichaPerfilId}/items` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
+| `getItemsFichaRepresentante` | GET | `/fichas-perfil/{fichaPerfilId}/items/representante` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
+| `consultarEstudiantesVinculados` | GET | `/fichas-perfil/{fichaPerfilId}/estudiantes` | — | `200 EstudianteFichaPerfilResponseDTO[]` · `id` es el vínculo, `estudianteId` el estudiante |
+| `asignarEstudiantes` | POST | `/fichas-perfil/{fichaPerfilId}/estudiantes` | `{ estudiantes: string[] }` | `204` — asigna **por lote** |
+| `removerEstudiante` | DELETE | `/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}` | — | `204` |
+| `registrarEvaluacion` | POST | `/fichas-perfil/{fichaId}/evaluaciones` | _(sin body)_ | `201 { id }` |
+| `getEvaluacionFicha` | GET | `/fichas-perfil/{fichaPerfilId}/evaluaciones/representante` | — | `200 EvaluacionFichaPerfilResponseDTO[]` · **lista**, ordenada por `fechaCreacion` asc |
+| `agregarEstadoEvaluacion` | POST | `/fichas-perfil/estado-evaluacion-ficha` | `{ evaluacionFichaPerfil, estadoEvaluacion }` | `201 { id }` |
+| `getEstadosFicha` | GET | `/fichas-perfil/estados-ficha` | — | `200 EstadoFicha[]` |
+| `getEstadosEvaluacion` | GET | `/fichas-perfil/estados-evaluacion` | — | `200 EstadoEvaluacion[]` |
+
+> **Respuestas que devuelven menos de lo que parece.** `registrarEvaluacion` y
+> `agregarEstadoEvaluacion` responden **solo** `{ id }`: no traen `fechaCreacion` ni el estado. Quien
+> necesite esos datos después de la mutación invalida la query y los relee, no los deduce de la
+> respuesta.
 
 ### Pendientes (el backend aún no expone el endpoint o el contrato difiere)
 
@@ -45,22 +63,15 @@ Estos métodos permanecen en el servicio anotados como pendientes para no romper
 
 | Método del servicio | Motivo |
 |---|---|
-| `getMiFichaPerfil` | Sin endpoint en el backend |
-| `consultarItemsMiFichaPerfil` | Sin endpoint en el backend |
-| `removerItem` | Sin endpoint en el backend |
-| `consultarTodosTipoItem` | Sin endpoint en el backend |
-| `consultarAsesoresDisponibles` | Sin endpoint en el backend |
-| `consultarEstudiantesDisponibles` | Sin endpoint en el backend |
-| `getFichasAsesor` | Sin endpoint en el backend |
-| `getFichasRepresentante` | Sin endpoint en el backend |
-| `getItemsFichaAsesor` | Sin endpoint en el backend |
-| `getItemsFichaRepresentante` | Sin endpoint en el backend |
-| `getEvaluacionFicha` | Sin endpoint en el backend |
-| `getEstadosEvaluacion` | Sin endpoint en el backend |
-| `agregarEstadoFichaPerfil` | Sin endpoint en el backend |
-| `consultarEstudiantesVinculados` | Sin endpoint de lectura por ficha en el backend |
-| `asignarEstudiante` | El backend recibe `{ estudiantesIds }` en `/fichas-perfil/{fichaPerfilId}/estudiantes` y responde `204`; el flujo por vínculo individual requiere rediseño |
-| `removerEstudiante` | El backend elimina por `/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}`; el flujo por vínculo individual requiere rediseño |
+| `consultarAsesoresDisponibles` | Sin endpoint en el backend. Corresponde a la historia «Consultar todos los asesores de ficha disponibles» (`HU278-NO_SINCRONIZADA`), sin ID vigente en el catálogo maestro |
+| `consultarEstudiantesDisponibles` | Sin endpoint en el backend. Corresponde a «Consultar todos los estudiantes disponibles» (`HU279-NO_SINCRONIZADA`) |
+| `getFichasRepresentante` | Sin endpoint en el backend. Corresponde a `HU280-NO_SINCRONIZADA` |
+| `agregarEstadoFichaPerfil` | El backend **no expone controller REST**: `AsignarEstadoInicialFichaPerfilUseCase` es un mecanismo interno que corre al registrar la ficha, no una acción invocable desde la UI |
+| `getMiFichaPerfil` | El endpoint existe (`GET /fichas-perfil/{fichaPerfilId}/estudiante`) pero **exige el `fichaPerfilId` como entrada**, y el estudiante no tiene forma de descubrirlo: no hay consulta «mis fichas». Requiere una historia nueva de backend |
+| `consultarItemsMiFichaPerfil` | Mismo bloqueo: `GET /fichas-perfil/{fichaPerfilId}/items/estudiante` existe, pero depende de conocer el `fichaPerfilId` |
+
+> Las dos últimas filas no son un error de ruta: el contrato del backend está bien formado, lo que
+> falta es la puerta de entrada del estudiante a su propia ficha.
 
 ### Por qué los pendientes responden 405 y no 404
 
@@ -84,14 +95,31 @@ compartido `AvisoNoDisponible` (`src/shared/components/AvisoNoDisponible.tsx`) y
 **Dependencia de backend:** exponer los endpoints de consulta de asesores y estudiantes disponibles
 para desbloquear el flujo del coordinador.
 
+## Endpoints de Usuarios
+
+Servicio: `src/features/usuarios/services/usuariosService.ts`.
+
+### Implementados y alineados
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
+|---|---|---|---|---|
+| `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
+
+Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
+`RegistrarUsuarioResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-256.md`
+(✅ APROBADO, PR `arquisoft-backend#111` mergeado). Sin traducción de nombres en el service: el modelo
+del frontend coincide 1:1 con el DTO real.
+
+Errores mapeados por `errorCode` (`ErrorResponseDTO`): 422 `USUARIO_IDENTIFICADOR_DUPLICADO`,
+`USUARIO_EMAIL_DUPLICADO`, `USUARIO_CONTACTO_DUPLICADO`; 503 `USUARIO_IDP_NO_DISPONIBLE` (Keycloak no
+disponible). No hay `GET /usuarios` hoy: no hay listado ni edición de usuarios en esta iteración.
+
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
 Estos endpoints existen en el backend pero no se integran en esta iteración:
 
 - **Seguridad / Autenticación:** `POST /auth/login` (deprecado, ROPC), `POST /auth/refresh`,
   `POST /auth/logout`, `POST /auth/validate`. El frontend usa `keycloak-js` directamente.
-- **Usuarios:** `POST /usuarios` (`{ email, rol }` → `201 { id, email, rol }`), requiere autoridad
-  `usuarios:usuario:create`.
 - **Fichas / MinIO (PoC):** `/fichas/minio/guia/*` — marcado para eliminación en el backend, se ignora.
 
 ## Validación compartida alineada al backend
@@ -101,12 +129,16 @@ del backend; las reglas propias de la lógica de negocio permanecen en cada form
 
 - `limites.ts` — constantes de las restricciones `@Size` del backend:
   `TITULO_PROYECTO_MAX = 100`, `ITEM_CONTENIDO_MAX = 7000`, `ESTADO_EVALUACION_ID_MAX = 50`,
-  `ESTUDIANTES_MAX = 3`.
-- `expresiones-regulares.ts` — `EMAIL_REGEX`, `UUID_REGEX`.
+  `ESTUDIANTES_MAX = 3`, `USUARIO_IDENTIFICADOR_MIN/MAX = 4/30`, `USUARIO_NOMBRE_MIN/MAX = 2/50`,
+  `USUARIO_EMAIL_MIN/MAX = 6/50`, `USUARIO_CONTACTO_MIN/MAX = 10/15`.
+- `expresiones-regulares.ts` — `EMAIL_REGEX` (alineado a `PATRON_CORREO` del backend), `UUID_REGEX`,
+  `DIGITOS_REGEX`, `NOMBRE_COMPLETO_REGEX`.
 - `mensajes-validacion.ts` — mensajes de error en español reutilizables.
 - `validadores-zod.ts` — builders Zod reutilizables: `textoRequerido(max)`, `opcionRequerida()`,
-  `emailValido()`, `uuidValido()`, `listaConMaximo(max)`.
+  `emailValido(min?, max?)`, `uuidValido()`, `listaConMaximo(max)`, `textoEntre(min, max)`,
+  `textoNoVacio()`, `soloDigitosEntre(min, max)`.
 - `index.ts` — barrel del módulo.
 
 Formularios que ya consumen el módulo: `RegistrarFichaPerfil` (título), `MiFichaHeader` (título),
-`ItemsMiFichaPanel` (contenido de ítem).
+`ItemsMiFichaPanel` (contenido de ítem), `RegistrarUsuarioForm` (identificador, nombres/apellidos,
+email, contacto).
