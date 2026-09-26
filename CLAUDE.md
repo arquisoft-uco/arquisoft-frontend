@@ -28,6 +28,10 @@ del plan.
 | "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
 | "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop`, con dos confirmaciones |
 
+- **Cadena completa sin saturar el contexto:** "orquesta HU-XXX" → `@0-orquestador`. Delega cada
+  etapa en un subagente que lee sus instrucciones de `.workspace/handoff/{ID}/NN-*.in.md`; solo
+  conserva el estado y las rutas. Los agentes `@1`–`@4c` delegan a su vez sus fases pesadas con el
+  mismo protocolo (`.claude/templates/HANDOFF.md`), también cuando los invocas directamente.
 - **No se saltan etapas.** `@2-implementador` exige plan aprobado; `@4c-commit` no entrega un
   reporte `⛔ RECHAZADO`.
 - **`.workspace/` está en `.gitignore`.** Planes, reportes y cuerpos de PR se publican en
@@ -66,6 +70,7 @@ npm run dev        # Servidor de desarrollo en http://localhost:5173
 npm run build      # Type-check + bundle de producción
 npm run test       # Ejecuta todos los tests con Vitest
 npm run lint       # Solo type-check de TypeScript (sin ESLint)
+node .claude/scripts/contexto-flujo.mjs   # Diagrama HTML del contexto usado por cada agente de la sesión
 ```
 
 Ejecutar un solo archivo de test:

@@ -20,14 +20,29 @@ archivo, ganan las skills.
 en las skills y el implementador las carga igual. Un plan que reproduce la tabla de design tokens o
 la lista de a11y está gastando su propio presupuesto de atención.
 
-## FASE 1 — Fuentes
+## Delegación
+
+Protocolo: `.claude/templates/HANDOFF.md`. Con `Rol: worker` ejecutas solo tu tarea y no delegas.
+
+Las FASES 1 y 2 son lecturas voluminosas: las hacen dos `general-purpose` **en paralelo**, cada uno
+con su `.in.md` (que les pide invocar las skills que la fase nombra). Tú lees solo su `## Salidas`:
+
+| Worker | Hace | Devuelve, y nada más |
+|---|---|---|
+| `fuentes` | FASE 1 | Criterios de aceptación de la HU · tabla endpoint → estado (Implementado / Contrato distinto / Pendiente / no verificado) · valores de catálogos · archivos consultados, para la Metadata |
+| `codigo` | FASE 2 | Por archivo del plan: existe o no, y si el método/hook ya está · componentes de `shared/` reutilizables · `// Pendiente` que aplican |
+
+Las FASES 3 y 4 son tuyas: la conversación y el plan no se delegan. Una `PREGUNTA` tuya sube a
+quien te invocó (ver el protocolo).
+
+## FASE 1 — Fuentes (worker `fuentes`)
 
 Invoca `gh-docs-reader` y sigue su Protocolo de Consulta. Registra cada archivo para la Metadata.
 
 Su paso 3 no es opcional: un plan que no dice, endpoint por endpoint, si el backend lo expone hoy no
 es un contrato.
 
-## FASE 2 — Situar la HU en el código
+## FASE 2 — Situar la HU en el código (worker `codigo`)
 
 **Verifica leyendo, no asumiendo.** Antes de escribir "modificar `fichasPerfilService`", ábrelo y
 comprueba si el método ya está. Antes de "crear `useX`", lista `hooks/`. Antes de proponer un

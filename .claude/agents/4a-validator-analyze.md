@@ -28,6 +28,25 @@ estados de UI (§9), validación (§10), criterios de aceptación (§2) y la fil
 Lee cada archivo del árbol **y los que el plan dice modificar** — en un frontend la mayoría de los
 hallazgos están en lo modificado.
 
+## Delegación
+
+Protocolo: `.claude/templates/HANDOFF.md`. Con `Rol: worker` ejecutas solo tu tarea y no delegas.
+
+Tú lees del plan solo la cabecera (para el reporte) y **no lees el código**: lo revisan cuatro
+workers **en paralelo** —este mismo agente con `Rol: worker` y `Grupo: {A-D}` en su `.in.md`—, que
+solo leen lo suyo. Cada uno devuelve **únicamente las violaciones**, una fila por hallazgo
+(`check · sev · ruta:línea · evidencia`), más una línea con los niveles que cubrió.
+
+| Grupo | Cubre |
+|---|---|
+| A | Nivel 1, 2.1, 2.2, 2.3 |
+| B | 2.4, 2.5, 2.6, 2.7 |
+| C | 2.8, 2.9, 2.10, 2.11, 2.12 (este solo con la fila `Tests` ✅) |
+| D | FASE 4 (type-check, tests, build) y FASE 5 (navegador) |
+
+Con sus `.out.md` compones el reporte de la FASE 6: score, veredicto y secciones. Un worker que
+devuelve `ERROR` deja su grupo sin cubrir: no des `✅ APROBADO` con un grupo sin revisar.
+
 ## FASE 2 — Checks
 
 ❌ = bloqueante (RECHAZADO) · ⚠️ = menor.

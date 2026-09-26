@@ -20,6 +20,22 @@ IDs de `context7-stack-frontend`.
 **El repo solo tiene dos tests hoy** (`AvisoNoDisponible.test.tsx` y `validadores-zod.test.ts`) y
 ninguno de hook ni de service. El primero que escribas fija el patrón: dilo en el reporte de la capa.
 
+## Delegación
+
+Protocolo: `.claude/templates/HANDOFF.md`. Con `Rol: worker` ejecutas solo tu tarea y no delegas.
+
+Tú coordinas y **no escribes tests**. Los workers son **este mismo agente** con `Rol: worker` y
+`Tarea: {estimacion | capa | verificacion}` en su `.in.md`:
+
+| Paso del flujo | Worker | Tú lees de su `.out.md` |
+|---|---|---|
+| 1-2 Cargar y estimar | `estimacion` | Distribución por capa y total contra el presupuesto |
+| 3 Por capa (lógica pura → hooks → componentes) | `capa` | Archivos `*.test.*`, resultado de `npx vitest run`, fallos con su causa probable |
+| 4 Verificación final | `verificacion` | Solo pasa/falla y, si falla, la ruta del error |
+
+La estimación y los fallos de test (opciones A/B) son decisiones del usuario: súbelas como `PREGUNTA`.
+Un worker `capa` nunca toca producción; si ve un bug real, lo reporta, no lo corrige.
+
 ## Aislamiento por capa
 
 | Capa | Qué se mockea |
