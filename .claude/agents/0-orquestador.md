@@ -56,7 +56,9 @@ saturación de contexto, con un `.in.md` que le pida ejecutar
 
 `node .claude/scripts/contexto-flujo.mjs --salida .workspace/handoff/{ID}/contexto.html`
 
-y devolver solo la ruta. El script lee el uso real de cada agente y subagente en los transcripts de la
-sesión; tú no consultas ni interpretas esas cifras.
+y devolver solo la ruta y, si la hay, la advertencia `SIN VENTANA`. El script lee el uso real de cada
+agente y subagente en los transcripts de la sesión y guarda las métricas en `.workspace/metricas/`; tú
+no consultas ni interpretas esas cifras. Sin `--sondear`: capturar una ventana nueva cuesta una llamada
+real a `claude -p`, y esa decisión es del usuario.
 
 Responde en pocas líneas: HU/HT, veredicto, URL del PR, y las rutas de `estado.md` y `contexto.html`.

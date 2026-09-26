@@ -70,7 +70,7 @@ npm run dev        # Servidor de desarrollo en http://localhost:5173
 npm run build      # Type-check + bundle de producción
 npm run test       # Ejecuta todos los tests con Vitest
 npm run lint       # Solo type-check de TypeScript (sin ESLint)
-node .claude/scripts/contexto-flujo.mjs   # Diagrama HTML del contexto usado por cada agente de la sesión
+node .claude/scripts/contexto-flujo.mjs   # Diagrama HTML y métricas (.workspace/metricas/) del contexto de cada agente; --sondear captura la ventana real de un modelo nuevo
 ```
 
 Ejecutar un solo archivo de test:
