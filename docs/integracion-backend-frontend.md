@@ -105,6 +105,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 |---|---|---|---|---|
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
 | `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
+| `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
 `RegistrarUsuarioResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-256.md`
@@ -122,17 +123,29 @@ mergeado). Es `POST` aunque sea una lectura porque los filtros viajan en el body
 `{ id, identificador, nombre, email, contacto, estado, vigente }` por fila, incluidos los coordinadores
 dados de baja. Sin traducción de nombres en el service.
 
-No hay `GET /usuarios` hoy: no hay edición de usuarios en esta iteración. El listado de coordinadores
-es el único listado de la feature.
+`consultarEstudiantesAdministrador` (HU-249) verificado contra
+`ConsultarEstudiantesAdministradorController.java` y `EstudianteResponseDTO.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-249.md` (✅ APROBADO, PR #149 mergeado). Es `POST`
+aunque sea una lectura porque los filtros viajan en el body. Devuelve
+`{ id, identificador, nombre, email, contacto, estado, vigente }` por fila, incluidos los estudiantes
+dados de baja; `estado` llega como `id` del catálogo `estado_usuario` (`ACTIVO`/`INACTIVO`). Sin
+traducción de nombres en el service. Discrepancia con el plan del backend: una paginación inválida
+(`tamanio` fuera de 1-100) se normaliza en silencio, no responde `400`.
+
+No hay `GET /usuarios` hoy: no hay edición de usuarios en esta iteración. Los listados de coordinadores
+y de estudiantes son los únicos listados de la feature.
 
 ### Sin cliente en el frontend
 
 - `POST /usuarios/coordinadores/vigentes` existe en el backend y queda sin cliente por decisión de
   alcance de HU-245: ninguna ruta del frontend lleva a asesor, estudiante o coordinador a `/usuarios`.
+- `POST /usuarios/estudiantes/vigentes` existe en el backend (roles asesor, coordinador, asesor-ficha y
+  representante-comite; la fila no trae `vigente`) y queda sin cliente por decisión de alcance de HU-249.
 
 ### Dependencia operativa: client roles en Keycloak
 
-Los client roles `usuarios:coordinador-administrador:view` y `usuarios:coordinador-vigente:view` no
+Los client roles `usuarios:coordinador-administrador:view`, `usuarios:coordinador-vigente:view`,
+`usuarios:estudiante-administrador:view` y `usuarios:estudiante-vigente:view` no
 están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuario:create`. Con login
 real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
 mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.

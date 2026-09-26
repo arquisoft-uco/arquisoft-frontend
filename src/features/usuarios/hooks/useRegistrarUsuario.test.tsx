@@ -39,7 +39,7 @@ describe('useRegistrarUsuario', () => {
     vi.clearAllMocks();
   });
 
-  it('invalida el listado de coordinadores con la key exacta tras registrar', async () => {
+  it('invalida el prefijo de usuarios con la key exacta tras registrar', async () => {
     // Arrange
     registrar.mockResolvedValue({ id: 'u-1' });
     const { Wrapper, invalidar } = crearContexto();
@@ -51,7 +51,7 @@ describe('useRegistrarUsuario', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(registrar).toHaveBeenCalledWith(request);
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios', 'coordinadores'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] });
   });
 
   it('no invalida el listado cuando el registro falla', async () => {
