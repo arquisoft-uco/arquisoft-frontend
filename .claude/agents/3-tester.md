@@ -33,6 +33,10 @@ Tú coordinas y **no escribes tests**. Los workers son **este mismo agente** con
 | 3 Por capa (lógica pura → hooks → componentes) | `capa` | Archivos `*.test.*`, resultado de `npx vitest run`, fallos con su causa probable |
 | 4 Verificación final | `verificacion` | Solo pasa/falla y, si falla, la ruta del error |
 
+**Con `Rol: orquestado`** basta un solo worker `tests` (estimación → capas → verificación), porque cada
+worker paga ~35k tokens de arranque. Si la estimación supera el presupuesto de la skill, devuelve
+`PREGUNTA` antes de escribir. Con aprobación por capa (invocación directa), los workers de arriba.
+
 La estimación y los fallos de test (opciones A/B) son decisiones del usuario: súbelas como `PREGUNTA`.
 Un worker `capa` nunca toca producción; si ve un bug real, lo reporta, no lo corrige.
 

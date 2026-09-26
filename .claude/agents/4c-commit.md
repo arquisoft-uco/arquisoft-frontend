@@ -73,6 +73,10 @@ forzó: detente y repórtalo.
 git checkout develop && git pull && git checkout -b {prefijo}/{HU|HT}-{ID}-{descripcion_snake_case}
 ```
 
+Antes de cambiar de rama, si `git diff --name-only develop -- .claude` lista archivos, esos cambios de
+agentes, skills o protocolo no están en `develop`: el cambio de rama los deja fuera del árbol de
+trabajo. Avísalo en el Gate 1 y no los incluyas en el commit.
+
 Si la rama ya existe, **pregunta antes** de hacer checkout. Nunca se ramifica desde `main` ni se
 commitea sobre ella.
 

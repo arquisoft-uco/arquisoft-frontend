@@ -31,6 +31,10 @@ pasos 6-7 (aprobación) son del padre.
 | Una capa, en orden models → services → hooks → components (omite la que el plan no toca) | Capa | Archivos y estado del lint |
 | FASE 5 — verificación final | `verificacion` | Solo pasa/falla y, si falla, la ruta del error |
 
+**Con `Rol: orquestado`** (sin aprobación por capa) agrupa, porque cada worker paga ~35k tokens de
+arranque: `datos` = models → services → hooks (con `npm run lint` al cerrar cada capa) y `ui` =
+components + FASE 5 + trazabilidad. Con aprobación por capa (invocación directa), un worker por capa.
+
 Las capas son secuenciales: cada una lee lo que escribió la anterior. Un error que apunta a una capa
 previa vuelve a lanzar a ese worker y consume un intento de la FASE 4. Una `PREGUNTA` de ambigüedad
 sube a quien te invocó.

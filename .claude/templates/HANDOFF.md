@@ -73,6 +73,11 @@ trae, trátalo como `ERROR`.
 | `RECHAZADO` | Solo lo emite `@4a`. Lo maneja el orquestador |
 | `ERROR` | Detente y devuelve `ERROR` con la ruta del `.out.md`. No reintentes solo, salvo una auto-corrección que tu propio agente ya prevea |
 
-**Reanudar:** un paso cuyo `.out.md` ya dice `ESTADO: OK` no se repite.
+**Reanudar:** un paso cuyo `.out.md` ya dice `ESTADO: OK` no se repite. Tras un corte, reanuda al mismo
+delegado con `SendMessage` si lo tienes: conserva su contexto y no repaga el arranque (~35k tokens por
+agente nuevo). Sin `SendMessage`, un `.in.md` nuevo que diga "reanuda", con la respuesta en «Decisiones».
+
+**Tu respuesta final** es la línea `ESTADO`, la ruta y una frase corta. El contenido (preguntas, planes,
+reportes) va en el `.out.md`, nunca en el mensaje: quien te invocó lo lee del archivo.
 
 Delegados en paralelo solo si sus entradas son independientes y ninguno escribe archivos que otro lee.
