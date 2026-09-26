@@ -4,10 +4,39 @@ import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-
 import Usuarios from './Usuarios';
 import { Rol } from '../../shared/models/rol';
 import { useRegistrarUsuario } from './hooks/useRegistrarUsuario';
+import { useCoordinadores } from './hooks/useCoordinadores';
 
 vi.mock('./hooks/useRegistrarUsuario', () => ({
   useRegistrarUsuario: vi.fn(),
 }));
+
+vi.mock('./hooks/useCoordinadores', () => ({
+  useCoordinadores: vi.fn(),
+}));
+
+function crearCoordinadoresMock(
+  parcial: Partial<ReturnType<typeof useCoordinadores>> = {},
+): ReturnType<typeof useCoordinadores> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useCoordinadores>;
+}
 
 function autenticarCon(rol: Rol) {
   setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
@@ -41,12 +70,13 @@ describe('Usuarios', () => {
   beforeEach(() => {
     resetAllStores();
     vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
+    vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Coordinadores' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /registrar usuario/i })).not.toBeInTheDocument();
   });
 
@@ -54,14 +84,14 @@ describe('Usuarios', () => {
     autenticarCon(Rol.Estudiante);
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Coordinadores' })).not.toBeInTheDocument();
   });
 
   it('renderiza AdministradorView cuando el rol activo es Administrador', () => {
     autenticarCon(Rol.Administrador);
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.getByText('Usuarios')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Coordinadores' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
   });
 });

@@ -104,6 +104,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
 |---|---|---|---|---|
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
+| `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
 `RegistrarUsuarioResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-256.md`
@@ -112,7 +113,29 @@ del frontend coincide 1:1 con el DTO real.
 
 Errores mapeados por `errorCode` (`ErrorResponseDTO`): 422 `USUARIO_IDENTIFICADOR_DUPLICADO`,
 `USUARIO_EMAIL_DUPLICADO`, `USUARIO_CONTACTO_DUPLICADO`; 503 `USUARIO_IDP_NO_DISPONIBLE` (Keycloak no
-disponible). No hay `GET /usuarios` hoy: no hay listado ni edición de usuarios en esta iteración.
+disponible).
+
+`consultarCoordinadoresAdministrador` (HU-245) verificado contra
+`ConsultarCoordinadoresAdministradorController.java` y `CoordinadorResponseDTO.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-245.md` (✅ APROBADO, PR #149
+mergeado). Es `POST` aunque sea una lectura porque los filtros viajan en el body. Devuelve
+`{ id, identificador, nombre, email, contacto, estado, vigente }` por fila, incluidos los coordinadores
+dados de baja. Sin traducción de nombres en el service.
+
+No hay `GET /usuarios` hoy: no hay edición de usuarios en esta iteración. El listado de coordinadores
+es el único listado de la feature.
+
+### Sin cliente en el frontend
+
+- `POST /usuarios/coordinadores/vigentes` existe en el backend y queda sin cliente por decisión de
+  alcance de HU-245: ninguna ruta del frontend lleva a asesor, estudiante o coordinador a `/usuarios`.
+
+### Dependencia operativa: client roles en Keycloak
+
+Los client roles `usuarios:coordinador-administrador:view` y `usuarios:coordinador-vigente:view` no
+están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuario:create`. Con login
+real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
+mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
 
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 

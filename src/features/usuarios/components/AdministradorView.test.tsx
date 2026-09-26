@@ -1,12 +1,41 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../test-utils/render';
 import AdministradorView from './AdministradorView';
 import { useRegistrarUsuario } from '../hooks/useRegistrarUsuario';
+import { useCoordinadores } from '../hooks/useCoordinadores';
 
 vi.mock('../hooks/useRegistrarUsuario', () => ({
   useRegistrarUsuario: vi.fn(),
 }));
+
+vi.mock('../hooks/useCoordinadores', () => ({
+  useCoordinadores: vi.fn(),
+}));
+
+function crearCoordinadoresMock(
+  parcial: Partial<ReturnType<typeof useCoordinadores>> = {},
+): ReturnType<typeof useCoordinadores> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useCoordinadores>;
+}
 
 function crearMutacionMock(
   mutate: ReturnType<typeof vi.fn>,
@@ -32,6 +61,10 @@ function crearMutacionMock(
 }
 
 describe('AdministradorView', () => {
+  beforeEach(() => {
+    vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
+  });
+
   it('muestra el botón "Registrar usuario" por defecto y alterna con el formulario al abrir y cerrar', async () => {
     vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
     const user = userEvent.setup();
@@ -49,5 +82,17 @@ describe('AdministradorView', () => {
 
     expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^registrar$/i })).not.toBeInTheDocument();
+  });
+
+  it('mantiene el listado de coordinadores montado mientras el formulario está abierto', async () => {
+    vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
+    const user = userEvent.setup();
+    render(<AdministradorView />);
+
+    await user.click(screen.getByRole('button', { name: /registrar usuario/i }));
+
+    expect(screen.getByRole('button', { name: /^registrar$/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Coordinadores' })).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Coordinadores' })).toBeInTheDocument();
   });
 });
