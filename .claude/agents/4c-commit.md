@@ -168,6 +168,9 @@ El PR dispara `.github/workflows/ci.yml`. Si falla, dilo; no lo tapes con un com
 1. Reporte → sección `## Entrega`: `Estado` a `✅ Entregado`, `Hash`, `Fecha` y `PR` (URL completa).
 2. Plan → filas `Commit` (hash y fecha) y `PR` (URL). No toques otras filas.
 
+Edita el reporte y el plan con `Read` y `Edit`, no con `grep`, `sed` ni `awk` por Bash: el clasificador de
+permisos deniega los comandos de shell sobre esos archivos locales y la entrega se detiene sin publicar.
+
 **La publicación la decidió el usuario en el Gate 2.** Si dijo que no, sáltala y dilo en el mensaje
 final. Publicar deja un commit en un repositorio compartido: ante una respuesta ambigua, no publiques
 y pregunta.

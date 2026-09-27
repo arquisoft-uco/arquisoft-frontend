@@ -32,6 +32,12 @@ con su `.in.md` (que les pide invocar las skills que la fase nombra). Tú lees s
 | `fuentes` | FASE 1 | Criterios de aceptación de la HU · tabla endpoint → estado (Implementado / Contrato distinto / Pendiente / no verificado) · valores de catálogos · archivos consultados, para la Metadata |
 | `codigo` | FASE 2 | Por archivo del plan: existe o no, y si el método/hook ya está · componentes de `shared/` reutilizables · `// Pendiente` que aplican |
 
+Para que `fuentes` no infle su contexto (en HU-249 devolvió unos 160 mil caracteres de herramientas):
+lee el Controller y los DTO **del endpoint**, no la infraestructura compartida del backend
+(`shared/jpa`, `shared/query`); lee del `VALIDATOR` solo el veredicto y las secciones de endpoint y DTO,
+con rangos de líneas, no el archivo entero; y si `docs/integracion-backend-frontend.md` ya documenta un
+endpoint hermano con la misma forma, reutiliza su contrato y verifica solo lo que difiera.
+
 Las FASES 3 y 4 son tuyas: la conversación y el plan no se delegan. Una `PREGUNTA` tuya sube a
 quien te invocó (ver el protocolo).
 

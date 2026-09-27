@@ -292,10 +292,16 @@ const html = `<!doctype html>
     --ok: #0f766e; --atencion: #b45309; --critico: #b91c1c;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
       --bg: #101417; --surface: #181d21; --fg: #e8ecef; --fg-muted: #9aa5b0; --border: #2e373f;
       --ok: #5eead4; --atencion: #fbbf24; --critico: #fca5a5;
     }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #101417; --surface: #181d21; --fg: #e8ecef; --fg-muted: #9aa5b0; --border: #2e373f;
+    --ok: #5eead4; --atencion: #fbbf24; --critico: #fca5a5;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }

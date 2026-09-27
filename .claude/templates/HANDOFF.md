@@ -45,7 +45,7 @@ Salida: {ruta .out.md}
 ## `.out.md`
 
 ```markdown
-ESTADO: OK|PREGUNTA|RECHAZADO|ERROR · {máx. 15 palabras}
+ESTADO: OK|PREGUNTA|RECHAZADO|ERROR|EN CURSO · {máx. 15 palabras}
 
 ## Resumen
 {máx. 10 líneas}
@@ -69,6 +69,7 @@ trae, trátalo como `ERROR`.
 | Estado | Qué haces |
 |---|---|
 | `OK` | Siguiente paso |
+| `EN CURSO` | Solo lo emite quien delegó y aún espera a un subagente en segundo plano: termina su turno sin seguir, y el aviso del subagente lo despierta. Quien lo invocó espera; no es un fallo ni un resultado final |
 | `PREGUNTA` | Copia su `## Preguntas` a tu propio `.out.md` y devuelve `PREGUNTA`. Si hablas con el usuario, pregúntale tú. Al recibir la respuesta, guárdala en «Decisiones» de un `.in.md` nuevo y relanza |
 | `RECHAZADO` | Solo lo emite `@4a`. Lo maneja el orquestador |
 | `ERROR` | Detente y devuelve `ERROR` con la ruta del `.out.md`. No reintentes solo, salvo una auto-corrección que tu propio agente ya prevea |
