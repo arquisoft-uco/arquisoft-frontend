@@ -5,6 +5,7 @@ import { MENSAJES_VALIDACION } from './mensajes-validacion';
 export function textoRequerido(max: number) {
   return z
     .string()
+    .trim()
     .min(1, MENSAJES_VALIDACION.requerido)
     .max(max, MENSAJES_VALIDACION.longitudMaxima(max));
 }
