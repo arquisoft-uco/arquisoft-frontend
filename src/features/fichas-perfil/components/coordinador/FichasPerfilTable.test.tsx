@@ -9,7 +9,26 @@ vi.mock('./EstudiantesVinculadosPanel', () => ({
     <p>Panel de estudiantes de {idFichaPerfil}</p>
   ),
 }));
-vi.mock('./CambiarAsesorForm', () => ({ default: () => null }));
+vi.mock('./CambiarAsesorForm', () => ({
+  default: ({
+    idFichaPerfil,
+    idAsesorActual,
+    onExito,
+  }: {
+    idFichaPerfil: string;
+    idAsesorActual: string;
+    onExito?: () => void;
+  }) => (
+    <div>
+      <p>
+        Formulario de asesor de {idFichaPerfil} con asesor actual {idAsesorActual}
+      </p>
+      <button type="button" onClick={onExito}>
+        Simular éxito
+      </button>
+    </div>
+  ),
+}));
 
 const FICHA_ANA: FichaPerfil = {
   id: 'f-1',
@@ -109,5 +128,43 @@ describe('FichasPerfilTable', () => {
     await user.click(screen.getByRole('button', { name: 'Ocultar estudiantes' }));
 
     expect(screen.queryByText('Panel de estudiantes de f-1')).not.toBeInTheDocument();
+  });
+
+  it('despliega el formulario de cambio de asesor solo de la fila elegida, con la ficha y el asesor actual, y lo cierra al terminar con éxito', async () => {
+    const user = userEvent.setup();
+    renderTabla();
+
+    const [, abrirLuis] = screen.getAllByRole('button', { name: 'Cambiar asesor' });
+    expect(abrirLuis).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(abrirLuis);
+
+    expect(
+      screen.getByText('Formulario de asesor de f-2 con asesor actual a-2'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Formulario de asesor de f-1/)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Ocultar formulario de cambio de asesor' }),
+    ).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'Simular éxito' }));
+
+    expect(screen.queryByText(/Formulario de asesor de/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Cambiar asesor' })).toHaveLength(2);
+  });
+
+  it('mantiene independientes el formulario de cambio de asesor y el panel de estudiantes de la misma ficha', async () => {
+    const user = userEvent.setup();
+    renderTabla({ fichas: [FICHA_ANA], totalElements: 1 });
+
+    await user.click(screen.getByRole('button', { name: 'Cambiar asesor' }));
+
+    expect(screen.getByText(/Formulario de asesor de f-1/)).toBeInTheDocument();
+    expect(screen.queryByText('Panel de estudiantes de f-1')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ver estudiantes vinculados' }));
+
+    expect(screen.getByText(/Formulario de asesor de f-1/)).toBeInTheDocument();
+    expect(screen.getByText('Panel de estudiantes de f-1')).toBeInTheDocument();
   });
 });
