@@ -67,11 +67,9 @@ exacto, no si el endpoint existe.
 |---|---|---|
 | `docs/fichas-perfil/historias/HU{NNN}-*.md` | 23 HU ya extraídas: historia, precondiciones, reglas `POL-XX`, event storming, modelo enriquecido | HU de `fichas-perfil` |
 | `docs/integracion-backend-frontend.md` | **Fuente autoritativa del contrato vigente**: método → verbo → ruta → body → respuesta, más los pendientes con su motivo y la degradación con `AvisoNoDisponible` (no cites cuántos son — se desactualiza) | **Siempre**, antes de tocar un service |
-| `docs/fichas-perfil/fichas-perfil-openapi.yaml` | Diseño **objetivo**; su cabecera avisa de que no coincide con lo expuesto | Para entender la intención de un endpoint futuro. **Nunca para planificar** |
 | `docs/fichas-perfil/contexto/Ficha Perfil - Event Storming.md` | Comandos, políticas, eventos | HU ausente de `historias/`, o política ambigua |
 | `.../contexto/06_fichas_trabajos_grado_modelo_enriquecido.md` | Atributos, tipos, longitudes, obligatoriedad | Derivar modelos TS y límites |
 | `.../contexto/03_tablas_fichas_perfil.sql` | DDL real: anchos, `NOT NULL`, únicos | Alinear `LIMITES` |
-| `docs/permisos-granulares.md` | Permisos por rol | La HU restringe por rol |
 
 ```bash
 ls docs/fichas-perfil/historias/ docs/fichas-perfil/contexto/
@@ -179,7 +177,8 @@ degradación con `AvisoNoDisponible`.
      Por cada endpoint que la HU necesita: ¿implementado o pendiente? ¿ruta y body exactos?
 4. Endpoint que ese documento no liste → abrir el Controller en ../arquisoft-backend
      Sin repo hermano → marcar el contrato como NO VERIFICADO
-5. Roles: cruzar src/shared/models/rol.ts, src/layout/nav-items.ts y docs/permisos-granulares.md
+5. Roles: cruzar src/shared/models/rol.ts, src/layout/nav-items.ts y las authorities del backend
+   ({Contexto}Authorities.java en ../arquisoft-backend)
 6. Catálogo → listar id/nombre/descripcion de cada fila. La UI muestra el `nombre` del backend
 7. Límite nuevo → confirmarlo contra el DDL o el modelo enriquecido, para LIMITES
 8. Registrar todos los archivos consultados en la Metadata del plan

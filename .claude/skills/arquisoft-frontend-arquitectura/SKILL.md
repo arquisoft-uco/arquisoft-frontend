@@ -168,8 +168,6 @@ con el estado de cada uno. Léelo antes de tocar un service.
 - `VITE_API_URL` **ya incluye el `/api`**: una ruta de service empieza en `/fichas-perfil`.
 - **Sin envelope de éxito.** Solo están estandarizados `Page<T>` y `ApiError`
   (`src/shared/models/api-response.ts`). 400 y 422 traen `fieldErrors[]`.
-- `docs/fichas-perfil/fichas-perfil-openapi.yaml` es el diseño **objetivo**, no el contrato vigente.
-  No planifiques contra él.
 
 **Endpoints pendientes.** Algunos métodos apuntan a endpoints que el backend no expone; llevan
 `// Pendiente:` bajo su propio separador. No los borres ni les cambies el verbo sin verificar primero
