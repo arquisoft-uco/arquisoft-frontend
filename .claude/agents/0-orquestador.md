@@ -58,7 +58,9 @@ uno nuevo con un `.in.md` que diga "reanuda".
 ## Respuesta final
 
 Una sola línea `ESTADO: …`, la ruta del `.out.md` y una frase de máx. 15 palabras. Nunca copies
-preguntas, planes ni reportes en tu respuesta.
+preguntas, planes ni reportes en tu respuesta, tampoco un resumen de ellos, ni siquiera con `PREGUNTA`:
+el llamador las lee del `.out.md`. Si el `.out.md` de un delegado no existe, di que esa etapa no se pudo
+verificar; no la des por hecha.
 
 ## Restricciones
 
