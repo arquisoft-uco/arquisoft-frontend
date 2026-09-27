@@ -78,6 +78,11 @@ trae, trátalo como `ERROR`.
 delegado con `SendMessage` si lo tienes: conserva su contexto y no repaga el arranque (~35k tokens por
 agente nuevo). Sin `SendMessage`, un `.in.md` nuevo que diga "reanuda", con la respuesta en «Decisiones».
 
+**Con `SendMessage`, escribe antes la respuesta del usuario**, textual, en «Decisiones» del `.in.md` del
+delegado, y en el mensaje cita esa ruta. Los agentes con acciones externas (`@4c`: commit, push, PR,
+publicación) solo aceptan autorizaciones registradas ahí; una que llega solo por mensaje la rechazan, y
+cuesta una vuelta de más. Además queda escrito qué aprobó el usuario y cuándo.
+
 **Tu respuesta final** es la línea `ESTADO`, la ruta y una frase corta. El contenido (preguntas, planes,
 reportes) va en el `.out.md`, nunca en el mensaje: quien te invocó lo lee del archivo.
 
