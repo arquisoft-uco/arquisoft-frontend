@@ -5,6 +5,7 @@ import Usuarios from './Usuarios';
 import { Rol } from '../../shared/models/rol';
 import { useRegistrarUsuario } from './hooks/useRegistrarUsuario';
 import { useCoordinadores } from './hooks/useCoordinadores';
+import { useEstudiantes } from './hooks/useEstudiantes';
 
 vi.mock('./hooks/useRegistrarUsuario', () => ({
   useRegistrarUsuario: vi.fn(),
@@ -12,6 +13,10 @@ vi.mock('./hooks/useRegistrarUsuario', () => ({
 
 vi.mock('./hooks/useCoordinadores', () => ({
   useCoordinadores: vi.fn(),
+}));
+
+vi.mock('./hooks/useEstudiantes', () => ({
+  useEstudiantes: vi.fn(),
 }));
 
 function crearCoordinadoresMock(
@@ -36,6 +41,30 @@ function crearCoordinadoresMock(
     goToPage: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useCoordinadores>;
+}
+
+function crearEstudiantesMock(
+  parcial: Partial<ReturnType<typeof useEstudiantes>> = {},
+): ReturnType<typeof useEstudiantes> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useEstudiantes>;
 }
 
 function autenticarCon(rol: Rol) {
@@ -71,6 +100,7 @@ describe('Usuarios', () => {
     resetAllStores();
     vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
     vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
+    vi.mocked(useEstudiantes).mockReturnValue(crearEstudiantesMock());
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {

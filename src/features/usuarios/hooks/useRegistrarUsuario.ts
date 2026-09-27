@@ -8,7 +8,7 @@ export function useRegistrarUsuario() {
   return useMutation({
     mutationFn: (req: RegistrarUsuarioRequest) => usuariosService.registrarUsuario(req),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['usuarios', 'coordinadores'] });
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
     },
   });
 }
