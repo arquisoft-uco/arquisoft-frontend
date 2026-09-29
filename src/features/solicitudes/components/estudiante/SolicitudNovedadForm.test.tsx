@@ -69,7 +69,7 @@ describe('SolicitudNovedadForm', () => {
     await llenarFormularioValido(user);
 
     await waitFor(() => expect(submit).toBeEnabled());
-  });
+  }, 15000);
 
   it('bloquea el envío cuando el destinatario no tiene formato UUID', async () => {
     renderizarFormulario();

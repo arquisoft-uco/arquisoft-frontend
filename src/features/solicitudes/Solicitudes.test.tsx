@@ -6,6 +6,7 @@ import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
+import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -13,6 +14,10 @@ vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
 
 vi.mock('./hooks/useEnviarSolicitudNovedadAsesor', () => ({
   useEnviarSolicitudNovedadAsesor: vi.fn(),
+}));
+
+vi.mock('./hooks/useEnviarSolicitudCambioAsesor', () => ({
+  useEnviarSolicitudCambioAsesor: vi.fn(),
 }));
 
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
@@ -48,6 +53,7 @@ describe('Solicitudes', () => {
     resetAllStores();
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {

@@ -1,17 +1,20 @@
 import { useState } from 'react';
+import CambioAsesorForm from './CambioAsesorForm';
 import NovedadAsesorForm from './NovedadAsesorForm';
 import NovedadCoordinadorForm from './NovedadCoordinadorForm';
 
-type TipoSolicitudUi = 'coordinador' | 'asesor';
+type TipoSolicitudUi = 'coordinador' | 'asesor' | 'cambio-asesor';
 
 const TIPOS: { value: TipoSolicitudUi; label: string }[] = [
   { value: 'coordinador', label: 'Novedad al coordinador' },
   { value: 'asesor', label: 'Novedad al asesor' },
+  { value: 'cambio-asesor', label: 'Cambio de asesor' },
 ];
 
 const FORM_POR_TIPO: Record<TipoSolicitudUi, React.ComponentType> = {
   coordinador: NovedadCoordinadorForm,
   asesor: NovedadAsesorForm,
+  'cambio-asesor': CambioAsesorForm,
 };
 
 export default function NuevaSolicitudPanel() {

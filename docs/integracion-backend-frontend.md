@@ -177,11 +177,12 @@ Servicio: `src/features/solicitudes/services/solicitudesService.ts`.
 |---|---|---|---|---|---|
 | `enviarSolicitudNovedadCoordinador` (HU-081) | POST | `/solicitudes/novedad-coordinador` | `{ destinatario, mensajeSolicitud }` | `201 { id }` | `solicitudes:solicitud:create` |
 | `enviarSolicitudNovedadAsesor` (HU-082) | POST | `/solicitudes/novedad-asesor` | `{ destinatario, mensajeSolicitud }` | `201 { id }` | `solicitudes:solicitud-novedad-asesor:create` |
+| `enviarSolicitudCambioAsesor` (HU-083) | POST | `/solicitudes/cambio-asesor` | `{ destinatario, mensajeSolicitud }` | `201 { id }` | `solicitudes:solicitud-cambio-asesor:create` |
 
-Verificado contra los Controllers y DTO de `../arquisoft-backend`, y contra `VALIDATOR-HU-081.md` y
-`VALIDATOR-HU-082.md` (✅ APROBADO). Sin traducción de nombres en el service: el modelo del frontend
-coincide 1:1 con los DTO. El tipo de solicitud lo fija el backend; el cliente no lo envía. Ambos
-endpoints comparten `SolicitudCreadaResponse`.
+Verificado contra los Controllers y DTO de `../arquisoft-backend`, y contra `VALIDATOR-HU-081.md`,
+`VALIDATOR-HU-082.md` y `VALIDATOR-HU-083.md` (✅ APROBADO). Sin traducción de nombres en el service: el
+modelo del frontend coincide 1:1 con los DTO. El tipo de solicitud lo fija el backend; el cliente no lo
+envía. Los tres endpoints comparten `SolicitudCreadaResponse`.
 
 Errores de dominio (`SolicitudesCodes.java`): 400 `SOLICITUD_MENSAJE_REQUERIDO`,
 `SOLICITUD_MENSAJE_DEMASIADO_LARGO`, `SOLICITUD_DESTINATARIO_REQUERIDO` (también para UUID mal
@@ -191,11 +192,18 @@ formado); 422 `REMITENTE_NO_ENCONTRADO`, `DESTINATARIO_NO_ENCONTRADO`, `DESTINAT
 **Deuda del destinatario:** el backend no expone "mi asesor" ni "mi coordinador", así que el UUID se
 digita a mano y el formulario muestra `AvisoNoDisponible`. La regla RN-7 de HU-082 (el destinatario es el
 asesor asignado al remitente) es inerte hoy: el adaptador del backend es un STUB que siempre aprueba,
-por lo que `DESTINATARIO_NO_ASIGNADO` no es alcanzable todavía.
+por lo que `DESTINATARIO_NO_ASIGNADO` no es alcanzable todavía. Lo mismo aplica a HU-083: el código del
+backend aplica la regla `DestinatarioAsignado` en `POST /solicitudes/cambio-asesor` (la agregó un commit
+posterior a `PLAN-HU-083.md` y `VALIDATOR-HU-083.md` de backend, que no la mencionan) y hoy es inerte por
+el mismo STUB.
+
+**Dependencia operativa (HU-083):** el client role `solicitudes:solicitud-cambio-asesor:create` no está en
+`realm-arquisoft.json.template` de `arquisoft-infra`. Con login real, un estudiante puede recibir `403`
+(el interceptor lo lleva a `/forbidden`) hasta que se cree y se mapee en Keycloak. No se ve con
+`VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
 
 ### Sin cliente en el frontend
 
-- HU-083: `POST /solicitudes/cambio-asesor`.
 - HU-084: `POST /solicitudes/ampliacion-plazo`.
 - HU-096: `POST /solicitudes/novedad-coordinador/enviadas`.
 - HU-097, HU-066 y HU-067 solo existen en ramas del backend, no en `develop`, y sus authorities no están
