@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEnviarSolicitudNovedadCoordinador } from '../../hooks/useEnviarSolicitudNovedadCoordinador';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, getApiFieldErrors, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido, uuidValido } from '../../../../shared/validation';
@@ -16,7 +15,29 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export default function EnviarSolicitudNovedadForm() {
+export interface TextosSolicitudNovedad {
+  titulo: string;
+  etiquetaDestinatario: string;
+  placeholderMensaje: string;
+  recursoAviso: string;
+  tituloConfirmacion: string;
+  descripcionConfirmacion: string;
+  mensajeExito: string;
+}
+
+interface OpcionesEnvio {
+  onSuccess: () => void;
+  onError: (err: unknown) => void;
+}
+
+interface Props {
+  textos: TextosSolicitudNovedad;
+  enviar: (body: FormValues, opciones: OpcionesEnvio) => void;
+  enviando: boolean;
+  reiniciar: () => void;
+}
+
+export default function SolicitudNovedadForm({ textos, enviar, enviando, reiniciar }: Props) {
   const [confirmando, setConfirmando] = useState(false);
 
   const {
@@ -31,16 +52,14 @@ export default function EnviarSolicitudNovedadForm() {
     mode: 'onChange',
   });
 
-  const { mutate, isPending, reset: resetMutation } = useEnviarSolicitudNovedadCoordinador();
-
   function onSubmit(values: FormValues) {
-    mutate(
+    enviar(
       { destinatario: values.destinatario, mensajeSolicitud: values.mensajeSolicitud },
       {
         onSuccess: () => {
-          toast.success('Solicitud enviada', 'El coordinador recibirá tu mensaje.');
+          toast.success('Solicitud enviada', textos.mensajeExito);
           reset();
-          resetMutation();
+          reiniciar();
           setConfirmando(false);
         },
         onError: (err) => {
@@ -83,83 +102,72 @@ export default function EnviarSolicitudNovedadForm() {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-      <h3 className="mb-4 text-base font-semibold text-on-surface">
-        Enviar solicitud de novedad al coordinador
-      </h3>
+      <h2 className="mb-4 text-base font-semibold text-on-surface">{textos.titulo}</h2>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo}>
-        {/* Destinatario */}
         <div>
-          <label
-            htmlFor="sn-destinatario"
-            className="mb-1 block text-xs font-medium text-on-surface-secondary"
-          >
-            Destinatario (UUID del coordinador) <span aria-hidden className="text-danger">*</span>
+          <label htmlFor="sn-destinatario" className="field-label">
+            {textos.etiquetaDestinatario} <span aria-hidden className="text-danger">*</span>
           </label>
           <input
             id="sn-destinatario"
             type="text"
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
+            className="field-input"
             aria-invalid={!!errors.destinatario}
             aria-describedby={errors.destinatario ? 'sn-destinatario-error' : undefined}
             placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
             {...register('destinatario')}
           />
           {errors.destinatario && (
-            <p id="sn-destinatario-error" className="mt-1 text-xs text-danger" role="alert">
+            <p id="sn-destinatario-error" className="field-error" role="alert">
               {errors.destinatario.message}
             </p>
           )}
           <div className="mt-2">
-            <AvisoNoDisponible recurso="coordinadores" />
+            <AvisoNoDisponible recurso={textos.recursoAviso} />
           </div>
         </div>
 
-        {/* Mensaje */}
         <div>
-          <label
-            htmlFor="sn-mensaje"
-            className="mb-1 block text-xs font-medium text-on-surface-secondary"
-          >
+          <label htmlFor="sn-mensaje" className="field-label">
             Mensaje <span aria-hidden className="text-danger">*</span>
           </label>
           <textarea
             id="sn-mensaje"
             rows={4}
             maxLength={LIMITES.MENSAJE_SOLICITUD_MAX}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
+            className="field-input"
             aria-invalid={!!errors.mensajeSolicitud}
             aria-describedby={errors.mensajeSolicitud ? 'sn-mensaje-error' : undefined}
-            placeholder="Describe la novedad que quieres reportar al coordinador"
+            placeholder={textos.placeholderMensaje}
             {...register('mensajeSolicitud')}
           />
           {errors.mensajeSolicitud && (
-            <p id="sn-mensaje-error" className="mt-1 text-xs text-danger" role="alert">
+            <p id="sn-mensaje-error" className="field-error" role="alert">
               {errors.mensajeSolicitud.message}
             </p>
           )}
         </div>
 
-        {/* Acciones */}
-        <div className="flex justify-end border-t border-border pt-4">
+        <div className="actions-row border-t border-border pt-4">
           <button
             type="button"
             onClick={handleAbrirConfirmacion}
-            disabled={!isValid || isPending}
+            disabled={!isValid || enviando}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {isPending ? 'Enviando...' : 'Enviar solicitud'}
+            {enviando ? 'Enviando...' : 'Enviar solicitud'}
           </button>
         </div>
       </form>
 
       {confirmando && (
         <ConfirmDialog
-          titulo="Enviar solicitud al coordinador"
-          descripcion="Se enviará un mensaje de novedad al coordinador indicado. ¿Deseas continuar?"
+          titulo={textos.tituloConfirmacion}
+          descripcion={textos.descripcionConfirmacion}
           labelConfirmar="Enviar"
           variante="advertencia"
-          cargando={isPending}
+          cargando={enviando}
           onConfirmar={handleConfirmar}
           onCancelar={handleCancelarConfirmacion}
         />

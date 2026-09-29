@@ -167,6 +167,40 @@ están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuari
 real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
 mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
 
+## Endpoints de Solicitudes
+
+Servicio: `src/features/solicitudes/services/solicitudesService.ts`.
+
+### Implementados y alineados
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta | Authority |
+|---|---|---|---|---|---|
+| `enviarSolicitudNovedadCoordinador` (HU-081) | POST | `/solicitudes/novedad-coordinador` | `{ destinatario, mensajeSolicitud }` | `201 { id }` | `solicitudes:solicitud:create` |
+| `enviarSolicitudNovedadAsesor` (HU-082) | POST | `/solicitudes/novedad-asesor` | `{ destinatario, mensajeSolicitud }` | `201 { id }` | `solicitudes:solicitud-novedad-asesor:create` |
+
+Verificado contra los Controllers y DTO de `../arquisoft-backend`, y contra `VALIDATOR-HU-081.md` y
+`VALIDATOR-HU-082.md` (✅ APROBADO). Sin traducción de nombres en el service: el modelo del frontend
+coincide 1:1 con los DTO. El tipo de solicitud lo fija el backend; el cliente no lo envía. Ambos
+endpoints comparten `SolicitudCreadaResponse`.
+
+Errores de dominio (`SolicitudesCodes.java`): 400 `SOLICITUD_MENSAJE_REQUERIDO`,
+`SOLICITUD_MENSAJE_DEMASIADO_LARGO`, `SOLICITUD_DESTINATARIO_REQUERIDO` (también para UUID mal
+formado); 422 `REMITENTE_NO_ENCONTRADO`, `DESTINATARIO_NO_ENCONTRADO`, `DESTINATARIO_NO_ASIGNADO`,
+`SOLICITUD_DUPLICADA`.
+
+**Deuda del destinatario:** el backend no expone "mi asesor" ni "mi coordinador", así que el UUID se
+digita a mano y el formulario muestra `AvisoNoDisponible`. La regla RN-7 de HU-082 (el destinatario es el
+asesor asignado al remitente) es inerte hoy: el adaptador del backend es un STUB que siempre aprueba,
+por lo que `DESTINATARIO_NO_ASIGNADO` no es alcanzable todavía.
+
+### Sin cliente en el frontend
+
+- HU-083: `POST /solicitudes/cambio-asesor`.
+- HU-084: `POST /solicitudes/ampliacion-plazo`.
+- HU-096: `POST /solicitudes/novedad-coordinador/enviadas`.
+- HU-097, HU-066 y HU-067 solo existen en ramas del backend, no en `develop`, y sus authorities no están
+  en el realm.
+
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
 Estos endpoints existen en el backend pero no se integran en esta iteración:

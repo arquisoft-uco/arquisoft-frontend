@@ -1,12 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
+import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('./hooks/useEnviarSolicitudNovedadAsesor', () => ({
+  useEnviarSolicitudNovedadAsesor: vi.fn(),
 }));
 
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
@@ -41,6 +47,7 @@ describe('Solicitudes', () => {
   beforeEach(() => {
     resetAllStores();
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {
@@ -52,7 +59,7 @@ describe('Solicitudes', () => {
     expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
   });
 
-  it('muestra ComingSoon cuando el rol activo no tiene vista real de HU-081', () => {
+  it('muestra ComingSoon cuando el rol activo no tiene vista real de solicitudes', () => {
     autenticarCon(Rol.Administrador);
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
@@ -63,14 +70,35 @@ describe('Solicitudes', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('renderiza EstudianteView con el formulario real cuando el rol activo es Estudiante', () => {
+  it('renderiza EstudianteView con tres pestañas y el formulario de coordinador cuando el rol activo es Estudiante', () => {
     autenticarCon(Rol.Estudiante);
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Nueva solicitud',
+      'Enviadas',
+      'Respuestas',
+    ]);
+    expect(screen.getByRole('tab', { name: 'Nueva solicitud' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
     expect(
       screen.getByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
+  });
+
+  it('muestra el aviso de próximamente al abrir Enviadas o Respuestas', async () => {
+    autenticarCon(Rol.Estudiante);
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    await user.click(screen.getByRole('tab', { name: 'Enviadas' }));
+    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
+    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
   });
 });
