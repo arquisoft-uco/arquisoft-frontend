@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
 import PestanaEnConstruccion from './PestanaEnConstruccion';
 import Tabs from './Tabs';
 
 type Tab = 'nueva' | 'enviadas' | 'respuestas';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'nueva', label: 'Nueva solicitud' },
+const TABS: { key: Tab; label: string; icono?: React.ReactNode }[] = [
+  { key: 'nueva', label: 'Nueva solicitud', icono: <Plus size={16} aria-hidden /> },
   { key: 'enviadas', label: 'Enviadas' },
   { key: 'respuestas', label: 'Respuestas' },
 ];
