@@ -3,6 +3,7 @@ import { useRef } from 'react';
 interface Tab<K extends string> {
   key: K;
   label: string;
+  icono?: React.ReactNode;
 }
 
 interface Props<K extends string> {
@@ -57,10 +58,10 @@ export default function Tabs<K extends string>({
         {tabs.map((tab, indice) => {
           const seleccionada = tab.key === activa;
           const clases = [
-            'tap-target justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            'tap-target justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
             seleccionada
-              ? 'bg-surface text-on-surface shadow-card'
-              : 'text-on-surface-secondary hover:text-on-surface',
+              ? 'bg-primary text-primary-foreground shadow-card'
+              : 'text-on-surface-secondary hover:bg-primary hover:text-primary-foreground',
           ];
 
           return (
@@ -79,6 +80,7 @@ export default function Tabs<K extends string>({
               onClick={() => onCambiar(tab.key)}
               onKeyDown={(e) => handleKeyDown(e, indice)}
             >
+              {tab.icono}
               {tab.label}
             </button>
           );
