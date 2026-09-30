@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
+import { useTiposItem } from './useTiposItem';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
 import { useAuthStore } from '../../../auth/authStore';
 
@@ -17,12 +18,7 @@ export function useItemsMiFicha() {
     enabled: !!estudianteId,
   });
 
-  const tiposItemQuery = useQuery({
-    queryKey: ['fichas-perfil', 'tipos-item'],
-    queryFn: fichasPerfilService.consultarTodosTipoItem,
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
+  const tiposItemQuery = useTiposItem();
 
   const agregar = useMutation({
     mutationFn: (req: CrearItemRequest) => fichasPerfilService.agregarItemFichaPerfil(req),
