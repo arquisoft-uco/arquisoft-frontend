@@ -40,6 +40,7 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `modificarItem` | PATCH | `/fichas-perfil/items/{itemId}` | `{ contenido }` | `204` |
 | `removerItem` | DELETE | `/fichas-perfil/items/{itemId}` | — | `204` |
 | `consultarTodosTipoItem` | GET | `/fichas-perfil/tipos-item` | — | `200 TipoItem[]` |
+| `consultarFichasPerfilEstudiante` | GET | `/fichas-perfil/estudiante` | — | `200 FichaPerfilEstudianteResponseDTO[]` (puede ser `[]`). Mergeado en `develop` del backend (PR #168, VALIDATOR-HU-037 100/100); el estudiante sale del JWT, sin id de entrada. Una ficha sin estado o sin asesor se omite del listado (`INNER JOIN`), sin 500: el estudiante la ve como lista vacía. Mejora abierta del backend: pasar a `LEFT JOIN` |
 | `getItemsFichaAsesor` | GET | `/fichas-perfil/{fichaPerfilId}/items` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
 | `getItemsFichaRepresentante` | GET | `/fichas-perfil/{fichaPerfilId}/items/representante` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
 | `consultarEstudiantesVinculados` | GET | `/fichas-perfil/{fichaPerfilId}/estudiantes` | — | `200 EstudianteFichaPerfilResponseDTO[]` · `id` es el vínculo, `estudianteId` el estudiante |
@@ -65,12 +66,9 @@ Estos métodos permanecen en el servicio anotados como pendientes para no romper
 |---|---|
 | `getFichasRepresentante` | Verificado 2026-09-28: sigue sin endpoint en el backend (no existe un `ConsultarFichasPerfilRepresentanteController` análogo a `.../coordinador` o `.../asesor`). Corresponde a `HU280-NO_SINCRONIZADA`, sigue vigente tal cual. **Esto bloquea toda la vista `RepresentanteView` en producción**: aunque `ItemsFichaRepresentantePanel`, `RegistrarEvaluacionPanel`, `AgregarEstadoEvaluacionPanel` y `EstadosEvaluacionPanel` están completamente implementados y usan endpoints reales, nadie puede llegar a ellos porque `ConsultarFichasRepresentante` (la puerta de entrada) no tiene de dónde traer el listado |
 | `agregarEstadoFichaPerfil` | Verificado 2026-09-28: el backend **sigue sin exponer controller REST** para esto (confirmado revisando todos los `*Controller.java` de `fichas/infrastructure`; solo existe `AgregarEstadoEvaluacionFichaController`, que es de **evaluación**, no de estado de ficha). `AsignarEstadoInicialFichaPerfilUseCase` sigue siendo un mecanismo interno que corre al registrar la ficha |
-| `getMiFichaPerfil` | Verificado 2026-09-28, sigue bloqueado: existe `GET /fichas-perfil/{fichaPerfilId}/estudiante` (`ConsultarFichaPerfilEstudianteController`), pero **exige el `fichaPerfilId` como entrada**, y no hay ningún endpoint tipo "mis fichas" para que el estudiante lo descubra desde su JWT (a diferencia de `POST /coordinador` o `POST /asesor`, que sí derivan al usuario del token). **Esto bloquea toda la vista `EstudianteView` en producción**: `ItemsMiFichaPanel` (con `agregar`/`modificar`/`remover` ya wireados a `agregarItemFichaPerfil`/`modificarItem`/`removerItem`, los tres reales) nunca recibe un `fichaId` con el que operar |
-| `consultarItemsMiFichaPerfil` | Mismo bloqueo que `getMiFichaPerfil`: `GET /fichas-perfil/{fichaPerfilId}/items/estudiante` (`ConsultarItemsFichaPerfilEstudianteController`) existe, pero depende del mismo `fichaPerfilId` que el estudiante no puede descubrir |
+| `consultarItemsMiFichaPerfil` | La ruta real es `GET /fichas-perfil/{fichaPerfilId}/items/estudiante` (`ConsultarItemsFichaPerfilEstudianteController`, HU-032). El bloqueo por descubrir el `fichaPerfilId` ya se resolvió con `consultarFichasPerfilEstudiante`; queda pendiente apuntar este método a la ruta real |
 
-> Ninguna de las dos últimas filas es un error de ruta: el contrato del backend está bien formado, lo
-> que falta es la puerta de entrada del estudiante a su propia ficha — y lo mismo aplica al
-> representante con `getFichasRepresentante`.
+> `consultarItemsMiFichaPerfil` no es un error de ruta del backend: solo falta apuntar el método a la ruta real. La puerta de entrada del representante sigue bloqueada por `getFichasRepresentante`.
 
 ### Grupos con UI implementada pero bloqueados en su punto de entrada
 
@@ -81,7 +79,7 @@ endpoint de entrada:
 
 | Vista | Componentes reales, ya conectados a endpoints reales | Bloqueo de entrada |
 |---|---|---|
-| `EstudianteView` | `ItemsMiFichaPanel` (agregar/modificar/remover ítem — HU031/033/034; selector del catálogo de tipos), `TiposItemPanel` (HU193, pestaña propia), `MiFichaHeader` (modificar título) | `getMiFichaPerfil` — sin discovery de "mi ficha" |
+| `EstudianteView` | `ItemsMiFichaPanel` (agregar/modificar/remover ítem — HU031/033/034; selector del catálogo de tipos), `TiposItemPanel` (HU193, pestaña propia), `MiFichaHeader` (modificar título) | Resuelto: `consultarFichasPerfilEstudiante` (`GET /fichas-perfil/estudiante`) |
 | `RepresentanteView` | `ItemsFichaRepresentantePanel` (HU185, ya cerrada), `RegistrarEvaluacionPanel` (HU190), `AgregarEstadoEvaluacionPanel` (HU191), `EstadosEvaluacionPanel` (HU186) | `getFichasRepresentante` — sin endpoint de listado |
 
 `EstudianteView` además tiene dos tabs en `ComingSoon` real (`RevisionesMiFichaPanel`,
