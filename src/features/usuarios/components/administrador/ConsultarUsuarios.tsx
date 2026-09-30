@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useUsuarios } from '../../hooks/useUsuarios';
+import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { toast } from '../../../../shared/hooks/useToast';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import type { Usuario } from '../../models/Usuario';
 import FiltrosUsuariosPanel from './FiltrosUsuariosPanel';
 import ModificarUsuarioForm from './ModificarUsuarioForm';
@@ -9,6 +12,8 @@ import UsuariosTable from './UsuariosTable';
 
 export default function ConsultarUsuarios() {
   const [usuarioEnEdicion, setUsuarioEnEdicion] = useState<Usuario | null>(null);
+  const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(null);
+  const eliminar = useEliminarUsuario();
 
   const {
     data,
@@ -32,6 +37,23 @@ export default function ConsultarUsuarios() {
   } = useUsuarios();
 
   const totalElements = data?.totalElements ?? 0;
+
+  function confirmarEliminacion() {
+    if (!usuarioAEliminar) return;
+    eliminar.mutate(usuarioAEliminar.id, {
+      onSuccess: () => {
+        toast.success('Usuario eliminado', `${usuarioAEliminar.nombre} ya no está vigente.`);
+      },
+      onError: (err) => {
+        toast.error('No se pudo eliminar el usuario', getApiErrorMessage(err, 'Intenta nuevamente.'));
+      },
+      onSettled: () => setUsuarioAEliminar(null),
+    });
+  }
+
+  function cancelarEliminacion() {
+    if (!eliminar.isPending) setUsuarioAEliminar(null);
+  }
 
   return (
     <section className="flex flex-col gap-6" aria-labelledby="usuarios-titulo">
@@ -104,6 +126,19 @@ export default function ConsultarUsuarios() {
           pageSize={pageSize}
           onPageChange={goToPage}
           onEditar={setUsuarioEnEdicion}
+          onEliminar={setUsuarioAEliminar}
+        />
+      )}
+
+      {usuarioAEliminar && (
+        <ConfirmDialog
+          variante="peligro"
+          titulo="Eliminar usuario"
+          descripcion={`Se desactivará el acceso de ${usuarioAEliminar.nombre} y dejará de estar vigente.`}
+          labelConfirmar="Eliminar"
+          cargando={eliminar.isPending}
+          onConfirmar={confirmarEliminacion}
+          onCancelar={cancelarEliminacion}
         />
       )}
     </section>

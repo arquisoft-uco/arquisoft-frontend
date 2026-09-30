@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Usuario } from '../../models/Usuario';
 import { rolesDeUsuario } from '../../utils/roles-usuario';
 import { ETIQUETAS_ROL } from '../../../../shared/models/rol';
@@ -12,6 +12,7 @@ interface Props {
   pageSize: number;
   onPageChange: (page: number) => void;
   onEditar: (usuario: Usuario) => void;
+  onEliminar: (usuario: Usuario) => void;
 }
 
 const COLUMNAS = [
@@ -33,6 +34,7 @@ export default function UsuariosTable({
   pageSize,
   onPageChange,
   onEditar,
+  onEliminar,
 }: Props) {
   return (
     <div className="flex flex-col gap-4">
@@ -90,14 +92,30 @@ export default function UsuariosTable({
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => onEditar(usuario)}
-                      aria-label={`Editar ${usuario.nombre}`}
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-nav-hover-bg hover:text-on-surface sm:h-9 sm:w-9"
-                    >
-                      <Pencil size={16} aria-hidden />
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onEditar(usuario)}
+                        aria-label={`Editar ${usuario.nombre}`}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-nav-hover-bg hover:text-on-surface sm:h-9 sm:w-9"
+                      >
+                        <Pencil size={16} aria-hidden />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onEliminar(usuario)}
+                        disabled={!usuario.vigente}
+                        aria-label={
+                          usuario.vigente
+                            ? `Eliminar ${usuario.nombre}`
+                            : `${usuario.nombre} ya está eliminado`
+                        }
+                        title={usuario.vigente ? undefined : `${usuario.nombre} ya está eliminado`}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-nav-hover-bg hover:text-danger disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-on-surface-secondary sm:h-9 sm:w-9"
+                      >
+                        <Trash2 size={16} aria-hidden />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

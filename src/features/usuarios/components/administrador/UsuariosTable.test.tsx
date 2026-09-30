@@ -38,6 +38,7 @@ describe('UsuariosTable', () => {
         pageSize={10}
         onPageChange={() => {}}
         onEditar={() => {}}
+        onEliminar={() => {}}
       />,
     );
 
@@ -59,6 +60,7 @@ describe('UsuariosTable', () => {
         pageSize={10}
         onPageChange={() => {}}
         onEditar={() => {}}
+        onEliminar={() => {}}
       />,
     );
 
@@ -81,6 +83,7 @@ describe('UsuariosTable', () => {
         pageSize={10}
         onPageChange={() => {}}
         onEditar={onEditar}
+        onEliminar={() => {}}
       />,
     );
 
@@ -90,5 +93,60 @@ describe('UsuariosTable', () => {
     // Assert
     expect(onEditar).toHaveBeenCalledTimes(1);
     expect(onEditar).toHaveBeenCalledWith(usuarioDos);
+  });
+
+  it('el botón Eliminar invoca onEliminar con el usuario de su fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const usuarioUno = crearUsuario({ id: 'u-1', nombre: 'Marta Ríos' });
+    const usuarioDos = crearUsuario({ id: 'u-2', nombre: 'Carlos Vega' });
+    const onEliminar = vi.fn();
+    render(
+      <UsuariosTable
+        usuarios={[usuarioUno, usuarioDos]}
+        totalElements={2}
+        totalPages={1}
+        page={0}
+        pageSize={10}
+        onPageChange={() => {}}
+        onEditar={() => {}}
+        onEliminar={onEliminar}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: `Eliminar ${usuarioDos.nombre}` }));
+
+    // Assert
+    expect(onEliminar).toHaveBeenCalledTimes(1);
+    expect(onEliminar).toHaveBeenCalledWith(usuarioDos);
+  });
+
+  it('deshabilita Eliminar con etiqueta explicativa en un usuario dado de baja', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onEliminar = vi.fn();
+    const usuario = crearUsuario({ nombre: 'Marta Ríos', vigente: false });
+    render(
+      <UsuariosTable
+        usuarios={[usuario]}
+        totalElements={1}
+        totalPages={1}
+        page={0}
+        pageSize={10}
+        onPageChange={() => {}}
+        onEditar={() => {}}
+        onEliminar={onEliminar}
+      />,
+    );
+
+    // Act
+    const boton = screen.getByRole('button', { name: 'Marta Ríos ya está eliminado' });
+    await user.click(boton);
+
+    // Assert
+    expect(boton).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Eliminar Marta Ríos' })).not.toBeInTheDocument();
+    expect(onEliminar).not.toHaveBeenCalled();
   });
 });

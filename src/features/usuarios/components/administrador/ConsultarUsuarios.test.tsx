@@ -4,6 +4,8 @@ import { render, screen } from '../../../../test-utils/render';
 import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
+import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
+import { toast } from '../../../../shared/hooks/useToast';
 import type { Usuario } from '../../models/Usuario';
 import type { Page } from '../../../../shared/models/api-response';
 
@@ -17,6 +19,38 @@ vi.mock('../../hooks/useUsuarios', () => ({
 vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
 }));
+
+vi.mock('../../hooks/useEliminarUsuario', () => ({
+  useEliminarUsuario: vi.fn(),
+}));
+
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+}));
+
+function crearMutacionEliminarMock(
+  parcial: Partial<ReturnType<typeof useEliminarUsuario>> = {},
+): ReturnType<typeof useEliminarUsuario> {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useEliminarUsuario>;
+}
 
 function crearMutacionModificarMock(): ReturnType<typeof useModificarUsuario> {
   return {
@@ -101,6 +135,9 @@ describe('ConsultarUsuarios', () => {
   beforeEach(() => {
     vi.mocked(useUsuarios).mockReset();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
+    vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock());
+    vi.mocked(toast.success).mockClear();
+    vi.mocked(toast.error).mockClear();
   });
 
   it('muestra el estado de carga con el título visible', () => {
@@ -186,5 +223,93 @@ describe('ConsultarUsuarios', () => {
     // Assert
     expect(screen.queryByRole('heading', { name: /editar usuario/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: `Editar ${USUARIO.nombre}` })).toBeInTheDocument();
+  });
+
+  describe('eliminar usuario', () => {
+    async function abrirDialogo() {
+      const user = userEvent.setup();
+      vi.mocked(useUsuarios).mockReturnValue(crearHookMock({ data: crearPagina([USUARIO]) }));
+      render(<ConsultarUsuarios />);
+      await user.click(screen.getByRole('button', { name: `Eliminar ${USUARIO.nombre}` }));
+      return user;
+    }
+
+    it('abre el diálogo nombrando al usuario y Cancelar lo cierra sin mutar', async () => {
+      // Arrange
+      const mutate = vi.fn();
+      vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock({ mutate }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+      // Act
+      const user = await abrirDialogo();
+
+      // Assert
+      expect(screen.getByRole('dialog')).toHaveTextContent(USUARIO.nombre);
+      await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(mutate).not.toHaveBeenCalled();
+    });
+
+    it('Confirmar muta con el id y, en éxito, lanza toast.success y cierra el diálogo', async () => {
+      // Arrange
+      const mutate = vi.fn(
+        (_id: string, opciones?: { onSuccess?: () => void; onSettled?: () => void }) => {
+          opciones?.onSuccess?.();
+          opciones?.onSettled?.();
+        },
+      );
+      vi.mocked(useEliminarUsuario).mockReturnValue(
+        crearMutacionEliminarMock({ mutate: mutate as never }),
+      );
+      const user = await abrirDialogo();
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+      // Assert
+      expect(mutate).toHaveBeenCalledWith(USUARIO.id, expect.any(Object));
+      expect(toast.success).toHaveBeenCalledWith('Usuario eliminado', expect.any(String));
+      expect(toast.error).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('en error lanza toast.error con el mensaje de respaldo y cierra el diálogo', async () => {
+      // Arrange
+      const mutate = vi.fn(
+        (_id: string, opciones?: { onError?: (e: unknown) => void; onSettled?: () => void }) => {
+          opciones?.onError?.(new Error('fallo'));
+          opciones?.onSettled?.();
+        },
+      );
+      vi.mocked(useEliminarUsuario).mockReturnValue(
+        crearMutacionEliminarMock({ mutate: mutate as never }),
+      );
+      const user = await abrirDialogo();
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+      // Assert
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudo eliminar el usuario',
+        expect.any(String),
+      );
+      expect(toast.success).not.toHaveBeenCalled();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('con la mutación pendiente bloquea Confirmar y Cancelar y no cierra el diálogo', async () => {
+      // Arrange
+      vi.mocked(useEliminarUsuario).mockReturnValue(
+        crearMutacionEliminarMock({ isPending: true, status: 'pending', isIdle: false }),
+      );
+
+      // Act
+      await abrirDialogo();
+
+      // Assert
+      expect(screen.getByRole('button', { name: 'Procesando...' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+    });
   });
 });

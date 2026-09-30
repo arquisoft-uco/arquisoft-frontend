@@ -124,6 +124,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
 |---|---|---|---|---|
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
+| `eliminarUsuario` | DELETE | `/usuarios/{usuarioId}` | — | `204` sin cuerpo (eliminación lógica; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `USUARIO_ROLES_VIGENTES`; 503 `USUARIO_IDP_NO_DISPONIBLE`) |
 | `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
 | `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
 | `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
