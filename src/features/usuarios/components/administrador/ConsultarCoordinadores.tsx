@@ -1,14 +1,11 @@
+import { RefreshCw } from 'lucide-react';
 import { useCoordinadores } from '../../hooks/useCoordinadores';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import CoordinadoresTable from './CoordinadoresTable';
 
-interface Props {
-  accionHeader?: React.ReactNode;
-  formulario?: React.ReactNode;
-}
-
-export default function ConsultarCoordinadores({ accionHeader, formulario }: Props) {
-  const { data, isLoading, isError, error, page, pageSize, goToPage } = useCoordinadores();
+export default function ConsultarCoordinadores() {
+  const { data, isLoading, isError, error, isFetching, refetch, page, pageSize, goToPage } =
+    useCoordinadores();
 
   const totalElements = data?.totalElements ?? 0;
 
@@ -25,10 +22,16 @@ export default function ConsultarCoordinadores({ accionHeader, formulario }: Pro
             </p>
           )}
         </div>
-        {accionHeader}
+        <button
+          type="button"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="header-action inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-nav-hover-bg disabled:cursor-not-allowed disabled:opacity-50 sm:py-2"
+        >
+          <RefreshCw size={16} aria-hidden className={isFetching ? 'animate-spin' : ''} />
+          {isFetching ? 'Actualizando...' : 'Actualizar'}
+        </button>
       </header>
-
-      {formulario}
 
       {isLoading && (
         <div className="flex items-center justify-center py-16" aria-live="polite" aria-busy="true">

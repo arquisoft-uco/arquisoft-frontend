@@ -55,6 +55,8 @@ function crearHookMock(
     error: null,
     isLoading: false,
     isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
     page: 0,
     pageSize: 10,
     goToPage,
@@ -67,16 +69,35 @@ describe('ConsultarCoordinadores', () => {
     vi.mocked(useCoordinadores).mockReset();
   });
 
-  it('muestra el estado de carga con el título y la acción de cabecera visibles', () => {
+  it('muestra el estado de carga con el título y el botón de actualizar visibles', () => {
     vi.mocked(useCoordinadores).mockReturnValue(crearHookMock({ isLoading: true }));
 
-    render(
-      <ConsultarCoordinadores accionHeader={<button type="button">Acción de prueba</button>} />,
-    );
+    render(<ConsultarCoordinadores />);
 
     expect(screen.getByRole('status')).toHaveTextContent('Cargando coordinadores...');
     expect(screen.getByRole('heading', { name: 'Coordinadores' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Acción de prueba' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Actualizar' })).toBeInTheDocument();
+  });
+
+  it('el clic en Actualizar dispara refetch y se deshabilita mientras isFetching', async () => {
+    const refetch = vi.fn();
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]), refetch }),
+    );
+    const user = userEvent.setup();
+    const { unmount } = render(<ConsultarCoordinadores />);
+
+    await user.click(screen.getByRole('button', { name: 'Actualizar' }));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+    unmount();
+
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]), isFetching: true }),
+    );
+    render(<ConsultarCoordinadores />);
+
+    expect(screen.getByRole('button', { name: /actualizando/i })).toBeDisabled();
   });
 
   it('muestra un aviso con role="alert" cuando la consulta falla', () => {

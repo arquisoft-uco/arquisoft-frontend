@@ -126,6 +126,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
 | `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
 | `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
+| `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
 `RegistrarUsuarioResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-256.md`
@@ -152,8 +153,32 @@ dados de baja; `estado` llega como `id` del catálogo `estado_usuario` (`ACTIVO`
 traducción de nombres en el service. Discrepancia con el plan del backend: una paginación inválida
 (`tamanio` fuera de 1-100) se normaliza en silencio, no responde `400`.
 
-No hay `GET /usuarios` hoy: no hay edición de usuarios en esta iteración. Los listados de coordinadores
-y de estudiantes son los únicos listados de la feature.
+`consultarUsuariosAdministrador` (HU-260) verificado contra
+`ConsultarUsuariosAdministradorController.java`, `UsuarioResponseDTO.java` y `UsuarioCriteria.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-260.md` (✅ APROBADO, PR backend #152 mergeado). Es
+`POST` aunque sea una lectura porque los filtros viajan como árbol genérico (`NodoFiltroDTO`) en el
+body. A diferencia de los dos listados anteriores, devuelve **todos** los usuarios del sistema sin
+importar el rol, incluidos los dados de baja, con 13 campos: `id, identificador, nombre, email,
+contacto, estado, vigente, esEstudiante, esAsesor, esAsesorFicha, esCoordinador,
+esRepresentanteComite, esAdministrador`. Dos commits posteriores al de la HU (`cd81688c`, `0b1dc5a9`)
+agregaron `esRepresentanteComite` y `esAdministrador` al DTO real: el modelo del frontend usa el
+contrato de hoy, no el de 11 campos que describen el plan y el validador originales de la HU. Faltan
+`esBibliotecario` (`// TODO HU242`) y `esJurado` (`// TODO HU252`) en el backend — no se modelan ni se
+ofrecen como filtro hasta que esas HU entreguen. Whitelist de filtro/orden (`UsuarioCriteria.Campo`):
+12 campos filtrables, 3 ordenables (`identificador, nombre, email`); un campo o valor fuera de
+whitelist responde `400` (`FiltroException`), pero la UI nunca puede producirlo porque todos sus
+controles de filtro/orden son de opciones cerradas. Sin traducción de nombres en el service: el
+`ConsultarUsuariosRequest` que arma el hook ya tiene la forma exacta que espera el backend.
+
+Riesgo operativo: el client role `usuarios:usuario-administrador:view` no aparece en
+`arquisoft-infra/components/keycloak/config/realm-arquisoft.json` — mismo patrón ya documentado más
+abajo para los demás roles `usuarios:*-administrador:view` de este contexto. Con login real, un
+administrador sin ese client role recibe `403` y el interceptor lo lleva a `/forbidden`; no se ve con
+`VITE_AUTH_BYPASS=true`.
+
+No hay `GET /usuarios` hoy: no hay edición de usuarios en esta iteración. Los listados de
+coordinadores, estudiantes y el unificado de "todos los usuarios" son los únicos listados de la
+feature.
 
 ### Sin cliente en el frontend
 
