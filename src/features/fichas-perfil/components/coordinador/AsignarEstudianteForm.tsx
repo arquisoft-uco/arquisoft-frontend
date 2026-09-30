@@ -1,9 +1,8 @@
 import { useState, type SyntheticEvent } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { UserPlus } from 'lucide-react';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useAsignarEstudiante } from '../../hooks/useAsignarEstudiante';
-import { fichasPerfilService } from '../../services/fichasPerfilService';
+import { useEstudiantesVigentes } from '../../../../shared/hooks/useEstudiantesVigentes';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
@@ -17,10 +16,11 @@ interface Props {
 export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Props) {
   const [seleccionados, setSeleccionados] = useState<string[]>([]);
 
-  const { data: disponibles = [], isError: estudiantesNoDisponibles } = useQuery({
-    queryKey: ['estudiantes-disponibles'],
-    queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
-  });
+  const {
+    data: disponibles = [],
+    isLoading: estudiantesCargando,
+    isError: estudiantesNoDisponibles,
+  } = useEstudiantesVigentes();
 
   const { mutate, isPending } = useAsignarEstudiante(idFichaPerfil);
 
@@ -28,6 +28,20 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
   const opciones = disponibles.filter((e) => !idsVinculados.has(e.id));
   const cuposDisponibles = LIMITES.ESTUDIANTES_MAX - vinculados.length;
   const limiteAlcanzado = cuposDisponibles <= 0;
+
+  if (estudiantesCargando) {
+    return (
+      <p
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        className="border-t border-border px-4 py-3 text-xs text-on-surface-secondary"
+      >
+        <span className="sr-only">Cargando estudiantes disponibles…</span>
+        Cargando estudiantes...
+      </p>
+    );
+  }
 
   if (limiteAlcanzado) {
     return (

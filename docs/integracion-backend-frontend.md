@@ -63,8 +63,6 @@ Estos métodos permanecen en el servicio anotados como pendientes para no romper
 
 | Método del servicio | Motivo |
 |---|---|
-| `consultarAsesoresDisponibles` | Verificado 2026-09-28: el endpoint que este método llama (`/fichas-perfil/asesores`) sigue sin existir. **Pero ya existe un sustituto viable en otro bounded context**: `POST /usuarios/asesores-ficha/vigentes` (HU-239, backend PR #148 mergeado) devuelve `{ id, identificador, nombre, email, contacto, estado }` paginado — justo lo que necesita el `<select>` de `CambiarAsesorForm`/`RegistrarFichaPerfil`. Bloqueado hoy no por el endpoint sino por Keycloak: la authority `usuarios:asesor-ficha-vigente:view` no está en `keycloak/realm-arquisoft.json`, ningún rol la tiene asignada — con login real, Coordinador recibiría `403`. Corresponde a `HU278-NO_SINCRONIZADA`, que queda desactualizada (decía "sin endpoint"; ya no es cierto) |
-| `consultarEstudiantesDisponibles` | Mismo caso: `POST /usuarios/estudiantes/vigentes` existe (`ConsultarEstudiantesVigentesController`, roles asesor/coordinador/asesor-ficha/representante-comite marcados en el código), pero su authority tampoco está mapeada en el realm de Keycloak. Corresponde a `HU279-NO_SINCRONIZADA`, también desactualizada por el mismo motivo |
 | `getFichasRepresentante` | Verificado 2026-09-28: sigue sin endpoint en el backend (no existe un `ConsultarFichasPerfilRepresentanteController` análogo a `.../coordinador` o `.../asesor`). Corresponde a `HU280-NO_SINCRONIZADA`, sigue vigente tal cual. **Esto bloquea toda la vista `RepresentanteView` en producción**: aunque `ItemsFichaRepresentantePanel`, `RegistrarEvaluacionPanel`, `AgregarEstadoEvaluacionPanel` y `EstadosEvaluacionPanel` están completamente implementados y usan endpoints reales, nadie puede llegar a ellos porque `ConsultarFichasRepresentante` (la puerta de entrada) no tiene de dónde traer el listado |
 | `agregarEstadoFichaPerfil` | Verificado 2026-09-28: el backend **sigue sin exponer controller REST** para esto (confirmado revisando todos los `*Controller.java` de `fichas/infrastructure`; solo existe `AgregarEstadoEvaluacionFichaController`, que es de **evaluación**, no de estado de ficha). `AsignarEstadoInicialFichaPerfilUseCase` sigue siendo un mecanismo interno que corre al registrar la ficha |
 | `getMiFichaPerfil` | Verificado 2026-09-28, sigue bloqueado: existe `GET /fichas-perfil/{fichaPerfilId}/estudiante` (`ConsultarFichaPerfilEstudianteController`), pero **exige el `fichaPerfilId` como entrada**, y no hay ningún endpoint tipo "mis fichas" para que el estudiante lo descubra desde su JWT (a diferencia de `POST /coordinador` o `POST /asesor`, que sí derivan al usuario del token). **Esto bloquea toda la vista `EstudianteView` en producción**: `ItemsMiFichaPanel` (con `agregar`/`modificar`/`remover` ya wireados a `agregarItemFichaPerfil`/`modificarItem`/`removerItem`, los tres reales) nunca recibe un `fichaId` con el que operar |
@@ -100,17 +98,22 @@ y responde **405 Method Not Allowed** (`El método HTTP no está permitido en es
 
 ### Degradación en la interfaz
 
-Como el backend no expone los catálogos de asesores ni de estudiantes, el flujo de **registro de ficha
-por coordinador no puede completarse** (se requieren `asesorFichaId` y `estudiantesIds` como UUID).
-Para evitar desplegables vacíos sin explicación, los formularios afectados muestran el componente
-compartido `AvisoNoDisponible` (`src/shared/components/AvisoNoDisponible.tsx`) y deshabilitan el envío:
+Los catálogos de asesores y de estudiantes ya no degradan por "backend no expone el endpoint": ambos
+consumen endpoints reales de `usuarios` a través de servicios compartidos —
+`src/shared/services/asesoresFichaService.ts` (`useAsesoresFichaVigentes`, HU-239, `POST
+/usuarios/asesores-ficha/vigentes`) y `src/shared/services/estudiantesVigentesService.ts`
+(`useEstudiantesVigentes`, adenda 2026-09-29 de HU-249, `POST /usuarios/estudiantes/vigentes`). El
+bloqueo real hoy es Keycloak: las authorities `usuarios:asesor-ficha-vigente:view` y
+`usuarios:estudiante-vigente:view` no están mapeadas en el realm export de `arquisoft-infra` — con
+login real, el interceptor resolvería el `403` navegando a `/forbidden` antes de que la feature lo
+vea, no con un desplegable degradado.
+
+`AvisoNoDisponible` (`src/shared/components/AvisoNoDisponible.tsx`) sigue cubriendo el caso de error
+genuino (red o `5xx`) en los formularios afectados, con el envío deshabilitado mientras dure:
 
 - `RegistrarFichaPerfil` — catálogos de asesores y estudiantes.
 - `CambiarAsesorForm` — catálogo de asesores.
 - `AsignarEstudianteForm` — catálogo de estudiantes.
-
-**Dependencia de backend:** exponer los endpoints de consulta de asesores y estudiantes disponibles
-para desbloquear el flujo del coordinador.
 
 ## Endpoints de Usuarios
 
@@ -156,8 +159,6 @@ y de estudiantes son los únicos listados de la feature.
 
 - `POST /usuarios/coordinadores/vigentes` existe en el backend y queda sin cliente por decisión de
   alcance de HU-245: ninguna ruta del frontend lleva a asesor, estudiante o coordinador a `/usuarios`.
-- `POST /usuarios/estudiantes/vigentes` existe en el backend (roles asesor, coordinador, asesor-ficha y
-  representante-comite; la fila no trae `vigente`) y queda sin cliente por decisión de alcance de HU-249.
 
 ### Dependencia operativa: client roles en Keycloak
 
