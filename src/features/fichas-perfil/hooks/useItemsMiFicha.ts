@@ -22,16 +22,7 @@ export function useItemsMiFicha() {
 
   const agregar = useMutation({
     mutationFn: (req: CrearItemRequest) => fichasPerfilService.agregarItemFichaPerfil(req),
-    onSuccess: ({ id }, req) => {
-      const tipoItem = tiposItemQuery.data?.find((t) => t.id === req.tipoItemId);
-      const nuevoItem: Item = {
-        id,
-        tipoItem: { id: req.tipoItemId, nombre: tipoItem?.nombre ?? req.tipoItemId },
-        contenido: req.contenido,
-        fichaPerfilId: req.fichaPerfilId,
-      };
-      queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) => [...prev, nuevoItem]);
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ITEMS_KEY }),
   });
 
   const modificar = useMutation({

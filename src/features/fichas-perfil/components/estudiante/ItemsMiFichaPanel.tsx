@@ -4,34 +4,16 @@ import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import AgregarItemForm from './AgregarItemForm';
 import { LIMITES } from '../../../../shared/validation';
 
 export default function ItemsMiFichaPanel() {
-  const { fichaId, items, tiposItem, isLoading, isError, agregar, modificar, remover } =
-    useItemsMiFicha();
+  const { items, isLoading, isError, modificar, remover } = useItemsMiFicha();
 
   const [mostrarFormAgregar, setMostrarFormAgregar] = useState(false);
-  const [nuevoItemTipoId, setNuevoItemTipoId] = useState('');
-  const [nuevoItemContenido, setNuevoItemContenido] = useState('');
   const [editandoItemId, setEditandoItemId] = useState<string | null>(null);
   const [editContenido, setEditContenido] = useState('');
   const [itemIdAEliminar, setItemIdAEliminar] = useState<string | null>(null);
-
-  const handleAgregar = () => {
-    if (!nuevoItemTipoId || !nuevoItemContenido.trim() || !fichaId) return;
-    agregar.mutate(
-      { fichaPerfilId: fichaId, tipoItemId: nuevoItemTipoId, contenido: nuevoItemContenido },
-      {
-        onSuccess: () => {
-          setNuevoItemTipoId('');
-          setNuevoItemContenido('');
-          setMostrarFormAgregar(false);
-          toast.success('Ítem agregado', 'El ítem se registró correctamente.');
-        },
-        onError: (err) => toast.error('Error al agregar', getApiErrorMessage(err, 'No se pudo registrar el ítem.')),
-      },
-    );
-  };
 
   const handleIniciarEdicion = (itemId: string, contenido: string) => {
     setEditandoItemId(itemId);
@@ -82,50 +64,7 @@ export default function ItemsMiFichaPanel() {
         </button>
       </div>
 
-      {mostrarFormAgregar && (
-        <div className="rounded-lg border border-border bg-surface p-3">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <select
-              value={nuevoItemTipoId}
-              onChange={(e) => setNuevoItemTipoId(e.target.value)}
-              className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary"
-              aria-label="Tipo de ítem"
-            >
-              <option value="">Tipo de ítem...</option>
-              {tiposItem.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.nombre}
-                </option>
-              ))}
-            </select>
-            <input
-              type="text"
-              placeholder="Contenido del ítem"
-              value={nuevoItemContenido}
-              onChange={(e) => setNuevoItemContenido(e.target.value)}
-              maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-              className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary sm:col-span-2"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setMostrarFormAgregar(false)}
-              className="rounded-lg border border-border px-2 py-1 text-xs text-on-surface hover:bg-muted"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleAgregar}
-              disabled={!nuevoItemTipoId || !nuevoItemContenido.trim() || !fichaId || agregar.isPending}
-              className="rounded-lg bg-primary px-2 py-1 text-xs font-medium text-primary-foreground disabled:opacity-50"
-            >
-              Agregar
-            </button>
-          </div>
-        </div>
-      )}
+      {mostrarFormAgregar && <AgregarItemForm onCerrar={() => setMostrarFormAgregar(false)} />}
 
       {isLoading && (
         <div
