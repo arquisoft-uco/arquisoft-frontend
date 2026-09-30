@@ -4,14 +4,16 @@ import type { FichaPerfilAsesor } from '../../models/FichaPerfilAsesor';
 import ComingSoon from '../../../../shared/components/ComingSoon';
 import ItemsFichaAsesorPanel from './ItemsFichaAsesorPanel';
 import EstadosFichaPanel from '../EstadosFichaPanel';
+import TiposItemPanel from '../TiposItemPanel';
 
-type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones';
+type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones' | 'tipos-item';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'items', label: 'Ítems' },
   { key: 'estados', label: 'Estados' },
   { key: 'revisiones', label: 'Revisiones' },
   { key: 'evaluaciones', label: 'Evaluaciones' },
+  { key: 'tipos-item', label: 'Tipos de ítem' },
 ];
 
 interface Props {
@@ -81,6 +83,7 @@ export default function DetalleFichaAsesor({ ficha, onVolver, onEstadoCambiado }
       {tab === 'evaluaciones' && (
         <ComingSoon title="Evaluaciones" description="Las evaluaciones de la ficha estarán disponibles próximamente." />
       )}
+      {tab === 'tipos-item' && <TiposItemPanel />}
     </div>
   );
 }

@@ -5,14 +5,16 @@ import ItemsMiFichaPanel from './estudiante/ItemsMiFichaPanel';
 import EstadosMiFichaPanel from './estudiante/EstadosMiFichaPanel';
 import RevisionesMiFichaPanel from './estudiante/RevisionesMiFichaPanel';
 import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
+import TiposItemPanel from './TiposItemPanel';
 
-type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones';
+type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones' | 'tipos-item';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'items', label: 'Ítems' },
   { key: 'estados', label: 'Estados' },
   { key: 'revisiones', label: 'Revisiones' },
   { key: 'evaluaciones', label: 'Evaluaciones' },
+  { key: 'tipos-item', label: 'Tipos de ítem' },
 ];
 
 export default function EstudianteView() {
@@ -76,6 +78,7 @@ export default function EstudianteView() {
       {tab === 'estados' && <EstadosMiFichaPanel />}
       {tab === 'revisiones' && <RevisionesMiFichaPanel />}
       {tab === 'evaluaciones' && <EvaluacionesMiFichaPanel />}
+      {tab === 'tipos-item' && <TiposItemPanel />}
     </div>
   );
 }

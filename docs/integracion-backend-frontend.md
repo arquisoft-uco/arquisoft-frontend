@@ -81,7 +81,7 @@ endpoint de entrada:
 
 | Vista | Componentes reales, ya conectados a endpoints reales | Bloqueo de entrada |
 |---|---|---|
-| `EstudianteView` | `ItemsMiFichaPanel` (agregar/modificar/remover ítem — HU031/033/034; catálogo de tipos — HU193), `MiFichaHeader` (modificar título) | `getMiFichaPerfil` — sin discovery de "mi ficha" |
+| `EstudianteView` | `ItemsMiFichaPanel` (agregar/modificar/remover ítem — HU031/033/034; selector del catálogo de tipos), `TiposItemPanel` (HU193, pestaña propia), `MiFichaHeader` (modificar título) | `getMiFichaPerfil` — sin discovery de "mi ficha" |
 | `RepresentanteView` | `ItemsFichaRepresentantePanel` (HU185, ya cerrada), `RegistrarEvaluacionPanel` (HU190), `AgregarEstadoEvaluacionPanel` (HU191), `EstadosEvaluacionPanel` (HU186) | `getFichasRepresentante` — sin endpoint de listado |
 
 `EstudianteView` además tiene dos tabs en `ComingSoon` real (`RevisionesMiFichaPanel`,
