@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import type { Usuario } from '../../models/Usuario';
 import FiltrosUsuariosPanel from './FiltrosUsuariosPanel';
+import ModificarUsuarioForm from './ModificarUsuarioForm';
 import UsuariosTable from './UsuariosTable';
 
 export default function ConsultarUsuarios() {
+  const [usuarioEnEdicion, setUsuarioEnEdicion] = useState<Usuario | null>(null);
+
   const {
     data,
     isLoading,
@@ -52,6 +57,13 @@ export default function ConsultarUsuarios() {
         </button>
       </header>
 
+      {usuarioEnEdicion && (
+        <ModificarUsuarioForm
+          usuario={usuarioEnEdicion}
+          onCerrar={() => setUsuarioEnEdicion(null)}
+        />
+      )}
+
       <FiltrosUsuariosPanel
         rolesSeleccionados={rolesSeleccionados}
         toggleRol={toggleRol}
@@ -91,6 +103,7 @@ export default function ConsultarUsuarios() {
           page={page}
           pageSize={pageSize}
           onPageChange={goToPage}
+          onEditar={setUsuarioEnEdicion}
         />
       )}
     </section>

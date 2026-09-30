@@ -1,5 +1,7 @@
+import { Pencil } from 'lucide-react';
 import type { Usuario } from '../../models/Usuario';
-import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
+import { rolesDeUsuario } from '../../utils/roles-usuario';
+import { ETIQUETAS_ROL } from '../../../../shared/models/rol';
 import PaginadorListado from './PaginadorListado';
 
 interface Props {
@@ -9,6 +11,7 @@ interface Props {
   page: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onEditar: (usuario: Usuario) => void;
 }
 
 const COLUMNAS = [
@@ -19,20 +22,8 @@ const COLUMNAS = [
   'Estado',
   'Vigente',
   'Roles',
+  'Acciones',
 ];
-
-const ROLES_INSIGNIA: { rol: Rol; campo: keyof Usuario }[] = [
-  { rol: Rol.Estudiante, campo: 'esEstudiante' },
-  { rol: Rol.Asesor, campo: 'esAsesor' },
-  { rol: Rol.AsesorFicha, campo: 'esAsesorFicha' },
-  { rol: Rol.Coordinador, campo: 'esCoordinador' },
-  { rol: Rol.RepresentanteComiteCurriculum, campo: 'esRepresentanteComite' },
-  { rol: Rol.Administrador, campo: 'esAdministrador' },
-];
-
-function rolesDe(usuario: Usuario): Rol[] {
-  return ROLES_INSIGNIA.filter(({ campo }) => usuario[campo] === true).map(({ rol }) => rol);
-}
 
 export default function UsuariosTable({
   usuarios,
@@ -41,6 +32,7 @@ export default function UsuariosTable({
   page,
   pageSize,
   onPageChange,
+  onEditar,
 }: Props) {
   return (
     <div className="flex flex-col gap-4">
@@ -87,7 +79,7 @@ export default function UsuariosTable({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
-                      {rolesDe(usuario).map((rol) => (
+                      {rolesDeUsuario(usuario).map((rol) => (
                         <span
                           key={rol}
                           className="inline-flex items-center rounded-full border border-transparent bg-primary-muted px-2.5 py-0.5 text-xs font-medium text-primary-muted-foreground"
@@ -96,6 +88,16 @@ export default function UsuariosTable({
                         </span>
                       ))}
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onEditar(usuario)}
+                      aria-label={`Editar ${usuario.nombre}`}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-nav-hover-bg hover:text-on-surface sm:h-9 sm:w-9"
+                    >
+                      <Pencil size={16} aria-hidden />
+                    </button>
                   </td>
                 </tr>
               ))

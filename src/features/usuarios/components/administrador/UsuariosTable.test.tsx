@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import UsuariosTable from './UsuariosTable';
 import type { Usuario } from '../../models/Usuario';
@@ -36,6 +37,7 @@ describe('UsuariosTable', () => {
         page={0}
         pageSize={10}
         onPageChange={() => {}}
+        onEditar={() => {}}
       />,
     );
 
@@ -56,10 +58,37 @@ describe('UsuariosTable', () => {
         page={0}
         pageSize={10}
         onPageChange={() => {}}
+        onEditar={() => {}}
       />,
     );
 
     // Assert
     expect(screen.getByText('No hay usuarios que coincidan con el filtro.')).toBeInTheDocument();
+  });
+
+  it('el botón Editar de una fila invoca onEditar con el usuario de esa fila, no otro', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const usuarioUno = crearUsuario({ id: 'u-1', nombre: 'Marta Ríos' });
+    const usuarioDos = crearUsuario({ id: 'u-2', nombre: 'Carlos Vega' });
+    const onEditar = vi.fn();
+    render(
+      <UsuariosTable
+        usuarios={[usuarioUno, usuarioDos]}
+        totalElements={2}
+        totalPages={1}
+        page={0}
+        pageSize={10}
+        onPageChange={() => {}}
+        onEditar={onEditar}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: `Editar ${usuarioDos.nombre}` }));
+
+    // Assert
+    expect(onEditar).toHaveBeenCalledTimes(1);
+    expect(onEditar).toHaveBeenCalledWith(usuarioDos);
   });
 });

@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { Coordinador } from '../models/Coordinador';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
 import type { Estudiante } from '../models/Estudiante';
+import type { ModificarUsuarioRequest } from '../models/ModificarUsuarioRequest';
 import type { RegistrarUsuarioRequest } from '../models/RegistrarUsuarioRequest';
 import type { Usuario } from '../models/Usuario';
 import type { UsuarioRegistradoResponse } from '../models/UsuarioRegistradoResponse';
@@ -10,6 +11,9 @@ import type { UsuarioRegistradoResponse } from '../models/UsuarioRegistradoRespo
 export const usuariosService = {
   registrarUsuario: (req: RegistrarUsuarioRequest): Promise<UsuarioRegistradoResponse> =>
     apiClient.post<UsuarioRegistradoResponse>('/usuarios', req).then((r) => r.data),
+
+  modificarUsuario: (usuarioId: string, req: ModificarUsuarioRequest): Promise<void> =>
+    apiClient.patch<void>(`/usuarios/${usuarioId}`, req).then(() => undefined),
 
   consultarUsuariosAdministrador: (req: ConsultarUsuariosRequest): Promise<Page<Usuario>> =>
     apiClient.post<Page<Usuario>>('/usuarios/administrador', req).then((r) => r.data),
