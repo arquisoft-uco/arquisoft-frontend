@@ -1,6 +1,5 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
-import type { Asesor } from '../models/Asesor';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
 import type { Estudiante } from '../models/Estudiante';
@@ -201,12 +200,6 @@ export const fichasPerfilService = {
   consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
     apiClient
       .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
-      .then((r) => r.data),
-
-  // Pendiente: sin endpoint en el backend.
-  consultarAsesoresDisponibles: (): Promise<Asesor[]> =>
-    apiClient
-      .get<Asesor[]>('/fichas-perfil/asesores')
       .then((r) => r.data),
 
   // Pendiente: sin endpoint en el backend.

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
-import type { Asesor } from '../models/Asesor';
+import type { Asesor } from '../../../shared/models/Asesor';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { useCambiarAsesor } from './useCambiarAsesor';
