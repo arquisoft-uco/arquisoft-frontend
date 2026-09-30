@@ -1,11 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
+import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../../test-utils/store.utils';
+import { Rol } from '../../../shared/models/rol';
 import ItemsCualitativosJuradoView from './ItemsCualitativosJuradoView';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
+import { useRegistrarItemCualitativoJurado } from '../hooks/useRegistrarItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 
 vi.mock('../hooks/useItemsCualitativosJurado', () => ({
   useItemsCualitativosJurado: vi.fn(),
+}));
+
+vi.mock('../hooks/useRegistrarItemCualitativoJurado', () => ({
+  useRegistrarItemCualitativoJurado: vi.fn(),
 }));
 
 const ITEMS: ItemCualitativoJurado[] = [
@@ -26,6 +34,10 @@ function mockConsulta(parcial: Partial<ReturnType<typeof useItemsCualitativosJur
 describe('ItemsCualitativosJuradoView', () => {
   beforeEach(() => {
     vi.mocked(useItemsCualitativosJurado).mockReset();
+    resetAllStores();
+    setAuthenticatedUser({
+      tokenParsed: { realm_access: { roles: [Rol.Administrador, Rol.Jurado] } },
+    });
   });
 
   it('con datos, muestra nombre y descripción completa de cada ítem en el orden recibido', () => {
@@ -79,5 +91,50 @@ describe('ItemsCualitativosJuradoView', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent(/no se pudieron cargar los ítems/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('el administrador ve Registrar ítem y el jurado no', () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    setActiveRole(Rol.Administrador);
+    const { unmount } = render(<ItemsCualitativosJuradoView />);
+    expect(screen.getByRole('button', { name: 'Registrar ítem' })).toBeInTheDocument();
+    unmount();
+
+    // Act
+    setActiveRole(Rol.Jurado);
+    render(<ItemsCualitativosJuradoView />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Registrar ítem' })).not.toBeInTheDocument();
+  });
+
+  it('alterna de la lista al formulario y vuelve a la lista al cancelar', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    vi.mocked(useRegistrarItemCualitativoJurado).mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+      reset: vi.fn(),
+    } as Partial<ReturnType<typeof useRegistrarItemCualitativoJurado>> as ReturnType<
+      typeof useRegistrarItemCualitativoJurado
+    >);
+    setActiveRole(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<ItemsCualitativosJuradoView />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Registrar ítem' }));
+
+    // Assert
+    expect(screen.getByLabelText('Nombre')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.getByRole('table', { name: 'Ítems cualitativos del jurado' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument();
   });
 });

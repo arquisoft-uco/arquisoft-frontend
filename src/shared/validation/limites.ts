@@ -12,4 +12,7 @@ export const LIMITES = {
   USUARIO_EMAIL_MAX: 50,
   USUARIO_CONTACTO_MIN: 10,
   USUARIO_CONTACTO_MAX: 15,
+  // Espejo de EvaluacionesLimits.ItemCualitativoJurado del backend.
+  ITEM_CUALITATIVO_NOMBRE_MAX: 100,
+  ITEM_CUALITATIVO_DESCRIPCION_MAX: 300,
 } as const;

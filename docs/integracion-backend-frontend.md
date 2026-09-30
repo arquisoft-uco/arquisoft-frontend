@@ -176,12 +176,19 @@ Servicio: `src/features/evaluaciones/services/evaluacionesService.ts`.
 | Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
 |---|---|---|---|---|
 | `getItemsCualitativosJurado` | GET | `/evaluaciones/items-cualitativos-jurado` | — | `200 ItemCualitativoJuradoResponseDTO[]` (`{ id, nombre, descripcion }`) · **lista plana** sin `Page`, ordenada por `nombre` asc; `[]` si no hay filas |
+| `registrarItemCualitativoJurado` | POST | `/evaluaciones/items-cualitativos-jurado` | `{ nombre, descripcion }` (obligatorios con trim; máx. 100 / 300) | `201 { id: UUID }` · errores: `400` (`fieldErrors`), `401`, `403`, `422 ITEM_CUALITATIVO_JURADO_NOMBRE_DUPLICADO` |
 
 Verificado el 2026-09-29 contra `ConsultarItemsCualitativosJuradoController.java` y
 `ItemCualitativoJuradoResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-225.md`
 (✅ APROBADO, PR `arquisoft-backend#89` mergeado). Sin traducción de nombres en el service: el modelo del
 frontend coincide 1:1 con el DTO real. Roles con acceso: `administrador` y `jurado` (client role
 `evaluaciones:item-cualitativo-jurado:view`). Una colección vacía responde `200 []`, no `404`.
+
+`registrarItemCualitativoJurado` (HU-267) verificado el 2026-09-29 contra `RegistrarItemCualitativoJuradoController.java`
+y sus DTO de `../arquisoft-backend`; sin traducción de nombres. Solo el `administrador` registra (client role
+`evaluaciones:item-cualitativo-jurado:create`). **Riesgo de infra:** ese client role no está versionado en el
+export del realm de `arquisoft-infra` (HT-011 del backend); con login real un administrador puede recibir
+`403` hasta que se mapee en Keycloak, y el interceptor lo lleva a `/forbidden`.
 
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
