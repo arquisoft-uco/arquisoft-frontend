@@ -15,6 +15,9 @@ export const usuariosService = {
   modificarUsuario: (usuarioId: string, req: ModificarUsuarioRequest): Promise<void> =>
     apiClient.patch<void>(`/usuarios/${usuarioId}`, req).then(() => undefined),
 
+  eliminarUsuario: (usuarioId: string): Promise<void> =>
+    apiClient.delete<void>(`/usuarios/${usuarioId}`).then(() => undefined),
+
   consultarUsuariosAdministrador: (req: ConsultarUsuariosRequest): Promise<Page<Usuario>> =>
     apiClient.post<Page<Usuario>>('/usuarios/administrador', req).then((r) => r.data),
 
