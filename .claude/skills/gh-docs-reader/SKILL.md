@@ -8,8 +8,14 @@ description: Localiza las fuentes de una Historia de Usuario o Tecnica para Arqu
 Un plan de frontend necesita tres cosas: **qué pide la historia**, **qué expone el backend de
 verdad** y **quién puede verlo**. Esta skill dice dónde está cada una.
 
-El orden importa: **local → repo hermano → GitHub**. Lo local es más rápido y ya viene filtrado a lo
-que el frontend consume.
+Se consulta en este orden: **local → repo hermano → GitHub**, pero ese orden es de **velocidad**, no
+de **autoridad**. Local (Nivel 1) es una copia filtrada y puede desactualizarse — de hecho ya perdió
+su carpeta de contexto (`docs/fichas-perfil/contexto/`, eliminada el 2026-09-27 por quedar
+desactualizada) y la mayoría de sus historias (11 HU ya cerradas y publicadas en `arquisoft-docs`,
+eliminadas la misma fecha). Nivel 1 nunca decide por sí solo: **Nivel 2 manda sobre el contrato**
+(ruta, verbo, DTO, rol) y **Nivel 3 manda sobre reglas de negocio, event storming, modelo de dominio
+y catálogo priorizado**. Si algo local contradice al repo hermano o a `arquisoft-docs`, gana el
+remoto — anota la discrepancia en el plan, no la ignores.
 
 ## Nivel 0 — Descubrir qué HU ya entregó el backend (sin un ID en mente)
 
@@ -63,19 +69,24 @@ exacto, no si el endpoint existe.
 
 ## Nivel 1 — Fuentes locales
 
+Ya no es la fuente principal de casi nada: solo quedan las historias de HU que el backend aún no
+entregó. Las de HU ya cerradas por frontend, y toda `docs/fichas-perfil/contexto/` (Event Storming,
+modelo enriquecido, DDL), se eliminaron el 2026-09-27 por quedar desactualizadas — su reemplazo es
+siempre Nivel 3 (ver tabla "Feature del frontend → archivos" más abajo), nunca un archivo local.
+
 | Ruta | Aporta | Cuándo |
 |---|---|---|
-| `docs/fichas-perfil/historias/HU{NNN}-*.md` | 23 HU ya extraídas: historia, precondiciones, reglas `POL-XX`, event storming, modelo enriquecido | HU de `fichas-perfil` |
-| `docs/integracion-backend-frontend.md` | **Fuente autoritativa del contrato vigente**: método → verbo → ruta → body → respuesta, más los pendientes con su motivo y la degradación con `AvisoNoDisponible` (no cites cuántos son — se desactualiza) | **Siempre**, antes de tocar un service |
-| `docs/fichas-perfil/fichas-perfil-openapi.yaml` | Diseño **objetivo**; su cabecera avisa de que no coincide con lo expuesto | Para entender la intención de un endpoint futuro. **Nunca para planificar** |
-| `docs/fichas-perfil/contexto/Ficha Perfil - Event Storming.md` | Comandos, políticas, eventos | HU ausente de `historias/`, o política ambigua |
-| `.../contexto/06_fichas_trabajos_grado_modelo_enriquecido.md` | Atributos, tipos, longitudes, obligatoriedad | Derivar modelos TS y límites |
-| `.../contexto/03_tablas_fichas_perfil.sql` | DDL real: anchos, `NOT NULL`, únicos | Alinear `LIMITES` |
-| `docs/permisos-granulares.md` | Permisos por rol | La HU restringe por rol |
+| `docs/fichas-perfil/historias/HU{NNN}-*.md` | Historia, precondiciones, reglas `POL-XX` — solo de las HU **bloqueadas por backend** o `*-NO_SINCRONIZADA` (las de HU ya cerradas por frontend se borraron; su fuente es `arquisoft-docs`) | HU de `fichas-perfil` que sigue sin implementar |
+| `docs/integracion-backend-frontend.md` | Mapa de contrato **como punto de partida**: método → verbo → ruta → body → respuesta, más los pendientes con su motivo y la degradación con `AvisoNoDisponible` (no cites cuántos son — se desactualiza). Confírmalo siempre contra Nivel 2, nunca lo cites como si fuera el DTO real | **Siempre**, antes de tocar un service — pero como arranque, no como cierre |
 
 ```bash
-ls docs/fichas-perfil/historias/ docs/fichas-perfil/contexto/
+ls docs/fichas-perfil/historias/
 ```
+
+Para Event Storming, modelo enriquecido o DDL de `fichas-perfil` — ya no hay copia local, van
+directo a Nivel 3: `artefactos/estrategicos/event-storming/Ficha Perfil - Event Storming.md`,
+`.../modelo-dominio/enriquecido/documentacion/06_fichas_trabajos_grado_modelo_enriquecido.md`,
+`mer/03_tablas_fichas_perfil.sql` (rutas completas en la tabla de Nivel 3).
 
 ### IDs no sincronizados con el catálogo maestro
 
@@ -99,8 +110,8 @@ con lo que esos archivos locales documentan). Antes de tomar un ID local como v�
 Esto aplica a cualquier HU local de cualquier feature, no solo a las tres ya marcadas en
 `fichas-perfil`.
 
-Los `LIMITES` salen de este nivel, no de tu criterio. Si la HU introduce uno nuevo, cita su fuente
-(DDL o modelo enriquecido) en el plan.
+Los `LIMITES` salen del DDL o el modelo enriquecido (Nivel 3), no de tu criterio. Si la HU introduce
+uno nuevo, cita esa fuente en el plan.
 
 ## Nivel 2 — El repo hermano `../arquisoft-backend`
 
@@ -121,7 +132,10 @@ Si `ls ../arquisoft-backend` falla, dilo en el plan y marca el contrato como **n
 
 ## Nivel 3 — `arquisoft-uco/arquisoft-docs` por `gh`
 
-Solo cuando la HU **no** es de `fichas-perfil`, o para el catálogo completo de historias priorizadas.
+Fuente autoritativa de reglas de negocio, event storming, modelo de dominio y catálogo priorizado —
+para **cualquier** feature, incluida `fichas-perfil` (que ya no tiene copia local de esto). Antes
+solo se consultaba aquí cuando la HU no era de `fichas-perfil`; eso dejó de aplicar el 2026-09-27,
+cuando se borró `docs/fichas-perfil/contexto/` por estar desactualizada.
 
 ```bash
 gh auth status   # si falla: "ejecuta gh auth login con acceso a arquisoft-uco"
@@ -172,14 +186,17 @@ degradación con `AvisoNoDisponible`.
 0. ¿No hay HU puntual, sino "implementa lo que backend ya entregó"? → Nivel 0 primero,
    para salir de ahí con uno o varios IDs concretos antes de seguir con el paso 1
 1. ¿HU (negocio, con actor y criterios) o HT (plataforma, en docs/stories/)?
-2. ls docs/fichas-perfil/historias/ → ¿está en local?
-     Sí → léela: trae reglas POL-XX y modelo de dominio
+2. ls docs/fichas-perfil/historias/ → ¿está en local (HU bloqueada por backend o NO_SINCRONIZADA)?
+     Sí → léela como punto de partida: trae reglas POL-XX, pero ya no trae event storming ni modelo
+       de dominio (se borraron) — ve a Nivel 3 para eso
      No → Nivel 3: historias priorizadas + Event Storming del contexto
-3. LEER SIEMPRE docs/integracion-backend-frontend.md
+3. LEER SIEMPRE docs/integracion-backend-frontend.md como punto de partida del contrato
      Por cada endpoint que la HU necesita: ¿implementado o pendiente? ¿ruta y body exactos?
-4. Endpoint que ese documento no liste → abrir el Controller en ../arquisoft-backend
+4. CONFIRMAR SIEMPRE contra el Controller real en ../arquisoft-backend (Nivel 2 manda sobre el
+     contrato, incluso si el paso 3 ya lo daba por bueno)
      Sin repo hermano → marcar el contrato como NO VERIFICADO
-5. Roles: cruzar src/shared/models/rol.ts, src/layout/nav-items.ts y docs/permisos-granulares.md
+5. Roles: cruzar src/shared/models/rol.ts, src/layout/nav-items.ts y las authorities del backend
+   ({Contexto}Authorities.java en ../arquisoft-backend)
 6. Catálogo → listar id/nombre/descripcion de cada fila. La UI muestra el `nombre` del backend
 7. Límite nuevo → confirmarlo contra el DDL o el modelo enriquecido, para LIMITES
 8. Registrar todos los archivos consultados en la Metadata del plan

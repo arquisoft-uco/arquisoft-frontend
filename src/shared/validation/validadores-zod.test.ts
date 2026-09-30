@@ -55,6 +55,18 @@ describe('textoRequerido', () => {
     expect(validador.safeParse('Proyecto de grado').success).toBe(true);
     expect(validador.safeParse('a'.repeat(LIMITES.TITULO_PROYECTO_MAX)).success).toBe(true);
   });
+
+  it('recorta espacios: un texto solo de espacios es requerido, y los bordes no cuentan en el resultado', () => {
+    const soloEspacios = validador.safeParse('   ');
+    expect(soloEspacios.success).toBe(false);
+    if (!soloEspacios.success) {
+      expect(soloEspacios.error.issues[0].message).toBe(MENSAJES_VALIDACION.requerido);
+    }
+
+    const conBordes = validador.safeParse('  Proyecto de grado  ');
+    expect(conBordes.success).toBe(true);
+    if (conBordes.success) expect(conBordes.data).toBe('Proyecto de grado');
+  });
 });
 
 describe('opcionRequerida', () => {

@@ -40,6 +40,7 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `modificarItem` | PATCH | `/fichas-perfil/items/{itemId}` | `{ contenido }` | `204` |
 | `removerItem` | DELETE | `/fichas-perfil/items/{itemId}` | — | `204` |
 | `consultarTodosTipoItem` | GET | `/fichas-perfil/tipos-item` | — | `200 TipoItem[]` |
+| `consultarFichasPerfilEstudiante` | GET | `/fichas-perfil/estudiante` | — | `200 FichaPerfilEstudianteResponseDTO[]` (puede ser `[]`). Mergeado en `develop` del backend (PR #168, VALIDATOR-HU-037 100/100); el estudiante sale del JWT, sin id de entrada. Una ficha sin estado o sin asesor se omite del listado (`INNER JOIN`), sin 500: el estudiante la ve como lista vacía. Mejora abierta del backend: pasar a `LEFT JOIN` |
 | `getItemsFichaAsesor` | GET | `/fichas-perfil/{fichaPerfilId}/items` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
 | `getItemsFichaRepresentante` | GET | `/fichas-perfil/{fichaPerfilId}/items/representante` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
 | `consultarEstudiantesVinculados` | GET | `/fichas-perfil/{fichaPerfilId}/estudiantes` | — | `200 EstudianteFichaPerfilResponseDTO[]` · `id` es el vínculo, `estudianteId` el estudiante |
@@ -63,15 +64,27 @@ Estos métodos permanecen en el servicio anotados como pendientes para no romper
 
 | Método del servicio | Motivo |
 |---|---|
-| `consultarAsesoresDisponibles` | Sin endpoint en el backend. Corresponde a la historia «Consultar todos los asesores de ficha disponibles» (`HU278-NO_SINCRONIZADA`), sin ID vigente en el catálogo maestro |
-| `consultarEstudiantesDisponibles` | Sin endpoint en el backend. Corresponde a «Consultar todos los estudiantes disponibles» (`HU279-NO_SINCRONIZADA`) |
-| `getFichasRepresentante` | Sin endpoint en el backend. Corresponde a `HU280-NO_SINCRONIZADA` |
-| `agregarEstadoFichaPerfil` | El backend **no expone controller REST**: `AsignarEstadoInicialFichaPerfilUseCase` es un mecanismo interno que corre al registrar la ficha, no una acción invocable desde la UI |
-| `getMiFichaPerfil` | El endpoint existe (`GET /fichas-perfil/{fichaPerfilId}/estudiante`) pero **exige el `fichaPerfilId` como entrada**, y el estudiante no tiene forma de descubrirlo: no hay consulta «mis fichas». Requiere una historia nueva de backend |
-| `consultarItemsMiFichaPerfil` | Mismo bloqueo: `GET /fichas-perfil/{fichaPerfilId}/items/estudiante` existe, pero depende de conocer el `fichaPerfilId` |
+| `getFichasRepresentante` | Verificado 2026-09-28: sigue sin endpoint en el backend (no existe un `ConsultarFichasPerfilRepresentanteController` análogo a `.../coordinador` o `.../asesor`). Corresponde a `HU280-NO_SINCRONIZADA`, sigue vigente tal cual. **Esto bloquea toda la vista `RepresentanteView` en producción**: aunque `ItemsFichaRepresentantePanel`, `RegistrarEvaluacionPanel`, `AgregarEstadoEvaluacionPanel` y `EstadosEvaluacionPanel` están completamente implementados y usan endpoints reales, nadie puede llegar a ellos porque `ConsultarFichasRepresentante` (la puerta de entrada) no tiene de dónde traer el listado |
+| `agregarEstadoFichaPerfil` | Verificado 2026-09-28: el backend **sigue sin exponer controller REST** para esto (confirmado revisando todos los `*Controller.java` de `fichas/infrastructure`; solo existe `AgregarEstadoEvaluacionFichaController`, que es de **evaluación**, no de estado de ficha). `AsignarEstadoInicialFichaPerfilUseCase` sigue siendo un mecanismo interno que corre al registrar la ficha |
+| `consultarItemsMiFichaPerfil` | La ruta real es `GET /fichas-perfil/{fichaPerfilId}/items/estudiante` (`ConsultarItemsFichaPerfilEstudianteController`, HU-032). El bloqueo por descubrir el `fichaPerfilId` ya se resolvió con `consultarFichasPerfilEstudiante`; queda pendiente apuntar este método a la ruta real |
 
-> Las dos últimas filas no son un error de ruta: el contrato del backend está bien formado, lo que
-> falta es la puerta de entrada del estudiante a su propia ficha.
+> `consultarItemsMiFichaPerfil` no es un error de ruta del backend: solo falta apuntar el método a la ruta real. La puerta de entrada del representante sigue bloqueada por `getFichasRepresentante`.
+
+### Grupos con UI implementada pero bloqueados en su punto de entrada
+
+Hallazgo del 2026-09-28: `fichas-perfil` no es la única feature con UI completa — **`EstudianteView` y
+`RepresentanteView` ya están implementadas de punta a punta**, nunca pasaron por el flujo de agentes
+(sin plan, sin tests, sin validación) y hoy son inalcanzables en producción real por el bloqueo de su
+endpoint de entrada:
+
+| Vista | Componentes reales, ya conectados a endpoints reales | Bloqueo de entrada |
+|---|---|---|
+| `EstudianteView` | `ItemsMiFichaPanel` (agregar/modificar/remover ítem — HU031/033/034; selector del catálogo de tipos), `TiposItemPanel` (HU193, pestaña propia), `MiFichaHeader` (modificar título) | Resuelto: `consultarFichasPerfilEstudiante` (`GET /fichas-perfil/estudiante`) |
+| `RepresentanteView` | `ItemsFichaRepresentantePanel` (HU185, ya cerrada), `RegistrarEvaluacionPanel` (HU190), `AgregarEstadoEvaluacionPanel` (HU191), `EstadosEvaluacionPanel` (HU186) | `getFichasRepresentante` — sin endpoint de listado |
+
+`EstudianteView` además tiene dos tabs en `ComingSoon` real (`RevisionesMiFichaPanel`,
+`EvaluacionesMiFichaPanel` — mensaje "en construcción"), a diferencia de las anteriores que sí están
+terminadas. Ninguna de las dos vistas tiene tests hoy.
 
 ### Por qué los pendientes responden 405 y no 404
 
@@ -83,17 +96,22 @@ y responde **405 Method Not Allowed** (`El método HTTP no está permitido en es
 
 ### Degradación en la interfaz
 
-Como el backend no expone los catálogos de asesores ni de estudiantes, el flujo de **registro de ficha
-por coordinador no puede completarse** (se requieren `asesorFichaId` y `estudiantesIds` como UUID).
-Para evitar desplegables vacíos sin explicación, los formularios afectados muestran el componente
-compartido `AvisoNoDisponible` (`src/shared/components/AvisoNoDisponible.tsx`) y deshabilitan el envío:
+Los catálogos de asesores y de estudiantes ya no degradan por "backend no expone el endpoint": ambos
+consumen endpoints reales de `usuarios` a través de servicios compartidos —
+`src/shared/services/asesoresFichaService.ts` (`useAsesoresFichaVigentes`, HU-239, `POST
+/usuarios/asesores-ficha/vigentes`) y `src/shared/services/estudiantesVigentesService.ts`
+(`useEstudiantesVigentes`, adenda 2026-09-29 de HU-249, `POST /usuarios/estudiantes/vigentes`). El
+bloqueo real hoy es Keycloak: las authorities `usuarios:asesor-ficha-vigente:view` y
+`usuarios:estudiante-vigente:view` no están mapeadas en el realm export de `arquisoft-infra` — con
+login real, el interceptor resolvería el `403` navegando a `/forbidden` antes de que la feature lo
+vea, no con un desplegable degradado.
+
+`AvisoNoDisponible` (`src/shared/components/AvisoNoDisponible.tsx`) sigue cubriendo el caso de error
+genuino (red o `5xx`) en los formularios afectados, con el envío deshabilitado mientras dure:
 
 - `RegistrarFichaPerfil` — catálogos de asesores y estudiantes.
 - `CambiarAsesorForm` — catálogo de asesores.
 - `AsignarEstudianteForm` — catálogo de estudiantes.
-
-**Dependencia de backend:** exponer los endpoints de consulta de asesores y estudiantes disponibles
-para desbloquear el flujo del coordinador.
 
 ## Endpoints de Usuarios
 
@@ -104,6 +122,10 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
 |---|---|---|---|---|
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
+| `eliminarUsuario` | DELETE | `/usuarios/{usuarioId}` | — | `204` sin cuerpo (eliminación lógica; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `USUARIO_ROLES_VIGENTES`; 503 `USUARIO_IDP_NO_DISPONIBLE`) |
+| `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
+| `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
+| `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
 `RegistrarUsuarioResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-256.md`
@@ -112,7 +134,63 @@ del frontend coincide 1:1 con el DTO real.
 
 Errores mapeados por `errorCode` (`ErrorResponseDTO`): 422 `USUARIO_IDENTIFICADOR_DUPLICADO`,
 `USUARIO_EMAIL_DUPLICADO`, `USUARIO_CONTACTO_DUPLICADO`; 503 `USUARIO_IDP_NO_DISPONIBLE` (Keycloak no
-disponible). No hay `GET /usuarios` hoy: no hay listado ni edición de usuarios en esta iteración.
+disponible).
+
+`consultarCoordinadoresAdministrador` (HU-245) verificado contra
+`ConsultarCoordinadoresAdministradorController.java` y `CoordinadorResponseDTO.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-245.md` (✅ APROBADO, PR #149
+mergeado). Es `POST` aunque sea una lectura porque los filtros viajan en el body. Devuelve
+`{ id, identificador, nombre, email, contacto, estado, vigente }` por fila, incluidos los coordinadores
+dados de baja. Sin traducción de nombres en el service.
+
+`consultarEstudiantesAdministrador` (HU-249) verificado contra
+`ConsultarEstudiantesAdministradorController.java` y `EstudianteResponseDTO.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-249.md` (✅ APROBADO, PR #149 mergeado). Es `POST`
+aunque sea una lectura porque los filtros viajan en el body. Devuelve
+`{ id, identificador, nombre, email, contacto, estado, vigente }` por fila, incluidos los estudiantes
+dados de baja; `estado` llega como `id` del catálogo `estado_usuario` (`ACTIVO`/`INACTIVO`). Sin
+traducción de nombres en el service. Discrepancia con el plan del backend: una paginación inválida
+(`tamanio` fuera de 1-100) se normaliza en silencio, no responde `400`.
+
+`consultarUsuariosAdministrador` (HU-260) verificado contra
+`ConsultarUsuariosAdministradorController.java`, `UsuarioResponseDTO.java` y `UsuarioCriteria.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-260.md` (✅ APROBADO, PR backend #152 mergeado). Es
+`POST` aunque sea una lectura porque los filtros viajan como árbol genérico (`NodoFiltroDTO`) en el
+body. A diferencia de los dos listados anteriores, devuelve **todos** los usuarios del sistema sin
+importar el rol, incluidos los dados de baja, con 13 campos: `id, identificador, nombre, email,
+contacto, estado, vigente, esEstudiante, esAsesor, esAsesorFicha, esCoordinador,
+esRepresentanteComite, esAdministrador`. Dos commits posteriores al de la HU (`cd81688c`, `0b1dc5a9`)
+agregaron `esRepresentanteComite` y `esAdministrador` al DTO real: el modelo del frontend usa el
+contrato de hoy, no el de 11 campos que describen el plan y el validador originales de la HU. Faltan
+`esBibliotecario` (`// TODO HU242`) y `esJurado` (`// TODO HU252`) en el backend — no se modelan ni se
+ofrecen como filtro hasta que esas HU entreguen. Whitelist de filtro/orden (`UsuarioCriteria.Campo`):
+12 campos filtrables, 3 ordenables (`identificador, nombre, email`); un campo o valor fuera de
+whitelist responde `400` (`FiltroException`), pero la UI nunca puede producirlo porque todos sus
+controles de filtro/orden son de opciones cerradas. Sin traducción de nombres en el service: el
+`ConsultarUsuariosRequest` que arma el hook ya tiene la forma exacta que espera el backend.
+
+Riesgo operativo: el client role `usuarios:usuario-administrador:view` no aparece en
+`arquisoft-infra/components/keycloak/config/realm-arquisoft.json` — mismo patrón ya documentado más
+abajo para los demás roles `usuarios:*-administrador:view` de este contexto. Con login real, un
+administrador sin ese client role recibe `403` y el interceptor lo lleva a `/forbidden`; no se ve con
+`VITE_AUTH_BYPASS=true`.
+
+No hay `GET /usuarios` hoy: no hay edición de usuarios en esta iteración. Los listados de
+coordinadores, estudiantes y el unificado de "todos los usuarios" son los únicos listados de la
+feature.
+
+### Sin cliente en el frontend
+
+- `POST /usuarios/coordinadores/vigentes` existe en el backend y queda sin cliente por decisión de
+  alcance de HU-245: ninguna ruta del frontend lleva a asesor, estudiante o coordinador a `/usuarios`.
+
+### Dependencia operativa: client roles en Keycloak
+
+Los client roles `usuarios:coordinador-administrador:view`, `usuarios:coordinador-vigente:view`,
+`usuarios:estudiante-administrador:view` y `usuarios:estudiante-vigente:view` no
+están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuario:create`. Con login
+real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
+mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
 
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 

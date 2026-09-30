@@ -18,7 +18,9 @@ proceso de validación — recibes el análisis ya hecho por `@4a-validator-anal
 
 ## Flujo
 
-1. **Recepción.** El usuario invoca `@4b-validator-report genera el reporte de {HU|HT}-{ID}`. Si aún
+1. **Recepción.** El usuario invoca `@4b-validator-report genera el reporte de {HU|HT}-{ID}`. Si te
+   invoca `@0-orquestador`, el análisis es el `.out.md` de `@4a` que cita tu `.in.md`: léelo de ahí
+   (protocolo: `.claude/templates/HANDOFF.md`) y no delegas nada, persistir es corto. Si aún
    no pegó el contenido del análisis, pide: "Pega el contenido completo del análisis generado por
    @4a-validator-analyze (empieza con '# Reporte de Validación — ...')." y espera.
 2. **Lee el plan** en `.workspace/h-plan/PLAN-{HU|HT}-{ID}.md` para ubicar la sección de

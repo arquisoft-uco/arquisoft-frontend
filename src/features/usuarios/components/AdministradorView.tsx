@@ -1,16 +1,39 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import ConsultarUsuarios from './administrador/ConsultarUsuarios';
+import ConsultarCoordinadores from './administrador/ConsultarCoordinadores';
+import ConsultarEstudiantes from './administrador/ConsultarEstudiantes';
 import RegistrarUsuarioForm from './administrador/RegistrarUsuarioForm';
 
-// Cuando exista GET /usuarios: este componente pasa a ser el listado (patrón
-// ConsultarFichasPerfilCoordinador con accionHeader/formulario) y el retorno mantiene su filtro/página.
+type Pestana = 'usuarios' | 'coordinadores' | 'estudiantes';
+
+const PESTANAS: { id: Pestana; etiqueta: string }[] = [
+  { id: 'usuarios', etiqueta: 'Todos los usuarios' },
+  { id: 'coordinadores', etiqueta: 'Coordinadores' },
+  { id: 'estudiantes', etiqueta: 'Estudiantes' },
+];
+
 export default function AdministradorView() {
   const [registrarAbierto, setRegistrarAbierto] = useState(false);
+  const [pestanaActiva, setPestanaActiva] = useState<Pestana>('usuarios');
+  const [pestanasMontadas, setPestanasMontadas] = useState<Set<Pestana>>(
+    () => new Set<Pestana>(['usuarios']),
+  );
+
+  function activarPestana(pestana: Pestana) {
+    setPestanaActiva(pestana);
+    setPestanasMontadas((actuales) => {
+      if (actuales.has(pestana)) return actuales;
+      const siguientes = new Set(actuales);
+      siguientes.add(pestana);
+      return siguientes;
+    });
+  }
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="section-header">
-        <h2 className="text-lg font-semibold text-on-surface">Usuarios</h2>
+      <header className="section-header">
+        <h1 className="text-xl font-semibold text-on-surface">Usuarios</h1>
         {!registrarAbierto && (
           <button
             type="button"
@@ -21,11 +44,60 @@ export default function AdministradorView() {
             Registrar usuario
           </button>
         )}
+      </header>
+
+      {registrarAbierto && <RegistrarUsuarioForm onCerrar={() => setRegistrarAbierto(false)} />}
+
+      <div
+        role="tablist"
+        aria-label="Vistas de usuarios"
+        className="flex gap-1 overflow-x-auto border-b border-border sm:gap-2"
+      >
+        {PESTANAS.map((pestana) => (
+          <button
+            key={pestana.id}
+            type="button"
+            role="tab"
+            id={`usuarios-tab-${pestana.id}`}
+            aria-selected={pestanaActiva === pestana.id}
+            aria-controls={`usuarios-panel-${pestana.id}`}
+            onClick={() => activarPestana(pestana.id)}
+            className={[
+              'whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors',
+              pestanaActiva === pestana.id
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-on-surface-secondary hover:text-on-surface',
+            ].join(' ')}
+          >
+            {pestana.etiqueta}
+          </button>
+        ))}
       </div>
 
-      {registrarAbierto && (
-        <RegistrarUsuarioForm onCerrar={() => setRegistrarAbierto(false)} />
-      )}
+      <div
+        role="tabpanel"
+        id="usuarios-panel-usuarios"
+        aria-labelledby="usuarios-tab-usuarios"
+        className={pestanaActiva === 'usuarios' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('usuarios') && <ConsultarUsuarios />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-coordinadores"
+        aria-labelledby="usuarios-tab-coordinadores"
+        className={pestanaActiva === 'coordinadores' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('coordinadores') && <ConsultarCoordinadores />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-estudiantes"
+        aria-labelledby="usuarios-tab-estudiantes"
+        className={pestanaActiva === 'estudiantes' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('estudiantes') && <ConsultarEstudiantes />}
+      </div>
     </div>
   );
 }

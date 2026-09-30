@@ -2,22 +2,26 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
-import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
-import { LIMITES, textoRequerido } from '../../../shared/validation';
+import {
+  LIMITES,
+  textoRequerido,
+  opcionRequerida,
+  listaConMaximo,
+  MENSAJES_VALIDACION,
+} from '../../../shared/validation';
 import AvisoNoDisponible from '../../../shared/components/AvisoNoDisponible';
+import SelectorAsesorFicha from '../../../shared/components/SelectorAsesorFicha';
+import { useAsesoresFichaVigentes } from '../../../shared/hooks/useAsesoresFichaVigentes';
+import { useEstudiantesVigentes } from '../../../shared/hooks/useEstudiantesVigentes';
 
 const schema = z.object({
   titulo: textoRequerido(LIMITES.TITULO_PROYECTO_MAX),
-  idAsesorFicha: z.string().min(1, 'Selecciona un asesor'),
-  idEstudiantes: z
-    .array(z.string())
-    .min(1, 'Agrega al menos un estudiante')
-    .max(LIMITES.ESTUDIANTES_MAX, `Máximo ${LIMITES.ESTUDIANTES_MAX} estudiantes`),
+  idAsesorFicha: opcionRequerida(),
+  idEstudiantes: listaConMaximo(LIMITES.ESTUDIANTES_MAX).min(1, MENSAJES_VALIDACION.listaVacia),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -47,32 +51,26 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     mode: 'onChange',
   });
 
-  const idEstudiantes = watch('idEstudiantes');
-
   // Sync fixed asesor into the form when the prop is provided
   useEffect(() => {
     if (asesorFijoId) setValue('idAsesorFicha', asesorFijoId, { shouldValidate: true });
   }, [asesorFijoId, setValue]);
 
-  const { data: asesores = [], isError: asesoresNoDisponibles } = useQuery({
-    queryKey: ['asesores-disponibles'],
-    queryFn: fichasPerfilService.consultarAsesoresDisponibles,
-  });
+  const { isError: asesoresNoDisponibles } = useAsesoresFichaVigentes();
 
-  const { data: estudiantes = [], isError: estudiantesNoDisponibles } = useQuery({
-    queryKey: ['estudiantes-disponibles'],
-    queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
-  });
+  const {
+    data: estudiantes = [],
+    isLoading: estudiantesCargando,
+    isError: estudiantesNoDisponibles,
+  } = useEstudiantesVigentes();
 
   const { mutate, isPending, reset: resetMutation } = useRegistrarFichaPerfil();
+
+  const idEstudiantes = watch('idEstudiantes');
 
   const estudiantesDisponiblesParaAgregar = estudiantes.filter(
     (e) => !idEstudiantes.includes(e.id),
   );
-
-  const asesorFijoNombre = asesorFijoId
-    ? (asesores.find((a) => a.id === asesorFijoId)?.nombre ?? 'Cargando...')
-    : undefined;
 
   function agregarEstudiante(id: string) {
     if (idEstudiantes.length >= LIMITES.ESTUDIANTES_MAX) return;
@@ -147,48 +145,24 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
         </div>
 
         {/* Asesor: dropdown (coordinador) o solo lectura (asesor) */}
-        {asesorFijoId ? (
-          <div>
-            <p className="mb-1 text-xs font-medium text-on-surface-secondary">Asesor de Ficha</p>
-            {asesoresNoDisponibles ? (
-              <AvisoNoDisponible recurso="asesores" />
-            ) : (
-              <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-on-surface-secondary">
-                {asesorFijoNombre}
-              </div>
-            )}
-          </div>
-        ) : asesoresNoDisponibles ? (
-          <div>
-            <p className="mb-1 text-xs font-medium text-on-surface-secondary">Asesor de Ficha</p>
-            <AvisoNoDisponible recurso="asesores" />
-          </div>
-        ) : (
-          <div>
-            <label htmlFor="fp-asesor" className="mb-1 block text-xs font-medium text-on-surface-secondary">
-              Asesor de Ficha <span aria-hidden className="text-red-500">*</span>
-            </label>
-            <select
-              id="fp-asesor"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
-              aria-invalid={!!errors.idAsesorFicha}
-              aria-describedby={errors.idAsesorFicha ? 'fp-asesor-error' : undefined}
-              {...register('idAsesorFicha')}
-            >
-              <option value="">Seleccionar asesor...</option>
-              {asesores.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nombre} — {a.email}
-                </option>
-              ))}
-            </select>
-            {errors.idAsesorFicha && (
-              <p id="fp-asesor-error" className="mt-1 text-xs text-danger" role="alert">
-                {errors.idAsesorFicha.message}
-              </p>
-            )}
-          </div>
-        )}
+        <div>
+          <label htmlFor="fp-asesor" className="mb-1 block text-xs font-medium text-on-surface-secondary">
+            Asesor de Ficha <span aria-hidden className="text-red-500">*</span>
+          </label>
+          <SelectorAsesorFicha
+            id="fp-asesor"
+            value={watch('idAsesorFicha')}
+            onChange={(id) => setValue('idAsesorFicha', id, { shouldValidate: true })}
+            soloLectura={!!asesorFijoId}
+            aria-invalid={!!errors.idAsesorFicha}
+            aria-describedby={errors.idAsesorFicha ? 'fp-asesor-error' : undefined}
+          />
+          {errors.idAsesorFicha && (
+            <p id="fp-asesor-error" className="mt-1 text-xs text-danger" role="alert">
+              {errors.idAsesorFicha.message}
+            </p>
+          )}
+        </div>
 
         {/* Estudiantes */}
         <div>
@@ -200,54 +174,77 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
             <span aria-hidden className="text-red-500">*</span>
           </p>
 
-          {idEstudiantes.length > 0 && (
-            <ul className="mb-2 flex flex-wrap gap-2" aria-label="Estudiantes seleccionados">
-              {idEstudiantes.map((id) => {
-                const est = estudiantes.find((e) => e.id === id);
-                return (
-                  <li key={id} className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs text-on-surface">
-                    {est?.nombre ?? id}
-                    <button
-                      type="button"
-                      onClick={() => quitarEstudiante(id)}
-                      aria-label={`Quitar a ${est?.nombre}`}
-                      className="ml-1 rounded-full p-0.5 hover:bg-muted"
-                    >
-                      <X size={12} />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-
-          {estudiantesNoDisponibles ? (
-            <AvisoNoDisponible recurso="estudiantes" />
+          {estudiantesCargando ? (
+            <p
+              role="status"
+              aria-live="polite"
+              aria-busy="true"
+              className="text-xs text-on-surface-secondary"
+            >
+              <span className="sr-only">Cargando estudiantes disponibles…</span>
+              Cargando estudiantes...
+            </p>
           ) : (
-            idEstudiantes.length < LIMITES.ESTUDIANTES_MAX &&
-            estudiantesDisponiblesParaAgregar.length > 0 && (
-              <div className="flex flex-wrap gap-2" aria-labelledby="fp-estudiantes-label">
-                {estudiantesDisponiblesParaAgregar.map((e) => (
-                  <button
-                    key={e.id}
-                    type="button"
-                    onClick={() => agregarEstudiante(e.id)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs text-on-surface transition-colors hover:bg-primary/10 hover:text-primary"
-                  >
-                    <UserPlus size={12} aria-hidden />
-                    {e.nombre}
-                  </button>
-                ))}
-              </div>
-            )
-          )}
+            <>
+              {idEstudiantes.length > 0 && (
+                <ul
+                  className="mb-2 flex flex-wrap gap-2"
+                  aria-label="Estudiantes seleccionados"
+                  aria-invalid={!!errors.idEstudiantes}
+                  aria-describedby={errors.idEstudiantes ? 'fp-estudiantes-error' : undefined}
+                >
+                  {idEstudiantes.map((id) => {
+                    const est = estudiantes.find((e) => e.id === id);
+                    return (
+                      <li key={id} className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs text-on-surface">
+                        {est?.nombre ?? id}
+                        <button
+                          type="button"
+                          onClick={() => quitarEstudiante(id)}
+                          aria-label={`Quitar a ${est?.nombre}`}
+                          className="ml-1 rounded-full p-0.5 hover:bg-muted"
+                        >
+                          <X size={12} aria-hidden />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
 
-          {idEstudiantes.length === LIMITES.ESTUDIANTES_MAX && (
-            <p className="text-xs text-on-surface-secondary">Máximo de estudiantes alcanzado.</p>
+              {estudiantesNoDisponibles ? (
+                <AvisoNoDisponible recurso="estudiantes" />
+              ) : idEstudiantes.length === LIMITES.ESTUDIANTES_MAX ? (
+                <p className="text-xs text-on-surface-secondary">Máximo de estudiantes alcanzado.</p>
+              ) : estudiantesDisponiblesParaAgregar.length > 0 ? (
+                <div
+                  className="flex flex-wrap gap-2"
+                  aria-labelledby="fp-estudiantes-label"
+                  aria-invalid={!!errors.idEstudiantes}
+                  aria-describedby={errors.idEstudiantes ? 'fp-estudiantes-error' : undefined}
+                >
+                  {estudiantesDisponiblesParaAgregar.map((e) => (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() => agregarEstudiante(e.id)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs text-on-surface transition-colors hover:bg-primary/10 hover:text-primary"
+                    >
+                      <UserPlus size={12} aria-hidden />
+                      {e.nombre}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-on-surface-secondary">
+                  No hay más estudiantes disponibles para agregar.
+                </p>
+              )}
+            </>
           )}
 
           {errors.idEstudiantes && (
-            <p className="mt-1 text-xs text-danger" role="alert">
+            <p id="fp-estudiantes-error" className="mt-1 text-xs text-danger" role="alert">
               {errors.idEstudiantes.message}
             </p>
           )}

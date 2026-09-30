@@ -3,12 +3,14 @@ import { ChevronLeft } from 'lucide-react';
 import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
 import ItemsFichaRepresentantePanel from './ItemsFichaRepresentantePanel';
 import RegistrarEvaluacionPanel from './RegistrarEvaluacionPanel';
+import TiposItemPanel from '../TiposItemPanel';
 
-type Tab = 'items' | 'evaluaciones';
+type Tab = 'items' | 'evaluaciones' | 'tipos-item';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'items', label: 'Ítems' },
   { key: 'evaluaciones', label: 'Evaluaciones' },
+  { key: 'tipos-item', label: 'Tipos de ítem' },
 ];
 
 interface Props {
@@ -59,6 +61,7 @@ export default function DetalleFichaRepresentante({ ficha, onVolver }: Props) {
 
       {tab === 'items' && <ItemsFichaRepresentantePanel fichaPerfilId={ficha.id} />}
       {tab === 'evaluaciones' && <RegistrarEvaluacionPanel fichaPerfilId={ficha.id} />}
+      {tab === 'tipos-item' && <TiposItemPanel />}
     </div>
   );
 }

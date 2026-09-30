@@ -17,6 +17,28 @@ Invoca `arquisoft-frontend-arquitectura`, `arquisoft-frontend-estandares` y
 `arquisoft-frontend-mcps`. **Las convenciones viven ahí y no se repiten en este archivo** — ábrelas
 cuando dudes en vez de reconstruir la regla de memoria. Si contradicen el plan, detente y reporta.
 
+## Delegación
+
+Protocolo: `.claude/templates/HANDOFF.md`. Con `Rol: worker` ejecutas solo tu tarea y no delegas.
+
+Tú coordinas y **no escribes código**: cada capa la implementa un worker, que es **este mismo agente**
+con `Rol: worker` y `Capa: {capa}` en su `.in.md`. Un worker ejecuta los pasos 1-5 de la FASE 3 para
+**su capa** (más FASE 0 y FASE 4) y devuelve los archivos tocados y el resultado del type-check. Los
+pasos 6-7 (aprobación) son del padre.
+
+| Paso | Worker | Tú lees de su `.out.md` |
+|---|---|---|
+| Una capa, en orden models → services → hooks → components (omite la que el plan no toca) | Capa | Archivos y estado del lint |
+| FASE 5 — verificación final | `verificacion` | Solo pasa/falla y, si falla, la ruta del error |
+
+**Con `Rol: orquestado`** (sin aprobación por capa) agrupa, porque cada worker paga ~35k tokens de
+arranque: `datos` = models → services → hooks (con `npm run lint` al cerrar cada capa) y `ui` =
+components + FASE 5 + trazabilidad. Con aprobación por capa (invocación directa), un worker por capa.
+
+Las capas son secuenciales: cada una lee lo que escribió la anterior. Un error que apunta a una capa
+previa vuelve a lanzar a ese worker y consume un intento de la FASE 4. Una `PREGUNTA` de ambigüedad
+sube a quien te invocó.
+
 ## FASE 1 — Cargar el plan
 
 Lee `.workspace/h-plan/PLAN-{HU|HT}-{ID}.md`. Si falta el ID, pregúntalo. Confirma con el usuario:
