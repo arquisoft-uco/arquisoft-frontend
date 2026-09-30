@@ -55,6 +55,8 @@ function crearHookMock(
     error: null,
     isLoading: false,
     isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
     page: 0,
     pageSize: 10,
     goToPage,
@@ -67,13 +69,35 @@ describe('ConsultarEstudiantes', () => {
     vi.mocked(useEstudiantes).mockReset();
   });
 
-  it('muestra el estado de carga con el título visible', () => {
+  it('muestra el estado de carga con el título y el botón de actualizar visibles', () => {
     vi.mocked(useEstudiantes).mockReturnValue(crearHookMock({ isLoading: true }));
 
     render(<ConsultarEstudiantes />);
 
     expect(screen.getByRole('status')).toHaveTextContent('Cargando estudiantes...');
     expect(screen.getByRole('heading', { name: 'Estudiantes' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Actualizar' })).toBeInTheDocument();
+  });
+
+  it('el clic en Actualizar dispara refetch y se deshabilita mientras isFetching', async () => {
+    const refetch = vi.fn();
+    vi.mocked(useEstudiantes).mockReturnValue(
+      crearHookMock({ data: crearPagina([ESTUDIANTE_VIGENTE]), refetch }),
+    );
+    const user = userEvent.setup();
+    const { unmount } = render(<ConsultarEstudiantes />);
+
+    await user.click(screen.getByRole('button', { name: 'Actualizar' }));
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+    unmount();
+
+    vi.mocked(useEstudiantes).mockReturnValue(
+      crearHookMock({ data: crearPagina([ESTUDIANTE_VIGENTE]), isFetching: true }),
+    );
+    render(<ConsultarEstudiantes />);
+
+    expect(screen.getByRole('button', { name: /actualizando/i })).toBeDisabled();
   });
 
   it('muestra un aviso con role="alert" cuando la consulta falla', () => {
