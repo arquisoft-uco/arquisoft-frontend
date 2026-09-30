@@ -36,7 +36,7 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `cambiarAsesor` | PATCH | `/fichas-perfil/{id}/asesor-ficha` | `{ asesorFicha }` | `204` |
 | `getFichasCoordinador` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` |
 | `getFichasAsesor` | POST | `/fichas-perfil/asesor` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` — el asesor sale del JWT |
-| `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` |
+| `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` · Errores de dominio 422 con `code` (`ITEM_TIPO_DUPLICADO`, `ESTADO_FICHA_PERFIL_ESTADO_TERMINAL`); `contenido` máx. 7000 |
 | `modificarItem` | PATCH | `/fichas-perfil/items/{itemId}` | `{ contenido }` | `204` |
 | `removerItem` | DELETE | `/fichas-perfil/items/{itemId}` | — | `204` |
 | `consultarTodosTipoItem` | GET | `/fichas-perfil/tipos-item` | — | `200 TipoItem[]` |

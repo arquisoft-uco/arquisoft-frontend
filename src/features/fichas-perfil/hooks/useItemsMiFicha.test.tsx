@@ -7,7 +7,7 @@ import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 import { useItemsMiFicha } from './useItemsMiFicha';
 
 vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: { consultarItemsMiFichaPerfil: vi.fn() },
+  fichasPerfilService: { consultarItemsMiFichaPerfil: vi.fn(), agregarItemFichaPerfil: vi.fn() },
 }));
 vi.mock('./useFichaPerfilIdEstudiante', () => ({ useFichaPerfilIdEstudiante: vi.fn() }));
 vi.mock('./useMiFichaPerfil', () => ({ useMiFichaPerfil: () => ({ ficha: { id: 'f-1' } }) }));
@@ -88,5 +88,54 @@ describe('useItemsMiFicha', () => {
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  describe('agregar', () => {
+    it('invalida la key de ítems de la ficha y vuelve a consultarlos tras agregar', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([]);
+      vi.mocked(fichasPerfilService.agregarItemFichaPerfil).mockResolvedValue({ id: 'i-2' });
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+      const req = { fichaPerfilId: 'f-1', tipoItemId: 't-1', contenido: 'Medir' };
+
+      // Act
+      await result.current.agregar.mutateAsync(req);
+
+      // Assert
+      expect(fichasPerfilService.agregarItemFichaPerfil).toHaveBeenCalledWith(req);
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['fichas-perfil', 'estudiante', 'f-1', 'items'],
+      });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
+    });
+
+    it('no invalida los ítems cuando el service falla', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([]);
+      vi.mocked(fichasPerfilService.agregarItemFichaPerfil).mockRejectedValue(new Error('422'));
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+
+      // Act
+      await expect(
+        result.current.agregar.mutateAsync({ fichaPerfilId: 'f-1', tipoItemId: 't-1', contenido: 'x' }),
+      ).rejects.toThrow('422');
+
+      // Assert
+      expect(invalidar).not.toHaveBeenCalled();
+    });
   });
 });
