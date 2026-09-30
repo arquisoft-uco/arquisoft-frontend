@@ -7,6 +7,7 @@ import { Rol } from '../../shared/models/rol';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
+import { useEnviarSolicitudAmpliacionPlazo } from './hooks/useEnviarSolicitudAmpliacionPlazo';
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -18,6 +19,10 @@ vi.mock('./hooks/useEnviarSolicitudNovedadAsesor', () => ({
 
 vi.mock('./hooks/useEnviarSolicitudCambioAsesor', () => ({
   useEnviarSolicitudCambioAsesor: vi.fn(),
+}));
+
+vi.mock('./hooks/useEnviarSolicitudAmpliacionPlazo', () => ({
+  useEnviarSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
@@ -54,6 +59,7 @@ describe('Solicitudes', () => {
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {

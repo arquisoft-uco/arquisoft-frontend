@@ -1,4 +1,5 @@
 import apiClient from '../../../api/axiosInstance';
+import type { EnviarSolicitudAmpliacionPlazoRequest } from '../models/EnviarSolicitudAmpliacionPlazoRequest';
 import type { EnviarSolicitudCambioAsesorRequest } from '../models/EnviarSolicitudCambioAsesorRequest';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
@@ -30,6 +31,16 @@ export const solicitudesService = {
   ): Promise<SolicitudCreadaResponse> =>
     apiClient
       .post<SolicitudCreadaResponse>('/solicitudes/cambio-asesor', {
+        destinatario: req.destinatario,
+        mensajeSolicitud: req.mensajeSolicitud,
+      })
+      .then((r) => r.data),
+
+  enviarSolicitudAmpliacionPlazo: (
+    req: EnviarSolicitudAmpliacionPlazoRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>('/solicitudes/ampliacion-plazo', {
         destinatario: req.destinatario,
         mensajeSolicitud: req.mensajeSolicitud,
       })

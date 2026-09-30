@@ -1,21 +1,28 @@
 import { useState } from 'react';
-import { ChevronDown, GraduationCap, UserCog, Users } from 'lucide-react';
+import { CalendarClock, ChevronDown, GraduationCap, UserCog, Users } from 'lucide-react';
+import AmpliacionPlazoForm from './AmpliacionPlazoForm';
 import CambioAsesorForm from './CambioAsesorForm';
 import NovedadAsesorForm from './NovedadAsesorForm';
 import NovedadCoordinadorForm from './NovedadCoordinadorForm';
 
-type TipoSolicitudUi = 'coordinador' | 'asesor' | 'cambio-asesor';
+type TipoSolicitudUi = 'coordinador' | 'asesor' | 'cambio-asesor' | 'ampliacion-plazo';
 
 const TIPOS: { value: TipoSolicitudUi; label: string; icono: React.ReactNode }[] = [
   { value: 'coordinador', label: 'Novedad al coordinador', icono: <Users size={18} aria-hidden /> },
   { value: 'asesor', label: 'Novedad al asesor', icono: <GraduationCap size={18} aria-hidden /> },
   { value: 'cambio-asesor', label: 'Cambio de asesor', icono: <UserCog size={18} aria-hidden /> },
+  {
+    value: 'ampliacion-plazo',
+    label: 'Ampliación de plazo',
+    icono: <CalendarClock size={18} aria-hidden />,
+  },
 ];
 
 const FORM_POR_TIPO: Record<TipoSolicitudUi, React.ComponentType> = {
   coordinador: NovedadCoordinadorForm,
   asesor: NovedadAsesorForm,
   'cambio-asesor': CambioAsesorForm,
+  'ampliacion-plazo': AmpliacionPlazoForm,
 };
 
 export default function NuevaSolicitudPanel() {
