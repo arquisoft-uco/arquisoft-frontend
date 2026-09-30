@@ -3,19 +3,19 @@ import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
 import { useTiposItem } from './useTiposItem';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
-import { useAuthStore } from '../../../auth/authStore';
+import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 
 export function useItemsMiFicha() {
   const queryClient = useQueryClient();
   const { ficha } = useMiFichaPerfil();
-  const estudianteId = useAuthStore((s) => s.tokenParsed?.sub ?? '');
+  const { fichaPerfilId } = useFichaPerfilIdEstudiante();
 
-  const ITEMS_KEY = ['fichas-perfil', 'estudiante', estudianteId, 'items'];
+  const ITEMS_KEY = ['fichas-perfil', 'estudiante', fichaPerfilId, 'items'];
 
   const itemsQuery = useQuery({
     queryKey: ITEMS_KEY,
-    queryFn: () => fichasPerfilService.consultarItemsMiFichaPerfil(estudianteId),
-    enabled: !!estudianteId,
+    queryFn: () => fichasPerfilService.consultarItemsMiFichaPerfil(fichaPerfilId ?? ''),
+    enabled: !!fichaPerfilId,
   });
 
   const tiposItemQuery = useTiposItem();

@@ -7,7 +7,8 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { LIMITES } from '../../../../shared/validation';
 
 export default function ItemsMiFichaPanel() {
-  const { fichaId, items, tiposItem, agregar, modificar, remover } = useItemsMiFicha();
+  const { fichaId, items, tiposItem, isLoading, isError, agregar, modificar, remover } =
+    useItemsMiFicha();
 
   const [mostrarFormAgregar, setMostrarFormAgregar] = useState(false);
   const [nuevoItemTipoId, setNuevoItemTipoId] = useState('');
@@ -126,6 +127,27 @@ export default function ItemsMiFichaPanel() {
         </div>
       )}
 
+      {isLoading && (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          className="py-8 text-center text-sm text-on-surface-secondary"
+        >
+          <span className="sr-only">Cargando ítems de la ficha...</span>
+          <span
+            aria-hidden
+            className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"
+          />
+        </div>
+      )}
+
+      {isError && !isLoading && (
+        <div role="alert" className="rounded-lg border border-danger p-3 text-sm text-danger">
+          No se pudieron cargar los ítems de tu ficha. Intenta de nuevo más tarde.
+        </div>
+      )}
+
       {items.map((item) => (
         <div key={item.id} className="rounded-lg border border-border bg-surface p-3">
           <div className="flex items-start justify-between gap-2">
@@ -185,9 +207,9 @@ export default function ItemsMiFichaPanel() {
         </div>
       ))}
 
-      {items.length === 0 && (
+      {!isLoading && !isError && items.length === 0 && (
         <p className="py-8 text-center text-sm text-on-surface-secondary">
-          No hay ítems en la ficha
+          Tu ficha aún no tiene ítems. Agrega el primero con «Agregar Ítem».
         </p>
       )}
 
