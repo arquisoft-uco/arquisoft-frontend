@@ -30,7 +30,7 @@ function crearContexto() {
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
-  return { Wrapper };
+  return { Wrapper, queryClient };
 }
 
 describe('useEnviarSolicitudNovedadCoordinador', () => {
@@ -49,6 +49,29 @@ describe('useEnviarSolicitudNovedadCoordinador', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(enviarSolicitudNovedadCoordinador).toHaveBeenCalledWith(REQUEST);
+  });
+
+  it('invalida el listado de enviadas al terminar bien y no lo hace si falla', async () => {
+    enviarSolicitudNovedadCoordinador.mockResolvedValueOnce({ id: 's-1' });
+    enviarSolicitudNovedadCoordinador.mockRejectedValueOnce(new Error('422'));
+    const { Wrapper, queryClient } = crearContexto();
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useEnviarSolicitudNovedadCoordinador(), {
+      wrapper: Wrapper,
+    });
+
+    act(() => result.current.mutate(REQUEST));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['solicitudes', 'novedad-coordinador', 'enviadas'],
+    });
+
+    act(() => result.current.mutate(REQUEST));
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(invalidar).toHaveBeenCalledTimes(1);
   });
 
   it('expone el error cuando el service rechaza', async () => {

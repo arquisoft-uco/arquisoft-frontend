@@ -15,6 +15,10 @@ vi.mock('./hooks/useEnviarSolicitudNovedadAsesor', () => ({
   useEnviarSolicitudNovedadAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
+  useSolicitudesNovedadCoordinadorEnviadas: vi.fn(),
+}));
+
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
 
 function crearMutacionMock(): MutacionEnviarSolicitud {
@@ -90,13 +94,10 @@ describe('Solicitudes', () => {
     expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
   });
 
-  it('muestra el aviso de próximamente al abrir Enviadas o Respuestas', async () => {
+  it('muestra el aviso de próximamente al abrir Respuestas', async () => {
     autenticarCon(Rol.Estudiante);
     const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
-
-    await user.click(screen.getByRole('tab', { name: 'Enviadas' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
 
     await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
     expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);

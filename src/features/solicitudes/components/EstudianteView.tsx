@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
+import SolicitudesEnviadasPanel from './estudiante/SolicitudesEnviadasPanel';
 import PestanaEnConstruccion from './PestanaEnConstruccion';
 import Tabs from './Tabs';
 
@@ -14,12 +15,7 @@ const TABS: { key: Tab; label: string; icono?: React.ReactNode }[] = [
 
 const PANEL_POR_TAB: Record<Tab, React.ReactNode> = {
   nueva: <NuevaSolicitudPanel />,
-  enviadas: (
-    <PestanaEnConstruccion
-      titulo="Solicitudes enviadas"
-      descripcion="El seguimiento de tus solicitudes enviadas estará disponible próximamente."
-    />
-  ),
+  enviadas: <SolicitudesEnviadasPanel />,
   respuestas: (
     <PestanaEnConstruccion
       titulo="Respuestas"

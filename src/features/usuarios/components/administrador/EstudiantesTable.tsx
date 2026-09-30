@@ -1,5 +1,5 @@
 import type { Estudiante } from '../../models/Estudiante';
-import PaginadorListado from './PaginadorListado';
+import PaginadorListado from '../../../../shared/components/PaginadorListado';
 
 interface Props {
   estudiantes: Estudiante[];

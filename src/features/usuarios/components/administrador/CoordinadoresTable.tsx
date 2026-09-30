@@ -1,5 +1,5 @@
 import type { Coordinador } from '../../models/Coordinador';
-import PaginadorListado from './PaginadorListado';
+import PaginadorListado from '../../../../shared/components/PaginadorListado';
 
 interface Props {
   coordinadores: Coordinador[];

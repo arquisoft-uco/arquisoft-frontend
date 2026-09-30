@@ -193,11 +193,29 @@ digita a mano y el formulario muestra `AvisoNoDisponible`. La regla RN-7 de HU-0
 asesor asignado al remitente) es inerte hoy: el adaptador del backend es un STUB que siempre aprueba,
 por lo que `DESTINATARIO_NO_ASIGNADO` no es alcanzable todavía.
 
+#### Consulta de solicitudes de novedad enviadas al coordinador (HU-096)
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta | Authority |
+|---|---|---|---|---|---|
+| `consultarSolicitudesNovedadCoordinadorEnviadas` (HU-096) | POST | `/solicitudes/novedad-coordinador/enviadas` | `{ pagina, tamanio }` | `200 Page<Solicitud>` | `solicitudes:solicitud-novedad-coordinador-enviada:view` |
+
+Verificado contra el Controller, `QueryCriteriaRequestDTO`, `SolicitudResponseDTO` y `VALIDATOR-HU-096.md`
+(✅ APROBADO). Es POST con body, no query params. El cliente solo envía `{ pagina, tamanio }` (como
+`getFichasCoordinador`): el backend admite además `filtros` y `ordenamiento`, pero la UI no los usa y toma el
+orden por defecto del backend. El backend fuerza remitente y tipo con el JWT.
+
+- Tras enviar una novedad al coordinador (HU-081) el hook invalida el prefijo
+  `['solicitudes', 'novedad-coordinador', 'enviadas']`.
+
+**Dependencia operativa:** el client role `solicitudes:solicitud-novedad-coordinador-enviada:view` no está en
+`realm-arquisoft.json.template` de `arquisoft-infra`; con login real un estudiante puede recibir 403 y ser
+llevado a `/forbidden` hasta que se cree y se mapee en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El
+Keycloak desplegado no se pudo verificar.
+
 ### Sin cliente en el frontend
 
 - HU-083: `POST /solicitudes/cambio-asesor`.
 - HU-084: `POST /solicitudes/ampliacion-plazo`.
-- HU-096: `POST /solicitudes/novedad-coordinador/enviadas`.
 - HU-097, HU-066 y HU-067 solo existen en ramas del backend, no en `develop`, y sus authorities no están
   en el realm.
 
