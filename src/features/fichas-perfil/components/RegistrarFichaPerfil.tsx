@@ -2,10 +2,8 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
-import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import {
@@ -18,6 +16,7 @@ import {
 import AvisoNoDisponible from '../../../shared/components/AvisoNoDisponible';
 import SelectorAsesorFicha from '../../../shared/components/SelectorAsesorFicha';
 import { useAsesoresFichaVigentes } from '../../../shared/hooks/useAsesoresFichaVigentes';
+import { useEstudiantesVigentes } from '../../../shared/hooks/useEstudiantesVigentes';
 
 const schema = z.object({
   titulo: textoRequerido(LIMITES.TITULO_PROYECTO_MAX),
@@ -63,10 +62,7 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     data: estudiantes = [],
     isLoading: estudiantesCargando,
     isError: estudiantesNoDisponibles,
-  } = useQuery({
-    queryKey: ['fichas-perfil', 'estudiantes-disponibles'],
-    queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
-  });
+  } = useEstudiantesVigentes();
 
   const { mutate, isPending, reset: resetMutation } = useRegistrarFichaPerfil();
 

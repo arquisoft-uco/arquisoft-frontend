@@ -5,7 +5,7 @@ import { render, screen } from '../../../test-utils/render';
 import RegistrarFichaPerfil from './RegistrarFichaPerfil';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
 import { useAsesoresFichaVigentes } from '../../../shared/hooks/useAsesoresFichaVigentes';
-import { fichasPerfilService } from '../services/fichasPerfilService';
+import { useEstudiantesVigentes } from '../../../shared/hooks/useEstudiantesVigentes';
 import { toast } from '../../../shared/hooks/useToast';
 import type { Asesor } from '../../../shared/models/Asesor';
 import type { Estudiante } from '../models/Estudiante';
@@ -17,20 +17,19 @@ vi.mock('../hooks/useRegistrarFichaPerfil', () => ({
 vi.mock('../../../shared/hooks/useAsesoresFichaVigentes', () => ({
   useAsesoresFichaVigentes: vi.fn(),
 }));
-vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: {
-    consultarEstudiantesDisponibles: vi.fn(),
-  },
+vi.mock('../../../shared/hooks/useEstudiantesVigentes', () => ({
+  useEstudiantesVigentes: vi.fn(),
 }));
 vi.mock('../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
 const useAsesoresFichaVigentesMock = vi.mocked(useAsesoresFichaVigentes);
-const consultarEstudiantes = vi.mocked(fichasPerfilService.consultarEstudiantesDisponibles);
+const useEstudiantesVigentesMock = vi.mocked(useEstudiantesVigentes);
 const useRegistrarFichaPerfilMock = vi.mocked(useRegistrarFichaPerfil);
 
 type ResultadoAsesores = ReturnType<typeof useAsesoresFichaVigentes>;
+type ResultadoEstudiantes = ReturnType<typeof useEstudiantesVigentes>;
 
 function mockAsesores(parcial: Partial<ResultadoAsesores>) {
   useAsesoresFichaVigentesMock.mockReturnValue({
@@ -39,6 +38,15 @@ function mockAsesores(parcial: Partial<ResultadoAsesores>) {
     isError: false,
     ...parcial,
   } as ResultadoAsesores);
+}
+
+function mockEstudiantes(parcial: Partial<ResultadoEstudiantes>) {
+  useEstudiantesVigentesMock.mockReturnValue({
+    data: [E1, E2, E3],
+    isLoading: false,
+    isError: false,
+    ...parcial,
+  } as ResultadoEstudiantes);
 }
 
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
@@ -105,7 +113,7 @@ describe('RegistrarFichaPerfil', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockAsesores({});
-    consultarEstudiantes.mockResolvedValue([E1, E2, E3]);
+    mockEstudiantes({});
   });
 
   it('mantiene Registrar Ficha deshabilitado hasta tener título, asesor y al menos un estudiante', async () => {
@@ -224,7 +232,7 @@ describe('RegistrarFichaPerfil', () => {
     {
       recurso: 'estudiantes',
       preparar: () => {
-        consultarEstudiantes.mockRejectedValue(new Error('405'));
+        mockEstudiantes({ data: undefined, isError: true });
       },
     },
   ])(
@@ -257,7 +265,7 @@ describe('RegistrarFichaPerfil', () => {
       recurso: 'estudiantes',
       textoCarga: 'Cargando estudiantes...',
       preparar: () => {
-        consultarEstudiantes.mockReturnValue(new Promise(() => {}));
+        mockEstudiantes({ data: undefined, isLoading: true });
       },
     },
   ])(
@@ -277,7 +285,7 @@ describe('RegistrarFichaPerfil', () => {
 
   it('muestra que no hay más estudiantes disponibles cuando el catálogo llega vacío', async () => {
     // Arrange
-    consultarEstudiantes.mockResolvedValue([]);
+    mockEstudiantes({ data: [] });
     mockMutacion();
 
     // Act

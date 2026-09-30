@@ -2,7 +2,6 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
-import type { Estudiante } from '../models/Estudiante';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
@@ -200,12 +199,6 @@ export const fichasPerfilService = {
   consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
     apiClient
       .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
-      .then((r) => r.data),
-
-  // Pendiente: sin endpoint en el backend.
-  consultarEstudiantesDisponibles: (): Promise<Estudiante[]> =>
-    apiClient
-      .get<Estudiante[]>('/fichas-perfil/estudiantes')
       .then((r) => r.data),
 
   // Pendiente: sin endpoint en el backend.
