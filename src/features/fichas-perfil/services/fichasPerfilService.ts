@@ -64,6 +64,41 @@ interface EvaluacionFichaPerfilResponseDTO {
   estadoEvaluacionNombre: string | null;
 }
 
+// Forma cruda de FichaPerfilEstudianteResponseDTO (GET /fichas-perfil/estudiante, lista);
+// se traduce a MiFichaPerfilResponse con aFicha.
+interface FichaPerfilEstudianteResponseDTO {
+  idFichaPerfil: string;
+  titulo: string;
+  asesor: { id: string; identificador: string; nombre: string; email: string };
+  estado: { id: string; nombre: string; fechaActualizacion: string };
+  estudiantes: {
+    id: string;
+    fichaPerfilId: string;
+    estudianteId: string;
+    nombre: string;
+    email: string;
+    vigente: boolean;
+  }[];
+}
+
+function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
+  return {
+    id: dto.idFichaPerfil,
+    tituloProyecto: dto.titulo,
+    asesor: { id: dto.asesor.id, nombre: dto.asesor.nombre, email: dto.asesor.email },
+    estadoActual: {
+      id: dto.estado.id,
+      nombre: dto.estado.nombre,
+      fechaActualizacion: dto.estado.fechaActualizacion,
+    },
+    integrantes: dto.estudiantes.map((e) => ({
+      id: e.estudianteId,
+      nombre: e.nombre,
+      email: e.email,
+    })),
+  };
+}
+
 // ─── Alineados con el backend expuesto ───
 
 export const fichasPerfilService = {
@@ -187,13 +222,12 @@ export const fichasPerfilService = {
         })),
       ),
 
-  // ─── Pendientes: el backend aún no expone estos endpoints ───
-
-  // Pendiente: sin endpoint en el backend.
-  getMiFichaPerfil: (estudianteId: string): Promise<MiFichaPerfilResponse> =>
+  consultarFichasPerfilEstudiante: (): Promise<MiFichaPerfilResponse[]> =>
     apiClient
-      .get<MiFichaPerfilResponse>(`/fichas-perfil/estudiante/${estudianteId}/mi-ficha`)
-      .then((r) => r.data),
+      .get<FichaPerfilEstudianteResponseDTO[]>('/fichas-perfil/estudiante')
+      .then(({ data }) => data.map(aFicha)),
+
+  // ─── Pendientes: el backend aún no expone estos endpoints ───
 
   // Pendiente: sin endpoint en el backend.
   consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
