@@ -137,7 +137,7 @@ describe('ModificarUsuarioForm', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('marcar Asesor en un usuario que no lo es llama al hook con su id y rol, y queda marcado y bloqueado', async () => {
+  it('marcar Asesor en un usuario que no lo es llama al hook con su id y rol, y queda marcado', async () => {
     // Arrange
     mockAgregar.mockImplementation((_vars, options) => {
       options.onSuccess();
@@ -217,7 +217,7 @@ describe('ModificarUsuarioForm', () => {
     expect(checkbox).not.toBeChecked();
   });
 
-  it('marcar Asesor de Ficha llama al hook con su id y rol, y queda marcado y bloqueado', async () => {
+  it('marcar Asesor de Ficha llama al hook con su id y rol, y queda marcado', async () => {
     // Arrange
     mockAgregar.mockImplementation((_vars, options) => {
       options.onSuccess();
@@ -241,7 +241,7 @@ describe('ModificarUsuarioForm', () => {
       expect.stringContaining(ETIQUETAS_ROL[Rol.AsesorFicha]),
     );
     expect(checkbox).toBeChecked();
-    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
@@ -267,8 +267,9 @@ describe('ModificarUsuarioForm', () => {
     expect(checkbox).not.toBeChecked();
   });
 
-  it('un usuario que ya es asesor de ficha lo muestra marcado y no se puede quitar', async () => {
+  it('desmarcar Asesor de Ficha abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
     // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
     const user = userEvent.setup();
     render(
       <ModificarUsuarioForm usuario={{ ...usuario, esAsesorFicha: true }} onCerrar={onCerrar} />,
@@ -279,13 +280,23 @@ describe('ModificarUsuarioForm', () => {
 
     // Act
     await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
     // Assert
-    expect(checkbox).toBeChecked();
-    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(mockRemover).not.toHaveBeenCalled();
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.AsesorFicha]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
     expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.AsesorFicha, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 
   it('marcar Coordinador en un usuario que no lo es llama al hook con su id y queda marcado tras el éxito', async () => {
