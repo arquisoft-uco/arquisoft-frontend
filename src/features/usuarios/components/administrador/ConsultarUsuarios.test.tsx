@@ -4,7 +4,7 @@ import { render, screen } from '../../../../test-utils/render';
 import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
-import { useAgregarCoordinador } from '../../hooks/useAgregarCoordinador';
+import { useAgregarRol } from '../../hooks/useAgregarRol';
 import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -22,8 +22,8 @@ vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
 }));
 
-vi.mock('../../hooks/useAgregarCoordinador', () => ({
-  useAgregarCoordinador: vi.fn(),
+vi.mock('../../hooks/useAgregarRol', () => ({
+  useAgregarRol: vi.fn(),
 }));
 
 vi.mock('../../hooks/useRemoverCoordinador', () => ({
@@ -62,9 +62,7 @@ function crearMutacionEliminarMock(
   } as ReturnType<typeof useEliminarUsuario>;
 }
 
-function crearMutacionAgregarMock<
-  T = ReturnType<typeof useAgregarCoordinador>,
->(): T {
+function crearMutacionAgregarMock<T = ReturnType<typeof useAgregarRol>>(): T {
   return {
     data: undefined,
     error: null,
@@ -168,7 +166,7 @@ describe('ConsultarUsuarios', () => {
   beforeEach(() => {
     vi.mocked(useUsuarios).mockReset();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
-    vi.mocked(useAgregarCoordinador).mockReturnValue(crearMutacionAgregarMock());
+    vi.mocked(useAgregarRol).mockReturnValue(crearMutacionAgregarMock());
     vi.mocked(useRemoverCoordinador).mockReturnValue(
       crearMutacionAgregarMock<ReturnType<typeof useRemoverCoordinador>>(),
     );
