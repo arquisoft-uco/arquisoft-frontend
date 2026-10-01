@@ -8,6 +8,7 @@ import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { EstadoFichaPerfil, AgregarEstadoFichaPerfilRequest } from '../models/EstadoFichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
+import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 import type {
@@ -231,6 +232,11 @@ export const fichasPerfilService = {
     apiClient
       .get<FichaPerfilEstudianteResponseDTO[]>('/fichas-perfil/estudiante')
       .then(({ data }) => data.map(aFicha)),
+
+  getEstadosFichaPerfilEstudiante: (fichaPerfilId: string): Promise<HistorialEstadoFichaPerfil[]> =>
+    apiClient
+      .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
+      .then((r) => r.data),
 
   // ─── Pendientes: el backend aún no expone estos endpoints ───
 
