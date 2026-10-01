@@ -36,6 +36,7 @@ describe('useAgregarRol', () => {
     Rol.Asesor,
     Rol.AsesorFicha,
     Rol.RepresentanteComiteCurriculum,
+    Rol.Administrador,
   ])(
     'agrega el rol %s con el id e invalida el prefijo de usuarios al éxito',
     async (rol) => {
