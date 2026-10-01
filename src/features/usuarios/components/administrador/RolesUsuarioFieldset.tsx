@@ -11,6 +11,7 @@ const ROLES_AGREGABLES: Partial<Record<Rol, true>> = {
 const ROLES_QUITABLES: Partial<Record<Rol, true>> = {
   [Rol.Coordinador]: true,
   [Rol.Estudiante]: true,
+  [Rol.Asesor]: true,
 };
 
 interface Props {
@@ -29,7 +30,7 @@ export default function RolesUsuarioFieldset({
   return (
     <fieldset aria-busy={pendiente}>
       <legend className="mb-1 text-xs font-medium text-on-surface-secondary">
-        Roles (se pueden agregar coordinador, estudiante y asesor; quitar coordinador y estudiante)
+        Roles (se pueden agregar y quitar coordinador, estudiante y asesor)
       </legend>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {Object.values(Rol).map((rol) => {

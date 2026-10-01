@@ -161,12 +161,13 @@ describe('ModificarUsuarioForm', () => {
       expect.stringContaining(ETIQUETAS_ROL[Rol.Asesor]),
     );
     expect(checkbox).toBeChecked();
-    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
-  it('un usuario que ya es asesor muestra Asesor marcado y bloqueado, y no se puede quitar', async () => {
+  it('desmarcar Asesor abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
     // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
     const user = userEvent.setup();
     render(<ModificarUsuarioForm usuario={{ ...usuario, esAsesor: true }} onCerrar={onCerrar} />);
     const checkbox = screen.getByRole('checkbox', {
@@ -175,13 +176,23 @@ describe('ModificarUsuarioForm', () => {
 
     // Act
     await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
     // Assert
-    expect(checkbox).toBeChecked();
-    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.Asesor]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
     expect(mockAgregar).not.toHaveBeenCalled();
-    expect(mockRemover).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.Asesor, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 
   it('si agregar Asesor falla muestra toast.error y el checkbox queda desmarcado', async () => {

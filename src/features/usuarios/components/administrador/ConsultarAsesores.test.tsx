@@ -1,13 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarAsesores from './ConsultarAsesores';
 import { useAsesores } from '../../hooks/useAsesores';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { Rol } from '../../../../shared/models/rol';
 import type { Asesor } from '../../models/Asesor';
 import type { Page } from '../../../../shared/models/api-response';
 
 vi.mock('../../hooks/useAsesores', () => ({
   useAsesores: vi.fn(),
+}));
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 const ASESOR_VIGENTE: Asesor = {
@@ -64,9 +70,32 @@ function crearHookMock(
   } as ReturnType<typeof useAsesores>;
 }
 
+type ConfirmarRemocion = (usuarioId: string, rol: Rol, onExito?: () => void) => void;
+
+function usarRemoverRolFalso(
+  confirmar: ConfirmarRemocion,
+  isPending = false,
+): ReturnType<typeof useRemoverRol> {
+  const [objetivo, setObjetivo] = useState<ReturnType<typeof useRemoverRol>['objetivo']>(null);
+  return {
+    objetivo,
+    solicitar: setObjetivo,
+    cancelar: () => setObjetivo(null),
+    confirmar: (onExito) => {
+      if (objetivo) confirmar(objetivo.usuarioId, objetivo.rol, onExito);
+      setObjetivo(null);
+    },
+    isPending,
+  };
+}
+
 describe('ConsultarAsesores', () => {
+  let mockRemover: Mock<ConfirmarRemocion>;
+
   beforeEach(() => {
     vi.mocked(useAsesores).mockReset();
+    mockRemover = vi.fn<ConfirmarRemocion>();
+    vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover));
   });
 
   it('muestra el estado de carga con el título y el botón de actualizar visibles', () => {
@@ -122,7 +151,7 @@ describe('ConsultarAsesores', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('muestra una fila por asesor con su insignia y sin columna ni botón de quitar rol', () => {
+  it('muestra una fila por asesor con su insignia de vigencia', () => {
     vi.mocked(useAsesores).mockReturnValue(
       crearHookMock({ data: crearPagina([ASESOR_VIGENTE, ASESOR_DE_BAJA]) }),
     );
@@ -136,8 +165,6 @@ describe('ConsultarAsesores', () => {
     expect(screen.getByText('Vigente', { selector: 'span' })).toBeInTheDocument();
     expect(screen.getByText('Dado de baja')).toBeInTheDocument();
     expect(screen.getByText('2 asesores')).toBeInTheDocument();
-    expect(screen.queryByRole('columnheader', { name: 'Acciones' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /quitar rol/i })).not.toBeInTheDocument();
   });
 
   it('deshabilita Anterior en la primera página y Siguiente avanza a la página siguiente', async () => {
@@ -157,6 +184,56 @@ describe('ConsultarAsesores', () => {
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
     expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('el botón de quitar rol de una fila de baja está deshabilitado y el de una vigente habilitado', () => {
+    // Arrange
+    vi.mocked(useAsesores).mockReturnValue(
+      crearHookMock({ data: crearPagina([ASESOR_VIGENTE, ASESOR_DE_BAJA]) }),
+    );
+
+    // Act
+    render(<ConsultarAsesores />);
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Quitar rol asesor a Ana Pérez' })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Luis Gómez ya no es asesor vigente' }),
+    ).toBeDisabled();
+  });
+
+  it('el botón de una fila abre la confirmación con el texto exacto y cancelar no llama a la mutación', async () => {
+    // Arrange
+    vi.mocked(useAsesores).mockReturnValue(crearHookMock({ data: crearPagina([ASESOR_VIGENTE]) }));
+    const user = userEvent.setup();
+    render(<ConsultarAsesores />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar rol asesor a Ana Pérez' }));
+    const dialogo = screen.getByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(dialogo).toHaveTextContent(
+      '¿Está seguro de eliminar el rol Asesor para el usuario Ana Pérez?',
+    );
+    expect(mockRemover).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('confirmar llama a la mutación con el id y el rol asesor y cierra el diálogo', async () => {
+    // Arrange
+    vi.mocked(useAsesores).mockReturnValue(crearHookMock({ data: crearPagina([ASESOR_VIGENTE]) }));
+    const user = userEvent.setup();
+    render(<ConsultarAsesores />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar rol asesor a Ana Pérez' }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mockRemover).toHaveBeenCalledWith(ASESOR_VIGENTE.id, Rol.Asesor, undefined);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('no muestra el paginador cuando hay una sola página', () => {
