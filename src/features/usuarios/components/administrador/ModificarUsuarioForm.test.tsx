@@ -267,6 +267,79 @@ describe('ModificarUsuarioForm', () => {
     expect(checkbox).not.toBeChecked();
   });
 
+  it('marcar Representante del Comité llama al hook con su id y rol, y queda marcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.RepresentanteComiteCurriculum },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Representante del Comité falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Ya es representante del comité' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'Error al agregar el rol',
+      'Ya es representante del comité',
+    );
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('un usuario que ya es Representante del Comité lo muestra marcado y bloqueado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esRepresentanteComite: true }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mockAgregar).not.toHaveBeenCalled();
+  });
+
   it('desmarcar Asesor de Ficha abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
     // Arrange
     mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
