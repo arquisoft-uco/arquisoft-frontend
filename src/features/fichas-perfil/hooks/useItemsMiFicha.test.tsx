@@ -7,7 +7,7 @@ import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 import { useItemsMiFicha } from './useItemsMiFicha';
 
 vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: { consultarItemsMiFichaPerfil: vi.fn(), agregarItemFichaPerfil: vi.fn() },
+  fichasPerfilService: { consultarItemsMiFichaPerfil: vi.fn(), agregarItemFichaPerfil: vi.fn(), modificarItem: vi.fn() },
 }));
 vi.mock('./useFichaPerfilIdEstudiante', () => ({ useFichaPerfilIdEstudiante: vi.fn() }));
 vi.mock('./useMiFichaPerfil', () => ({ useMiFichaPerfil: () => ({ ficha: { id: 'f-1' } }) }));
@@ -132,6 +132,56 @@ describe('useItemsMiFicha', () => {
       // Act
       await expect(
         result.current.agregar.mutateAsync({ fichaPerfilId: 'f-1', tipoItemId: 't-1', contenido: 'x' }),
+      ).rejects.toThrow('422');
+
+      // Assert
+      expect(invalidar).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('modificar', () => {
+    function conCliente() {
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      return { invalidar, wrapper };
+    }
+
+    it('invalida la key de ítems de la ficha y vuelve a consultarlos tras modificar', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.modificarItem).mockResolvedValue(undefined);
+      const { invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+      const req = { itemId: 'i-1', contenido: 'Nuevo' };
+
+      // Act
+      await result.current.modificar.mutateAsync(req);
+
+      // Assert
+      expect(fichasPerfilService.modificarItem).toHaveBeenCalledWith(req);
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['fichas-perfil', 'estudiante', 'f-1', 'items'],
+      });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
+    });
+
+    it('no invalida los ítems cuando el service falla', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.modificarItem).mockRejectedValue(new Error('422'));
+      const { invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+
+      // Act
+      await expect(
+        result.current.modificar.mutateAsync({ itemId: 'i-1', contenido: 'x' }),
       ).rejects.toThrow('422');
 
       // Assert

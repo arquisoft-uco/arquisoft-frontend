@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import ItemsMiFichaPanel from './ItemsMiFichaPanel';
 
 vi.mock('../../hooks/useItemsMiFicha', () => ({ useItemsMiFicha: vi.fn() }));
 
-const mutacion = { mutate: vi.fn(), isPending: false } as never;
+const mutacion = { mutate: vi.fn(), reset: vi.fn(), isPending: false } as never;
 
 function conEstado(parcial: Partial<ReturnType<typeof useItemsMiFicha>>) {
   vi.mocked(useItemsMiFicha).mockReturnValue({
@@ -73,5 +74,27 @@ describe('ItemsMiFichaPanel', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los ítems de tu ficha');
     expect(screen.queryByText(/aún no tiene ítems/)).not.toBeInTheDocument();
+  });
+
+  it('abre la edición con el contenido actual y al cancelar vuelve al texto', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conEstado({
+      items: [{ id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir consumo' }],
+    });
+    render(<ItemsMiFichaPanel />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Editar ítem Objetivo' }));
+
+    // Assert
+    expect(screen.getByRole('textbox', { name: /contenido del ítem objetivo/i })).toHaveValue('Medir consumo');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByText('Medir consumo')).toBeInTheDocument();
   });
 });

@@ -5,33 +5,14 @@ import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import AgregarItemForm from './AgregarItemForm';
-import { LIMITES } from '../../../../shared/validation';
+import EditarItemForm from './EditarItemForm';
 
 export default function ItemsMiFichaPanel() {
-  const { items, isLoading, isError, modificar, remover } = useItemsMiFicha();
+  const { items, isLoading, isError, remover } = useItemsMiFicha();
 
   const [mostrarFormAgregar, setMostrarFormAgregar] = useState(false);
   const [editandoItemId, setEditandoItemId] = useState<string | null>(null);
-  const [editContenido, setEditContenido] = useState('');
   const [itemIdAEliminar, setItemIdAEliminar] = useState<string | null>(null);
-
-  const handleIniciarEdicion = (itemId: string, contenido: string) => {
-    setEditandoItemId(itemId);
-    setEditContenido(contenido);
-  };
-
-  const handleGuardarEdicion = (itemId: string) => {
-    modificar.mutate(
-      { itemId, contenido: editContenido },
-      {
-        onSuccess: () => {
-          setEditandoItemId(null);
-          toast.success('Ítem actualizado', 'El contenido se guardó correctamente.');
-        },
-        onError: (err) => toast.error('Error al modificar', getApiErrorMessage(err, 'No se pudo actualizar el ítem.')),
-      },
-    );
-  };
 
   const handleEliminar = (itemId: string) => {
     setItemIdAEliminar(itemId);
@@ -95,30 +76,7 @@ export default function ItemsMiFichaPanel() {
                 {item.tipoItem.nombre}
               </span>
               {editandoItemId === item.id ? (
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={editContenido}
-                    onChange={(e) => setEditContenido(e.target.value)}
-                    maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-                    className="flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleGuardarEdicion(item.id)}
-                    disabled={modificar.isPending}
-                    className="rounded bg-primary px-2 py-1 text-xs text-primary-foreground disabled:opacity-50"
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditandoItemId(null)}
-                    className="rounded border border-border px-2 py-1 text-xs"
-                  >
-                    Cancelar
-                  </button>
-                </div>
+                <EditarItemForm item={item} onCerrar={() => setEditandoItemId(null)} />
               ) : (
                 <p className="mt-1 text-sm text-on-surface">{item.contenido}</p>
               )}
@@ -126,7 +84,7 @@ export default function ItemsMiFichaPanel() {
             <div className="flex gap-1">
               <button
                 type="button"
-                onClick={() => handleIniciarEdicion(item.id, item.contenido)}
+                onClick={() => setEditandoItemId(item.id)}
                 className="rounded p-1 text-on-surface-secondary hover:text-primary"
                 aria-label={`Editar ítem ${item.tipoItem.nombre}`}
               >
