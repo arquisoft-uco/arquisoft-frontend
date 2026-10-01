@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEnviarSolicitudNovedadCoordinador } from '../../hooks/useEnviarSolicitudNovedadCoordinador';
 import { toast } from '../../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,
@@ -24,7 +23,29 @@ function esCampoDelFormulario(campo: string): campo is keyof FormValues {
   return campo === 'destinatario' || campo === 'mensajeSolicitud';
 }
 
-export default function EnviarSolicitudNovedadForm() {
+export interface TextosSolicitudNovedad {
+  titulo: string;
+  etiquetaDestinatario: string;
+  placeholderMensaje: string;
+  recursoAviso: string;
+  tituloConfirmacion: string;
+  descripcionConfirmacion: string;
+  mensajeExito: string;
+}
+
+interface OpcionesEnvio {
+  onSuccess: () => void;
+  onError: (err: unknown) => void;
+}
+
+interface Props {
+  textos: TextosSolicitudNovedad;
+  enviar: (body: FormValues, opciones: OpcionesEnvio) => void;
+  enviando: boolean;
+  reiniciar: () => void;
+}
+
+export default function SolicitudNovedadForm({ textos, enviar, enviando, reiniciar }: Props) {
   const [confirmando, setConfirmando] = useState(false);
 
   const {
@@ -39,16 +60,14 @@ export default function EnviarSolicitudNovedadForm() {
     mode: 'onChange',
   });
 
-  const { mutate, isPending, reset: resetMutation } = useEnviarSolicitudNovedadCoordinador();
-
   function onSubmit(values: FormValues) {
-    mutate(
+    enviar(
       { destinatario: values.destinatario, mensajeSolicitud: values.mensajeSolicitud },
       {
         onSuccess: () => {
-          toast.success('Solicitud enviada', 'El coordinador recibirá tu mensaje.');
+          toast.success('Solicitud enviada', textos.mensajeExito);
           reset();
-          resetMutation();
+          reiniciar();
           setConfirmando(false);
         },
         onError: (err) => {
@@ -95,17 +114,12 @@ export default function EnviarSolicitudNovedadForm() {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5">
-      <h3 className="mb-4 text-base font-semibold text-on-surface">
-        Enviar solicitud de novedad al coordinador
-      </h3>
+      <h2 className="mb-4 text-base font-semibold text-on-surface">{textos.titulo}</h2>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo} aria-busy={isPending}>
+      <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo} aria-busy={enviando}>
         <div>
           <label htmlFor="sn-destinatario" className="field-label">
-            Destinatario (UUID del coordinador){' '}
-            <span aria-hidden className="text-danger">
-              *
-            </span>
+            {textos.etiquetaDestinatario} <span aria-hidden className="text-danger">*</span>
           </label>
           <input
             id="sn-destinatario"
@@ -122,16 +136,13 @@ export default function EnviarSolicitudNovedadForm() {
             </p>
           )}
           <div className="mt-2">
-            <AvisoNoDisponible recurso="coordinadores" />
+            <AvisoNoDisponible recurso={textos.recursoAviso} />
           </div>
         </div>
 
         <div>
           <label htmlFor="sn-mensaje" className="field-label">
-            Mensaje{' '}
-            <span aria-hidden className="text-danger">
-              *
-            </span>
+            Mensaje <span aria-hidden className="text-danger">*</span>
           </label>
           <textarea
             id="sn-mensaje"
@@ -140,7 +151,7 @@ export default function EnviarSolicitudNovedadForm() {
             className="field-input"
             aria-invalid={!!errors.mensajeSolicitud}
             aria-describedby={errors.mensajeSolicitud ? 'sn-mensaje-error' : undefined}
-            placeholder="Describe la novedad que quieres reportar al coordinador"
+            placeholder={textos.placeholderMensaje}
             {...register('mensajeSolicitud')}
           />
           {errors.mensajeSolicitud && (
@@ -153,21 +164,21 @@ export default function EnviarSolicitudNovedadForm() {
         <div className="actions-row border-t border-border pt-4">
           <button
             type="submit"
-            disabled={!isValid || isPending}
+            disabled={!isValid || enviando}
             className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:py-2"
           >
-            {isPending ? 'Enviando...' : 'Enviar solicitud'}
+            {enviando ? 'Enviando...' : 'Enviar solicitud'}
           </button>
         </div>
       </form>
 
       {confirmando && (
         <ConfirmDialog
-          titulo="Enviar solicitud al coordinador"
-          descripcion="Se enviará un mensaje de novedad al coordinador indicado. ¿Deseas continuar?"
+          titulo={textos.tituloConfirmacion}
+          descripcion={textos.descripcionConfirmacion}
           labelConfirmar="Enviar"
           variante="advertencia"
-          cargando={isPending}
+          cargando={enviando}
           onConfirmar={handleConfirmar}
           onCancelar={handleCancelarConfirmacion}
         />

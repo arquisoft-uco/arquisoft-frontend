@@ -244,35 +244,49 @@ Servicio: `src/features/solicitudes/services/solicitudesService.ts`.
 
 ### Implementados y alineados
 
-| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
-|---|---|---|---|---|
-| `enviarSolicitudNovedadCoordinador` | POST | `/solicitudes/novedad-coordinador` | `{ destinatario, mensajeSolicitud }` | `201 { id }` |
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta | Authority |
+|---|---|---|---|---|---|
+| `enviarSolicitudNovedadCoordinador` (HU-081) | POST | `/solicitudes/novedad-coordinador` | `{ destinatario, mensajeSolicitud }` | `201 { id }` | `solicitudes:solicitud:create` |
+| `enviarSolicitudNovedadAsesor` (HU-082) | POST | `/solicitudes/novedad-asesor` | `{ destinatario, mensajeSolicitud }` | `201 { id }` | `solicitudes:solicitud-novedad-asesor:create` |
 
-Verificado contra `EnviarSolicitudNovedadCoordinadorController.java`,
-`EnviarSolicitudNovedadCoordinadorRequestDTO.java` y `EnviarSolicitudNovedadCoordinadorResponseDTO.java`
-de `../arquisoft-backend`. Sin traducción de nombres en el service: el modelo del frontend coincide
-1:1 con el DTO real. El remitente no viaja en el body: el backend lo toma del `sub` del JWT.
+Verificado contra los Controllers y DTO de `../arquisoft-backend`, y contra `VALIDATOR-HU-081.md` y
+`VALIDATOR-HU-082.md` (✅ APROBADO). Sin traducción de nombres en el service: el modelo del frontend
+coincide 1:1 con los DTO. El tipo de solicitud lo fija el backend; el cliente no lo envía. Ambos
+endpoints comparten `SolicitudCreadaResponse`.
 
-`mensajeSolicitud` admite entre 1 y 100 caracteres (`SolicitudesLimits.Solicitud.MENSAJE_MIN/MAX`). El
-DTO es un `record` sin `@Size`: el límite lo impone la validación de dominio y responde `400`.
+Errores de dominio (`SolicitudesCodes.java`): 400 `SOLICITUD_MENSAJE_REQUERIDO`,
+`SOLICITUD_MENSAJE_DEMASIADO_LARGO`, `SOLICITUD_DESTINATARIO_REQUERIDO` (también para UUID mal
+formado); 422 `REMITENTE_NO_ENCONTRADO`, `DESTINATARIO_NO_ENCONTRADO`, `DESTINATARIO_NO_ASIGNADO`,
+`SOLICITUD_DUPLICADA`.
 
-Errores mapeados por `errorCode` (`ErrorResponseDTO`): 422 `DESTINATARIO_NO_ENCONTRADO` y
-`DESTINATARIO_NO_ASIGNADO` (se pintan junto al campo destinatario); 422 `SOLICITUD_DUPLICADA` (solo
-toast, es una regla de conjunto).
+**Deuda del destinatario:** el backend no expone "mi asesor" ni "mi coordinador", así que el UUID se
+digita a mano y el formulario muestra `AvisoNoDisponible`. La regla RN-7 de HU-082 (el destinatario es el
+asesor asignado al remitente) es inerte hoy: el adaptador del backend es un STUB que siempre aprueba,
+por lo que `DESTINATARIO_NO_ASIGNADO` no es alcanzable todavía.
+
+`mensajeSolicitud` admite entre 1 y 100 caracteres (`SolicitudesLimits.Solicitud.MENSAJE_MIN/MAX`). Los
+DTO son `record` sin `@Size`: el límite lo impone la validación de dominio y responde `400`.
 
 ### Degradación en la interfaz
 
-El backend no expone un endpoint para que el estudiante obtenga su coordinador, así que
-`EnviarSolicitudNovedadForm` pide el UUID del destinatario como texto y muestra `AvisoNoDisponible`
-(catálogo de coordinadores). A diferencia de los formularios de fichas, **no deshabilita el envío**:
-el UUID tecleado es un sustituto temporal hasta que exista ese catálogo.
+`SolicitudNovedadForm` (compartido por `NovedadCoordinadorForm` y `NovedadAsesorForm`) pide el UUID del
+destinatario como texto y muestra `AvisoNoDisponible`. A diferencia de los formularios de fichas, **no
+deshabilita el envío**: el UUID tecleado es un sustituto temporal hasta que exista el catálogo.
 
 ### Dependencia operativa: client role en Keycloak
 
-El endpoint exige la authority `solicitudes:solicitud:create` (`SolicitudesAuthorities.SOLICITUD_CREATE`).
-No se pudo verificar que esté mapeada a un rol en el realm de `arquisoft-infra`: si falta, con login
-real el estudiante recibe `403` (el interceptor lo lleva a `/forbidden`). No se ve con
-`VITE_AUTH_BYPASS=true`.
+Los endpoints exigen las authorities `solicitudes:solicitud:create` (HU-081) y
+`solicitudes:solicitud-novedad-asesor:create` (HU-082). No se pudo verificar que estén mapeadas a un rol
+en el realm de `arquisoft-infra`: si faltan, con login real el estudiante recibe `403` (el interceptor lo
+lleva a `/forbidden`). No se ve con `VITE_AUTH_BYPASS=true`.
+
+### Sin cliente en el frontend
+
+- HU-083: `POST /solicitudes/cambio-asesor`.
+- HU-084: `POST /solicitudes/ampliacion-plazo`.
+- HU-096: `POST /solicitudes/novedad-coordinador/enviadas`.
+- HU-097, HU-066 y HU-067 solo existen en ramas del backend, no en `develop`, y sus authorities no están
+  en el realm.
 
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
@@ -302,4 +316,4 @@ del backend; las reglas propias de la lógica de negocio permanecen en cada form
 
 Formularios que ya consumen el módulo: `RegistrarFichaPerfil` (título), `MiFichaHeader` (título),
 `ItemsMiFichaPanel` (contenido de ítem), `RegistrarUsuarioForm` (identificador, nombres/apellidos,
-email, contacto), `EnviarSolicitudNovedadForm` (destinatario, mensaje).
+email, contacto), `SolicitudNovedadForm` (destinatario, mensaje).

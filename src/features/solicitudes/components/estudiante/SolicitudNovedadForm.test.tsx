@@ -2,19 +2,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen, waitFor } from '../../../../test-utils/render';
-import EnviarSolicitudNovedadForm from './EnviarSolicitudNovedadForm';
-import { useEnviarSolicitudNovedadCoordinador } from '../../hooks/useEnviarSolicitudNovedadCoordinador';
+import SolicitudNovedadForm from './SolicitudNovedadForm';
+import type { TextosSolicitudNovedad } from './SolicitudNovedadForm';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { ApiError } from '../../../../shared/models/api-response';
 
-vi.mock('../../hooks/useEnviarSolicitudNovedadCoordinador', () => ({
-  useEnviarSolicitudNovedadCoordinador: vi.fn(),
-}));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
-const useEnviarSolicitudNovedadCoordinadorMock = vi.mocked(useEnviarSolicitudNovedadCoordinador);
+const TEXTOS: TextosSolicitudNovedad = {
+  titulo: 'Enviar solicitud de novedad al coordinador',
+  etiquetaDestinatario: 'Destinatario (UUID del coordinador)',
+  placeholderMensaje: 'Describe la novedad',
+  recursoAviso: 'coordinadores',
+  tituloConfirmacion: 'Enviar solicitud al coordinador',
+  descripcionConfirmacion: 'Se enviará un mensaje de novedad. ¿Deseas continuar?',
+  mensajeExito: 'El coordinador recibirá tu mensaje.',
+};
 
 const UUID_VALIDO = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const MENSAJE_VALIDO = 'No he podido contactar a mi asesor.';
@@ -34,54 +39,31 @@ type MutateOptions = {
   onError?: (err: unknown) => void;
 };
 
-type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
-
-function crearMutacionMock(
-  mutate: ReturnType<typeof vi.fn>,
-  isPending = false,
-): MutacionEnviarSolicitud {
-  return {
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: isPending ? 'pending' : 'idle',
-    isError: false,
-    isIdle: !isPending,
-    isPending,
-    isSuccess: false,
-    mutate,
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-  } as MutacionEnviarSolicitud;
-}
-
-function mockMutacion(mutate = vi.fn(), isPending = false) {
-  useEnviarSolicitudNovedadCoordinadorMock.mockReturnValue(crearMutacionMock(mutate, isPending));
-  return mutate;
+function renderizarFormulario(enviar = vi.fn(), enviando = false) {
+  render(
+    <SolicitudNovedadForm textos={TEXTOS} enviar={enviar} enviando={enviando} reiniciar={vi.fn()} />,
+  );
+  return enviar;
 }
 
 async function llenarFormularioValido(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/Destinatario/), UUID_VALIDO);
-  await user.type(screen.getByLabelText(/^Mensaje/), MENSAJE_VALIDO);
+  await user.click(screen.getByLabelText(/Destinatario/));
+  await user.paste(UUID_VALIDO);
+  await user.click(screen.getByLabelText(/^Mensaje/));
+  await user.paste(MENSAJE_VALIDO);
 }
 
-describe('EnviarSolicitudNovedadForm', () => {
+describe('SolicitudNovedadForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('mantiene Enviar solicitud deshabilitado hasta que los campos son válidos y muestra el aviso de catálogo no disponible', async () => {
-    mockMutacion();
+    renderizarFormulario();
     const user = userEvent.setup();
-    render(<EnviarSolicitudNovedadForm />);
     const submit = screen.getByRole('button', { name: 'Enviar solicitud' });
 
-    await waitFor(() => expect(submit).toBeDisabled());
+    expect(submit).toBeDisabled();
     expect(screen.getByRole('alert')).toHaveTextContent(/catálogo de coordinadores/i);
 
     await llenarFormularioValido(user);
@@ -90,21 +72,21 @@ describe('EnviarSolicitudNovedadForm', () => {
   });
 
   it('bloquea el envío cuando el destinatario no tiene formato UUID', async () => {
-    mockMutacion();
+    renderizarFormulario();
     const user = userEvent.setup();
-    render(<EnviarSolicitudNovedadForm />);
 
-    await user.type(screen.getByLabelText(/Destinatario/), 'no-es-un-uuid');
-    await user.type(screen.getByLabelText(/^Mensaje/), MENSAJE_VALIDO);
+    await user.click(screen.getByLabelText(/Destinatario/));
+    await user.paste('no-es-un-uuid');
+    await user.click(screen.getByLabelText(/^Mensaje/));
+    await user.paste(MENSAJE_VALIDO);
 
     expect(await screen.findByText('Identificador inválido')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeDisabled();
   });
 
   it('abre el diálogo de confirmación al enviar y lo cierra sin llamar a mutate al cancelar', async () => {
-    const mutate = mockMutacion();
+    const mutate = renderizarFormulario();
     const user = userEvent.setup();
-    render(<EnviarSolicitudNovedadForm />);
 
     await llenarFormularioValido(user);
     await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
@@ -121,9 +103,8 @@ describe('EnviarSolicitudNovedadForm', () => {
 
   it('al confirmar con datos válidos, envía la solicitud, notifica el éxito y limpia el formulario', async () => {
     const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) => opciones?.onSuccess?.());
-    mockMutacion(mutate);
+    renderizarFormulario(mutate);
     const user = userEvent.setup();
-    render(<EnviarSolicitudNovedadForm />);
 
     await llenarFormularioValido(user);
     await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
@@ -133,7 +114,7 @@ describe('EnviarSolicitudNovedadForm', () => {
       { destinatario: UUID_VALIDO, mensajeSolicitud: MENSAJE_VALIDO },
       expect.anything(),
     );
-    expect(toast.success).toHaveBeenCalledWith('Solicitud enviada', expect.any(String));
+    expect(toast.success).toHaveBeenCalledWith('Solicitud enviada', TEXTOS.mensajeExito);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario/)).toHaveValue('');
   });
@@ -149,9 +130,8 @@ describe('EnviarSolicitudNovedadForm', () => {
         }),
       ),
     );
-    mockMutacion(mutate);
+    renderizarFormulario(mutate);
     const user = userEvent.setup();
-    render(<EnviarSolicitudNovedadForm />);
 
     await llenarFormularioValido(user);
     await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
@@ -176,9 +156,8 @@ describe('EnviarSolicitudNovedadForm', () => {
         }),
       ),
     );
-    mockMutacion(mutate);
+    renderizarFormulario(mutate);
     const user = userEvent.setup();
-    render(<EnviarSolicitudNovedadForm />);
 
     await llenarFormularioValido(user);
     await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
@@ -192,5 +171,32 @@ describe('EnviarSolicitudNovedadForm', () => {
     );
     expect(screen.queryByText('Ya enviaste esta misma solicitud hoy.')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario/)).toHaveValue(UUID_VALIDO);
+  });
+
+  it('abre la confirmación al enviar con Enter, pinta los errores de campos del formulario e ignora los ajenos', async () => {
+    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) =>
+      opciones?.onError?.(
+        crearErrorApi({
+          error: 'Bad Request',
+          message: 'Datos inválidos.',
+          status: 400,
+          fieldErrors: [
+            { field: 'mensajeSolicitud', message: 'El mensaje excede el límite.' },
+            { field: 'campoAjeno', message: 'No debe pintarse.' },
+          ],
+        }),
+      ),
+    );
+    renderizarFormulario(mutate);
+    const user = userEvent.setup();
+
+    await llenarFormularioValido(user);
+    await user.click(screen.getByLabelText(/Destinatario/));
+    await user.keyboard('{Enter}');
+    await user.click(await screen.findByRole('button', { name: 'Enviar' }));
+
+    expect(await screen.findByText('El mensaje excede el límite.')).toBeInTheDocument();
+    expect(screen.queryByText('No debe pintarse.')).not.toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith('No se pudo enviar la solicitud', 'Datos inválidos.');
   });
 });
