@@ -5,8 +5,13 @@ import { z } from 'zod';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
 import { useAgregarRol } from '../../hooks/useAgregarRol';
 import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
+import { useCambiarEstadoUsuario } from '../../hooks/useCambiarEstadoUsuario';
 import { rolesDeUsuario } from '../../utils/roles-usuario';
 import type { Usuario } from '../../models/Usuario';
+import type { EstadoUsuario } from '../../models/EstadoUsuario';
+import { nombreEstadoUsuario } from '../../utils/estados-usuario';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import { toast } from '../../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,
@@ -25,6 +30,9 @@ import { ETIQUETAS_ROL, type Rol } from '../../../../shared/models/rol';
 import CampoTexto from './CampoTexto';
 import ConfirmarRemoverRolDialog from './ConfirmarRemoverRolDialog';
 import RolesUsuarioFieldset from './RolesUsuarioFieldset';
+import EstadoUsuarioFieldset from './EstadoUsuarioFieldset';
+
+const ESTADO_ACTIVO_ID = 'ACTIVO';
 
 const schema = z
   .object({
@@ -75,6 +83,38 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
   const [rolesAsignados, setRolesAsignados] = useState<ReadonlySet<Rol>>(
     () => new Set(rolesDeUsuario(usuario)),
   );
+
+  const estadosQuery = useEstadosUsuario();
+  const cambiarEstado = useCambiarEstadoUsuario();
+  const [estadoDestino, setEstadoDestino] = useState<EstadoUsuario | null>(null);
+
+  function confirmarCambioEstado() {
+    if (!estadoDestino) return;
+    cambiarEstado.mutate(
+      { usuarioId: usuario.id, req: { estado: estadoDestino.id } },
+      {
+        onSuccess: () => {
+          toast.success(
+            'Estado actualizado',
+            `${usuario.nombre} ahora está en estado ${estadoDestino.nombre}.`,
+          );
+          onCerrar();
+        },
+        onError: (err) => {
+          toast.error('No se pudo cambiar el estado', getApiErrorMessage(err, 'Intenta nuevamente.'));
+        },
+        onSettled: () => setEstadoDestino(null),
+      },
+    );
+  }
+
+  function descripcionCambioEstado(destino: EstadoUsuario) {
+    const base = `Se cambiará el estado de ${usuario.nombre} de ${nombreEstadoUsuario(estadosQuery.data, usuario.estado)} a ${destino.nombre}.`;
+    if (destino.id === ESTADO_ACTIVO_ID) {
+      return usuario.vigente ? base : `${base} El usuario será restaurado.`;
+    }
+    return `${base} Se deshabilitará su acceso.`;
+  }
 
   function agregarRol(rol: Rol) {
     agregar.mutate(
@@ -207,6 +247,15 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
           }
         />
 
+        <EstadoUsuarioFieldset
+          estadoActual={usuario.estado}
+          estados={estadosQuery.data}
+          cargando={estadosQuery.isLoading}
+          noDisponible={estadosQuery.isError}
+          pendiente={cambiarEstado.isPending}
+          onSolicitar={setEstadoDestino}
+        />
+
         <div className="actions-row border-t border-border pt-4">
           <button
             type="button"
@@ -224,6 +273,20 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
           </button>
         </div>
       </form>
+
+      {estadoDestino && (
+        <ConfirmDialog
+          titulo="Cambiar estado"
+          descripcion={descripcionCambioEstado(estadoDestino)}
+          labelConfirmar="Cambiar estado"
+          variante="advertencia"
+          cargando={cambiarEstado.isPending}
+          onConfirmar={confirmarCambioEstado}
+          onCancelar={() => {
+            if (!cambiarEstado.isPending) setEstadoDestino(null);
+          }}
+        />
+      )}
 
       {remover.objetivo && (
         <ConfirmarRemoverRolDialog

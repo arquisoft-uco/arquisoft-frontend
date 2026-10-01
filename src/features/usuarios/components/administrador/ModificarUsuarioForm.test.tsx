@@ -6,6 +6,8 @@ import ModificarUsuarioForm from './ModificarUsuarioForm';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
 import { useAgregarRol } from '../../hooks/useAgregarRol';
 import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
+import { useCambiarEstadoUsuario } from '../../hooks/useCambiarEstadoUsuario';
 import { toast } from '../../../../shared/hooks/useToast';
 import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
 import type { Usuario } from '../../models/Usuario';
@@ -18,6 +20,12 @@ vi.mock('../../hooks/useAgregarRol', () => ({
 }));
 vi.mock('../../hooks/useRemoverRol', () => ({
   useRemoverRol: vi.fn(),
+}));
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: vi.fn(),
+}));
+vi.mock('../../hooks/useCambiarEstadoUsuario', () => ({
+  useCambiarEstadoUsuario: vi.fn(),
 }));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
@@ -84,8 +92,25 @@ const usuario: Usuario = {
   esAdministrador: false,
 };
 
+const ESTADOS = [
+  { id: 'ACTIVO', nombre: 'Activo', descripcion: 'Con acceso' },
+  { id: 'INACTIVO', nombre: 'Inactivo', descripcion: 'Sin acceso' },
+];
+
+function crearEstadosMock(
+  parcial: Partial<ReturnType<typeof useEstadosUsuario>> = {},
+): ReturnType<typeof useEstadosUsuario> {
+  return {
+    data: ESTADOS,
+    isLoading: false,
+    isError: false,
+    ...parcial,
+  } as ReturnType<typeof useEstadosUsuario>;
+}
+
 describe('ModificarUsuarioForm', () => {
   const onCerrar = vi.fn();
+  let mockCambiarEstado: ReturnType<typeof vi.fn>;
   let mockMutate: ReturnType<typeof vi.fn>;
   let mockAgregar: ReturnType<typeof vi.fn>;
   let mockRemover: Mock<ConfirmarRemocion>;
@@ -100,7 +125,18 @@ describe('ModificarUsuarioForm', () => {
       crearMutacionMock<ReturnType<typeof useAgregarRol>>(mockAgregar),
     );
     vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover));
+    mockCambiarEstado = vi.fn();
+    vi.mocked(useEstadosUsuario).mockReturnValue(crearEstadosMock());
+    vi.mocked(useCambiarEstadoUsuario).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useCambiarEstadoUsuario>>(mockCambiarEstado),
+    );
   });
+
+  async function solicitarCambioA(user: ReturnType<typeof userEvent.setup>, estadoId: string) {
+    await user.selectOptions(screen.getByLabelText('Nuevo estado'), estadoId);
+    await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+    return screen.getByRole('dialog');
+  }
 
   it('precarga los campos de texto y marca los checkboxes de los roles ya asignados', () => {
     // Act
@@ -800,5 +836,104 @@ describe('ModificarUsuarioForm', () => {
 
     // Assert
     expect(screen.getByRole('button', { name: /guardando/i })).toBeDisabled();
+  });
+
+  it('desactivar a un usuario activo pide confirmación con aviso de deshabilitar acceso y cancelar no llama al hook', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'INACTIVO');
+    const texto = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(texto).toContain(
+      `Se cambiará el estado de ${usuario.nombre} de Activo a Inactivo. Se deshabilitará su acceso.`,
+    );
+    expect(mockCambiarEstado).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('activar a un usuario eliminado (no vigente) avisa que será restaurado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm
+        usuario={{ ...usuario, estado: 'INACTIVO', vigente: false }}
+        onCerrar={onCerrar}
+      />,
+    );
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'ACTIVO');
+
+    // Assert
+    expect(dialogo).toHaveTextContent('El usuario será restaurado.');
+  });
+
+  it('al confirmar llama al hook con el id y el estado, muestra toast de éxito y cierra', async () => {
+    // Arrange
+    mockCambiarEstado.mockImplementation((_vars, options) => {
+      options.onSuccess();
+      options.onSettled();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'INACTIVO');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(mockCambiarEstado).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, req: { estado: 'INACTIVO' } },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Estado actualizado',
+      expect.stringContaining('Inactivo'),
+    );
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('si el cambio de estado falla muestra toast.error y no cierra el formulario', async () => {
+    // Arrange
+    mockCambiarEstado.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Transición no permitida' } },
+      });
+      options.onSettled();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'INACTIVO');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo cambiar el estado',
+      'Transición no permitida',
+    );
+    expect(onCerrar).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('con el catálogo de estados caído muestra el aviso y no permite cambiar el estado', () => {
+    // Arrange
+    vi.mocked(useEstadosUsuario).mockReturnValue(
+      crearEstadosMock({ data: undefined, isError: true }),
+    );
+
+    // Act
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Assert
+    expect(screen.getByText(/estados de usuario/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Nuevo estado')).toBeDisabled();
   });
 });

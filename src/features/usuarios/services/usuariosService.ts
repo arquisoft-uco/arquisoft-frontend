@@ -5,6 +5,7 @@ import type { Administrador } from '../models/Administrador';
 import type { AgregarRolUsuarioRequest } from '../models/AgregarRolUsuarioRequest';
 import type { Asesor } from '../models/Asesor';
 import type { AsesorFicha } from '../models/AsesorFicha';
+import type { CambiarEstadoUsuarioRequest } from '../models/CambiarEstadoUsuarioRequest';
 import type { RepresentanteComite } from '../models/RepresentanteComite';
 import type { Coordinador } from '../models/Coordinador';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
@@ -21,6 +22,9 @@ export const usuariosService = {
 
   modificarUsuario: (usuarioId: string, req: ModificarUsuarioRequest): Promise<void> =>
     apiClient.patch<void>(`/usuarios/${usuarioId}`, req).then(() => undefined),
+
+  cambiarEstadoUsuario: (usuarioId: string, req: CambiarEstadoUsuarioRequest): Promise<void> =>
+    apiClient.patch<void>(`/usuarios/${usuarioId}/estado`, req).then(() => undefined),
 
   agregarRol: (usuarioId: string, rol: Rol): Promise<void> =>
     apiClient
