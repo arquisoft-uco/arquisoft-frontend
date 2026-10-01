@@ -1,9 +1,13 @@
 import { RefreshCw } from 'lucide-react';
 import { useEstudiantes } from '../../hooks/useEstudiantes';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { Rol } from '../../../../shared/models/rol';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import ConfirmarRemoverRolDialog from './ConfirmarRemoverRolDialog';
 import EstudiantesTable from './EstudiantesTable';
 
 export default function ConsultarEstudiantes() {
+  const remover = useRemoverRol();
   const { data, isLoading, isError, error, isFetching, refetch, page, pageSize, goToPage } =
     useEstudiantes();
 
@@ -63,6 +67,23 @@ export default function ConsultarEstudiantes() {
           page={page}
           pageSize={pageSize}
           onPageChange={goToPage}
+          onRemover={(estudiante) =>
+            remover.solicitar({
+              usuarioId: estudiante.id,
+              nombre: estudiante.nombre,
+              rol: Rol.Estudiante,
+            })
+          }
+        />
+      )}
+
+      {remover.objetivo && (
+        <ConfirmarRemoverRolDialog
+          rol={remover.objetivo.rol}
+          nombreUsuario={remover.objetivo.nombre}
+          cargando={remover.isPending}
+          onConfirmar={() => remover.confirmar()}
+          onCancelar={remover.cancelar}
         />
       )}
     </section>
