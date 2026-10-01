@@ -1,6 +1,7 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { Rol } from '../../../shared/models/rol';
+import type { Administrador } from '../models/Administrador';
 import type { AgregarRolUsuarioRequest } from '../models/AgregarRolUsuarioRequest';
 import type { Asesor } from '../models/Asesor';
 import type { AsesorFicha } from '../models/AsesorFicha';
@@ -84,6 +85,14 @@ export const usuariosService = {
   ): Promise<Page<RepresentanteComite>> =>
     apiClient
       .post<Page<RepresentanteComite>>('/usuarios/representantes-comite/administrador', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarAdministradoresAdministrador: (page = 0, size = 10): Promise<Page<Administrador>> =>
+    apiClient
+      .post<Page<Administrador>>('/usuarios/administradores/administrador', {
         pagina: page,
         tamanio: size,
       })
