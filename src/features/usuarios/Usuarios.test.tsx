@@ -6,6 +6,7 @@ import { Rol } from '../../shared/models/rol';
 import { useRegistrarUsuario } from './hooks/useRegistrarUsuario';
 import { useCoordinadores } from './hooks/useCoordinadores';
 import { useEstudiantes } from './hooks/useEstudiantes';
+import { useAsesores } from './hooks/useAsesores';
 import { useUsuarios } from './hooks/useUsuarios';
 import { useRemoverRol } from './hooks/useRemoverRol';
 
@@ -19,6 +20,10 @@ vi.mock('./hooks/useCoordinadores', () => ({
 
 vi.mock('./hooks/useEstudiantes', () => ({
   useEstudiantes: vi.fn(),
+}));
+
+vi.mock('./hooks/useAsesores', () => ({
+  useAsesores: vi.fn(),
 }));
 
 vi.mock('./hooks/useUsuarios', () => ({
@@ -92,6 +97,30 @@ function crearEstudiantesMock(
   } as ReturnType<typeof useEstudiantes>;
 }
 
+function crearAsesoresMock(
+  parcial: Partial<ReturnType<typeof useAsesores>> = {},
+): ReturnType<typeof useAsesores> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useAsesores>;
+}
+
 function crearUsuariosMock(
   parcial: Partial<ReturnType<typeof useUsuarios>> = {},
 ): ReturnType<typeof useUsuarios> {
@@ -161,6 +190,7 @@ describe('Usuarios', () => {
     vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
     vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
     vi.mocked(useEstudiantes).mockReturnValue(crearEstudiantesMock());
+    vi.mocked(useAsesores).mockReturnValue(crearAsesoresMock());
     vi.mocked(useUsuarios).mockReturnValue(crearUsuariosMock());
     vi.mocked(useRemoverRol).mockReturnValue({
       objetivo: null,

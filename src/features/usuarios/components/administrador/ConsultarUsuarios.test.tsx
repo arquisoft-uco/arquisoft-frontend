@@ -5,7 +5,7 @@ import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
 import { useAgregarRol } from '../../hooks/useAgregarRol';
-import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Usuario } from '../../models/Usuario';
@@ -26,8 +26,8 @@ vi.mock('../../hooks/useAgregarRol', () => ({
   useAgregarRol: vi.fn(),
 }));
 
-vi.mock('../../hooks/useRemoverCoordinador', () => ({
-  useRemoverCoordinador: vi.fn(),
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 vi.mock('../../hooks/useEliminarUsuario', () => ({
@@ -167,9 +167,13 @@ describe('ConsultarUsuarios', () => {
     vi.mocked(useUsuarios).mockReset();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
     vi.mocked(useAgregarRol).mockReturnValue(crearMutacionAgregarMock());
-    vi.mocked(useRemoverCoordinador).mockReturnValue(
-      crearMutacionAgregarMock<ReturnType<typeof useRemoverCoordinador>>(),
-    );
+    vi.mocked(useRemoverRol).mockReturnValue({
+      objetivo: null,
+      solicitar: vi.fn(),
+      cancelar: vi.fn(),
+      confirmar: vi.fn(),
+      isPending: false,
+    });
     vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
