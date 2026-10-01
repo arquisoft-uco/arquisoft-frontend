@@ -2,26 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
-import type { ModificarUsuarioRequest } from '../models/ModificarUsuarioRequest';
 import { usuariosService } from '../services/usuariosService';
-import { useModificarUsuario } from './useModificarUsuario';
+import { useAgregarCoordinador } from './useAgregarCoordinador';
 
 vi.mock('../services/usuariosService', () => ({
   usuariosService: {
-    consultarCoordinadoresAdministrador: vi.fn(),
-    modificarUsuario: vi.fn(),
+    agregarCoordinador: vi.fn(),
   },
 }));
 
-const modificar = vi.mocked(usuariosService.modificarUsuario);
-
-const usuarioId = 'u-1';
-const request: ModificarUsuarioRequest = {
-  identificador: '2001',
-  nombre: 'Marta Ríos',
-  email: 'marta@uco.edu.co',
-  contacto: '3001234567',
-};
+const agregarCoordinador = vi.mocked(usuariosService.agregarCoordinador);
 
 function crearContexto() {
   const queryClient = new QueryClient({
@@ -34,34 +24,34 @@ function crearContexto() {
   return { Wrapper, invalidar };
 }
 
-describe('useModificarUsuario', () => {
+describe('useAgregarCoordinador', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('invalida el listado de usuarios con la key exacta tras modificar con éxito', async () => {
+  it('agrega el coordinador con el id e invalida el prefijo de usuarios al éxito', async () => {
     // Arrange
-    modificar.mockResolvedValue(undefined);
+    agregarCoordinador.mockResolvedValue(undefined);
     const { Wrapper, invalidar } = crearContexto();
-    const { result } = renderHook(() => useModificarUsuario(), { wrapper: Wrapper });
+    const { result } = renderHook(() => useAgregarCoordinador(), { wrapper: Wrapper });
 
     // Act
-    act(() => result.current.mutate({ usuarioId, req: request }));
+    act(() => result.current.mutate('u-1'));
 
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(modificar).toHaveBeenCalledWith(usuarioId, request);
+    expect(agregarCoordinador).toHaveBeenCalledWith('u-1');
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] });
   });
 
-  it('no invalida el listado cuando la modificación falla', async () => {
+  it('propaga el error y no invalida cuando el backend falla', async () => {
     // Arrange
-    modificar.mockRejectedValue(new Error('422'));
+    agregarCoordinador.mockRejectedValue(new Error('422'));
     const { Wrapper, invalidar } = crearContexto();
-    const { result } = renderHook(() => useModificarUsuario(), { wrapper: Wrapper });
+    const { result } = renderHook(() => useAgregarCoordinador(), { wrapper: Wrapper });
 
     // Act
-    act(() => result.current.mutate({ usuarioId, req: request }));
+    act(() => result.current.mutate('u-1'));
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));

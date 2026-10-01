@@ -1,5 +1,7 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
+import { Rol } from '../../../shared/models/rol';
+import type { AgregarRolUsuarioRequest } from '../models/AgregarRolUsuarioRequest';
 import type { Coordinador } from '../models/Coordinador';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
 import type { Estudiante } from '../models/Estudiante';
@@ -14,6 +16,13 @@ export const usuariosService = {
 
   modificarUsuario: (usuarioId: string, req: ModificarUsuarioRequest): Promise<void> =>
     apiClient.patch<void>(`/usuarios/${usuarioId}`, req).then(() => undefined),
+
+  agregarCoordinador: (usuarioId: string): Promise<void> =>
+    apiClient
+      .patch<void>(`/usuarios/${usuarioId}`, {
+        roles: [Rol.Coordinador],
+      } satisfies AgregarRolUsuarioRequest)
+      .then(() => undefined),
 
   eliminarUsuario: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}`).then(() => undefined),

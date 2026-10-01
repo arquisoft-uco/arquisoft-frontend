@@ -123,6 +123,8 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
 |---|---|---|---|---|
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
+| `modificarUsuario` | PATCH | `/usuarios/{usuarioId}` | `{ identificador?, nombre?, email?, contacto? }` (sin `roles`; el DTO real acepta además `nombres?`/`apellidos?`, que el frontend no envía) | `204` sin cuerpo |
+| `agregarCoordinador` (HU-243) | PATCH | `/usuarios/{usuarioId}` | `{ roles: ['coordinador'] }` | `204` sin cuerpo (aditivo; 400 `USUARIO_ROL_NO_VALIDO`; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `COORDINADOR_USUARIO_DUPLICADO`; 503 `USUARIO_IDP_NO_DISPONIBLE`). No hay endpoint propio: es el mismo PATCH con solo roles |
 | `eliminarUsuario` | DELETE | `/usuarios/{usuarioId}` | — | `204` sin cuerpo (eliminación lógica; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `USUARIO_ROLES_VIGENTES`; 503 `USUARIO_IDP_NO_DISPONIBLE`) |
 | `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
 | `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
@@ -176,7 +178,7 @@ abajo para los demás roles `usuarios:*-administrador:view` de este contexto. Co
 administrador sin ese client role recibe `403` y el interceptor lo lleva a `/forbidden`; no se ve con
 `VITE_AUTH_BYPASS=true`.
 
-No hay `GET /usuarios` hoy: no hay edición de usuarios en esta iteración. Los listados de
+No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado del rol coordinador (`agregarCoordinador`) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Los listados de
 coordinadores, estudiantes y el unificado de "todos los usuarios" son los únicos listados de la
 feature.
 
