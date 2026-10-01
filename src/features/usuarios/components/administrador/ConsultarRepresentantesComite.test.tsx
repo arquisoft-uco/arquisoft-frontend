@@ -9,6 +9,9 @@ import { Rol } from '../../../../shared/models/rol';
 import type { RepresentanteComite } from '../../models/RepresentanteComite';
 import type { Page } from '../../../../shared/models/api-response';
 
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 vi.mock('../../hooks/useRepresentantesComite', () => ({
   useRepresentantesComite: vi.fn(),
 }));

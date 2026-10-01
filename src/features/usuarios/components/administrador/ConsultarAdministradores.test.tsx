@@ -9,6 +9,9 @@ import { Rol } from '../../../../shared/models/rol';
 import type { Administrador } from '../../models/Administrador';
 import type { Page } from '../../../../shared/models/api-response';
 
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 vi.mock('../../hooks/useAdministradores', () => ({
   useAdministradores: vi.fn(),
 }));

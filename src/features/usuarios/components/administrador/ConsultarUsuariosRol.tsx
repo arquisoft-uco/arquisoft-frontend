@@ -1,6 +1,7 @@
 import { RefreshCw } from 'lucide-react';
 import type { Page } from '../../../../shared/models/api-response';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
 import type { UsuarioRolListado } from '../../models/UsuarioRolListado';
 import UsuariosRolTable from './UsuariosRolTable';
 
@@ -33,6 +34,7 @@ export default function ConsultarUsuariosRol<T extends UsuarioRolListado>({
   consulta,
   onRemover,
 }: Props<T>) {
+  const estadosQuery = useEstadosUsuario();
   const { data, isLoading, isError, error, isFetching, refetch, page, pageSize, goToPage } =
     consulta;
 
@@ -87,6 +89,7 @@ export default function ConsultarUsuariosRol<T extends UsuarioRolListado>({
       {data && (
         <UsuariosRolTable
           usuarios={data.content}
+          estados={estadosQuery.data}
           totalElements={totalElements}
           totalPages={data.totalPages}
           page={page}

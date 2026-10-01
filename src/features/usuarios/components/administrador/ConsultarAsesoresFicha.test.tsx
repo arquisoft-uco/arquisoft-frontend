@@ -9,6 +9,9 @@ import { Rol } from '../../../../shared/models/rol';
 import type { AsesorFicha } from '../../models/AsesorFicha';
 import type { Page } from '../../../../shared/models/api-response';
 
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 vi.mock('../../hooks/useAsesoresFicha', () => ({
   useAsesoresFicha: vi.fn(),
 }));

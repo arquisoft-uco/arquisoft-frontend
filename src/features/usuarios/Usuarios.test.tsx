@@ -14,6 +14,9 @@ import { useAdministradores } from './hooks/useAdministradores';
 import { useUsuarios } from './hooks/useUsuarios';
 import { useRemoverRol } from './hooks/useRemoverRol';
 
+vi.mock('./hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 vi.mock('./hooks/useRegistrarUsuario', () => ({
   useRegistrarUsuario: vi.fn(),
 }));

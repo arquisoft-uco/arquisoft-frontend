@@ -49,6 +49,29 @@ describe('UsuariosTable', () => {
     expect(screen.queryByText('Administrador')).not.toBeInTheDocument();
   });
 
+  it('muestra el nombre del catálogo en la columna Estado y el id si no hay catálogo', () => {
+    // Arrange
+    const props = {
+      usuarios: [crearUsuario()],
+      totalElements: 1,
+      totalPages: 1,
+      page: 0,
+      pageSize: 10,
+      onPageChange: () => {},
+      onEditar: () => {},
+      onEliminar: () => {},
+    };
+    const estados = [{ id: 'ACTIVO', nombre: 'Activo', descripcion: 'Puede operar' }];
+
+    // Act
+    const { rerender } = render(<UsuariosTable {...props} estados={estados} />);
+
+    // Assert
+    expect(screen.getByRole('cell', { name: 'Activo' })).toBeInTheDocument();
+    rerender(<UsuariosTable {...props} />);
+    expect(screen.getByRole('cell', { name: 'ACTIVO' })).toBeInTheDocument();
+  });
+
   it('muestra la fila de vacío cuando no hay usuarios', () => {
     // Act
     render(

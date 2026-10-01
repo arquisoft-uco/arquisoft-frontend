@@ -1,5 +1,7 @@
 import type { ChangeEvent } from 'react';
 import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
+import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
+import type { EstadoUsuario } from '../../models/EstadoUsuario';
 
 type OrdenCampo = 'nombre' | 'identificador' | 'email';
 type OrdenDireccion = 'ASC' | 'DESC';
@@ -45,6 +47,9 @@ interface Props {
   toggleRol: (rol: Rol) => void;
   estado?: string;
   setEstado: (estado: string | undefined) => void;
+  estados?: EstadoUsuario[];
+  estadosCargando?: boolean;
+  estadosNoDisponibles?: boolean;
   vigente?: boolean;
   setVigente: (vigente: boolean | undefined) => void;
   ordenCampo?: OrdenCampo;
@@ -57,6 +62,9 @@ export default function FiltrosUsuariosPanel({
   toggleRol,
   estado,
   setEstado,
+  estados,
+  estadosCargando,
+  estadosNoDisponibles,
   vigente,
   setVigente,
   ordenCampo,
@@ -108,11 +116,22 @@ export default function FiltrosUsuariosPanel({
             className="field-input"
             value={estado ?? 'todos'}
             onChange={onCambiarEstado}
+            disabled={estadosCargando || estadosNoDisponibles}
           >
-            <option value="todos">Todos</option>
-            <option value="ACTIVO">Activo</option>
-            <option value="INACTIVO">Inactivo</option>
+            {estadosCargando ? (
+              <option value="todos">Cargando estados…</option>
+            ) : (
+              <>
+                <option value="todos">Todos</option>
+                {estados?.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nombre}
+                  </option>
+                ))}
+              </>
+            )}
           </select>
+          {estadosNoDisponibles && <AvisoNoDisponible recurso="estados de usuario" />}
         </div>
 
         <div>

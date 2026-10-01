@@ -8,6 +8,7 @@ import type { AsesorFicha } from '../models/AsesorFicha';
 import type { RepresentanteComite } from '../models/RepresentanteComite';
 import type { Coordinador } from '../models/Coordinador';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
+import type { EstadoUsuario } from '../models/EstadoUsuario';
 import type { Estudiante } from '../models/Estudiante';
 import type { ModificarUsuarioRequest } from '../models/ModificarUsuarioRequest';
 import type { RegistrarUsuarioRequest } from '../models/RegistrarUsuarioRequest';
@@ -49,6 +50,9 @@ export const usuariosService = {
 
   consultarUsuariosAdministrador: (req: ConsultarUsuariosRequest): Promise<Page<Usuario>> =>
     apiClient.post<Page<Usuario>>('/usuarios/administrador', req).then((r) => r.data),
+
+  getEstadosUsuario: (): Promise<EstadoUsuario[]> =>
+    apiClient.get<EstadoUsuario[]>('/usuarios/estados').then((r) => r.data),
 
   consultarCoordinadoresAdministrador: (page = 0, size = 10): Promise<Page<Coordinador>> =>
     apiClient
