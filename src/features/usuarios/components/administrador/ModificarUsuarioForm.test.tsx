@@ -122,19 +122,88 @@ describe('ModificarUsuarioForm', () => {
     // Arrange
     const user = userEvent.setup();
     render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
-    const checkboxAsesor = screen.getByRole('checkbox', {
+    const checkboxJurado = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Jurado]}(\\(|$)`),
+    });
+
+    // Act
+    await user.click(checkboxJurado);
+
+    // Assert
+    expect(checkboxJurado).toHaveAttribute('aria-disabled', 'true');
+    expect(checkboxJurado).not.toBeChecked();
+    expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('marcar Asesor en un usuario que no lo es llama al hook con su id y rol, y queda marcado y bloqueado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
       name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`),
     });
 
     // Act
-    await user.click(checkboxAsesor);
+    await user.click(checkbox);
 
     // Assert
-    expect(checkboxAsesor).toHaveAttribute('aria-disabled', 'true');
-    expect(checkboxAsesor).not.toBeChecked();
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Asesor },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.Asesor]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('un usuario que ya es asesor muestra Asesor marcado y bloqueado, y no se puede quitar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={{ ...usuario, esAsesor: true }} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
     expect(mockAgregar).not.toHaveBeenCalled();
     expect(mockRemover).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('si agregar Asesor falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Ya es asesor' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', 'Ya es asesor');
+    expect(checkbox).not.toBeChecked();
   });
 
   it('marcar Coordinador en un usuario que no lo es llama al hook con su id y queda marcado tras el éxito', async () => {

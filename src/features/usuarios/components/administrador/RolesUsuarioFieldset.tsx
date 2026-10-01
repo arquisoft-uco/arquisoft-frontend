@@ -4,6 +4,7 @@ import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
 const ROLES_AGREGABLES: Partial<Record<Rol, true>> = {
   [Rol.Coordinador]: true,
   [Rol.Estudiante]: true,
+  [Rol.Asesor]: true,
 };
 
 // Cada HU de quitar rol habilita el suyo añadiendo una entrada aquí y un método de service.
@@ -28,7 +29,7 @@ export default function RolesUsuarioFieldset({
   return (
     <fieldset aria-busy={pendiente}>
       <legend className="mb-1 text-xs font-medium text-on-surface-secondary">
-        Roles (se pueden agregar y quitar coordinador y estudiante)
+        Roles (se pueden agregar coordinador, estudiante y asesor; quitar coordinador y estudiante)
       </legend>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {Object.values(Rol).map((rol) => {
