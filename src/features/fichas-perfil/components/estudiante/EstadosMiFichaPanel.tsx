@@ -3,6 +3,7 @@ import { useAuthStore } from '../../../../auth/authStore';
 import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
 import type { MiFichaPerfilResponse } from '../../models/MiFichaPerfilResponse';
 import EstadosFichaPanel from '../EstadosFichaPanel';
+import HistorialEstadosFichaPanel from './HistorialEstadosFichaPanel';
 
 export default function EstadosMiFichaPanel() {
   const { ficha } = useMiFichaPerfil();
@@ -20,10 +21,13 @@ export default function EstadosMiFichaPanel() {
   };
 
   return (
-    <EstadosFichaPanel
-      fichaPerfilId={ficha.id}
-      estadoActual={ficha.estadoActual?.nombre}
-      onEstadoCambiado={handleEstadoCambiado}
-    />
+    <div className="space-y-6">
+      <HistorialEstadosFichaPanel />
+      <EstadosFichaPanel
+        fichaPerfilId={ficha.id}
+        estadoActual={ficha.estadoActual?.nombre}
+        onEstadoCambiado={handleEstadoCambiado}
+      />
+    </div>
   );
 }

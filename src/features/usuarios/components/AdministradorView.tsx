@@ -3,14 +3,29 @@ import { Plus } from 'lucide-react';
 import ConsultarUsuarios from './administrador/ConsultarUsuarios';
 import ConsultarCoordinadores from './administrador/ConsultarCoordinadores';
 import ConsultarEstudiantes from './administrador/ConsultarEstudiantes';
+import ConsultarAsesores from './administrador/ConsultarAsesores';
+import ConsultarAsesoresFicha from './administrador/ConsultarAsesoresFicha';
+import ConsultarRepresentantesComite from './administrador/ConsultarRepresentantesComite';
+import ConsultarAdministradores from './administrador/ConsultarAdministradores';
 import RegistrarUsuarioForm from './administrador/RegistrarUsuarioForm';
 
-type Pestana = 'usuarios' | 'coordinadores' | 'estudiantes';
+type Pestana =
+  | 'usuarios'
+  | 'coordinadores'
+  | 'estudiantes'
+  | 'asesores'
+  | 'asesores-ficha'
+  | 'representantes-comite'
+  | 'administradores';
 
 const PESTANAS: { id: Pestana; etiqueta: string }[] = [
   { id: 'usuarios', etiqueta: 'Todos los usuarios' },
   { id: 'coordinadores', etiqueta: 'Coordinadores' },
   { id: 'estudiantes', etiqueta: 'Estudiantes' },
+  { id: 'asesores', etiqueta: 'Asesores' },
+  { id: 'asesores-ficha', etiqueta: 'Asesores de ficha' },
+  { id: 'representantes-comite', etiqueta: 'Representantes del comité' },
+  { id: 'administradores', etiqueta: 'Administradores' },
 ];
 
 export default function AdministradorView() {
@@ -97,6 +112,38 @@ export default function AdministradorView() {
         className={pestanaActiva === 'estudiantes' ? undefined : 'hidden'}
       >
         {pestanasMontadas.has('estudiantes') && <ConsultarEstudiantes />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-asesores"
+        aria-labelledby="usuarios-tab-asesores"
+        className={pestanaActiva === 'asesores' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('asesores') && <ConsultarAsesores />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-asesores-ficha"
+        aria-labelledby="usuarios-tab-asesores-ficha"
+        className={pestanaActiva === 'asesores-ficha' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('asesores-ficha') && <ConsultarAsesoresFicha />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-representantes-comite"
+        aria-labelledby="usuarios-tab-representantes-comite"
+        className={pestanaActiva === 'representantes-comite' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('representantes-comite') && <ConsultarRepresentantesComite />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-administradores"
+        aria-labelledby="usuarios-tab-administradores"
+        className={pestanaActiva === 'administradores' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('administradores') && <ConsultarAdministradores />}
       </div>
     </div>
   );

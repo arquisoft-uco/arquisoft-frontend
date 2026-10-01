@@ -103,4 +103,23 @@ describe('fichasPerfilService', () => {
       expect(resultado).toEqual([]);
     });
   });
+
+  describe('consultarItemsMiFichaPerfil', () => {
+    it('consulta GET /fichas-perfil/{id}/items/estudiante y traduce el ítem plano al modelo anidado', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [{ id: 'i-1', fichaPerfilId: 'f-1', tipoItem: 't-1', tipoItemNombre: 'Objetivo', contenido: 'Medir' }],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarItemsMiFichaPerfil('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/items/estudiante');
+      expect(resultado).toEqual([
+        { id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir' },
+      ]);
+    });
+  });
 });

@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
+import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
+import { useCambiarEstadoUsuario } from '../../hooks/useCambiarEstadoUsuario';
+import { useAgregarRol } from '../../hooks/useAgregarRol';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Usuario } from '../../models/Usuario';
@@ -16,8 +20,24 @@ vi.mock('../../hooks/useUsuarios', () => ({
 // ModificarUsuarioForm (montado condicionalmente por ConsultarUsuarios) importa este hook, que a
 // su vez arrastra el service y apiClient hasta config/env.ts. Sin mock, el import de ese módulo
 // revienta en test por VITE_API_URL no definida, aunque el formulario nunca llegue a montarse aquí.
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: vi.fn(),
+}));
+
 vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
+}));
+
+vi.mock('../../hooks/useCambiarEstadoUsuario', () => ({
+  useCambiarEstadoUsuario: vi.fn(),
+}));
+
+vi.mock('../../hooks/useAgregarRol', () => ({
+  useAgregarRol: vi.fn(),
+}));
+
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 vi.mock('../../hooks/useEliminarUsuario', () => ({
@@ -27,6 +47,22 @@ vi.mock('../../hooks/useEliminarUsuario', () => ({
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
+
+const ESTADOS = [
+  { id: 'ACTIVO', nombre: 'Activo', descripcion: 'Puede operar' },
+  { id: 'INACTIVO', nombre: 'Inactivo', descripcion: 'Sin acceso' },
+];
+
+function crearEstadosMock(
+  parcial: Partial<ReturnType<typeof useEstadosUsuario>> = {},
+): ReturnType<typeof useEstadosUsuario> {
+  return {
+    data: ESTADOS,
+    isLoading: false,
+    isError: false,
+    ...parcial,
+  } as ReturnType<typeof useEstadosUsuario>;
+}
 
 function crearMutacionEliminarMock(
   parcial: Partial<ReturnType<typeof useEliminarUsuario>> = {},
@@ -52,6 +88,27 @@ function crearMutacionEliminarMock(
   } as ReturnType<typeof useEliminarUsuario>;
 }
 
+function crearMutacionAgregarMock<T = ReturnType<typeof useAgregarRol>>(): T {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as T;
+}
+
 function crearMutacionModificarMock(): ReturnType<typeof useModificarUsuario> {
   return {
     data: undefined,
@@ -71,6 +128,27 @@ function crearMutacionModificarMock(): ReturnType<typeof useModificarUsuario> {
     mutateAsync: vi.fn(),
     reset: vi.fn(),
   } as ReturnType<typeof useModificarUsuario>;
+}
+
+function crearMutacionCambiarEstadoMock(): ReturnType<typeof useCambiarEstadoUsuario> {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as ReturnType<typeof useCambiarEstadoUsuario>;
 }
 
 const USUARIO: Usuario = {
@@ -134,7 +212,17 @@ function crearHookMock(
 describe('ConsultarUsuarios', () => {
   beforeEach(() => {
     vi.mocked(useUsuarios).mockReset();
+    vi.mocked(useEstadosUsuario).mockReturnValue(crearEstadosMock());
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
+    vi.mocked(useCambiarEstadoUsuario).mockReturnValue(crearMutacionCambiarEstadoMock());
+    vi.mocked(useAgregarRol).mockReturnValue(crearMutacionAgregarMock());
+    vi.mocked(useRemoverRol).mockReturnValue({
+      objetivo: null,
+      solicitar: vi.fn(),
+      cancelar: vi.fn(),
+      confirmar: vi.fn(),
+      isPending: false,
+    });
     vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
@@ -223,6 +311,59 @@ describe('ConsultarUsuarios', () => {
     // Assert
     expect(screen.queryByRole('heading', { name: /editar usuario/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: `Editar ${USUARIO.nombre}` })).toBeInTheDocument();
+  });
+
+  describe('catálogo de estados', () => {
+    it('lista las opciones por nombre y filtra enviando el id', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const setEstado = vi.fn();
+      vi.mocked(useUsuarios).mockReturnValue(
+        crearHookMock({ data: crearPagina([USUARIO]), setEstado }),
+      );
+      render(<ConsultarUsuarios />);
+      const select = screen.getByLabelText('Estado');
+
+      // Act
+      await user.selectOptions(select, 'INACTIVO');
+
+      // Assert
+      expect(within(select).getByRole('option', { name: 'Todos' })).toBeInTheDocument();
+      expect(within(select).getByRole('option', { name: 'Activo' })).toHaveValue('ACTIVO');
+      expect(setEstado).toHaveBeenCalledWith('INACTIVO');
+      expect(screen.getByRole('cell', { name: 'Activo' })).toBeInTheDocument();
+    });
+
+    it('deshabilita el filtro con aviso si el catálogo falla y deja el id crudo en la tabla', () => {
+      // Arrange
+      vi.mocked(useEstadosUsuario).mockReturnValue(
+        crearEstadosMock({ data: undefined, isError: true }),
+      );
+      vi.mocked(useUsuarios).mockReturnValue(crearHookMock({ data: crearPagina([USUARIO]) }));
+
+      // Act
+      render(<ConsultarUsuarios />);
+
+      // Assert
+      expect(screen.getByLabelText('Estado')).toBeDisabled();
+      expect(screen.getByText(/estados de usuario/i)).toBeInTheDocument();
+      expect(screen.getByRole('cell', { name: 'ACTIVO' })).toBeInTheDocument();
+    });
+
+    it('deshabilita el filtro con la opción de carga mientras llega el catálogo', () => {
+      // Arrange
+      vi.mocked(useEstadosUsuario).mockReturnValue(
+        crearEstadosMock({ data: undefined, isLoading: true }),
+      );
+      vi.mocked(useUsuarios).mockReturnValue(crearHookMock({ data: crearPagina([USUARIO]) }));
+
+      // Act
+      render(<ConsultarUsuarios />);
+
+      // Assert
+      expect(screen.getByLabelText('Estado')).toBeDisabled();
+      expect(screen.getByRole('option', { name: 'Cargando estados…' })).toBeInTheDocument();
+    });
   });
 
   describe('eliminar usuario', () => {

@@ -3,52 +3,28 @@ import { Edit3, Plus, Trash2 } from 'lucide-react';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
-import { LIMITES } from '../../../../shared/validation';
+import {
+  getApiErrorMessage,
+  hasApiErrorCode,
+  isApiErrorWithStatus,
+} from '../../../../shared/utils/api-error';
+import AgregarItemForm from './AgregarItemForm';
+import EditarItemForm from './EditarItemForm';
+
+function mensajeErrorEliminar(err: unknown): string {
+  if (hasApiErrorCode(err, 'ITEM_CON_REVISIONES')) {
+    return 'El ítem ya fue revisado por tu asesor y no puede eliminarse.';
+  }
+  if (isApiErrorWithStatus(err, 400)) return 'El ítem ya no existe.';
+  return getApiErrorMessage(err, 'No se pudo eliminar el ítem.');
+}
 
 export default function ItemsMiFichaPanel() {
-  const { fichaId, items, tiposItem, agregar, modificar, remover } = useItemsMiFicha();
+  const { items, isLoading, isError, remover } = useItemsMiFicha();
 
   const [mostrarFormAgregar, setMostrarFormAgregar] = useState(false);
-  const [nuevoItemTipoId, setNuevoItemTipoId] = useState('');
-  const [nuevoItemContenido, setNuevoItemContenido] = useState('');
   const [editandoItemId, setEditandoItemId] = useState<string | null>(null);
-  const [editContenido, setEditContenido] = useState('');
   const [itemIdAEliminar, setItemIdAEliminar] = useState<string | null>(null);
-
-  const handleAgregar = () => {
-    if (!nuevoItemTipoId || !nuevoItemContenido.trim() || !fichaId) return;
-    agregar.mutate(
-      { fichaPerfilId: fichaId, tipoItemId: nuevoItemTipoId, contenido: nuevoItemContenido },
-      {
-        onSuccess: () => {
-          setNuevoItemTipoId('');
-          setNuevoItemContenido('');
-          setMostrarFormAgregar(false);
-          toast.success('Ítem agregado', 'El ítem se registró correctamente.');
-        },
-        onError: (err) => toast.error('Error al agregar', getApiErrorMessage(err, 'No se pudo registrar el ítem.')),
-      },
-    );
-  };
-
-  const handleIniciarEdicion = (itemId: string, contenido: string) => {
-    setEditandoItemId(itemId);
-    setEditContenido(contenido);
-  };
-
-  const handleGuardarEdicion = (itemId: string) => {
-    modificar.mutate(
-      { itemId, contenido: editContenido },
-      {
-        onSuccess: () => {
-          setEditandoItemId(null);
-          toast.success('Ítem actualizado', 'El contenido se guardó correctamente.');
-        },
-        onError: (err) => toast.error('Error al modificar', getApiErrorMessage(err, 'No se pudo actualizar el ítem.')),
-      },
-    );
-  };
 
   const handleEliminar = (itemId: string) => {
     setItemIdAEliminar(itemId);
@@ -62,7 +38,7 @@ export default function ItemsMiFichaPanel() {
         setItemIdAEliminar(null);
       },
       onError: (err) => {
-        toast.error('Error al eliminar', getApiErrorMessage(err, 'No se pudo eliminar el ítem.'));
+        toast.error('Error al eliminar', mensajeErrorEliminar(err));
         setItemIdAEliminar(null);
       },
     });
@@ -81,48 +57,26 @@ export default function ItemsMiFichaPanel() {
         </button>
       </div>
 
-      {mostrarFormAgregar && (
-        <div className="rounded-lg border border-border bg-surface p-3">
-          <div className="grid gap-2 sm:grid-cols-3">
-            <select
-              value={nuevoItemTipoId}
-              onChange={(e) => setNuevoItemTipoId(e.target.value)}
-              className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary"
-              aria-label="Tipo de ítem"
-            >
-              <option value="">Tipo de ítem...</option>
-              {tiposItem.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.nombre}
-                </option>
-              ))}
-            </select>
-            <input
-              type="text"
-              placeholder="Contenido del ítem"
-              value={nuevoItemContenido}
-              onChange={(e) => setNuevoItemContenido(e.target.value)}
-              maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-              className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary sm:col-span-2"
-            />
-          </div>
-          <div className="mt-2 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setMostrarFormAgregar(false)}
-              className="rounded-lg border border-border px-2 py-1 text-xs text-on-surface hover:bg-muted"
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleAgregar}
-              disabled={!nuevoItemTipoId || !nuevoItemContenido.trim() || !fichaId || agregar.isPending}
-              className="rounded-lg bg-primary px-2 py-1 text-xs font-medium text-primary-foreground disabled:opacity-50"
-            >
-              Agregar
-            </button>
-          </div>
+      {mostrarFormAgregar && <AgregarItemForm onCerrar={() => setMostrarFormAgregar(false)} />}
+
+      {isLoading && (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          className="py-8 text-center text-sm text-on-surface-secondary"
+        >
+          <span className="sr-only">Cargando ítems de la ficha...</span>
+          <span
+            aria-hidden
+            className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"
+          />
+        </div>
+      )}
+
+      {isError && !isLoading && (
+        <div role="alert" className="rounded-lg border border-danger p-3 text-sm text-danger">
+          No se pudieron cargar los ítems de tu ficha. Intenta de nuevo más tarde.
         </div>
       )}
 
@@ -134,30 +88,7 @@ export default function ItemsMiFichaPanel() {
                 {item.tipoItem.nombre}
               </span>
               {editandoItemId === item.id ? (
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={editContenido}
-                    onChange={(e) => setEditContenido(e.target.value)}
-                    maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-                    className="flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleGuardarEdicion(item.id)}
-                    disabled={modificar.isPending}
-                    className="rounded bg-primary px-2 py-1 text-xs text-primary-foreground disabled:opacity-50"
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditandoItemId(null)}
-                    className="rounded border border-border px-2 py-1 text-xs"
-                  >
-                    Cancelar
-                  </button>
-                </div>
+                <EditarItemForm item={item} onCerrar={() => setEditandoItemId(null)} />
               ) : (
                 <p className="mt-1 text-sm text-on-surface">{item.contenido}</p>
               )}
@@ -165,7 +96,7 @@ export default function ItemsMiFichaPanel() {
             <div className="flex gap-1">
               <button
                 type="button"
-                onClick={() => handleIniciarEdicion(item.id, item.contenido)}
+                onClick={() => setEditandoItemId(item.id)}
                 className="rounded p-1 text-on-surface-secondary hover:text-primary"
                 aria-label={`Editar ítem ${item.tipoItem.nombre}`}
               >
@@ -175,7 +106,7 @@ export default function ItemsMiFichaPanel() {
                 type="button"
                 onClick={() => handleEliminar(item.id)}
                 disabled={remover.isPending}
-                className="rounded p-1 text-on-surface-secondary hover:text-red-500 disabled:opacity-50"
+                className="rounded p-1 text-on-surface-secondary hover:text-danger disabled:opacity-50"
                 aria-label={`Eliminar ítem ${item.tipoItem.nombre}`}
               >
                 <Trash2 size={14} aria-hidden />
@@ -185,9 +116,9 @@ export default function ItemsMiFichaPanel() {
         </div>
       ))}
 
-      {items.length === 0 && (
+      {!isLoading && !isError && items.length === 0 && (
         <p className="py-8 text-center text-sm text-on-surface-secondary">
-          No hay ítems en la ficha
+          Tu ficha aún no tiene ítems. Agrega el primero con «Agregar Ítem».
         </p>
       )}
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useUsuarios } from '../../hooks/useUsuarios';
+import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -14,6 +15,7 @@ export default function ConsultarUsuarios() {
   const [usuarioEnEdicion, setUsuarioEnEdicion] = useState<Usuario | null>(null);
   const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(null);
   const eliminar = useEliminarUsuario();
+  const estadosQuery = useEstadosUsuario();
 
   const {
     data,
@@ -91,6 +93,9 @@ export default function ConsultarUsuarios() {
         toggleRol={toggleRol}
         estado={estado}
         setEstado={setEstado}
+        estados={estadosQuery.data}
+        estadosCargando={estadosQuery.isLoading}
+        estadosNoDisponibles={estadosQuery.isError}
         vigente={vigente}
         setVigente={setVigente}
         ordenCampo={ordenCampo}
@@ -120,6 +125,7 @@ export default function ConsultarUsuarios() {
       {data && (
         <UsuariosTable
           usuarios={data.content}
+          estados={estadosQuery.data}
           totalElements={totalElements}
           totalPages={data.totalPages}
           page={page}

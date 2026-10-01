@@ -1,8 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ModificarUsuarioForm from './ModificarUsuarioForm';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
+import { useAgregarRol } from '../../hooks/useAgregarRol';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
+import { useCambiarEstadoUsuario } from '../../hooks/useCambiarEstadoUsuario';
 import { toast } from '../../../../shared/hooks/useToast';
 import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
 import type { Usuario } from '../../models/Usuario';
@@ -10,16 +15,47 @@ import type { Usuario } from '../../models/Usuario';
 vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
 }));
+vi.mock('../../hooks/useAgregarRol', () => ({
+  useAgregarRol: vi.fn(),
+}));
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
+}));
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: vi.fn(),
+}));
+vi.mock('../../hooks/useCambiarEstadoUsuario', () => ({
+  useCambiarEstadoUsuario: vi.fn(),
+}));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
+type ConfirmarRemocion = (usuarioId: string, rol: Rol, onExito?: () => void) => void;
+
+function usarRemoverRolFalso(
+  confirmar: ConfirmarRemocion,
+  isPending = false,
+): ReturnType<typeof useRemoverRol> {
+  const [objetivo, setObjetivo] = useState<ReturnType<typeof useRemoverRol>['objetivo']>(null);
+  return {
+    objetivo,
+    solicitar: setObjetivo,
+    cancelar: () => setObjetivo(null),
+    confirmar: (onExito) => {
+      if (objetivo) confirmar(objetivo.usuarioId, objetivo.rol, onExito);
+      setObjetivo(null);
+    },
+    isPending,
+  };
+}
+
 type MutacionModificarUsuario = ReturnType<typeof useModificarUsuario>;
 
-function crearMutacionMock(
+function crearMutacionMock<T = MutacionModificarUsuario>(
   mutate: ReturnType<typeof vi.fn>,
   isPending = false,
-): MutacionModificarUsuario {
+): T {
   return {
     data: undefined,
     error: null,
@@ -37,7 +73,7 @@ function crearMutacionMock(
     mutate,
     mutateAsync: vi.fn(),
     reset: vi.fn(),
-  } as MutacionModificarUsuario;
+  } as T;
 }
 
 const usuario: Usuario = {
@@ -56,15 +92,51 @@ const usuario: Usuario = {
   esAdministrador: false,
 };
 
+const ESTADOS = [
+  { id: 'ACTIVO', nombre: 'Activo', descripcion: 'Con acceso' },
+  { id: 'INACTIVO', nombre: 'Inactivo', descripcion: 'Sin acceso' },
+];
+
+function crearEstadosMock(
+  parcial: Partial<ReturnType<typeof useEstadosUsuario>> = {},
+): ReturnType<typeof useEstadosUsuario> {
+  return {
+    data: ESTADOS,
+    isLoading: false,
+    isError: false,
+    ...parcial,
+  } as ReturnType<typeof useEstadosUsuario>;
+}
+
 describe('ModificarUsuarioForm', () => {
   const onCerrar = vi.fn();
+  let mockCambiarEstado: ReturnType<typeof vi.fn>;
   let mockMutate: ReturnType<typeof vi.fn>;
+  let mockAgregar: ReturnType<typeof vi.fn>;
+  let mockRemover: Mock<ConfirmarRemocion>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockMutate = vi.fn();
+    mockAgregar = vi.fn();
+    mockRemover = vi.fn<ConfirmarRemocion>();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionMock(mockMutate));
+    vi.mocked(useAgregarRol).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useAgregarRol>>(mockAgregar),
+    );
+    vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover));
+    mockCambiarEstado = vi.fn();
+    vi.mocked(useEstadosUsuario).mockReturnValue(crearEstadosMock());
+    vi.mocked(useCambiarEstadoUsuario).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useCambiarEstadoUsuario>>(mockCambiarEstado),
+    );
   });
+
+  async function solicitarCambioA(user: ReturnType<typeof userEvent.setup>, estadoId: string) {
+    await user.selectOptions(screen.getByLabelText('Nuevo estado'), estadoId);
+    await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+    return screen.getByRole('dialog');
+  }
 
   it('precarga los campos de texto y marca los checkboxes de los roles ya asignados', () => {
     // Act
@@ -77,24 +149,567 @@ describe('ModificarUsuarioForm', () => {
     expect(screen.getByLabelText(/^contacto/i)).toHaveValue(usuario.contacto);
     expect(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Asesor] })).not.toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`) }),
+    ).not.toBeChecked();
   });
 
-  it('los roles ya asignados están marcados como no editables y no se pueden desmarcar, pero uno nuevo sí puede marcarse', async () => {
+  it('un rol aún no disponible no se puede accionar', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
-    const checkboxEstudiante = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] });
-    const checkboxAsesor = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Asesor] });
+    const checkboxJurado = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Jurado]}(\\(|$)`),
+    });
 
     // Act
-    expect(checkboxEstudiante).toHaveAttribute('aria-disabled', 'true');
-    await user.click(checkboxEstudiante);
-    await user.click(checkboxAsesor);
+    await user.click(checkboxJurado);
 
     // Assert
-    expect(checkboxEstudiante).toBeChecked();
-    expect(checkboxAsesor).toBeChecked();
+    expect(checkboxJurado).toHaveAttribute('aria-disabled', 'true');
+    expect(checkboxJurado).not.toBeChecked();
+    expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('marcar Asesor en un usuario que no lo es llama al hook con su id y rol, y queda marcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Asesor },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.Asesor]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('desmarcar Asesor abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={{ ...usuario, esAsesor: true }} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`),
+    });
+
+    // Act
+    await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.Asesor]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
+    expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.Asesor, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Asesor falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Ya es asesor' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', 'Ya es asesor');
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('marcar Asesor de Ficha llama al hook con su id y rol, y queda marcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.AsesorFicha]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.AsesorFicha },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.AsesorFicha]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Asesor de Ficha falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Ya es asesor de ficha' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.AsesorFicha]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', 'Ya es asesor de ficha');
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('marcar Representante del Comité llama al hook con su id y rol, y queda marcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.RepresentanteComiteCurriculum },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Representante del Comité falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Ya es representante del comité' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'Error al agregar el rol',
+      'Ya es representante del comité',
+    );
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('marcar Administrador llama al hook con su id y rol, y queda marcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Administrador]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Administrador },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.Administrador]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Administrador falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Ya es administrador' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Administrador]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', 'Ya es administrador');
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('desmarcar Administrador abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esAdministrador: true }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Administrador]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.Administrador]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
+    expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.Administrador, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('desmarcar Representante del Comité abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esRepresentanteComite: true }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
+    expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(
+      usuario.id,
+      Rol.RepresentanteComiteCurriculum,
+      expect.any(Function),
+    );
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('desmarcar Asesor de Ficha abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esAsesorFicha: true }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.AsesorFicha]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.AsesorFicha]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
+    expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.AsesorFicha, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('marcar Coordinador en un usuario que no lo es llama al hook con su id y queda marcado tras el éxito', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esCoordinador: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Coordinador },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith('Rol agregado', expect.any(String));
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('marcar Estudiante en un usuario que no lo es llama al hook con su id y rol, y queda marcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esEstudiante: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Estudiante },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.Estudiante]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Estudiante falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Usuario eliminado' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esEstudiante: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', 'Usuario eliminado');
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('si agregar Coordinador falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 503, data: { message: 'IDP caído' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esCoordinador: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', expect.any(String));
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('mientras se agrega el rol el checkbox de Coordinador está deshabilitado y ocupado', () => {
+    // Arrange
+    vi.mocked(useAgregarRol).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useAgregarRol>>(mockAgregar, true),
+    );
+
+    // Act
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esCoordinador: false }} onCerrar={onCerrar} />,
+    );
+
+    // Assert
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+    expect(checkbox).toBeDisabled();
+    expect(checkbox).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('desmarcar Coordinador abre la confirmación con el texto exacto y cancelar lo deja marcado sin llamar al hook', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+
+    // Act
+    await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(dialogo).toHaveTextContent(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.Coordinador]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(mockRemover).not.toHaveBeenCalled();
+    expect(checkbox).toBeChecked();
+  });
+
+  it('confirmar quitar Coordinador llama al hook con el id y el rol y deja el checkbox desmarcado al éxito', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+
+    // Act
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.Coordinador, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('desmarcar Estudiante abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] });
+
+    // Act
+    await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.Estudiante]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.Estudiante, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si quitar el rol falla (el hook no invoca onExito) el checkbox sigue marcado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+
+    // Act
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(checkbox).toBeChecked();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('mientras se quita el rol el checkbox de Coordinador está deshabilitado y ocupado', () => {
+    // Arrange
+    vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover, true));
+
+    // Act
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Assert
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+    expect(checkbox).toBeDisabled();
+    expect(checkbox).toHaveAttribute('aria-busy', 'true');
   });
 
   it('mantiene el submit deshabilitado cuando identificador queda vacío, contacto no es numérico y nombre tiene un dígito', async () => {
@@ -115,14 +730,15 @@ describe('ModificarUsuarioForm', () => {
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
-  it('con datos válidos envía el payload con los datos y la unión de roles asignados más el nuevo marcado', async () => {
+  it('con datos válidos envía solo los datos, sin roles', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const submit = screen.getByRole('button', { name: /guardar cambios/i });
 
     // Act
-    await user.click(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Asesor] }));
-    const submit = screen.getByRole('button', { name: /guardar cambios/i });
+    await user.clear(screen.getByLabelText(/^contacto/i));
+    await user.type(screen.getByLabelText(/^contacto/i), usuario.contacto);
     expect(submit).toBeEnabled();
     await user.click(submit);
 
@@ -136,10 +752,8 @@ describe('ModificarUsuarioForm', () => {
         nombre: usuario.nombre,
         email: usuario.email,
         contacto: usuario.contacto,
-        roles: expect.arrayContaining([Rol.Estudiante, Rol.Coordinador, Rol.Asesor]),
       },
     });
-    expect(payload.req.roles).toHaveLength(3);
     expect(opciones).toEqual(
       expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
     );
@@ -165,7 +779,11 @@ describe('ModificarUsuarioForm', () => {
   });
 
   it.each([
-    ['USUARIO_IDENTIFICADOR_DUPLICADO', /identificador/i, 'Ya existe un usuario con este identificador.'],
+    [
+      'USUARIO_IDENTIFICADOR_DUPLICADO',
+      /identificador/i,
+      'Ya existe un usuario con este identificador.',
+    ],
     ['USUARIO_EMAIL_DUPLICADO', /correo electrónico/i, 'Ya existe un usuario con este correo.'],
     ['USUARIO_CONTACTO_DUPLICADO', /^contacto/i, 'Ya existe un usuario con este contacto.'],
   ])(
@@ -218,5 +836,104 @@ describe('ModificarUsuarioForm', () => {
 
     // Assert
     expect(screen.getByRole('button', { name: /guardando/i })).toBeDisabled();
+  });
+
+  it('desactivar a un usuario activo pide confirmación con aviso de deshabilitar acceso y cancelar no llama al hook', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'INACTIVO');
+    const texto = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(texto).toContain(
+      `Se cambiará el estado de ${usuario.nombre} de Activo a Inactivo. Se deshabilitará su acceso.`,
+    );
+    expect(mockCambiarEstado).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('activar a un usuario eliminado (no vigente) avisa que será restaurado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm
+        usuario={{ ...usuario, estado: 'INACTIVO', vigente: false }}
+        onCerrar={onCerrar}
+      />,
+    );
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'ACTIVO');
+
+    // Assert
+    expect(dialogo).toHaveTextContent('El usuario será restaurado.');
+  });
+
+  it('al confirmar llama al hook con el id y el estado, muestra toast de éxito y cierra', async () => {
+    // Arrange
+    mockCambiarEstado.mockImplementation((_vars, options) => {
+      options.onSuccess();
+      options.onSettled();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'INACTIVO');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(mockCambiarEstado).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, req: { estado: 'INACTIVO' } },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Estado actualizado',
+      expect.stringContaining('Inactivo'),
+    );
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('si el cambio de estado falla muestra toast.error y no cierra el formulario', async () => {
+    // Arrange
+    mockCambiarEstado.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Transición no permitida' } },
+      });
+      options.onSettled();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Act
+    const dialogo = await solicitarCambioA(user, 'INACTIVO');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo cambiar el estado',
+      'Transición no permitida',
+    );
+    expect(onCerrar).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('con el catálogo de estados caído muestra el aviso y no permite cambiar el estado', () => {
+    // Arrange
+    vi.mocked(useEstadosUsuario).mockReturnValue(
+      crearEstadosMock({ data: undefined, isError: true }),
+    );
+
+    // Act
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+
+    // Assert
+    expect(screen.getByText(/estados de usuario/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Nuevo estado')).toBeDisabled();
   });
 });

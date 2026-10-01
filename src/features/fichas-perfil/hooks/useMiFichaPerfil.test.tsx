@@ -5,6 +5,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
+import { toast } from '../../../shared/hooks/useToast';
+
+vi.mock('../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+}));
 
 vi.mock('../services/fichasPerfilService', () => ({
   fichasPerfilService: {
@@ -24,8 +29,7 @@ const FICHA = {
   integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
 };
 
-function crearWrapper() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function crearWrapper(queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
@@ -84,5 +88,56 @@ describe('useMiFichaPerfil', () => {
     await waitFor(() => expect(result.current.ficha?.tituloProyecto).toBe('Nuevo título'));
     expect(modificar).toHaveBeenCalledWith({ fichaPerfilId: 'f-1', tituloProyecto: 'Nuevo título' });
     expect(result.current.fichas[1].tituloProyecto).toBe('Otra');
+  });
+
+  it('modificarTitulo invalida por prefijo los listados de coordinador, asesor y representante', async () => {
+    // Arrange
+    consultar.mockResolvedValue([FICHA]);
+    modificar.mockResolvedValue(undefined);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useMiFichaPerfil(), { wrapper: crearWrapper(queryClient) });
+    await waitFor(() => expect(result.current.ficha?.id).toBe('f-1'));
+
+    // Act
+    act(() => result.current.modificarTitulo.mutate('Nuevo título'));
+
+    // Assert
+    await waitFor(() => expect(toast.success).toHaveBeenCalled());
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'coordinador'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'asesor'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'representante'] });
+  });
+
+  it('modificarTitulo sin ficha no llama al service y avisa del error', async () => {
+    // Arrange
+    consultar.mockResolvedValue([]);
+    const { result } = renderHook(() => useMiFichaPerfil(), { wrapper: crearWrapper() });
+    await waitFor(() => expect(result.current.sinFicha).toBe(true));
+
+    // Act
+    act(() => result.current.modificarTitulo.mutate('Nuevo título'));
+
+    // Assert
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Error al modificar', expect.any(String)));
+    expect(modificar).not.toHaveBeenCalled();
+  });
+
+  it('modificarTitulo avisa con toast.error cuando el service falla y no invalida', async () => {
+    // Arrange
+    consultar.mockResolvedValue([FICHA]);
+    modificar.mockRejectedValue(new Error('fallo'));
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useMiFichaPerfil(), { wrapper: crearWrapper(queryClient) });
+    await waitFor(() => expect(result.current.ficha?.id).toBe('f-1'));
+
+    // Act
+    act(() => result.current.modificarTitulo.mutate('Nuevo título'));
+
+    // Assert
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Error al modificar', expect.any(String)));
+    expect(result.current.ficha?.tituloProyecto).toBe('Sistema de monitoreo');
+    expect(invalidar).not.toHaveBeenCalled();
   });
 });

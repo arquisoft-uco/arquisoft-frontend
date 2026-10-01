@@ -8,6 +8,7 @@ import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { EstadoFichaPerfil, AgregarEstadoFichaPerfilRequest } from '../models/EstadoFichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
+import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 import type {
@@ -209,6 +210,11 @@ export const fichasPerfilService = {
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/representante`)
       .then((r) => r.data.map(toItem)),
 
+  consultarItemsMiFichaPerfil: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/estudiante`)
+      .then((r) => r.data.map(toItem)),
+
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>
     apiClient
       .get<EvaluacionFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/evaluaciones/representante`)
@@ -227,13 +233,12 @@ export const fichasPerfilService = {
       .get<FichaPerfilEstudianteResponseDTO[]>('/fichas-perfil/estudiante')
       .then(({ data }) => data.map(aFicha)),
 
-  // ─── Pendientes: el backend aún no expone estos endpoints ───
-
-  // Pendiente: sin endpoint en el backend.
-  consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
+  getEstadosFichaPerfilEstudiante: (fichaPerfilId: string): Promise<HistorialEstadoFichaPerfil[]> =>
     apiClient
-      .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
+      .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
       .then((r) => r.data),
+
+  // ─── Pendientes: el backend aún no expone estos endpoints ───
 
   // Pendiente: sin endpoint en el backend.
   getFichasRepresentante: (representanteId: string, page = 0, size = 10): Promise<Page<FichaPerfilRepresentante>> =>

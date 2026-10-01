@@ -11,12 +11,17 @@ export function useMiFichaPerfil() {
   const { ficha, fichas, seleccionarFicha, isLoading, isError } = useFichaPerfilIdEstudiante();
 
   const modificarTitulo = useMutation({
-    mutationFn: (tituloProyecto: string) =>
-      fichasPerfilService.modificarTituloFichaPerfil({ fichaPerfilId: ficha?.id ?? '', tituloProyecto }),
+    mutationFn: (tituloProyecto: string) => {
+      if (!ficha?.id) return Promise.reject(new Error('No hay ficha de perfil seleccionada.'));
+      return fichasPerfilService.modificarTituloFichaPerfil({ fichaPerfilId: ficha.id, tituloProyecto });
+    },
     onSuccess: (_, tituloProyecto) => {
       const id = ficha?.id;
       queryClient.setQueryData<MiFichaPerfilResponse[]>(FICHAS_ESTUDIANTE_QUERY_KEY, (lista) =>
         lista?.map((f) => (f.id === id ? { ...f, tituloProyecto } : f)),
+      );
+      ['coordinador', 'asesor', 'representante'].forEach((rol) =>
+        queryClient.invalidateQueries({ queryKey: ['fichas-perfil', rol] }),
       );
       toast.success('Ficha actualizada', 'El título del proyecto se guardó correctamente.');
     },

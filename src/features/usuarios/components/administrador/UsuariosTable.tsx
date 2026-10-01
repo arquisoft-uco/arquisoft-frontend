@@ -2,10 +2,13 @@ import { Pencil, Trash2 } from 'lucide-react';
 import type { Usuario } from '../../models/Usuario';
 import { rolesDeUsuario } from '../../utils/roles-usuario';
 import { ETIQUETAS_ROL } from '../../../../shared/models/rol';
+import type { EstadoUsuario } from '../../models/EstadoUsuario';
+import { nombreEstadoUsuario } from '../../utils/estados-usuario';
 import PaginadorListado from './PaginadorListado';
 
 interface Props {
   usuarios: Usuario[];
+  estados?: EstadoUsuario[];
   totalElements: number;
   totalPages: number;
   page: number;
@@ -28,6 +31,7 @@ const COLUMNAS = [
 
 export default function UsuariosTable({
   usuarios,
+  estados,
   totalElements,
   totalPages,
   page,
@@ -66,7 +70,7 @@ export default function UsuariosTable({
                   <td className="px-4 py-3 font-medium text-on-surface">{usuario.nombre}</td>
                   <td className="px-4 py-3 text-on-surface-secondary">{usuario.email}</td>
                   <td className="px-4 py-3 text-on-surface-secondary">{usuario.contacto}</td>
-                  <td className="px-4 py-3 text-on-surface">{usuario.estado}</td>
+                  <td className="px-4 py-3 text-on-surface">{nombreEstadoUsuario(estados, usuario.estado)}</td>
                   <td className="px-4 py-3">
                     <span
                       className={[

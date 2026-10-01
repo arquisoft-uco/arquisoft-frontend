@@ -42,6 +42,6 @@ proceso de validación — recibes el análisis ya hecho por `@4a-validator-anal
    ```
    Si RECHAZADO: sugiere corregir y repetir `@4a-validator-analyze`. Si APROBADO: sugiere
    `@4c-commit entrega {HU|HT}-{ID}` — ese agente hace commit, push y abre el PR hacia `develop`, con
-   una confirmación explícita antes del commit y otra antes de publicar.
+   una sola confirmación del usuario.
 
 No hagas nada después del mensaje final — ni verificaciones, ni resúmenes adicionales.

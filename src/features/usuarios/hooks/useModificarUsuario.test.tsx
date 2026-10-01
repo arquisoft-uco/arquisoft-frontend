@@ -21,7 +21,6 @@ const request: ModificarUsuarioRequest = {
   nombre: 'Marta Ríos',
   email: 'marta@uco.edu.co',
   contacto: '3001234567',
-  roles: [],
 };
 
 function crearContexto() {

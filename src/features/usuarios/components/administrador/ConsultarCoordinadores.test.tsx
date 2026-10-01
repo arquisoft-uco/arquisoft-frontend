@@ -1,13 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarCoordinadores from './ConsultarCoordinadores';
 import { useCoordinadores } from '../../hooks/useCoordinadores';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { Rol } from '../../../../shared/models/rol';
 import type { Coordinador } from '../../models/Coordinador';
 import type { Page } from '../../../../shared/models/api-response';
 
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 vi.mock('../../hooks/useCoordinadores', () => ({
   useCoordinadores: vi.fn(),
+}));
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 const COORDINADOR_VIGENTE: Coordinador = {
@@ -64,9 +73,33 @@ function crearHookMock(
   } as ReturnType<typeof useCoordinadores>;
 }
 
+type ConfirmarRemocion = (usuarioId: string, rol: Rol, onExito?: () => void) => void;
+
+function usarRemoverRolFalso(
+  confirmar: ConfirmarRemocion,
+  isPending = false,
+): ReturnType<typeof useRemoverRol> {
+  const [objetivo, setObjetivo] = useState<ReturnType<typeof useRemoverRol>['objetivo']>(null);
+  return {
+    objetivo,
+    solicitar: setObjetivo,
+    cancelar: () => setObjetivo(null),
+    confirmar: (onExito) => {
+      if (objetivo) confirmar(objetivo.usuarioId, objetivo.rol, onExito);
+      setObjetivo(null);
+    },
+    isPending,
+  };
+}
+
 describe('ConsultarCoordinadores', () => {
+  let mockRemover: Mock<ConfirmarRemocion>;
+
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(useCoordinadores).mockReset();
+    mockRemover = vi.fn<ConfirmarRemocion>();
+    vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover));
   });
 
   it('muestra el estado de carga con el título y el botón de actualizar visibles', () => {
@@ -166,5 +199,61 @@ describe('ConsultarCoordinadores', () => {
 
     expect(screen.queryByRole('button', { name: 'Página anterior' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument();
+  });
+
+  it('el botón de quitar rol de una fila de baja está deshabilitado y el de una vigente habilitado', () => {
+    // Arrange
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE, COORDINADOR_DE_BAJA]) }),
+    );
+
+    // Act
+    render(<ConsultarCoordinadores />);
+
+    // Assert
+    expect(
+      screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }),
+    ).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Luis Gómez ya no es coordinador vigente' }),
+    ).toBeDisabled();
+  });
+
+  it('el botón de una fila abre la confirmación con el texto exacto y cancelar no llama a la mutación', async () => {
+    // Arrange
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]) }),
+    );
+    const user = userEvent.setup();
+    render(<ConsultarCoordinadores />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }));
+    const dialogo = screen.getByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(dialogo).toHaveTextContent(
+      '¿Está seguro de eliminar el rol Coordinador para el usuario Ana Pérez?',
+    );
+    expect(mockRemover).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('confirmar llama a la mutación con el id y el rol coordinador y cierra el diálogo', async () => {
+    // Arrange
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]) }),
+    );
+    const user = userEvent.setup();
+    render(<ConsultarCoordinadores />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mockRemover).toHaveBeenCalledWith(COORDINADOR_VIGENTE.id, Rol.Coordinador, undefined);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
