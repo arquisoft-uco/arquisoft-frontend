@@ -12,6 +12,7 @@ vi.mock('../services/usuariosService', () => ({
     removerCoordinador: vi.fn(),
     removerEstudiante: vi.fn(),
     removerAsesor: vi.fn(),
+    removerAsesorFicha: vi.fn(),
   },
 }));
 
@@ -22,6 +23,7 @@ vi.mock('../../../shared/hooks/useToast', () => ({
 const removerCoordinador = vi.mocked(usuariosService.removerCoordinador);
 const removerEstudiante = vi.mocked(usuariosService.removerEstudiante);
 const removerAsesor = vi.mocked(usuariosService.removerAsesor);
+const removerAsesorFicha = vi.mocked(usuariosService.removerAsesorFicha);
 
 function crearContexto() {
   const queryClient = new QueryClient({
@@ -93,6 +95,25 @@ describe('useRemoverRol', () => {
     expect(removerCoordinador).not.toHaveBeenCalled();
     expect(removerEstudiante).not.toHaveBeenCalled();
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
+  });
+
+  it('despacha removerAsesorFicha, invalida usuarios y avisa el éxito cuando el rol es asesor de ficha', async () => {
+    // Arrange
+    removerAsesorFicha.mockResolvedValue(undefined);
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useRemoverRol(), { wrapper: Wrapper });
+    act(() =>
+      result.current.solicitar({ usuarioId: 'u-4', nombre: 'Eva Ruiz', rol: Rol.AsesorFicha }),
+    );
+
+    // Act
+    act(() => result.current.confirmar());
+
+    // Assert
+    await waitFor(() => expect(removerAsesorFicha).toHaveBeenCalledWith('u-4'));
+    expect(removerAsesor).not.toHaveBeenCalled();
+    await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
+    expect(toast.success).toHaveBeenCalledWith('Rol eliminado', 'Eva Ruiz ya no es asesor de ficha.');
   });
 
   it('avisa el error, no invalida ni ejecuta onExito y limpia el objetivo cuando el backend falla', async () => {
