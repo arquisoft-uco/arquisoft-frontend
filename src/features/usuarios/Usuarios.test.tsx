@@ -10,6 +10,7 @@ import { useEstudiantes } from './hooks/useEstudiantes';
 import { useAsesores } from './hooks/useAsesores';
 import { useAsesoresFicha } from './hooks/useAsesoresFicha';
 import { useRepresentantesComite } from './hooks/useRepresentantesComite';
+import { useAdministradores } from './hooks/useAdministradores';
 import { useUsuarios } from './hooks/useUsuarios';
 import { useRemoverRol } from './hooks/useRemoverRol';
 
@@ -35,6 +36,10 @@ vi.mock('./hooks/useAsesoresFicha', () => ({
 
 vi.mock('./hooks/useRepresentantesComite', () => ({
   useRepresentantesComite: vi.fn(),
+}));
+
+vi.mock('./hooks/useAdministradores', () => ({
+  useAdministradores: vi.fn(),
 }));
 
 vi.mock('./hooks/useUsuarios', () => ({
@@ -180,6 +185,30 @@ function crearRepresentantesComiteMock(
   } as ReturnType<typeof useRepresentantesComite>;
 }
 
+function crearAdministradoresMock(
+  parcial: Partial<ReturnType<typeof useAdministradores>> = {},
+): ReturnType<typeof useAdministradores> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useAdministradores>;
+}
+
 function crearUsuariosMock(
   parcial: Partial<ReturnType<typeof useUsuarios>> = {},
 ): ReturnType<typeof useUsuarios> {
@@ -252,6 +281,7 @@ describe('Usuarios', () => {
     vi.mocked(useAsesores).mockReturnValue(crearAsesoresMock());
     vi.mocked(useAsesoresFicha).mockReturnValue(crearAsesoresFichaMock());
     vi.mocked(useRepresentantesComite).mockReturnValue(crearRepresentantesComiteMock());
+    vi.mocked(useAdministradores).mockReturnValue(crearAdministradoresMock());
     vi.mocked(useUsuarios).mockReturnValue(crearUsuariosMock());
     vi.mocked(useRemoverRol).mockReturnValue({
       objetivo: null,
@@ -295,5 +325,18 @@ describe('Usuarios', () => {
 
     // Assert
     expect(screen.getByRole('heading', { name: 'Representantes del comité' })).toBeInTheDocument();
+  });
+
+  it('muestra la pestaña "Administradores" al administrador', async () => {
+    // Arrange
+    autenticarCon(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<Usuarios />, { initialPath: '/usuarios' });
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Administradores' }));
+
+    // Assert
+    expect(screen.getByRole('heading', { name: 'Administradores' })).toBeInTheDocument();
   });
 });

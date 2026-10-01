@@ -136,6 +136,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | `consultarAsesoresAdministrador` | POST | `/usuarios/asesores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Asesor>` |
 | `consultarAsesoresFichaAdministrador` | POST | `/usuarios/asesores-ficha/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<AsesorFicha>` |
 | `consultarRepresentantesComiteAdministrador` | POST | `/usuarios/representantes-comite/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<RepresentanteComite>` |
+| `consultarAdministradoresAdministrador` (HU-233) | POST | `/usuarios/administradores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Administrador>` · verificado contra `ConsultarAdministradoresAdministradorController`; client role `usuarios:administrador-administrador:view` |
 | `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
@@ -185,6 +186,14 @@ incluidos los dados de baja, sin traducción. El client role
 `usuarios:representante-comite-administrador:view` puede faltar en el realm (403 con login real, no con
 bypass). Quitar el rol es HU-254 (`removerRepresentanteComite`).
 
+`consultarAdministradoresAdministrador` (HU-233) verificado contra
+`ConsultarAdministradoresAdministradorController` y `AdministradorResponseDTO` de `../arquisoft-backend`,
+y contra `VALIDATOR-HU-233.md` (APROBADO, PR backend #163). `POST` por los filtros en el body. Devuelve
+`{ id, identificador, nombre, email, contacto, estado, vigente }` por fila, incluidos los dados de baja,
+sin traducción. El client role `usuarios:administrador-administrador:view` probablemente falta en
+`realm-arquisoft.json` (inferido, no verificado): 403 con login real, no con bypass. Es solo consulta:
+eliminar es HU-232 y habilitar el checkbox de edición es HU-231.
+
 `consultarUsuariosAdministrador` (HU-260) verificado contra
 `ConsultarUsuariosAdministradorController.java`, `UsuarioResponseDTO.java` y `UsuarioCriteria.java` de
 `../arquisoft-backend`, y contra `VALIDATOR-HU-260.md` (✅ APROBADO, PR backend #152 mergeado). Es
@@ -209,7 +218,7 @@ administrador sin ese client role recibe `403` y el interceptor lo lleva a `/for
 `VITE_AUTH_BYPASS=true`.
 
 No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado de roles coordinador, estudiante, asesor, asesor de ficha y representante del comité (`agregarRol`, HU-243, HU-247, HU-234, HU-237 y HU-253) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Quitar el rol coordinador (`removerCoordinador`), estudiante (`removerEstudiante`, HU-248), asesor (`removerAsesor`, HU-235), asesor de ficha (`removerAsesorFicha`, HU-238) y representante del comité (`removerRepresentanteComite`, HU-254) usan sus propios `DELETE /usuarios/{id}/coordinador`, `/estudiante`, `/asesor`, `/asesor-ficha` y `/representante-comite`; los client roles `usuarios:coordinador:delete`, `usuarios:estudiante:delete`, `usuarios:asesor:delete`, `usuarios:asesor-ficha:delete` y `usuarios:representante-comite:delete` pueden faltar igual. Los listados de
-coordinadores, estudiantes, asesores, asesores de ficha y el unificado de "todos los usuarios" son los únicos listados de la
+coordinadores, estudiantes, asesores, asesores de ficha, representantes del comité, administradores y el unificado de "todos los usuarios" son los únicos listados de la
 feature.
 
 ### Sin cliente en el frontend

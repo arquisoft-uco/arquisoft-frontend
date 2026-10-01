@@ -6,6 +6,7 @@ import ConsultarEstudiantes from './administrador/ConsultarEstudiantes';
 import ConsultarAsesores from './administrador/ConsultarAsesores';
 import ConsultarAsesoresFicha from './administrador/ConsultarAsesoresFicha';
 import ConsultarRepresentantesComite from './administrador/ConsultarRepresentantesComite';
+import ConsultarAdministradores from './administrador/ConsultarAdministradores';
 import RegistrarUsuarioForm from './administrador/RegistrarUsuarioForm';
 
 type Pestana =
@@ -14,7 +15,8 @@ type Pestana =
   | 'estudiantes'
   | 'asesores'
   | 'asesores-ficha'
-  | 'representantes-comite';
+  | 'representantes-comite'
+  | 'administradores';
 
 const PESTANAS: { id: Pestana; etiqueta: string }[] = [
   { id: 'usuarios', etiqueta: 'Todos los usuarios' },
@@ -23,6 +25,7 @@ const PESTANAS: { id: Pestana; etiqueta: string }[] = [
   { id: 'asesores', etiqueta: 'Asesores' },
   { id: 'asesores-ficha', etiqueta: 'Asesores de ficha' },
   { id: 'representantes-comite', etiqueta: 'Representantes del comité' },
+  { id: 'administradores', etiqueta: 'Administradores' },
 ];
 
 export default function AdministradorView() {
@@ -133,6 +136,14 @@ export default function AdministradorView() {
         className={pestanaActiva === 'representantes-comite' ? undefined : 'hidden'}
       >
         {pestanasMontadas.has('representantes-comite') && <ConsultarRepresentantesComite />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-administradores"
+        aria-labelledby="usuarios-tab-administradores"
+        className={pestanaActiva === 'administradores' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('administradores') && <ConsultarAdministradores />}
       </div>
     </div>
   );
