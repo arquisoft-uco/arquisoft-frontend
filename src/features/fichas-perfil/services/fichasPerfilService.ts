@@ -1,7 +1,9 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
+import type { ConsultaPaginadaRequest } from '../../../shared/models/consulta';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
+import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
@@ -97,6 +99,28 @@ function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
       nombre: e.nombre,
       email: e.email,
     })),
+  };
+}
+
+// Forma cruda de EstadoFichaPerfilAsesorResponseDTO (POST /fichas-perfil/estados-ficha/asesor);
+// el id de la ficha llega como fichaPerfil y se traduce a fichaPerfilId.
+interface EstadoFichaPerfilAsesorResponseDTO {
+  fichaPerfil: string;
+  tituloProyecto: string;
+  estadoId: string;
+  estadoNombre: string;
+  fechaActualizacion: string;
+}
+
+function aEstadoFichaPerfilAsesor(
+  dto: EstadoFichaPerfilAsesorResponseDTO,
+): EstadoFichaPerfilAsesor {
+  return {
+    fichaPerfilId: dto.fichaPerfil,
+    tituloProyecto: dto.tituloProyecto,
+    estadoId: dto.estadoId,
+    estadoNombre: dto.estadoNombre,
+    fechaActualizacion: dto.fechaActualizacion,
   };
 }
 
@@ -237,6 +261,11 @@ export const fichasPerfilService = {
     apiClient
       .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
       .then((r) => r.data),
+
+  getEstadosFichasAsesor: (req: ConsultaPaginadaRequest): Promise<Page<EstadoFichaPerfilAsesor>> =>
+    apiClient
+      .post<Page<EstadoFichaPerfilAsesorResponseDTO>>('/fichas-perfil/estados-ficha/asesor', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aEstadoFichaPerfilAsesor) })),
 
   // ─── Pendientes: el backend aún no expone estos endpoints ───
 

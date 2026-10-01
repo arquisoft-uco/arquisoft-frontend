@@ -2,7 +2,7 @@ import { Trash2 } from 'lucide-react';
 import type { UsuarioRolListado } from '../../models/UsuarioRolListado';
 import type { EstadoUsuario } from '../../models/EstadoUsuario';
 import { nombreEstadoUsuario } from '../../utils/estados-usuario';
-import PaginadorListado from './PaginadorListado';
+import PaginadorListado from '../../../../shared/components/PaginadorListado';
 
 interface Props<T extends UsuarioRolListado> {
   usuarios: T[];

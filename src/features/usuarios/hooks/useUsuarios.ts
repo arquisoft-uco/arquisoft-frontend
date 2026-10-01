@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import type { NodoFiltroDTO } from '../../../shared/models/consulta';
 import { Rol } from '../../../shared/models/rol';
-import type { ConsultarUsuariosRequest, NodoFiltroDTO } from '../models/ConsultarUsuariosRequest';
+import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
 import { usuariosService } from '../services/usuariosService';
 
 const PAGE_SIZE = 10;
