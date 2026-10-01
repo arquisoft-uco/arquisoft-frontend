@@ -36,4 +36,7 @@ export const solicitudesService = {
         tamanio: size,
       })
       .then((r) => r.data),
+
+  eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),
 };

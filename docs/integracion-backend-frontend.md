@@ -212,6 +212,23 @@ orden por defecto del backend. El backend fuerza remitente y tipo con el JWT.
 llevado a `/forbidden` hasta que se cree y se mapee en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El
 Keycloak desplegado no se pudo verificar.
 
+#### Eliminación de una solicitud de novedad al coordinador (HU-086)
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta | Authority |
+|---|---|---|---|---|---|
+| `eliminarSolicitudNovedadCoordinador` (HU-086) | DELETE | `/solicitudes/novedad-coordinador/{solicitudId}` | ninguno | `204` sin cuerpo | `solicitudes:solicitud-novedad-coordinador:delete` |
+
+Verificado contra `EliminarSolicitudNovedadCoordinadorController` y `VALIDATOR-HU-086.md` (✅ APROBADO). El
+`solicitudId` es el `id` de la fila del listado de HU-096; el remitente sale del JWT. El borrado es físico.
+
+- La mutación invalida el prefijo `['solicitudes', 'novedad-coordinador', 'enviadas']` tanto en éxito como en
+  error.
+- Errores de dominio: 400 `SOLICITUD_ID_REQUERIDO`; 422 `SOLICITUD_NO_ENCONTRADA`, `SOLICITUD_NO_PROPIA`,
+  `SOLICITUD_TIPO_NO_COINCIDE`, `SOLICITUD_CON_RESPUESTAS`. La UI no ramifica por código: muestra el mensaje
+  del backend en un toast.
+- El DELETE de HU-087 (novedad al asesor) existe en `develop` pero no tiene cliente: no hay listado de
+  enviadas al asesor.
+
 ### Sin cliente en el frontend
 
 - HU-083: `POST /solicitudes/cambio-asesor`.

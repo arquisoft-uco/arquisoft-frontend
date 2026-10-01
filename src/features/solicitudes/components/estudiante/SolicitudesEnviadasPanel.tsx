@@ -1,5 +1,10 @@
+import { useState } from 'react';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEliminarSolicitudNovedadCoordinador } from '../../hooks/useEliminarSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadCoordinadorEnviadas } from '../../hooks/useSolicitudesNovedadCoordinadorEnviadas';
+import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesEnviadasTable from './SolicitudesEnviadasTable';
 
 export default function SolicitudesEnviadasPanel() {
@@ -13,7 +18,32 @@ export default function SolicitudesEnviadasPanel() {
     goToPage,
   } = useSolicitudesNovedadCoordinadorEnviadas();
 
+  const { mutate: eliminar, isPending: eliminando } = useEliminarSolicitudNovedadCoordinador();
+  const [pendienteEliminar, setPendienteEliminar] = useState<Solicitud | null>(null);
+
   const totalElements = data?.totalElements ?? 0;
+
+  function handleConfirmarEliminar() {
+    if (!pendienteEliminar) return;
+    eliminar(pendienteEliminar.id, {
+      onSuccess: () => {
+        toast.success('Solicitud eliminada', 'La solicitud de novedad fue eliminada correctamente.');
+        setPendienteEliminar(null);
+      },
+      onError: (err) => {
+        toast.error(
+          'No se pudo eliminar la solicitud',
+          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
+        );
+        setPendienteEliminar(null);
+      },
+    });
+  }
+
+  function handleCancelarEliminar() {
+    if (eliminando) return;
+    setPendienteEliminar(null);
+  }
 
   return (
     <section className="flex flex-col gap-6" aria-labelledby="solicitudes-enviadas-titulo">
@@ -56,7 +86,21 @@ export default function SolicitudesEnviadasPanel() {
           totalPages={data.totalPages}
           page={page}
           pageSize={pageSize}
+          eliminando={eliminando}
           onPageChange={goToPage}
+          onEliminar={setPendienteEliminar}
+        />
+      )}
+
+      {pendienteEliminar && (
+        <ConfirmDialog
+          variante="peligro"
+          titulo="¿Eliminar solicitud?"
+          descripcion={`Se eliminará la solicitud enviada a ${pendienteEliminar.destinatario.nombre}. Esta acción no se puede deshacer.`}
+          labelConfirmar="Eliminar"
+          cargando={eliminando}
+          onConfirmar={handleConfirmarEliminar}
+          onCancelar={handleCancelarEliminar}
         />
       )}
     </section>

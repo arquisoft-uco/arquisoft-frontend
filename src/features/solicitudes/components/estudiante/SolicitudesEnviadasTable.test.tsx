@@ -44,7 +44,9 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesEnvi
     totalPages: 3,
     page: 0,
     pageSize: 10,
+    eliminando: false,
     onPageChange: vi.fn(),
+    onEliminar: vi.fn(),
     ...parcial,
   };
   render(<SolicitudesEnviadasTable {...props} />);
@@ -75,5 +77,33 @@ describe('SolicitudesEnviadasTable', () => {
 
     expect(screen.getByText('1–2 de 25 solicitudes')).toBeInTheDocument();
     expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
+  it('el botón de eliminar de una fila llama a onEliminar con esa solicitud', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onEliminar } = renderizar();
+
+    // Act
+    await user.click(
+      screen.getByRole('button', { name: 'Eliminar la solicitud enviada a Carlos Ruiz' }),
+    );
+
+    // Assert
+    expect(onEliminar).toHaveBeenCalledTimes(1);
+    expect(onEliminar).toHaveBeenCalledWith(SOLICITUDES[1]);
+  });
+
+  it('deshabilita todos los botones de eliminar mientras se elimina', () => {
+    // Arrange / Act
+    renderizar({ eliminando: true });
+
+    // Assert
+    expect(
+      screen.getByRole('button', { name: 'Eliminar la solicitud enviada a Ana Pérez' }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Eliminar la solicitud enviada a Carlos Ruiz' }),
+    ).toBeDisabled();
   });
 });

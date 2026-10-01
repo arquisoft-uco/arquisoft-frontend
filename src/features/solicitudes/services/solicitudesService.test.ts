@@ -3,10 +3,11 @@ import apiClient from '../../../api/axiosInstance';
 import { solicitudesService } from './solicitudesService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { post: vi.fn() },
+  default: { post: vi.fn(), delete: vi.fn() },
 }));
 
 const post = vi.mocked(apiClient.post);
+const eliminar = vi.mocked(apiClient.delete);
 
 describe('solicitudesService', () => {
   beforeEach(() => {
@@ -78,6 +79,20 @@ describe('solicitudesService', () => {
         tamanio: 10,
       });
       expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('eliminarSolicitudNovedadCoordinador', () => {
+    it('llama DELETE /solicitudes/novedad-coordinador/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarSolicitudNovedadCoordinador('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/s-1');
+      expect(resultado).toBeUndefined();
     });
   });
 });
