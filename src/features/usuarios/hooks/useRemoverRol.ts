@@ -17,6 +17,7 @@ interface ObjetivoRemocion extends RemoverRolVariables {
 const REMOVER_POR_ROL: Partial<Record<Rol, (usuarioId: string) => Promise<void>>> = {
   [Rol.Coordinador]: usuariosService.removerCoordinador,
   [Rol.Estudiante]: usuariosService.removerEstudiante,
+  [Rol.Asesor]: usuariosService.removerAsesor,
 };
 
 export function useRemoverRol() {
