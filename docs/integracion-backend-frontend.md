@@ -38,7 +38,7 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `getFichasAsesor` | POST | `/fichas-perfil/asesor` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` — el asesor sale del JWT |
 | `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` · Errores de dominio 422 con `code` (`ITEM_TIPO_DUPLICADO`, `ESTADO_FICHA_PERFIL_ESTADO_TERMINAL`); `contenido` máx. 7000 |
 | `modificarItem` | PATCH | `/fichas-perfil/items/{itemId}` | `{ contenido }` | `204` · Errores de dominio 422 con `code` (`ITEM_FICHA_NO_AUTORIZADA`, `ITEM_NO_ENCONTRADO`, `ESTADO_FICHA_PERFIL_ESTADO_TERMINAL`); `contenido` máx. 7000 |
-| `removerItem` | DELETE | `/fichas-perfil/items/{itemId}` | — | `204` |
+| `removerItem` | DELETE | `/fichas-perfil/items/{itemId}` | — | `204` · Errores: 400 ítem inexistente · 403 sin authority `fichas:item-ficha-perfil:delete` o no propietario · 422 con `code` `ITEM_CON_REVISIONES` o estado terminal de la ficha |
 | `consultarTodosTipoItem` | GET | `/fichas-perfil/tipos-item` | — | `200 TipoItem[]` |
 | `consultarFichasPerfilEstudiante` | GET | `/fichas-perfil/estudiante` | — | `200 FichaPerfilEstudianteResponseDTO[]` (puede ser `[]`). Mergeado en `develop` del backend (PR #168, VALIDATOR-HU-037 100/100); el estudiante sale del JWT, sin id de entrada. Una ficha sin estado o sin asesor se omite del listado (`INNER JOIN`), sin 500: el estudiante la ve como lista vacía. Mejora abierta del backend: pasar a `LEFT JOIN` |
 | `getItemsFichaAsesor` | GET | `/fichas-perfil/{fichaPerfilId}/items` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |

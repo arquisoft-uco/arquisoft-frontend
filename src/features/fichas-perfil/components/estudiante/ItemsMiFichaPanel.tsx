@@ -3,9 +3,21 @@ import { Edit3, Plus, Trash2 } from 'lucide-react';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import {
+  getApiErrorMessage,
+  hasApiErrorCode,
+  isApiErrorWithStatus,
+} from '../../../../shared/utils/api-error';
 import AgregarItemForm from './AgregarItemForm';
 import EditarItemForm from './EditarItemForm';
+
+function mensajeErrorEliminar(err: unknown): string {
+  if (hasApiErrorCode(err, 'ITEM_CON_REVISIONES')) {
+    return 'El ítem ya fue revisado por tu asesor y no puede eliminarse.';
+  }
+  if (isApiErrorWithStatus(err, 400)) return 'El ítem ya no existe.';
+  return getApiErrorMessage(err, 'No se pudo eliminar el ítem.');
+}
 
 export default function ItemsMiFichaPanel() {
   const { items, isLoading, isError, remover } = useItemsMiFicha();
@@ -26,7 +38,7 @@ export default function ItemsMiFichaPanel() {
         setItemIdAEliminar(null);
       },
       onError: (err) => {
-        toast.error('Error al eliminar', getApiErrorMessage(err, 'No se pudo eliminar el ítem.'));
+        toast.error('Error al eliminar', mensajeErrorEliminar(err));
         setItemIdAEliminar(null);
       },
     });
@@ -94,7 +106,7 @@ export default function ItemsMiFichaPanel() {
                 type="button"
                 onClick={() => handleEliminar(item.id)}
                 disabled={remover.isPending}
-                className="rounded p-1 text-on-surface-secondary hover:text-red-500 disabled:opacity-50"
+                className="rounded p-1 text-on-surface-secondary hover:text-danger disabled:opacity-50"
                 aria-label={`Eliminar ítem ${item.tipoItem.nombre}`}
               >
                 <Trash2 size={14} aria-hidden />

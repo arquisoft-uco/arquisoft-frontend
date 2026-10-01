@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
+import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
 import { useTiposItem } from './useTiposItem';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
 import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
@@ -36,6 +37,11 @@ export function useItemsMiFicha() {
       queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
         prev.filter((i) => i.id !== itemId),
       );
+    },
+    onError: (err) => {
+      if (isApiErrorWithStatus(err, 400)) {
+        queryClient.invalidateQueries({ queryKey: ITEMS_KEY });
+      }
     },
   });
 

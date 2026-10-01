@@ -7,7 +7,7 @@ import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 import { useItemsMiFicha } from './useItemsMiFicha';
 
 vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: { consultarItemsMiFichaPerfil: vi.fn(), agregarItemFichaPerfil: vi.fn(), modificarItem: vi.fn() },
+  fichasPerfilService: { consultarItemsMiFichaPerfil: vi.fn(), agregarItemFichaPerfil: vi.fn(), modificarItem: vi.fn(), removerItem: vi.fn() },
 }));
 vi.mock('./useFichaPerfilIdEstudiante', () => ({ useFichaPerfilIdEstudiante: vi.fn() }));
 vi.mock('./useMiFichaPerfil', () => ({ useMiFichaPerfil: () => ({ ficha: { id: 'f-1' } }) }));
@@ -17,6 +17,10 @@ vi.mock('./useTiposItem', () => ({
 
 const consultar = vi.mocked(fichasPerfilService.consultarItemsMiFichaPerfil);
 const idEstudiante = vi.mocked(useFichaPerfilIdEstudiante);
+
+function errorApi(status: number, data: Record<string, unknown> = {}) {
+  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
+}
 
 const ITEM = { id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir' };
 
@@ -185,6 +189,74 @@ describe('useItemsMiFicha', () => {
       ).rejects.toThrow('422');
 
       // Assert
+      expect(invalidar).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('remover', () => {
+    const KEY = ['fichas-perfil', 'estudiante', 'f-1', 'items'];
+    const OTRO = { ...ITEM, id: 'i-2', contenido: 'Otro' };
+
+    function conCliente() {
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      return { queryClient, invalidar, wrapper };
+    }
+
+    it('quita solo el ítem eliminado de la caché sin volver a consultar', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM, OTRO]);
+      vi.mocked(fichasPerfilService.removerItem).mockResolvedValue(undefined);
+      const { queryClient, invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+      // Act
+      await result.current.remover.mutateAsync('i-1');
+
+      // Assert
+      expect(fichasPerfilService.removerItem).toHaveBeenCalledWith('i-1');
+      expect(queryClient.getQueryData(KEY)).toEqual([OTRO]);
+      expect(invalidar).not.toHaveBeenCalled();
+    });
+
+    it('invalida la key de ítems cuando el backend responde 400 por ítem inexistente', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.removerItem).mockRejectedValue(errorApi(400));
+      const { invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+
+      // Act
+      await expect(result.current.remover.mutateAsync('i-1')).rejects.toThrow('fallo');
+
+      // Assert
+      expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
+    });
+
+    it('deja la caché intacta y no invalida ante un 422', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.removerItem).mockRejectedValue(
+        errorApi(422, { errorCode: 'ITEM_CON_REVISIONES' }),
+      );
+      const { queryClient, invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(result.current.items).toEqual([ITEM]));
+
+      // Act
+      await expect(result.current.remover.mutateAsync('i-1')).rejects.toThrow('fallo');
+
+      // Assert
+      expect(queryClient.getQueryData(KEY)).toEqual([ITEM]);
       expect(invalidar).not.toHaveBeenCalled();
     });
   });
