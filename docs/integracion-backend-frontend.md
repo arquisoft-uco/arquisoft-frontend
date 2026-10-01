@@ -229,6 +229,25 @@ Verificado contra `EliminarSolicitudNovedadCoordinadorController` y `VALIDATOR-H
 - El DELETE de HU-087 (novedad al asesor) existe en `develop` pero no tiene cliente: no hay listado de
   enviadas al asesor.
 
+#### Consulta de solicitudes de novedad recibidas por el coordinador (HU-091)
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta | Authority |
+|---|---|---|---|---|---|
+| `consultarSolicitudesNovedadCoordinadorRecibidas` (HU-091) | POST | `/solicitudes/novedad-coordinador/recibidas` | `{ pagina, tamanio }` | `200 Page<Solicitud>` | `solicitudes:solicitud-novedad-coordinador-recibida:view` |
+
+Verificado contra el Controller, el mapper de request, `SolicitudCriteria`, `SolicitudResponseDTO` y
+`VALIDATOR-HU-091.md` (✅ APROBADO). Es POST con body, no query params. El cliente solo envía
+`{ pagina, tamanio }`: el backend admite además `filtros` y `ordenamiento`, pero la UI no los usa y toma el
+orden por defecto (`fechaCreacion` DESC). El backend fuerza destinatario (el `sub` del JWT) y tipo.
+
+- Query key `['solicitudes', 'novedad-coordinador', 'recibidas', page]`, distinta de `enviadas`. Ninguna
+  mutación de esta sesión la invalida: las solicitudes recibidas las genera otro usuario.
+- Authority compuesta solo en el rol realm `coordinador`.
+
+**Client role:** `solicitudes:solicitud-novedad-coordinador-recibida:view` está creado en
+`arquisoft-backend/keycloak/realm-arquisoft.json` y compuesto en el rol de realm `coordinador`.
+`arquisoft-infra` solo trae una plantilla sin roles de negocio, no es la fuente del realm.
+
 ### Sin cliente en el frontend
 
 - HU-083: `POST /solicitudes/cambio-asesor`.
