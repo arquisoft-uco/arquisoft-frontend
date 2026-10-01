@@ -134,6 +134,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
 | `consultarAsesoresAdministrador` | POST | `/usuarios/asesores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Asesor>` |
 | `consultarAsesoresFichaAdministrador` | POST | `/usuarios/asesores-ficha/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<AsesorFicha>` |
+| `consultarRepresentantesComiteAdministrador` | POST | `/usuarios/representantes-comite/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<RepresentanteComite>` |
 | `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
@@ -174,6 +175,14 @@ por fila, incluidos los asesores dados de baja. Sin traducción de nombres en el
 filtros en el body. Devuelve `{ id, identificador, nombre, email, contacto, estado, vigente }` por fila,
 incluidos los dados de baja, sin traducción. Es el rol `asesor-ficha` (con guion), distinto de `asesor`
 y del `/vigentes` de HU-239. Quitar el rol es HU-238 (`removerAsesorFicha`).
+
+`consultarRepresentantesComiteAdministrador` (HU-255) verificado contra
+`ConsultarRepresentantesComiteAdministradorController.java` y `RepresentanteComiteResponseDTO.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-255.md` (APROBADO, PR backend #157). `POST` por los
+filtros en el body. Devuelve `{ id, identificador, nombre, email, contacto, estado, vigente }` por fila,
+incluidos los dados de baja, sin traducción. El client role
+`usuarios:representante-comite-administrador:view` puede faltar en el realm (403 con login real, no con
+bypass). Solo consulta: quitar el rol será HU-254 y habilitar el checkbox HU-253.
 
 `consultarUsuariosAdministrador` (HU-260) verificado contra
 `ConsultarUsuariosAdministradorController.java`, `UsuarioResponseDTO.java` y `UsuarioCriteria.java` de
