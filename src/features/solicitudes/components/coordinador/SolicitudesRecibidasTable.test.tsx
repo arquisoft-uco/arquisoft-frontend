@@ -45,6 +45,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesReci
     page: 0,
     pageSize: 10,
     onPageChange: vi.fn(),
+    onResponder: vi.fn(),
     ...parcial,
   };
   render(<SolicitudesRecibidasTable {...props} />);
@@ -73,5 +74,15 @@ describe('SolicitudesRecibidasTable', () => {
 
     expect(screen.getByText('1–2 de 25 solicitudes')).toBeInTheDocument();
     expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
+  it('el botón de cada fila llama a onResponder con la solicitud de esa fila', async () => {
+    const user = userEvent.setup();
+    const { onResponder } = renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Responder la solicitud de María Torres' }));
+
+    expect(onResponder).toHaveBeenCalledTimes(1);
+    expect(onResponder).toHaveBeenCalledWith(SOLICITUDES[1]);
   });
 });

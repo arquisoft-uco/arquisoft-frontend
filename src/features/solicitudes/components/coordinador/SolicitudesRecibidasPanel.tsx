@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useSolicitudesNovedadCoordinadorRecibidas } from '../../hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import type { Solicitud } from '../../models/Solicitud';
+import ResponderSolicitudForm from './ResponderSolicitudForm';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
 
 export default function SolicitudesRecibidasPanel() {
   const { data, isLoading, isError, error, page, pageSize, goToPage } =
     useSolicitudesNovedadCoordinadorRecibidas();
+
+  const [solicitudAResponder, setSolicitudAResponder] = useState<Solicitud | null>(null);
 
   const totalElements = data?.totalElements ?? 0;
 
@@ -50,6 +55,14 @@ export default function SolicitudesRecibidasPanel() {
           page={page}
           pageSize={pageSize}
           onPageChange={goToPage}
+          onResponder={setSolicitudAResponder}
+        />
+      )}
+
+      {solicitudAResponder && (
+        <ResponderSolicitudForm
+          solicitud={solicitudAResponder}
+          onCerrar={() => setSolicitudAResponder(null)}
         />
       )}
     </section>

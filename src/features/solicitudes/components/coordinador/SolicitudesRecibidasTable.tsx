@@ -1,3 +1,4 @@
+import { Reply } from 'lucide-react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import type { Solicitud } from '../../models/Solicitud';
 
@@ -8,9 +9,10 @@ interface Props {
   page: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onResponder: (solicitud: Solicitud) => void;
 }
 
-const COLUMNAS = ['Fecha de recepción', 'Remitente', 'Mensaje'];
+const COLUMNAS = ['Fecha de recepción', 'Remitente', 'Mensaje', 'Acciones'];
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -21,6 +23,7 @@ export default function SolicitudesRecibidasTable({
   page,
   pageSize,
   onPageChange,
+  onResponder,
 }: Props) {
   return (
     <div className="flex flex-col gap-4">
@@ -64,6 +67,22 @@ export default function SolicitudesRecibidasTable({
                   </td>
                   <td className="min-w-64 px-4 py-3 text-on-surface-secondary">
                     {solicitud.mensajeSolicitud}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onResponder(solicitud)}
+                      aria-label={`Responder la solicitud de ${solicitud.remitente.nombre}`}
+                      className="group relative flex h-11 w-11 items-center justify-center rounded-lg border border-transparent text-primary transition-all hover:border-border-strong hover:bg-surface-secondary hover:shadow-card focus-visible:border-border-strong focus-visible:bg-surface-secondary focus-visible:shadow-card sm:h-9 sm:w-9"
+                    >
+                      <Reply size={18} aria-hidden />
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-border bg-surface-elevated px-2 py-1 text-xs font-medium text-on-surface opacity-0 shadow-dropdown transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+                      >
+                        Responder
+                      </span>
+                    </button>
                   </td>
                 </tr>
               ))

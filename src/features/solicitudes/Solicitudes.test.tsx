@@ -28,6 +28,10 @@ vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
   useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
 }));
 
+vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
+  useResponderSolicitudNovedadCoordinador: vi.fn(),
+}));
+
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
 
 function crearMutacionMock(): MutacionEnviarSolicitud {

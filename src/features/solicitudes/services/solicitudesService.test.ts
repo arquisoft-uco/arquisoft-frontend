@@ -126,4 +126,23 @@ describe('solicitudesService', () => {
       expect(resultado).toBeUndefined();
     });
   });
+
+  describe('responderSolicitudNovedadCoordinador', () => {
+    it('llama POST /solicitudes/novedad-coordinador/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-1' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudNovedadCoordinador({
+        solicitudId: 's-1',
+        contenido: 'Programemos una reunión.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/s-1/respuesta', {
+        contenido: 'Programemos una reunión.',
+      });
+      expect(resultado).toEqual({ id: 'r-1' });
+    });
+  });
 });

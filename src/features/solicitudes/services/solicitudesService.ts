@@ -2,6 +2,7 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
+import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
 import type { Solicitud } from '../models/Solicitud';
 import type { SolicitudCreadaResponse } from '../models/SolicitudCreadaResponse';
 
@@ -50,4 +51,14 @@ export const solicitudesService = {
 
   eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),
+
+  responderSolicitudNovedadCoordinador: (
+    req: ResponderSolicitudNovedadCoordinadorRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(
+        `/solicitudes/novedad-coordinador/${req.solicitudId}/respuesta`,
+        { contenido: req.contenido },
+      )
+      .then((r) => r.data),
 };

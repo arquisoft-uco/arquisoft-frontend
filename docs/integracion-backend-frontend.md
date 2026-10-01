@@ -248,6 +248,31 @@ orden por defecto (`fechaCreacion` DESC). El backend fuerza destinatario (el `su
 `arquisoft-backend/keycloak/realm-arquisoft.json` y compuesto en el rol de realm `coordinador`.
 `arquisoft-infra` solo trae una plantilla sin roles de negocio, no es la fuente del realm.
 
+#### Respuesta del coordinador a una solicitud de novedad (HU-056)
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta | Authority |
+|---|---|---|---|---|---|
+| `responderSolicitudNovedadCoordinador` (HU-056) | POST | `/solicitudes/novedad-coordinador/{solicitudId}/respuesta` | `{ contenido }` | `201 { id }` | `solicitudes:respuesta-novedad-coordinador:create` |
+
+Verificado contra `ResponderSolicitudNovedadCoordinadorController`, su request/response DTO y
+`VALIDATOR-HU-056.md` (✅ APROBADO). El `solicitudId` es el `id` de la fila del listado de HU-091 y va solo en
+el path; el body lleva únicamente `contenido` (1 a 100 caracteres tras el trim, `LIMITES.RESPUESTA_CONTENIDO_MAX`).
+El `id` devuelto es el de la respuesta creada, no el de la solicitud (reutiliza `SolicitudCreadaResponse`). El
+coordinador sale del `sub` del JWT.
+
+- La mutación no invalida ninguna query: `SolicitudResponseDTO` no expone si la solicitud ya fue respondida,
+  así que el listado `recibidas` no cambia con la respuesta. La UI no oculta "Responder" en solicitudes ya
+  respondidas; el backend lo rechaza.
+- Errores de dominio: 400 `RESPUESTA_CONTENIDO_REQUERIDO`, `RESPUESTA_CONTENIDO_DEMASIADO_LARGO`; 422
+  `SOLICITUD_NO_ENCONTRADA`, `SOLICITUD_TIPO_NO_COINCIDE`, `SOLICITUD_NO_ES_DESTINATARIO`,
+  `SOLICITUD_YA_RESPONDIDA`. La UI no ramifica por código: pinta `fieldErrors` de `contenido` junto al campo y
+  muestra el mensaje del backend en un toast.
+
+**Dependencia operativa:** el client role `solicitudes:respuesta-novedad-coordinador:create` está en
+`SolicitudesAuthorities` pero no aparece en `keycloak/realm-arquisoft.json` de `origin/develop` del backend
+(pendiente de HT-011). Con login real el coordinador puede recibir 403 y ser llevado a `/forbidden` hasta que se
+cree y se mapee en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
+
 ### Sin cliente en el frontend
 
 - HU-083: `POST /solicitudes/cambio-asesor`.
