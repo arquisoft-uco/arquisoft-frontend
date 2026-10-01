@@ -27,11 +27,7 @@ export function useItemsMiFicha() {
 
   const modificar = useMutation({
     mutationFn: (req: ModificarItemRequest) => fichasPerfilService.modificarItem(req),
-    onSuccess: (_, req) => {
-      queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
-        prev.map((i) => (i.id === req.itemId ? { ...i, contenido: req.contenido } : i)),
-      );
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ITEMS_KEY }),
   });
 
   const remover = useMutation({
