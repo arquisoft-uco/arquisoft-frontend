@@ -41,6 +41,9 @@ export const usuariosService = {
   removerRepresentanteComite: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}/representante-comite`).then(() => undefined),
 
+  removerAdministrador: (usuarioId: string): Promise<void> =>
+    apiClient.delete<void>(`/usuarios/${usuarioId}/administrador`).then(() => undefined),
+
   eliminarUsuario: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}`).then(() => undefined),
 
