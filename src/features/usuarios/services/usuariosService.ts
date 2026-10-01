@@ -4,6 +4,7 @@ import type { Rol } from '../../../shared/models/rol';
 import type { AgregarRolUsuarioRequest } from '../models/AgregarRolUsuarioRequest';
 import type { Asesor } from '../models/Asesor';
 import type { AsesorFicha } from '../models/AsesorFicha';
+import type { RepresentanteComite } from '../models/RepresentanteComite';
 import type { Coordinador } from '../models/Coordinador';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
 import type { Estudiante } from '../models/Estudiante';
@@ -69,6 +70,17 @@ export const usuariosService = {
   consultarAsesoresFichaAdministrador: (page = 0, size = 10): Promise<Page<AsesorFicha>> =>
     apiClient
       .post<Page<AsesorFicha>>('/usuarios/asesores-ficha/administrador', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarRepresentantesComiteAdministrador: (
+    page = 0,
+    size = 10,
+  ): Promise<Page<RepresentanteComite>> =>
+    apiClient
+      .post<Page<RepresentanteComite>>('/usuarios/representantes-comite/administrador', {
         pagina: page,
         tamanio: size,
       })

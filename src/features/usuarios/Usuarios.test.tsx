@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import Usuarios from './Usuarios';
@@ -8,6 +9,7 @@ import { useCoordinadores } from './hooks/useCoordinadores';
 import { useEstudiantes } from './hooks/useEstudiantes';
 import { useAsesores } from './hooks/useAsesores';
 import { useAsesoresFicha } from './hooks/useAsesoresFicha';
+import { useRepresentantesComite } from './hooks/useRepresentantesComite';
 import { useUsuarios } from './hooks/useUsuarios';
 import { useRemoverRol } from './hooks/useRemoverRol';
 
@@ -29,6 +31,10 @@ vi.mock('./hooks/useAsesores', () => ({
 
 vi.mock('./hooks/useAsesoresFicha', () => ({
   useAsesoresFicha: vi.fn(),
+}));
+
+vi.mock('./hooks/useRepresentantesComite', () => ({
+  useRepresentantesComite: vi.fn(),
 }));
 
 vi.mock('./hooks/useUsuarios', () => ({
@@ -150,6 +156,30 @@ function crearAsesoresFichaMock(
   } as ReturnType<typeof useAsesoresFicha>;
 }
 
+function crearRepresentantesComiteMock(
+  parcial: Partial<ReturnType<typeof useRepresentantesComite>> = {},
+): ReturnType<typeof useRepresentantesComite> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useRepresentantesComite>;
+}
+
 function crearUsuariosMock(
   parcial: Partial<ReturnType<typeof useUsuarios>> = {},
 ): ReturnType<typeof useUsuarios> {
@@ -221,6 +251,7 @@ describe('Usuarios', () => {
     vi.mocked(useEstudiantes).mockReturnValue(crearEstudiantesMock());
     vi.mocked(useAsesores).mockReturnValue(crearAsesoresMock());
     vi.mocked(useAsesoresFicha).mockReturnValue(crearAsesoresFichaMock());
+    vi.mocked(useRepresentantesComite).mockReturnValue(crearRepresentantesComiteMock());
     vi.mocked(useUsuarios).mockReturnValue(crearUsuariosMock());
     vi.mocked(useRemoverRol).mockReturnValue({
       objetivo: null,
@@ -251,5 +282,18 @@ describe('Usuarios', () => {
 
     expect(screen.getByRole('heading', { name: 'Todos los usuarios' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
+  });
+
+  it('muestra la pestaña "Representantes del comité" al administrador', async () => {
+    // Arrange
+    autenticarCon(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<Usuarios />, { initialPath: '/usuarios' });
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Representantes del comité' }));
+
+    // Assert
+    expect(screen.getByRole('heading', { name: 'Representantes del comité' })).toBeInTheDocument();
   });
 });
