@@ -1,13 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarRepresentantesComite from './ConsultarRepresentantesComite';
 import { useRepresentantesComite } from '../../hooks/useRepresentantesComite';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { Rol } from '../../../../shared/models/rol';
 import type { RepresentanteComite } from '../../models/RepresentanteComite';
 import type { Page } from '../../../../shared/models/api-response';
 
 vi.mock('../../hooks/useRepresentantesComite', () => ({
   useRepresentantesComite: vi.fn(),
+}));
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 const VIGENTE: RepresentanteComite = {
@@ -60,9 +66,29 @@ function crearHookMock(
   } as ReturnType<typeof useRepresentantesComite>;
 }
 
+type ConfirmarRemocion = (usuarioId: string, rol: Rol, onExito?: () => void) => void;
+
+function usarRemoverRolFalso(confirmar: ConfirmarRemocion): ReturnType<typeof useRemoverRol> {
+  const [objetivo, setObjetivo] = useState<ReturnType<typeof useRemoverRol>['objetivo']>(null);
+  return {
+    objetivo,
+    solicitar: setObjetivo,
+    cancelar: () => setObjetivo(null),
+    confirmar: (onExito) => {
+      if (objetivo) confirmar(objetivo.usuarioId, objetivo.rol, onExito);
+      setObjetivo(null);
+    },
+    isPending: false,
+  };
+}
+
 describe('ConsultarRepresentantesComite', () => {
+  let mockRemover: Mock<ConfirmarRemocion>;
+
   beforeEach(() => {
     vi.mocked(useRepresentantesComite).mockReset();
+    mockRemover = vi.fn<ConfirmarRemocion>();
+    vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover));
   });
 
   it('muestra el estado de carga con el título visible', () => {
@@ -96,7 +122,7 @@ describe('ConsultarRepresentantesComite', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('lista los representantes con su vigencia y sin columna de acciones ni botón de quitar rol', () => {
+  it('lista los representantes con su vigencia y la columna de acciones', () => {
     vi.mocked(useRepresentantesComite).mockReturnValue(
       crearHookMock({ data: crearPagina([VIGENTE, DE_BAJA]) }),
     );
@@ -110,8 +136,54 @@ describe('ConsultarRepresentantesComite', () => {
     expect(screen.getByText('luis@uco.edu.co')).toBeInTheDocument();
     expect(screen.getAllByText('Vigente').length).toBeGreaterThan(1);
     expect(screen.getByText('Dado de baja')).toBeInTheDocument();
-    expect(screen.queryByRole('columnheader', { name: 'Acciones' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /quitar rol/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Acciones' })).toBeInTheDocument();
+  });
+
+  it('el botón de quitar rol de una fila de baja está deshabilitado y el de una vigente habilitado', () => {
+    // Arrange
+    vi.mocked(useRepresentantesComite).mockReturnValue(
+      crearHookMock({ data: crearPagina([VIGENTE, DE_BAJA]) }),
+    );
+
+    // Act
+    render(<ConsultarRepresentantesComite />);
+
+    // Assert
+    expect(
+      screen.getByRole('button', { name: 'Quitar rol representante del comité a Ana Pérez' }),
+    ).toBeEnabled();
+    expect(
+      screen.getByRole('button', {
+        name: 'Luis Gómez ya no es representante del comité vigente',
+      }),
+    ).toBeDisabled();
+  });
+
+  it('cancelar la confirmación no llama a la mutación y confirmar la llama con el rol representante del comité', async () => {
+    // Arrange
+    vi.mocked(useRepresentantesComite).mockReturnValue(
+      crearHookMock({ data: crearPagina([VIGENTE]) }),
+    );
+    const user = userEvent.setup();
+    render(<ConsultarRepresentantesComite />);
+    const nombreBoton = 'Quitar rol representante del comité a Ana Pérez';
+
+    // Act
+    await user.click(screen.getByRole('button', { name: nombreBoton }));
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const llamadasTrasCancelar = mockRemover.mock.calls.length;
+    await user.click(screen.getByRole('button', { name: nombreBoton }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(textoDialogo).toContain(
+      '¿Está seguro de eliminar el rol Representante del Comité para el usuario Ana Pérez?',
+    );
+    expect(llamadasTrasCancelar).toBe(0);
+    expect(mockRemover).toHaveBeenCalledWith(VIGENTE.id, Rol.RepresentanteComiteCurriculum, undefined);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('Actualizar vuelve a consultar con refetch', async () => {

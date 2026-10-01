@@ -13,6 +13,7 @@ vi.mock('../services/usuariosService', () => ({
     removerEstudiante: vi.fn(),
     removerAsesor: vi.fn(),
     removerAsesorFicha: vi.fn(),
+    removerRepresentanteComite: vi.fn(),
   },
 }));
 
@@ -24,6 +25,7 @@ const removerCoordinador = vi.mocked(usuariosService.removerCoordinador);
 const removerEstudiante = vi.mocked(usuariosService.removerEstudiante);
 const removerAsesor = vi.mocked(usuariosService.removerAsesor);
 const removerAsesorFicha = vi.mocked(usuariosService.removerAsesorFicha);
+const removerRepresentanteComite = vi.mocked(usuariosService.removerRepresentanteComite);
 
 function crearContexto() {
   const queryClient = new QueryClient({
@@ -114,6 +116,32 @@ describe('useRemoverRol', () => {
     expect(removerAsesor).not.toHaveBeenCalled();
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
     expect(toast.success).toHaveBeenCalledWith('Rol eliminado', 'Eva Ruiz ya no es asesor de ficha.');
+  });
+
+  it('despacha removerRepresentanteComite, invalida usuarios y avisa el éxito cuando el rol es representante del comité', async () => {
+    // Arrange
+    removerRepresentanteComite.mockResolvedValue(undefined);
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useRemoverRol(), { wrapper: Wrapper });
+    act(() =>
+      result.current.solicitar({
+        usuarioId: 'u-5',
+        nombre: 'Ana Pérez',
+        rol: Rol.RepresentanteComiteCurriculum,
+      }),
+    );
+
+    // Act
+    act(() => result.current.confirmar());
+
+    // Assert
+    await waitFor(() => expect(removerRepresentanteComite).toHaveBeenCalledWith('u-5'));
+    expect(removerAsesorFicha).not.toHaveBeenCalled();
+    await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol eliminado',
+      'Ana Pérez ya no es representante del comité.',
+    );
   });
 
   it('avisa el error, no invalida ni ejecuta onExito y limpia el objetivo cuando el backend falla', async () => {
