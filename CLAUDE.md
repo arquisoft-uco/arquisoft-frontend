@@ -84,7 +84,7 @@ Copia `.env.example` a `.env.development.local` y completa con valores reales. L
 
 | Variable | Propósito |
 |---|---|
-| `VITE_API_URL` | URL base del backend, ej. `http://localhost:8082/api` |
+| `VITE_API_URL` | URL base del backend, ej. `http://localhost:8080/api` |
 | `VITE_AUTH_BYPASS` | Ponla en `true` para saltar Keycloak en desarrollo local |
 | `VITE_DEV_USERNAME` / `VITE_DEV_ROLES` | Usuario/roles falsos inyectados cuando el bypass está activo |
 

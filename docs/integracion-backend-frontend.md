@@ -6,7 +6,7 @@ estado de cada integración.
 
 ## Configuración base
 
-- **URL base:** `VITE_API_URL` (ej. `http://localhost:8082/api`). El backend usa `context-path` `/api`,
+- **URL base:** `VITE_API_URL` (ej. `http://localhost:8080/api`). El backend usa `context-path` `/api`,
   por lo que las rutas de los servicios comienzan después de `/api` (ej. `/fichas-perfil`).
 - **Autenticación:** `Authorization: Bearer <token>` (JWT de Keycloak), adjuntado por el interceptor
   de `src/api/axiosInstance.ts`.
