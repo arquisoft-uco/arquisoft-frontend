@@ -2,10 +2,8 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
 import { X, UserPlus } from 'lucide-react';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
-import { fichasPerfilService } from '../services/fichasPerfilService';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import {
@@ -16,6 +14,9 @@ import {
   MENSAJES_VALIDACION,
 } from '../../../shared/validation';
 import AvisoNoDisponible from '../../../shared/components/AvisoNoDisponible';
+import SelectorAsesorFicha from '../../../shared/components/SelectorAsesorFicha';
+import { useAsesoresFichaVigentes } from '../../../shared/hooks/useAsesoresFichaVigentes';
+import { useEstudiantesVigentes } from '../../../shared/hooks/useEstudiantesVigentes';
 
 const schema = z.object({
   titulo: textoRequerido(LIMITES.TITULO_PROYECTO_MAX),
@@ -55,23 +56,13 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
     if (asesorFijoId) setValue('idAsesorFicha', asesorFijoId, { shouldValidate: true });
   }, [asesorFijoId, setValue]);
 
-  const {
-    data: asesores = [],
-    isLoading: asesoresCargando,
-    isError: asesoresNoDisponibles,
-  } = useQuery({
-    queryKey: ['fichas-perfil', 'asesores-disponibles'],
-    queryFn: fichasPerfilService.consultarAsesoresDisponibles,
-  });
+  const { isError: asesoresNoDisponibles } = useAsesoresFichaVigentes();
 
   const {
     data: estudiantes = [],
     isLoading: estudiantesCargando,
     isError: estudiantesNoDisponibles,
-  } = useQuery({
-    queryKey: ['fichas-perfil', 'estudiantes-disponibles'],
-    queryFn: fichasPerfilService.consultarEstudiantesDisponibles,
-  });
+  } = useEstudiantesVigentes();
 
   const { mutate, isPending, reset: resetMutation } = useRegistrarFichaPerfil();
 
@@ -80,10 +71,6 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
   const estudiantesDisponiblesParaAgregar = estudiantes.filter(
     (e) => !idEstudiantes.includes(e.id),
   );
-
-  const asesorFijoNombre = asesorFijoId
-    ? (asesores.find((a) => a.id === asesorFijoId)?.nombre ?? 'Cargando...')
-    : undefined;
 
   function agregarEstudiante(id: string) {
     if (idEstudiantes.length >= LIMITES.ESTUDIANTES_MAX) return;
@@ -158,61 +145,24 @@ export default function RegistrarFichaPerfil({ onCerrar, asesorFijoId }: Props) 
         </div>
 
         {/* Asesor: dropdown (coordinador) o solo lectura (asesor) */}
-        {asesoresCargando ? (
-          <div>
-            <p className="mb-1 text-xs font-medium text-on-surface-secondary">Asesor de Ficha</p>
-            <p
-              role="status"
-              aria-live="polite"
-              aria-busy="true"
-              className="text-xs text-on-surface-secondary"
-            >
-              <span className="sr-only">Cargando asesores disponibles…</span>
-              Cargando asesores...
+        <div>
+          <label htmlFor="fp-asesor" className="mb-1 block text-xs font-medium text-on-surface-secondary">
+            Asesor de Ficha <span aria-hidden className="text-red-500">*</span>
+          </label>
+          <SelectorAsesorFicha
+            id="fp-asesor"
+            value={watch('idAsesorFicha')}
+            onChange={(id) => setValue('idAsesorFicha', id, { shouldValidate: true })}
+            soloLectura={!!asesorFijoId}
+            aria-invalid={!!errors.idAsesorFicha}
+            aria-describedby={errors.idAsesorFicha ? 'fp-asesor-error' : undefined}
+          />
+          {errors.idAsesorFicha && (
+            <p id="fp-asesor-error" className="mt-1 text-xs text-danger" role="alert">
+              {errors.idAsesorFicha.message}
             </p>
-          </div>
-        ) : asesorFijoId ? (
-          <div>
-            <p className="mb-1 text-xs font-medium text-on-surface-secondary">Asesor de Ficha</p>
-            {asesoresNoDisponibles ? (
-              <AvisoNoDisponible recurso="asesores" />
-            ) : (
-              <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-on-surface-secondary">
-                {asesorFijoNombre}
-              </div>
-            )}
-          </div>
-        ) : asesoresNoDisponibles ? (
-          <div>
-            <p className="mb-1 text-xs font-medium text-on-surface-secondary">Asesor de Ficha</p>
-            <AvisoNoDisponible recurso="asesores" />
-          </div>
-        ) : (
-          <div>
-            <label htmlFor="fp-asesor" className="mb-1 block text-xs font-medium text-on-surface-secondary">
-              Asesor de Ficha <span aria-hidden className="text-red-500">*</span>
-            </label>
-            <select
-              id="fp-asesor"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary aria-[invalid=true]:border-danger"
-              aria-invalid={!!errors.idAsesorFicha}
-              aria-describedby={errors.idAsesorFicha ? 'fp-asesor-error' : undefined}
-              {...register('idAsesorFicha')}
-            >
-              <option value="">Seleccionar asesor...</option>
-              {asesores.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.nombre} — {a.email}
-                </option>
-              ))}
-            </select>
-            {errors.idAsesorFicha && (
-              <p id="fp-asesor-error" className="mt-1 text-xs text-danger" role="alert">
-                {errors.idAsesorFicha.message}
-              </p>
-            )}
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Estudiantes */}
         <div>

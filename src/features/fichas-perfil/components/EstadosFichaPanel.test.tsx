@@ -35,11 +35,11 @@ function crearMutacionMock(
 }
 
 const ESTADOS: EstadoFicha[] = [
-  { id: '1', nombre: 'En Construcción', descripcion: 'desc' },
-  { id: '2', nombre: 'Disponible Para Evaluación', descripcion: 'desc' },
-  { id: '3', nombre: 'Aprobada', descripcion: 'desc' },
-  { id: '4', nombre: 'Aprobada Con Observaciones', descripcion: 'desc' },
-  { id: '5', nombre: 'No Aprobada', descripcion: 'desc' },
+  { id: 'EN_CONSTRUCCION', nombre: 'En Construccion', descripcion: 'desc' },
+  { id: 'DISPONIBLE_PARA_EVALUACION', nombre: 'Disponible Para Evaluacion', descripcion: 'desc' },
+  { id: 'APROBADA', nombre: 'Aprobada', descripcion: 'desc' },
+  { id: 'APROBADA_CON_OBSERVACIONES', nombre: 'Aprobada Con Observaciones', descripcion: 'desc' },
+  { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: 'desc' },
 ];
 
 describe('EstadosFichaPanel', () => {
@@ -73,8 +73,8 @@ describe('EstadosFichaPanel', () => {
     expect(select).toBeInTheDocument();
     expect(opciones).toEqual([
       'Seleccionar estado...',
-      'En Construcción',
-      'Disponible Para Evaluación',
+      'En Construccion',
+      'Disponible Para Evaluacion',
     ]);
   });
 

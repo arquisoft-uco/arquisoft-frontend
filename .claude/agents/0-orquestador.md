@@ -26,19 +26,16 @@ subagente puede delegar a su vez: eso es asunto suyo, no tuyo.
 | 3 | `3-tester` | plan + `out` de 2 | archivos `*.test.*` | Ninguno. La estimación de tests, sí, si supera el presupuesto |
 | 4a | `4a-validator-analyze` | plan + `out` de 2 y 3 | reporte completo en su `.out.md` | Ninguno |
 | 4b | `4b-validator-report` | `out` de 4a | `.workspace/validator/validator-{ID}.md` | Ninguno |
-| 4c | `4c-commit` | plan + reporte | rama, commit, PR | Tres, ver abajo |
+| 4c | `4c-commit` | plan + reporte | rama, commit, PR | Uno, ver abajo |
 
 **Paso 4a.** `OK` = ✅ APROBADO → 4b. `RECHAZADO` = ⛔ → vuelve a **2** con un `.in.md` que solo
 apunta al `.out.md` de 4a (los bloqueantes viven ahí), luego 3 y 4a otra vez. Tras 2 rechazos
 seguidos, para y pregunta al usuario.
 
-**Paso 4c.** El subagente se detiene en cada gate con `PREGUNTA` y deja en `## Preguntas` lo que hay
-que mostrar. Pásalo tal cual y pregunta con `AskUserQuestion`. Son tres preguntas separadas, nunca
-una sola confirmación:
-
-1. Commit local.
-2. Push + PR hacia `develop`.
-3. Publicar plan y reporte en `arquisoft-docs`.
+**Paso 4c.** El subagente se detiene en su Gate único con `PREGUNTA` y deja en `## Preguntas` lo que
+hay que mostrar. Pásalo tal cual y pregunta con `AskUserQuestion` **una sola vez**: un "sí" autoriza
+commit + push + PR hacia `develop` y la publicación (rama, commit, push y PR) del plan y el reporte en
+`arquisoft-docs`.
 
 Al reanudar, dile a `4c-commit` que compruebe el estado real de git antes de repetir un paso.
 

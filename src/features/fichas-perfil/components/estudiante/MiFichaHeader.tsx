@@ -1,29 +1,12 @@
 import { useState } from 'react';
 import { Edit3, Users, UserCheck } from 'lucide-react';
 import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
-import { LIMITES } from '../../../../shared/validation';
+import EditarTituloForm from './EditarTituloForm';
 
 export default function MiFichaHeader() {
-  const { ficha, companeros, modificarTitulo } = useMiFichaPerfil();
+  const { ficha, companeros } = useMiFichaPerfil();
 
   const [editandoTitulo, setEditandoTitulo] = useState(false);
-  const [nuevoTitulo, setNuevoTitulo] = useState('');
-
-  const handleIniciarEdicion = () => {
-    setNuevoTitulo(ficha?.tituloProyecto ?? '');
-    setEditandoTitulo(true);
-  };
-
-  const handleGuardarTitulo = () => {
-    if (!nuevoTitulo.trim()) return;
-    modificarTitulo.mutate(nuevoTitulo, {
-      onSuccess: () => setEditandoTitulo(false),
-    });
-  };
-
-  const handleCancelarEdicion = () => {
-    setEditandoTitulo(false);
-  };
 
   if (!ficha) return null;
 
@@ -35,37 +18,16 @@ export default function MiFichaHeader() {
             Mi Ficha de Perfil
           </p>
           {editandoTitulo ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={nuevoTitulo}
-                onChange={(e) => setNuevoTitulo(e.target.value)}
-                maxLength={LIMITES.TITULO_PROYECTO_MAX}
-                className="flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-on-surface outline-none focus:ring-2 focus:ring-primary"
-                aria-label="Nuevo título del proyecto"
-              />
-              <button
-                type="button"
-                onClick={handleGuardarTitulo}
-                disabled={modificarTitulo.isPending || !nuevoTitulo.trim()}
-                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-50"
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelarEdicion}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs text-on-surface"
-              >
-                Cancelar
-              </button>
-            </div>
+            <EditarTituloForm
+              tituloActual={ficha.tituloProyecto}
+              onCerrar={() => setEditandoTitulo(false)}
+            />
           ) : (
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-on-surface">{ficha.tituloProyecto}</h2>
               <button
                 type="button"
-                onClick={handleIniciarEdicion}
+                onClick={() => setEditandoTitulo(true)}
                 className="rounded p-1 text-on-surface-secondary hover:text-primary"
                 aria-label="Editar título del proyecto"
               >

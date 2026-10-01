@@ -4,26 +4,40 @@ import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen, waitFor } from '../../../../test-utils/render';
 import CambiarAsesorForm from './CambiarAsesorForm';
 import { fichasPerfilService } from '../../services/fichasPerfilService';
+import { useAsesoresFichaVigentes } from '../../../../shared/hooks/useAsesoresFichaVigentes';
 import { toast } from '../../../../shared/hooks/useToast';
-import type { Asesor } from '../../models/Asesor';
+import type { Asesor } from '../../../../shared/models/Asesor';
 import type { ApiError } from '../../../../shared/models/api-response';
 
 vi.mock('../../services/fichasPerfilService', () => ({
   fichasPerfilService: {
-    consultarAsesoresDisponibles: vi.fn(),
     cambiarAsesor: vi.fn(),
   },
+}));
+vi.mock('../../../../shared/hooks/useAsesoresFichaVigentes', () => ({
+  useAsesoresFichaVigentes: vi.fn(),
 }));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
-const consultarAsesores = vi.mocked(fichasPerfilService.consultarAsesoresDisponibles);
 const cambiarAsesor = vi.mocked(fichasPerfilService.cambiarAsesor);
+const useAsesoresFichaVigentesMock = vi.mocked(useAsesoresFichaVigentes);
 
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
 const LUIS: Asesor = { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' };
 const MARTA: Asesor = { id: 'a-3', nombre: 'Marta Ríos', email: 'marta@uco.edu.co' };
+
+type ResultadoAsesores = ReturnType<typeof useAsesoresFichaVigentes>;
+
+function mockAsesores(parcial: Partial<ResultadoAsesores>) {
+  useAsesoresFichaVigentesMock.mockReturnValue({
+    data: [ANA, LUIS, MARTA],
+    isLoading: false,
+    isError: false,
+    ...parcial,
+  } as ResultadoAsesores);
+}
 
 function crearErrorApi(cuerpo: ApiError) {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
@@ -54,7 +68,7 @@ async function abrirConfirmacionCon(nombreOpcion: string) {
 describe('CambiarAsesorForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    consultarAsesores.mockResolvedValue([ANA, LUIS, MARTA]);
+    mockAsesores({});
     cambiarAsesor.mockResolvedValue(undefined);
   });
 
@@ -63,9 +77,9 @@ describe('CambiarAsesorForm', () => {
     renderFormulario();
 
     const select = await screen.findByRole('combobox', { name: 'Seleccionar nuevo asesor' });
-    await screen.findByRole('option', { name: 'Luis Gómez (luis@uco.edu.co)' });
+    await screen.findByRole('option', { name: 'Luis Gómez — luis@uco.edu.co' });
 
-    expect(screen.getByRole('option', { name: 'Marta Ríos (marta@uco.edu.co)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Marta Ríos — marta@uco.edu.co' })).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: /Ana Pérez/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
 
@@ -76,7 +90,7 @@ describe('CambiarAsesorForm', () => {
 
   it('pide confirmación con el nombre y correo del nuevo asesor y, al confirmar, cambia el asesor, notifica, limpia la selección y llama a onExito', async () => {
     const { onExito } = renderFormulario();
-    const user = await abrirConfirmacionCon('Luis Gómez (luis@uco.edu.co)');
+    const user = await abrirConfirmacionCon('Luis Gómez — luis@uco.edu.co');
 
     const dialogo = screen.getByRole('dialog');
     expect(dialogo).toHaveTextContent('Luis Gómez (luis@uco.edu.co)');
@@ -93,7 +107,7 @@ describe('CambiarAsesorForm', () => {
 
   it('no envía el cambio ni llama a onExito cuando se cancela la confirmación', async () => {
     const { onExito } = renderFormulario();
-    const user = await abrirConfirmacionCon('Luis Gómez (luis@uco.edu.co)');
+    const user = await abrirConfirmacionCon('Luis Gómez — luis@uco.edu.co');
 
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
@@ -112,7 +126,7 @@ describe('CambiarAsesorForm', () => {
       }),
     );
     const { onExito } = renderFormulario();
-    const user = await abrirConfirmacionCon('Luis Gómez (luis@uco.edu.co)');
+    const user = await abrirConfirmacionCon('Luis Gómez — luis@uco.edu.co');
 
     await user.click(screen.getByRole('button', { name: 'Sí, cambiar' }));
 
@@ -129,7 +143,7 @@ describe('CambiarAsesorForm', () => {
   });
 
   it('muestra el aviso de catálogo no disponible y no ofrece select ni envío cuando el catálogo falla', async () => {
-    consultarAsesores.mockRejectedValue(new Error('405'));
+    mockAsesores({ data: undefined, isError: true });
     renderFormulario();
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/catálogo de asesores/i);
@@ -138,11 +152,22 @@ describe('CambiarAsesorForm', () => {
   });
 
   it('deshabilita el select y Guardar cuando el único asesor del catálogo es el actual', async () => {
-    consultarAsesores.mockResolvedValue([ANA]);
+    mockAsesores({ data: [ANA] });
     renderFormulario();
 
-    expect(await screen.findByRole('option', { name: 'Sin asesores disponibles' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('option', { name: '-- Seleccionar nuevo asesor --' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Seleccionar nuevo asesor' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
+  });
+
+  it('muestra el estado de carga del catálogo de asesores y mantiene Guardar deshabilitado', async () => {
+    mockAsesores({ data: undefined, isLoading: true });
+    renderFormulario();
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Cargando asesores');
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
   });
 });

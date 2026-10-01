@@ -26,7 +26,7 @@ del plan.
 | "escribe los tests de…" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
 | "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte, como mensaje. No escribe archivos |
 | "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
-| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop`, con dos confirmaciones |
+| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs`, con una sola confirmación |
 
 - **Cadena completa sin saturar el contexto:** "orquesta HU-XXX" → `@0-orquestador`. Delega cada
   etapa en un subagente que lee sus instrucciones de `.workspace/handoff/{ID}/NN-*.in.md`; solo
@@ -84,7 +84,7 @@ Copia `.env.example` a `.env.development.local` y completa con valores reales. L
 
 | Variable | Propósito |
 |---|---|
-| `VITE_API_URL` | URL base del backend, ej. `http://localhost:8082/api` |
+| `VITE_API_URL` | URL base del backend, ej. `http://localhost:8080/api` |
 | `VITE_AUTH_BYPASS` | Ponla en `true` para saltar Keycloak en desarrollo local |
 | `VITE_DEV_USERNAME` / `VITE_DEV_ROLES` | Usuario/roles falsos inyectados cuando el bypass está activo |
 

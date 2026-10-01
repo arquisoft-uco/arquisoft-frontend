@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import Usuarios from './Usuarios';
@@ -6,7 +7,16 @@ import { Rol } from '../../shared/models/rol';
 import { useRegistrarUsuario } from './hooks/useRegistrarUsuario';
 import { useCoordinadores } from './hooks/useCoordinadores';
 import { useEstudiantes } from './hooks/useEstudiantes';
+import { useAsesores } from './hooks/useAsesores';
+import { useAsesoresFicha } from './hooks/useAsesoresFicha';
+import { useRepresentantesComite } from './hooks/useRepresentantesComite';
+import { useAdministradores } from './hooks/useAdministradores';
+import { useUsuarios } from './hooks/useUsuarios';
+import { useRemoverRol } from './hooks/useRemoverRol';
 
+vi.mock('./hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 vi.mock('./hooks/useRegistrarUsuario', () => ({
   useRegistrarUsuario: vi.fn(),
 }));
@@ -17,6 +27,49 @@ vi.mock('./hooks/useCoordinadores', () => ({
 
 vi.mock('./hooks/useEstudiantes', () => ({
   useEstudiantes: vi.fn(),
+}));
+
+vi.mock('./hooks/useAsesores', () => ({
+  useAsesores: vi.fn(),
+}));
+
+vi.mock('./hooks/useAsesoresFicha', () => ({
+  useAsesoresFicha: vi.fn(),
+}));
+
+vi.mock('./hooks/useRepresentantesComite', () => ({
+  useRepresentantesComite: vi.fn(),
+}));
+
+vi.mock('./hooks/useAdministradores', () => ({
+  useAdministradores: vi.fn(),
+}));
+
+vi.mock('./hooks/useUsuarios', () => ({
+  useUsuarios: vi.fn(),
+}));
+
+// ModificarUsuarioForm (montado condicionalmente dentro de ConsultarUsuarios) importa este hook,
+// que arrastra el service y apiClient hasta config/env.ts. Sin mock, el import revienta en test
+// por VITE_API_URL no definida, aunque el formulario nunca llegue a montarse en estos casos.
+vi.mock('./hooks/useModificarUsuario', () => ({
+  useModificarUsuario: vi.fn(),
+}));
+
+vi.mock('./hooks/useCambiarEstadoUsuario', () => ({
+  useCambiarEstadoUsuario: vi.fn(),
+}));
+
+vi.mock('./hooks/useAgregarRol', () => ({
+  useAgregarRol: vi.fn(),
+}));
+
+vi.mock('./hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
+}));
+
+vi.mock('./hooks/useEliminarUsuario', () => ({
+  useEliminarUsuario: vi.fn(),
 }));
 
 function crearCoordinadoresMock(
@@ -67,6 +120,137 @@ function crearEstudiantesMock(
   } as ReturnType<typeof useEstudiantes>;
 }
 
+function crearAsesoresMock(
+  parcial: Partial<ReturnType<typeof useAsesores>> = {},
+): ReturnType<typeof useAsesores> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useAsesores>;
+}
+
+function crearAsesoresFichaMock(
+  parcial: Partial<ReturnType<typeof useAsesoresFicha>> = {},
+): ReturnType<typeof useAsesoresFicha> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useAsesoresFicha>;
+}
+
+function crearRepresentantesComiteMock(
+  parcial: Partial<ReturnType<typeof useRepresentantesComite>> = {},
+): ReturnType<typeof useRepresentantesComite> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useRepresentantesComite>;
+}
+
+function crearAdministradoresMock(
+  parcial: Partial<ReturnType<typeof useAdministradores>> = {},
+): ReturnType<typeof useAdministradores> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useAdministradores>;
+}
+
+function crearUsuariosMock(
+  parcial: Partial<ReturnType<typeof useUsuarios>> = {},
+): ReturnType<typeof useUsuarios> {
+  return {
+    data: {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    },
+    error: null,
+    isLoading: false,
+    isError: false,
+    isFetching: false,
+    refetch: vi.fn(),
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+    rolesSeleccionados: [],
+    toggleRol: vi.fn(),
+    estado: undefined,
+    setEstado: vi.fn(),
+    vigente: undefined,
+    setVigente: vi.fn(),
+    ordenCampo: undefined,
+    ordenDireccion: 'ASC',
+    setOrden: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useUsuarios>;
+}
+
 function autenticarCon(rol: Rol) {
   setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
   setActiveRole(rol);
@@ -101,12 +285,24 @@ describe('Usuarios', () => {
     vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
     vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
     vi.mocked(useEstudiantes).mockReturnValue(crearEstudiantesMock());
+    vi.mocked(useAsesores).mockReturnValue(crearAsesoresMock());
+    vi.mocked(useAsesoresFicha).mockReturnValue(crearAsesoresFichaMock());
+    vi.mocked(useRepresentantesComite).mockReturnValue(crearRepresentantesComiteMock());
+    vi.mocked(useAdministradores).mockReturnValue(crearAdministradoresMock());
+    vi.mocked(useUsuarios).mockReturnValue(crearUsuariosMock());
+    vi.mocked(useRemoverRol).mockReturnValue({
+      objetivo: null,
+      solicitar: vi.fn(),
+      cancelar: vi.fn(),
+      confirmar: vi.fn(),
+      isPending: false,
+    });
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.queryByRole('heading', { name: 'Coordinadores' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Todos los usuarios' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /registrar usuario/i })).not.toBeInTheDocument();
   });
 
@@ -114,14 +310,40 @@ describe('Usuarios', () => {
     autenticarCon(Rol.Estudiante);
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.queryByRole('heading', { name: 'Coordinadores' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Todos los usuarios' })).not.toBeInTheDocument();
   });
 
   it('renderiza AdministradorView cuando el rol activo es Administrador', () => {
     autenticarCon(Rol.Administrador);
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.getByRole('heading', { name: 'Coordinadores' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Todos los usuarios' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
+  });
+
+  it('muestra la pestaña "Representantes del comité" al administrador', async () => {
+    // Arrange
+    autenticarCon(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<Usuarios />, { initialPath: '/usuarios' });
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Representantes del comité' }));
+
+    // Assert
+    expect(screen.getByRole('heading', { name: 'Representantes del comité' })).toBeInTheDocument();
+  });
+
+  it('muestra la pestaña "Administradores" al administrador', async () => {
+    // Arrange
+    autenticarCon(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<Usuarios />, { initialPath: '/usuarios' });
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Administradores' }));
+
+    // Assert
+    expect(screen.getByRole('heading', { name: 'Administradores' })).toBeInTheDocument();
   });
 });
