@@ -1,3 +1,4 @@
+import { Trash2 } from 'lucide-react';
 import type { Coordinador } from '../../models/Coordinador';
 import PaginadorListado from './PaginadorListado';
 
@@ -8,9 +9,10 @@ interface Props {
   page: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onRemover: (coordinador: Coordinador) => void;
 }
 
-const COLUMNAS = ['Identificador', 'Nombre', 'Correo', 'Contacto', 'Estado', 'Vigente'];
+const COLUMNAS = ['Identificador', 'Nombre', 'Correo', 'Contacto', 'Estado', 'Vigente', 'Acciones'];
 
 export default function CoordinadoresTable({
   coordinadores,
@@ -19,6 +21,7 @@ export default function CoordinadoresTable({
   page,
   pageSize,
   onPageChange,
+  onRemover,
 }: Props) {
   return (
     <div className="flex flex-col gap-4">
@@ -62,6 +65,21 @@ export default function CoordinadoresTable({
                     >
                       {coordinador.vigente ? 'Vigente' : 'Dado de baja'}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onRemover(coordinador)}
+                      disabled={!coordinador.vigente}
+                      aria-label={
+                        coordinador.vigente
+                          ? `Quitar rol coordinador a ${coordinador.nombre}`
+                          : `${coordinador.nombre} ya no es coordinador vigente`
+                      }
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-nav-hover-bg hover:text-danger disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-on-surface-secondary sm:h-9 sm:w-9"
+                    >
+                      <Trash2 size={16} aria-hidden />
+                    </button>
                   </td>
                 </tr>
               ))

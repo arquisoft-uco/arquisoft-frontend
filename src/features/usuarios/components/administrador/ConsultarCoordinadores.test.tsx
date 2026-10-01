@@ -1,13 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarCoordinadores from './ConsultarCoordinadores';
 import { useCoordinadores } from '../../hooks/useCoordinadores';
+import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
+import { toast } from '../../../../shared/hooks/useToast';
 import type { Coordinador } from '../../models/Coordinador';
 import type { Page } from '../../../../shared/models/api-response';
 
 vi.mock('../../hooks/useCoordinadores', () => ({
   useCoordinadores: vi.fn(),
+}));
+vi.mock('../../hooks/useRemoverCoordinador', () => ({
+  useRemoverCoordinador: vi.fn(),
+}));
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
 const COORDINADOR_VIGENTE: Coordinador = {
@@ -64,9 +72,37 @@ function crearHookMock(
   } as ReturnType<typeof useCoordinadores>;
 }
 
+function crearMutacionRemoverMock(
+  mutate: ReturnType<typeof vi.fn>,
+): ReturnType<typeof useRemoverCoordinador> {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as ReturnType<typeof useRemoverCoordinador>;
+}
+
 describe('ConsultarCoordinadores', () => {
+  let mockRemover: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(useCoordinadores).mockReset();
+    mockRemover = vi.fn();
+    vi.mocked(useRemoverCoordinador).mockReturnValue(crearMutacionRemoverMock(mockRemover));
   });
 
   it('muestra el estado de carga con el título y el botón de actualizar visibles', () => {
@@ -166,5 +202,88 @@ describe('ConsultarCoordinadores', () => {
 
     expect(screen.queryByRole('button', { name: 'Página anterior' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument();
+  });
+
+  it('el botón de quitar rol de una fila de baja está deshabilitado y el de una vigente habilitado', () => {
+    // Arrange
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE, COORDINADOR_DE_BAJA]) }),
+    );
+
+    // Act
+    render(<ConsultarCoordinadores />);
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Luis Gómez ya no es coordinador vigente' }),
+    ).toBeDisabled();
+  });
+
+  it('el botón de una fila abre la confirmación con el texto exacto y cancelar no llama a la mutación', async () => {
+    // Arrange
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]) }),
+    );
+    const user = userEvent.setup();
+    render(<ConsultarCoordinadores />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }));
+    const dialogo = screen.getByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(dialogo).toHaveTextContent(
+      '¿Está seguro de eliminar el rol Coordinador para el usuario Ana Pérez?',
+    );
+    expect(mockRemover).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('confirmar llama a la mutación con el id del usuario, lanza toast.success y cierra el diálogo', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, options) => {
+      options.onSuccess();
+      options.onSettled();
+    });
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]) }),
+    );
+    const user = userEvent.setup();
+    render(<ConsultarCoordinadores />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mockRemover).toHaveBeenCalledWith(COORDINADOR_VIGENTE.id, expect.any(Object));
+    expect(toast.success).toHaveBeenCalledWith('Rol eliminado', expect.any(String));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('si la baja falla lanza toast.error con el mensaje del backend y cierra el diálogo', async () => {
+    // Arrange
+    mockRemover.mockImplementation((_id, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Sin rol vigente' } },
+      });
+      options.onSettled();
+    });
+    vi.mocked(useCoordinadores).mockReturnValue(
+      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]) }),
+    );
+    const user = userEvent.setup();
+    render(<ConsultarCoordinadores />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('No se pudo eliminar el rol', 'Sin rol vigente');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

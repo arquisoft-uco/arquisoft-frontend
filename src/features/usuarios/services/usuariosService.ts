@@ -24,6 +24,9 @@ export const usuariosService = {
       } satisfies AgregarRolUsuarioRequest)
       .then(() => undefined),
 
+  removerCoordinador: (usuarioId: string): Promise<void> =>
+    apiClient.delete<void>(`/usuarios/${usuarioId}/coordinador`).then(() => undefined),
+
   eliminarUsuario: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}`).then(() => undefined),
 

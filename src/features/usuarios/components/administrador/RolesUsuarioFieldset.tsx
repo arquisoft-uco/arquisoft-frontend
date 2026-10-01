@@ -5,40 +5,49 @@ const ROLES_AGREGABLES: Partial<Record<Rol, true>> = {
   [Rol.Coordinador]: true,
 };
 
+// Cada HU de quitar rol habilita el suyo añadiendo una entrada aquí y un método de service.
+const ROLES_QUITABLES: Partial<Record<Rol, true>> = {
+  [Rol.Coordinador]: true,
+};
+
 interface Props {
   rolesAsignados: ReadonlySet<Rol>;
   pendiente: boolean;
   onAgregar: (rol: Rol) => void;
+  onQuitar: (rol: Rol) => void;
 }
 
-export default function RolesUsuarioFieldset({ rolesAsignados, pendiente, onAgregar }: Props) {
+export default function RolesUsuarioFieldset({ rolesAsignados, pendiente, onAgregar, onQuitar }: Props) {
   return (
     <fieldset aria-busy={pendiente}>
       <legend className="mb-1 text-xs font-medium text-on-surface-secondary">
-        Roles (los ya asignados no se pueden quitar)
+        Roles (por ahora solo se puede quitar el de coordinador)
       </legend>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {Object.values(Rol).map((rol) => {
           const asignado = rolesAsignados.has(rol);
           const agregable = !asignado && ROLES_AGREGABLES[rol] === true;
+          const quitable = asignado && ROLES_QUITABLES[rol] === true;
+          const bloqueado = asignado && !quitable;
           const noDisponible = !asignado && !agregable;
           return (
             <label
               key={rol}
               className={[
                 'tap-target gap-2 text-sm text-on-surface',
-                asignado || noDisponible ? 'cursor-not-allowed opacity-60' : '',
+                bloqueado || noDisponible ? 'cursor-not-allowed opacity-60' : '',
               ].join(' ')}
             >
               <input
                 type="checkbox"
                 value={rol}
                 checked={asignado}
-                disabled={agregable && pendiente}
-                aria-disabled={asignado || noDisponible}
-                aria-busy={agregable && pendiente}
+                disabled={(agregable || quitable) && pendiente}
+                aria-disabled={bloqueado || noDisponible}
+                aria-busy={(agregable || quitable) && pendiente}
                 onChange={(evento) => {
                   if (agregable && evento.target.checked) onAgregar(rol);
+                  if (quitable && !evento.target.checked) onQuitar(rol);
                 }}
                 className="checkbox-control rounded border-border text-primary focus:ring-primary"
               />

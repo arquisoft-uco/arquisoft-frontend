@@ -1,13 +1,38 @@
+import { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useCoordinadores } from '../../hooks/useCoordinadores';
+import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
+import type { Coordinador } from '../../models/Coordinador';
+import { toast } from '../../../../shared/hooks/useToast';
+import { Rol } from '../../../../shared/models/rol';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import ConfirmarRemoverRolDialog from './ConfirmarRemoverRolDialog';
 import CoordinadoresTable from './CoordinadoresTable';
 
 export default function ConsultarCoordinadores() {
+  const [coordinadorARemover, setCoordinadorARemover] = useState<Coordinador | null>(null);
+  const remover = useRemoverCoordinador();
   const { data, isLoading, isError, error, isFetching, refetch, page, pageSize, goToPage } =
     useCoordinadores();
 
   const totalElements = data?.totalElements ?? 0;
+
+  function confirmarRemocion() {
+    if (!coordinadorARemover) return;
+    remover.mutate(coordinadorARemover.id, {
+      onSuccess: () => {
+        toast.success('Rol eliminado', `${coordinadorARemover.nombre} ya no es coordinador.`);
+      },
+      onError: (err) => {
+        toast.error('No se pudo eliminar el rol', getApiErrorMessage(err, 'Intenta nuevamente.'));
+      },
+      onSettled: () => setCoordinadorARemover(null),
+    });
+  }
+
+  function cancelarRemocion() {
+    if (!remover.isPending) setCoordinadorARemover(null);
+  }
 
   return (
     <section className="flex flex-col gap-6" aria-labelledby="coordinadores-titulo">
@@ -63,6 +88,17 @@ export default function ConsultarCoordinadores() {
           page={page}
           pageSize={pageSize}
           onPageChange={goToPage}
+          onRemover={setCoordinadorARemover}
+        />
+      )}
+
+      {coordinadorARemover && (
+        <ConfirmarRemoverRolDialog
+          rol={Rol.Coordinador}
+          nombreUsuario={coordinadorARemover.nombre}
+          cargando={remover.isPending}
+          onConfirmar={confirmarRemocion}
+          onCancelar={cancelarRemocion}
         />
       )}
     </section>

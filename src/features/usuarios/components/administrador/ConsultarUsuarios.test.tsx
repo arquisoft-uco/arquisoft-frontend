@@ -5,6 +5,7 @@ import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
 import { useAgregarCoordinador } from '../../hooks/useAgregarCoordinador';
+import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Usuario } from '../../models/Usuario';
@@ -23,6 +24,10 @@ vi.mock('../../hooks/useModificarUsuario', () => ({
 
 vi.mock('../../hooks/useAgregarCoordinador', () => ({
   useAgregarCoordinador: vi.fn(),
+}));
+
+vi.mock('../../hooks/useRemoverCoordinador', () => ({
+  useRemoverCoordinador: vi.fn(),
 }));
 
 vi.mock('../../hooks/useEliminarUsuario', () => ({
@@ -57,7 +62,9 @@ function crearMutacionEliminarMock(
   } as ReturnType<typeof useEliminarUsuario>;
 }
 
-function crearMutacionAgregarMock(): ReturnType<typeof useAgregarCoordinador> {
+function crearMutacionAgregarMock<
+  T = ReturnType<typeof useAgregarCoordinador>,
+>(): T {
   return {
     data: undefined,
     error: null,
@@ -75,7 +82,7 @@ function crearMutacionAgregarMock(): ReturnType<typeof useAgregarCoordinador> {
     mutate: vi.fn(),
     mutateAsync: vi.fn(),
     reset: vi.fn(),
-  } as ReturnType<typeof useAgregarCoordinador>;
+  } as T;
 }
 
 function crearMutacionModificarMock(): ReturnType<typeof useModificarUsuario> {
@@ -162,6 +169,9 @@ describe('ConsultarUsuarios', () => {
     vi.mocked(useUsuarios).mockReset();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
     vi.mocked(useAgregarCoordinador).mockReturnValue(crearMutacionAgregarMock());
+    vi.mocked(useRemoverCoordinador).mockReturnValue(
+      crearMutacionAgregarMock<ReturnType<typeof useRemoverCoordinador>>(),
+    );
     vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
