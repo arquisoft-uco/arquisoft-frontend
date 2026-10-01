@@ -30,7 +30,7 @@ describe('useAgregarRol', () => {
     vi.clearAllMocks();
   });
 
-  it.each([Rol.Coordinador, Rol.Estudiante, Rol.Asesor])(
+  it.each([Rol.Coordinador, Rol.Estudiante, Rol.Asesor, Rol.AsesorFicha])(
     'agrega el rol %s con el id e invalida el prefijo de usuarios al éxito',
     async (rol) => {
       // Arrange
