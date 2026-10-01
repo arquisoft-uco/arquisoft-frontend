@@ -3,7 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage, getApiFieldErrors, hasApiErrorCode } from '../../../../shared/utils/api-error';
+import {
+  getApiErrorMessage,
+  getApiFieldErrors,
+  hasApiErrorCode,
+} from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido, uuidValido } from '../../../../shared/validation';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
@@ -14,6 +18,10 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+
+function esCampoDelFormulario(campo: string): campo is keyof FormValues {
+  return campo === 'destinatario' || campo === 'mensajeSolicitud';
+}
 
 export interface TextosSolicitudNovedad {
   titulo: string;
@@ -63,9 +71,13 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
           setConfirmando(false);
         },
         onError: (err) => {
-          getApiFieldErrors(err).forEach((fieldError) => {
-            setError(fieldError.field as keyof FormValues, { message: fieldError.message });
-          });
+          // El toast es incondicional: el usuario debe enterarse del fallo aunque el
+          // campo con el error quede fuera de la vista.
+          toast.error(
+            'No se pudo enviar la solicitud',
+            getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.'),
+          );
+
           if (
             hasApiErrorCode(err, 'DESTINATARIO_NO_ENCONTRADO') ||
             hasApiErrorCode(err, 'DESTINATARIO_NO_ASIGNADO')
@@ -74,18 +86,22 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
               message: getApiErrorMessage(err, 'El destinatario indicado no es válido.'),
             });
           }
-          toast.error(
-            'No se pudo enviar la solicitud',
-            getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.'),
-          );
+
+          getApiFieldErrors(err).forEach((fieldError) => {
+            if (esCampoDelFormulario(fieldError.field)) {
+              setError(fieldError.field, { message: fieldError.message });
+            }
+          });
+
           setConfirmando(false);
         },
       },
     );
   }
 
-  function handleAbrirConfirmacion() {
-    setConfirmando(true);
+  function handleSubmitNativo(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (isValid) setConfirmando(true);
   }
 
   function handleCancelarConfirmacion() {
@@ -96,15 +112,11 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
     handleSubmit(onSubmit)();
   }
 
-  function handleSubmitNativo(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-  }
-
   return (
-    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5">
       <h2 className="mb-4 text-base font-semibold text-on-surface">{textos.titulo}</h2>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo}>
+      <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo} aria-busy={enviando}>
         <div>
           <label htmlFor="sn-destinatario" className="field-label">
             {textos.etiquetaDestinatario} <span aria-hidden className="text-danger">*</span>
@@ -151,10 +163,9 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
 
         <div className="actions-row border-t border-border pt-4">
           <button
-            type="button"
-            onClick={handleAbrirConfirmacion}
+            type="submit"
             disabled={!isValid || enviando}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:py-2"
           >
             {enviando ? 'Enviando...' : 'Enviar solicitud'}
           </button>

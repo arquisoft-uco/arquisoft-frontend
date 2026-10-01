@@ -172,4 +172,31 @@ describe('SolicitudNovedadForm', () => {
     expect(screen.queryByText('Ya enviaste esta misma solicitud hoy.')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario/)).toHaveValue(UUID_VALIDO);
   });
+
+  it('abre la confirmación al enviar con Enter, pinta los errores de campos del formulario e ignora los ajenos', async () => {
+    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) =>
+      opciones?.onError?.(
+        crearErrorApi({
+          error: 'Bad Request',
+          message: 'Datos inválidos.',
+          status: 400,
+          fieldErrors: [
+            { field: 'mensajeSolicitud', message: 'El mensaje excede el límite.' },
+            { field: 'campoAjeno', message: 'No debe pintarse.' },
+          ],
+        }),
+      ),
+    );
+    renderizarFormulario(mutate);
+    const user = userEvent.setup();
+
+    await llenarFormularioValido(user);
+    await user.click(screen.getByLabelText(/Destinatario/));
+    await user.keyboard('{Enter}');
+    await user.click(await screen.findByRole('button', { name: 'Enviar' }));
+
+    expect(await screen.findByText('El mensaje excede el límite.')).toBeInTheDocument();
+    expect(screen.queryByText('No debe pintarse.')).not.toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith('No se pudo enviar la solicitud', 'Datos inválidos.');
+  });
 });
