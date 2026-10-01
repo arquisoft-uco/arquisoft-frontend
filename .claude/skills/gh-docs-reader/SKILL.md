@@ -91,9 +91,9 @@ directo a Nivel 3: `artefactos/estrategicos/event-storming/Ficha Perfil - Event 
 ### IDs no sincronizados con el catálogo maestro
 
 El catálogo maestro (`historias_usuario_priorizadas.md`) se reconsolida con el tiempo y **reutiliza
-números de HU** para historias completamente distintas (ver `HU278`/`HU279`/`HU280`: hoy son "Enviar
-Correcciones de Revisión Ítem", "Cerrar Observación Ítem" y "Reabrir Observación Ítem" — nada que ver
-con lo que esos archivos locales documentan). Antes de tomar un ID local como válido:
+números de HU** para historias completamente distintas (ver `HU280`: hoy es "Reabrir Observación
+Ítem" — nada que ver con lo que documenta el archivo local; `HU278`/`HU279` se resolvieron como
+HU-239/HU-249 y se borraron). Antes de tomar un ID local como válido:
 
 1. Busca el título exacto del archivo local en el catálogo maestro vigente (`grep` por el comando, no
    solo por el número).
@@ -103,7 +103,7 @@ con lo que esos archivos locales documentan). Antes de tomar un ID local como v�
    local al nuevo número.
 4. **No aparece con ningún ID en el catálogo vigente** (ni con el número viejo ni con uno nuevo) →
    conserva el ID local tal cual, pero agrega el sufijo `-NO_SINCRONIZADA` al nombre de archivo
-   (`HU278-NO_SINCRONIZADA-consultar-asesores-disponibles.md`) y una nota `⚠️ NO_SINCRONIZADA` al
+   (`HU280-NO_SINCRONIZADA-consultar-fichas-perfil-representante.md`) y una nota `⚠️ NO_SINCRONIZADA` al
    inicio del archivo explicando qué se buscó y no se encontró. No lo cites como `HU-{N}` sin esa
    salvedad en un plan — es un identificador de conveniencia, no confirmado contra backend.
 
