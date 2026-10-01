@@ -20,6 +20,7 @@ const REMOVER_POR_ROL: Partial<Record<Rol, (usuarioId: string) => Promise<void>>
   [Rol.Asesor]: usuariosService.removerAsesor,
   [Rol.AsesorFicha]: usuariosService.removerAsesorFicha,
   [Rol.RepresentanteComiteCurriculum]: usuariosService.removerRepresentanteComite,
+  [Rol.Administrador]: usuariosService.removerAdministrador,
 };
 
 export function useRemoverRol() {

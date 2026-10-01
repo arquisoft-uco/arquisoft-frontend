@@ -369,8 +369,9 @@ describe('ModificarUsuarioForm', () => {
     expect(checkbox).not.toBeChecked();
   });
 
-  it('un usuario administrador muestra el checkbox marcado y bloqueado, sin agregar ni remover', async () => {
+  it('desmarcar Administrador abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
     // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
     const user = userEvent.setup();
     render(
       <ModificarUsuarioForm usuario={{ ...usuario, esAdministrador: true }} onCerrar={onCerrar} />,
@@ -381,12 +382,23 @@ describe('ModificarUsuarioForm', () => {
 
     // Act
     await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
     // Assert
-    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.Administrador]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
     expect(mockAgregar).not.toHaveBeenCalled();
-    expect(mockRemover).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(usuario.id, Rol.Administrador, expect.any(Function));
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 
   it('desmarcar Representante del Comité abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {

@@ -1,13 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarAdministradores from './ConsultarAdministradores';
 import { useAdministradores } from '../../hooks/useAdministradores';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { Rol } from '../../../../shared/models/rol';
 import type { Administrador } from '../../models/Administrador';
 import type { Page } from '../../../../shared/models/api-response';
 
 vi.mock('../../hooks/useAdministradores', () => ({
   useAdministradores: vi.fn(),
+}));
+
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 const VIGENTE: Administrador = {
@@ -60,9 +67,29 @@ function crearHookMock(
   } as ReturnType<typeof useAdministradores>;
 }
 
+type ConfirmarRemocion = (usuarioId: string, rol: Rol, onExito?: () => void) => void;
+
+function usarRemoverRolFalso(confirmar: ConfirmarRemocion): ReturnType<typeof useRemoverRol> {
+  const [objetivo, setObjetivo] = useState<ReturnType<typeof useRemoverRol>['objetivo']>(null);
+  return {
+    objetivo,
+    solicitar: setObjetivo,
+    cancelar: () => setObjetivo(null),
+    confirmar: (onExito) => {
+      if (objetivo) confirmar(objetivo.usuarioId, objetivo.rol, onExito);
+      setObjetivo(null);
+    },
+    isPending: false,
+  };
+}
+
 describe('ConsultarAdministradores', () => {
+  let mockRemover: Mock<ConfirmarRemocion>;
+
   beforeEach(() => {
     vi.mocked(useAdministradores).mockReset();
+    mockRemover = vi.fn<ConfirmarRemocion>();
+    vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover));
   });
 
   it('muestra el estado de carga con el título visible', () => {
@@ -96,7 +123,7 @@ describe('ConsultarAdministradores', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('lista los administradores con su vigencia y sin acciones de remoción', () => {
+  it('lista los administradores con su vigencia y la columna de acciones', () => {
     vi.mocked(useAdministradores).mockReturnValue(
       crearHookMock({ data: crearPagina([VIGENTE, DE_BAJA]) }),
     );
@@ -109,8 +136,36 @@ describe('ConsultarAdministradores', () => {
     expect(screen.getByText('luis@uco.edu.co')).toBeInTheDocument();
     expect(screen.getByText('5002')).toBeInTheDocument();
     expect(screen.getByText('Dado de baja')).toBeInTheDocument();
-    expect(screen.queryByRole('columnheader', { name: 'Acciones' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /quitar rol/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Acciones' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Quitar rol administrador a Ana Pérez' })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Luis Gómez ya no es administrador vigente' }),
+    ).toBeDisabled();
+  });
+
+  it('cancelar la confirmación no llama a la mutación y confirmar la llama con el rol administrador', async () => {
+    // Arrange
+    vi.mocked(useAdministradores).mockReturnValue(crearHookMock({ data: crearPagina([VIGENTE]) }));
+    const user = userEvent.setup();
+    render(<ConsultarAdministradores />);
+    const nombreBoton = 'Quitar rol administrador a Ana Pérez';
+
+    // Act
+    await user.click(screen.getByRole('button', { name: nombreBoton }));
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const llamadasTrasCancelar = mockRemover.mock.calls.length;
+    await user.click(screen.getByRole('button', { name: nombreBoton }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(textoDialogo).toContain(
+      '¿Está seguro de eliminar el rol Administrador para el usuario Ana Pérez?',
+    );
+    expect(llamadasTrasCancelar).toBe(0);
+    expect(mockRemover).toHaveBeenCalledWith(VIGENTE.id, Rol.Administrador, undefined);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('Actualizar vuelve a consultar con refetch', async () => {
