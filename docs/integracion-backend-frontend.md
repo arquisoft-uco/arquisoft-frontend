@@ -124,7 +124,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 |---|---|---|---|---|
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
 | `modificarUsuario` | PATCH | `/usuarios/{usuarioId}` | `{ identificador?, nombre?, email?, contacto? }` (sin `roles`; el DTO real acepta además `nombres?`/`apellidos?`, que el frontend no envía) | `204` sin cuerpo |
-| `agregarCoordinador` (HU-243) | PATCH | `/usuarios/{usuarioId}` | `{ roles: ['coordinador'] }` | `204` sin cuerpo (aditivo; 400 `USUARIO_ROL_NO_VALIDO`; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `COORDINADOR_USUARIO_DUPLICADO`; 503 `USUARIO_IDP_NO_DISPONIBLE`). No hay endpoint propio: es el mismo PATCH con solo roles |
+| `agregarRol(usuarioId, rol)` (HU-243 coordinador, HU-247 estudiante) | PATCH | `/usuarios/{usuarioId}` | `{ roles: ['coordinador'] }` o `{ roles: ['estudiante'] }` | `204` sin cuerpo (aditivo; 400 `USUARIO_ROL_NO_VALIDO`; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `COORDINADOR_USUARIO_DUPLICADO` (coordinador); un estudiante vigente se rechaza con 422 (el cliente ya bloquea su checkbox); 503 `USUARIO_IDP_NO_DISPONIBLE`). No hay endpoint propio: es el mismo PATCH con solo roles |
 | `removerCoordinador` (HU-244) | DELETE | `/usuarios/{usuarioId}/coordinador` | — | `204` sin cuerpo (baja lógica del coordinador y revocación del realm role; 400 id no UUID; 422 sin rol coordinador vigente, `COORDINADOR_NO_ENCONTRADO`, `USUARIO_NO_ENCONTRADO`; 503 `USUARIO_IDP_NO_DISPONIBLE`). Verificado contra `RemoverCoordinadorController`; client role `usuarios:coordinador:delete` |
 | `eliminarUsuario` | DELETE | `/usuarios/{usuarioId}` | — | `204` sin cuerpo (eliminación lógica; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `USUARIO_ROLES_VIGENTES`; 503 `USUARIO_IDP_NO_DISPONIBLE`) |
 | `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
@@ -179,7 +179,7 @@ abajo para los demás roles `usuarios:*-administrador:view` de este contexto. Co
 administrador sin ese client role recibe `403` y el interceptor lo lleva a `/forbidden`; no se ve con
 `VITE_AUTH_BYPASS=true`.
 
-No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado del rol coordinador (`agregarCoordinador`) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Quitar el rol coordinador (`removerCoordinador`) usa su propio `DELETE /usuarios/{id}/coordinador`; el client role `usuarios:coordinador:delete` puede faltar igual. Los listados de
+No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado de roles coordinador y estudiante (`agregarRol`, HU-243 y HU-247) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Quitar el rol coordinador (`removerCoordinador`) usa su propio `DELETE /usuarios/{id}/coordinador`; el client role `usuarios:coordinador:delete` puede faltar igual. Los listados de
 coordinadores, estudiantes y el unificado de "todos los usuarios" son los únicos listados de la
 feature.
 

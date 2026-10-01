@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
-import { useAgregarCoordinador } from '../../hooks/useAgregarCoordinador';
+import { useAgregarRol } from '../../hooks/useAgregarRol';
 import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
 import { rolesDeUsuario } from '../../utils/roles-usuario';
 import type { Usuario } from '../../models/Usuario';
@@ -21,7 +21,7 @@ import {
   soloDigitosEntre,
   textoEntre,
 } from '../../../../shared/validation';
-import type { Rol } from '../../../../shared/models/rol';
+import { ETIQUETAS_ROL, type Rol } from '../../../../shared/models/rol';
 import CampoTexto from './CampoTexto';
 import ConfirmarRemoverRolDialog from './ConfirmarRemoverRolDialog';
 import RolesUsuarioFieldset from './RolesUsuarioFieldset';
@@ -70,7 +70,7 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
 
   const { mutate, isPending } = useModificarUsuario();
 
-  const agregarCoordinador = useAgregarCoordinador();
+  const agregar = useAgregarRol();
   const removerCoordinador = useRemoverCoordinador();
   const [rolAQuitar, setRolAQuitar] = useState<Rol | null>(null);
   const [rolesAsignados, setRolesAsignados] = useState<ReadonlySet<Rol>>(
@@ -78,15 +78,21 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
   );
 
   function agregarRol(rol: Rol) {
-    agregarCoordinador.mutate(usuario.id, {
-      onSuccess: () => {
-        setRolesAsignados((previos) => new Set(previos).add(rol));
-        toast.success('Rol agregado', `${usuario.nombre} ahora es coordinador.`);
+    agregar.mutate(
+      { usuarioId: usuario.id, rol },
+      {
+        onSuccess: () => {
+          setRolesAsignados((previos) => new Set(previos).add(rol));
+          toast.success(
+            'Rol agregado',
+            `Se agregó el rol ${ETIQUETAS_ROL[rol]} a ${usuario.nombre}.`,
+          );
+        },
+        onError: (err) => {
+          toast.error('Error al agregar el rol', getApiErrorMessage(err, 'Intenta nuevamente.'));
+        },
       },
-      onError: (err) => {
-        toast.error('Error al agregar el rol', getApiErrorMessage(err, 'Intenta nuevamente.'));
-      },
-    });
+    );
   }
 
   function quitarRol() {
@@ -205,7 +211,7 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
 
         <RolesUsuarioFieldset
           rolesAsignados={rolesAsignados}
-          pendiente={agregarCoordinador.isPending || removerCoordinador.isPending}
+          pendiente={agregar.isPending || removerCoordinador.isPending}
           onAgregar={agregarRol}
           onQuitar={setRolAQuitar}
         />

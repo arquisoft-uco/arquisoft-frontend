@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import ModificarUsuarioForm from './ModificarUsuarioForm';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
-import { useAgregarCoordinador } from '../../hooks/useAgregarCoordinador';
+import { useAgregarRol } from '../../hooks/useAgregarRol';
 import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
 import { toast } from '../../../../shared/hooks/useToast';
 import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
@@ -12,8 +12,8 @@ import type { Usuario } from '../../models/Usuario';
 vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
 }));
-vi.mock('../../hooks/useAgregarCoordinador', () => ({
-  useAgregarCoordinador: vi.fn(),
+vi.mock('../../hooks/useAgregarRol', () => ({
+  useAgregarRol: vi.fn(),
 }));
 vi.mock('../../hooks/useRemoverCoordinador', () => ({
   useRemoverCoordinador: vi.fn(),
@@ -76,8 +76,8 @@ describe('ModificarUsuarioForm', () => {
     mockAgregar = vi.fn();
     mockRemover = vi.fn();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionMock(mockMutate));
-    vi.mocked(useAgregarCoordinador).mockReturnValue(
-      crearMutacionMock<ReturnType<typeof useAgregarCoordinador>>(mockAgregar),
+    vi.mocked(useAgregarRol).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useAgregarRol>>(mockAgregar),
     );
     vi.mocked(useRemoverCoordinador).mockReturnValue(
       crearMutacionMock<ReturnType<typeof useRemoverCoordinador>>(mockRemover),
@@ -100,7 +100,7 @@ describe('ModificarUsuarioForm', () => {
     ).not.toBeChecked();
   });
 
-  it('los roles asignados distintos de Coordinador y los aún no disponibles no se pueden accionar', async () => {
+  it('un Estudiante ya asignado y los roles aún no disponibles no se pueden accionar', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
@@ -127,7 +127,7 @@ describe('ModificarUsuarioForm', () => {
 
   it('marcar Coordinador en un usuario que no lo es llama al hook con su id y queda marcado tras el éxito', async () => {
     // Arrange
-    mockAgregar.mockImplementation((_id, options) => {
+    mockAgregar.mockImplementation((_vars, options) => {
       options.onSuccess();
     });
     const user = userEvent.setup();
@@ -140,16 +140,69 @@ describe('ModificarUsuarioForm', () => {
     await user.click(checkbox);
 
     // Assert
-    expect(mockAgregar).toHaveBeenCalledWith(usuario.id, expect.any(Object));
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Coordinador },
+      expect.any(Object),
+    );
     expect(toast.success).toHaveBeenCalledWith('Rol agregado', expect.any(String));
     expect(checkbox).toBeChecked();
     expect(checkbox).toHaveAttribute('aria-disabled', 'false');
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
+  it('marcar Estudiante en un usuario que no lo es llama al hook con su id y rol, y queda marcado y bloqueado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esEstudiante: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Estudiante },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.Estudiante]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Estudiante falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Usuario eliminado' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esEstudiante: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', 'Usuario eliminado');
+    expect(checkbox).not.toBeChecked();
+  });
+
   it('si agregar Coordinador falla muestra toast.error y el checkbox queda desmarcado', async () => {
     // Arrange
-    mockAgregar.mockImplementation((_id, options) => {
+    mockAgregar.mockImplementation((_vars, options) => {
       options.onError({
         isAxiosError: true,
         response: { status: 503, data: { message: 'IDP caído' } },
@@ -171,8 +224,8 @@ describe('ModificarUsuarioForm', () => {
 
   it('mientras se agrega el rol el checkbox de Coordinador está deshabilitado y ocupado', () => {
     // Arrange
-    vi.mocked(useAgregarCoordinador).mockReturnValue(
-      crearMutacionMock<ReturnType<typeof useAgregarCoordinador>>(mockAgregar, true),
+    vi.mocked(useAgregarRol).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useAgregarRol>>(mockAgregar, true),
     );
 
     // Act
