@@ -238,6 +238,42 @@ están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuari
 real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
 mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
 
+## Endpoints de Solicitudes
+
+Servicio: `src/features/solicitudes/services/solicitudesService.ts`.
+
+### Implementados y alineados
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
+|---|---|---|---|---|
+| `enviarSolicitudNovedadCoordinador` | POST | `/solicitudes/novedad-coordinador` | `{ destinatario, mensajeSolicitud }` | `201 { id }` |
+
+Verificado contra `EnviarSolicitudNovedadCoordinadorController.java`,
+`EnviarSolicitudNovedadCoordinadorRequestDTO.java` y `EnviarSolicitudNovedadCoordinadorResponseDTO.java`
+de `../arquisoft-backend`. Sin traducción de nombres en el service: el modelo del frontend coincide
+1:1 con el DTO real. El remitente no viaja en el body: el backend lo toma del `sub` del JWT.
+
+`mensajeSolicitud` admite entre 1 y 100 caracteres (`SolicitudesLimits.Solicitud.MENSAJE_MIN/MAX`). El
+DTO es un `record` sin `@Size`: el límite lo impone la validación de dominio y responde `400`.
+
+Errores mapeados por `errorCode` (`ErrorResponseDTO`): 422 `DESTINATARIO_NO_ENCONTRADO` y
+`DESTINATARIO_NO_ASIGNADO` (se pintan junto al campo destinatario); 422 `SOLICITUD_DUPLICADA` (solo
+toast, es una regla de conjunto).
+
+### Degradación en la interfaz
+
+El backend no expone un endpoint para que el estudiante obtenga su coordinador, así que
+`EnviarSolicitudNovedadForm` pide el UUID del destinatario como texto y muestra `AvisoNoDisponible`
+(catálogo de coordinadores). A diferencia de los formularios de fichas, **no deshabilita el envío**:
+el UUID tecleado es un sustituto temporal hasta que exista ese catálogo.
+
+### Dependencia operativa: client role en Keycloak
+
+El endpoint exige la authority `solicitudes:solicitud:create` (`SolicitudesAuthorities.SOLICITUD_CREATE`).
+No se pudo verificar que esté mapeada a un rol en el realm de `arquisoft-infra`: si falta, con login
+real el estudiante recibe `403` (el interceptor lo lleva a `/forbidden`). No se ve con
+`VITE_AUTH_BYPASS=true`.
+
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
 Estos endpoints existen en el backend pero no se integran en esta iteración:
@@ -254,7 +290,8 @@ del backend; las reglas propias de la lógica de negocio permanecen en cada form
 - `limites.ts` — constantes de las restricciones `@Size` del backend:
   `TITULO_PROYECTO_MAX = 100`, `ITEM_CONTENIDO_MAX = 7000`, `ESTADO_EVALUACION_ID_MAX = 50`,
   `ESTUDIANTES_MAX = 3`, `USUARIO_IDENTIFICADOR_MIN/MAX = 4/30`, `USUARIO_NOMBRE_MIN/MAX = 2/50`,
-  `USUARIO_EMAIL_MIN/MAX = 6/50`, `USUARIO_CONTACTO_MIN/MAX = 10/15`.
+  `USUARIO_EMAIL_MIN/MAX = 6/50`, `USUARIO_CONTACTO_MIN/MAX = 10/15`, `MENSAJE_SOLICITUD_MAX = 100`
+  (este último viene de la validación de dominio, no de un `@Size`).
 - `expresiones-regulares.ts` — `EMAIL_REGEX` (alineado a `PATRON_CORREO` del backend), `UUID_REGEX`,
   `DIGITOS_REGEX`, `NOMBRE_COMPLETO_REGEX`.
 - `mensajes-validacion.ts` — mensajes de error en español reutilizables.
@@ -265,4 +302,4 @@ del backend; las reglas propias de la lógica de negocio permanecen en cada form
 
 Formularios que ya consumen el módulo: `RegistrarFichaPerfil` (título), `MiFichaHeader` (título),
 `ItemsMiFichaPanel` (contenido de ítem), `RegistrarUsuarioForm` (identificador, nombres/apellidos,
-email, contacto).
+email, contacto), `EnviarSolicitudNovedadForm` (destinatario, mensaje).
