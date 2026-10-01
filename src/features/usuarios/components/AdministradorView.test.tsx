@@ -7,6 +7,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { Usuario } from '../models/Usuario';
 import type { Coordinador } from '../models/Coordinador';
 import type { Estudiante } from '../models/Estudiante';
+import type { Asesor } from '../models/Asesor';
 
 vi.mock('../services/usuariosService', () => ({
   usuariosService: {
@@ -14,6 +15,7 @@ vi.mock('../services/usuariosService', () => ({
     consultarUsuariosAdministrador: vi.fn(),
     consultarCoordinadoresAdministrador: vi.fn(),
     consultarEstudiantesAdministrador: vi.fn(),
+    consultarAsesoresAdministrador: vi.fn(),
   },
 }));
 
@@ -41,6 +43,9 @@ describe('AdministradorView', () => {
     vi.mocked(usuariosService.consultarEstudiantesAdministrador)
       .mockReset()
       .mockResolvedValue(crearPaginaVacia<Estudiante>());
+    vi.mocked(usuariosService.consultarAsesoresAdministrador)
+      .mockReset()
+      .mockResolvedValue(crearPaginaVacia<Asesor>());
   });
 
   it('monta "Todos los usuarios" desde el primer render y no monta las otras pestañas', async () => {
@@ -54,6 +59,27 @@ describe('AdministradorView', () => {
     expect(screen.queryByRole('heading', { name: 'Estudiantes' })).not.toBeInTheDocument();
     expect(usuariosService.consultarCoordinadoresAdministrador).not.toHaveBeenCalled();
     expect(usuariosService.consultarEstudiantesAdministrador).not.toHaveBeenCalled();
+    expect(screen.queryByRole('heading', { name: 'Asesores' })).not.toBeInTheDocument();
+    expect(usuariosService.consultarAsesoresAdministrador).not.toHaveBeenCalled();
+  });
+
+  it('clic en "Asesores" la monta y consulta una vez; volver a "Todos los usuarios" no repite la consulta', async () => {
+    const user = userEvent.setup();
+    render(<AdministradorView />);
+    await waitFor(() =>
+      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
+    );
+
+    await user.click(screen.getByRole('tab', { name: 'Asesores' }));
+
+    await waitFor(() =>
+      expect(usuariosService.consultarAsesoresAdministrador).toHaveBeenCalledTimes(1),
+    );
+    expect(screen.getByRole('heading', { name: 'Asesores' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Todos los usuarios' }));
+
+    expect(usuariosService.consultarAsesoresAdministrador).toHaveBeenCalledTimes(1);
   });
 
   it('clic en "Coordinadores" la monta y consulta por primera vez; volver a "Todos los usuarios" no repite la consulta', async () => {

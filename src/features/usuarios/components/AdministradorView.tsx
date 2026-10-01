@@ -3,14 +3,16 @@ import { Plus } from 'lucide-react';
 import ConsultarUsuarios from './administrador/ConsultarUsuarios';
 import ConsultarCoordinadores from './administrador/ConsultarCoordinadores';
 import ConsultarEstudiantes from './administrador/ConsultarEstudiantes';
+import ConsultarAsesores from './administrador/ConsultarAsesores';
 import RegistrarUsuarioForm from './administrador/RegistrarUsuarioForm';
 
-type Pestana = 'usuarios' | 'coordinadores' | 'estudiantes';
+type Pestana = 'usuarios' | 'coordinadores' | 'estudiantes' | 'asesores';
 
 const PESTANAS: { id: Pestana; etiqueta: string }[] = [
   { id: 'usuarios', etiqueta: 'Todos los usuarios' },
   { id: 'coordinadores', etiqueta: 'Coordinadores' },
   { id: 'estudiantes', etiqueta: 'Estudiantes' },
+  { id: 'asesores', etiqueta: 'Asesores' },
 ];
 
 export default function AdministradorView() {
@@ -97,6 +99,14 @@ export default function AdministradorView() {
         className={pestanaActiva === 'estudiantes' ? undefined : 'hidden'}
       >
         {pestanasMontadas.has('estudiantes') && <ConsultarEstudiantes />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-asesores"
+        aria-labelledby="usuarios-tab-asesores"
+        className={pestanaActiva === 'asesores' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('asesores') && <ConsultarAsesores />}
       </div>
     </div>
   );

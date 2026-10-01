@@ -130,6 +130,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | `eliminarUsuario` | DELETE | `/usuarios/{usuarioId}` | — | `204` sin cuerpo (eliminación lógica; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `USUARIO_ROLES_VIGENTES`; 503 `USUARIO_IDP_NO_DISPONIBLE`) |
 | `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
 | `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
+| `consultarAsesoresAdministrador` | POST | `/usuarios/asesores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Asesor>` |
 | `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
@@ -157,6 +158,13 @@ dados de baja; `estado` llega como `id` del catálogo `estado_usuario` (`ACTIVO`
 traducción de nombres en el service. Discrepancia con el plan del backend: una paginación inválida
 (`tamanio` fuera de 1-100) se normaliza en silencio, no responde `400`.
 
+`consultarAsesoresAdministrador` (HU-236) verificado contra
+`ConsultarAsesoresAdministradorController.java` y `AsesorResponseDTO.java` de `../arquisoft-backend`,
+y contra `VALIDATOR-HU-236.md` (✅ APROBADO, PR backend #149). Es `POST` aunque sea una lectura porque
+los filtros viajan en el body. Devuelve `{ id, identificador, nombre, email, contacto, estado, vigente }`
+por fila, incluidos los asesores dados de baja. Sin traducción de nombres en el service. Es el rol
+`asesor`, no `asesor-ficha`. Solo consulta: eliminar el rol es HU-235.
+
 `consultarUsuariosAdministrador` (HU-260) verificado contra
 `ConsultarUsuariosAdministradorController.java`, `UsuarioResponseDTO.java` y `UsuarioCriteria.java` de
 `../arquisoft-backend`, y contra `VALIDATOR-HU-260.md` (✅ APROBADO, PR backend #152 mergeado). Es
@@ -181,7 +189,7 @@ administrador sin ese client role recibe `403` y el interceptor lo lleva a `/for
 `VITE_AUTH_BYPASS=true`.
 
 No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado de roles coordinador y estudiante (`agregarRol`, HU-243 y HU-247) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Quitar el rol coordinador (`removerCoordinador`) y estudiante (`removerEstudiante`, HU-248) usan sus propios `DELETE /usuarios/{id}/coordinador` y `/estudiante`; los client roles `usuarios:coordinador:delete` y `usuarios:estudiante:delete` pueden faltar igual. Los listados de
-coordinadores, estudiantes y el unificado de "todos los usuarios" son los únicos listados de la
+coordinadores, estudiantes, asesores y el unificado de "todos los usuarios" son los únicos listados de la
 feature.
 
 ### Sin cliente en el frontend
@@ -192,7 +200,8 @@ feature.
 ### Dependencia operativa: client roles en Keycloak
 
 Los client roles `usuarios:coordinador-administrador:view`, `usuarios:coordinador-vigente:view`,
-`usuarios:estudiante-administrador:view` y `usuarios:estudiante-vigente:view` no
+`usuarios:estudiante-administrador:view`, `usuarios:estudiante-vigente:view` y
+`usuarios:asesor-administrador:view` no
 están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuario:create`. Con login
 real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
 mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
