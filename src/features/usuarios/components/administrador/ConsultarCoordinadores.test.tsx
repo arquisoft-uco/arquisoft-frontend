@@ -9,6 +9,9 @@ import { Rol } from '../../../../shared/models/rol';
 import type { Coordinador } from '../../models/Coordinador';
 import type { Page } from '../../../../shared/models/api-response';
 
+vi.mock('../../hooks/useEstadosUsuario', () => ({
+  useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 vi.mock('../../hooks/useCoordinadores', () => ({
   useCoordinadores: vi.fn(),
 }));

@@ -139,6 +139,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | `consultarRepresentantesComiteAdministrador` | POST | `/usuarios/representantes-comite/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<RepresentanteComite>` |
 | `consultarAdministradoresAdministrador` (HU-233) | POST | `/usuarios/administradores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Administrador>` · verificado contra `ConsultarAdministradoresAdministradorController`; client role `usuarios:administrador-administrador:view` |
 | `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
+| `getEstadosUsuario` (HU-246) | GET | `/usuarios/estados` | — | `200 EstadoUsuario[]` (lista plana sin paginar, `[{ id, nombre, descripcion }]`; filas reales `ACTIVO`/`Activo`, `INACTIVO`/`Inactivo`). Verificado contra `ConsultarEstadosUsuarioController` y `VALIDATOR-HU-246` (APROBADO); client role `usuarios:estado-usuario:view`. Lo consume `useEstadosUsuario` (catálogo para el filtro y la columna "Estado" de los listados) |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
 `RegistrarUsuarioResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-256.md`
@@ -220,7 +221,7 @@ administrador sin ese client role recibe `403` y el interceptor lo lleva a `/for
 
 No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado de roles coordinador, estudiante, asesor, asesor de ficha, representante del comité y administrador (`agregarRol`, HU-243, HU-247, HU-234, HU-237, HU-253 y HU-231) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Quitar el rol coordinador (`removerCoordinador`), estudiante (`removerEstudiante`, HU-248), asesor (`removerAsesor`, HU-235), asesor de ficha (`removerAsesorFicha`, HU-238) representante del comité (`removerRepresentanteComite`, HU-254) y administrador (`removerAdministrador`, HU-232) usan sus propios `DELETE /usuarios/{id}/coordinador`, `/estudiante`, `/asesor`, `/asesor-ficha`, `/representante-comite` y `/administrador`; los client roles `usuarios:coordinador:delete`, `usuarios:estudiante:delete`, `usuarios:asesor:delete`, `usuarios:asesor-ficha:delete`, `usuarios:representante-comite:delete` y `usuarios:administrador:delete` pueden faltar igual. Los listados de
 coordinadores, estudiantes, asesores, asesores de ficha, representantes del comité, administradores y el unificado de "todos los usuarios" son los únicos listados de la
-feature.
+feature; el catálogo de estados (`getEstadosUsuario`) alimenta el filtro y la columna "Estado" de ellos.
 
 ### Sin cliente en el frontend
 
@@ -231,7 +232,7 @@ feature.
 
 Los client roles `usuarios:coordinador-administrador:view`, `usuarios:coordinador-vigente:view`,
 `usuarios:estudiante-administrador:view`, `usuarios:estudiante-vigente:view` y
-`usuarios:asesor-administrador:view` y `usuarios:asesor-ficha-administrador:view` no
+`usuarios:asesor-administrador:view` `usuarios:asesor-ficha-administrador:view` y `usuarios:estado-usuario:view` (HU-246) no
 están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuario:create`. Con login
 real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
 mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.

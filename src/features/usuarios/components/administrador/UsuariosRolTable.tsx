@@ -1,9 +1,12 @@
 import { Trash2 } from 'lucide-react';
 import type { UsuarioRolListado } from '../../models/UsuarioRolListado';
+import type { EstadoUsuario } from '../../models/EstadoUsuario';
+import { nombreEstadoUsuario } from '../../utils/estados-usuario';
 import PaginadorListado from './PaginadorListado';
 
 interface Props<T extends UsuarioRolListado> {
   usuarios: T[];
+  estados?: EstadoUsuario[];
   totalElements: number;
   totalPages: number;
   page: number;
@@ -19,6 +22,7 @@ const COLUMNAS = ['Identificador', 'Nombre', 'Correo', 'Contacto', 'Estado', 'Vi
 
 export default function UsuariosRolTable<T extends UsuarioRolListado>({
   usuarios,
+  estados,
   totalElements,
   totalPages,
   page,
@@ -61,7 +65,7 @@ export default function UsuariosRolTable<T extends UsuarioRolListado>({
                   <td className="px-4 py-3 font-medium text-on-surface">{usuario.nombre}</td>
                   <td className="px-4 py-3 text-on-surface-secondary">{usuario.email}</td>
                   <td className="px-4 py-3 text-on-surface-secondary">{usuario.contacto}</td>
-                  <td className="px-4 py-3 text-on-surface">{usuario.estado}</td>
+                  <td className="px-4 py-3 text-on-surface">{nombreEstadoUsuario(estados, usuario.estado)}</td>
                   <td className="px-4 py-3">
                     <span
                       className={[
