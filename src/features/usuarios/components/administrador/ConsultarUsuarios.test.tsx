@@ -5,6 +5,7 @@ import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
+import { useCambiarEstadoUsuario } from '../../hooks/useCambiarEstadoUsuario';
 import { useAgregarRol } from '../../hooks/useAgregarRol';
 import { useRemoverRol } from '../../hooks/useRemoverRol';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
@@ -25,6 +26,10 @@ vi.mock('../../hooks/useEstadosUsuario', () => ({
 
 vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
+}));
+
+vi.mock('../../hooks/useCambiarEstadoUsuario', () => ({
+  useCambiarEstadoUsuario: vi.fn(),
 }));
 
 vi.mock('../../hooks/useAgregarRol', () => ({
@@ -125,6 +130,27 @@ function crearMutacionModificarMock(): ReturnType<typeof useModificarUsuario> {
   } as ReturnType<typeof useModificarUsuario>;
 }
 
+function crearMutacionCambiarEstadoMock(): ReturnType<typeof useCambiarEstadoUsuario> {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as ReturnType<typeof useCambiarEstadoUsuario>;
+}
+
 const USUARIO: Usuario = {
   id: 'u-1',
   identificador: '2001',
@@ -188,6 +214,7 @@ describe('ConsultarUsuarios', () => {
     vi.mocked(useUsuarios).mockReset();
     vi.mocked(useEstadosUsuario).mockReturnValue(crearEstadosMock());
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
+    vi.mocked(useCambiarEstadoUsuario).mockReturnValue(crearMutacionCambiarEstadoMock());
     vi.mocked(useAgregarRol).mockReturnValue(crearMutacionAgregarMock());
     vi.mocked(useRemoverRol).mockReturnValue({
       objetivo: null,
