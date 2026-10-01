@@ -238,6 +238,22 @@ están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuari
 real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
 mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
 
+## Endpoints de Evaluaciones
+
+Servicio: `src/features/evaluaciones/services/evaluacionesService.ts`.
+
+### Implementados y alineados
+
+| Método del servicio | Método HTTP | Ruta backend | Body | Respuesta |
+|---|---|---|---|---|
+| `getItemsCualitativosJurado` | GET | `/evaluaciones/items-cualitativos-jurado` | — | `200 ItemCualitativoJuradoResponseDTO[]` (`{ id, nombre, descripcion }`) · **lista plana** sin `Page`, ordenada por `nombre` asc; `[]` si no hay filas |
+
+Verificado el 2026-09-29 contra `ConsultarItemsCualitativosJuradoController.java` y
+`ItemCualitativoJuradoResponseDTO.java` de `../arquisoft-backend`, y contra `VALIDATOR-HU-225.md`
+(✅ APROBADO, PR `arquisoft-backend#89` mergeado). Sin traducción de nombres en el service: el modelo del
+frontend coincide 1:1 con el DTO real. Roles con acceso: `administrador` y `jurado` (client role
+`evaluaciones:item-cualitativo-jurado:view`). Una colección vacía responde `200 []`, no `404`.
+
 ## Otros contextos expuestos por el backend (aún sin cliente en el frontend)
 
 Estos endpoints existen en el backend pero no se integran en esta iteración:
