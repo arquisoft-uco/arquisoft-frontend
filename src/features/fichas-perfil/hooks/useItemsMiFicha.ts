@@ -1,50 +1,34 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
+import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
+import { useTiposItem } from './useTiposItem';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
-import { useAuthStore } from '../../../auth/authStore';
+import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 
 export function useItemsMiFicha() {
   const queryClient = useQueryClient();
   const { ficha } = useMiFichaPerfil();
-  const estudianteId = useAuthStore((s) => s.tokenParsed?.sub ?? '');
+  const { fichaPerfilId } = useFichaPerfilIdEstudiante();
 
-  const ITEMS_KEY = ['fichas-perfil', 'estudiante', estudianteId, 'items'];
+  const ITEMS_KEY = ['fichas-perfil', 'estudiante', fichaPerfilId, 'items'];
 
   const itemsQuery = useQuery({
     queryKey: ITEMS_KEY,
-    queryFn: () => fichasPerfilService.consultarItemsMiFichaPerfil(estudianteId),
-    enabled: !!estudianteId,
+    queryFn: () => fichasPerfilService.consultarItemsMiFichaPerfil(fichaPerfilId ?? ''),
+    enabled: !!fichaPerfilId,
   });
 
-  const tiposItemQuery = useQuery({
-    queryKey: ['fichas-perfil', 'tipos-item'],
-    queryFn: fichasPerfilService.consultarTodosTipoItem,
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
+  const tiposItemQuery = useTiposItem();
 
   const agregar = useMutation({
     mutationFn: (req: CrearItemRequest) => fichasPerfilService.agregarItemFichaPerfil(req),
-    onSuccess: ({ id }, req) => {
-      const tipoItem = tiposItemQuery.data?.find((t) => t.id === req.tipoItemId);
-      const nuevoItem: Item = {
-        id,
-        tipoItem: { id: req.tipoItemId, nombre: tipoItem?.nombre ?? req.tipoItemId },
-        contenido: req.contenido,
-        fichaPerfilId: req.fichaPerfilId,
-      };
-      queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) => [...prev, nuevoItem]);
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ITEMS_KEY }),
   });
 
   const modificar = useMutation({
     mutationFn: (req: ModificarItemRequest) => fichasPerfilService.modificarItem(req),
-    onSuccess: (_, req) => {
-      queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
-        prev.map((i) => (i.id === req.itemId ? { ...i, contenido: req.contenido } : i)),
-      );
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ITEMS_KEY }),
   });
 
   const remover = useMutation({
@@ -53,6 +37,11 @@ export function useItemsMiFicha() {
       queryClient.setQueryData(ITEMS_KEY, (prev: Item[] = []) =>
         prev.filter((i) => i.id !== itemId),
       );
+    },
+    onError: (err) => {
+      if (isApiErrorWithStatus(err, 400)) {
+        queryClient.invalidateQueries({ queryKey: ITEMS_KEY });
+      }
     },
   });
 

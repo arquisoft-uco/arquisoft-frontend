@@ -1,12 +1,12 @@
 import { useState, type SyntheticEvent } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { UserCog } from 'lucide-react';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCambiarAsesor } from '../../hooks/useCambiarAsesor';
-import { fichasPerfilService } from '../../services/fichasPerfilService';
+import { useAsesoresFichaVigentes } from '../../../../shared/hooks/useAsesoresFichaVigentes';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
+import SelectorAsesorFicha from '../../../../shared/components/SelectorAsesorFicha';
 
 interface Props {
   idFichaPerfil: string;
@@ -18,14 +18,9 @@ export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual, onExi
   const [idAsesorSeleccionado, setIdAsesorSeleccionado] = useState('');
   const [confirming, setConfirming] = useState(false);
 
-  const { data: asesores = [], isError: asesoresNoDisponibles } = useQuery({
-    queryKey: ['asesores-disponibles'],
-    queryFn: fichasPerfilService.consultarAsesoresDisponibles,
-  });
+  const { data: asesores = [], isError: asesoresNoDisponibles } = useAsesoresFichaVigentes();
 
   const { mutate, isPending } = useCambiarAsesor();
-
-  const opciones = asesores.filter((a) => a.id !== idAsesorActual);
 
   function handleSubmit(e: SyntheticEvent) {
     e.preventDefault();
@@ -73,22 +68,15 @@ export default function CambiarAsesorForm({ idFichaPerfil, idAsesorActual, onExi
         aria-label="Cambiar asesor de ficha"
       >
         <UserCog size={15} className="shrink-0 text-on-surface-secondary" aria-hidden />
-        <select
-          value={idAsesorSeleccionado}
-          onChange={(e) => setIdAsesorSeleccionado(e.target.value)}
-          disabled={isPending || opciones.length === 0}
-          aria-label="Seleccionar nuevo asesor"
-          className="flex-1 rounded-md border border-border bg-surface px-2 py-1.5 text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-        >
-          <option value="">
-            {opciones.length === 0 ? 'Sin asesores disponibles' : '-- Seleccionar nuevo asesor --'}
-          </option>
-          {opciones.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.nombre} ({a.email})
-            </option>
-          ))}
-        </select>
+        <div className="flex-1">
+          <SelectorAsesorFicha
+            value={idAsesorSeleccionado}
+            onChange={setIdAsesorSeleccionado}
+            idsExcluidos={[idAsesorActual]}
+            placeholder="-- Seleccionar nuevo asesor --"
+            aria-label="Seleccionar nuevo asesor"
+          />
+        </div>
         <button
           type="submit"
           disabled={!idAsesorSeleccionado || isPending}

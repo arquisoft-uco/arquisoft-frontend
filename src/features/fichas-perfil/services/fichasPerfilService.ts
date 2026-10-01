@@ -1,15 +1,14 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
-import type { Asesor } from '../models/Asesor';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
-import type { Estudiante } from '../models/Estudiante';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { EstadoFichaPerfil, AgregarEstadoFichaPerfilRequest } from '../models/EstadoFichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
+import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 import type {
@@ -64,6 +63,41 @@ interface EvaluacionFichaPerfilResponseDTO {
   fechaCreacion: string;
   estadoEvaluacion: string | null;
   estadoEvaluacionNombre: string | null;
+}
+
+// Forma cruda de FichaPerfilEstudianteResponseDTO (GET /fichas-perfil/estudiante, lista);
+// se traduce a MiFichaPerfilResponse con aFicha.
+interface FichaPerfilEstudianteResponseDTO {
+  idFichaPerfil: string;
+  titulo: string;
+  asesor: { id: string; identificador: string; nombre: string; email: string };
+  estado: { id: string; nombre: string; fechaActualizacion: string };
+  estudiantes: {
+    id: string;
+    fichaPerfilId: string;
+    estudianteId: string;
+    nombre: string;
+    email: string;
+    vigente: boolean;
+  }[];
+}
+
+function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
+  return {
+    id: dto.idFichaPerfil,
+    tituloProyecto: dto.titulo,
+    asesor: { id: dto.asesor.id, nombre: dto.asesor.nombre, email: dto.asesor.email },
+    estadoActual: {
+      id: dto.estado.id,
+      nombre: dto.estado.nombre,
+      fechaActualizacion: dto.estado.fechaActualizacion,
+    },
+    integrantes: dto.estudiantes.map((e) => ({
+      id: e.estudianteId,
+      nombre: e.nombre,
+      email: e.email,
+    })),
+  };
 }
 
 // ─── Alineados con el backend expuesto ───
@@ -176,6 +210,11 @@ export const fichasPerfilService = {
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/representante`)
       .then((r) => r.data.map(toItem)),
 
+  consultarItemsMiFichaPerfil: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/estudiante`)
+      .then((r) => r.data.map(toItem)),
+
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>
     apiClient
       .get<EvaluacionFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/evaluaciones/representante`)
@@ -189,31 +228,17 @@ export const fichasPerfilService = {
         })),
       ),
 
+  consultarFichasPerfilEstudiante: (): Promise<MiFichaPerfilResponse[]> =>
+    apiClient
+      .get<FichaPerfilEstudianteResponseDTO[]>('/fichas-perfil/estudiante')
+      .then(({ data }) => data.map(aFicha)),
+
+  getEstadosFichaPerfilEstudiante: (fichaPerfilId: string): Promise<HistorialEstadoFichaPerfil[]> =>
+    apiClient
+      .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
+      .then((r) => r.data),
+
   // ─── Pendientes: el backend aún no expone estos endpoints ───
-
-  // Pendiente: sin endpoint en el backend.
-  getMiFichaPerfil: (estudianteId: string): Promise<MiFichaPerfilResponse> =>
-    apiClient
-      .get<MiFichaPerfilResponse>(`/fichas-perfil/estudiante/${estudianteId}/mi-ficha`)
-      .then((r) => r.data),
-
-  // Pendiente: sin endpoint en el backend.
-  consultarItemsMiFichaPerfil: (estudianteId: string): Promise<Item[]> =>
-    apiClient
-      .get<Item[]>('/fichas-perfil/estudiante/mi-ficha/items', { params: { estudianteId } })
-      .then((r) => r.data),
-
-  // Pendiente: sin endpoint en el backend.
-  consultarAsesoresDisponibles: (): Promise<Asesor[]> =>
-    apiClient
-      .get<Asesor[]>('/fichas-perfil/asesores')
-      .then((r) => r.data),
-
-  // Pendiente: sin endpoint en el backend.
-  consultarEstudiantesDisponibles: (): Promise<Estudiante[]> =>
-    apiClient
-      .get<Estudiante[]>('/fichas-perfil/estudiantes')
-      .then((r) => r.data),
 
   // Pendiente: sin endpoint en el backend.
   getFichasRepresentante: (representanteId: string, page = 0, size = 10): Promise<Page<FichaPerfilRepresentante>> =>

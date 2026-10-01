@@ -4,28 +4,50 @@ import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen } from '../../../test-utils/render';
 import RegistrarFichaPerfil from './RegistrarFichaPerfil';
 import { useRegistrarFichaPerfil } from '../hooks/useRegistrarFichaPerfil';
-import { fichasPerfilService } from '../services/fichasPerfilService';
+import { useAsesoresFichaVigentes } from '../../../shared/hooks/useAsesoresFichaVigentes';
+import { useEstudiantesVigentes } from '../../../shared/hooks/useEstudiantesVigentes';
 import { toast } from '../../../shared/hooks/useToast';
-import type { Asesor } from '../models/Asesor';
+import type { Asesor } from '../../../shared/models/Asesor';
 import type { Estudiante } from '../models/Estudiante';
 import type { ApiError } from '../../../shared/models/api-response';
 
 vi.mock('../hooks/useRegistrarFichaPerfil', () => ({
   useRegistrarFichaPerfil: vi.fn(),
 }));
-vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: {
-    consultarAsesoresDisponibles: vi.fn(),
-    consultarEstudiantesDisponibles: vi.fn(),
-  },
+vi.mock('../../../shared/hooks/useAsesoresFichaVigentes', () => ({
+  useAsesoresFichaVigentes: vi.fn(),
+}));
+vi.mock('../../../shared/hooks/useEstudiantesVigentes', () => ({
+  useEstudiantesVigentes: vi.fn(),
 }));
 vi.mock('../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
-const consultarAsesores = vi.mocked(fichasPerfilService.consultarAsesoresDisponibles);
-const consultarEstudiantes = vi.mocked(fichasPerfilService.consultarEstudiantesDisponibles);
+const useAsesoresFichaVigentesMock = vi.mocked(useAsesoresFichaVigentes);
+const useEstudiantesVigentesMock = vi.mocked(useEstudiantesVigentes);
 const useRegistrarFichaPerfilMock = vi.mocked(useRegistrarFichaPerfil);
+
+type ResultadoAsesores = ReturnType<typeof useAsesoresFichaVigentes>;
+type ResultadoEstudiantes = ReturnType<typeof useEstudiantesVigentes>;
+
+function mockAsesores(parcial: Partial<ResultadoAsesores>) {
+  useAsesoresFichaVigentesMock.mockReturnValue({
+    data: [ANA],
+    isLoading: false,
+    isError: false,
+    ...parcial,
+  } as ResultadoAsesores);
+}
+
+function mockEstudiantes(parcial: Partial<ResultadoEstudiantes>) {
+  useEstudiantesVigentesMock.mockReturnValue({
+    data: [E1, E2, E3],
+    isLoading: false,
+    isError: false,
+    ...parcial,
+  } as ResultadoEstudiantes);
+}
 
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
 const E1: Estudiante = { id: 'e-1', nombre: 'Carlos Ruiz', email: 'carlos@uco.edu.co' };
@@ -90,8 +112,8 @@ async function llenarFormularioValido(user: ReturnType<typeof userEvent.setup>) 
 describe('RegistrarFichaPerfil', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    consultarAsesores.mockResolvedValue([ANA]);
-    consultarEstudiantes.mockResolvedValue([E1, E2, E3]);
+    mockAsesores({});
+    mockEstudiantes({});
   });
 
   it('mantiene Registrar Ficha deshabilitado hasta tener título, asesor y al menos un estudiante', async () => {
@@ -204,13 +226,13 @@ describe('RegistrarFichaPerfil', () => {
     {
       recurso: 'asesores',
       preparar: () => {
-        consultarAsesores.mockRejectedValue(new Error('405'));
+        mockAsesores({ data: undefined, isError: true });
       },
     },
     {
       recurso: 'estudiantes',
       preparar: () => {
-        consultarEstudiantes.mockRejectedValue(new Error('405'));
+        mockEstudiantes({ data: undefined, isError: true });
       },
     },
   ])(
@@ -236,14 +258,14 @@ describe('RegistrarFichaPerfil', () => {
       recurso: 'asesores',
       textoCarga: 'Cargando asesores...',
       preparar: () => {
-        consultarAsesores.mockReturnValue(new Promise(() => {}));
+        mockAsesores({ data: undefined, isLoading: true });
       },
     },
     {
       recurso: 'estudiantes',
       textoCarga: 'Cargando estudiantes...',
       preparar: () => {
-        consultarEstudiantes.mockReturnValue(new Promise(() => {}));
+        mockEstudiantes({ data: undefined, isLoading: true });
       },
     },
   ])(
@@ -263,7 +285,7 @@ describe('RegistrarFichaPerfil', () => {
 
   it('muestra que no hay más estudiantes disponibles cuando el catálogo llega vacío', async () => {
     // Arrange
-    consultarEstudiantes.mockResolvedValue([]);
+    mockEstudiantes({ data: [] });
     mockMutacion();
 
     // Act

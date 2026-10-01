@@ -5,18 +5,22 @@ import ItemsMiFichaPanel from './estudiante/ItemsMiFichaPanel';
 import EstadosMiFichaPanel from './estudiante/EstadosMiFichaPanel';
 import RevisionesMiFichaPanel from './estudiante/RevisionesMiFichaPanel';
 import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
+import TiposItemPanel from './TiposItemPanel';
+import SelectorFichaEstudiante from './estudiante/SelectorFichaEstudiante';
 
-type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones';
+type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones' | 'tipos-item';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'items', label: 'Ítems' },
   { key: 'estados', label: 'Estados' },
   { key: 'revisiones', label: 'Revisiones' },
   { key: 'evaluaciones', label: 'Evaluaciones' },
+  { key: 'tipos-item', label: 'Tipos de ítem' },
 ];
 
 export default function EstudianteView() {
-  const { ficha, isLoadingFicha } = useMiFichaPerfil();
+  const { ficha, fichas, isLoadingFicha, sinFicha, errorFicha, seleccionarFicha } =
+    useMiFichaPerfil();
   const [tab, setTab] = useState<Tab>('items');
 
   if (isLoadingFicha) {
@@ -36,7 +40,17 @@ export default function EstudianteView() {
     );
   }
 
-  if (!ficha) {
+  if (errorFicha) {
+    return (
+      <div role="alert" className="py-16 text-center">
+        <p className="text-lg font-medium text-on-surface">
+          No pudimos cargar tu ficha de perfil. Intenta de nuevo más tarde.
+        </p>
+      </div>
+    );
+  }
+
+  if (sinFicha || !ficha) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <p className="text-lg font-medium text-on-surface">
@@ -51,6 +65,13 @@ export default function EstudianteView() {
 
   return (
     <div className="space-y-6">
+      {fichas.length > 1 && (
+        <SelectorFichaEstudiante
+          fichas={fichas}
+          fichaActivaId={ficha.id}
+          onSeleccionar={seleccionarFicha}
+        />
+      )}
       <MiFichaHeader />
 
       <div className="flex gap-1 rounded-lg bg-muted/50 p-1" role="tablist">
@@ -76,6 +97,7 @@ export default function EstudianteView() {
       {tab === 'estados' && <EstadosMiFichaPanel />}
       {tab === 'revisiones' && <RevisionesMiFichaPanel />}
       {tab === 'evaluaciones' && <EvaluacionesMiFichaPanel />}
+      {tab === 'tipos-item' && <TiposItemPanel />}
     </div>
   );
 }

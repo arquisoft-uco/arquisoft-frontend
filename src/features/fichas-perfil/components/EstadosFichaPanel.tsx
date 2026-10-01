@@ -5,7 +5,7 @@ import { useAgregarEstadoFichaPerfil } from '../hooks/useAgregarEstadoFichaPerfi
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 
-const ESTADOS_PERMITIDOS = ['En Construcción', 'Disponible Para Evaluación'];
+const ESTADOS_PERMITIDOS = ['EN_CONSTRUCCION', 'DISPONIBLE_PARA_EVALUACION'];
 
 interface Props {
   fichaPerfilId: string;
@@ -19,7 +19,7 @@ export default function EstadosFichaPanel({ fichaPerfilId, estadoActual, onEstad
   const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
   const [estadoActualNombre, setEstadoActualNombre] = useState(estadoActual);
 
-  const estadosDisponibles = estados.filter((e) => ESTADOS_PERMITIDOS.includes(e.nombre));
+  const estadosDisponibles = estados.filter((e) => ESTADOS_PERMITIDOS.includes(e.id));
 
   const handleCambiarEstado = () => {
     if (!estadoSeleccionado) return;
