@@ -320,6 +320,75 @@ describe('ModificarUsuarioForm', () => {
     expect(checkbox).not.toBeChecked();
   });
 
+  it('marcar Administrador llama al hook con su id y rol, y queda marcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Administrador]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(
+      { usuarioId: usuario.id, rol: Rol.Administrador },
+      expect.any(Object),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      expect.stringContaining(ETIQUETAS_ROL[Rol.Administrador]),
+    );
+    expect(checkbox).toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Administrador falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_vars, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 422, data: { message: 'Ya es administrador' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Administrador]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', 'Ya es administrador');
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('un usuario administrador muestra el checkbox marcado y bloqueado, sin agregar ni remover', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esAdministrador: true }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Administrador]}`),
+    });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it('desmarcar Representante del Comité abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
     // Arrange
     mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());

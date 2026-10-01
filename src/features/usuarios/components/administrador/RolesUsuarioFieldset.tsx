@@ -7,6 +7,7 @@ const ROLES_AGREGABLES: Partial<Record<Rol, true>> = {
   [Rol.Asesor]: true,
   [Rol.AsesorFicha]: true,
   [Rol.RepresentanteComiteCurriculum]: true,
+  [Rol.Administrador]: true,
 };
 
 // Cada HU de quitar rol habilita el suyo añadiendo una entrada aquí y un método de service.
@@ -34,7 +35,7 @@ export default function RolesUsuarioFieldset({
   return (
     <fieldset aria-busy={pendiente}>
       <legend className="mb-1 text-xs font-medium text-on-surface-secondary">
-        Roles (se pueden agregar coordinador, estudiante, asesor, asesor de ficha y representante del comité; quitar coordinador, estudiante, asesor, asesor de ficha y representante del comité)
+        Roles (se pueden agregar coordinador, estudiante, asesor, asesor de ficha, representante del comité y administrador; quitar coordinador, estudiante, asesor, asesor de ficha y representante del comité)
       </legend>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {Object.values(Rol).map((rol) => {
