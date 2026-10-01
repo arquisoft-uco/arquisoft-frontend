@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
+import { useAgregarCoordinador } from '../../hooks/useAgregarCoordinador';
 import { rolesDeUsuario } from '../../utils/roles-usuario';
 import type { Usuario } from '../../models/Usuario';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -18,8 +20,9 @@ import {
   soloDigitosEntre,
   textoEntre,
 } from '../../../../shared/validation';
-import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
+import type { Rol } from '../../../../shared/models/rol';
 import CampoTexto from './CampoTexto';
+import RolesUsuarioFieldset from './RolesUsuarioFieldset';
 
 const schema = z
   .object({
@@ -27,7 +30,6 @@ const schema = z
     nombre: textoEntre(LIMITES.USUARIO_NOMBRE_MIN, LIMITES.USUARIO_NOMBRE_MAX),
     email: emailValido(LIMITES.USUARIO_EMAIL_MIN, LIMITES.USUARIO_EMAIL_MAX),
     contacto: soloDigitosEntre(LIMITES.USUARIO_CONTACTO_MIN, LIMITES.USUARIO_CONTACTO_MAX),
-    roles: z.array(z.nativeEnum(Rol)),
   })
   .superRefine((val, ctx) => {
     if (!NOMBRE_COMPLETO_REGEX.test(val.nombre.trim())) {
@@ -59,7 +61,6 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
       nombre: usuario.nombre,
       email: usuario.email,
       contacto: usuario.contacto,
-      roles: rolesDeUsuario(usuario),
     },
     mode: 'onChange',
     shouldUnregister: false,
@@ -67,7 +68,22 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
 
   const { mutate, isPending } = useModificarUsuario();
 
-  const rolesAsignados = rolesDeUsuario(usuario);
+  const agregarCoordinador = useAgregarCoordinador();
+  const [rolesAsignados, setRolesAsignados] = useState<ReadonlySet<Rol>>(
+    () => new Set(rolesDeUsuario(usuario)),
+  );
+
+  function agregarRol(rol: Rol) {
+    agregarCoordinador.mutate(usuario.id, {
+      onSuccess: () => {
+        setRolesAsignados((previos) => new Set(previos).add(rol));
+        toast.success('Rol agregado', `${usuario.nombre} ahora es coordinador.`);
+      },
+      onError: (err) => {
+        toast.error('Error al agregar el rol', getApiErrorMessage(err, 'Intenta nuevamente.'));
+      },
+    });
+  }
 
   function onSubmit(values: FormValues) {
     mutate(
@@ -78,7 +94,6 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
           nombre: values.nombre,
           email: values.email,
           contacto: values.contacto,
-          roles: values.roles,
         },
       },
       {
@@ -115,8 +130,7 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
               fe.field === 'identificador' ||
               fe.field === 'nombre' ||
               fe.field === 'email' ||
-              fe.field === 'contacto' ||
-              fe.field === 'roles'
+              fe.field === 'contacto'
             ) {
               setError(fe.field, { message: fe.message });
             }
@@ -163,40 +177,11 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
           error={errors.contacto?.message}
         />
 
-        <fieldset>
-          <legend className="mb-1 text-xs font-medium text-on-surface-secondary">
-            Roles (los ya asignados no se pueden quitar)
-          </legend>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {Object.values(Rol).map((rol) => {
-              const asignado = rolesAsignados.includes(rol);
-              return (
-                <label
-                  key={rol}
-                  className={[
-                    'tap-target gap-2 text-sm text-on-surface',
-                    asignado ? 'cursor-not-allowed opacity-60' : '',
-                  ].join(' ')}
-                >
-                  <input
-                    type="checkbox"
-                    value={rol}
-                    aria-disabled={asignado}
-                    onClick={(evento) => {
-                      // No usamos el atributo `disabled` nativo: react-hook-form devuelve
-                      // `undefined` para un input deshabilitado, y el rol desaparecería del
-                      // payload. En su lugar bloqueamos el toggle antes de que ocurra.
-                      if (asignado) evento.preventDefault();
-                    }}
-                    className="checkbox-control rounded border-border text-primary focus:ring-primary"
-                    {...register('roles')}
-                  />
-                  {ETIQUETAS_ROL[rol]}
-                </label>
-              );
-            })}
-          </div>
-        </fieldset>
+        <RolesUsuarioFieldset
+          rolesAsignados={rolesAsignados}
+          pendiente={agregarCoordinador.isPending}
+          onAgregar={agregarRol}
+        />
 
         <div className="actions-row border-t border-border pt-4">
           <button

@@ -4,6 +4,7 @@ import { render, screen } from '../../../../test-utils/render';
 import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
+import { useAgregarCoordinador } from '../../hooks/useAgregarCoordinador';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Usuario } from '../../models/Usuario';
@@ -18,6 +19,10 @@ vi.mock('../../hooks/useUsuarios', () => ({
 // revienta en test por VITE_API_URL no definida, aunque el formulario nunca llegue a montarse aquí.
 vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
+}));
+
+vi.mock('../../hooks/useAgregarCoordinador', () => ({
+  useAgregarCoordinador: vi.fn(),
 }));
 
 vi.mock('../../hooks/useEliminarUsuario', () => ({
@@ -50,6 +55,27 @@ function crearMutacionEliminarMock(
     reset: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useEliminarUsuario>;
+}
+
+function crearMutacionAgregarMock(): ReturnType<typeof useAgregarCoordinador> {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as ReturnType<typeof useAgregarCoordinador>;
 }
 
 function crearMutacionModificarMock(): ReturnType<typeof useModificarUsuario> {
@@ -135,6 +161,7 @@ describe('ConsultarUsuarios', () => {
   beforeEach(() => {
     vi.mocked(useUsuarios).mockReset();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
+    vi.mocked(useAgregarCoordinador).mockReturnValue(crearMutacionAgregarMock());
     vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import ModificarUsuarioForm from './ModificarUsuarioForm';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
+import { useAgregarCoordinador } from '../../hooks/useAgregarCoordinador';
 import { toast } from '../../../../shared/hooks/useToast';
 import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
 import type { Usuario } from '../../models/Usuario';
@@ -10,16 +11,19 @@ import type { Usuario } from '../../models/Usuario';
 vi.mock('../../hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
 }));
+vi.mock('../../hooks/useAgregarCoordinador', () => ({
+  useAgregarCoordinador: vi.fn(),
+}));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
 type MutacionModificarUsuario = ReturnType<typeof useModificarUsuario>;
 
-function crearMutacionMock(
+function crearMutacionMock<T = MutacionModificarUsuario>(
   mutate: ReturnType<typeof vi.fn>,
   isPending = false,
-): MutacionModificarUsuario {
+): T {
   return {
     data: undefined,
     error: null,
@@ -37,7 +41,7 @@ function crearMutacionMock(
     mutate,
     mutateAsync: vi.fn(),
     reset: vi.fn(),
-  } as MutacionModificarUsuario;
+  } as T;
 }
 
 const usuario: Usuario = {
@@ -59,11 +63,16 @@ const usuario: Usuario = {
 describe('ModificarUsuarioForm', () => {
   const onCerrar = vi.fn();
   let mockMutate: ReturnType<typeof vi.fn>;
+  let mockAgregar: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockMutate = vi.fn();
+    mockAgregar = vi.fn();
     vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionMock(mockMutate));
+    vi.mocked(useAgregarCoordinador).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useAgregarCoordinador>>(mockAgregar),
+    );
   });
 
   it('precarga los campos de texto y marca los checkboxes de los roles ya asignados', () => {
@@ -77,24 +86,93 @@ describe('ModificarUsuarioForm', () => {
     expect(screen.getByLabelText(/^contacto/i)).toHaveValue(usuario.contacto);
     expect(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Asesor] })).not.toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`) }),
+    ).not.toBeChecked();
   });
 
-  it('los roles ya asignados están marcados como no editables y no se pueden desmarcar, pero uno nuevo sí puede marcarse', async () => {
+  it('los roles ya asignados y los aún no disponibles no se pueden accionar', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
-    const checkboxEstudiante = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Estudiante] });
-    const checkboxAsesor = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Asesor] });
+    const checkboxEstudiante = screen.getByRole('checkbox', {
+      name: ETIQUETAS_ROL[Rol.Estudiante],
+    });
+    const checkboxAsesor = screen.getByRole('checkbox', {
+      name: new RegExp(`^${ETIQUETAS_ROL[Rol.Asesor]}(\\(|$)`),
+    });
 
     // Act
-    expect(checkboxEstudiante).toHaveAttribute('aria-disabled', 'true');
     await user.click(checkboxEstudiante);
     await user.click(checkboxAsesor);
 
     // Assert
+    expect(checkboxEstudiante).toHaveAttribute('aria-disabled', 'true');
     expect(checkboxEstudiante).toBeChecked();
-    expect(checkboxAsesor).toBeChecked();
+    expect(checkboxAsesor).toHaveAttribute('aria-disabled', 'true');
+    expect(checkboxAsesor).not.toBeChecked();
+    expect(mockAgregar).not.toHaveBeenCalled();
+  });
+
+  it('marcar Coordinador en un usuario que no lo es llama al hook con su id y queda marcado tras el éxito', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_id, options) => {
+      options.onSuccess();
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esCoordinador: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(mockAgregar).toHaveBeenCalledWith(usuario.id, expect.any(Object));
+    expect(toast.success).toHaveBeenCalledWith('Rol agregado', expect.any(String));
+    expect(checkbox).toBeChecked();
+    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('si agregar Coordinador falla muestra toast.error y el checkbox queda desmarcado', async () => {
+    // Arrange
+    mockAgregar.mockImplementation((_id, options) => {
+      options.onError({
+        isAxiosError: true,
+        response: { status: 503, data: { message: 'IDP caído' } },
+      });
+    });
+    const user = userEvent.setup();
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esCoordinador: false }} onCerrar={onCerrar} />,
+    );
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+
+    // Act
+    await user.click(checkbox);
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar el rol', expect.any(String));
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('mientras se agrega el rol el checkbox de Coordinador está deshabilitado y ocupado', () => {
+    // Arrange
+    vi.mocked(useAgregarCoordinador).mockReturnValue(
+      crearMutacionMock<ReturnType<typeof useAgregarCoordinador>>(mockAgregar, true),
+    );
+
+    // Act
+    render(
+      <ModificarUsuarioForm usuario={{ ...usuario, esCoordinador: false }} onCerrar={onCerrar} />,
+    );
+
+    // Assert
+    const checkbox = screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Coordinador] });
+    expect(checkbox).toBeDisabled();
+    expect(checkbox).toHaveAttribute('aria-busy', 'true');
   });
 
   it('mantiene el submit deshabilitado cuando identificador queda vacío, contacto no es numérico y nombre tiene un dígito', async () => {
@@ -115,14 +193,15 @@ describe('ModificarUsuarioForm', () => {
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
-  it('con datos válidos envía el payload con los datos y la unión de roles asignados más el nuevo marcado', async () => {
+  it('con datos válidos envía solo los datos, sin roles', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
+    const submit = screen.getByRole('button', { name: /guardar cambios/i });
 
     // Act
-    await user.click(screen.getByRole('checkbox', { name: ETIQUETAS_ROL[Rol.Asesor] }));
-    const submit = screen.getByRole('button', { name: /guardar cambios/i });
+    await user.clear(screen.getByLabelText(/^contacto/i));
+    await user.type(screen.getByLabelText(/^contacto/i), usuario.contacto);
     expect(submit).toBeEnabled();
     await user.click(submit);
 
@@ -136,10 +215,8 @@ describe('ModificarUsuarioForm', () => {
         nombre: usuario.nombre,
         email: usuario.email,
         contacto: usuario.contacto,
-        roles: expect.arrayContaining([Rol.Estudiante, Rol.Coordinador, Rol.Asesor]),
       },
     });
-    expect(payload.req.roles).toHaveLength(3);
     expect(opciones).toEqual(
       expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
     );
@@ -165,7 +242,11 @@ describe('ModificarUsuarioForm', () => {
   });
 
   it.each([
-    ['USUARIO_IDENTIFICADOR_DUPLICADO', /identificador/i, 'Ya existe un usuario con este identificador.'],
+    [
+      'USUARIO_IDENTIFICADOR_DUPLICADO',
+      /identificador/i,
+      'Ya existe un usuario con este identificador.',
+    ],
     ['USUARIO_EMAIL_DUPLICADO', /correo electrónico/i, 'Ya existe un usuario con este correo.'],
     ['USUARIO_CONTACTO_DUPLICADO', /^contacto/i, 'Ya existe un usuario con este contacto.'],
   ])(

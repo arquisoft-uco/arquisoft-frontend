@@ -31,6 +31,10 @@ vi.mock('./hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
 }));
 
+vi.mock('./hooks/useAgregarCoordinador', () => ({
+  useAgregarCoordinador: vi.fn(),
+}));
+
 vi.mock('./hooks/useEliminarUsuario', () => ({
   useEliminarUsuario: vi.fn(),
 }));
