@@ -291,7 +291,7 @@ describe('ModificarUsuarioForm', () => {
       expect.stringContaining(ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]),
     );
     expect(checkbox).toBeChecked();
-    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
+    expect(checkbox).toHaveAttribute('aria-disabled', 'false');
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
@@ -320,8 +320,9 @@ describe('ModificarUsuarioForm', () => {
     expect(checkbox).not.toBeChecked();
   });
 
-  it('un usuario que ya es Representante del Comité lo muestra marcado y bloqueado', async () => {
+  it('desmarcar Representante del Comité abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
     // Arrange
+    mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
     const user = userEvent.setup();
     render(
       <ModificarUsuarioForm usuario={{ ...usuario, esRepresentanteComite: true }} onCerrar={onCerrar} />,
@@ -332,12 +333,27 @@ describe('ModificarUsuarioForm', () => {
 
     // Act
     await user.click(checkbox);
+    const dialogo = screen.getByRole('dialog');
+    const textoDialogo = dialogo.textContent;
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    const marcadoTrasCancelar = (checkbox as HTMLInputElement).checked;
+    await user.click(checkbox);
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
     // Assert
-    expect(checkbox).toBeChecked();
-    expect(checkbox).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(textoDialogo).toContain(
+      `¿Está seguro de eliminar el rol ${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]} para el usuario ${usuario.nombre}?`,
+    );
+    expect(marcadoTrasCancelar).toBe(true);
     expect(mockAgregar).not.toHaveBeenCalled();
+    expect(mockRemover).toHaveBeenCalledTimes(1);
+    expect(mockRemover).toHaveBeenCalledWith(
+      usuario.id,
+      Rol.RepresentanteComiteCurriculum,
+      expect.any(Function),
+    );
+    expect(checkbox).not.toBeChecked();
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 
   it('desmarcar Asesor de Ficha abre la confirmación, cancelar lo deja marcado y confirmar lo desmarca', async () => {
