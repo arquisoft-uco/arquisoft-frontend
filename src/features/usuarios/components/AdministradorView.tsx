@@ -4,15 +4,17 @@ import ConsultarUsuarios from './administrador/ConsultarUsuarios';
 import ConsultarCoordinadores from './administrador/ConsultarCoordinadores';
 import ConsultarEstudiantes from './administrador/ConsultarEstudiantes';
 import ConsultarAsesores from './administrador/ConsultarAsesores';
+import ConsultarAsesoresFicha from './administrador/ConsultarAsesoresFicha';
 import RegistrarUsuarioForm from './administrador/RegistrarUsuarioForm';
 
-type Pestana = 'usuarios' | 'coordinadores' | 'estudiantes' | 'asesores';
+type Pestana = 'usuarios' | 'coordinadores' | 'estudiantes' | 'asesores' | 'asesores-ficha';
 
 const PESTANAS: { id: Pestana; etiqueta: string }[] = [
   { id: 'usuarios', etiqueta: 'Todos los usuarios' },
   { id: 'coordinadores', etiqueta: 'Coordinadores' },
   { id: 'estudiantes', etiqueta: 'Estudiantes' },
   { id: 'asesores', etiqueta: 'Asesores' },
+  { id: 'asesores-ficha', etiqueta: 'Asesores de ficha' },
 ];
 
 export default function AdministradorView() {
@@ -107,6 +109,14 @@ export default function AdministradorView() {
         className={pestanaActiva === 'asesores' ? undefined : 'hidden'}
       >
         {pestanasMontadas.has('asesores') && <ConsultarAsesores />}
+      </div>
+      <div
+        role="tabpanel"
+        id="usuarios-panel-asesores-ficha"
+        aria-labelledby="usuarios-tab-asesores-ficha"
+        className={pestanaActiva === 'asesores-ficha' ? undefined : 'hidden'}
+      >
+        {pestanasMontadas.has('asesores-ficha') && <ConsultarAsesoresFicha />}
       </div>
     </div>
   );

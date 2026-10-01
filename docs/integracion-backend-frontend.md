@@ -124,7 +124,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 |---|---|---|---|---|
 | `registrarUsuario` | POST | `/usuarios` | `{ identificador, nombres, apellidos, email, contacto, roles? }` | `201 { id }` |
 | `modificarUsuario` | PATCH | `/usuarios/{usuarioId}` | `{ identificador?, nombre?, email?, contacto? }` (sin `roles`; el DTO real acepta además `nombres?`/`apellidos?`, que el frontend no envía) | `204` sin cuerpo |
-| `agregarRol(usuarioId, rol)` (HU-243 coordinador, HU-247 estudiante, HU-234 asesor) | PATCH | `/usuarios/{usuarioId}` | `{ roles: ['coordinador'] }`, `{ roles: ['estudiante'] }` o `{ roles: ['asesor'] }` | `204` sin cuerpo (aditivo; 400 `USUARIO_ROL_NO_VALIDO`; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `COORDINADOR_USUARIO_DUPLICADO` (coordinador), `ASESOR_USUARIO_DUPLICADO` (asesor vigente; si su fila estaba eliminada lógicamente se reactiva); un estudiante vigente se rechaza con 422 (el cliente ya bloquea su checkbox); 503 `USUARIO_IDP_NO_DISPONIBLE`). No hay endpoint propio: es el mismo PATCH con solo roles |
+| `agregarRol(usuarioId, rol)` (HU-243 coordinador, HU-247 estudiante, HU-234 asesor, HU-237 asesor de ficha) | PATCH | `/usuarios/{usuarioId}` | `{ roles: ['coordinador'] }`, `{ roles: ['estudiante'] }`, `{ roles: ['asesor'] }` o `{ roles: ['asesor-ficha'] }` | `204` sin cuerpo (aditivo; 400 `USUARIO_ROL_NO_VALIDO`; 422 `USUARIO_NO_ENCONTRADO`, `USUARIO_ELIMINADO`, `COORDINADOR_USUARIO_DUPLICADO` (coordinador), `ASESOR_USUARIO_DUPLICADO` (asesor vigente), duplicado vigente de asesor de ficha (`AsesorFichaUsuarioUnicoRule`; código exacto sin verificar; si su fila estaba eliminada lógicamente se reactiva); un estudiante vigente se rechaza con 422 (el cliente ya bloquea su checkbox); 503 `USUARIO_IDP_NO_DISPONIBLE`). No hay endpoint propio: es el mismo PATCH con solo roles |
 | `removerCoordinador` (HU-244) | DELETE | `/usuarios/{usuarioId}/coordinador` | — | `204` sin cuerpo (baja lógica del coordinador y revocación del realm role; 400 id no UUID; 422 sin rol coordinador vigente, `COORDINADOR_NO_ENCONTRADO`, `USUARIO_NO_ENCONTRADO`; 503 `USUARIO_IDP_NO_DISPONIBLE`). Verificado contra `RemoverCoordinadorController`; client role `usuarios:coordinador:delete` |
 | `removerEstudiante` (HU-248) | DELETE | `/usuarios/{usuarioId}/estudiante` | — | `204` sin cuerpo (baja lógica del estudiante y revocación del realm role; 400 id no UUID; 422 sin rol estudiante vigente, `ESTUDIANTE_NO_ENCONTRADO`, `USUARIO_NO_ENCONTRADO`; 503 `USUARIO_IDP_NO_DISPONIBLE`). Verificado contra `RemoverEstudianteController`; client role `usuarios:estudiante:delete`. Lo consume el hook `useRemoverRol`, que sustituye a `useRemoverCoordinador` y despacha por rol |
 | `removerAsesor` (HU-235) | DELETE | `/usuarios/{usuarioId}/asesor` | — | `204` sin cuerpo (baja lógica del asesor y revocación del realm role; 400 id no UUID; 422 sin rol asesor vigente, `ASESOR_NO_ENCONTRADO`, `USUARIO_NO_ENCONTRADO`; 503 `USUARIO_IDP_NO_DISPONIBLE`). Verificado contra `RemoverAsesorController`; client role `usuarios:asesor:delete`. Lo consume `useRemoverRol` |
@@ -132,6 +132,7 @@ Servicio: `src/features/usuarios/services/usuariosService.ts`.
 | `consultarCoordinadoresAdministrador` | POST | `/usuarios/coordinadores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Coordinador>` |
 | `consultarEstudiantesAdministrador` | POST | `/usuarios/estudiantes/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Estudiante>` |
 | `consultarAsesoresAdministrador` | POST | `/usuarios/asesores/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<Asesor>` |
+| `consultarAsesoresFichaAdministrador` | POST | `/usuarios/asesores-ficha/administrador` | `{ pagina, tamanio }` (el body admite además `ordenamiento` y `filtros`, que el frontend no envía) | `200 Page<AsesorFicha>` |
 | `consultarUsuariosAdministrador` | POST | `/usuarios/administrador` | `{ pagina, tamanio, ordenamiento?: string[], filtros?: NodoFiltroDTO }` | `200 Page<Usuario>` |
 
 Verificado contra `RegistrarUsuarioController.java`, `RegistrarUsuarioRequestDTO.java` y
@@ -166,6 +167,14 @@ los filtros viajan en el body. Devuelve `{ id, identificador, nombre, email, con
 por fila, incluidos los asesores dados de baja. Sin traducción de nombres en el service. Es el rol
 `asesor`, no `asesor-ficha`. Solo consulta: eliminar el rol es HU-235.
 
+`consultarAsesoresFichaAdministrador` (HU-237) verificado contra
+`ConsultarAsesoresFichaAdministradorController.java` y `AsesorFichaResponseDTO.java` de
+`../arquisoft-backend`, y contra `VALIDATOR-HU-237.md` (APROBADO, PR backend #116). `POST` por los
+filtros en el body. Devuelve `{ id, identificador, nombre, email, contacto, estado, vigente }` por fila,
+incluidos los dados de baja, sin traducción. Es el rol `asesor-ficha` (con guion), distinto de `asesor`
+y del `/vigentes` de HU-239. Solo consulta: quitar el rol es HU-238 (`DELETE /usuarios/{id}/asesor-ficha`
+existe en el backend y queda sin cliente).
+
 `consultarUsuariosAdministrador` (HU-260) verificado contra
 `ConsultarUsuariosAdministradorController.java`, `UsuarioResponseDTO.java` y `UsuarioCriteria.java` de
 `../arquisoft-backend`, y contra `VALIDATOR-HU-260.md` (✅ APROBADO, PR backend #152 mergeado). Es
@@ -189,8 +198,8 @@ abajo para los demás roles `usuarios:*-administrador:view` de este contexto. Co
 administrador sin ese client role recibe `403` y el interceptor lo lleva a `/forbidden`; no se ve con
 `VITE_AUTH_BYPASS=true`.
 
-No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado de roles coordinador, estudiante y asesor (`agregarRol`, HU-243, HU-247 y HU-234) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Quitar el rol coordinador (`removerCoordinador`), estudiante (`removerEstudiante`, HU-248) y asesor (`removerAsesor`, HU-235) usan sus propios `DELETE /usuarios/{id}/coordinador`, `/estudiante` y `/asesor`; los client roles `usuarios:coordinador:delete`, `usuarios:estudiante:delete` y `usuarios:asesor:delete` pueden faltar igual. Los listados de
-coordinadores, estudiantes, asesores y el unificado de "todos los usuarios" son los únicos listados de la
+No hay `GET /usuarios` hoy. La edición de usuarios (`modificarUsuario`) y el agregado de roles coordinador, estudiante, asesor y asesor de ficha (`agregarRol`, HU-243, HU-247, HU-234 y HU-237) usan `PATCH /usuarios/{id}`; el client role `usuarios:usuario:update` puede no estar en el realm (403 con login real, no con bypass). Quitar el rol coordinador (`removerCoordinador`), estudiante (`removerEstudiante`, HU-248) y asesor (`removerAsesor`, HU-235) usan sus propios `DELETE /usuarios/{id}/coordinador`, `/estudiante` y `/asesor`; los client roles `usuarios:coordinador:delete`, `usuarios:estudiante:delete` y `usuarios:asesor:delete` pueden faltar igual. Los listados de
+coordinadores, estudiantes, asesores, asesores de ficha y el unificado de "todos los usuarios" son los únicos listados de la
 feature.
 
 ### Sin cliente en el frontend
@@ -202,7 +211,7 @@ feature.
 
 Los client roles `usuarios:coordinador-administrador:view`, `usuarios:coordinador-vigente:view`,
 `usuarios:estudiante-administrador:view`, `usuarios:estudiante-vigente:view` y
-`usuarios:asesor-administrador:view` no
+`usuarios:asesor-administrador:view` y `usuarios:asesor-ficha-administrador:view` no
 están en el realm export de `arquisoft-infra`, que solo define `usuarios:usuario:create`. Con login
 real, un administrador puede recibir `403` (el interceptor lo lleva a `/forbidden`) hasta que se creen y
 mapeen en Keycloak. No se ve con `VITE_AUTH_BYPASS=true`. El Keycloak desplegado no se pudo verificar.
