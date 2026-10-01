@@ -7,6 +7,7 @@ import { useRegistrarUsuario } from './hooks/useRegistrarUsuario';
 import { useCoordinadores } from './hooks/useCoordinadores';
 import { useEstudiantes } from './hooks/useEstudiantes';
 import { useUsuarios } from './hooks/useUsuarios';
+import { useRemoverRol } from './hooks/useRemoverRol';
 
 vi.mock('./hooks/useRegistrarUsuario', () => ({
   useRegistrarUsuario: vi.fn(),
@@ -35,8 +36,8 @@ vi.mock('./hooks/useAgregarRol', () => ({
   useAgregarRol: vi.fn(),
 }));
 
-vi.mock('./hooks/useRemoverCoordinador', () => ({
-  useRemoverCoordinador: vi.fn(),
+vi.mock('./hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 vi.mock('./hooks/useEliminarUsuario', () => ({
@@ -161,6 +162,13 @@ describe('Usuarios', () => {
     vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
     vi.mocked(useEstudiantes).mockReturnValue(crearEstudiantesMock());
     vi.mocked(useUsuarios).mockReturnValue(crearUsuariosMock());
+    vi.mocked(useRemoverRol).mockReturnValue({
+      objetivo: null,
+      solicitar: vi.fn(),
+      cancelar: vi.fn(),
+      confirmar: vi.fn(),
+      isPending: false,
+    });
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {

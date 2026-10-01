@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
 import { useAgregarRol } from '../../hooks/useAgregarRol';
-import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
 import { rolesDeUsuario } from '../../utils/roles-usuario';
 import type { Usuario } from '../../models/Usuario';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -71,8 +71,7 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
   const { mutate, isPending } = useModificarUsuario();
 
   const agregar = useAgregarRol();
-  const removerCoordinador = useRemoverCoordinador();
-  const [rolAQuitar, setRolAQuitar] = useState<Rol | null>(null);
+  const remover = useRemoverRol();
   const [rolesAsignados, setRolesAsignados] = useState<ReadonlySet<Rol>>(
     () => new Set(rolesDeUsuario(usuario)),
   );
@@ -96,25 +95,15 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
   }
 
   function quitarRol() {
-    if (!rolAQuitar) return;
-    removerCoordinador.mutate(usuario.id, {
-      onSuccess: () => {
-        setRolesAsignados((previos) => {
-          const siguientes = new Set(previos);
-          siguientes.delete(rolAQuitar);
-          return siguientes;
-        });
-        toast.success('Rol eliminado', `${usuario.nombre} ya no es coordinador.`);
-      },
-      onError: (err) => {
-        toast.error('No se pudo eliminar el rol', getApiErrorMessage(err, 'Intenta nuevamente.'));
-      },
-      onSettled: () => setRolAQuitar(null),
+    const rolQuitado = remover.objetivo?.rol;
+    if (!rolQuitado) return;
+    remover.confirmar(() => {
+      setRolesAsignados((previos) => {
+        const siguientes = new Set(previos);
+        siguientes.delete(rolQuitado);
+        return siguientes;
+      });
     });
-  }
-
-  function cancelarQuitarRol() {
-    if (!removerCoordinador.isPending) setRolAQuitar(null);
   }
 
   function onSubmit(values: FormValues) {
@@ -211,9 +200,11 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
 
         <RolesUsuarioFieldset
           rolesAsignados={rolesAsignados}
-          pendiente={agregar.isPending || removerCoordinador.isPending}
+          pendiente={agregar.isPending || remover.isPending}
           onAgregar={agregarRol}
-          onQuitar={setRolAQuitar}
+          onQuitar={(rol) =>
+            remover.solicitar({ usuarioId: usuario.id, nombre: usuario.nombre, rol })
+          }
         />
 
         <div className="actions-row border-t border-border pt-4">
@@ -234,13 +225,13 @@ export default function ModificarUsuarioForm({ usuario, onCerrar }: Props) {
         </div>
       </form>
 
-      {rolAQuitar && (
+      {remover.objetivo && (
         <ConfirmarRemoverRolDialog
-          rol={rolAQuitar}
-          nombreUsuario={usuario.nombre}
-          cargando={removerCoordinador.isPending}
+          rol={remover.objetivo.rol}
+          nombreUsuario={remover.objetivo.nombre}
+          cargando={remover.isPending}
           onConfirmar={quitarRol}
-          onCancelar={cancelarQuitarRol}
+          onCancelar={remover.cancelar}
         />
       )}
     </div>

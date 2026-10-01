@@ -1,21 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useState } from 'react';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarCoordinadores from './ConsultarCoordinadores';
 import { useCoordinadores } from '../../hooks/useCoordinadores';
-import { useRemoverCoordinador } from '../../hooks/useRemoverCoordinador';
-import { toast } from '../../../../shared/hooks/useToast';
+import { useRemoverRol } from '../../hooks/useRemoverRol';
+import { Rol } from '../../../../shared/models/rol';
 import type { Coordinador } from '../../models/Coordinador';
 import type { Page } from '../../../../shared/models/api-response';
 
 vi.mock('../../hooks/useCoordinadores', () => ({
   useCoordinadores: vi.fn(),
 }));
-vi.mock('../../hooks/useRemoverCoordinador', () => ({
-  useRemoverCoordinador: vi.fn(),
-}));
-vi.mock('../../../../shared/hooks/useToast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+vi.mock('../../hooks/useRemoverRol', () => ({
+  useRemoverRol: vi.fn(),
 }));
 
 const COORDINADOR_VIGENTE: Coordinador = {
@@ -72,37 +70,33 @@ function crearHookMock(
   } as ReturnType<typeof useCoordinadores>;
 }
 
-function crearMutacionRemoverMock(
-  mutate: ReturnType<typeof vi.fn>,
-): ReturnType<typeof useRemoverCoordinador> {
+type ConfirmarRemocion = (usuarioId: string, rol: Rol, onExito?: () => void) => void;
+
+function usarRemoverRolFalso(
+  confirmar: ConfirmarRemocion,
+  isPending = false,
+): ReturnType<typeof useRemoverRol> {
+  const [objetivo, setObjetivo] = useState<ReturnType<typeof useRemoverRol>['objetivo']>(null);
   return {
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: 'idle',
-    isError: false,
-    isIdle: true,
-    isPending: false,
-    isSuccess: false,
-    mutate,
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-  } as ReturnType<typeof useRemoverCoordinador>;
+    objetivo,
+    solicitar: setObjetivo,
+    cancelar: () => setObjetivo(null),
+    confirmar: (onExito) => {
+      if (objetivo) confirmar(objetivo.usuarioId, objetivo.rol, onExito);
+      setObjetivo(null);
+    },
+    isPending,
+  };
 }
 
 describe('ConsultarCoordinadores', () => {
-  let mockRemover: ReturnType<typeof vi.fn>;
+  let mockRemover: Mock<ConfirmarRemocion>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useCoordinadores).mockReset();
-    mockRemover = vi.fn();
-    vi.mocked(useRemoverCoordinador).mockReturnValue(crearMutacionRemoverMock(mockRemover));
+    mockRemover = vi.fn<ConfirmarRemocion>();
+    vi.mocked(useRemoverRol).mockImplementation(() => usarRemoverRolFalso(mockRemover));
   });
 
   it('muestra el estado de carga con el título y el botón de actualizar visibles', () => {
@@ -214,7 +208,9 @@ describe('ConsultarCoordinadores', () => {
     render(<ConsultarCoordinadores />);
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }),
+    ).toBeEnabled();
     expect(
       screen.getByRole('button', { name: 'Luis Gómez ya no es coordinador vigente' }),
     ).toBeDisabled();
@@ -241,12 +237,8 @@ describe('ConsultarCoordinadores', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('confirmar llama a la mutación con el id del usuario, lanza toast.success y cierra el diálogo', async () => {
+  it('confirmar llama a la mutación con el id y el rol coordinador y cierra el diálogo', async () => {
     // Arrange
-    mockRemover.mockImplementation((_id, options) => {
-      options.onSuccess();
-      options.onSettled();
-    });
     vi.mocked(useCoordinadores).mockReturnValue(
       crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]) }),
     );
@@ -258,32 +250,7 @@ describe('ConsultarCoordinadores', () => {
     await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
     // Assert
-    expect(mockRemover).toHaveBeenCalledWith(COORDINADOR_VIGENTE.id, expect.any(Object));
-    expect(toast.success).toHaveBeenCalledWith('Rol eliminado', expect.any(String));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-
-  it('si la baja falla lanza toast.error con el mensaje del backend y cierra el diálogo', async () => {
-    // Arrange
-    mockRemover.mockImplementation((_id, options) => {
-      options.onError({
-        isAxiosError: true,
-        response: { status: 422, data: { message: 'Sin rol vigente' } },
-      });
-      options.onSettled();
-    });
-    vi.mocked(useCoordinadores).mockReturnValue(
-      crearHookMock({ data: crearPagina([COORDINADOR_VIGENTE]) }),
-    );
-    const user = userEvent.setup();
-    render(<ConsultarCoordinadores />);
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Quitar rol coordinador a Ana Pérez' }));
-    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
-
-    // Assert
-    expect(toast.error).toHaveBeenCalledWith('No se pudo eliminar el rol', 'Sin rol vigente');
+    expect(mockRemover).toHaveBeenCalledWith(COORDINADOR_VIGENTE.id, Rol.Coordinador, undefined);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
