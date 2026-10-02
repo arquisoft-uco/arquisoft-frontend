@@ -192,4 +192,19 @@ describe('fichasPerfilService', () => {
       });
     });
   });
+
+  describe('getEstadosEvaluacion', () => {
+    it('consulta GET /fichas-perfil/estados-evaluacion y resuelve el data sin transformar', async () => {
+      // Arrange
+      const estados = [{ id: 'ev-1', nombre: 'En Evaluación', descripcion: 'Evaluación en curso' }];
+      get.mockResolvedValue({ status: 200, data: estados });
+
+      // Act
+      const resultado = await fichasPerfilService.getEstadosEvaluacion();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/estados-evaluacion');
+      expect(resultado).toEqual(estados);
+    });
+  });
 });
