@@ -37,6 +37,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('registrarEvaluacion', () => {
+    it('hace POST /fichas-perfil/{id}/evaluaciones sin cuerpo y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'ev-1' } });
+
+      // Act
+      const resultado = await fichasPerfilService.registrarEvaluacion({ fichaPerfilId: 'f-1' });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/f-1/evaluaciones');
+      expect(resultado).toEqual({ id: 'ev-1' });
+    });
+  });
+
   describe('cambiarAsesor', () => {
     it('traduce la solicitud a PATCH /fichas-perfil/{id}/asesor-ficha con { asesorFicha } y resuelve sin cuerpo', async () => {
       // Arrange
