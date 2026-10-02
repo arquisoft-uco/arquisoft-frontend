@@ -34,7 +34,8 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `registrarFichaPerfil` | POST | `/fichas-perfil` | `{ tituloProyecto, asesorFicha, estudiantes[] }` | `201 { id }` |
 | `modificarTituloFichaPerfil` | PATCH | `/fichas-perfil/{id}` | `{ tituloProyecto }` | `204` |
 | `cambiarAsesor` | PATCH | `/fichas-perfil/{id}/asesor-ficha` | `{ asesorFicha }` | `204` |
-| `getFichasCoordinador` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` |
+| `getFichasCoordinador` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` · la respuesta ya trae también `estado { id, nombre, fechaActualizacion }` (el modelo `FichaPerfil` aún no lo usa) |
+| `getFichasRepresentante` | POST | `/fichas-perfil/coordinador` | `{ pagina, tamanio, filtros? }` (árbol `PREDICADO`/`PREDICADO_MULTIVALOR`/`GRUPO`; campos `tituloProyecto`, `asesorNombre`, `asesorEmail` con `CONTIENE` y `estadoFicha` con `IN` sobre ids) | `200 PageResponseDTO<{ id, tituloProyecto, asesorFicha, estado }>` · se traduce a `FichaPerfilRepresentante` (`estadoActual` = `estado.nombre`). Reutiliza la ruta del coordinador (HU-160-AJ1). **Dependencia de Keycloak:** exige el client role `fichas:ficha-perfil-coordinador:view`, que `representante-comite` aún no tiene en `realm-arquisoft.json`; hasta concederlo el representante recibe 403 y va a `/forbidden`. **Nota H1:** `getEstadosFicha` solo devuelve los estados del rol del llamante; al representante no le llega `DISPONIBLE_PARA_EVALUACION`, de modo que el selector no lo ofrece. Corrección a cargo de backend (Juan Fernando) |
 | `getFichasAsesor` | POST | `/fichas-perfil/asesor` | `{ pagina, tamanio }` | `200 PageResponseDTO<FichaPerfil>` — el asesor sale del JWT |
 | `agregarItemFichaPerfil` | POST | `/fichas-perfil/{fichaPerfilId}/items` | `{ tipoItem, contenido }` | `201 { id }` · Errores de dominio 422 con `code` (`ITEM_TIPO_DUPLICADO`, `ESTADO_FICHA_PERFIL_ESTADO_TERMINAL`); `contenido` máx. 7000 |
 | `modificarItem` | PATCH | `/fichas-perfil/items/{itemId}` | `{ contenido }` | `204` · Errores de dominio 422 con `code` (`ITEM_FICHA_NO_AUTORIZADA`, `ITEM_NO_ENCONTRADO`, `ESTADO_FICHA_PERFIL_ESTADO_TERMINAL`); `contenido` máx. 7000 |
@@ -66,10 +67,9 @@ Estos métodos permanecen en el servicio anotados como pendientes para no romper
 
 | Método del servicio | Motivo |
 |---|---|
-| `getFichasRepresentante` | Verificado 2026-09-28: sigue sin endpoint en el backend (no existe un `ConsultarFichasPerfilRepresentanteController` análogo a `.../coordinador` o `.../asesor`). Corresponde a `HU280-NO_SINCRONIZADA`, sigue vigente tal cual. **Esto bloquea toda la vista `RepresentanteView` en producción**: aunque `ItemsFichaRepresentantePanel`, `RegistrarEvaluacionPanel`, `AgregarEstadoEvaluacionPanel` y `EstadosEvaluacionPanel` están completamente implementados y usan endpoints reales, nadie puede llegar a ellos porque `ConsultarFichasRepresentante` (la puerta de entrada) no tiene de dónde traer el listado |
 | `agregarEstadoFichaPerfil` | Verificado 2026-09-28: el backend **sigue sin exponer controller REST** para esto (confirmado revisando todos los `*Controller.java` de `fichas/infrastructure`; solo existe `AgregarEstadoEvaluacionFichaController`, que es de **evaluación**, no de estado de ficha). `AsignarEstadoInicialFichaPerfilUseCase` sigue siendo un mecanismo interno que corre al registrar la ficha |
 
-> `consultarItemsMiFichaPerfil` no es un error de ruta del backend: solo falta apuntar el método a la ruta real. La puerta de entrada del representante sigue bloqueada por `getFichasRepresentante`.
+> `consultarItemsMiFichaPerfil` no es un error de ruta del backend: solo falta apuntar el método a la ruta real. La puerta de entrada del representante (`getFichasRepresentante`) ya apunta al endpoint real; ver su fila arriba por la dependencia de Keycloak.
 
 ### Grupos con UI implementada pero bloqueados en su punto de entrada
 
@@ -81,7 +81,7 @@ endpoint de entrada:
 | Vista | Componentes reales, ya conectados a endpoints reales | Bloqueo de entrada |
 |---|---|---|
 | `EstudianteView` | `ItemsMiFichaPanel` (agregar/modificar/remover ítem — HU031/033/034; selector del catálogo de tipos), `TiposItemPanel` (HU193, pestaña propia), `MiFichaHeader` (modificar título) | Resuelto: `consultarFichasPerfilEstudiante` (`GET /fichas-perfil/estudiante`) |
-| `RepresentanteView` | `ItemsFichaRepresentantePanel` (HU185, ya cerrada), `RegistrarEvaluacionPanel` (HU190), `AgregarEstadoEvaluacionPanel` (HU191), `EstadosEvaluacionPanel` (HU186) | `getFichasRepresentante` — sin endpoint de listado |
+| `RepresentanteView` | `ItemsFichaRepresentantePanel` (HU185, ya cerrada), `RegistrarEvaluacionPanel` (HU190), `AgregarEstadoEvaluacionPanel` (HU191), `EstadosEvaluacionPanel` (HU186) | Resuelto en código (HU-160-AJ1: `POST /fichas-perfil/coordinador`); falta conceder `fichas:ficha-perfil-coordinador:view` a `representante-comite` en Keycloak |
 
 `EstudianteView` además tiene dos tabs en `ComingSoon` real (`RevisionesMiFichaPanel`,
 `EvaluacionesMiFichaPanel` — mensaje "en construcción"), a diferencia de las anteriores que sí están

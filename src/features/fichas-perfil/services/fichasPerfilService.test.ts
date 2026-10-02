@@ -122,4 +122,74 @@ describe('fichasPerfilService', () => {
       ]);
     });
   });
+
+  describe('getFichasRepresentante', () => {
+    const vacios = { titulo: '', asesorNombre: '', asesorEmail: '', estadoIds: [] };
+    const paginaDto = {
+      content: [
+        {
+          id: 'f-1',
+          tituloProyecto: 'Sistema de monitoreo',
+          asesorFicha: { id: 'a-1' },
+          estado: { id: 'st-1', nombre: 'Disponible para evaluación', fechaActualizacion: '2026-09-01T10:00:00' },
+        },
+      ],
+      page: 0,
+      size: 10,
+      totalElements: 1,
+      totalPages: 1,
+      first: true,
+      last: true,
+      empty: false,
+    };
+
+    it('hace POST /fichas-perfil/coordinador sin filtros y traduce la respuesta conservando la paginación', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: paginaDto });
+
+      // Act
+      const resultado = await fichasPerfilService.getFichasRepresentante(0, 10, vacios);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', { pagina: 0, tamanio: 10 });
+      expect(resultado).toEqual({
+        ...paginaDto,
+        content: [{ id: 'f-1', titulo: 'Sistema de monitoreo', estadoActual: 'Disponible para evaluación' }],
+      });
+    });
+
+    it('envía un solo filtro sin GRUPO y combina varios en un GRUPO AND con IN para los estados', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: paginaDto });
+
+      // Act
+      await fichasPerfilService.getFichasRepresentante(1, 10, { ...vacios, titulo: ' monitoreo ' });
+      await fichasPerfilService.getFichasRepresentante(0, 10, {
+        titulo: 'monitoreo',
+        asesorNombre: '',
+        asesorEmail: 'ana@',
+        estadoIds: ['st-1', 'st-2'],
+      });
+
+      // Assert
+      expect(post).toHaveBeenNthCalledWith(1, '/fichas-perfil/coordinador', {
+        pagina: 1,
+        tamanio: 10,
+        filtros: { tipo: 'PREDICADO', campo: 'tituloProyecto', operador: 'CONTIENE', valor: 'monitoreo' },
+      });
+      expect(post).toHaveBeenNthCalledWith(2, '/fichas-perfil/coordinador', {
+        pagina: 0,
+        tamanio: 10,
+        filtros: {
+          tipo: 'GRUPO',
+          conector: 'AND',
+          nodos: [
+            { tipo: 'PREDICADO', campo: 'tituloProyecto', operador: 'CONTIENE', valor: 'monitoreo' },
+            { tipo: 'PREDICADO', campo: 'asesorEmail', operador: 'CONTIENE', valor: 'ana@' },
+            { tipo: 'PREDICADO_MULTIVALOR', campo: 'estadoFicha', operador: 'IN', valores: ['st-1', 'st-2'] },
+          ],
+        },
+      });
+    });
+  });
 });
