@@ -4,6 +4,8 @@ export const LIMITES = {
   ITEM_CONTENIDO_MAX: 7000,
   ESTADO_EVALUACION_ID_MAX: 50,
   ESTUDIANTES_MAX: 3,
+  // FichasLimits.ObservacionEvaluacion.OBSERVACION_MAX
+  OBSERVACION_EVALUACION_MAX: 200,
   // No es un @Size del DTO (record desnudo): origen es la validación de dominio
   // (ApplicationValidationException) de EnviarSolicitudNovedadCoordinador, confirmado con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
