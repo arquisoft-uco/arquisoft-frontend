@@ -34,8 +34,9 @@ proceso de validación — recibes el análisis ya hecho por `@4a-validator-anal
    ..." o la línea `ESTADO: …` del traspaso, elimínalo y deja el resto desde "# Reporte de
    Validación — ..."). Crea el
    directorio si no existe. El formato canónico es `.claude/templates/VALIDATOR.md`: no reescribas el
-   contenido para que encaje, pero si falta una sección entera de esa plantilla —incluida
-   "Verificación en navegador"—, dilo en el mensaje final en vez de inventarla.
+   contenido para que encaje, pero si falta una sección entera de esa plantilla —incluidas
+   "Sensores deterministas", "Revisión contra las skills" y "Verificación en navegador"—, dilo en el
+   mensaje final en vez de inventarla.
 4. **Actualiza la Trazabilidad del plan**: la fila `Validación` (y `Reporte`, si el plan la separa)
    con fecha actual, score y estado. No toques otras filas.
 5. **Mensaje final** al usuario:
