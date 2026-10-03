@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { ClipboardCheck } from 'lucide-react';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { toast } from '../../../../shared/hooks/useToast';
 import { useRegistrarEvaluacion } from '../../hooks/useRegistrarEvaluacion';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import EstadosEvaluacionPanel from './EstadosEvaluacionPanel';
 import AgregarEstadoEvaluacionPanel from './AgregarEstadoEvaluacionPanel';
+import AgregarObservacionEvaluacionPanel from './AgregarObservacionEvaluacionPanel';
 
 interface Props {
   fichaPerfilId: string;
@@ -24,9 +26,14 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
   function handleConfirmar() {
     mutate(undefined, {
       onSuccess: () => {
+        toast.success('Evaluación iniciada', 'Se registró la evaluación de la ficha.');
         setConfirmarAbierto(false);
       },
-      onError: () => {
+      onError: (err) => {
+        toast.error(
+          'Error al iniciar la evaluación',
+          getApiErrorMessage(err, 'Ocurrió un error al registrar la evaluación. Intenta nuevamente.'),
+        );
         setConfirmarAbierto(false);
       },
     });
@@ -87,6 +94,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
           evaluacionId={evaluacionMostrar.id}
           fichaPerfilId={fichaPerfilId}
         />
+        <AgregarObservacionEvaluacionPanel evaluacionId={evaluacionMostrar.id} />
         <EstadosEvaluacionPanel />
       </div>
     );

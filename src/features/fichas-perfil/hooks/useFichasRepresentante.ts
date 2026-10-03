@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
-import { useAuthStore } from '../../../auth/authStore';
+import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
 
 const PAGE_SIZE = 10;
 
-export function useFichasRepresentante() {
+export function useFichasRepresentante(filtros: FiltrosFichasRepresentante) {
   const [page, setPage] = useState(0);
-  const representanteId = useAuthStore((s) => s.tokenParsed?.sub ?? '');
 
   const query = useQuery({
-    queryKey: ['fichas-perfil', 'representante', representanteId, page],
-    queryFn: () => fichasPerfilService.getFichasRepresentante(representanteId, page, PAGE_SIZE),
-    enabled: !!representanteId,
+    queryKey: ['fichas-perfil', 'representante', filtros, page],
+    queryFn: () => fichasPerfilService.getFichasRepresentante(page, PAGE_SIZE, filtros),
+    placeholderData: keepPreviousData,
   });
 
   return {

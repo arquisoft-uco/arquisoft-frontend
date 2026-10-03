@@ -1,11 +1,15 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
+import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
+import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObservacionEvaluacionRequest';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
+import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
 import type { EstadoFichaPerfil, AgregarEstadoFichaPerfilRequest } from '../models/EstadoFichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
@@ -111,6 +115,37 @@ function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
   };
 }
 
+// Forma cruda de FichaPerfilResponseDTO (POST /fichas-perfil/coordinador);
+// se traduce a FichaPerfilRepresentante (estadoActual = estado.nombre) en getFichasRepresentante.
+interface FichaPerfilRepresentanteResponseDTO {
+  id: string;
+  tituloProyecto: string;
+  asesorFicha: { id: string; identificador: string; nombre: string; email: string };
+  estado: { id: string; nombre: string; fechaActualizacion: string };
+}
+
+function construirFiltrosRepresentante(filtros: FiltrosFichasRepresentante): NodoFiltroDTO | undefined {
+  const nodos: NodoFiltroDTO[] = [];
+  const contiene = (campo: string, valor: string) => {
+    const texto = valor.trim();
+    if (texto) nodos.push({ tipo: 'PREDICADO', campo, operador: 'CONTIENE', valor: texto });
+  };
+  contiene('tituloProyecto', filtros.titulo);
+  contiene('asesorNombre', filtros.asesorNombre);
+  contiene('asesorEmail', filtros.asesorEmail);
+  if (filtros.estadoIds.length > 0) {
+    nodos.push({
+      tipo: 'PREDICADO_MULTIVALOR',
+      campo: 'estadoFicha',
+      operador: 'IN',
+      valores: filtros.estadoIds,
+    });
+  }
+  if (nodos.length === 0) return undefined;
+  if (nodos.length === 1) return nodos[0];
+  return { tipo: 'GRUPO', conector: 'AND', nodos };
+}
+
 // ─── Alineados con el backend expuesto ───
 
 export const fichasPerfilService = {
@@ -162,6 +197,16 @@ export const fichasPerfilService = {
         evaluacionFichaPerfil: req.evaluacionFichaPerfilId,
         estadoEvaluacion: req.estadoEvaluacionId,
       })
+      .then((r) => r.data),
+
+  agregarObservacionEvaluacion: (
+    req: AgregarObservacionEvaluacionRequest,
+  ): Promise<ObservacionEvaluacionCreadaResponse> =>
+    apiClient
+      .post<ObservacionEvaluacionCreadaResponse>(
+        `/fichas-perfil/evaluaciones/${req.evaluacionFichaPerfilId}/observaciones`,
+        { observacion: req.observacion },
+      )
       .then((r) => r.data),
 
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
@@ -249,13 +294,30 @@ export const fichasPerfilService = {
       .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
       .then((r) => r.data),
 
-  // ─── Pendientes: el backend aún no expone estos endpoints ───
+  getFichasRepresentante: (
+    page: number,
+    size: number,
+    filtros: FiltrosFichasRepresentante,
+  ): Promise<Page<FichaPerfilRepresentante>> => {
+    const body: ConsultaCriteriaRequest = { pagina: page, tamanio: size };
+    const nodo = construirFiltrosRepresentante(filtros);
+    if (nodo) body.filtros = nodo;
+    return apiClient
+      .post<Page<FichaPerfilRepresentanteResponseDTO>>('/fichas-perfil/coordinador', body)
+      .then(({ data }) => ({
+        ...data,
+        content: data.content.map((dto) => ({
+          id: dto.id,
+          titulo: dto.tituloProyecto,
+          asesorNombre: dto.asesorFicha.nombre,
+          asesorEmail: dto.asesorFicha.email,
+          estadoActual: dto.estado.nombre,
+          estadoFechaActualizacion: dto.estado.fechaActualizacion,
+        })),
+      }));
+  },
 
-  // Pendiente: sin endpoint en el backend.
-  getFichasRepresentante: (representanteId: string, page = 0, size = 10): Promise<Page<FichaPerfilRepresentante>> =>
-    apiClient
-      .get<Page<FichaPerfilRepresentante>>('/fichas-perfil/representante', { params: { representanteId, page, size } })
-      .then((r) => r.data),
+  // ─── Pendientes: el backend aún no expone estos endpoints ───
 
   // Pendiente: sin endpoint en el backend.
   agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
