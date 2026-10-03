@@ -12,12 +12,7 @@ export interface BaselineArquitectura {
 }
 
 export const BASELINE: BaselineArquitectura = {
-  queryKeysFueraDeConvencion: {
-    'features/fichas-perfil/hooks/useAgregarEstadoEvaluacion.ts': 1,
-    'features/fichas-perfil/hooks/useEstadosEvaluacion.ts': 1,
-    'features/fichas-perfil/hooks/useEvaluacionFicha.ts': 1,
-    'features/fichas-perfil/hooks/useRegistrarEvaluacion.ts': 1,
-  },
+  queryKeysFueraDeConvencion: {},
   tiposInseguros: {
     'api/axiosInstance.test.ts': 1,
     'auth/devAuth.ts': 1,

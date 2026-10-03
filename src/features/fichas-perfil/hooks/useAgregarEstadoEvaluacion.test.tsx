@@ -41,7 +41,7 @@ describe('useAgregarEstadoEvaluacion', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(agregarEstadoEvaluacion).toHaveBeenCalledWith(REQ);
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluacion-representante', 'f-1'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'f-1', 'evaluacion'] });
   });
 
   it('expone el error y no invalida cuando el service rechaza', async () => {
