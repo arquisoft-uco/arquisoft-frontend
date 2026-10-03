@@ -109,6 +109,7 @@ function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
 interface FichaPerfilRepresentanteResponseDTO {
   id: string;
   tituloProyecto: string;
+  asesorFicha: { id: string; identificador: string; nombre: string; email: string };
   estado: { id: string; nombre: string; fechaActualizacion: string };
 }
 
@@ -297,7 +298,10 @@ export const fichasPerfilService = {
         content: data.content.map((dto) => ({
           id: dto.id,
           titulo: dto.tituloProyecto,
+          asesorNombre: dto.asesorFicha.nombre,
+          asesorEmail: dto.asesorFicha.email,
           estadoActual: dto.estado.nombre,
+          estadoFechaActualizacion: dto.estado.fechaActualizacion,
         })),
       }));
   },

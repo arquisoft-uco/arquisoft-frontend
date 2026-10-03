@@ -14,7 +14,16 @@ const refetch = vi.fn();
 function mockFichas(overrides: Record<string, unknown> = {}) {
   vi.mocked(useFichasRepresentante).mockReturnValue({
     data: {
-      content: [{ id: 'f1', titulo: 'Proyecto Uno', estadoActual: 'DISPONIBLE_PARA_EVALUACION' }],
+      content: [
+        {
+          id: 'f1',
+          titulo: 'Proyecto Uno',
+          asesorNombre: 'Ana Ruiz',
+          asesorEmail: 'ana@uco.edu.co',
+          estadoActual: 'DISPONIBLE_PARA_EVALUACION',
+          estadoFechaActualizacion: '2026-09-01T10:00:00',
+        },
+      ],
       totalElements: 1,
       totalPages: 1,
     },
@@ -53,6 +62,11 @@ describe('ConsultarFichasRepresentante', () => {
 
     // Assert
     expect(screen.getByText('Proyecto Uno')).toBeInTheDocument();
+    expect(screen.getByText('Ana Ruiz')).toBeInTheDocument();
+    expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
+    expect(screen.getByText('DISPONIBLE_PARA_EVALUACION')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Última actualización' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: /2026/ })).toBeInTheDocument();
     expect(screen.getByText('1 ficha')).toBeInTheDocument();
     expect(onSeleccionar).toHaveBeenCalledWith(expect.objectContaining({ id: 'f1' }));
   });
