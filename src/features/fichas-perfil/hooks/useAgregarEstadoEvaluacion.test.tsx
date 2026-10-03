@@ -1,35 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '../../../test-utils/render';
-import type { EvaluacionFichaPerfil } from '../models/fichas-perfil';
+import { act, renderHook, waitFor } from '../../../test-utils/render';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { useAgregarEstadoEvaluacion } from './useAgregarEstadoEvaluacion';
 
 vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: {
-    agregarEstadoEvaluacion: vi.fn(),
-  },
+  fichasPerfilService: { agregarEstadoEvaluacion: vi.fn() },
 }));
 
-const agregar = vi.mocked(fichasPerfilService.agregarEstadoEvaluacion);
+const agregarEstadoEvaluacion = vi.mocked(fichasPerfilService.agregarEstadoEvaluacion);
 
-const KEY = ['evaluacion-representante', 'f-1'];
+const REQ = { evaluacionFichaPerfilId: 'ev-1', estadoEvaluacionId: 'APROBADA' };
 
-const evaluaciones: EvaluacionFichaPerfil[] = [
-  { id: 'ev-1', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-01', estadoEvaluacionId: null, estadoEvaluacionNombre: null },
-  { id: 'ev-2', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-02', estadoEvaluacionId: null, estadoEvaluacionNombre: null },
-];
-
-function crear() {
+function crearContexto() {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  queryClient.setQueryData(KEY, evaluaciones);
+  const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
-  return { queryClient, Wrapper };
+  return { Wrapper, invalidar };
 }
 
 describe('useAgregarEstadoEvaluacion', () => {
@@ -37,39 +29,32 @@ describe('useAgregarEstadoEvaluacion', () => {
     vi.clearAllMocks();
   });
 
-  it('actualiza en la caché solo la evaluación con el id pedido', async () => {
+  it('llama al service con la solicitud e invalida la evaluación del representante de la ficha', async () => {
     // Arrange
-    agregar.mockResolvedValue({ id: 'x-1' });
-    const { queryClient, Wrapper } = crear();
+    agregarEstadoEvaluacion.mockResolvedValue({ id: 'ee-1' });
+    const { Wrapper, invalidar } = crearContexto();
     const { result } = renderHook(() => useAgregarEstadoEvaluacion('f-1'), { wrapper: Wrapper });
-    const req = { evaluacionFichaPerfilId: 'ev-2', estadoEvaluacionId: 'st-1' };
 
     // Act
-    result.current.mutate({ req, estadoNombre: 'Aprobada' });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    act(() => result.current.mutate(REQ));
 
     // Assert
-    expect(agregar).toHaveBeenCalledWith(req);
-    expect(queryClient.getQueryData(KEY)).toEqual([
-      evaluaciones[0],
-      { ...evaluaciones[1], estadoEvaluacionId: 'st-1', estadoEvaluacionNombre: 'Aprobada' },
-    ]);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(agregarEstadoEvaluacion).toHaveBeenCalledWith(REQ);
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluacion-representante', 'f-1'] });
   });
 
-  it('deja la caché intacta cuando el service falla', async () => {
+  it('expone el error y no invalida cuando el service rechaza', async () => {
     // Arrange
-    agregar.mockRejectedValue(new Error('fallo'));
-    const { queryClient, Wrapper } = crear();
+    agregarEstadoEvaluacion.mockRejectedValue(new Error('422'));
+    const { Wrapper, invalidar } = crearContexto();
     const { result } = renderHook(() => useAgregarEstadoEvaluacion('f-1'), { wrapper: Wrapper });
 
     // Act
-    result.current.mutate({
-      req: { evaluacionFichaPerfilId: 'ev-2', estadoEvaluacionId: 'st-1' },
-      estadoNombre: 'Aprobada',
-    });
-    await waitFor(() => expect(result.current.isError).toBe(true));
+    act(() => result.current.mutate(REQ));
 
     // Assert
-    expect(queryClient.getQueryData(KEY)).toEqual(evaluaciones);
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).not.toHaveBeenCalled();
   });
 });
