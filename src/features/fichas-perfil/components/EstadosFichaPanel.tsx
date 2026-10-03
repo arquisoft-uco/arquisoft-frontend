@@ -5,8 +5,6 @@ import { useAgregarEstadoFichaPerfil } from '../hooks/useAgregarEstadoFichaPerfi
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 
-const ESTADOS_PERMITIDOS = ['EN_CONSTRUCCION', 'DISPONIBLE_PARA_EVALUACION'];
-
 interface Props {
   fichaPerfilId: string;
   estadoActual?: string;
@@ -18,8 +16,6 @@ export default function EstadosFichaPanel({ fichaPerfilId, estadoActual, onEstad
   const { mutate, isPending } = useAgregarEstadoFichaPerfil(fichaPerfilId);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
   const [estadoActualNombre, setEstadoActualNombre] = useState(estadoActual);
-
-  const estadosDisponibles = estados.filter((e) => ESTADOS_PERMITIDOS.includes(e.id));
 
   const handleCambiarEstado = () => {
     if (!estadoSeleccionado) return;
@@ -72,7 +68,7 @@ export default function EstadosFichaPanel({ fichaPerfilId, estadoActual, onEstad
                 className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
               >
                 <option value="">Seleccionar estado...</option>
-                {estadosDisponibles.map((e) => (
+                {estados.map((e) => (
                   <option key={e.id} value={e.id}>
                     {e.nombre}
                   </option>
