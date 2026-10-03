@@ -162,8 +162,10 @@ Catálogos cerrados: `staleTime: Infinity, gcTime: Infinity` (`useEstadosFicha`)
 
 ## Contrato con el backend
 
-`docs/integracion-backend-frontend.md` es la **fuente autoritativa** del mapeo servicio ↔ endpoint,
-con el estado de cada uno. Léelo antes de tocar un service.
+El contrato real de cada endpoint sale del backend: abre el Controller y los DTO en
+`../arquisoft-backend` antes de tocar un service (Nivel 2 de `gh-docs-reader`). Las historias y los
+reportes de validación viven en `arquisoft-uco/arquisoft-docs`. Lo que sigue abierto se registra en
+`docs/pendientes.md`, que no es fuente de contrato.
 
 - `VITE_API_URL` **ya incluye el `/api`**: una ruta de service empieza en `/fichas-perfil`.
 - **Sin envelope de éxito.** Solo están estandarizados `Page<T>` y `ApiError`

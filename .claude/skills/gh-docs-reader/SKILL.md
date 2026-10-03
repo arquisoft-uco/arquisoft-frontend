@@ -1,6 +1,6 @@
 ---
 name: gh-docs-reader
-description: Localiza las fuentes de una Historia de Usuario o Tecnica para Arquisoft Frontend — historias locales en docs/fichas-perfil/historias/, el contrato real en docs/integracion-backend-frontend.md, el codigo del repo hermano arquisoft-backend, el repositorio privado arquisoft-uco/arquisoft-docs via GitHub CLI, y como descubrir ahi que HU ya entrego el equipo de backend (docs/hus/validaciones/) para desarrollar su contraparte de frontend. Usar en la FASE 1 del planificador, antes de preguntar nada al usuario.
+description: Localiza las fuentes de una Historia de Usuario o Tecnica para Arquisoft Frontend — historias y reglas de negocio en arquisoft-docs, el contrato real en el codigo del repo hermano arquisoft-backend, el repositorio privado arquisoft-uco/arquisoft-docs via GitHub CLI, y como descubrir ahi que HU ya entrego el equipo de backend (docs/hus/validaciones/) para desarrollar su contraparte de frontend. Usar en la FASE 1 del planificador, antes de preguntar nada al usuario.
 ---
 
 # Skill: gh-docs-reader
@@ -51,7 +51,7 @@ contraparte de frontend):
 - **`docs/hus/planes/frontend/PLAN-{HU|HT}-{ID}.md`** → si ya existe para ese ID, frontend ya lo
   planificó (o lo entregó, revisa su `VALIDATOR-.../frontend/VALIDATOR-{ID}.md`). Dilo al usuario en
   vez de replanificar desde cero.
-- `docs/fichas-perfil/historias/` (Nivel 1) → ya cubiertas o en curso por `fichas-perfil`
+- `docs/pendientes.md` → HU que el backend entregó y figura sin frontend, o un pendiente ya identificado
 - Las nueve rutas en `<ComingSoon />` (`src/features/*`, ver `arquisoft-frontend-arquitectura`) → sin
   feature de frontend todavía; su bounded context sale de la tabla "Feature del frontend → archivos"
   más abajo
@@ -60,8 +60,8 @@ contraparte de frontend):
   frontend adivinara o marcara el endpoint como no disponible. Un `// Pendiente` cuya HU aparece
   `APROBADO` en `docs/hus/validaciones/` es una corrección, no una historia nueva — verifícalo con los
   tres pasos de "Verificar Nivel 2 es tres pasos, no uno" de `arquisoft-frontend-arquitectura` antes de
-  tocar el service, y actualiza `docs/integracion-backend-frontend.md` cuando lo resuelvas: ese
-  documento no se actualiza solo cuando cambia el service.
+  tocar el service, y quítalo de `docs/pendientes.md` cuando lo resuelvas: ese
+  registro no se actualiza solo cuando cambia el service.
 
 El resultado de ese cruce es la lista real de HU por planificar. Cita en el plan el `VALIDATOR-HU-{ID}.md`
 consultado como evidencia de que el endpoint existe — así el Nivel 2 (repo hermano) confirma el DTO
@@ -69,19 +69,16 @@ exacto, no si el endpoint existe.
 
 ## Nivel 1 — Fuentes locales
 
-Ya no es la fuente principal de casi nada: solo quedan las historias de HU que el backend aún no
-entregó. Las de HU ya cerradas por frontend, y toda `docs/fichas-perfil/contexto/` (Event Storming,
-modelo enriquecido, DDL), se eliminaron el 2026-09-27 por quedar desactualizadas — su reemplazo es
-siempre Nivel 3 (ver tabla "Feature del frontend → archivos" más abajo), nunca un archivo local.
+Ya no es la fuente principal de nada. Toda `docs/fichas-perfil/contexto/` (Event Storming, modelo
+enriquecido, DDL) se eliminó el 2026-09-27 por quedar desactualizada, y las historias locales de
+`docs/fichas-perfil/historias/` el 2026-10-03, cuando ya estaban implementadas o resueltas — su
+reemplazo es siempre Nivel 3 (ver tabla "Feature del frontend → archivos" más abajo), nunca un archivo
+local. Hoy esa carpeta no existe.
 
 | Ruta | Aporta | Cuándo |
 |---|---|---|
-| `docs/fichas-perfil/historias/HU{NNN}-*.md` | Historia, precondiciones, reglas `POL-XX` — solo de las HU **bloqueadas por backend** o `*-NO_SINCRONIZADA` (las de HU ya cerradas por frontend se borraron; su fuente es `arquisoft-docs`) | HU de `fichas-perfil` que sigue sin implementar |
-| `docs/integracion-backend-frontend.md` | Mapa de contrato **como punto de partida**: método → verbo → ruta → body → respuesta, más los pendientes con su motivo y la degradación con `AvisoNoDisponible` (no cites cuántos son — se desactualiza). Confírmalo siempre contra Nivel 2, nunca lo cites como si fuera el DTO real | **Siempre**, antes de tocar un service — pero como arranque, no como cierre |
-
-```bash
-ls docs/fichas-perfil/historias/
-```
+| `docs/fichas-perfil/historias/HU{NNN}-*.md` | **Hoy no hay archivos.** Si se vuelve a crear una copia local: historia, precondiciones, reglas `POL-XX`, solo de las HU **bloqueadas por backend** o `*-NO_SINCRONIZADA` (las de HU ya cerradas por frontend se borran; su fuente es `arquisoft-docs`) | HU de `fichas-perfil` que sigue sin implementar |
+| `docs/pendientes.md` | Registro de lo que sigue abierto: bloqueos de backend, client roles de Keycloak por confirmar, pantallas en construcción, HU entregadas por backend sin frontend. **No es fuente de contrato**; confirma siempre contra Nivel 2 | Antes de planificar, para saber si la HU toca un pendiente ya identificado |
 
 Para Event Storming, modelo enriquecido o DDL de `fichas-perfil` — ya no hay copia local, van
 directo a Nivel 3: `artefactos/estrategicos/event-storming/Ficha Perfil - Event Storming.md`,
@@ -89,6 +86,9 @@ directo a Nivel 3: `artefactos/estrategicos/event-storming/Ficha Perfil - Event 
 `mer/03_tablas_fichas_perfil.sql` (rutas completas en la tabla de Nivel 3).
 
 ### IDs no sincronizados con el catálogo maestro
+
+Aplica a cualquier copia local de una HU (hoy no hay ninguna) y, sobre todo, a cualquier ID que cites
+en un plan.
 
 El catálogo maestro (`historias_usuario_priorizadas.md`) se reconsolida con el tiempo y **reutiliza
 números de HU** para historias completamente distintas (ver `HU280`: hoy es "Reabrir Observación
@@ -186,14 +186,12 @@ degradación con `AvisoNoDisponible`.
 0. ¿No hay HU puntual, sino "implementa lo que backend ya entregó"? → Nivel 0 primero,
    para salir de ahí con uno o varios IDs concretos antes de seguir con el paso 1
 1. ¿HU (negocio, con actor y criterios) o HT (plataforma, en docs/stories/)?
-2. ls docs/fichas-perfil/historias/ → ¿está en local (HU bloqueada por backend o NO_SINCRONIZADA)?
-     Sí → léela como punto de partida: trae reglas POL-XX, pero ya no trae event storming ni modelo
-       de dominio (se borraron) — ve a Nivel 3 para eso
-     No → Nivel 3: historias priorizadas + Event Storming del contexto
-3. LEER SIEMPRE docs/integracion-backend-frontend.md como punto de partida del contrato
+2. Nivel 3: historias priorizadas + Event Storming del contexto
+     Si existiera una copia local en docs/fichas-perfil/historias/ (hoy no hay): úsala solo como
+       punto de partida — trae reglas POL-XX, pero no event storming ni modelo de dominio
+3. Leer docs/pendientes.md: ¿la HU toca un pendiente ya identificado?
+4. LEER SIEMPRE el Controller real en ../arquisoft-backend (Nivel 2 es la fuente del contrato)
      Por cada endpoint que la HU necesita: ¿implementado o pendiente? ¿ruta y body exactos?
-4. CONFIRMAR SIEMPRE contra el Controller real en ../arquisoft-backend (Nivel 2 manda sobre el
-     contrato, incluso si el paso 3 ya lo daba por bueno)
      Sin repo hermano → marcar el contrato como NO VERIFICADO
 5. Roles: cruzar src/shared/models/rol.ts, src/layout/nav-items.ts y las authorities del backend
    ({Contexto}Authorities.java en ../arquisoft-backend)

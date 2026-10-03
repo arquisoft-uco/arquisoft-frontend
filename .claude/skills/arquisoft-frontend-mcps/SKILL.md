@@ -40,7 +40,7 @@ no cuadra, verificar un rol — `VITE_AUTH_BYPASS` no sirve. Usa el login real:
    formulario de Keycloak listo (navegado, con el campo enfocado si hace falta) y pide al usuario que
    inicie sesión él mismo; retoma la verificación una vez la sesión esté activa.
 4. Con sesión real, los 401/403 que veas en `read_network_requests` son reales — repórtalos como
-   bloqueante del backend (candidato a `docs/integracion-backend-frontend.md`), no como falla de UI.
+   bloqueante del backend (candidato a `docs/pendientes.md`), no como falla de UI.
 
 ## Antes de levantar o relanzar el servidor de desarrollo
 

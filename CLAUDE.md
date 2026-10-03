@@ -120,7 +120,8 @@ nueve rutas renderizan `<ComingSoon />`.
 - **Enrutamiento** — todas las rutas son perezosas. La restricción por rol se declara en
   `NAV_ITEMS[].roles` (`src/layout/nav-items.ts`), no a mano en `router.tsx`.
 - **Tipos del backend** — `Page<T>`, `ApiResponse<T>` y `ApiError` en `src/shared/models/api-response.ts`.
-  `docs/integracion-backend-frontend.md` es la fuente autoritativa de qué endpoint existe hoy.
+  El contrato real de cada endpoint sale del backend (`../arquisoft-backend`) y las historias de
+  `arquisoft-docs`; lo que sigue abierto está en `docs/pendientes.md`.
 - **Testing** — importa `render` de `src/test-utils/render.tsx` (trae `QueryClientProvider` +
   `MemoryRouter`); Keycloak se mockea con `src/test-utils/keycloak.mock.ts`.
 

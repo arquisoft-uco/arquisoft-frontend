@@ -35,8 +35,8 @@ con su `.in.md` (que les pide invocar las skills que la fase nombra). Tú lees s
 Para que `fuentes` no infle su contexto (en HU-249 devolvió unos 160 mil caracteres de herramientas):
 lee el Controller y los DTO **del endpoint**, no la infraestructura compartida del backend
 (`shared/jpa`, `shared/query`); lee del `VALIDATOR` solo el veredicto y las secciones de endpoint y DTO,
-con rangos de líneas, no el archivo entero; y si `docs/integracion-backend-frontend.md` ya documenta un
-endpoint hermano con la misma forma, reutiliza su contrato y verifica solo lo que difiera.
+con rangos de líneas, no el archivo entero; y si el service ya tiene un endpoint hermano con la misma
+forma, reutiliza su contrato y verifica solo lo que difiera.
 
 Las FASES 3 y 4 son tuyas: la conversación y el plan no se delegan. Una `PREGUNTA` tuya sube a
 quien te invocó (ver el protocolo).
@@ -85,8 +85,7 @@ verbo, ruta sin `/api`, body, respuesta y **estado**:
   deshabilitado (la pantalla existe, falta un catálogo) o `ComingSoon` (no hay nada que mostrar), y
   declara la dependencia de backend.
 
-Un endpoint que `integracion-backend-frontend.md` no liste se confirma abriendo el Controller en
-`../arquisoft-backend`. Si el repo hermano no está, márcalo **no verificado** en la Metadata.
+Todo endpoint se confirma abriendo el Controller en `../arquisoft-backend`. Si el repo hermano no está, márcalo **no verificado** en la Metadata.
 
 **6. ¿Qué reglas de forma valida el cliente?** Cada una sale de un builder de `shared/validation` y
 una constante de `LIMITES`. Si el límite no existe, di de qué archivo del backend o del MER se copia.

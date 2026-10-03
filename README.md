@@ -150,10 +150,9 @@ cada formulario.
 
 ### Integración con el backend
 
-El mapeo entre los endpoints realmente expuestos por el backend y los servicios del frontend (con su
-estado: implementado o pendiente) se documenta en
-[`docs/integracion-backend-frontend.md`](docs/integracion-backend-frontend.md). El backend es la
-fuente oficial del contrato de API.
+El backend es la fuente oficial del contrato de API; las historias y los reportes de validación viven
+en el repositorio `arquisoft-uco/arquisoft-docs`. Lo que sigue abierto en el frontend (bloqueos de
+backend, permisos de Keycloak, pantallas en construcción) está en [`docs/pendientes.md`](docs/pendientes.md).
 
 ## Docker
 
