@@ -52,11 +52,12 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `registrarEvaluacion` | POST | `/fichas-perfil/{fichaId}/evaluaciones` | _(sin body)_ | `201 { id }` |
 | `getEvaluacionFicha` | GET | `/fichas-perfil/{fichaPerfilId}/evaluaciones/representante` | — | `200 EvaluacionFichaPerfilResponseDTO[]` · **lista**, ordenada por `fechaCreacion` asc |
 | `agregarEstadoEvaluacion` | POST | `/fichas-perfil/estado-evaluacion-ficha` | `{ evaluacionFichaPerfil, estadoEvaluacion }` | `201 { id }` |
+| `agregarObservacionEvaluacion` | POST | `/fichas-perfil/evaluaciones/{evaluacionFichaPerfilId}/observaciones` | `{ observacion }` (1-200 tras trim; el id va en el path) | `201 { id }` · 422 `EVALUACION_NO_ENCONTRADA`, `EVALUACION_NO_PROPIA`, `OBSERVACION_EVALUACION_EVALUACION_CERRADA`, `OBSERVACION_EVALUACION_DUPLICADA` |
 | `getEstadosFicha` | GET | `/fichas-perfil/estados-ficha` | — | `200 EstadoFicha[]` · ordenada por `id` y **filtrada por el rol del llamante** (tabla `estado_ficha_rol`): asesor `EN_CONSTRUCCION`, `DISPONIBLE_PARA_EVALUACION`, `DESCARTADA`; coordinador y representante `APROBADA`, `APROBADA_CON_OBSERVACIONES`, `NO_APROBADA`; estudiante ninguno. El cliente no recorta el catálogo |
 | `getEstadosEvaluacion` | GET | `/fichas-perfil/estados-evaluacion` | — | `200 EstadoEvaluacion[]` |
 
-> **Respuestas que devuelven menos de lo que parece.** `registrarEvaluacion` y
-> `agregarEstadoEvaluacion` responden **solo** `{ id }`: no traen `fechaCreacion` ni el estado. Quien
+> **Respuestas que devuelven menos de lo que parece.** `registrarEvaluacion`,
+> `agregarEstadoEvaluacion` y `agregarObservacionEvaluacion` responden **solo** `{ id }`: no traen `fechaCreacion` ni el estado. Quien
 > necesite esos datos después de la mutación invalida la query y los relee, no los deduce de la
 > respuesta.
 
@@ -81,7 +82,7 @@ endpoint de entrada:
 | Vista | Componentes reales, ya conectados a endpoints reales | Bloqueo de entrada |
 |---|---|---|
 | `EstudianteView` | `ItemsMiFichaPanel` (agregar/modificar/remover ítem — HU031/033/034; selector del catálogo de tipos), `TiposItemPanel` (HU193, pestaña propia), `MiFichaHeader` (modificar título) | Resuelto: `consultarFichasPerfilEstudiante` (`GET /fichas-perfil/estudiante`) |
-| `RepresentanteView` | `ItemsFichaRepresentantePanel` (HU185, ya cerrada), `RegistrarEvaluacionPanel` (HU190), `AgregarEstadoEvaluacionPanel` (HU191), `EstadosEvaluacionPanel` (HU186) | Resuelto en código (HU-160-AJ1: `POST /fichas-perfil/coordinador`); falta conceder `fichas:ficha-perfil-coordinador:view` a `representante-comite` en Keycloak |
+| `RepresentanteView` | `ItemsFichaRepresentantePanel` (HU185, ya cerrada), `RegistrarEvaluacionPanel` (HU190), `AgregarEstadoEvaluacionPanel` (HU191), `AgregarObservacionEvaluacionPanel` (HU187), `EstadosEvaluacionPanel` (HU186) | Resuelto en código (HU-160-AJ1: `POST /fichas-perfil/coordinador`); falta conceder `fichas:ficha-perfil-coordinador:view` a `representante-comite` en Keycloak |
 
 `EstudianteView` además tiene dos tabs en `ComingSoon` real (`RevisionesMiFichaPanel`,
 `EvaluacionesMiFichaPanel` — mensaje "en construcción"), a diferencia de las anteriores que sí están
@@ -288,7 +289,7 @@ Módulo: `src/shared/validation/`. Centraliza únicamente lo reutilizable y alin
 del backend; las reglas propias de la lógica de negocio permanecen en cada formulario.
 
 - `limites.ts` — constantes de las restricciones `@Size` del backend:
-  `TITULO_PROYECTO_MAX = 100`, `ITEM_CONTENIDO_MAX = 7000`, `ESTADO_EVALUACION_ID_MAX = 50`,
+  `TITULO_PROYECTO_MAX = 100`, `ITEM_CONTENIDO_MAX = 7000`, `ESTADO_EVALUACION_ID_MAX = 50`, `OBSERVACION_EVALUACION_MAX = 200`,
   `ESTUDIANTES_MAX = 3`, `USUARIO_IDENTIFICADOR_MIN/MAX = 4/30`, `USUARIO_NOMBRE_MIN/MAX = 2/50`,
   `USUARIO_EMAIL_MIN/MAX = 6/50`, `USUARIO_CONTACTO_MIN/MAX = 10/15`, `MENSAJE_SOLICITUD_MAX = 100`
   (este último viene de la validación de dominio, no de un `@Size`).

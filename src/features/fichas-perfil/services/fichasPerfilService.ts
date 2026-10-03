@@ -1,7 +1,9 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
+import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObservacionEvaluacionRequest';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
@@ -183,6 +185,16 @@ export const fichasPerfilService = {
         evaluacionFichaPerfil: req.evaluacionFichaPerfilId,
         estadoEvaluacion: req.estadoEvaluacionId,
       })
+      .then((r) => r.data),
+
+  agregarObservacionEvaluacion: (
+    req: AgregarObservacionEvaluacionRequest,
+  ): Promise<ObservacionEvaluacionCreadaResponse> =>
+    apiClient
+      .post<ObservacionEvaluacionCreadaResponse>(
+        `/fichas-perfil/evaluaciones/${req.evaluacionFichaPerfilId}/observaciones`,
+        { observacion: req.observacion },
+      )
       .then((r) => r.data),
 
   getEstadosFicha: (): Promise<EstadoFicha[]> =>

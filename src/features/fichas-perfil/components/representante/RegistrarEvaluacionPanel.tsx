@@ -7,6 +7,7 @@ import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import EstadosEvaluacionPanel from './EstadosEvaluacionPanel';
 import AgregarEstadoEvaluacionPanel from './AgregarEstadoEvaluacionPanel';
+import AgregarObservacionEvaluacionPanel from './AgregarObservacionEvaluacionPanel';
 
 interface Props {
   fichaPerfilId: string;
@@ -93,6 +94,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
           evaluacionId={evaluacionMostrar.id}
           fichaPerfilId={fichaPerfilId}
         />
+        <AgregarObservacionEvaluacionPanel evaluacionId={evaluacionMostrar.id} />
         <EstadosEvaluacionPanel />
       </div>
     );

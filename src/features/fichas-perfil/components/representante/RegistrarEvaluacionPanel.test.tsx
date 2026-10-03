@@ -16,6 +16,7 @@ vi.mock('./AgregarEstadoEvaluacionPanel', () => ({
   default: ({ evaluacionId }: { evaluacionId: string }) => <div>Agregar estado a {evaluacionId}</div>,
 }));
 vi.mock('./EstadosEvaluacionPanel', () => ({ default: () => <div>Catálogo de estados</div> }));
+vi.mock('./AgregarObservacionEvaluacionPanel', () => ({ default: () => <div>Agregar observación</div> }));
 
 const consulta = vi.mocked(useEvaluacionFicha);
 const registro = vi.mocked(useRegistrarEvaluacion);
