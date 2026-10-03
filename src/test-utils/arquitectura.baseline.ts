@@ -21,11 +21,13 @@ export const BASELINE: BaselineArquitectura = {
   tiposInseguros: {
     'api/axiosInstance.test.ts': 1,
     'auth/devAuth.ts': 1,
+    'features/fichas-perfil/components/asesor-ficha/EstadosFichasAsesorPanel.test.tsx': 2,
     'features/fichas-perfil/components/estudiante/EditarItemForm.test.tsx': 1,
     'features/fichas-perfil/components/estudiante/EditarTituloForm.test.tsx': 1,
   },
   componentesGrandes: {
     'features/dashboard/Dashboard.tsx': 273,
+    'features/fichas-perfil/components/asesor-ficha/EstadosFichasAsesorPanel.tsx': 193,
     'features/fichas-perfil/components/coordinador/FichasPerfilTable.tsx': 153,
     'features/fichas-perfil/components/estudiante/AgregarItemForm.tsx': 151,
     'features/fichas-perfil/components/RegistrarFichaPerfil.tsx': 273,

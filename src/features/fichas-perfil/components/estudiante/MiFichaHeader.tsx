@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Edit3, Users, UserCheck } from 'lucide-react';
+import { Edit3, UserCheck } from 'lucide-react';
 import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
+import CompanerosFichaPanel from './CompanerosFichaPanel';
 import EditarTituloForm from './EditarTituloForm';
 
 export default function MiFichaHeader() {
-  const { ficha, companeros } = useMiFichaPerfil();
+  const { ficha } = useMiFichaPerfil();
 
   const [editandoTitulo, setEditandoTitulo] = useState(false);
 
@@ -43,24 +44,7 @@ export default function MiFichaHeader() {
         )}
       </div>
 
-      {companeros.length > 0 && (
-        <div className="mt-3">
-          <div className="mb-1 flex items-center gap-1.5">
-            <Users size={14} className="text-on-surface-secondary" aria-hidden />
-            <p className="text-xs font-medium uppercase tracking-wider text-on-surface-secondary">
-              Integrantes
-            </p>
-          </div>
-          <ul className="space-y-0.5 pl-5" aria-label="Integrantes">
-            {companeros.map((c) => (
-              <li key={c.id} className="text-xs text-on-surface-secondary">
-                <span className="font-medium text-on-surface">{c.nombre}</span>
-                {' '}— {c.email}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <CompanerosFichaPanel idFichaPerfil={ficha.id} />
 
       {ficha.asesor && (
         <div className="mt-2 flex items-center gap-2">

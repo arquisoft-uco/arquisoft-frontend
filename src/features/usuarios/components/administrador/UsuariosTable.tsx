@@ -4,7 +4,7 @@ import { rolesDeUsuario } from '../../utils/roles-usuario';
 import { ETIQUETAS_ROL } from '../../../../shared/models/rol';
 import type { EstadoUsuario } from '../../models/EstadoUsuario';
 import { nombreEstadoUsuario } from '../../utils/estados-usuario';
-import PaginadorListado from './PaginadorListado';
+import PaginadorListado from '../../../../shared/components/PaginadorListado';
 
 interface Props {
   usuarios: Usuario[];

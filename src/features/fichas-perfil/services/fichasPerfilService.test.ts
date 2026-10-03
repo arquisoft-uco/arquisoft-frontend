@@ -138,6 +138,34 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarCompanerosFichaPerfil', () => {
+    it('consulta GET /fichas-perfil/{id}/estudiantes/companeros y traduce id a idVinculo y estudianteId a id', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'v-2',
+            fichaPerfilId: 'f-1',
+            estudianteId: 'e-2',
+            nombre: 'Marta Gómez',
+            email: 'marta@uco.edu.co',
+            vigente: true,
+          },
+        ],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarCompanerosFichaPerfil('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/estudiantes/companeros');
+      expect(resultado).toEqual([
+        { idVinculo: 'v-2', id: 'e-2', nombre: 'Marta Gómez', email: 'marta@uco.edu.co' },
+      ]);
+    });
+  });
+
   describe('consultarItemsMiFichaPerfil', () => {
     it('consulta GET /fichas-perfil/{id}/items/estudiante y traduce el ítem plano al modelo anidado', async () => {
       // Arrange
@@ -154,6 +182,55 @@ describe('fichasPerfilService', () => {
       expect(resultado).toEqual([
         { id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir' },
       ]);
+    });
+  });
+
+  describe('getEstadosFichasAsesor', () => {
+    it('hace POST /fichas-perfil/estados-ficha/asesor con el body recibido y traduce fichaPerfil a fichaPerfilId conservando la paginación', async () => {
+      // Arrange
+      const req = {
+        pagina: 1,
+        tamanio: 10,
+        ordenamiento: ['tituloProyecto:ASC'],
+        filtros: { tipo: 'PREDICADO' as const, campo: 'estadoFicha', operador: 'ES', valor: 'st-1' },
+      };
+      post.mockResolvedValue({
+        status: 200,
+        data: {
+          content: [
+            {
+              fichaPerfil: 'f-1',
+              tituloProyecto: 'Sistema de monitoreo',
+              estadoId: 'st-1',
+              estadoNombre: 'En revisión',
+              fechaActualizacion: '2026-09-01T10:00:00',
+            },
+          ],
+          page: 1,
+          size: 10,
+          totalElements: 11,
+          totalPages: 2,
+          first: false,
+          last: true,
+          empty: false,
+        },
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.getEstadosFichasAsesor(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/estados-ficha/asesor', req);
+      expect(resultado.content).toEqual([
+        {
+          fichaPerfilId: 'f-1',
+          tituloProyecto: 'Sistema de monitoreo',
+          estadoId: 'st-1',
+          estadoNombre: 'En revisión',
+          fechaActualizacion: '2026-09-01T10:00:00',
+        },
+      ]);
+      expect(resultado).toMatchObject({ page: 1, size: 10, totalElements: 11, totalPages: 2, last: true });
     });
   });
 
