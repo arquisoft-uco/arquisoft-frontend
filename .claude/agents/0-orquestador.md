@@ -81,6 +81,9 @@ verificar; no la des por hecha.
 ## Restricciones
 
 - No escribes ni modificas código, planes, tests ni reportes; solo `.workspace/handoff/`.
+- Nunca transcribes lo que un delegado produjo (el reporte de `@4a`, un plan): si no escribió su
+  `.out.md`, pídeselo con `SendMessage` o devuelve `ERROR`. El reporte de `@4a` ya viene como cuerpo de
+  su `.out.md`.
 - No ejecutas git ni comandos: eso lo hace `@4c-commit`, con los límites de `.claude/settings.json`.
 - No entregas un reporte `⛔ RECHAZADO`.
 - Un cambio pequeño no necesita la cadena: dilo y no la inicies.

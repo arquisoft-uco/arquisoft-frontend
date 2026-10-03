@@ -22,7 +22,7 @@ Destino: .workspace/validator/validator-{HU|HT}-{ID}.md
 |---|---|---|---|---|
 | 1 — Completitud del plan | | | | |
 | 2 — Convenciones de arquitectura y código | | | | |
-| 3 — Type-check, tests y build | | | | |
+| 3 — Type-check, tests, build y formato | | | | |
 | 4 — Testing (Nivel 2.12) | | | | ⏳ N/A si no se ejecutaron |
 | **Total** | | | | **XX/100** |
 
@@ -44,6 +44,22 @@ Un solo bloqueante = RECHAZADO, sin importar el score.
 - **Hash:** `{7 caracteres del commit, o "—" si aún no hay}`
 - **Fecha:** {yyyy-MM-dd}
 - **PR:** {URL completa a `arquisoft-uco/arquisoft-frontend/pull/{N}`, o "—"}
+
+## Sensores deterministas
+
+| Sensor | Resultado |
+|---|---|
+| `npm run lint` | {✅ / ❌ mensaje exacto} |
+| `npm test -- --run` | {✅ N tests / ❌ mensaje exacto} |
+| ↳ `src/arquitectura.test.ts` | {✅ / ❌ regla que falla} |
+| `npm run build` | {✅ / ❌ mensaje exacto} |
+| `npm run format:check` | {✅ / ❌ archivos sin formato} |
+
+## Revisión contra las skills
+
+{Qué se revisó con juicio contra `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares` —
+ lo que los sensores no ven— y las desviaciones halladas, cada una con skill, sección y `ruta:línea`.
+ "Ninguna" si no hay: la sección no se borra.}
 
 ## Errores Bloqueantes
 

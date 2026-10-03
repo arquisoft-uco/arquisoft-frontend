@@ -25,7 +25,7 @@ GitHub, donde el usuario aprueba el merge.
 | "planifica HU-XXX", "genera el plan de…" | `@1-planificador` | `.workspace/h-plan/PLAN-{HU\|HT}-{ID}.md`. No escribe código |
 | "implementa el plan", "ya está aprobado" | `@2-implementador` | Código, capa por capa: `models → services → hooks → components` |
 | "escribe los tests de…" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
-| "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte, como mensaje. No escribe archivos |
+| "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte completo (como mensaje, o como cuerpo de su `.out.md` si lo invoca el orquestador). Valida en dos capas: sensores deterministas **y** revisión con juicio contra las skills de arquitectura y estándares. No escribe en el repo |
 | "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
 | "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs`, **sin pedir confirmación** |
 | El desarrollador pide cambiar algo tras revisar un PR o un commit | `@0-orquestador` (`ajusta {ID}: …`) | Ajuste `{ID}-AJn`: plan acotado → implementación → `@4a` (arquitectura) → `@4b` → `@4c-commit` en Seguimiento. **No se edita directo** |
