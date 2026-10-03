@@ -53,7 +53,7 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `getEvaluacionFicha` | GET | `/fichas-perfil/{fichaPerfilId}/evaluaciones/representante` | — | `200 EvaluacionFichaPerfilResponseDTO[]` · **lista**, ordenada por `fechaCreacion` asc |
 | `agregarEstadoEvaluacion` | POST | `/fichas-perfil/estado-evaluacion-ficha` | `{ evaluacionFichaPerfil, estadoEvaluacion }` | `201 { id }` |
 | `agregarObservacionEvaluacion` | POST | `/fichas-perfil/evaluaciones/{evaluacionFichaPerfilId}/observaciones` | `{ observacion }` (1-200 tras trim; el id va en el path) | `201 { id }` · 422 `EVALUACION_NO_ENCONTRADA`, `EVALUACION_NO_PROPIA`, `OBSERVACION_EVALUACION_EVALUACION_CERRADA`, `OBSERVACION_EVALUACION_DUPLICADA` |
-| `getEstadosFicha` | GET | `/fichas-perfil/estados-ficha` | — | `200 EstadoFicha[]` |
+| `getEstadosFicha` | GET | `/fichas-perfil/estados-ficha` | — | `200 EstadoFicha[]` · ordenada por `id` y **filtrada por el rol del llamante** (tabla `estado_ficha_rol`): asesor `EN_CONSTRUCCION`, `DISPONIBLE_PARA_EVALUACION`, `DESCARTADA`; coordinador y representante `APROBADA`, `APROBADA_CON_OBSERVACIONES`, `NO_APROBADA`; estudiante ninguno. El cliente no recorta el catálogo |
 | `getEstadosEvaluacion` | GET | `/fichas-perfil/estados-evaluacion` | — | `200 EstadoEvaluacion[]` |
 
 > **Respuestas que devuelven menos de lo que parece.** `registrarEvaluacion`,
