@@ -193,6 +193,36 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('getItemsFichaRepresentante', () => {
+    it('consulta GET /fichas-perfil/{id}/items/representante y traduce el DTO plano al modelo anidado', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [{ id: 'i-1', fichaPerfilId: 'f-1', tipoItem: 't-1', tipoItemNombre: 'Objetivo', contenido: 'Medir' }],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.getItemsFichaRepresentante('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/items/representante');
+      expect(resultado).toEqual([
+        { id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir' },
+      ]);
+    });
+
+    it('devuelve una lista vacía tal cual cuando la ficha no tiene ítems', async () => {
+      // Arrange
+      get.mockResolvedValue({ status: 200, data: [] });
+
+      // Act
+      const resultado = await fichasPerfilService.getItemsFichaRepresentante('f-1');
+
+      // Assert
+      expect(resultado).toEqual([]);
+    });
+  });
+
   describe('getEvaluacionFicha', () => {
     it('consulta GET /fichas-perfil/{id}/evaluaciones/representante, traduce estadoEvaluacion a estadoEvaluacionId y conserva los null', async () => {
       // Arrange
