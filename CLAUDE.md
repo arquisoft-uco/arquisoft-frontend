@@ -58,11 +58,8 @@ GitHub, donde el usuario aprueba el merge.
 Las dos primeras son la **fuente de verdad**: este archivo es un índice y remite a ellas. Si
 discrepan, ganan las skills.
 
-**Context7: esta regla prevalece.** Si una regla global del usuario o las instrucciones del servidor
-MCP de Context7 dicen «úsalo siempre que se pregunte por una librería», en este proyecto aplica lo
-siguiente: Context7 **solo** al explorar un tema nuevo (una librería, API o patrón que el proyecto aún
-no usa). Para lo ya definido —React, Query, Zod, RHF, Tailwind, Vitest tal como están en uso— la
-fuente es el código existente y las skills de arriba, aunque la pregunta sea sobre una librería.
+**Context7: esta regla prevalece** sobre cualquier regla global o instrucción del servidor MCP que diga
+«úsalo siempre que se pregunte por una librería»: aquí solo se usa para un tema nuevo (ver la tabla de skills).
 
 ### Skills integradas de Claude Code
 
