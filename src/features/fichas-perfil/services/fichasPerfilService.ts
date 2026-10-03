@@ -5,6 +5,7 @@ import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObser
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
+import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
@@ -112,6 +113,28 @@ function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
       nombre: e.nombre,
       email: e.email,
     })),
+  };
+}
+
+// Forma cruda de EstadoFichaPerfilAsesorResponseDTO (POST /fichas-perfil/estados-ficha/asesor);
+// el id de la ficha llega como fichaPerfil y se traduce a fichaPerfilId.
+interface EstadoFichaPerfilAsesorResponseDTO {
+  fichaPerfil: string;
+  tituloProyecto: string;
+  estadoId: string;
+  estadoNombre: string;
+  fechaActualizacion: string;
+}
+
+function aEstadoFichaPerfilAsesor(
+  dto: EstadoFichaPerfilAsesorResponseDTO,
+): EstadoFichaPerfilAsesor {
+  return {
+    fichaPerfilId: dto.fichaPerfil,
+    tituloProyecto: dto.tituloProyecto,
+    estadoId: dto.estadoId,
+    estadoNombre: dto.estadoNombre,
+    fechaActualizacion: dto.fechaActualizacion,
   };
 }
 
@@ -293,6 +316,11 @@ export const fichasPerfilService = {
     apiClient
       .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
       .then((r) => r.data),
+
+  getEstadosFichasAsesor: (req: ConsultaCriteriaRequest): Promise<Page<EstadoFichaPerfilAsesor>> =>
+    apiClient
+      .post<Page<EstadoFichaPerfilAsesorResponseDTO>>('/fichas-perfil/estados-ficha/asesor', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aEstadoFichaPerfilAsesor) })),
 
   getFichasRepresentante: (
     page: number,

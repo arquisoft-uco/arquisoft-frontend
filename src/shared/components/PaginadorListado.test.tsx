@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen } from '../../test-utils/render';
 import PaginadorListado from './PaginadorListado';
 
 const propsBase = {

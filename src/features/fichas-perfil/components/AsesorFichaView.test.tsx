@@ -17,6 +17,10 @@ vi.mock('./asesor-ficha/ConsultarFichasAsesor', () => ({
   ),
 }));
 
+vi.mock('./asesor-ficha/EstadosFichasAsesorPanel', () => ({
+  default: () => <p>Panel de estados de fichas</p>,
+}));
+
 vi.mock('./asesor-ficha/DetalleFichaAsesor', () => ({
   default: ({
     ficha,
@@ -89,5 +93,46 @@ describe('AsesorFichaView', () => {
 
     // Assert
     expect(screen.getByText('Estado: Aprobada')).toBeInTheDocument();
+  });
+
+  it('la pestaña "Estados de mis fichas" muestra el panel de estados y "Mis fichas" vuelve al listado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<AsesorFichaView />);
+    expect(screen.getByRole('tab', { name: 'Mis fichas' })).toHaveAttribute('aria-selected', 'true');
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Estados de mis fichas' }));
+
+    // Assert
+    expect(screen.getByText('Panel de estados de fichas')).toBeInTheDocument();
+    expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Estados de mis fichas' })).toHaveAttribute('aria-selected', 'true');
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Mis fichas' }));
+
+    // Assert
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
+    expect(screen.queryByText('Panel de estados de fichas')).not.toBeInTheDocument();
+  });
+
+  it('con una ficha seleccionada se ocultan las pestañas y al volver regresa a la pestaña desde la que se abrió', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<AsesorFichaView />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Seleccionar ficha' }));
+
+    // Assert
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Volver' }));
+
+    // Assert
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Mis fichas' })).toHaveAttribute('aria-selected', 'true');
   });
 });

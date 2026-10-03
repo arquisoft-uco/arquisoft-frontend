@@ -185,6 +185,55 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('getEstadosFichasAsesor', () => {
+    it('hace POST /fichas-perfil/estados-ficha/asesor con el body recibido y traduce fichaPerfil a fichaPerfilId conservando la paginación', async () => {
+      // Arrange
+      const req = {
+        pagina: 1,
+        tamanio: 10,
+        ordenamiento: ['tituloProyecto:ASC'],
+        filtros: { tipo: 'PREDICADO' as const, campo: 'estadoFicha', operador: 'ES', valor: 'st-1' },
+      };
+      post.mockResolvedValue({
+        status: 200,
+        data: {
+          content: [
+            {
+              fichaPerfil: 'f-1',
+              tituloProyecto: 'Sistema de monitoreo',
+              estadoId: 'st-1',
+              estadoNombre: 'En revisión',
+              fechaActualizacion: '2026-09-01T10:00:00',
+            },
+          ],
+          page: 1,
+          size: 10,
+          totalElements: 11,
+          totalPages: 2,
+          first: false,
+          last: true,
+          empty: false,
+        },
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.getEstadosFichasAsesor(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/estados-ficha/asesor', req);
+      expect(resultado.content).toEqual([
+        {
+          fichaPerfilId: 'f-1',
+          tituloProyecto: 'Sistema de monitoreo',
+          estadoId: 'st-1',
+          estadoNombre: 'En revisión',
+          fechaActualizacion: '2026-09-01T10:00:00',
+        },
+      ]);
+      expect(resultado).toMatchObject({ page: 1, size: 10, totalElements: 11, totalPages: 2, last: true });
+    });
+  });
+
   describe('getFichasRepresentante', () => {
     const vacios = { titulo: '', asesorNombre: '', asesorEmail: '', estadoIds: [] };
     const paginaDto = {
