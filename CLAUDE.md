@@ -17,7 +17,8 @@ de responder y antes de tocar archivos.
 ### Ciclo de vida de una HU/HT — agentes (`.claude/agents/`)
 
 En orden. Cada uno pide aprobación explícita en sus puntos de corte y deja rastro en la Trazabilidad
-del plan.
+del plan. La excepción es `@4c-commit`: entrega sin preguntar y el control es la revisión del PR en
+GitHub, donde el usuario aprueba el merge.
 
 | Cuando el usuario pide… | Agente | Produce |
 |---|---|---|
@@ -26,7 +27,9 @@ del plan.
 | "escribe los tests de…" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
 | "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte, como mensaje. No escribe archivos |
 | "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
-| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs`, con una sola confirmación |
+| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs`, **sin pedir confirmación** |
+| El desarrollador pide cambiar algo tras revisar un PR o un commit | `@0-orquestador` (`ajusta {ID}: …`) | Ajuste `{ID}-AJn`: plan acotado → implementación → `@4a` (arquitectura) → `@4b` → `@4c-commit` en Seguimiento. **No se edita directo** |
+| "sube cambios de…" (PR abierto y cambio ya verificado) | `@4c-commit` | Solo commit y push a la misma rama; el PR se actualiza solo y el CI vuelve a correr. Exige el reporte del ajuste |
 
 - **Cadena completa sin saturar el contexto:** "orquesta HU-XXX" → `@0-orquestador`. Delega cada
   etapa en un subagente que lee sus instrucciones de `.workspace/handoff/{ID}/NN-*.in.md`; solo
@@ -37,7 +40,10 @@ del plan.
 - **`.workspace/` está en `.gitignore`.** Planes, reportes y cuerpos de PR se publican en
   `arquisoft-docs`, no se versionan aquí.
 - **Un cambio pequeño no necesita la cadena.** Un bug de una línea o una duda puntual se resuelven
-  cargando las dos skills de contexto y trabajando directo.
+  cargando las dos skills de contexto y trabajando directo. **Excepción:** lo que el desarrollador
+  pida modificar después de revisar un PR o un commit pasa siempre por `@0-orquestador` (ver arriba).
+- **El agente nunca aprueba ni mergea un PR.** Esa validación manual es del desarrollador, en GitHub.
+  Los GitHub Actions del PR (`ci.yml`) deben pasar antes de darlo por entregado.
 
 ### Contexto del proyecto — skills propias (`.claude/skills/`)
 
