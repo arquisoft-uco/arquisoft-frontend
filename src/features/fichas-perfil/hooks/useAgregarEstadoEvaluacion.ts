@@ -9,6 +9,6 @@ export function useAgregarEstadoEvaluacion(fichaPerfilId: string) {
     mutationFn: (req: AgregarEstadoEvaluacionRequest) =>
       fichasPerfilService.agregarEstadoEvaluacion(req),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['evaluacion-representante', fichaPerfilId] }),
+      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', fichaPerfilId, 'evaluacion'] }),
   });
 }
