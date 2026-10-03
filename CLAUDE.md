@@ -51,7 +51,7 @@ GitHub, donde el usuario aprueba el merge.
 |---|---|
 | `arquisoft-frontend-arquitectura` | **Siempre** antes de crear o mover algo en `src/`. Capas, enrutamiento, capa HTTP, stores, contrato con el backend |
 | `arquisoft-frontend-estandares` | **Siempre junto con la anterior** al escribir código. Nomenclatura, componentes, formularios, validación, errores, a11y, estilos, TypeScript, testing, git |
-| `context7-stack-frontend` | Antes de generar código que use una librería del stack — IDs ya resueltos y trampas de versión (el proyecto está en **Zod 3**) |
+| `context7-stack-frontend` | **Solo al explorar un tema nuevo** (librería, API o patrón que el proyecto aún no usa): IDs ya resueltos y trampas de versión (el proyecto está en **Zod 3**). Para lo ya definido, la fuente es el código existente y las skills, no Context7 |
 | `gh-docs-reader` | Al buscar una HU/HT, el contrato real de un endpoint o los valores de un catálogo |
 | `arquisoft-frontend-mcps` | Al decidir qué MCP usar y cuál es su fallback |
 
@@ -67,7 +67,7 @@ discrepan, ganan las skills.
 | "revisión de seguridad" | `security-review` | Complementa el Nivel 2.10 de `@4a-validator-analyze` |
 | "pruébalo en el navegador", "captura la pantalla" | `claude-in-chrome` | Requisito antes de cualquier `mcp__claude-in-chrome__*`. Levanta `npm run dev` con `VITE_AUTH_BYPASS=true` |
 | "arranca el proyecto", "muéstramelo funcionando" | `run` | Verifica contra la app real, no solo contra los tests |
-| "documentación de React / Query / Zod / Tailwind…" | `context7-mcp` | Usa antes `context7-stack-frontend` |
+| "documentación de una librería o API nueva para el proyecto" | `context7-mcp` | Usa antes `context7-stack-frontend`. No para lo que el proyecto ya resolvió (React, Query, Zod, Tailwind… en uso) |
 
 ## Comandos
 

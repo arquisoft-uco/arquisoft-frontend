@@ -60,8 +60,9 @@ cargar.
 Por cada capa (models → services → hooks → components):
 
 1. **Anuncia** los archivos y su responsabilidad.
-2. **Consulta Context7** una vez por tecnología de la capa, con los IDs y la tabla "Consultas por
-   capa" de `context7-stack-frontend` (Zod es la **3**, no la doc de v4).
+2. **Context7 solo para un tema nuevo** (librería, API o patrón que el proyecto aún no usa), con los
+   IDs de `context7-stack-frontend` (Zod es la **3**, no la doc de v4). Para lo ya definido, imita el
+   código existente y las skills; no lo consultes.
 3. **Genera** siguiendo el orden interno de abajo.
 4. **Verifica:** `npm run lint`.
 5. **Auto-corrige** si falla (FASE 4, máx. 3 intentos).

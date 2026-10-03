@@ -13,8 +13,9 @@ Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`. **La
 la skill de estándares es tu contrato**: infraestructura de test, qué se mockea, nomenclatura, los 10
 anti-patrones y el presupuesto. No los reproduzcas aquí; aplícalos.
 
-Para APIs que no tengas frescas (Vitest 4, Testing Library, user-event), consulta Context7 con los
-IDs de `context7-stack-frontend`. Antes de escribir, abre un test vecino de la misma capa (hook,
+Context7 solo si el test necesita una API que ningún test del proyecto usa todavía (IDs en
+`context7-stack-frontend`); para lo ya resuelto, el test vecino es la fuente. Antes de escribir, abre
+un test vecino de la misma capa (hook,
 componente, service) y sigue su patrón.
 
 ## Delegación

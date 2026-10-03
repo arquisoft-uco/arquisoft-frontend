@@ -10,7 +10,7 @@ fallback sin bloquear el flujo ni pedirle al usuario que lo instale.
 
 | MCP | Úsalo para | Fallback |
 |---|---|---|
-| **Context7** (`mcp__context7__*`) | Documentación actual de las librerías del stack antes de generar o revisar código que las usa. IDs ya resueltos en `context7-stack-frontend` | Conocimiento del modelo, dejando explícito que puede estar desactualizado |
+| **Context7** (`mcp__context7__*`) | **Solo al explorar un tema nuevo**: una librería, API o patrón que el proyecto aún no usa. Para lo ya definido (React, Query, Zod, Tailwind… tal como están en uso) la fuente es el código existente y las skills. IDs ya resueltos en `context7-stack-frontend` | El código vecino y las skills; si el tema es realmente nuevo y no hay MCP, conocimiento del modelo dejando explícito que puede estar desactualizado |
 | **Claude in Chrome** (`mcp__claude-in-chrome__*`) | Verificar la UI real: navegar a `localhost:5173`, capturar una vista, leer consola (`read_console_messages`) y peticiones (`read_network_requests`), grabar un GIF para el PR. **El más útil de este repo** — un frontend se valida mirándolo | `npm run dev` y pedirle al usuario que describa lo que ve. Nunca des por verificada una pantalla que no viste |
 
 Para PRs, issues y archivos de `arquisoft-docs` usa `gh` (ver `gh-docs-reader`): no hay MCP de GitHub.
