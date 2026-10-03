@@ -192,4 +192,38 @@ describe('fichasPerfilService', () => {
       });
     });
   });
+
+  describe('getEvaluacionFicha', () => {
+    it('consulta GET /fichas-perfil/{id}/evaluaciones/representante, traduce estadoEvaluacion a estadoEvaluacionId y conserva los null', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          { id: 'ev-1', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-01', estadoEvaluacion: 'st-1', estadoEvaluacionNombre: 'Aprobada' },
+          { id: 'ev-2', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-02', estadoEvaluacion: null, estadoEvaluacionNombre: null },
+        ],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.getEvaluacionFicha('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/evaluaciones/representante');
+      expect(resultado).toEqual([
+        { id: 'ev-1', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-01', estadoEvaluacionId: 'st-1', estadoEvaluacionNombre: 'Aprobada' },
+        { id: 'ev-2', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-02', estadoEvaluacionId: null, estadoEvaluacionNombre: null },
+      ]);
+    });
+
+    it('devuelve una lista vacía tal cual cuando no hay evaluaciones', async () => {
+      // Arrange
+      get.mockResolvedValue({ status: 200, data: [] });
+
+      // Act
+      const resultado = await fichasPerfilService.getEvaluacionFicha('f-1');
+
+      // Assert
+      expect(resultado).toEqual([]);
+    });
+  });
 });
