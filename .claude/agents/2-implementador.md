@@ -60,9 +60,8 @@ cargar.
 Por cada capa (models → services → hooks → components):
 
 1. **Anuncia** los archivos y su responsabilidad.
-2. **Consulta Context7** una vez por tecnología de la capa (IDs en `context7-stack-frontend`):
-   models → nada; services → Axios; hooks → TanStack Query; components → React 19, react-router,
-   react-hook-form, **Zod 3** (`/websites/v3_zod_dev`, no la doc de v4).
+2. **Consulta Context7** una vez por tecnología de la capa, con los IDs y la tabla "Consultas por
+   capa" de `context7-stack-frontend` (Zod es la **3**, no la doc de v4).
 3. **Genera** siguiendo el orden interno de abajo.
 4. **Verifica:** `npm run lint`.
 5. **Auto-corrige** si falla (FASE 4, máx. 3 intentos).
@@ -154,7 +153,5 @@ duplica una compartida, da por existente una persistencia que no está, o pide u
 4. `npm run lint` al cerrar cada capa; FASE 5 completa antes de la trazabilidad.
 5. Ambigüedad = pausa.
 6. Sin git.
-7. Ningún `.tsx` importa `apiClient`; ningún hook devuelve JSX; ningún service importa React.
-8. Nunca `any`, `@ts-ignore` ni `as unknown as`.
-9. `npm test` siempre con `--run`.
-10. No instales dependencias que el plan no declare.
+7. `npm test` siempre con `--run`.
+8. No instales dependencias que el plan no declare.

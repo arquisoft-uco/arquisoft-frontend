@@ -36,10 +36,9 @@ Un solo bloqueante = RECHAZADO, sin importar el score.
 
 ## Entrega
 
-> Misma forma que usa backend en sus reportes — así cualquiera que cruce `docs/hus/validaciones/` y
-> `docs/hus/validaciones/frontend/` encuentra la prueba de entrega en el mismo lugar. Al analizar
-> (`@4a-validator-analyze`) queda en blanco/`⏳ Pendiente`; `@4c-commit` la completa en su FASE 10,
-> **después** del push y el PR — nunca antes, porque hasta ese punto no existen hash ni URL.
+> Misma forma que usa backend en sus reportes. Al analizar (`@4a-validator-analyze`) queda en
+> `⏳ Pendiente`; `@4c-commit` la completa en su FASE 7, **después** del push y el PR — nunca antes,
+> porque hasta ese punto no existen hash ni URL.
 
 - **Estado:** ⏳ Pendiente / ✅ Entregado
 - **Hash:** `{7 caracteres del commit, o "—" si aún no hay}`

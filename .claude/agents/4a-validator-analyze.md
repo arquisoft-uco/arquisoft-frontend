@@ -14,11 +14,11 @@ contradice, repórtalo como observación.
 
 **Dos falsos positivos que hay que descartar antes de marcar un ❌:**
 
-- **Endpoint pendiente.** Trece métodos de `fichasPerfilService` apuntan a endpoints que el backend
-  no expone. Si el plan los marcó Pendientes y el código los dejó con su comentario y su degradación,
-  **es correcto**.
-- **JSDoc preexistente.** `axiosInstance.ts`, `keycloak.ts`, `api-error.ts` y `roleStore.ts` lo
-  conservan. La regla aplica al código **nuevo** de la HU.
+- **Endpoint pendiente.** Algunos métodos del service apuntan a endpoints que el backend no expone
+  (`// Pendiente:`). Si el plan los marcó Pendientes y el código los dejó con su comentario y su
+  degradación, **es correcto**.
+- **JSDoc preexistente.** Mucho código anterior a la regla lo conserva. La regla aplica al código
+  **nuevo** de la HU.
 
 ## FASE 1 — Cargar plan y código
 
@@ -189,7 +189,8 @@ cambia?" Solo `services/` con lo primero, solo `hooks/` con lo segundo.
 | Token nuevo en `@theme` que el plan no declara | ⚠️ |
 | Clases condicionales con ternarios anidados | ⚠️ |
 
-`text-red-500` en `RegistrarFichaPerfil` es preexistente: no es hallazgo de esta HU.
+Los colores crudos que ya existen en `fichas-perfil` (`text-red-500`…) son preexistentes: no son
+hallazgo de esta HU.
 
 ### Nivel 2.10 — Seguridad del cliente
 

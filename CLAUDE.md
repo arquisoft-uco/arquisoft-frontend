@@ -108,8 +108,8 @@ Dirección: `models ← services ← hooks ← components`. Un `.tsx` nunca impo
 nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/` no importa de
 `src/features/`.
 
-`src/features/fichas-perfil/` es la **única** feature completa y el único molde válido; las otras
-nueve rutas renderizan `<ComingSoon />`.
+`src/features/fichas-perfil/` es el molde de una feature nueva. Una feature cuya página renderiza
+`<ComingSoon />` es un stub: el estado real está en `src/features/`.
 
 - **Capa HTTP** — `src/api/axiosInstance.ts` es la única instancia de Axios: adjunta el Bearer token,
   resuelve el 401 con un mutex de refresco compartido y reintenta, y ante un 403 navega a

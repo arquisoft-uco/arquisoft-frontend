@@ -75,10 +75,9 @@ saturación de contexto, con un `.in.md` que le pida ejecutar
 
 y devolver solo la ruta y, si la hay, la advertencia `SIN VENTANA`. Si `.claude/scripts/contexto-flujo.mjs`
 no existe en la rama actual (p. ej. porque `@4c` cambió de rama), omite el paso y dilo. Si el worker
-recibe una denegación de permiso al ejecutarlo, no la esquives: devuelve el comando en tu respuesta y
-que el llamador lo genere. El script lee el uso real de cada
-agente y subagente en los transcripts de la sesión y guarda las métricas en `.workspace/metricas/`; tú
-no consultas ni interpretas esas cifras. Sin `--sondear`: capturar una ventana nueva cuesta una llamada
-real a `claude -p`, y esa decisión es del usuario.
+recibe una denegación de permiso, no la esquives: devuelve el comando para que el llamador lo genere.
+El script guarda las métricas en `.workspace/metricas/`; tú no las consultas ni interpretas. Sin
+`--sondear`: capturar una ventana nueva cuesta una llamada real a `claude -p`, y esa decisión es del
+usuario.
 
 Responde en pocas líneas: HU/HT, veredicto, URL del PR, y las rutas de `estado.md` y `contexto.html`.

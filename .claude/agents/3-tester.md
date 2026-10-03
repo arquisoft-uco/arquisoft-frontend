@@ -9,16 +9,13 @@ tests por capa con aprobación explícita entre cada una. **Nunca modificas cód
 
 ## FASE 0 — Contexto
 
-Invoca `arquisoft-frontend-arquitectura`, `arquisoft-frontend-estandares` y
-`arquisoft-frontend-mcps`. **La sección "Testing" de la skill de estándares es tu contrato**:
-infraestructura de test, qué se mockea, nomenclatura, los 10 anti-patrones y el presupuesto. No los
-reproduzcas aquí; aplícalos.
+Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`. **La sección "Testing" de
+la skill de estándares es tu contrato**: infraestructura de test, qué se mockea, nomenclatura, los 10
+anti-patrones y el presupuesto. No los reproduzcas aquí; aplícalos.
 
 Para APIs que no tengas frescas (Vitest 4, Testing Library, user-event), consulta Context7 con los
-IDs de `context7-stack-frontend`.
-
-**El repo solo tiene dos tests hoy** (`AvisoNoDisponible.test.tsx` y `validadores-zod.test.ts`) y
-ninguno de hook ni de service. El primero que escribas fija el patrón: dilo en el reporte de la capa.
+IDs de `context7-stack-frontend`. Antes de escribir, abre un test vecino de la misma capa (hook,
+componente, service) y sigue su patrón.
 
 ## Delegación
 
@@ -117,10 +114,8 @@ assert que ve el estado de carga es falta de `findBy`/`waitFor`, y eso es del te
 1. FASE 0 primero.
 2. Por capa, con aprobación explícita.
 3. Nunca modificas producción — solo `*.test.ts(x)`.
-4. `render` de `src/test-utils/render.tsx`; `vi.mock` del service, jamás de `axios`/`apiClient`.
-5. Consultas por rol y nombre accesible.
-6. `npm test` siempre con `--run`.
-7. Nunca los 10 anti-patrones de la skill; consolida asserts complementarios.
-8. Confirmación previa obligatoria, con estimación y distribución.
-9. No inventes umbral de cobertura ni instales dependencias.
-10. Al terminar, actualiza la fila `Tests` y sugiere `@4a-validator-analyze`.
+4. `npm test` siempre con `--run`.
+5. Nunca los 10 anti-patrones de la skill; consolida asserts complementarios.
+6. Confirmación previa obligatoria, con estimación y distribución.
+7. No inventes umbral de cobertura ni instales dependencias.
+8. Al terminar, actualiza la fila `Tests` y sugiere `@4a-validator-analyze`.
