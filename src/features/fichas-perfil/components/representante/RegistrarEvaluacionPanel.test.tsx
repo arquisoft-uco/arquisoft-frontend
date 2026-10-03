@@ -1,12 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '../../../../test-utils/render';
+import userEvent from '@testing-library/user-event';
+import { render, screen, within } from '../../../../test-utils/render';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
 import { useRegistrarEvaluacion } from '../../hooks/useRegistrarEvaluacion';
+import { toast } from '../../../../shared/hooks/useToast';
 import RegistrarEvaluacionPanel from './RegistrarEvaluacionPanel';
 
 vi.mock('../../hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
 vi.mock('../../hooks/useRegistrarEvaluacion', () => ({ useRegistrarEvaluacion: vi.fn() }));
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+}));
 vi.mock('./AgregarEstadoEvaluacionPanel', () => ({
   default: ({ evaluacionId }: { evaluacionId: string }) => <div>Agregar estado a {evaluacionId}</div>,
 }));
@@ -124,5 +129,44 @@ describe('RegistrarEvaluacionPanel', () => {
 
     // Assert
     expect(screen.getByText('Aprobada')).toBeInTheDocument();
+  });
+
+  it('al confirmar el inicio lanza el toast de éxito y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = vi.fn((_vars: unknown, opciones?: { onSuccess?: () => void }) => opciones?.onSuccess?.());
+    registro.mockReturnValue({ ...registro('f-1'), mutate } as never);
+    mockConsulta({ data: [] });
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Iniciar evaluación' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Iniciar evaluación' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledWith('Evaluación iniciada', 'Se registró la evaluación de la ficha.');
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('si el registro falla lanza el toast de error y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = vi.fn((_vars: unknown, opciones?: { onError?: (err: Error) => void }) =>
+      opciones?.onError?.(new Error('Red caída')),
+    );
+    registro.mockReturnValue({ ...registro('f-1'), mutate } as never);
+    mockConsulta({ data: [] });
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Iniciar evaluación' }));
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Iniciar evaluación' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al iniciar la evaluación', expect.any(String));
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
