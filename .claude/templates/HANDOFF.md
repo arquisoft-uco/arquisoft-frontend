@@ -59,6 +59,15 @@ ESTADO: OK|PREGUNTA|RECHAZADO|ERROR|EN CURSO · {máx. 15 palabras}
 
 La primera línea es el estado: para saber si un paso terminó basta leerla (`Read` con `limit: 1`).
 
+**Excepción — `@4a`:** su entregable es un texto largo, así que el cuerpo de su `.out.md` **es** el
+reporte completo (`# Reporte de Validación — {ID}`, con las secciones de `VALIDATOR.md`), precedido por
+la línea `ESTADO`; no lleva `## Resumen` ni `## Salidas`. `@4b` lo persiste desde ahí. Es el único
+archivo que `@4a` escribe.
+
+**Nadie transcribe lo que produjo un delegado.** Si un delegado entregó su contenido en el mensaje sin
+escribir su `.out.md`, quien lo invocó se lo pide con `SendMessage` o lo trata como `ERROR`; copiarlo a
+mano trae el trabajo del delegado al contexto de quien delega y rompe la regla de oro.
+
 ## Cómo delegas
 
 Prompt del `Agent`, siempre igual y corto: `Lee {ruta .in.md} y ejecútalo.`

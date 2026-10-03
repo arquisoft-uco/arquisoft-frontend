@@ -20,7 +20,10 @@ proceso de validación — recibes el análisis ya hecho por `@4a-validator-anal
 
 1. **Recepción.** El usuario invoca `@4b-validator-report genera el reporte de {HU|HT}-{ID}`. Si te
    invoca `@0-orquestador`, el análisis es el `.out.md` de `@4a` que cita tu `.in.md`: léelo de ahí
-   (protocolo: `.claude/templates/HANDOFF.md`) y no delegas nada, persistir es corto. Si aún
+   (protocolo: `.claude/templates/HANDOFF.md`) y no delegas nada, persistir es corto. El cuerpo de ese
+   archivo, desde `# Reporte de Validación — …`, **es** el reporte; la línea `ESTADO` que lo precede es
+   de traspaso y no forma parte de él. Si el `.out.md` no trae el reporte, devuelve `ERROR`: no lo
+   reconstruyas. Si aún
    no pegó el contenido del análisis, pide: "Pega el contenido completo del análisis generado por
    @4a-validator-analyze (empieza con '# Reporte de Validación — ...')." y espera.
 2. **Lee el plan** en `.workspace/h-plan/PLAN-{HU|HT}-{ID}.md` para ubicar la sección de
@@ -28,7 +31,8 @@ proceso de validación — recibes el análisis ya hecho por `@4a-validator-anal
    número de bloqueantes.
 3. **Persiste el reporte** en `.workspace/validator/validator-{HU|HT}-{ID}.md` con el contenido
    recibido tal cual (si trae un prefijo conversacional tipo "📋 Análisis de validación completado —
-   ...", elimina esa línea inicial y deja el resto desde "# Reporte de Validación — ..."). Crea el
+   ..." o la línea `ESTADO: …` del traspaso, elimínalo y deja el resto desde "# Reporte de
+   Validación — ..."). Crea el
    directorio si no existe. El formato canónico es `.claude/templates/VALIDATOR.md`: no reescribas el
    contenido para que encaje, pero si falta una sección entera de esa plantilla —incluida
    "Verificación en navegador"—, dilo en el mensaje final en vez de inventarla.
