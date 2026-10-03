@@ -12,9 +12,8 @@ y el repo hermano `../arquisoft-backend`. El plan es el contrato del implementad
 
 ## FASE 0 — Contexto
 
-Invoca `arquisoft-frontend-arquitectura`, `arquisoft-frontend-estandares` y
-`arquisoft-frontend-mcps`. Son la fuente verificada contra el código real; si contradicen otro
-archivo, ganan las skills.
+Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`. Son la fuente verificada
+contra el código real; si contradicen otro archivo, ganan las skills.
 
 **No repitas sus reglas en el plan.** El plan decide *qué* se construye y *dónde*; el *cómo* ya está
 en las skills y el implementador las carga igual. Un plan que reproduce la tabla de design tokens o
@@ -32,11 +31,11 @@ con su `.in.md` (que les pide invocar las skills que la fase nombra). Tú lees s
 | `fuentes` | FASE 1 | Criterios de aceptación de la HU · tabla endpoint → estado (Implementado / Contrato distinto / Pendiente / no verificado) · valores de catálogos · archivos consultados, para la Metadata |
 | `codigo` | FASE 2 | Por archivo del plan: existe o no, y si el método/hook ya está · componentes de `shared/` reutilizables · `// Pendiente` que aplican |
 
-Para que `fuentes` no infle su contexto (en HU-249 devolvió unos 160 mil caracteres de herramientas):
-lee el Controller y los DTO **del endpoint**, no la infraestructura compartida del backend
-(`shared/jpa`, `shared/query`); lee del `VALIDATOR` solo el veredicto y las secciones de endpoint y DTO,
-con rangos de líneas, no el archivo entero; y si `docs/integracion-backend-frontend.md` ya documenta un
-endpoint hermano con la misma forma, reutiliza su contrato y verifica solo lo que difiera.
+Para que `fuentes` no infle su contexto: lee el Controller y los DTO **del endpoint**, no la
+infraestructura compartida del backend (`shared/jpa`, `shared/query`); lee del `VALIDATOR` solo el
+veredicto y las secciones de endpoint y DTO, con rangos de líneas, no el archivo entero; y si el
+service ya tiene un endpoint hermano con la misma forma, reutiliza su contrato y verifica solo lo que
+difiera.
 
 Las FASES 3 y 4 son tuyas: la conversación y el plan no se delegan. Una `PREGUNTA` tuya sube a
 quien te invocó (ver el protocolo).
@@ -45,7 +44,7 @@ quien te invocó (ver el protocolo).
 
 Invoca `gh-docs-reader` y sigue su Protocolo de Consulta. Registra cada archivo para la Metadata.
 
-Su paso 3 no es opcional: un plan que no dice, endpoint por endpoint, si el backend lo expone hoy no
+Su paso 4 no es opcional: un plan que no dice, endpoint por endpoint, si el backend lo expone hoy no
 es un contrato.
 
 ## FASE 2 — Situar la HU en el código (worker `codigo`)
@@ -85,16 +84,15 @@ verbo, ruta sin `/api`, body, respuesta y **estado**:
   deshabilitado (la pantalla existe, falta un catálogo) o `ComingSoon` (no hay nada que mostrar), y
   declara la dependencia de backend.
 
-Un endpoint que `integracion-backend-frontend.md` no liste se confirma abriendo el Controller en
-`../arquisoft-backend`. Si el repo hermano no está, márcalo **no verificado** en la Metadata.
+Todo endpoint se confirma abriendo el Controller en `../arquisoft-backend`. Si el repo hermano no está, márcalo **no verificado** en la Metadata.
 
 **6. ¿Qué reglas de forma valida el cliente?** Cada una sale de un builder de `shared/validation` y
 una constante de `LIMITES`. Si el límite no existe, di de qué archivo del backend o del MER se copia.
 Las reglas de conjunto no se validan en cliente.
 
 **7. ¿Paginación, filtros u orden?** Si es paginada: `Page<T>` y el hook expone `page`, `pageSize`,
-`goToPage`; anota el `PAGE_SIZE`. Ojo: la paginación del coordinador es **POST con
-`{ pagina, tamanio }` en el body**, no query params.
+`goToPage`; anota el `PAGE_SIZE`. Ojo: los listados paginados del backend son **POST con
+`{ pagina, tamanio }` en el body**, no query params; confírmalo en el Controller.
 
 **8. ¿Qué invalida cada mutación?** Enumera las query keys y elige por cada una: `invalidateQueries`
 por prefijo, `setQueryData`, o nada.
@@ -193,7 +191,6 @@ nuevo en `localStorage` · `<RoleGuard>` a mano en `router.tsx`.
 4. Rutas relativas a la raíz del repo.
 5. Verifica leyendo: toda afirmación sobre código existente se confirma abriendo el archivo.
 6. Un endpoint no verificado se marca como tal.
-7. No reproduzcas convenciones que ya están en las skills.
-8. **La respuesta del usuario gana sobre la plantilla.** Cada sección que una respuesta descartó se
+7. **La respuesta del usuario gana sobre la plantilla.** Cada sección que una respuesta descartó se
    **borra** — no se deja vacía ni con "N/A". Antes de guardar, relee tus respuestas de FASE 3 y
    confirma que ninguna sección contradice un "no".

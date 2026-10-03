@@ -14,11 +14,11 @@ contradice, repórtalo como observación.
 
 **Dos falsos positivos que hay que descartar antes de marcar un ❌:**
 
-- **Endpoint pendiente.** Trece métodos de `fichasPerfilService` apuntan a endpoints que el backend
-  no expone. Si el plan los marcó Pendientes y el código los dejó con su comentario y su degradación,
-  **es correcto**.
-- **JSDoc preexistente.** `axiosInstance.ts`, `keycloak.ts`, `api-error.ts` y `roleStore.ts` lo
-  conservan. La regla aplica al código **nuevo** de la HU.
+- **Endpoint pendiente.** Algunos métodos del service apuntan a endpoints que el backend no expone
+  (`// Pendiente:`). Si el plan los marcó Pendientes y el código los dejó con su comentario y su
+  degradación, **es correcto**.
+- **JSDoc preexistente.** Mucho código anterior a la regla lo conserva. La regla aplica al código
+  **nuevo** de la HU.
 
 ## FASE 1 — Cargar plan y código
 
@@ -78,6 +78,7 @@ devuelve `ERROR` deja su grupo sin cubrir: no des `✅ APROBADO` con un grupo si
 | Componente nuevo en `src/shared/components/` con un solo consumidor | ❌ |
 | Duplica un compartido existente (`ConfirmDialog`, `PageSkeleton`, `AvisoNoDisponible`, …) | ❌ |
 | La feature no sigue `{Feature}.tsx` + `components/` + `hooks/` + `models/` + `services/` | ❌ |
+| `src/test-utils/arquitectura.baseline.ts` gana una entrada o un valor sube (el baseline solo decrece) | ❌ |
 
 **Prueba del algodón:** "si cambio Axios por `fetch`, o React Query por otra librería, ¿este archivo
 cambia?" Solo `services/` con lo primero, solo `hooks/` con lo segundo.
@@ -189,7 +190,8 @@ cambia?" Solo `services/` con lo primero, solo `hooks/` con lo segundo.
 | Token nuevo en `@theme` que el plan no declara | ⚠️ |
 | Clases condicionales con ternarios anidados | ⚠️ |
 
-`text-red-500` en `RegistrarFichaPerfil` es preexistente: no es hallazgo de esta HU.
+Los colores crudos que ya existen en `fichas-perfil` (`text-red-500`…) son preexistentes: no son
+hallazgo de esta HU.
 
 ### Nivel 2.10 — Seguridad del cliente
 
@@ -241,9 +243,12 @@ Nivel 2.12**.
 npm run lint
 npm test -- --run
 npm run build
+npm run format:check
 ```
 
-Cualquier fallo es bloqueante; incluye el mensaje exacto. `lint` verde con `build` rojo = fallo de
+Cualquier fallo es bloqueante; incluye el mensaje exacto. `npm test` ya corre
+`src/arquitectura.test.ts`, que verifica de forma determinista capas, cliente HTTP, query keys y demás
+convenciones de los Niveles 2.1-2.4: no las revises a mano, cita su resultado. `lint` verde con `build` rojo = fallo de
 bundling, no de tipos. El aviso sobre `router.tsx` importado dinámica y estáticamente es el patrón
 deliberado del interceptor: no es hallazgo.
 

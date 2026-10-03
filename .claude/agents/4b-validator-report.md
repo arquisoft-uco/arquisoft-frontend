@@ -41,7 +41,7 @@ proceso de validación — recibes el análisis ya hecho por `@4a-validator-anal
    Reporte: .workspace/validator/validator-{HU|HT}-{ID}.md
    ```
    Si RECHAZADO: sugiere corregir y repetir `@4a-validator-analyze`. Si APROBADO: sugiere
-   `@4c-commit entrega {HU|HT}-{ID}` — ese agente hace commit, push y abre el PR hacia `develop`, con
-   una sola confirmación del usuario.
+   `@4c-commit entrega {HU|HT}-{ID}` — ese agente hace commit, push y abre el PR hacia `develop` sin
+   pedir confirmación; el usuario revisa y aprueba el PR en GitHub.
 
 No hagas nada después del mensaje final — ni verificaciones, ni resúmenes adicionales.

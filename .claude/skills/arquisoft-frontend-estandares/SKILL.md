@@ -52,9 +52,8 @@ una pasada aparte: se migra cuando se toque ese archivo por otra razón. Un plan
 | Store | `{concepto}Store.ts` → `use{Concepto}Store` | `toastStore.ts` |
 | Test | `{ArchivoBajoPrueba}.test.ts(x)`, junto al archivo | `AvisoNoDisponible.test.tsx` |
 
-**Sin JSDoc** (regla de `CLAUDE.md`). El código anterior a esa decisión lo conserva
-(`axiosInstance.ts`, `keycloak.ts`, `api-error.ts`, `roleStore.ts`) y **no se migra**. Un comentario
-de una línea sí vale cuando explica un *porqué* que el nombre no puede llevar.
+**Sin JSDoc** (regla de `CLAUDE.md`). El JSDoc anterior a esa decisión **no se migra** ni cuenta como
+hallazgo. Un comentario de una línea sí vale cuando explica un *porqué* que el nombre no puede llevar.
 
 ## Componentes
 
@@ -112,8 +111,8 @@ DTOs menores.
 
 `create<State>()((set) => ({ … }))`; con persistencia, `persist(..., { name, storage })`.
 
-- `authStore` es **de solo lectura** desde features; solo lo escriben `AuthGuard`, `devAuth` y el
-  interceptor.
+- `authStore` es **de solo lectura** desde features; solo lo escribe la capa de auth (`AuthGuard`,
+  `devAuth`, `session.ts`) y el interceptor de Axios al refrescar el token.
 - **`persist` solo si el dato debe sobrevivir a un refresh y no es sensible.** Hoy, únicamente el
   string del rol activo.
 - Fuera del árbol de React se accede con `getState()`, nunca con el hook.
@@ -142,13 +141,12 @@ parametrizados** que cada formulario compone en su `z.object(...)`.
 
 | Archivo | Contenido |
 |---|---|
-| `limites.ts` | `LIMITES` — espejo de los `@Size` del backend: `TITULO_PROYECTO_MAX 100`, `ITEM_CONTENIDO_MAX 7000`, `ESTADO_EVALUACION_ID_MAX 50`, `ESTUDIANTES_MAX 3` |
-| `expresiones-regulares.ts` | `EMAIL_REGEX`, `UUID_REGEX` |
+| `limites.ts` | `LIMITES` — espejo de los `@Size` y límites de dominio del backend |
+| `expresiones-regulares.ts` | Regex, cada una espejo de un patrón del backend |
 | `mensajes-validacion.ts` | `MENSAJES_VALIDACION`, algunos como función (`longitudMaxima(max)`) |
-| `validadores-zod.ts` | `textoRequerido(max)`, `opcionRequerida()`, `emailValido()`, `uuidValido()`, `listaConMaximo(max)` |
+| `validadores-zod.ts` | Builders: `textoRequerido(max)`, `textoEntre(min, max)`, `emailValido()`, `uuidValido()`… |
 
-Importa siempre del barril `index.ts`. La tabla refleja lo que había al escribirla; abre el archivo
-antes de decidir que un validador no existe.
+Importa siempre del barril `index.ts`. Abre los archivos antes de decidir que un validador no existe.
 
 **El frontend replica todas las reglas de forma del backend, sin excepción.** Cada campo que el DTO
 de entrada o el validador del caso de uso exija o restrinja lleva la misma regla en el schema Zod:
@@ -173,8 +171,8 @@ retrocompatibles se prefiere a crear uno paralelo que haga casi lo mismo. Solo q
 no tiene una regla del backend detrás.
 
 **Un número mágico en un `.max(...)` es un hallazgo.** Si el límite lo impone el backend va en
-`LIMITES`, y el `maxLength` del input lo lee de ahí. `validadores-zod.test.ts` fija esos cuatro
-valores: cambiarlos sin actualizar el backend rompe el test, que es lo que se busca.
+`LIMITES`, y el `maxLength` del input lo lee de ahí. `validadores-zod.test.ts` fija esos valores:
+cambiarlos sin actualizar el backend rompe el test, que es lo que se busca.
 
 **El cliente valida forma; el backend decide conjunto.** Obligatoriedad, longitud, formato y tamaño
 de lista → Zod. Unicidad, existencia, propiedad y transición permitida → llegan como 422 y se
@@ -210,13 +208,8 @@ consultó el objeto afectado. No se deja al usuario en el formulario limpio ni s
 - **Filtros y paginación viven por encima del formulario**, en la `{Rol}View` o en el hook del listado
   (`useFichasPerfilCoordinador`), nunca dentro del panel que se desmonta: si viven dentro, volver los
   resetea.
-- **Con ruta propia** (`/{feature}/nuevo`, `/{feature}/:id/editar`), los filtros van en search params
-  y el retorno los conserva; no se reconstruyen a mano.
 - **Eliminar desde el detalle** vuelve al listado, no al detalle de un objeto que ya no existe.
 - **En error** se queda en el formulario, con los datos intactos y los errores pintados.
-- **Sin listado todavía** (el backend no expone el `GET`): el formulario abre desde la vista de la
-  feature y el retorno es a esa vista. El plan lo declara explícitamente para que, cuando llegue el
-  listado, el retorno se mueva a él.
 
 ## Estados de carga, vacío y error
 
@@ -295,8 +288,8 @@ Solo clases semánticas, nunca un color crudo de la paleta:
 Sin CSS custom fuera de `index.css`/`tailwind.css`, sin `style={{}}` salvo valor calculado en
 runtime. Clases condicionales con array + `.join(' ')`, no ternarios anidados.
 
-`text-red-500` en el asterisco de `RegistrarFichaPerfil` es una desviación preexistente conocida: no
-se reporta como hallazgo nuevo, pero tampoco se copia.
+Los colores crudos que ya existen en `fichas-perfil` (`text-red-500`, `text-red-600`…) son una
+desviación preexistente: no se reportan como hallazgo nuevo, pero tampoco se copian.
 
 ### Mobile first
 
@@ -329,9 +322,6 @@ segunda vista, sube a `index.css`:
 | Columnas | apiladas por defecto, `sm:grid-cols-2` o `sm:flex-row` después |
 | Icono-botón | `h-11 w-11 sm:h-9 sm:w-9` |
 | Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
-
-Las vistas anteriores a esta regla (las de `fichas-perfil`) todavía traen las utilidades a mano: se
-migran a las clases globales cuando se toque el archivo, no en una pasada aparte.
 
 **Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
 desplazamiento horizontal (`document.documentElement.scrollWidth` igual a `window.innerWidth`) ni
@@ -382,8 +372,8 @@ referencia.
 `// Arrange / Act / Assert`. Consultas por rol y nombre accesible, no por `data-testid` ni clases.
 Interacción con `userEvent`, no `fireEvent`. Sin JSDoc.
 
-Referencias vivas: `AvisoNoDisponible.test.tsx` (componente) y `validadores-zod.test.ts` (lógica
-pura). **No hay aún test de hook ni de service**: el primero fija el patrón.
+Referencias vivas: `AvisoNoDisponible.test.tsx` (componente), `useRegistrarFichaPerfil.test.tsx`
+(hook), `fichasPerfilService.test.ts` (service) y `validadores-zod.test.ts` (lógica pura).
 
 Un service casi nunca merece test propio — es delegación tipada. La excepción es el método que
 **traduce** nombres (`registrarFichaPerfil`): ahí sí hay lógica que romper.
@@ -423,12 +413,18 @@ Un service casi nunca merece test propio — es delegación tipada. La excepció
 npm run lint          # tsc -p tsconfig.app.json --noEmit
 npm test -- --run     # sin --run entra en watch y no termina
 npm run build         # type-check + bundle
+npm run format:check  # Prettier solo sobre lo que tocaste respecto a develop
 ```
 
 Un archivo suelto: `npx vitest run src/features/<feature>/<Archivo>.test.tsx`.
 
 `npm run build` repite el type-check, así que `lint` verde con `build` rojo significa fallo de
-bundling, no de tipos. `.github/workflows/ci.yml` corre los tres en cada push y PR con Node 20.
+bundling, no de tipos. `.github/workflows/ci.yml` corre los cuatro en cada push y PR con Node 20.
+
+`npm test` incluye `src/arquitectura.test.ts` (capas, HTTP, query keys por feature, tipos inseguros,
+tamaño de componente, colores crudos, JSDoc). Si falla, el mensaje dice qué corregir; la deuda previa
+vive en `src/test-utils/arquitectura.baseline.ts` y **no se amplía**. `format:check` no revisa el código
+heredado, solo lo modificado: formatea con `npx prettier --write` únicamente esos archivos.
 
 El aviso de build sobre `router.tsx` importado dinámica y estáticamente a la vez es el patrón
 deliberado del interceptor; no es un hallazgo.

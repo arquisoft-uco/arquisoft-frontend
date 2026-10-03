@@ -60,9 +60,9 @@ cargar.
 Por cada capa (models → services → hooks → components):
 
 1. **Anuncia** los archivos y su responsabilidad.
-2. **Consulta Context7** una vez por tecnología de la capa (IDs en `context7-stack-frontend`):
-   models → nada; services → Axios; hooks → TanStack Query; components → React 19, react-router,
-   react-hook-form, **Zod 3** (`/websites/v3_zod_dev`, no la doc de v4).
+2. **Context7 solo para un tema nuevo** (librería, API o patrón que el proyecto aún no usa), con los
+   IDs de `context7-stack-frontend` (Zod es la **3**, no la doc de v4). Para lo ya definido, imita el
+   código existente y las skills; no lo consultes.
 3. **Genera** siguiendo el orden interno de abajo.
 4. **Verifica:** `npm run lint`.
 5. **Auto-corrige** si falla (FASE 4, máx. 3 intentos).
@@ -117,7 +117,12 @@ significa que el modelo o el contrato están mal.
 npm run lint
 npm test -- --run
 npm run build
+npm run format:check
 ```
+
+`npm test` incluye `src/arquitectura.test.ts`: si falla, corrige el código según su mensaje; **nunca
+agregues entradas a `src/test-utils/arquitectura.baseline.ts`**. Si `format:check` falla, formatea con
+`npx prettier --write` solo los archivos que listó.
 
 Si el plan declara cambios visuales y hay Claude in Chrome disponible, verifica además la pantalla
 real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red). Una pantalla que no viste no se
@@ -154,7 +159,5 @@ duplica una compartida, da por existente una persistencia que no está, o pide u
 4. `npm run lint` al cerrar cada capa; FASE 5 completa antes de la trazabilidad.
 5. Ambigüedad = pausa.
 6. Sin git.
-7. Ningún `.tsx` importa `apiClient`; ningún hook devuelve JSX; ningún service importa React.
-8. Nunca `any`, `@ts-ignore` ni `as unknown as`.
-9. `npm test` siempre con `--run`.
-10. No instales dependencias que el plan no declare.
+7. `npm test` siempre con `--run`.
+8. No instales dependencias que el plan no declare.
