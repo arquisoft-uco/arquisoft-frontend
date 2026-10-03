@@ -164,7 +164,7 @@ describe('fichasPerfilService', () => {
         {
           id: 'f-1',
           tituloProyecto: 'Sistema de monitoreo',
-          asesorFicha: { id: 'a-1' },
+          asesorFicha: { id: 'a-1', identificador: 'ASE-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
           estado: { id: 'st-1', nombre: 'Disponible para evaluación', fechaActualizacion: '2026-09-01T10:00:00' },
         },
       ],
@@ -188,7 +188,16 @@ describe('fichasPerfilService', () => {
       expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', { pagina: 0, tamanio: 10 });
       expect(resultado).toEqual({
         ...paginaDto,
-        content: [{ id: 'f-1', titulo: 'Sistema de monitoreo', estadoActual: 'Disponible para evaluación' }],
+        content: [
+          {
+            id: 'f-1',
+            titulo: 'Sistema de monitoreo',
+            asesorNombre: 'Ana Ruiz',
+            asesorEmail: 'ana@uco.edu.co',
+            estadoActual: 'Disponible para evaluación',
+            estadoFechaActualizacion: '2026-09-01T10:00:00',
+          },
+        ],
       });
     });
 

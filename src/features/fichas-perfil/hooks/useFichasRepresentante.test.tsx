@@ -26,7 +26,10 @@ const filtros: FiltrosFichasRepresentante = {
 const ficha: FichaPerfilRepresentante = {
   id: 'f-1',
   titulo: 'Sistema de monitoreo',
+  asesorNombre: 'Ana Ruiz',
+  asesorEmail: 'ana@uco.edu.co',
   estadoActual: 'Disponible para evaluación',
+  estadoFechaActualizacion: '2026-09-01T10:00:00',
 };
 
 function crearPagina(numero: number, content: FichaPerfilRepresentante[]): Page<FichaPerfilRepresentante> {

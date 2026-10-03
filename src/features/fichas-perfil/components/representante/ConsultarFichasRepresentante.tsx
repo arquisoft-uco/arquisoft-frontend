@@ -17,6 +17,8 @@ const FILTROS_VACIOS: FiltrosFichasRepresentante = {
   estadoIds: [],
 };
 
+const formatoFecha = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+
 export default function ConsultarFichasRepresentante({ onSeleccionar }: Props) {
   const [filtros, setFiltros] = useState<FiltrosFichasRepresentante>(FILTROS_VACIOS);
   const [borrador, setBorrador] = useState<FiltrosFichasRepresentante>(FILTROS_VACIOS);
@@ -204,14 +206,17 @@ export default function ConsultarFichasRepresentante({ onSeleccionar }: Props) {
           <thead className="border-b border-border bg-muted/50">
             <tr>
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Título del Proyecto</th>
+              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Asesor</th>
+              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Correo del asesor</th>
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Estado Actual</th>
+              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Última actualización</th>
               <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {fichas.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-10 text-center text-sm text-on-surface-secondary">
+                <td colSpan={6} className="px-4 py-10 text-center text-sm text-on-surface-secondary">
                   No hay fichas de perfil para evaluar con esos filtros.
                 </td>
               </tr>
@@ -219,10 +224,15 @@ export default function ConsultarFichasRepresentante({ onSeleccionar }: Props) {
               fichas.map((ficha) => (
                 <tr key={ficha.id} className="transition-colors hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium text-on-surface">{ficha.titulo}</td>
+                  <td className="px-4 py-3 text-on-surface">{ficha.asesorNombre}</td>
+                  <td className="px-4 py-3 text-on-surface-secondary">{ficha.asesorEmail}</td>
                   <td className="px-4 py-3">
                     <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-on-surface-secondary">
                       {ficha.estadoActual}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-on-surface-secondary">
+                    {formatoFecha.format(new Date(ficha.estadoFechaActualizacion))}
                   </td>
                   <td className="px-4 py-3">
                     <button
