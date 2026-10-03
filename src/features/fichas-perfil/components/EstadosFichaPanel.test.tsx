@@ -37,9 +37,7 @@ function crearMutacionMock(
 const ESTADOS: EstadoFicha[] = [
   { id: 'EN_CONSTRUCCION', nombre: 'En Construccion', descripcion: 'desc' },
   { id: 'DISPONIBLE_PARA_EVALUACION', nombre: 'Disponible Para Evaluacion', descripcion: 'desc' },
-  { id: 'APROBADA', nombre: 'Aprobada', descripcion: 'desc' },
-  { id: 'APROBADA_CON_OBSERVACIONES', nombre: 'Aprobada Con Observaciones', descripcion: 'desc' },
-  { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: 'desc' },
+  { id: 'DESCARTADA', nombre: 'Descartada', descripcion: 'desc' },
 ];
 
 describe('EstadosFichaPanel', () => {
@@ -60,7 +58,7 @@ describe('EstadosFichaPanel', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Cargando estados...');
   });
 
-  it('deriva el <select> con solo los estados que el asesor puede asignar manualmente', () => {
+  it('deriva el <select> con todos los estados que retorna el endpoint, sin filtrar en el cliente', () => {
     // Arrange
     vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: ESTADOS }));
 
@@ -75,6 +73,28 @@ describe('EstadosFichaPanel', () => {
       'Seleccionar estado...',
       'En Construccion',
       'Disponible Para Evaluacion',
+      'Descartada',
+    ]);
+  });
+
+  it('renderiza completo un catálogo distinto (coordinador) sin depender de una lista local', () => {
+    // Arrange
+    const estadosCoordinador: EstadoFicha[] = [
+      { id: 'APROBADA', nombre: 'Aprobada', descripcion: 'desc' },
+      { id: 'APROBADA_CON_OBSERVACIONES', nombre: 'Aprobada Con Observaciones', descripcion: 'desc' },
+      { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: 'desc' },
+    ];
+    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: estadosCoordinador }));
+
+    // Act
+    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'Seleccionar estado...',
+      'Aprobada',
+      'Aprobada Con Observaciones',
+      'No Aprobada',
     ]);
   });
 

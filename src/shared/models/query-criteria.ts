@@ -20,7 +20,7 @@ export interface GrupoFiltro {
 
 export type NodoFiltroDTO = PredicadoFiltro | PredicadoMultivalorFiltro | GrupoFiltro;
 
-export interface ConsultaPaginadaRequest {
+export interface ConsultaCriteriaRequest {
   pagina: number;
   tamanio: number;
   ordenamiento?: string[];

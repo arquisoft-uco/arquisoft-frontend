@@ -1,3 +1,3 @@
-import type { ConsultaPaginadaRequest } from '../../../shared/models/consulta';
+import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 
-export type ConsultarUsuariosRequest = ConsultaPaginadaRequest;
+export type ConsultarUsuariosRequest = ConsultaCriteriaRequest;

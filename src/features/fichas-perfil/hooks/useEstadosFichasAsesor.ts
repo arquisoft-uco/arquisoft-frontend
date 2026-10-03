@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { NodoFiltroDTO } from '../../../shared/models/consulta';
+import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 
 const PAGE_SIZE = 10;
