@@ -30,14 +30,25 @@ import type {
   EstadoEvaluacionFicha,
 } from '../models/fichas-perfil';
 
-// Forma cruda de la respuesta del backend para GET /fichas-perfil/{id}/estudiantes;
-// se traduce a EstudianteVinculado (idVinculo/id) en consultarEstudiantesVinculados.
+// Forma cruda de la respuesta del backend para GET /fichas-perfil/{id}/estudiantes y
+// GET /fichas-perfil/{id}/estudiantes/companeros; se traduce a EstudianteVinculado
+// (idVinculo/id) con aEstudianteVinculado.
 interface EstudianteFichaPerfilResponseDTO {
   id: string;
   fichaPerfilId: string;
   estudianteId: string;
   nombre: string;
   email: string;
+  vigente: boolean;
+}
+
+function aEstudianteVinculado(dto: EstudianteFichaPerfilResponseDTO): EstudianteVinculado {
+  return {
+    idVinculo: dto.id,
+    id: dto.estudianteId,
+    nombre: dto.nombre,
+    email: dto.email,
+  };
 }
 
 // Forma cruda de ItemFichaPerfilResponseDTO (tipoItem/tipoItemNombre planos);
@@ -211,14 +222,14 @@ export const fichasPerfilService = {
   consultarEstudiantesVinculados: (idFichaPerfil: string): Promise<EstudianteVinculado[]> =>
     apiClient
       .get<EstudianteFichaPerfilResponseDTO[]>(`/fichas-perfil/${idFichaPerfil}/estudiantes`)
-      .then((r) =>
-        r.data.map((dto) => ({
-          idVinculo: dto.id,
-          id: dto.estudianteId,
-          nombre: dto.nombre,
-          email: dto.email,
-        })),
-      ),
+      .then((r) => r.data.map(aEstudianteVinculado)),
+
+  consultarCompanerosFichaPerfil: (idFichaPerfil: string): Promise<EstudianteVinculado[]> =>
+    apiClient
+      .get<EstudianteFichaPerfilResponseDTO[]>(
+        `/fichas-perfil/${idFichaPerfil}/estudiantes/companeros`,
+      )
+      .then((r) => r.data.map(aEstudianteVinculado)),
 
   asignarEstudiantes: (req: AsignarEstudianteRequest): Promise<void> =>
     apiClient

@@ -47,6 +47,7 @@ ocurre en el service. Verificado contra los `*Controller.java` y `*RequestDTO/*R
 | `getItemsFichaRepresentante` | GET | `/fichas-perfil/{fichaPerfilId}/items/representante` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item` |
 | `consultarItemsMiFichaPerfil` | GET | `/fichas-perfil/{fichaPerfilId}/items/estudiante` | — | `200 ItemFichaPerfilResponseDTO[]` · plano, se traduce a `Item`. Lista vacía si no hay ítems o vínculo (no 404). Requiere el client role `fichas:item-ficha-perfil-estudiante:view` (HU-032) |
 | `consultarEstudiantesVinculados` | GET | `/fichas-perfil/{fichaPerfilId}/estudiantes` | — | `200 EstudianteFichaPerfilResponseDTO[]` · `id` es el vínculo, `estudianteId` el estudiante |
+| `consultarCompanerosFichaPerfil` | GET | `/fichas-perfil/{fichaPerfilId}/estudiantes/companeros` | — | `200 EstudianteFichaPerfilResponseDTO[]` · excluye al solicitante (sale del JWT), solo vínculos vigentes, orden `nombre` ASC; `[]` si no hay compañeros o la ficha no es suya (no 403/404). Requiere el client role `fichas:estudiante-ficha-perfil-estudiante:view` (HU-039) |
 | `asignarEstudiantes` | POST | `/fichas-perfil/{fichaPerfilId}/estudiantes` | `{ estudiantes: string[] }` | `204` — asigna **por lote** |
 | `removerEstudiante` | DELETE | `/fichas-perfil/{fichaPerfilId}/estudiantes/{estudianteId}` | — | `204` |
 | `registrarEvaluacion` | POST | `/fichas-perfil/{fichaId}/evaluaciones` | _(sin body)_ | `201 { id }` |

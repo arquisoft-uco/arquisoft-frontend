@@ -138,6 +138,34 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarCompanerosFichaPerfil', () => {
+    it('consulta GET /fichas-perfil/{id}/estudiantes/companeros y traduce id a idVinculo y estudianteId a id', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'v-2',
+            fichaPerfilId: 'f-1',
+            estudianteId: 'e-2',
+            nombre: 'Marta Gómez',
+            email: 'marta@uco.edu.co',
+            vigente: true,
+          },
+        ],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarCompanerosFichaPerfil('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/estudiantes/companeros');
+      expect(resultado).toEqual([
+        { idVinculo: 'v-2', id: 'e-2', nombre: 'Marta Gómez', email: 'marta@uco.edu.co' },
+      ]);
+    });
+  });
+
   describe('consultarItemsMiFichaPerfil', () => {
     it('consulta GET /fichas-perfil/{id}/items/estudiante y traduce el ítem plano al modelo anidado', async () => {
       // Arrange
