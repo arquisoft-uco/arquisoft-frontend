@@ -116,7 +116,12 @@ significa que el modelo o el contrato están mal.
 npm run lint
 npm test -- --run
 npm run build
+npm run format:check
 ```
+
+`npm test` incluye `src/arquitectura.test.ts`: si falla, corrige el código según su mensaje; **nunca
+agregues entradas a `src/test-utils/arquitectura.baseline.ts`**. Si `format:check` falla, formatea con
+`npx prettier --write` solo los archivos que listó.
 
 Si el plan declara cambios visuales y hay Claude in Chrome disponible, verifica además la pantalla
 real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red). Una pantalla que no viste no se

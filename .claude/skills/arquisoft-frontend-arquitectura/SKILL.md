@@ -27,8 +27,10 @@ service, modelos en archivos propios más el barril. Nunca copies un archivo que
 models  ←  services  ←  hooks  ←  components
 ```
 
-No hay tarea de build que la verifique; la sostienen la revisión y los checks de
-`@4a-validator-analyze`. Tres reglas la definen:
+La verifica `src/arquitectura.test.ts` (parte de `npm test`): lee los imports reales y falla con la
+corrección en el mensaje. Su deuda previa está en `src/test-utils/arquitectura.baseline.ts` y solo
+puede decrecer — ante un fallo se corrige el código, nunca se agrega una entrada al baseline. Tres
+reglas la definen:
 
 - **Un componente nunca importa `apiClient`.** Si un `.tsx` importa `../../../api/axiosInstance`, la
   llamada baja al service y se expone un hook.

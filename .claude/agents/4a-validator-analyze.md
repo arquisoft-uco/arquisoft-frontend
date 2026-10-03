@@ -78,6 +78,7 @@ devuelve `ERROR` deja su grupo sin cubrir: no des `✅ APROBADO` con un grupo si
 | Componente nuevo en `src/shared/components/` con un solo consumidor | ❌ |
 | Duplica un compartido existente (`ConfirmDialog`, `PageSkeleton`, `AvisoNoDisponible`, …) | ❌ |
 | La feature no sigue `{Feature}.tsx` + `components/` + `hooks/` + `models/` + `services/` | ❌ |
+| `src/test-utils/arquitectura.baseline.ts` gana una entrada o un valor sube (el baseline solo decrece) | ❌ |
 
 **Prueba del algodón:** "si cambio Axios por `fetch`, o React Query por otra librería, ¿este archivo
 cambia?" Solo `services/` con lo primero, solo `hooks/` con lo segundo.
@@ -242,9 +243,12 @@ Nivel 2.12**.
 npm run lint
 npm test -- --run
 npm run build
+npm run format:check
 ```
 
-Cualquier fallo es bloqueante; incluye el mensaje exacto. `lint` verde con `build` rojo = fallo de
+Cualquier fallo es bloqueante; incluye el mensaje exacto. `npm test` ya corre
+`src/arquitectura.test.ts`, que verifica de forma determinista capas, cliente HTTP, query keys y demás
+convenciones de los Niveles 2.1-2.4: no las revises a mano, cita su resultado. `lint` verde con `build` rojo = fallo de
 bundling, no de tipos. El aviso sobre `router.tsx` importado dinámica y estáticamente es el patrón
 deliberado del interceptor: no es hallazgo.
 

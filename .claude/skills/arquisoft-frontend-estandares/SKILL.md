@@ -413,12 +413,18 @@ Un service casi nunca merece test propio — es delegación tipada. La excepció
 npm run lint          # tsc -p tsconfig.app.json --noEmit
 npm test -- --run     # sin --run entra en watch y no termina
 npm run build         # type-check + bundle
+npm run format:check  # Prettier solo sobre lo que tocaste respecto a develop
 ```
 
 Un archivo suelto: `npx vitest run src/features/<feature>/<Archivo>.test.tsx`.
 
 `npm run build` repite el type-check, así que `lint` verde con `build` rojo significa fallo de
-bundling, no de tipos. `.github/workflows/ci.yml` corre los tres en cada push y PR con Node 20.
+bundling, no de tipos. `.github/workflows/ci.yml` corre los cuatro en cada push y PR con Node 20.
+
+`npm test` incluye `src/arquitectura.test.ts` (capas, HTTP, query keys por feature, tipos inseguros,
+tamaño de componente, colores crudos, JSDoc). Si falla, el mensaje dice qué corregir; la deuda previa
+vive en `src/test-utils/arquitectura.baseline.ts` y **no se amplía**. `format:check` no revisa el código
+heredado, solo lo modificado: formatea con `npx prettier --write` únicamente esos archivos.
 
 El aviso de build sobre `router.tsx` importado dinámica y estáticamente a la vez es el patrón
 deliberado del interceptor; no es un hallazgo.

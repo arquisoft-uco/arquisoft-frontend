@@ -70,6 +70,7 @@ npm run dev        # Servidor de desarrollo en http://localhost:5173
 npm run build      # Type-check + bundle de producción
 npm run test       # Ejecuta todos los tests con Vitest
 npm run lint       # Solo type-check de TypeScript (sin ESLint)
+npm run format:check   # Prettier solo sobre los archivos de src/ modificados respecto a develop
 node .claude/scripts/contexto-flujo.mjs   # Diagrama HTML y métricas (.workspace/metricas/) del contexto de cada agente; --sondear captura la ventana real de un modelo nuevo
 ```
 
@@ -124,6 +125,12 @@ nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/`
   `arquisoft-docs`; lo que sigue abierto está en `docs/pendientes.md`.
 - **Testing** — importa `render` de `src/test-utils/render.tsx` (trae `QueryClientProvider` +
   `MemoryRouter`); Keycloak se mockea con `src/test-utils/keycloak.mock.ts`.
+- **Guardarraíles mecánicos** — `src/arquitectura.test.ts` hace cumplir capas, HTTP, query keys y
+  demás convenciones (corre con `npm test`). Su deuda previa vive en
+  `src/test-utils/arquitectura.baseline.ts` y **solo puede decrecer**: si el test falla, se corrige el
+  código, nunca se agrega una entrada. `.claude/settings.json` y `.claude/hooks/` bloquean merge,
+  force-push, push o commit sobre `main`/`develop` y `git add` de `.env*`; al cerrar un turno con
+  cambios en `src/`, un hook corre `tsc` y el test de arquitectura y devuelve el error.
 
 ## Convenciones
 

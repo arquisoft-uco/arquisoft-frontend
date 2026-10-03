@@ -46,7 +46,13 @@ npm run dev
 | `npm run dev`     | Inicia el servidor de desarrollo con Vite           |
 | `npm run build`   | Compila TypeScript y genera el bundle de producción |
 | `npm run preview` | Sirve el build de producción localmente             |
-| `npm run test`    | Ejecuta los tests con Vitest                        |
+| `npm run test`    | Ejecuta los tests con Vitest (incluye `src/arquitectura.test.ts`) |
+| `npm run lint`    | Type-check de TypeScript (`tsc --noEmit`; no hay ESLint) |
+| `npm run format:check` | Prettier solo sobre los archivos de `src/` modificados respecto a `develop` |
+
+`src/arquitectura.test.ts` hace cumplir las reglas de capas, el cliente HTTP único y otras
+convenciones; su deuda previa está en `src/test-utils/arquitectura.baseline.ts` y solo puede decrecer.
+El CI ejecuta `format:check`, `lint`, `test` y `build`.
 
 ## Variables de entorno
 
@@ -126,7 +132,9 @@ src/
     ├── setup.ts
     ├── render.tsx
     ├── store.utils.ts
-    └── keycloak.mock.ts
+    ├── keycloak.mock.ts
+    ├── arquitectura.ts       # Mediciones del test estructural (grafo de imports)
+    └── arquitectura.baseline.ts  # Deuda previa conocida; solo decrece
 ```
 
 ### Convención de features
