@@ -33,6 +33,7 @@ function conEstado(parcial: Partial<ReturnType<typeof useItemsMiFicha>>) {
     tiposItem: [],
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
     agregar: mutacion,
     modificar: mutacion,
     remover: mutacion,
@@ -60,7 +61,14 @@ describe('ItemsMiFichaPanel', () => {
   it('lista cada ítem con el nombre de su tipo y su contenido', () => {
     // Arrange
     conEstado({
-      items: [{ id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir consumo' }],
+      items: [
+        {
+          id: 'i-1',
+          fichaPerfilId: 'f-1',
+          tipoItem: { id: 't-1', nombre: 'Objetivo' },
+          contenido: 'Medir consumo',
+        },
+      ],
     });
 
     // Act
@@ -90,15 +98,38 @@ describe('ItemsMiFichaPanel', () => {
     render(<ItemsMiFichaPanel />);
 
     // Assert
-    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los ítems de tu ficha');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se pudieron cargar los ítems de tu ficha',
+    );
     expect(screen.queryByText(/aún no tiene ítems/)).not.toBeInTheDocument();
+  });
+
+  it('vuelve a consultar los ítems al pulsar «Reintentar» tras un error de carga', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    conEstado({ isError: true, refetch });
+    render(<ItemsMiFichaPanel />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   it('abre la edición con el contenido actual y al cancelar vuelve al texto', async () => {
     // Arrange
     const user = userEvent.setup();
     conEstado({
-      items: [{ id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir consumo' }],
+      items: [
+        {
+          id: 'i-1',
+          fichaPerfilId: 'f-1',
+          tipoItem: { id: 't-1', nombre: 'Objetivo' },
+          contenido: 'Medir consumo',
+        },
+      ],
     });
     render(<ItemsMiFichaPanel />);
 
@@ -106,7 +137,9 @@ describe('ItemsMiFichaPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Editar ítem Objetivo' }));
 
     // Assert
-    expect(screen.getByRole('textbox', { name: /contenido del ítem objetivo/i })).toHaveValue('Medir consumo');
+    expect(screen.getByRole('textbox', { name: /contenido del ítem objetivo/i })).toHaveValue(
+      'Medir consumo',
+    );
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
@@ -201,7 +234,10 @@ describe('ItemsMiFichaPanel', () => {
       await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
       // Assert
-      expect(toast.error).toHaveBeenLastCalledWith('Error al eliminar', 'Ficha en estado terminal.');
+      expect(toast.error).toHaveBeenLastCalledWith(
+        'Error al eliminar',
+        'Ficha en estado terminal.',
+      );
     });
   });
 });

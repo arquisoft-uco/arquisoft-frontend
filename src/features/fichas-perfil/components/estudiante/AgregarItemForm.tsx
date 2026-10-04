@@ -10,6 +10,8 @@ import {
 } from '../../../../shared/utils/api-error';
 import { LIMITES, opcionRequerida, textoRequerido } from '../../../../shared/validation';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
+import Button from '../../../../shared/components/ui/Button';
+import Field from '../../../../shared/components/ui/Field';
 
 const schema = z.object({
   tipoItemId: opcionRequerida(),
@@ -84,67 +86,47 @@ export default function AgregarItemForm({ onCerrar }: Props) {
     >
       {sinTipos && <AvisoNoDisponible recurso="tipos de ítem" />}
 
-      <div>
-        <label htmlFor="item-tipo" className="field-label">
-          Tipo de ítem <span aria-hidden>*</span>
-        </label>
-        <select
-          id="item-tipo"
-          className="field-input"
-          aria-invalid={!!errors.tipoItemId}
-          aria-describedby={errors.tipoItemId ? 'item-tipo-error' : undefined}
-          aria-busy={isLoading}
-          {...register('tipoItemId')}
-        >
-          <option value="">{isLoading ? 'Cargando tipos…' : 'Selecciona un tipo'}</option>
-          {tiposItem.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.nombre}
-            </option>
-          ))}
-        </select>
-        {errors.tipoItemId && (
-          <p id="item-tipo-error" className="field-error" role="alert">
-            {errors.tipoItemId.message}
-          </p>
+      <Field etiqueta="Tipo de ítem" error={errors.tipoItemId?.message}>
+        {(control) => (
+          <select
+            className="field-input"
+            aria-busy={isLoading}
+            {...register('tipoItemId')}
+            {...control}
+          >
+            <option value="">{isLoading ? 'Cargando tipos…' : 'Selecciona un tipo'}</option>
+            {tiposItem.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.nombre}
+              </option>
+            ))}
+          </select>
         )}
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="item-contenido" className="field-label">
-          Contenido <span aria-hidden>*</span>
-        </label>
-        <textarea
-          id="item-contenido"
-          rows={4}
-          maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-          className="field-input"
-          aria-invalid={!!errors.contenido}
-          aria-describedby={errors.contenido ? 'item-contenido-error' : undefined}
-          {...register('contenido')}
-        />
-        {errors.contenido && (
-          <p id="item-contenido-error" className="field-error" role="alert">
-            {errors.contenido.message}
-          </p>
+      <Field etiqueta="Contenido" error={errors.contenido?.message}>
+        {(control) => (
+          <textarea
+            rows={4}
+            maxLength={LIMITES.ITEM_CONTENIDO_MAX}
+            className="field-input"
+            {...register('contenido')}
+            {...control}
+          />
         )}
-      </div>
+      </Field>
 
       <div className="actions-row">
-        <button
-          type="button"
-          onClick={handleCancelar}
-          className="rounded-lg border border-border px-3 py-2 text-sm text-on-surface hover:bg-muted"
-        >
+        <Button variante="secundario" onClick={handleCancelar}>
           Cancelar
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
-          disabled={!isValid || !fichaId || sinTipos || agregar.isPending}
-          className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+          disabled={!isValid || !fichaId || sinTipos}
+          cargando={agregar.isPending}
         >
           {agregar.isPending ? 'Agregando…' : 'Agregar'}
-        </button>
+        </Button>
       </div>
     </form>
   );

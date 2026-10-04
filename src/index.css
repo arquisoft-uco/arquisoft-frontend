@@ -70,6 +70,11 @@ h6 {
   outline-offset: 2px;
 }
 
+/* La lista de pestañas recorta lo que sobresale (overflow-x: auto): el anillo va hacia adentro. */
+[role='tab']:focus-visible {
+  outline-offset: -2px;
+}
+
 /* ── Sidebar nav link states ─────────────────────────── */
 .nav-link {
   color: var(--color-on-surface-secondary);

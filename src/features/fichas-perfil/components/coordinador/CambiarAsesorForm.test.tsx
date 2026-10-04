@@ -79,7 +79,9 @@ describe('CambiarAsesorForm', () => {
     const select = await screen.findByRole('combobox', { name: 'Seleccionar nuevo asesor' });
     await screen.findByRole('option', { name: 'Luis Gómez — luis@uco.edu.co' });
 
-    expect(screen.getByRole('option', { name: 'Marta Ríos — marta@uco.edu.co' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Marta Ríos — marta@uco.edu.co' }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('option', { name: /Ana Pérez/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
 
@@ -146,7 +148,9 @@ describe('CambiarAsesorForm', () => {
     mockAsesores({ data: undefined, isError: true });
     renderFormulario();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/catálogo de asesores/i);
+    expect(
+      await screen.findByRole('note', { name: 'No disponible: asesores' }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Guardar' })).not.toBeInTheDocument();
   });

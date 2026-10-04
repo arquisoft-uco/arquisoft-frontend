@@ -55,7 +55,9 @@ describe('EstadoUsuarioFieldset', () => {
     renderizar({ estados: undefined, noDisponible: true });
 
     // Assert
-    expect(screen.getByText(/estados de usuario/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('note', { name: 'No disponible: estados de usuario' }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Nuevo estado')).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Cambiar estado' })).toBeDisabled();
   });

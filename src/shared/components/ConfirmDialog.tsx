@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { AlertTriangle } from 'lucide-react';
+import Button from './ui/Button';
 
 interface Props {
   titulo: string;
@@ -22,11 +23,6 @@ export default function ConfirmDialog({
   onConfirmar,
   onCancelar,
 }: Props) {
-  const colorConfirmar =
-    variante === 'peligro'
-      ? 'bg-danger text-danger-foreground hover:bg-danger/90'
-      : 'bg-tertiary text-tertiary-foreground hover:bg-tertiary-hover';
-
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
@@ -58,22 +54,16 @@ export default function ConfirmDialog({
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancelar}
-            disabled={cargando}
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-muted disabled:opacity-50"
-          >
+          <Button variante="secundario" onClick={onCancelar} disabled={cargando}>
             {labelCancelar}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variante={variante === 'peligro' ? 'peligro' : 'primario'}
             onClick={onConfirmar}
-            disabled={cargando}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${colorConfirmar}`}
+            cargando={cargando}
           >
             {cargando ? 'Procesando...' : labelConfirmar}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

@@ -36,7 +36,7 @@ Client roles a confirmar en el realm desplegado:
 | F6 | **Revisar el PR #175 del backend** | "Filtro por estado actual en el listado de fichas de perfil", ya mergeado. Puede cambiar cómo filtra HU-160 por estado |
 | F7 | **Prueba funcional manual** | Checklist en `.workspace/pruebas/prueba-funcional-representante.md` (HU-036, 160, 182, 185, 186, 187, 190 y 191). Falta ejecutarla con un usuario que tenga el rol `representante-comite` |
 | F8 | **Verificación visual a 390 px** | Pendiente en las HU del representante (la tabla de HU-160 pasó a 6 columnas) |
-| F9 | **Deuda tolerada por el test de arquitectura** | `src/test-utils/arquitectura.baseline.ts` lista lo que `src/arquitectura.test.ts` acepta por ser anterior al test, y solo puede decrecer: query keys de `fichas-perfil` sin prefijo de feature, componentes de más de 150 líneas, `as unknown as`, colores crudos y JSDoc. Incluye `EstadosFichasAsesorPanel` (193 líneas) y los 2 `as unknown as` de su test, que entraron por HU-205 antes de existir el test. Al corregir un archivo se elimina su entrada |
+| F9 | **Deuda tolerada por el test de arquitectura** | `src/test-utils/arquitectura.baseline.ts` lista lo que `src/arquitectura.test.ts` acepta por ser anterior al test, y solo puede decrecer: query keys de `fichas-perfil` sin prefijo de feature, componentes de más de 150 líneas, `as unknown as`, colores crudos, JSDoc, spinners copiados fuera de `shared/components/ui/` y textos de menos de 12 px. Incluye `EstadosFichasAsesorPanel` (193 líneas) y los 2 `as unknown as` de su test, que entraron por HU-205 antes de existir el test. Al corregir un archivo se elimina su entrada |
 
 ## Gestión (tablero y documentación)
 

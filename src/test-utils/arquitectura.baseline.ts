@@ -9,6 +9,8 @@ export interface BaselineArquitectura {
   componentesGrandes: Medicion;
   coloresCrudos: Medicion;
   coloresSinToken: Medicion;
+  spinnersCopiados: Medicion;
+  textosMenoresA12px: Medicion;
   bloquesJsdoc: Medicion;
 }
 
@@ -25,11 +27,10 @@ export const BASELINE: BaselineArquitectura = {
     'features/dashboard/Dashboard.tsx': 273,
     'features/fichas-perfil/components/asesor-ficha/EstadosFichasAsesorPanel.tsx': 193,
     'features/fichas-perfil/components/coordinador/FichasPerfilTable.tsx': 153,
-    'features/fichas-perfil/components/estudiante/AgregarItemForm.tsx': 151,
     'features/fichas-perfil/components/RegistrarFichaPerfil.tsx': 273,
     'features/fichas-perfil/components/representante/AgregarEstadoEvaluacionPanel.tsx': 193,
     'features/fichas-perfil/components/representante/ConsultarFichasRepresentante.tsx': 288,
-    'features/solicitudes/components/estudiante/EnviarSolicitudNovedadForm.tsx': 177,
+    'features/solicitudes/components/estudiante/EnviarSolicitudNovedadForm.tsx': 158,
     'features/usuarios/components/administrador/ConsultarUsuarios.tsx': 152,
     'features/usuarios/components/administrador/FiltrosUsuariosPanel.tsx': 173,
     'features/usuarios/components/administrador/ModificarUsuarioForm.tsx': 302,
@@ -39,9 +40,29 @@ export const BASELINE: BaselineArquitectura = {
   coloresCrudos: {
     'features/fichas-perfil/components/coordinador/EstudiantesVinculadosPanel.tsx': 3,
     'features/fichas-perfil/components/RegistrarFichaPerfil.tsx': 3,
-    'features/fichas-perfil/components/representante/EstadosEvaluacionPanel.tsx': 10,
   },
   coloresSinToken: {},
+  spinnersCopiados: {
+    'features/fichas-perfil/components/asesor-ficha/ConsultarFichasAsesor.tsx': 1,
+    'features/fichas-perfil/components/asesor-ficha/EstadosFichasAsesorPanel.tsx': 1,
+    'features/fichas-perfil/components/asesor-ficha/ItemsFichaAsesorPanel.tsx': 1,
+    'features/fichas-perfil/components/coordinador/ConsultarFichasPerfilCoordinador.tsx': 1,
+    'features/fichas-perfil/components/coordinador/EstudiantesVinculadosPanel.tsx': 1,
+    'features/fichas-perfil/components/representante/AgregarEstadoEvaluacionPanel.tsx': 1,
+    'features/fichas-perfil/components/representante/ConsultarFichasRepresentante.tsx': 1,
+    'features/fichas-perfil/components/representante/ItemsFichaRepresentantePanel.tsx': 1,
+    'features/fichas-perfil/components/representante/RegistrarEvaluacionPanel.tsx': 1,
+    'features/usuarios/components/administrador/ConsultarUsuarios.tsx': 1,
+    'features/usuarios/components/administrador/ConsultarUsuariosRol.tsx': 1,
+    'shared/components/AppLoader.tsx': 1,
+  },
+  textosMenoresA12px: {
+    'features/dashboard/Dashboard.tsx': 8,
+    'features/fichas-perfil/components/asesor-ficha/ItemsFichaAsesorPanel.tsx': 1,
+    'features/fichas-perfil/components/representante/ItemsFichaRepresentantePanel.tsx': 1,
+    'layout/Header.tsx': 1,
+    'layout/Sidebar.tsx': 3,
+  },
   bloquesJsdoc: {
     'auth/authStore.ts': 3,
     'auth/devAuth.ts': 1,

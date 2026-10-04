@@ -8,6 +8,8 @@ import {
   hasApiErrorCode,
 } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../../shared/validation';
+import Button from '../../../../shared/components/ui/Button';
+import Field from '../../../../shared/components/ui/Field';
 
 const schema = z.object({
   tituloProyecto: textoRequerido(LIMITES.TITULO_PROYECTO_MAX),
@@ -19,9 +21,6 @@ interface Props {
   tituloActual: string;
   onCerrar: () => void;
 }
-
-const CAMPO_ID = 'mi-ficha-titulo';
-const ERROR_ID = `${CAMPO_ID}-error`;
 
 export default function EditarTituloForm({ tituloActual, onCerrar }: Props) {
   const { modificarTitulo } = useMiFichaPerfil();
@@ -70,41 +69,25 @@ export default function EditarTituloForm({ tituloActual, onCerrar }: Props) {
       aria-label="Editar título del proyecto"
       noValidate
     >
-      <div>
-        <label htmlFor={CAMPO_ID} className="sr-only">
-          Nuevo título del proyecto
-        </label>
-        <input
-          id={CAMPO_ID}
-          type="text"
-          maxLength={LIMITES.TITULO_PROYECTO_MAX}
-          className="field-input"
-          aria-invalid={!!errors.tituloProyecto}
-          aria-describedby={errors.tituloProyecto ? ERROR_ID : undefined}
-          {...register('tituloProyecto')}
-        />
-        {errors.tituloProyecto && (
-          <p id={ERROR_ID} className="field-error" role="alert">
-            {errors.tituloProyecto.message}
-          </p>
+      <Field etiqueta="Nuevo título del proyecto" error={errors.tituloProyecto?.message}>
+        {(control) => (
+          <input
+            type="text"
+            maxLength={LIMITES.TITULO_PROYECTO_MAX}
+            className="field-input"
+            {...register('tituloProyecto')}
+            {...control}
+          />
         )}
-      </div>
+      </Field>
 
       <div className="actions-row">
-        <button
-          type="button"
-          onClick={handleCancelar}
-          className="rounded-lg border border-border px-3 py-2 text-sm text-on-surface hover:bg-muted"
-        >
+        <Button variante="secundario" onClick={handleCancelar}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!isValid || !isDirty || modificarTitulo.isPending}
-          className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={!isValid || !isDirty} cargando={modificarTitulo.isPending}>
           {modificarTitulo.isPending ? 'Guardando…' : 'Guardar'}
-        </button>
+        </Button>
       </div>
     </form>
   );

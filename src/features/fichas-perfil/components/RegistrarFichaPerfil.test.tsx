@@ -246,9 +246,9 @@ describe('RegistrarFichaPerfil', () => {
       render(<RegistrarFichaPerfil onCerrar={vi.fn()} />);
 
       // Assert
-      expect(await screen.findByRole('alert')).toHaveTextContent(
-        new RegExp(`catálogo de ${recurso}`, 'i'),
-      );
+      expect(
+        await screen.findByRole('note', { name: `No disponible: ${recurso}` }),
+      ).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Registrar Ficha' })).toBeDisabled();
     },
   );

@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
+import Badge from '../../../../shared/components/ui/Badge';
+import Button from '../../../../shared/components/ui/Button';
+import Tabs from '../../../../shared/components/ui/Tabs';
 import ItemsFichaRepresentantePanel from './ItemsFichaRepresentantePanel';
 import RegistrarEvaluacionPanel from './RegistrarEvaluacionPanel';
 import TiposItemPanel from '../TiposItemPanel';
 
 type Tab = 'items' | 'evaluaciones' | 'tipos-item';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'items', label: 'Ítems' },
-  { key: 'evaluaciones', label: 'Evaluaciones' },
-  { key: 'tipos-item', label: 'Tipos de ítem' },
+const TABS: { id: Tab; etiqueta: string }[] = [
+  { id: 'items', etiqueta: 'Ítems' },
+  { id: 'evaluaciones', etiqueta: 'Evaluaciones' },
+  { id: 'tipos-item', etiqueta: 'Tipos de ítem' },
 ];
 
 interface Props {
@@ -23,45 +26,21 @@ export default function DetalleFichaRepresentante({ ficha, onVolver }: Props) {
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <header className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onVolver}
-          className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm text-on-surface transition-colors hover:bg-muted"
-        >
-          <ChevronLeft size={16} aria-hidden />
+      <header className="flex flex-wrap items-center gap-3">
+        <Button variante="secundario" icono={ChevronLeft} onClick={onVolver}>
           Volver
-        </button>
-        <div>
+        </Button>
+        <div className="flex-1">
           <h2 className="text-xl font-semibold text-on-surface">{ficha.titulo}</h2>
-          <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-on-surface-secondary">
-            {ficha.estadoActual}
-          </span>
+          <Badge variante="neutro">{ficha.estadoActual}</Badge>
         </div>
       </header>
 
-      <div className="flex gap-1 rounded-lg bg-muted/50 p-1" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            role="tab"
-            aria-selected={tab === t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-              tab === t.key
-                ? 'bg-surface text-on-surface shadow-sm'
-                : 'text-on-surface-secondary hover:text-on-surface'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'items' && <ItemsFichaRepresentantePanel fichaPerfilId={ficha.id} />}
-      {tab === 'evaluaciones' && <RegistrarEvaluacionPanel fichaPerfilId={ficha.id} />}
-      {tab === 'tipos-item' && <TiposItemPanel />}
+      <Tabs items={TABS} valor={tab} onCambiar={setTab} etiqueta="Secciones de la ficha">
+        {tab === 'items' && <ItemsFichaRepresentantePanel fichaPerfilId={ficha.id} />}
+        {tab === 'evaluaciones' && <RegistrarEvaluacionPanel fichaPerfilId={ficha.id} />}
+        {tab === 'tipos-item' && <TiposItemPanel />}
+      </Tabs>
     </div>
   );
 }

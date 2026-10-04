@@ -346,7 +346,9 @@ describe('ConsultarUsuarios', () => {
 
       // Assert
       expect(screen.getByLabelText('Estado')).toBeDisabled();
-      expect(screen.getByText(/estados de usuario/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole('note', { name: 'No disponible: estados de usuario' }),
+      ).toBeInTheDocument();
       expect(screen.getByRole('cell', { name: 'ACTIVO' })).toBeInTheDocument();
     });
 

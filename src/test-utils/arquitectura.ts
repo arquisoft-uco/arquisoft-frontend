@@ -45,6 +45,7 @@ const RANGO_DE_CAPA: Record<Capa, number> = {
 const UMBRAL_LINEAS_COMPONENTE = 150;
 const ARCHIVOS_CON_AXIOS = ['api/axiosInstance.ts', 'shared/utils/api-error.ts'];
 const ARCHIVO_CON_STORAGE = 'auth/roleStore.ts';
+const CARPETA_DEL_KIT = 'shared/components/ui';
 const MODELO_CON_RUNTIME_PERMITIDO = 'shared/models/rol.ts';
 const COLORES_DE_PALETA =
   'red|blue|green|yellow|gray|slate|zinc|amber|orange|emerald|indigo|sky|purple|pink|rose|neutral|stone|lime|teal|cyan|violet|fuchsia';
@@ -67,6 +68,9 @@ const PATRON_COLOR_SIN_TOKEN = new RegExp(
   'g',
 );
 const PATRON_TOKEN_DE_COLOR = /--color-([\w-]+)\s*:/g;
+// Estas reglas no ven clases por interpolación, animate-spin en otro orden ni text-[0.6875rem].
+const PATRON_SPINNER = /animate-spin rounded-full border/g;
+const PATRON_TEXTO_MENOR_A_12PX = /text-\[(?:9|10|11)px\]/g;
 const PATRON_JSDOC = /\/\*\*/g;
 const PATRON_CONSOLE_LOG = /\bconsole\.log\s*\(/;
 const PATRON_STORAGE = /\b(?:localStorage|sessionStorage)\b/;
@@ -302,6 +306,25 @@ export function coloresSinToken(): Medicion {
   return medirPorArchivo(produccion, ({ contenido }) =>
     contarColoresSinToken(contenido, TOKENS_DE_COLOR),
   );
+}
+
+export function contarSpinnersCopiados(contenido: string): number {
+  return contar(contenido, PATRON_SPINNER);
+}
+
+export function contarTextosMenoresA12px(contenido: string): number {
+  return contar(contenido, PATRON_TEXTO_MENOR_A_12PX);
+}
+
+export function spinnersCopiados(): Medicion {
+  return medirPorArchivo(
+    produccion.filter(({ ruta }) => !dentroDe(ruta, CARPETA_DEL_KIT)),
+    ({ contenido }) => contarSpinnersCopiados(contenido),
+  );
+}
+
+export function textosMenoresA12px(): Medicion {
+  return medirPorArchivo(produccion, ({ contenido }) => contarTextosMenoresA12px(contenido));
 }
 
 export function bloquesJsdoc(): Medicion {

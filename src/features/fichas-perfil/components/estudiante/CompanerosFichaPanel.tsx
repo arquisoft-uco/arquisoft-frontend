@@ -1,4 +1,7 @@
 import { Mail, User, Users } from 'lucide-react';
+import EmptyState from '../../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
+import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCompanerosFichaPerfil } from '../../hooks/useCompanerosFichaPerfil';
 
@@ -7,7 +10,7 @@ interface Props {
 }
 
 export default function CompanerosFichaPanel({ idFichaPerfil }: Props) {
-  const { data, isLoading, isError, error } = useCompanerosFichaPerfil(idFichaPerfil);
+  const { data, isLoading, isError, error, refetch } = useCompanerosFichaPerfil(idFichaPerfil);
 
   const companeros = data ?? [];
 
@@ -20,31 +23,17 @@ export default function CompanerosFichaPanel({ idFichaPerfil }: Props) {
         </p>
       </div>
 
-      {isLoading && (
-        <div
-          className="flex items-center gap-2 pl-5 text-xs text-on-surface-secondary"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <div
-            className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent"
-            role="status"
-          >
-            <span className="sr-only">Cargando compañeros…</span>
-          </div>
-        </div>
-      )}
+      {isLoading && <Skeleton variante="lineas" etiqueta="Cargando compañeros…" />}
 
       {isError && (
-        <p className="pl-5 text-xs text-danger" role="alert">
-          {getApiErrorMessage(error, 'No se pudieron cargar los compañeros.')}
-        </p>
+        <ErrorState
+          titulo={getApiErrorMessage(error, 'No se pudieron cargar los compañeros.')}
+          onReintentar={refetch}
+        />
       )}
 
       {!isLoading && !isError && companeros.length === 0 && (
-        <p className="pl-5 text-xs text-on-surface-secondary">
-          No tienes compañeros vinculados a esta ficha.
-        </p>
+        <EmptyState icono={Users} titulo="No tienes compañeros vinculados a esta ficha." />
       )}
 
       {!isLoading && !isError && companeros.length > 0 && (

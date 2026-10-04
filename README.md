@@ -121,11 +121,11 @@ src/
 │   └── nav-items.ts          # Configuración de navegación
 │
 ├── shared/                   # Código compartido entre features
-│   ├── components/           # Componentes reutilizables (loaders, dialogs, etc.)
+│   ├── components/           # Componentes reutilizables (loaders, dialogs, etc.); ui/ es el kit de piezas base
 │   ├── hooks/                # Hooks reutilizables (useToast, etc.)
 │   ├── models/               # Interfaces compartidas (Page<T>, ApiResponse<T>, Rol)
 │   ├── stores/               # Estado de UI global (toastStore)
-│   ├── utils/                # Utilidades (manejo de errores de API, monitoring)
+│   ├── utils/                # Utilidades (manejo de errores de API, monitoring, estado → variante de insignia)
 │   └── validation/           # Validación reutilizable alineada al backend (límites, regex, mensajes, validadores Zod)
 │
 └── test-utils/               # Utilidades de testing

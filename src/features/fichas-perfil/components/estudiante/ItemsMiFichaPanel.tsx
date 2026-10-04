@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { Edit3, Plus, Trash2 } from 'lucide-react';
+import { Edit3, FilePlus, Plus, Trash2 } from 'lucide-react';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import Badge from '../../../../shared/components/ui/Badge';
+import EmptyState from '../../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
+import IconButton from '../../../../shared/components/ui/IconButton';
+import Skeleton from '../../../../shared/components/ui/Skeleton';
 import {
   getApiErrorMessage,
   hasApiErrorCode,
@@ -20,7 +25,7 @@ function mensajeErrorEliminar(err: unknown): string {
 }
 
 export default function ItemsMiFichaPanel() {
-  const { items, isLoading, isError, remover } = useItemsMiFicha();
+  const { items, isLoading, isError, refetch, remover } = useItemsMiFicha();
 
   const [mostrarFormAgregar, setMostrarFormAgregar] = useState(false);
   const [editandoItemId, setEditandoItemId] = useState<string | null>(null);
@@ -59,34 +64,21 @@ export default function ItemsMiFichaPanel() {
 
       {mostrarFormAgregar && <AgregarItemForm onCerrar={() => setMostrarFormAgregar(false)} />}
 
-      {isLoading && (
-        <div
-          role="status"
-          aria-live="polite"
-          aria-busy="true"
-          className="py-8 text-center text-sm text-on-surface-secondary"
-        >
-          <span className="sr-only">Cargando ítems de la ficha...</span>
-          <span
-            aria-hidden
-            className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"
-          />
-        </div>
-      )}
+      {isLoading && <Skeleton variante="tarjetas" etiqueta="Cargando ítems de la ficha..." />}
 
       {isError && !isLoading && (
-        <div role="alert" className="rounded-lg border border-danger p-3 text-sm text-danger">
-          No se pudieron cargar los ítems de tu ficha. Intenta de nuevo más tarde.
-        </div>
+        <ErrorState
+          titulo="No se pudieron cargar los ítems de tu ficha"
+          descripcion="Intenta de nuevo más tarde."
+          onReintentar={refetch}
+        />
       )}
 
       {items.map((item) => (
         <div key={item.id} className="rounded-lg border border-border bg-surface p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
-              <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
-                {item.tipoItem.nombre}
-              </span>
+              <Badge variante="neutro">{item.tipoItem.nombre}</Badge>
               {editandoItemId === item.id ? (
                 <EditarItemForm item={item} onCerrar={() => setEditandoItemId(null)} />
               ) : (
@@ -94,32 +86,29 @@ export default function ItemsMiFichaPanel() {
               )}
             </div>
             <div className="flex gap-1">
-              <button
-                type="button"
+              <IconButton
+                etiqueta={`Editar ítem ${item.tipoItem.nombre}`}
+                icono={Edit3}
                 onClick={() => setEditandoItemId(item.id)}
-                className="rounded p-1 text-on-surface-secondary hover:text-primary"
-                aria-label={`Editar ítem ${item.tipoItem.nombre}`}
-              >
-                <Edit3 size={14} aria-hidden />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleEliminar(item.id)}
+              />
+              <IconButton
+                tono="peligro"
+                etiqueta={`Eliminar ítem ${item.tipoItem.nombre}`}
+                icono={Trash2}
                 disabled={remover.isPending}
-                className="rounded p-1 text-on-surface-secondary hover:text-danger disabled:opacity-50"
-                aria-label={`Eliminar ítem ${item.tipoItem.nombre}`}
-              >
-                <Trash2 size={14} aria-hidden />
-              </button>
+                onClick={() => handleEliminar(item.id)}
+              />
             </div>
           </div>
         </div>
       ))}
 
       {!isLoading && !isError && items.length === 0 && (
-        <p className="py-8 text-center text-sm text-on-surface-secondary">
-          Tu ficha aún no tiene ítems. Agrega el primero con «Agregar Ítem».
-        </p>
+        <EmptyState
+          icono={FilePlus}
+          titulo="Tu ficha aún no tiene ítems"
+          descripcion="Agrega el primero con «Agregar Ítem»."
+        />
       )}
 
       {itemIdAEliminar && (

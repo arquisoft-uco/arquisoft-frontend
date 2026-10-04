@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import { useCompanerosFichaPerfil } from '../../hooks/useCompanerosFichaPerfil';
 import CompanerosFichaPanel from './CompanerosFichaPanel';
@@ -70,6 +71,20 @@ describe('CompanerosFichaPanel', () => {
     expect(
       screen.queryByText('No tienes compañeros vinculados a esta ficha.'),
     ).not.toBeInTheDocument();
+  });
+
+  it('vuelve a consultar los compañeros al pulsar «Reintentar» tras un error', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    conConsulta({ isError: true, error: new Error('fallo'), refetch });
+    render(<CompanerosFichaPanel idFichaPerfil="f-1" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   it('lista el nombre y el correo de cada compañero', () => {

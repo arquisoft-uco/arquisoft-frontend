@@ -10,8 +10,12 @@ import {
   configuracionProhibida,
   consolesLog,
   contarColoresSinToken,
+  contarSpinnersCopiados,
+  contarTextosMenoresA12px,
   extraerTokensDeColor,
   queryKeysFueraDeConvencion,
+  spinnersCopiados,
+  textosMenoresA12px,
   tiposInseguros,
   tokensDeColorDeclarados,
   usosDeStorage,
@@ -217,6 +221,30 @@ describe('Arquitectura: convenciones con deuda conocida', () => {
     );
   });
 
+  it('el spinner solo vive en shared/components/ui', () => {
+    // Act
+    const problemas = compararConBaseline(spinnersCopiados(), BASELINE.spinnersCopiados);
+
+    // Assert
+    exigir(
+      problemas,
+      `Usa LoadingState (carga sin forma conocida), Skeleton (forma conocida) o el prop cargando de ` +
+        `Button: el único spinner vive en src/shared/components/ui/. ${AYUDA_BASELINE}`,
+    );
+  });
+
+  it('ningún texto usa menos de 12 px', () => {
+    // Act
+    const problemas = compararConBaseline(textosMenoresA12px(), BASELINE.textosMenoresA12px);
+
+    // Assert
+    exigir(
+      problemas,
+      `Usa text-xs (12 px) como mínimo: el piso tipográfico es 12 px (tokens.md §4 de ` +
+        `arquisoft-frontend-ui-ux). ${AYUDA_BASELINE}`,
+    );
+  });
+
   it('no se agregan bloques JSDoc', () => {
     // Act
     const problemas = compararConBaseline(bloquesJsdoc(), BASELINE.bloquesJsdoc);
@@ -309,6 +337,30 @@ describe('Arquitectura: la regla de colores sin token', () => {
       'Si falla, revisa test.css.include en vite.config.ts: sin esa opción Vitest vacía ' +
         'src/tailwind.css y no se lee ningún token.',
     ).toEqual(expect.arrayContaining(['primary', 'muted']));
+  });
+});
+
+describe('Arquitectura: las reglas de spinner y de tamaño de texto', () => {
+  it('cuenta el spinner copiado y no el animate-spin suelto', () => {
+    // Arrange
+    const clases = 'h-8 animate-spin rounded-full border-4 animate-pulse animate-spin';
+
+    // Act
+    const spinners = contarSpinnersCopiados(clases);
+
+    // Assert
+    expect(spinners).toBe(1);
+  });
+
+  it('cuenta los textos de 9, 10 y 11 px y no los de 12 px o más', () => {
+    // Arrange
+    const clases = 'text-[9px] text-[10px] text-[11px] text-[12px] text-xs text-[13px]';
+
+    // Act
+    const textosPequenos = contarTextosMenoresA12px(clases);
+
+    // Assert
+    expect(textosPequenos).toBe(3);
   });
 });
 

@@ -38,10 +38,7 @@ function mockEstudiantes(parcial: Partial<ResultadoEstudiantes>) {
   } as ResultadoEstudiantes);
 }
 
-function crearMutacionMock(
-  mutate: ReturnType<typeof vi.fn>,
-  isPending = false,
-): ResultadoMutacion {
+function crearMutacionMock(mutate: ReturnType<typeof vi.fn>, isPending = false): ResultadoMutacion {
   return {
     data: undefined,
     error: null,
@@ -97,14 +94,14 @@ describe('AsignarEstudianteForm', () => {
     render(<AsignarEstudianteForm idFichaPerfil="f-1" vinculados={[]} />);
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent(/catálogo de estudiantes/i);
+    expect(
+      await screen.findByRole('note', { name: 'No disponible: estudiantes' }),
+    ).toBeInTheDocument();
   });
 
   it('excluye de las opciones a los estudiantes ya vinculados', async () => {
     // Arrange
-    render(
-      <AsignarEstudianteForm idFichaPerfil="f-1" vinculados={[vinculado(E2.id)]} />,
-    );
+    render(<AsignarEstudianteForm idFichaPerfil="f-1" vinculados={[vinculado(E2.id)]} />);
 
     // Assert
     expect(await screen.findByRole('checkbox', { name: 'Carlos Ruiz' })).toBeInTheDocument();

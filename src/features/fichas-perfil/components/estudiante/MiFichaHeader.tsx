@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Edit3, UserCheck } from 'lucide-react';
 import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
+import Badge from '../../../../shared/components/ui/Badge';
+import { varianteEstadoFicha } from '../../../../shared/utils/estado-variante';
 import CompanerosFichaPanel from './CompanerosFichaPanel';
 import EditarTituloForm from './EditarTituloForm';
 
@@ -13,7 +15,7 @@ export default function MiFichaHeader() {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex-1">
           <p className="mb-1 text-xs font-medium uppercase tracking-wider text-on-surface-secondary">
             Mi Ficha de Perfil
@@ -38,9 +40,9 @@ export default function MiFichaHeader() {
           )}
         </div>
         {ficha.estadoActual && (
-          <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+          <Badge variante={varianteEstadoFicha(ficha.estadoActual.id)} className="shrink-0">
             {ficha.estadoActual.nombre}
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -50,8 +52,8 @@ export default function MiFichaHeader() {
         <div className="mt-2 flex items-center gap-2">
           <UserCheck size={14} className="text-on-surface-secondary" aria-hidden />
           <p className="text-xs text-on-surface-secondary">
-            Asesor: <span className="font-medium text-on-surface">{ficha.asesor.nombre}</span>
-            {' '}— {ficha.asesor.email}
+            Asesor: <span className="font-medium text-on-surface">{ficha.asesor.nombre}</span> —{' '}
+            {ficha.asesor.email}
           </p>
         </div>
       )}

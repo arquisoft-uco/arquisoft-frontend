@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { monitoring } from '../utils/monitoring';
+import Button from './ui/Button';
 
 interface Props {
   children: ReactNode;
@@ -33,13 +34,9 @@ export class ChunkErrorBoundary extends Component<Props, State> {
             <p className="text-sm text-on-surface-secondary">
               Error al cargar el módulo. Por favor recarga la página.
             </p>
-            <button
-              className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              onClick={() => window.location.reload()}
-              type="button"
-            >
+            <Button className="mt-4" onClick={() => window.location.reload()}>
               Reintentar
-            </button>
+            </Button>
           </div>
         </div>
       );

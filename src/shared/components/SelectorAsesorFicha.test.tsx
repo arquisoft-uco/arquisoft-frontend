@@ -48,7 +48,7 @@ describe('SelectorAsesorFicha', () => {
     render(<SelectorAsesorFicha value="" onChange={vi.fn()} />);
 
     // Assert
-    expect(screen.getByRole('alert')).toHaveTextContent(/catálogo de asesores/i);
+    expect(screen.getByRole('note', { name: 'No disponible: asesores' })).toBeInTheDocument();
   });
 
   it('lista los asesores excluyendo los ids indicados', () => {

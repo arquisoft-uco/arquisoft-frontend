@@ -6,6 +6,8 @@ import type { Item } from '../../models/fichas-perfil';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, getApiFieldErrors } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../../shared/validation';
+import Button from '../../../../shared/components/ui/Button';
+import Field from '../../../../shared/components/ui/Field';
 
 const schema = z.object({
   contenido: textoRequerido(LIMITES.ITEM_CONTENIDO_MAX),
@@ -37,9 +39,6 @@ export default function EditarItemForm({ item, onCerrar }: Props) {
     mode: 'onChange',
   });
 
-  const campoId = `item-contenido-${item.id}`;
-  const errorId = `${campoId}-error`;
-
   function handleCancelar() {
     reset();
     modificar.reset();
@@ -57,7 +56,10 @@ export default function EditarItemForm({ item, onCerrar }: Props) {
           onCerrar();
         },
         onError: (err) => {
-          toast.error('Error al modificar', getApiErrorMessage(err, 'No se pudo actualizar el ítem.'));
+          toast.error(
+            'Error al modificar',
+            getApiErrorMessage(err, 'No se pudo actualizar el ítem.'),
+          );
           getApiFieldErrors(err).forEach(({ field, message }) => {
             const campo = CAMPO_POR_FIELD[field];
             if (campo) setError(campo, { message });
@@ -73,41 +75,28 @@ export default function EditarItemForm({ item, onCerrar }: Props) {
       className="mt-2 flex flex-col gap-3"
       aria-label={`Editar ítem ${item.tipoItem.nombre}`}
     >
-      <div>
-        <label htmlFor={campoId} className="sr-only">
-          Contenido del ítem {item.tipoItem.nombre}
-        </label>
-        <textarea
-          id={campoId}
-          rows={4}
-          maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-          className="field-input"
-          aria-invalid={!!errors.contenido}
-          aria-describedby={errors.contenido ? errorId : undefined}
-          {...register('contenido')}
-        />
-        {errors.contenido && (
-          <p id={errorId} className="field-error" role="alert">
-            {errors.contenido.message}
-          </p>
+      <Field
+        etiqueta={`Contenido del ítem ${item.tipoItem.nombre}`}
+        error={errors.contenido?.message}
+      >
+        {(control) => (
+          <textarea
+            rows={4}
+            maxLength={LIMITES.ITEM_CONTENIDO_MAX}
+            className="field-input"
+            {...register('contenido')}
+            {...control}
+          />
         )}
-      </div>
+      </Field>
 
       <div className="actions-row">
-        <button
-          type="button"
-          onClick={handleCancelar}
-          className="rounded-lg border border-border px-3 py-2 text-sm text-on-surface hover:bg-muted"
-        >
+        <Button variante="secundario" onClick={handleCancelar}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!isValid || !isDirty || modificar.isPending}
-          className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-        >
+        </Button>
+        <Button type="submit" disabled={!isValid || !isDirty} cargando={modificar.isPending}>
           {modificar.isPending ? 'Guardando…' : 'Guardar'}
-        </button>
+        </Button>
       </div>
     </form>
   );

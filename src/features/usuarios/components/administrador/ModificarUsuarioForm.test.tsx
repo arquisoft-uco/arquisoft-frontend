@@ -442,7 +442,10 @@ describe('ModificarUsuarioForm', () => {
     mockRemover.mockImplementation((_id, _rol, onExito) => onExito?.());
     const user = userEvent.setup();
     render(
-      <ModificarUsuarioForm usuario={{ ...usuario, esRepresentanteComite: true }} onCerrar={onCerrar} />,
+      <ModificarUsuarioForm
+        usuario={{ ...usuario, esRepresentanteComite: true }}
+        onCerrar={onCerrar}
+      />,
     );
     const checkbox = screen.getByRole('checkbox', {
       name: new RegExp(`^${ETIQUETAS_ROL[Rol.RepresentanteComiteCurriculum]}`),
@@ -933,7 +936,9 @@ describe('ModificarUsuarioForm', () => {
     render(<ModificarUsuarioForm usuario={usuario} onCerrar={onCerrar} />);
 
     // Assert
-    expect(screen.getByText(/estados de usuario/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('note', { name: 'No disponible: estados de usuario' }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('Nuevo estado')).toBeDisabled();
   });
 });

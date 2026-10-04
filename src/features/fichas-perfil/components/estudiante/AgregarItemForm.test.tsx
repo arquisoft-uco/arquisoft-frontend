@@ -53,9 +53,7 @@ describe('AgregarItemForm', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    const { mutate } = mockHook(
-      vi.fn((_req: unknown, opts: Opciones) => opts.onSuccess?.()),
-    );
+    const { mutate } = mockHook(vi.fn((_req: unknown, opts: Opciones) => opts.onSuccess?.()));
     render(<AgregarItemForm onCerrar={onCerrar} />);
 
     // Act
@@ -113,7 +111,10 @@ describe('AgregarItemForm', () => {
     mockHook(
       vi.fn((_req: unknown, opts: Opciones) =>
         opts.onError?.(
-          errorApi(422, { message: 'Ya existe un ítem de ese tipo.', errorCode: 'ITEM_TIPO_DUPLICADO' }),
+          errorApi(422, {
+            message: 'Ya existe un ítem de ese tipo.',
+            errorCode: 'ITEM_TIPO_DUPLICADO',
+          }),
         ),
       ),
     );
@@ -151,7 +152,10 @@ describe('AgregarItemForm', () => {
     await user.click(screen.getByRole('button', { name: 'Agregar' }));
 
     // Assert
-    expect(toast.error).toHaveBeenCalledWith('Error al agregar', 'La ficha está en estado terminal.');
+    expect(toast.error).toHaveBeenCalledWith(
+      'Error al agregar',
+      'La ficha está en estado terminal.',
+    );
     expect(onCerrar).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeEnabled();
   });
@@ -164,7 +168,7 @@ describe('AgregarItemForm', () => {
     render(<AgregarItemForm onCerrar={vi.fn()} />);
 
     // Assert
-    expect(screen.getByRole('alert')).toHaveTextContent(/tipos de ítem/i);
+    expect(screen.getByRole('note', { name: 'No disponible: tipos de ítem' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeDisabled();
   });
 

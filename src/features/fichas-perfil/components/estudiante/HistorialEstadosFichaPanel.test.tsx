@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import { useEstadosFichaPerfilEstudiante } from '../../hooks/useEstadosFichaPerfilEstudiante';
 import HistorialEstadosFichaPanel from './HistorialEstadosFichaPanel';
@@ -13,6 +14,7 @@ function conEstado(parcial: Partial<ReturnType<typeof useEstadosFichaPerfilEstud
     isLoading: false,
     isError: false,
     error: null,
+    refetch: vi.fn(),
     fichaPerfilIdDisponible: true,
     ...parcial,
   });
@@ -31,7 +33,11 @@ describe('HistorialEstadosFichaPanel', () => {
     render(<HistorialEstadosFichaPanel />);
 
     // Assert
-    expect(screen.getByText(/historial de estados de tu ficha de perfil/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('note', {
+        name: 'No disponible: historial de estados de tu ficha de perfil',
+      }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
   });
 
@@ -57,6 +63,20 @@ describe('HistorialEstadosFichaPanel', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
+  it('vuelve a consultar el historial al pulsar «Reintentar» tras un error', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    conEstado({ isError: true, error: new Error('fallo'), refetch });
+    render(<HistorialEstadosFichaPanel />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
   it('muestra el texto de vacío cuando no hay estados', () => {
     // Arrange
     conEstado({ historial: [] });
@@ -74,7 +94,11 @@ describe('HistorialEstadosFichaPanel', () => {
     conEstado({
       historial: [
         { id: 'REVISION', nombre: 'En revision', fechaActualizacion: '2026-09-02T10:00:00Z' },
-        { id: 'EN_CONSTRUCCION', nombre: 'En construccion', fechaActualizacion: '2026-09-01T10:00:00Z' },
+        {
+          id: 'EN_CONSTRUCCION',
+          nombre: 'En construccion',
+          fechaActualizacion: '2026-09-01T10:00:00Z',
+        },
       ],
     });
 

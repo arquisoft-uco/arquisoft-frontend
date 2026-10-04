@@ -2,18 +2,21 @@ import { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import type { FichaPerfilAsesor } from '../../models/FichaPerfilAsesor';
 import ComingSoon from '../../../../shared/components/ComingSoon';
+import Badge from '../../../../shared/components/ui/Badge';
+import Button from '../../../../shared/components/ui/Button';
+import Tabs from '../../../../shared/components/ui/Tabs';
 import ItemsFichaAsesorPanel from './ItemsFichaAsesorPanel';
 import EstadosFichaPanel from '../EstadosFichaPanel';
 import TiposItemPanel from '../TiposItemPanel';
 
 type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones' | 'tipos-item';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'items', label: 'Ítems' },
-  { key: 'estados', label: 'Estados' },
-  { key: 'revisiones', label: 'Revisiones' },
-  { key: 'evaluaciones', label: 'Evaluaciones' },
-  { key: 'tipos-item', label: 'Tipos de ítem' },
+const TABS: { id: Tab; etiqueta: string }[] = [
+  { id: 'items', etiqueta: 'Ítems' },
+  { id: 'estados', etiqueta: 'Estados' },
+  { id: 'revisiones', etiqueta: 'Revisiones' },
+  { id: 'evaluaciones', etiqueta: 'Evaluaciones' },
+  { id: 'tipos-item', etiqueta: 'Tipos de ítem' },
 ];
 
 interface Props {
@@ -33,57 +36,39 @@ export default function DetalleFichaAsesor({ ficha, onVolver, onEstadoCambiado }
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <header className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onVolver}
-          className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-sm text-on-surface transition-colors hover:bg-muted"
-        >
-          <ChevronLeft size={16} aria-hidden />
+      <header className="flex flex-wrap items-center gap-3">
+        <Button variante="secundario" icono={ChevronLeft} onClick={onVolver}>
           Volver
-        </button>
-        <div>
+        </Button>
+        <div className="flex-1">
           <h2 className="text-xl font-semibold text-on-surface">{ficha.titulo}</h2>
-          <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-on-surface-secondary">
-            {estadoActual}
-          </span>
+          {estadoActual && <Badge variante="neutro">{estadoActual}</Badge>}
         </div>
       </header>
 
-      <div className="flex gap-1 rounded-lg bg-muted/50 p-1" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            role="tab"
-            aria-selected={tab === t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-              tab === t.key
-                ? 'bg-surface text-on-surface shadow-sm'
-                : 'text-on-surface-secondary hover:text-on-surface'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'items' && <ItemsFichaAsesorPanel fichaPerfilId={ficha.id} />}
-      {tab === 'estados' && (
-        <EstadosFichaPanel
-          fichaPerfilId={ficha.id}
-          estadoActual={estadoActual}
-          onEstadoCambiado={handleEstadoCambiado}
-        />
-      )}
-      {tab === 'revisiones' && (
-        <ComingSoon title="Revisiones" description="Las revisiones de la ficha estarán disponibles próximamente." />
-      )}
-      {tab === 'evaluaciones' && (
-        <ComingSoon title="Evaluaciones" description="Las evaluaciones de la ficha estarán disponibles próximamente." />
-      )}
-      {tab === 'tipos-item' && <TiposItemPanel />}
+      <Tabs items={TABS} valor={tab} onCambiar={setTab} etiqueta="Secciones de la ficha">
+        {tab === 'items' && <ItemsFichaAsesorPanel fichaPerfilId={ficha.id} />}
+        {tab === 'estados' && (
+          <EstadosFichaPanel
+            fichaPerfilId={ficha.id}
+            estadoActual={estadoActual}
+            onEstadoCambiado={handleEstadoCambiado}
+          />
+        )}
+        {tab === 'revisiones' && (
+          <ComingSoon
+            title="Revisiones"
+            description="Las revisiones de la ficha estarán disponibles próximamente."
+          />
+        )}
+        {tab === 'evaluaciones' && (
+          <ComingSoon
+            title="Evaluaciones"
+            description="Las evaluaciones de la ficha estarán disponibles próximamente."
+          />
+        )}
+        {tab === 'tipos-item' && <TiposItemPanel />}
+      </Tabs>
     </div>
   );
 }

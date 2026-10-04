@@ -51,6 +51,7 @@ export function useItemsMiFicha() {
     tiposItem: tiposItemQuery.data ?? [],
     isLoading: itemsQuery.isLoading || tiposItemQuery.isLoading,
     isError: itemsQuery.isError || tiposItemQuery.isError,
+    refetch: () => Promise.all([itemsQuery.refetch(), tiposItemQuery.refetch()]),
     agregar,
     modificar,
     remover,

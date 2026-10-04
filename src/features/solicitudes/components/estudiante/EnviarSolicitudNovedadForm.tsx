@@ -12,6 +12,8 @@ import {
 import { LIMITES, textoRequerido, uuidValido } from '../../../../shared/validation';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import Button from '../../../../shared/components/ui/Button';
+import Field from '../../../../shared/components/ui/Field';
 
 const schema = z.object({
   destinatario: uuidValido(),
@@ -101,63 +103,42 @@ export default function EnviarSolicitudNovedadForm() {
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo} aria-busy={isPending}>
         <div>
-          <label htmlFor="sn-destinatario" className="field-label">
-            Destinatario (UUID del coordinador){' '}
-            <span aria-hidden className="text-danger">
-              *
-            </span>
-          </label>
-          <input
-            id="sn-destinatario"
-            type="text"
-            className="field-input"
-            aria-invalid={!!errors.destinatario}
-            aria-describedby={errors.destinatario ? 'sn-destinatario-error' : undefined}
-            placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            {...register('destinatario')}
-          />
-          {errors.destinatario && (
-            <p id="sn-destinatario-error" className="field-error" role="alert">
-              {errors.destinatario.message}
-            </p>
-          )}
+          <Field
+            etiqueta="Destinatario (UUID del coordinador)"
+            error={errors.destinatario?.message}
+          >
+            {(control) => (
+              <input
+                type="text"
+                className="field-input"
+                placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                {...register('destinatario')}
+                {...control}
+              />
+            )}
+          </Field>
           <div className="mt-2">
             <AvisoNoDisponible recurso="coordinadores" />
           </div>
         </div>
 
-        <div>
-          <label htmlFor="sn-mensaje" className="field-label">
-            Mensaje{' '}
-            <span aria-hidden className="text-danger">
-              *
-            </span>
-          </label>
-          <textarea
-            id="sn-mensaje"
-            rows={4}
-            maxLength={LIMITES.MENSAJE_SOLICITUD_MAX}
-            className="field-input"
-            aria-invalid={!!errors.mensajeSolicitud}
-            aria-describedby={errors.mensajeSolicitud ? 'sn-mensaje-error' : undefined}
-            placeholder="Describe la novedad que quieres reportar al coordinador"
-            {...register('mensajeSolicitud')}
-          />
-          {errors.mensajeSolicitud && (
-            <p id="sn-mensaje-error" className="field-error" role="alert">
-              {errors.mensajeSolicitud.message}
-            </p>
+        <Field etiqueta="Mensaje" error={errors.mensajeSolicitud?.message}>
+          {(control) => (
+            <textarea
+              rows={4}
+              maxLength={LIMITES.MENSAJE_SOLICITUD_MAX}
+              className="field-input"
+              placeholder="Describe la novedad que quieres reportar al coordinador"
+              {...register('mensajeSolicitud')}
+              {...control}
+            />
           )}
-        </div>
+        </Field>
 
         <div className="actions-row border-t border-border pt-4">
-          <button
-            type="submit"
-            disabled={!isValid || isPending}
-            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:py-2"
-          >
+          <Button type="submit" disabled={!isValid} cargando={isPending}>
             {isPending ? 'Enviando...' : 'Enviar solicitud'}
-          </button>
+          </Button>
         </div>
       </form>
 
