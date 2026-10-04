@@ -1,8 +1,10 @@
 # Kit de componentes
 
 Lo que cada pieza hace, cómo se llama su API y con qué clases se pinta. Las clases salen de
-`tokens.md` (todas son semánticas y mobile first) y **se verificaron contra el compilador de Tailwind
-del proyecto**: no las reinventes ni las sustituyas por colores crudos.
+`tokens.md` (todas son semánticas y mobile first). Las de las 11 piezas del kit base se **comprobaron contra el
+compilador de Tailwind y en el navegador con `getComputedStyle`**; las de las demás piezas se verificaron solo contra
+el compilador y se corrigen al construirlas: aplica la regla «Composición de clases» de abajo, no las reinventes ni las
+sustituyas por colores crudos.
 
 **Lista `src/shared/components/ui/` antes de crear nada**: el estado real del kit está ahí, no en esta
 página. Lo que sigue es la receta para escribir lo que falte.
@@ -14,9 +16,21 @@ página. Lo que sigue es la receta para escribir lo que falte.
   subcomponentes de la misma carpeta.
 - **Nombre del componente en inglés** (sufijo técnico) y **props en español**, como `ConfirmDialog`
   (`titulo`, `variante`, `cargando`). La variante de aviso se llama `advertencia`, igual que allí.
-- Iconos de `lucide-react` con `size={16}` y `aria-hidden`. Un botón que solo tiene icono lleva `etiqueta`.
+- Iconos de `lucide-react` con `size={16}` y `aria-hidden` (salvo el recuadro de `EmptyState` y de `ErrorState`, que
+  usa 22, y el mensaje de error de `Field` y el separador de las migas, que usan 14). Un botón que solo tiene icono
+  lleva `etiqueta`.
 - Todo `<button>` que no envía un formulario es `type="button"`: las piezas lo ponen por defecto.
 - Una pieza admite `className` solo para disposición (márgenes, ancho); nunca para cambiar su variante.
+- **Composición de clases.** Tailwind v4 emite las utilidades dentro de `@layer utilities` en un orden fijo (por
+  propiedad y por nombre), así que no gana la última de `className` sino la que sale después en la hoja. Las
+  clases globales de `src/index.css` (`.field-input`, `.skeleton`, `.section-header`…) no están en una capa y
+  ganan a cualquier utilidad. Por eso cada pieza arma su `className` con una cadena base más **una** por estado
+  (variante, tono, activa o inactiva), de forma excluyente, y nunca mezcla una utilidad con una clase global que
+  fije la misma propiedad: el borde de `Button` y el hover de `IconButton` van en la variante o en el tono,
+  `Tabs` y el contador de `Field` traen su color por estado, `Skeleton` no pone `rounded-*` (el radio lo fija
+  `.skeleton`) y `PageHeader` no usa `.section-header`. Se verifica con `getComputedStyle` sobre el elemento
+  renderizado (el color del borde del botón secundario, el subrayado de la pestaña activa), no leyendo el orden
+  de las clases.
 - Solo hay prueba para las piezas con comportamiento (teclado, foco, callbacks). Una pieza que solo
   devuelve JSX estático no se prueba (anti-patrón 1 de los estándares).
 
@@ -42,17 +56,23 @@ solo consumidor, es una ambigüedad: pregunta, no la crees.
 - **Reemplaza:** los 54 botones escritos a mano (22 primarios, 32 secundarios).
 - **API:** `variante?: 'primario' | 'secundario' | 'fantasma' | 'peligro' | 'peligroContorno'`,
   `tamano?: 'md' | 'sm'`, `cargando?: boolean`, `icono?: LucideIcon`, más los atributos de `<button>`.
-- **Reglas:** una acción primaria por pantalla o panel. Cargando: `aria-busy`, deshabilitado, spinner y el
-  mismo texto en gerundio («Guardando…»); conserva el ancho. `sm` solo en barras densas desde `sm`.
+- **Reglas:** una acción primaria por pantalla o panel. Cargando: `aria-busy`, deshabilitado y el spinner antes
+  del texto, en el lugar del icono; el texto en gerundio («Guardando…») lo pone quien usa el botón. `sm` solo en
+  barras densas desde `sm`.
+- **Composición:** `base` + `md` o `sm` + **una** variante + `atenuado`, que se omite mientras `cargando` para que
+  el botón se vea nítido (`disabled:cursor-not-allowed` sí se mantiene). El **color del borde va en la
+  variante**, no en la base: un `border-transparent` en `base` anularía el borde de `secundario` y de
+  `peligroContorno`.
 
 ```clases
-Button.base | inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-transparent font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50
+Button.base | inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed
+Button.atenuado | disabled:opacity-50
 Button.md | h-11 px-4 text-sm sm:h-10
 Button.sm | h-11 px-3 text-sm sm:h-8
-Button.primario | bg-primary text-primary-foreground hover:bg-primary-hover
+Button.primario | border-transparent bg-primary text-primary-foreground hover:bg-primary-hover
 Button.secundario | border-border-strong bg-surface text-on-surface hover:bg-muted
-Button.fantasma | text-primary hover:bg-primary-muted
-Button.peligro | bg-danger text-danger-foreground hover:bg-danger/90
+Button.fantasma | border-transparent text-primary hover:bg-primary-muted
+Button.peligro | border-transparent bg-danger text-danger-foreground hover:bg-danger/90
 Button.peligroContorno | border-danger bg-surface text-danger-muted-foreground hover:bg-danger-muted
 Button.spinner | size-4 animate-spin rounded-full border-2 border-current border-t-transparent
 ```
@@ -62,10 +82,13 @@ Button.spinner | size-4 animate-spin rounded-full border-2 border-current border
 - **Reemplaza:** los botones de icono de 22 px (`p-1`) y los `h-11 w-11 sm:h-9 sm:w-9` copiados.
 - **API:** `etiqueta: string` (obligatoria, va a `aria-label`), `icono: LucideIcon`, `tono?: 'neutro' | 'peligro'`.
 - **Regla:** 44 px de área en celular y 36 px desde `sm`.
+- **Composición:** `base` + **un** tono. Cada tono trae su color de texto y su hover: con el hover de `neutro` en
+  la base, `peligro` no cambiaría de color al pasar el cursor.
 
 ```clases
-IconButton.base | inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-on-surface-secondary transition-colors hover:bg-muted hover:text-on-surface disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-9
-IconButton.peligro | hover:bg-danger-muted hover:text-danger-muted-foreground
+IconButton.base | inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-9
+IconButton.neutro | text-on-surface-secondary hover:bg-muted hover:text-on-surface
+IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-danger-muted-foreground
 ```
 
 ### Badge y `estado-variante.ts`
@@ -73,13 +96,15 @@ IconButton.peligro | hover:bg-danger-muted hover:text-danger-muted-foreground
 - **Reemplaza:** las pastillas hechas con `bg-green-100`, `bg-red-100`… (`EstadosEvaluacionPanel`) y con
   `bg-muted` (`FichasPerfilTable`, `DetalleFicha*`, `EstadosFichaPanel`).
 - **API:** `variante: 'neutro' | 'info' | 'exito' | 'advertencia' | 'peligro'`. Siempre lleva punto y texto.
+- **Composición:** `base` + **una** variante; el `punto` es un `<span aria-hidden="true">` que toma el color del
+  texto (`bg-current`).
 - **`src/shared/utils/estado-variante.ts`** (función pura, sin JSX; el tipo de variante se declara una vez
   en `Badge.tsx` y se importa con `import type`): una sola tabla estado → variante, por `id` del backend.
   La etiqueta que se muestra es el `nombre` que venga del backend; un `id` desconocido cae en `neutro`.
 
 | Dominio | `id` → variante |
 |---|---|
-| Ficha | `EN_CONSTRUCCION` → neutro · `REVISION` → info · `DISPONIBLE_PARA_EVALUACION` → advertencia · `EN_EVALUACION` → info |
+| Ficha | `EN_CONSTRUCCION` → neutro · `DISPONIBLE_PARA_EVALUACION` → advertencia · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
 | Evaluación | `EN_EVALUACION` → info · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
 | Usuario | `ACTIVO` → exito · `INACTIVO` → neutro · `vigente === false` → peligro, con el texto «Dado de baja» (una sola insignia combina estado y vigencia) |
 
@@ -94,6 +119,9 @@ Badge.peligro | bg-danger-muted text-danger-muted-foreground
 ```
 
 - **Pruebas:** `estado-variante.test.ts` (lógica pura, incluido el `id` desconocido). `Badge` no.
+- **Uso:** la `Badge` no parte el texto (`whitespace-nowrap`): en una fila con el título, el contenedor lleva `flex-wrap` (y el
+  bloque del título `flex-1`) para que una insignia larga («Aprobada Con Observaciones») baje de línea a 320 px en vez de
+  desbordar.
 
 ### Field
 
@@ -102,35 +130,61 @@ Badge.peligro | bg-danger-muted text-danger-muted-foreground
 - **API:** `etiqueta`, `ayuda?`, `error?`, `opcional?`, `contador?: { actual: number; max: number }` y un
   hijo-función `(control) => ReactNode` que recibe `{ id, 'aria-invalid', 'aria-describedby' }` (con
   `useId`); el control es un `<input className="field-input">`, `<select>` o `<textarea>` que los usa.
-- **Anatomía:** etiqueta → control → pie. El pie muestra el error (con icono y `role="alert"`) o, si no hay
-  error, la ayuda; el contador va a la derecha del pie. Los límites van en la ayuda **antes** de fallar.
-- **Reglas:** sin asterisco; el opcional dice «(opcional)» dentro de la etiqueta. El contador pasa a
-  `contadorCerca` desde el 90 % del máximo. Textarea: `min-h-24` y `resize-y`, con `maxLength` de `LIMITES`.
+  `aria-describedby` apunta al error o, si no hay, a la ayuda (el contador no entra).
+- **Anatomía:** etiqueta → control → pie. El pie solo existe si hay error, ayuda o contador; muestra el error
+  (con icono y `role="alert"`) o, si no hay error, la ayuda; el contador va a la derecha del pie. Los límites
+  van en la ayuda **antes** de fallar.
+- **Reglas:** sin asterisco; el opcional dice «(opcional)» dentro de la etiqueta. El contador pasa de
+  `contadorReposo` a `contadorCerca` desde el 90 % del máximo. Textarea: `min-h-24` y `resize-y`, con
+  `maxLength` de `LIMITES`.
+- **Espaciado:** `Field.raiz` no lleva `gap`. `field-label` ya deja 6 px bajo la etiqueta y `field-error` y
+  `field-hint` 4 px entre el control y su mensaje: con un `gap` el espacio etiqueta → control se duplicaría.
+- **Composición:** el contador es `contador` + **uno** de `contadorReposo` o `contadorCerca`; sumados, el color lo
+  decidiría el orden de la hoja y no el estado.
 - **Con react-hook-form:** `useForm({ mode: 'onTouched' })`; el error aparece al salir del campo y se limpia
   al corregir (ver «Formularios» en `patrones.md`).
 
 ```clases
-Field.raiz | flex min-w-0 flex-col gap-1.5
+Field.raiz | flex min-w-0 flex-col
 Field.opcional | font-normal text-on-surface-secondary
 Field.pie | flex items-start justify-between gap-3
-Field.error | flex items-start gap-1.5
-Field.contador | shrink-0 text-xs tabular-nums text-on-surface-secondary
+Field.error | field-error flex items-start gap-1.5
+Field.iconoError | mt-0.5 shrink-0
+Field.contador | mt-1 ml-auto shrink-0 text-xs tabular-nums
+Field.contadorReposo | text-on-surface-secondary
 Field.contadorCerca | font-semibold text-tertiary-muted-foreground
-Field.valido | border-secondary pr-10
-Field.corto | max-w-60
 ```
 
 Las clases globales `field-label`, `field-input`, `field-error` y `field-hint` (en `index.css`, ver `tokens.md`)
 siguen siendo el único lugar donde se decide el aspecto del control.
 
+**Modificadores de campo (clases globales).** Los `pl-10`, `pr-10` y `border-*` de utilidad no vencen a `.field-input`, que es global y
+sin capa. Un campo con icono a la izquierda o con una acción a la derecha usa dos clases globales que se agregan a
+`src/index.css` justo después de `.field-input` (las crea la HT que construye la primera pieza que las usa, `FilterBar` en HT-UX-02):
+
+```css
+.field-input--icono {
+  padding-left: 2.5rem;
+}
+.field-input--accion {
+  padding-right: 2.5rem;
+}
+```
+
+`Field.valido` (`border-secondary pr-10`) y `Field.corto` (`max-w-60`) no están en el código: ningún prop los
+activa. Se agregan cuando una pantalla los pida (`FormSection` usa el ancho corto).
+
 ### Notice
 
 - **Reemplaza:** `AvisoNoDisponible` (que pasa a ser un uso de `Notice` con la frase «Esta opción aún no
   está disponible.»), bordes rojos hechos a mano y `<p className="text-danger">` sueltos.
-- **API:** `variante: 'info' | 'exito' | 'advertencia' | 'peligro'`, `titulo?`, `accion?: { etiqueta; onClick }`.
+- **API:** `variante: 'info' | 'exito' | 'advertencia' | 'peligro'`, `titulo?`, `accion?: { etiqueta; onClick }`,
+  `etiqueta?` (va a `aria-label` y le da nombre accesible al aviso, por ejemplo «No disponible: asesores») y los
+  `children` (el texto).
 - **Regla:** el aviso es contexto que se queda en la pantalla; el toast es la confirmación breve de una
   acción. `role="alert"` en `peligro`, `role="status"` en `exito`, `role="note"` en los demás. Siempre
   icono (`Info`, `CircleCheck`, `TriangleAlert`, `CircleAlert`) más texto.
+- **Composición:** `base` + **una** variante (sus colores son excluyentes).
 
 ```clases
 Notice.base | flex items-start gap-2.5 rounded-xl px-3.5 py-3 text-sm
@@ -138,7 +192,8 @@ Notice.info | bg-primary-muted text-primary-muted-foreground
 Notice.exito | bg-secondary-muted text-secondary-muted-foreground
 Notice.advertencia | bg-tertiary-muted text-tertiary-muted-foreground
 Notice.peligro | bg-danger-muted text-danger-muted-foreground
-Notice.icono | mt-0.5 size-4 shrink-0
+Notice.icono | mt-0.5 shrink-0
+Notice.texto | min-w-0
 Notice.titulo | block font-semibold
 Notice.accion | ml-auto font-semibold whitespace-nowrap underline underline-offset-4
 ```
@@ -151,12 +206,24 @@ Notice.accion | ml-auto font-semibold whitespace-nowrap underline underline-offs
 - **`EmptyState`:** `icono`, `titulo`, `descripcion?`, `accion?: ReactNode`. Tres tipos: **aún no hay datos**
   (acción: la que crea el primero), **sin resultados** (solo con búsqueda o filtros activos; acción «Limpiar
   filtros») y **todavía no disponible** (sin acción, o un enlace a lo que sí hay).
-- **`ErrorState`:** `titulo`, `descripcion?`, `onReintentar?`, `detalle?` (`getApiErrorMessage(err, …)`,
-  en pequeño). `role="alert"`. Con `onReintentar` muestra el botón «Reintentar» (`secundario` con `RefreshCw`).
-- **`Skeleton`:** `variante: 'tabla' | 'tarjetas' | 'formulario' | 'lineas'`, `etiqueta`. Usa la clase global
-  `skeleton` de `index.css`; el contenedor lleva `aria-busy="true"` y un `sr-only` que dice qué carga.
-- **`LoadingState`:** `etiqueta`. Solo cuando no se conoce la forma. `role="status"` y `aria-live="polite"`.
-  Es el **único spinner** del proyecto.
+- **`ErrorState`:** `titulo`, `descripcion?`, `onReintentar?`, `detalle?`. `role="alert"`. Con `onReintentar`
+  muestra el botón «Reintentar» (`secundario` con `RefreshCw`) y lo llama como `onReintentar()`, **sin pasarle el
+  evento**: así se le puede entregar `refetch` tal cual (que leería el evento como opciones). `detalle` va bajo
+  el botón, en pequeño, y se muestra tal cual, sin prefijo: se le pasa `getApiErrorMessage(err, …)`.
+- **`Skeleton`:** `variante: 'tabla' | 'tarjetas' | 'formulario' | 'lineas'`, `etiqueta`. El contenedor lleva
+  `role="status"` y `aria-busy="true"`, y un `<span className="sr-only">` con la `etiqueta` como primer hijo
+  (lo que anuncia el lector de pantalla). Los bloques usan la clase global `skeleton` de `index.css` con alto y
+  ancho y **nunca llevan `rounded-*`**: `.skeleton` fija el radio (0.5rem) y, al ser global, gana a la utilidad;
+  por eso `avatar` es un cuadrado de 36 px y no un círculo.
+- **Formas del `Skeleton`:** `tabla` (en una `caja`): una barra `skeleton h-3 w-2/5` y tres `fila` con el cuadro
+  `avatar`, una `pila` de dos barras (`skeleton h-3 w-3/4` y `skeleton h-2.5 w-1/2`) y un bloque `skeleton h-5`.
+  `tarjetas` (en una `columna`): tres `tarjeta` con las barras `skeleton h-4 w-2/5`, `skeleton h-3 w-full` y
+  `skeleton h-3 w-4/5`. `formulario` (en una `caja`): tres `pila` con una barra `skeleton h-3 w-1/3` y un bloque
+  `skeleton h-10 w-full`. `lineas` (en una `columna`): cuatro barras `skeleton h-4` de ancho `w-full`, `w-5/6`,
+  `w-2/3` y `w-3/4`.
+- **`LoadingState`:** `etiqueta` (visible). Solo cuando no se conoce la forma. `role="status"`,
+  `aria-live="polite"` y `aria-busy="true"`. Es, con el de `Button` (`cargando`), el único spinner del
+  proyecto: `src/arquitectura.test.ts` rechaza otro fuera de `shared/components/ui/`.
 - **`PageSkeleton`** (fallback de `Suspense` en `AppLayout`) se simplifica: cabecera y una tarjeta, sin la
   fila de cifras.
 
@@ -167,10 +234,16 @@ EmptyState.titulo | text-base font-semibold text-on-surface
 EmptyState.texto | max-w-sm text-sm text-on-surface-secondary
 ErrorState.raiz | flex flex-col items-center gap-2.5 rounded-2xl border border-border bg-surface px-5 py-8 text-center
 ErrorState.icono | flex size-12 items-center justify-center rounded-2xl bg-danger-muted text-danger-muted-foreground
+ErrorState.titulo | text-base font-semibold text-on-surface
+ErrorState.texto | max-w-sm text-sm text-on-surface-secondary
 ErrorState.detalle | text-xs text-on-surface-secondary
-Skeleton.bloque | skeleton h-4 w-full
+Skeleton.caja | flex flex-col gap-2.5 rounded-xl border border-border bg-surface-secondary p-3.5
+Skeleton.columna | flex flex-col gap-2.5
+Skeleton.tarjeta | flex flex-col gap-2.5 rounded-xl border border-border bg-surface p-3.5
 Skeleton.fila | grid grid-cols-[2.25rem_1fr_4.5rem] items-center gap-3 border-t border-border py-2.5
-Skeleton.avatar | skeleton size-9 rounded-full
+Skeleton.pila | flex flex-col gap-1.5
+Skeleton.bloque | skeleton h-4 w-full
+Skeleton.avatar | skeleton size-9
 LoadingState.raiz | flex flex-col items-center justify-center gap-2 py-12 text-sm text-on-surface-secondary
 LoadingState.spinner | size-5 animate-spin rounded-full border-2 border-primary border-t-transparent
 ```
@@ -192,22 +265,40 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
 
 - **Reemplazan:** las cinco pestañas copiadas (una con subrayado en `AdministradorView`, cuatro segmentadas
   cuya pista `bg-muted/50` no se pintaba).
-- **`Tabs`** (subrayado): `items: { id; etiqueta; contador?; to? }[]`, `valor`, `onCambiar?`, `etiqueta`.
-  Con `to` (subrutas) renderiza `<nav aria-label>` con `NavLink` y `aria-current="page"`: **las pestañas
-  navegan y cambian la URL**. Sin `to` (secciones dentro de la misma página) usa `role="tablist"`,
-  `role="tab"`, `aria-selected`, `aria-controls`, foco rotativo y flechas/Inicio/Fin.
+- **`Tabs`** (subrayado): genérico, `Tabs<T extends string>`: `items: { id: T; etiqueta; contador?; to? }[]`,
+  `valor: T`, `etiqueta` (va a `aria-label`), `onCambiar?: (id: T) => void`, `children?` y `className?`.
+  Si **todos** los ítems traen `to` (subrutas) renderiza `<nav aria-label>` con un `Link` por ítem y
+  `aria-current="page"` solo en el de `valor` (no `NavLink`: así `valor` es la única fuente de la pestaña
+  activa): **las pestañas navegan y cambian la URL**, y `children` no se usa. Si no (secciones dentro de la
+  misma página) usa `role="tablist"` y `role="tab"` (botones `type="button"`), `aria-selected`, solo la activa
+  es tabulable, y las flechas (que dan la vuelta), Inicio y Fin mueven el foco y la selección.
+  Los `children` se envuelven en `<div role="tabpanel" aria-labelledby>` ligado a la pestaña activa, y la activa
+  lleva `aria-controls` hacia él (solo si hay `children`): sin el panel, `aria-controls` apuntaría a nada y cada
+  consumidor repetiría los ids.
+- **Sin `-mb-px`:** la pestaña no se monta sobre el borde de la lista. Ese solape de 1 px desborda la lista (que
+  lleva `overflow-x-auto`), abre una barra vertical y recorta el subrayado.
+- **Composición de `Tabs`:** `pestana` + **una** de `activa` o `inactiva`; `contador` + **una** de
+  `contadorActiva` o `contadorInactiva`. La activa no lleva hover. `raiz` envuelve la lista y el panel solo en el
+  modo `tablist`; en el modo `to` la raíz es el `<nav>`.
 - **`Segmented`:** `opciones: { id; etiqueta }[]`, `valor`, `onCambiar`, `etiqueta`. Cambia la **vista** de los
   mismos datos (tabla/tarjetas); `role="group"` y `aria-pressed`.
 - **Regla:** una pestaña que todavía no tiene pantalla no se muestra.
+- **Foco:** la lista de pestañas recorta lo que sobresale (`overflow-x-auto`), así que `src/index.css` dibuja el anillo de
+  foco de `[role='tab']` hacia adentro (`outline-offset: -2px`). La lista no lleva `-mb-px`: con él abre una barra vertical.
+- **Composición de `Segmented`:** `opcion` más exactamente una de `inactiva` o `activa`.
 
 ```clases
+Tabs.raiz | flex flex-col gap-4
 Tabs.lista | flex gap-1 overflow-x-auto border-b border-border
-Tabs.pestana | -mb-px inline-flex h-11 shrink-0 items-center gap-2 border-b-2 border-transparent px-3.5 text-sm font-medium whitespace-nowrap text-on-surface-secondary transition-colors hover:text-on-surface
+Tabs.pestana | inline-flex h-11 shrink-0 items-center gap-2 border-b-2 px-3.5 text-sm font-medium whitespace-nowrap transition-colors
 Tabs.activa | border-primary text-primary
-Tabs.contador | rounded-full bg-muted px-2 py-px text-xs font-semibold text-muted-foreground
+Tabs.inactiva | border-transparent text-on-surface-secondary hover:text-on-surface
+Tabs.contador | rounded-full px-2 py-px text-xs font-semibold
 Tabs.contadorActiva | bg-primary-muted text-primary-muted-foreground
+Tabs.contadorInactiva | bg-muted text-muted-foreground
 Segmented.grupo | inline-flex gap-1 rounded-lg bg-muted p-1
-Segmented.opcion | h-9 rounded-md px-3.5 text-sm font-medium text-muted-foreground
+Segmented.opcion | h-9 rounded-md px-3.5 text-sm font-medium
+Segmented.inactiva | text-muted-foreground
 Segmented.activa | bg-surface text-on-surface shadow-card
 ```
 
@@ -224,12 +315,16 @@ Segmented.activa | bg-surface text-on-surface shadow-card
   cuando el valor viaja con el botón del formulario.
 
 ```clases
-Switch.pista | relative inline-flex h-6.5 w-11 shrink-0 items-center rounded-full bg-border-input transition-colors disabled:cursor-not-allowed disabled:opacity-50
+Switch.pista | relative inline-flex h-6.5 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50
+Switch.pistaOff | bg-border-input
 Switch.pistaOn | bg-primary
 Switch.pulgar | absolute left-0.75 size-5 rounded-full bg-surface shadow-sm transition-transform
 Switch.pulgarOn | translate-x-4.5
 Switch.fila | flex min-h-16 items-center gap-3 border-t border-border py-2.5 first:border-t-0
 ```
+
+- **Composición:** la pista es `pista` más exactamente una de `pistaOff` o `pistaOn`; el pulgar, `pulgar` más `pulgarOn` solo
+  cuando está marcado.
 
 ### Combobox
 
@@ -250,7 +345,7 @@ Switch.fila | flex min-h-16 items-center gap-3 border-t border-border py-2.5 fir
   `src/shared/hooks/` si el archivo pasa de 150 líneas.
 
 ```clases
-Combobox.input | field-input pl-10
+Combobox.input | field-input field-input--icono
 Combobox.icono | pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary
 Combobox.lista | absolute inset-x-0 top-full z-30 mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-border bg-surface p-1.5 shadow-dropdown
 Combobox.opcion | flex min-h-12 w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm
@@ -259,6 +354,9 @@ Combobox.opcionAgregada | opacity-60
 Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input bg-surface py-2 pl-3 pr-2
 ```
 
+- **Composición:** `opcion` más, a lo sumo, una de `opcionActiva` u `opcionAgregada`. El campo de texto usa
+  `field-input field-input--icono`: los `pl-10`/`pr-10` de utilidad pierden contra el `padding` de `.field-input`, así que el
+  espacio del icono se pide con las clases globales de campo (ver «Field», «Modificadores de campo»).
 - **Pruebas:** filtrar escribiendo, elegir con Enter, quitar con ✕ y el tope `max`.
 
 ## Listados
@@ -286,10 +384,11 @@ FilterBar.raiz | relative z-10 flex flex-col gap-3.5 rounded-xl border border-bo
 FilterBar.fila | flex flex-wrap gap-3
 FilterBar.busqueda | relative min-w-0 flex-[1_1_17.5rem]
 FilterBar.busquedaIcono | pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary
-FilterBar.busquedaInput | field-input pl-10 pr-10
+FilterBar.busquedaInput | field-input field-input--icono field-input--accion
 FilterBar.limpiarBusqueda | absolute right-1 top-1/2 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-on-surface-secondary hover:bg-muted
 FilterBar.chips | flex flex-wrap gap-2
-FilterBar.chip | inline-flex h-11 items-center gap-1.5 rounded-full border border-border-strong bg-surface px-3.5 text-sm font-medium text-on-surface transition-colors hover:bg-muted sm:h-9
+FilterBar.chip | inline-flex h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors sm:h-9
+FilterBar.chipInactivo | border-border-strong bg-surface text-on-surface hover:bg-muted
 FilterBar.chipActivo | border-primary bg-primary-muted text-primary-muted-foreground hover:bg-primary-muted
 FilterBar.contador | inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground
 FilterBar.popover | absolute right-0 top-full z-30 mt-2 flex w-85 max-w-[calc(100vw-3rem)] flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-dropdown
@@ -300,6 +399,8 @@ FilterBar.limpiarTodo | text-sm font-semibold text-primary underline underline-o
 FilterBar.hoja | fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col rounded-t-2xl bg-surface shadow-lg
 ```
 
+- **Composición:** el chip es `chip` más exactamente una de `chipInactivo` o `chipActivo` (el fondo, el borde y el color del chip activo
+  no pueden convivir con los del inactivo). La búsqueda usa `field-input field-input--icono field-input--accion`.
 - **Pruebas:** escribir y esperar el retardo antes de llamar a `onCambiar`; quitar un aplicado; «Limpiar todo».
 
 ### RowMenu
@@ -317,11 +418,13 @@ FilterBar.hoja | fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col round
 
 ```clases
 RowMenu.menu | fixed z-40 w-56 rounded-xl border border-border bg-surface p-1.5 shadow-dropdown
-RowMenu.item | flex h-11 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-sm text-on-surface hover:bg-muted sm:h-10
+RowMenu.item | flex h-11 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-sm sm:h-10
+RowMenu.itemNormal | text-on-surface hover:bg-muted
 RowMenu.itemPeligro | text-danger-muted-foreground hover:bg-danger-muted
 RowMenu.separador | my-1.5 h-px bg-border
 ```
 
+- **Composición:** el ítem es `item` más exactamente una de `itemNormal` o `itemPeligro`.
 - **Pruebas:** abrir, moverse con flechas, seleccionar y Esc con retorno del foco.
 
 ### DataTable
@@ -371,11 +474,14 @@ DataTable.tarjeta | flex flex-col gap-2.5 rounded-xl border border-border bg-sur
 ```clases
 Paginador.raiz | flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between
 Paginador.texto | text-sm text-on-surface-secondary
-Paginador.numero | inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium text-on-surface-secondary hover:bg-muted
+Paginador.numero | inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium
+Paginador.numeroInactivo | text-on-surface-secondary hover:bg-muted
 Paginador.numeroActivo | bg-primary text-primary-foreground hover:bg-primary
 Paginador.flecha | inline-flex size-11 items-center justify-center rounded-lg border border-border-strong text-on-surface hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 sm:size-9
 Paginador.filas | h-9 rounded-lg border border-border-input bg-surface px-2 text-sm
 ```
+
+- **Composición:** el número es `numero` más exactamente una de `numeroInactivo` o `numeroActivo`.
 
 ## Formularios y superposiciones
 
@@ -484,19 +590,26 @@ Toast.cerrar | ml-auto inline-flex size-9 shrink-0 items-center justify-center r
 ### PageHeader
 
 - **Reemplaza:** los encabezados distintos de cada pantalla (`h1` semibold, `h1` bold, `h2` xl, `h2` lg) y las
-  cabeceras sin `<h1>` de las vistas de fichas. Compone las clases globales `.section-header` y `.header-action`.
+  cabeceras sin `<h1>` de las vistas de fichas. No usa las clases globales `.section-header` ni `.header-action`:
+  combinadas con `PageHeader.fila`, la clase global gana y los `items-end` y `gap-4` de la fila quedan inertes.
 - **API:** `titulo` (el `<h1>`), `descripcion?`, `acciones?: ReactNode`, `migas?: { etiqueta; to? }[]`.
-- **Reglas:** **un solo `<h1>` por pantalla**, aquí. La acción principal va a la derecha; en celular puede ser un
-  `IconButton` de 44 px con `etiqueta` (por ejemplo «Registrar usuario») o un `Button` a ancho completo. Las migas
-  solo existen en pantallas con ruta hija (detalle, formulario en página): `<nav aria-label="Ruta de navegación">`,
-  la última con `aria-current="page"`.
+- **Reglas:** **un solo `<h1>` por pantalla**, aquí. La acción principal va a la derecha del título, dentro de
+  `PageHeader.acciones` (varias acciones quedan a 8 px); si no cabe a su lado, la fila envuelve y baja bajo el
+  título. En celular puede ser un `IconButton` de 44 px con `etiqueta` (por ejemplo «Registrar usuario») o un
+  `Button`. Las migas solo existen en pantallas con ruta hija (detalle, formulario en página):
+  `<nav aria-label="Ruta de navegación">` con una lista; las intermedias son `Link` si traen `to`, la última lleva
+  `aria-current="page"` y el separador es un `ChevronRight` decorativo.
 
 ```clases
 PageHeader.raiz | flex flex-col gap-4
 PageHeader.fila | flex flex-wrap items-end justify-between gap-4
+PageHeader.encabezado | min-w-0
 PageHeader.titulo | text-xl font-bold text-on-surface sm:text-2xl
 PageHeader.descripcion | mt-1 text-sm text-on-surface-secondary
+PageHeader.acciones | flex flex-wrap items-center gap-2
 PageHeader.migas | flex flex-wrap items-center gap-1.5 text-[13px] text-on-surface-secondary
+PageHeader.miga | inline-flex items-center gap-1.5
+PageHeader.migaEnlace | hover:text-on-surface hover:underline
 PageHeader.migaActual | font-medium text-on-surface
 ```
 

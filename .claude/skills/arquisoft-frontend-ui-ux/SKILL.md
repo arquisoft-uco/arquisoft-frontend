@@ -34,7 +34,7 @@ para implementar. Nunca publiques sobre él ni lo borres. Detalle y mapa de tabl
 1. **Un patrón por problema.** Listar, filtrar, crear, editar, confirmar y avisar tienen una sola forma en todo el
    producto. Si dos pantallas resuelven lo mismo de manera distinta, una está mal.
 2. **La acción principal, siempre en el mismo sitio:** arriba a la derecha de la cabecera de página o de panel; en
-   celular, a ancho completo o como botón de icono de 44 px.
+   celular baja a su propia línea (la cabecera envuelve) o es un botón de icono de 44 px.
 3. **Filtrar no es navegar.** Los filtros son chips y un popover; las pestañas cambian de sección y de URL.
 4. **El formulario no tapa la lista:** se abre en un panel lateral o en su propia página, nunca encima de lo que
    ya se estaba viendo.

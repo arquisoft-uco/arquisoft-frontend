@@ -329,9 +329,12 @@ segunda vista, sube a `index.css`:
 | Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
 
 **Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
-desplazamiento horizontal (`document.documentElement.scrollWidth` igual a `window.innerWidth`) ni
-elementos que se salgan de su contenedor. Si la ventana del navegador no se deja redimensionar, monta
-la ruta en un `iframe` del ancho a probar: su viewport propio sí evalúa los breakpoints.
+desplazamiento horizontal ni elementos que se salgan de su contenedor. El contenedor que desplaza en la
+aplicación es `main` (no el documento), así que `document.documentElement.scrollWidth` igual a
+`window.innerWidth` da falsos negativos: mide también `main.scrollWidth - main.clientWidth` y los elementos
+cuyo borde queda fuera de la caja de `main` (sin contar contenedores con scroll propio, como la lista de
+pestañas). La ventana de Chrome no baja de 500 px de viewport: monta la misma ruta en un `iframe` del ancho
+exacto a probar (390 y 320 px), cuyo viewport propio sí evalúa los breakpoints, con la sesión ya iniciada.
 
 ## TypeScript
 

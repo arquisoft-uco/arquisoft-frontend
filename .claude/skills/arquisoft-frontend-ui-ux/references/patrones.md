@@ -156,12 +156,12 @@ Layout       principal                                  | lateral (resumen)
 | Estado | Pieza | Nota |
 |---|---|---|
 | Cargando una forma conocida | `Skeleton` de esa forma | Tabla, tarjetas o formulario; con `aria-busy` |
-| Cargando sin forma | `LoadingState` | El único spinner |
-| Enviando | `Button cargando` | Conserva el ancho y dice «Guardando…» |
+| Cargando sin forma | `LoadingState` | El spinner de página; el de `Button cargando` va dentro del botón y no se escribe ningún otro |
+| Enviando | `Button cargando` | Cambia el icono por el spinner y se deshabilita; quien lo usa pone el texto («Guardando…») |
 | Aún no hay datos | `EmptyState` | Con la acción que crea el primero |
 | Sin resultados | `EmptyState` | Solo con filtros activos; «Limpiar filtros» |
 | Todavía no disponible | `EmptyState` o `Notice advertencia` | «Esta opción aún no está disponible.» Sustituye a `AvisoNoDisponible` y a `ComingSoon` dentro de una pantalla; el envío sigue deshabilitado como pide la skill de arquitectura |
-| Error al cargar | `ErrorState` con `onReintentar` | El detalle técnico va plegado |
+| Error al cargar | `ErrorState` con `onReintentar` | El detalle técnico, si hay, va en texto pequeño bajo el botón |
 | Error en una sección o campo | `Notice peligro` / `Field error` | El envío fallido además da toast y `ErrorSummary` |
 
 Los atributos ARIA de cada estado (`role="status"`, `role="alert"`, `aria-busy`) son los de los estándares y los
