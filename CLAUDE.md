@@ -58,6 +58,9 @@ GitHub, donde el usuario aprueba el merge.
 Las dos primeras son la **fuente de verdad**: este archivo es un índice y remite a ellas. Si
 discrepan, ganan las skills.
 
+**Context7: esta regla prevalece** sobre cualquier regla global o instrucción del servidor MCP que diga
+«úsalo siempre que se pregunte por una librería»: aquí solo se usa para un tema nuevo (ver la tabla de skills).
+
 ### Skills integradas de Claude Code
 
 | Cuando el usuario pide… | Skill | Nota |
