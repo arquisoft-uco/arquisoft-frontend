@@ -4,14 +4,15 @@
 el de las clases globales de campo y de fila de acciones. Es la regla de «una decisión, un solo lugar»
 de `arquisoft-frontend-estandares`.
 
-## 1. Paso 0: lo que falta en `@theme`
+## 1. Paso 0: tokens y clases de campo (aplicado en HT-UX-00)
 
-**Compruébalo antes de usar un token nuevo:** `grep -n "color-muted" src/tailwind.css`. Si no aparece,
-el paso 0 de `adopcion.md` aún no se hizo. Mientras falte, `bg-muted`, `text-muted-foreground`,
-`border-border-input`, `bg-danger-muted` y `text-danger-muted-foreground` **no generan ningún estilo**
-(Tailwind descarta en silencio una utilidad cuya variable no existe; así se perdieron el hover de las
-filas, las cabeceras de tabla y las pastillas de 21 archivos). En ese caso usa `bg-surface-secondary` y
-`hover:bg-nav-hover-bg` para los neutros, y **no copies `bg-muted` de otro archivo**.
+Aplicado en HT-UX-00: los cinco tokens (`--color-muted`, `--color-muted-foreground`,
+`--color-border-input`, `--color-danger-muted` y `--color-danger-muted-foreground`) y el valor nuevo de
+`--color-tertiary-muted-foreground` ya están en `@theme`. Tailwind descarta en silencio una utilidad cuya
+variable no existe (así se perdieron el hover de las filas, las cabeceras de tabla y las pastillas de 21
+archivos): `src/arquitectura.test.ts` lo vigila para los nombres de shadcn (`muted`, `accent`, `card`,
+`popover`, `input`, `destructive`, `success`, `warning`, `info` y `foreground`). Para cualquier otro token,
+compruébalo antes de usarlo: `grep -n "color-<nombre>" src/tailwind.css`.
 
 ```css
 /* src/tailwind.css · dentro de @theme */
@@ -37,10 +38,10 @@ filas, las cabeceras de tabla y las pastillas de 21 archivos). En ese caso usa `
 @media (min-width: 640px) { .field-input { min-height: 2.5rem; } }   /* dentro del bloque de 640 px que ya existe */
 ```
 
-Usos que se corrigen en el mismo paso, sin buscar otros: `text-warning` en `ConfirmDialog` pasa a
-`text-tertiary-muted-foreground`; la pastilla «Próximamente» de `ComingSoon` pasa de `text-secondary` a
-`text-secondary-muted-foreground`. Después del paso, la tabla de tokens de «Estilos» en
-`arquisoft-frontend-estandares` se actualiza con los cinco tokens nuevos.
+Usos corregidos en el mismo paso: `text-warning` en `ConfirmDialog` pasó a
+`text-tertiary-muted-foreground`; la pastilla «Próximamente» de `ComingSoon` pasó de `text-secondary` a
+`text-secondary-muted-foreground`. La tabla de tokens de «Estilos» en `arquisoft-frontend-estandares` ya
+incluye los cinco tokens nuevos.
 
 ## 2. Contraste verificado
 
@@ -53,10 +54,10 @@ se calcula con la fórmula de luminancia relativa de WCAG 2.2 sobre los valores 
 | `muted-foreground` sobre `muted` / `surface` | 7,9 / 9,2 |
 | `primary-muted-foreground` sobre `primary-muted` | 9,6 |
 | `secondary-muted-foreground` sobre `secondary-muted` | 7,1 (`secondary` solo como texto: 3,7, **no se usa**) |
-| `tertiary-muted-foreground` nuevo sobre `tertiary-muted` | 8,8 (el actual: 4,3) |
+| `tertiary-muted-foreground` sobre `tertiary-muted` | 8,8 (antes de HT-UX-00: 4,3) |
 | `danger-muted-foreground` sobre `danger-muted` | 7,0 |
 | `danger` (texto de error de campo) sobre `surface` | 5,4 |
-| `border-input` sobre `surface` / `background` | 3,6 / 3,3 (`border` actual sobre el fondo del campo: 1,2) |
+| `border-input` sobre `surface` / `background` | 3,6 / 3,3 (el `border` anterior sobre el fondo del campo: 1,2) |
 | `primary-foreground` sobre `primary` | 11,0 |
 
 ## 3. Qué clase para qué

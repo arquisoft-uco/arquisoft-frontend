@@ -277,15 +277,18 @@ Solo clases semánticas, nunca un color crudo de la paleta:
 
 | Rol | Clases |
 |---|---|
-| Superficies | `bg-surface`, `bg-surface-secondary`, `bg-surface-elevated`, `bg-background` |
-| Texto | `text-on-surface`, `text-on-surface-secondary` |
-| Bordes | `border-border`, `border-border-strong` |
+| Superficies | `bg-surface`, `bg-surface-secondary`, `bg-surface-elevated`, `bg-background`, `bg-muted` |
+| Texto | `text-on-surface`, `text-on-surface-secondary`, `text-muted-foreground` |
+| Bordes | `border-border`, `border-border-strong`, `border-border-input` |
 | Marca | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted` |
 | Secundario / terciario | misma familia de sufijos con `-secondary` / `-tertiary` |
-| Peligro | `bg-danger`, `text-danger`, `text-danger-foreground` |
+| Peligro | `bg-danger`, `text-danger`, `text-danger-foreground`, `bg-danger-muted`, `text-danger-muted-foreground` |
 | Navegación | `bg-nav-active-bg`, `text-nav-active-text`, `bg-nav-hover-bg` |
 | Sombras | `shadow-card`, `shadow-card-hover`, `shadow-dropdown`, `shadow-lg` |
 | Animaciones | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-scale-in` |
+
+Contraste y uso de cada token: `arquisoft-frontend-ui-ux` (`references/tokens.md`). Un `--color-*` que
+falte en `@theme` no genera estilo y `src/arquitectura.test.ts` lo vigila.
 
 Sin CSS custom fuera de `index.css`/`tailwind.css`, sin `style={{}}` salvo valor calculado en
 runtime. Clases condicionales con array + `.join(' ')`, no ternarios anidados.
