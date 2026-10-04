@@ -14,8 +14,9 @@ archivos fuera de su árbol. No tocas git.
 ## FASE 0 — Contexto
 
 Invoca `arquisoft-frontend-arquitectura`, `arquisoft-frontend-estandares` y
-`arquisoft-frontend-mcps`. **Las convenciones viven ahí y no se repiten en este archivo** — ábrelas
-cuando dudes en vez de reconstruir la regla de memoria. Si contradicen el plan, detente y reporta.
+`arquisoft-frontend-mcps`; si el plan crea o cambia algo que se ve, también `arquisoft-frontend-ui-ux`.
+**Las convenciones viven ahí y no se repiten en este archivo** — ábrelas cuando dudes en vez de
+reconstruir la regla de memoria. Si contradicen el plan, detente y reporta.
 
 ## Delegación
 
@@ -93,6 +94,11 @@ Cada mutación implementa la estrategia que el plan eligió, no otra.
 enrutamiento. El enrutamiento va al final y **solo si el plan lo declara**: `NavItem` con su `order`
 y, en `router.tsx`, `lazy(...)` + `guarded('{path}', <Pagina />)`. Nunca `<RoleGuard>` a mano.
 
+**Kit primero** (UI). Antes de escribir clases a mano para un botón, insignia, campo, aviso, vacío, error
+o tabla, lista `src/shared/components/ui/`: si la pieza existe, úsala. Si el plan declara una pieza nueva,
+créala con la receta de `arquisoft-frontend-ui-ux` (`references/componentes.md`) y su prueba de
+comportamiento. Un caso que la skill no cubre es una ambigüedad, no una variante nueva.
+
 ## FASE 4 — Auto-corrección
 
 Lee el error completo → identifica archivo y causa → corrige con `Edit` registrando el ajuste →
@@ -125,8 +131,8 @@ agregues entradas a `src/test-utils/arquitectura.baseline.ts`**. Si `format:chec
 `npx prettier --write` solo los archivos que listó.
 
 Si el plan declara cambios visuales y hay Claude in Chrome disponible, verifica además la pantalla
-real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red). Una pantalla que no viste no se
-reporta como verificada.
+real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red) y repasa el «Checklist de una pantalla»
+de `arquisoft-frontend-ui-ux`. Una pantalla que no viste no se reporta como verificada.
 
 Sin esto, la fila `Desarrollo` mentiría a `@3-tester` y a `@4a-validator-analyze`.
 

@@ -40,7 +40,7 @@ GitHub, donde el usuario aprueba el merge.
 - **`.workspace/` está en `.gitignore`.** Planes, reportes y cuerpos de PR se publican en
   `arquisoft-docs`, no se versionan aquí.
 - **Un cambio pequeño no necesita la cadena.** Un bug de una línea o una duda puntual se resuelven
-  cargando las dos skills de contexto y trabajando directo. **Excepción:** lo que el desarrollador
+  cargando las skills de contexto y trabajando directo. **Excepción:** lo que el desarrollador
   pida modificar después de revisar un PR o un commit pasa siempre por `@0-orquestador` (ver arriba).
 - **El agente nunca aprueba ni mergea un PR.** Esa validación manual es del desarrollador, en GitHub.
   Los GitHub Actions del PR (`ci.yml`) deben pasar antes de darlo por entregado.
@@ -51,12 +51,14 @@ GitHub, donde el usuario aprueba el merge.
 |---|---|
 | `arquisoft-frontend-arquitectura` | **Siempre** antes de crear o mover algo en `src/`. Capas, enrutamiento, capa HTTP, stores, contrato con el backend |
 | `arquisoft-frontend-estandares` | **Siempre junto con la anterior** al escribir código. Nomenclatura, componentes, formularios, validación, errores, a11y, estilos, TypeScript, testing, git |
+| `arquisoft-frontend-ui-ux` | **Junto con las dos anteriores** cuando la tarea cree o cambie algo que se ve: pantallas, listados, filtros, formularios, estados vacíos o de error, navegación o piezas de `shared/components/ui/`. Tokens, kit de componentes, patrones de pantalla y voz. El lienzo de diseño aprobado (público, solo lectura) se describe en su `references/lienzo.md` |
 | `context7-stack-frontend` | **Solo al explorar un tema nuevo** (librería, API o patrón que el proyecto aún no usa): IDs ya resueltos y trampas de versión (el proyecto está en **Zod 3**). Para lo ya definido, la fuente es el código existente y las skills, no Context7 |
 | `gh-docs-reader` | Al buscar una HU/HT, el contrato real de un endpoint o los valores de un catálogo |
 | `arquisoft-frontend-mcps` | Al decidir qué MCP usar y cuál es su fallback |
 
-Las dos primeras son la **fuente de verdad**: este archivo es un índice y remite a ellas. Si
-discrepan, ganan las skills.
+Las dos primeras son la **fuente de verdad** del código y `arquisoft-frontend-ui-ux` lo es del diseño y
+la interacción: este archivo es un índice y remite a ellas. Si discrepan, ganan las skills; entre ellas,
+la de UI/UX manda en lo visual (su «Precedencia» lo detalla).
 
 **Context7: esta regla prevalece** sobre cualquier regla global o instrucción del servidor MCP que diga
 «úsalo siempre que se pregunte por una librería»: aquí solo se usa para un tema nuevo (ver la tabla de skills).

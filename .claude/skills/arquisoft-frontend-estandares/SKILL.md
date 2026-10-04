@@ -129,7 +129,9 @@ const { register, handleSubmit, formState: { errors, isValid } } =
 ```
 
 - `defaultValues` siempre — sin ellos React salta de no controlado a controlado.
-- `mode: 'onChange'` si el submit se deshabilita con `!isValid` (el patrón del proyecto).
+- `mode: 'onChange'` si el submit se deshabilita con `!isValid` (el patrón de los formularios existentes).
+  **En un formulario nuevo o migrado manda `arquisoft-frontend-ui-ux`**: `mode: 'onTouched'` y el botón
+  principal no se deshabilita por validez (el cableado con RHF y Zod de abajo no cambia).
 - Campo no nativo (chips, selección múltiple): `watch(...)` + `setValue(..., { shouldValidate: true })`.
 - Al cancelar: `reset()` del formulario **y** de la mutación, o queda colgando el error anterior.
 

@@ -13,11 +13,14 @@ y el repo hermano `../arquisoft-backend`. El plan es el contrato del implementad
 ## FASE 0 — Contexto
 
 Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`. Son la fuente verificada
-contra el código real; si contradicen otro archivo, ganan las skills.
+contra el código real; si contradicen otro archivo, ganan las skills. Si la HU crea o cambia algo que se
+ve (pantalla, listado, filtro, formulario, estado vacío o de error, menú), invoca además
+`arquisoft-frontend-ui-ux`: dice qué patrón y qué piezas del kit usa cada pantalla.
 
 **No repitas sus reglas en el plan.** El plan decide *qué* se construye y *dónde*; el *cómo* ya está
 en las skills y el implementador las carga igual. Un plan que reproduce la tabla de design tokens o
-la lista de a11y está gastando su propio presupuesto de atención.
+la lista de a11y está gastando su propio presupuesto de atención. En UI el plan solo **nombra** el patrón
+y las piezas (ver «Para el planificador» en esa skill); no copia sus recetas ni sus clases.
 
 ## Delegación
 
@@ -29,7 +32,7 @@ con su `.in.md` (que les pide invocar las skills que la fase nombra). Tú lees s
 | Worker | Hace | Devuelve, y nada más |
 |---|---|---|
 | `fuentes` | FASE 1 | Criterios de aceptación de la HU · tabla endpoint → estado (Implementado / Contrato distinto / Pendiente / no verificado) · valores de catálogos · archivos consultados, para la Metadata |
-| `codigo` | FASE 2 | Por archivo del plan: existe o no, y si el método/hook ya está · componentes de `shared/` reutilizables · `// Pendiente` que aplican |
+| `codigo` | FASE 2 | Por archivo del plan: existe o no, y si el método/hook ya está · componentes de `shared/` reutilizables, incluida la carpeta `ui/` · `// Pendiente` que aplican |
 
 Para que `fuentes` no infle su contexto: lee el Controller y los DTO **del endpoint**, no la
 infraestructura compartida del backend (`shared/jpa`, `shared/query`); lee del `VALIDATOR` solo el
@@ -92,7 +95,9 @@ Las reglas de conjunto no se validan en cliente.
 
 **7. ¿Paginación, filtros u orden?** Si es paginada: `Page<T>` y el hook expone `page`, `pageSize`,
 `goToPage`; anota el `PAGE_SIZE`. Ojo: los listados paginados del backend son **POST con
-`{ pagina, tamanio }` en el body**, no query params; confírmalo en el Controller.
+`{ pagina, tamanio }` en el body**, no query params; confírmalo en el Controller. Con filtros, el patrón
+es el de `arquisoft-frontend-ui-ux` (§1): pregunta solo qué campos se buscan y qué columnas ordenan, y
+confírmalos en el `*Criteria` del backend.
 
 **8. ¿Qué invalida cada mutación?** Enumera las query keys y elige por cada una: `invalidateQueries`
 por prefijo, `setQueryData`, o nada.
@@ -102,10 +107,11 @@ que venga del backend, nunca una lista hardcodeada.
 
 **10. ¿Acciones destructivas o confirmaciones?** Declara también los toasts y en qué capa viven.
 
-**11. ¿Componentes compartidos nuevos?** Solo con dos consumidores reales.
+**11. ¿Componentes compartidos nuevos?** Solo con dos consumidores reales. El kit de UI/UX ya dice
+cuáles piezas nacen en `shared/components/ui/` y cuáles en su feature.
 
-**12. ¿Qué muestra en carga, vacío y error?** Los tres. Si además hay degradación por endpoint
-pendiente, es un cuarto estado.
+**12. ¿Qué muestra en carga, vacío y error?** Los tres, con las piezas del kit. Si además hay degradación
+por endpoint pendiente, es un cuarto estado.
 
 **Según el tipo:** archivos → ¿formatos y tamaño máximo? · estados → ¿transiciones y quién las
 dispara? · tabla → ¿columnas y qué se expande? · HT → ¿qué configuración toca y qué rompe si falla?
@@ -136,6 +142,7 @@ El orden de las filas es el orden de implementación: models → services → ho
 
 ## 7. Detalle por Archivo
 Qué exporta, props/parámetros, hooks que usa, query keys, estados que maneja, dependencias.
+Si es una pantalla o un panel: `Patrón: §N` y `Piezas: …` de `arquisoft-frontend-ui-ux`.
 
 ## 8. Rutas, Navegación y Control de Acceso
 | Ruta | Página | NAV_ITEMS.order | Icono Lucide | Roles | ¿Sidebar? |
@@ -145,7 +152,8 @@ Sin rutas nuevas, escribe: "Sin cambios en router.tsx ni en nav-items.ts".
 ## 9. Estados de la UI
 | Estado | Qué se renderiza |
 Cargando · Vacío · Error · Degradado (endpoint pendiente).
-Los atributos ARIA de cada uno están en la skill; no los copies, solo di qué se renderiza.
+Los atributos ARIA de cada uno están en la skill; no los copies, solo di qué se renderiza y con qué pieza
+del kit (la forma del `Skeleton`, el tipo de `EmptyState`, el `ErrorState` con reintento).
 
 ## 10. Validación
 | Campo | Builder | Constante de LIMITES | Mensaje | ¿Nueva en el módulo compartido? |
@@ -181,7 +189,9 @@ Qué se prueba por capa. El presupuesto y los anti-patrones están en la skill d
 
 **Lo que un plan nunca propone:** un segundo cliente HTTP · `useEffect` que llama al service ·
 `tailwind.config.js` · `vitest.config.ts` · alias `@/` (salvo que la HT sea eso) · persistir algo
-nuevo en `localStorage` · `<RoleGuard>` a mano en `router.tsx`.
+nuevo en `localStorage` · `<RoleGuard>` a mano en `router.tsx` · una variante de botón, insignia,
+campo o pestañas que el kit no tenga · un formulario encima de la lista · un módulo sin pantalla como
+destino del menú (la lista completa está en `arquisoft-frontend-ui-ux`).
 
 ## Reglas invariantes
 

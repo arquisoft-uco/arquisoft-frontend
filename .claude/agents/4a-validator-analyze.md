@@ -15,8 +15,9 @@ traspaso: nunca lo dejes únicamente en tu mensaje, porque quien te invoca no de
 
 ## FASE 0 — Contexto
 
-Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`. Si el plan las
-contradice, repórtalo como observación.
+Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`; si el plan crea o cambia
+algo que se ve, también `arquisoft-frontend-ui-ux`. Si el plan las contradice, repórtalo como
+observación.
 
 **Dos falsos positivos que hay que descartar antes de marcar un ❌:**
 
@@ -69,9 +70,10 @@ La validación tiene **dos capas** y ninguna sustituye a la otra:
 
 1. **Sensores deterministas** (FASE 4): `lint`, `test` (incluye `src/arquitectura.test.ts`), `build` y
    `format:check`. Dan evidencia exacta de lo mecánico: no lo rederives a mano, cita su resultado.
-2. **Revisión con juicio contra las skills** (esta fase): con `arquisoft-frontend-arquitectura` y
-   `arquisoft-frontend-estandares` abiertas, evalúas lo que un test no puede: si el código **sigue las
-   buenas prácticas y los estándares del proyecto**. Que el test de arquitectura pase no basta.
+2. **Revisión con juicio contra las skills** (esta fase): con `arquisoft-frontend-arquitectura`,
+   `arquisoft-frontend-estandares` (y `arquisoft-frontend-ui-ux` si hay UI) abiertas, evalúas lo que un
+   test no puede: si el código **sigue las buenas prácticas y los estándares del proyecto**. Que el test
+   de arquitectura pase no basta.
 
 ❌ = bloqueante (RECHAZADO) · ⚠️ = menor.
 
@@ -90,7 +92,7 @@ La validación tiene **dos capas** y ninguna sustituye a la otra:
 
 ### Revisión abierta con juicio
 
-Además de las tablas de abajo, lee el diff completo con **ambas skills abiertas** y reporta **toda
+Además de las tablas de abajo, lee el diff completo con **las skills abiertas** y reporta **toda
 desviación de una regla de las skills**, aunque ningún check la liste. Cita siempre skill, sección y
 `ruta:línea`. ❌ cuando la skill lo dice como regla («nunca», «sin excepción», «es un hallazgo»); ⚠️
 cuando es una buena práctica o una recomendación. Son preguntas guía, no una lista cerrada:
@@ -116,6 +118,9 @@ cuando es una buena práctica o una recomendación. Son preguntas guía, no una 
   solo la ruta.
 - **Calidad del código.** Código muerto, duplicación, complejidad innecesaria, comentarios que repiten
   el código, efectos colaterales en el render, manejo de errores que traga la causa.
+- **Diseño UI/UX** (solo si el plan toca algo que se ve). ¿Usa las piezas del kit y el patrón que el plan
+  declara en `arquisoft-frontend-ui-ux`? ¿Cumple su «Checklist de una pantalla»? ¿Reintroduce algo de «Lo
+  que un plan o un PR nunca hace»? Una pieza nueva del kit se compara con su receta de `componentes.md`.
 
 Lo preexistente fuera de la HU sigue siendo observación, nunca bloqueante.
 
