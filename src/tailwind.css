@@ -70,6 +70,7 @@
   --animate-fade-up: fade-up 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   --animate-fade-in: fade-in 0.2s cubic-bezier(0.23, 1, 0.32, 1);
   --animate-slide-in-left: slide-in-left 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-slide-in-right: slide-in-right 0.25s cubic-bezier(0.23, 1, 0.32, 1);
   --animate-scale-in: scale-in 0.15s ease-out;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-toast-in: toast-in 0.25s cubic-bezier(0.23, 1, 0.32, 1) both;
@@ -99,6 +100,17 @@
     from {
       opacity: 0;
       transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(2rem);
     }
     to {
       opacity: 1;

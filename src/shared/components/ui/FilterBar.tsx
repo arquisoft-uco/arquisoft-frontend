@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type ComponentProps, type KeyboardEvent } from 'react';
+import { useId, useRef, useState, type ComponentProps } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { useClicFuera } from '../../hooks/useClicFuera';
 import Button from './Button';
@@ -61,11 +61,6 @@ export default function FilterBar({
 
   function cerrar() {
     setAbierto(false);
-    boton.current?.focus();
-  }
-
-  function alTeclear(evento: KeyboardEvent<HTMLDivElement>) {
-    if (evento.key === 'Escape' && abierto) cerrar();
   }
 
   function limpiarTodo() {
@@ -78,7 +73,7 @@ export default function FilterBar({
       <div className={FILA}>
         <FilterBarBusqueda key={claveBusqueda} {...busqueda} />
         {popover && (
-          <div className={ENVOLTURA} onKeyDown={alTeclear}>
+          <div className={ENVOLTURA}>
             <Button
               ref={boton}
               variante="secundario"
@@ -95,6 +90,7 @@ export default function FilterBar({
               <FilterBarPanel
                 id={idPanel}
                 ref={panel}
+                retorno={boton}
                 secciones={popover.secciones}
                 orden={orden}
                 totalResultados={totalResultados}

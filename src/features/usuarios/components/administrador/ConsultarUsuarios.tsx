@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
-import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
-import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
 import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
 import { useUsuarios } from '../../hooks/useUsuarios';
+import type { PestanaUsuario } from '../../models/PestanaUsuario';
 import type { Usuario } from '../../models/Usuario';
-import ModificarUsuarioForm from './ModificarUsuarioForm';
+import DarDeBajaUsuarioDialog from './DarDeBajaUsuarioDialog';
 import UsuariosFiltros from './UsuariosFiltros';
 import UsuariosListado from './UsuariosListado';
 
@@ -22,14 +20,13 @@ function textoResumen(total?: number): string {
 
 interface Props {
   onRegistrar: () => void;
+  onEditar: (usuario: Usuario, pestana: PestanaUsuario) => void;
 }
 
-export default function ConsultarUsuarios({ onRegistrar }: Props) {
-  const [usuarioEnEdicion, setUsuarioEnEdicion] = useState<Usuario | null>(null);
+export default function ConsultarUsuarios({ onRegistrar, onEditar }: Props) {
   const [usuarioADarDeBaja, setUsuarioADarDeBaja] = useState<Usuario | null>(null);
   const listado = useUsuarios();
   const estados = useEstadosUsuario();
-  const eliminar = useEliminarUsuario();
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const usuarios = data?.content ?? [];
@@ -40,33 +37,8 @@ export default function ConsultarUsuarios({ onRegistrar }: Props) {
     listado.vigente !== undefined;
   const recargandoSinFilas = isPlaceholderData && usuarios.length === 0 && !hayFiltros;
 
-  function confirmarBaja() {
-    if (!usuarioADarDeBaja) return;
-    const { id, nombre } = usuarioADarDeBaja;
-    eliminar.mutate(id, {
-      onSuccess: () => toast.success('Usuario dado de baja', `${nombre} ya no está vigente.`),
-      onError: (err) =>
-        toast.error(
-          'No se pudo dar de baja al usuario',
-          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
-        ),
-      onSettled: () => setUsuarioADarDeBaja(null),
-    });
-  }
-
-  function cancelarBaja() {
-    if (!eliminar.isPending) setUsuarioADarDeBaja(null);
-  }
-
   return (
     <div className={RAIZ}>
-      {usuarioEnEdicion && (
-        <ModificarUsuarioForm
-          usuario={usuarioEnEdicion}
-          onCerrar={() => setUsuarioEnEdicion(null)}
-        />
-      )}
-
       <UsuariosFiltros listado={listado} estados={estados} />
 
       <p aria-live="polite" className={RESUMEN}>
@@ -88,7 +60,7 @@ export default function ConsultarUsuarios({ onRegistrar }: Props) {
             hayFiltros={hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
-            onEditar={setUsuarioEnEdicion}
+            onEditar={onEditar}
             onDarDeBaja={setUsuarioADarDeBaja}
             onLimpiarFiltros={listado.limpiarFiltros}
             onRegistrar={onRegistrar}
@@ -109,14 +81,9 @@ export default function ConsultarUsuarios({ onRegistrar }: Props) {
       )}
 
       {usuarioADarDeBaja && (
-        <ConfirmDialog
-          variante="peligro"
-          titulo={`¿Dar de baja a ${usuarioADarDeBaja.nombre}?`}
-          descripcion={`Se desactivará el acceso de ${usuarioADarDeBaja.nombre} y dejará de estar vigente. Solo se puede dar de baja a quien ya no tiene roles vigentes.`}
-          labelConfirmar="Dar de baja"
-          cargando={eliminar.isPending}
-          onConfirmar={confirmarBaja}
-          onCancelar={cancelarBaja}
+        <DarDeBajaUsuarioDialog
+          usuario={usuarioADarDeBaja}
+          onCerrar={() => setUsuarioADarDeBaja(null)}
         />
       )}
     </div>

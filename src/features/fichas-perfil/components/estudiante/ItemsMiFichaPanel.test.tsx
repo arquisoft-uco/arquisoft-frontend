@@ -8,7 +8,7 @@ import ItemsMiFichaPanel from './ItemsMiFichaPanel';
 vi.mock('../../hooks/useItemsMiFicha', () => ({ useItemsMiFicha: vi.fn() }));
 
 vi.mock('../../../../shared/hooks/useToast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), dismiss: vi.fn() },
 }));
 
 type Opciones = { onSuccess?: () => void; onError?: (err: unknown) => void };
@@ -167,7 +167,7 @@ describe('ItemsMiFichaPanel', () => {
 
       // Assert
       expect(mutate).not.toHaveBeenCalled();
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
 
     it('confirmar elimina el ítem, avisa del éxito y cierra el diálogo', async () => {
@@ -184,7 +184,7 @@ describe('ItemsMiFichaPanel', () => {
       // Assert
       expect(mutate).toHaveBeenCalledWith('i-1', expect.any(Object));
       expect(toast.success).toHaveBeenCalledWith('Ítem eliminado', expect.any(String));
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
 
     it('ante ITEM_CON_REVISIONES muestra el mensaje explicativo y cierra el diálogo', async () => {
@@ -206,7 +206,7 @@ describe('ItemsMiFichaPanel', () => {
         'El ítem ya fue revisado por tu asesor y no puede eliminarse.',
       );
       expect(toast.success).not.toHaveBeenCalled();
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
       expect(screen.getByText('Medir consumo')).toBeInTheDocument();
     });
 

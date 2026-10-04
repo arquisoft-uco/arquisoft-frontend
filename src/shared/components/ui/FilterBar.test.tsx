@@ -66,6 +66,29 @@ function ConChips({ onTodos }: { onTodos: () => void }) {
   return <FilterBar {...crearProps({ chips })} />;
 }
 
+function crearPropsConHoja(): Props {
+  return crearProps({
+    chips: crearChips(),
+    popover: {
+      secciones: [
+        crearSeccion({
+          id: 'estado',
+          etiqueta: 'Estado',
+          opciones: [TODOS, { id: 'ACTIVO', etiqueta: 'Activo' }],
+        }),
+      ],
+    },
+    totalResultados: 12,
+  });
+}
+
+// El telón es aria-hidden y no tiene rol: se llega a él desde la hoja, su hermano siguiente.
+function telonDe(hoja: HTMLElement): HTMLElement {
+  const telon = hoja.nextElementSibling;
+  if (!(telon instanceof HTMLElement)) throw new Error('La hoja no tiene telón');
+  return telon;
+}
+
 describe('FilterBar', () => {
   afterEach(() => {
     restaurarTemporizadores();
@@ -382,6 +405,98 @@ describe('FilterBar', () => {
     // Act
     rerender(<FilterBar {...base} aplicados={aplicados} />);
     await user.click(screen.getByRole('button', { name: 'Ver 12 resultados' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Filtros' })).not.toBeInTheDocument();
+    expect(boton).toHaveFocus();
+  });
+
+  it('en la hoja de celular Tab y Mayús+Tab dan la vuelta y el foco no sale hacia atrás del telón', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<FilterBar {...crearPropsConHoja()} />);
+    await user.click(screen.getByRole('button', { name: 'Filtros' }));
+    const cerrar = screen.getByRole('button', { name: 'Cerrar filtros' });
+    const ver = screen.getByRole('button', { name: 'Ver 12 resultados' });
+
+    // Assert
+    expect(cerrar).toHaveFocus();
+
+    // Act
+    await user.tab({ shift: true });
+
+    // Assert
+    expect(ver).toHaveFocus();
+
+    // Act
+    await user.tab();
+
+    // Assert
+    expect(cerrar).toHaveFocus();
+  });
+
+  it('Esc cierra la hoja con el foco en cualquier control, no solo en el botón, y devuelve el foco a «Filtros»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<FilterBar {...crearPropsConHoja()} />);
+    const boton = screen.getByRole('button', { name: 'Filtros' });
+    await user.click(boton);
+    await user.tab();
+    const chip = within(screen.getByRole('group', { name: 'Estado' })).getByRole('button', {
+      name: 'Todos',
+    });
+
+    // Assert
+    expect(chip).toHaveFocus();
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Filtros' })).not.toBeInTheDocument();
+    expect(boton).toHaveFocus();
+
+    // Act
+    await user.click(boton);
+    await user.tab({ shift: true });
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Ver 12 resultados' })).toHaveFocus();
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Filtros' })).not.toBeInTheDocument();
+    expect(boton).toHaveFocus();
+  });
+
+  it('el telón cierra al soltar el clic y no al presionar, y tanto él como «Cerrar filtros» devuelven el foco a «Filtros»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<FilterBar {...crearPropsConHoja()} />);
+    const boton = screen.getByRole('button', { name: 'Filtros' });
+    await user.click(boton);
+    // En celular el telón cubre el ✕ de un filtro aplicado y «Limpiar todo»:
+    // tocarlos equivale a un clic en el telón, que es lo que se prueba aquí.
+    const telon = telonDe(screen.getByRole('dialog', { name: 'Filtros' }));
+
+    // Act
+    await user.pointer({ keys: '[MouseLeft>]', target: telon });
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Filtros' })).toBeInTheDocument();
+
+    // Act
+    await user.pointer({ keys: '[/MouseLeft]' });
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Filtros' })).not.toBeInTheDocument();
+    expect(boton).toHaveFocus();
+
+    // Act
+    await user.click(boton);
+    await user.click(screen.getByRole('button', { name: 'Cerrar filtros' }));
 
     // Assert
     expect(screen.queryByRole('dialog', { name: 'Filtros' })).not.toBeInTheDocument();

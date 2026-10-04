@@ -1,6 +1,7 @@
-import { useEffect, useId } from 'react';
+import { useId, useRef } from 'react';
 import type { ReactNode, RefObject } from 'react';
 import { X } from 'lucide-react';
+import { useTrampaDeFoco } from '../../hooks/useTrampaDeFoco';
 import Button from './Button';
 import FilterChip from './FilterChip';
 import IconButton from './IconButton';
@@ -36,7 +37,6 @@ const ETIQUETA = 'text-sm font-semibold text-on-surface sm:font-medium';
 const OPCIONES = 'flex flex-wrap gap-2';
 const PIE =
   'flex shrink-0 items-center justify-between gap-3 border-t border-border px-5 pb-4 pt-3 sm:mx-4 sm:px-0';
-const CONTROLES = 'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled)';
 
 function textoCierre(total?: number): string {
   if (total === undefined) return 'Listo';
@@ -83,6 +83,7 @@ function SeccionChips({
 interface Props {
   id: string;
   ref: RefObject<HTMLDivElement | null>;
+  retorno: RefObject<HTMLElement | null>;
   secciones: SeccionFiltro[];
   orden?: OrdenFiltro;
   totalResultados?: number;
@@ -93,21 +94,21 @@ interface Props {
 export default function FilterBarPanel({
   id,
   ref,
+  retorno,
   secciones,
   orden,
   totalResultados,
   hayAplicados,
   onCerrar,
 }: Props) {
-  useEffect(() => {
-    const panel = ref.current;
-    if (!panel) return;
-    for (const control of panel.querySelectorAll<HTMLElement>(CONTROLES)) {
-      control.focus();
-      if (document.activeElement === control) return;
-    }
-    panel.focus();
-  }, [ref]);
+  const telon = useRef<HTMLDivElement>(null);
+
+  useTrampaDeFoco({
+    contenedor: ref,
+    retorno,
+    alEscape: onCerrar,
+    esModal: () => telon.current !== null && getComputedStyle(telon.current).display !== 'none',
+  });
 
   function limpiar() {
     secciones.forEach((seccion) => seccion.onCambiar(''));
@@ -135,7 +136,13 @@ export default function FilterBarPanel({
           </Button>
         </div>
       </div>
-      <div aria-hidden="true" className={TELON} />
+      <div
+        ref={telon}
+        aria-hidden="true"
+        className={TELON}
+        onPointerDown={(evento) => evento.stopPropagation()}
+        onClick={onCerrar}
+      />
     </>
   );
 }

@@ -19,9 +19,9 @@ vi.mock('./hooks/useUsuarios', () => ({
   useUsuarios: vi.fn(),
 }));
 
-// ModificarUsuarioForm (montado condicionalmente dentro de ConsultarUsuarios) importa este hook,
+// EditarUsuarioPanel (montado condicionalmente dentro de AdministradorView) importa este hook,
 // que arrastra el service y apiClient hasta config/env.ts. Sin mock, el import revienta en test
-// por VITE_API_URL no definida, aunque el formulario nunca llegue a montarse en estos casos.
+// por VITE_API_URL no definida, aunque el panel nunca llegue a montarse en estos casos.
 vi.mock('./hooks/useModificarUsuario', () => ({
   useModificarUsuario: vi.fn(),
 }));

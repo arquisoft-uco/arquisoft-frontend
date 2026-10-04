@@ -6,6 +6,7 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { OrdenCampo, OrdenDireccion } from '../../hooks/useUsuarios';
 import type { EstadoUsuario } from '../../models/EstadoUsuario';
+import type { PestanaUsuario } from '../../models/PestanaUsuario';
 import type { Usuario } from '../../models/Usuario';
 import { IdentidadUsuario, InsigniaEstadoUsuario, InsigniasRol } from './UsuarioCeldas';
 
@@ -24,7 +25,7 @@ interface Props {
   hayFiltros: boolean;
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampo, direccion: OrdenDireccion) => void;
-  onEditar: (usuario: Usuario) => void;
+  onEditar: (usuario: Usuario, pestana: PestanaUsuario) => void;
   onDarDeBaja: (usuario: Usuario) => void;
   onLimpiarFiltros: () => void;
   onRegistrar: () => void;
@@ -42,13 +43,15 @@ export default function UsuariosListado({
   onLimpiarFiltros,
   onRegistrar,
 }: Props) {
+  const editarDatos = (usuario: Usuario) => onEditar(usuario, 'datos');
+
   const columnas: ColumnaTabla<Usuario>[] = [
     {
       id: 'usuario',
       encabezado: 'Usuario',
       clave: 'nombre',
       ordenable: true,
-      celda: (usuario) => <IdentidadUsuario usuario={usuario} onEditar={onEditar} />,
+      celda: (usuario) => <IdentidadUsuario usuario={usuario} onEditar={editarDatos} />,
     },
     {
       id: 'identificador',
@@ -78,8 +81,12 @@ export default function UsuariosListado({
       <RowMenu
         etiqueta={`Acciones de ${usuario.nombre}`}
         acciones={[
-          { etiqueta: 'Editar', icono: Pencil, onSeleccionar: () => onEditar(usuario) },
-          { etiqueta: 'Cambiar roles', icono: Users, onSeleccionar: () => onEditar(usuario) },
+          { etiqueta: 'Editar', icono: Pencil, onSeleccionar: () => editarDatos(usuario) },
+          {
+            etiqueta: 'Cambiar roles',
+            icono: Users,
+            onSeleccionar: () => onEditar(usuario, 'roles'),
+          },
           {
             etiqueta: 'Dar de baja…',
             icono: Trash2,
@@ -129,7 +136,7 @@ export default function UsuariosListado({
       vacio={vacio}
       tarjeta={(usuario) => (
         <>
-          <IdentidadUsuario usuario={usuario} onEditar={onEditar} />
+          <IdentidadUsuario usuario={usuario} onEditar={editarDatos} />
           <div className={INSIGNIAS_TARJETA}>
             <InsigniasRol usuario={usuario} />
             <InsigniaEstadoUsuario usuario={usuario} estados={estados} />

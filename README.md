@@ -122,7 +122,7 @@ src/
 │
 ├── shared/                   # Código compartido entre features
 │   ├── components/           # Componentes reutilizables (loaders, dialogs, etc.); ui/ es el kit de piezas base
-│   ├── hooks/                # Hooks reutilizables (useToast, useDebouncedValue, etc.)
+│   ├── hooks/                # Hooks reutilizables (useToast, useTrampaDeFoco, useDebouncedValue, etc.)
 │   ├── models/               # Interfaces compartidas (Page<T>, ApiResponse<T>, Rol)
 │   ├── stores/               # Estado de UI global (toastStore)
 │   ├── utils/                # Utilidades (manejo de errores de API, monitoring, estado → variante de insignia)

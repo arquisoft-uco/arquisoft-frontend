@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
-import { QueryClient, type MutationFunctionContext } from '@tanstack/react-query';
 import { render, screen, within } from '../../../../test-utils/render';
 import {
   avanzar,
@@ -10,12 +9,7 @@ import {
 import ConsultarUsuarios from './ConsultarUsuarios';
 import { useUsuarios } from '../../hooks/useUsuarios';
 import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
-import { useModificarUsuario } from '../../hooks/useModificarUsuario';
-import { useCambiarEstadoUsuario } from '../../hooks/useCambiarEstadoUsuario';
-import { useAgregarRol } from '../../hooks/useAgregarRol';
-import { useRemoverRol } from '../../hooks/useRemoverRol';
 import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
-import { toast } from '../../../../shared/hooks/useToast';
 import { Rol } from '../../../../shared/models/rol';
 import type { Usuario } from '../../models/Usuario';
 import type { Page } from '../../../../shared/models/api-response';
@@ -24,43 +18,13 @@ vi.mock('../../hooks/useUsuarios', () => ({
   useUsuarios: vi.fn(),
 }));
 
-// ModificarUsuarioForm (montado condicionalmente por ConsultarUsuarios) importa este hook, que a
-// su vez arrastra el service y apiClient hasta config/env.ts. Sin mock, el import de ese módulo
-// revienta en test por VITE_API_URL no definida, aunque el formulario nunca llegue a montarse aquí.
 vi.mock('../../hooks/useEstadosUsuario', () => ({
   useEstadosUsuario: vi.fn(),
-}));
-
-vi.mock('../../hooks/useModificarUsuario', () => ({
-  useModificarUsuario: vi.fn(),
-}));
-
-vi.mock('../../hooks/useCambiarEstadoUsuario', () => ({
-  useCambiarEstadoUsuario: vi.fn(),
-}));
-
-vi.mock('../../hooks/useAgregarRol', () => ({
-  useAgregarRol: vi.fn(),
-}));
-
-vi.mock('../../hooks/useRemoverRol', () => ({
-  useRemoverRol: vi.fn(),
 }));
 
 vi.mock('../../hooks/useEliminarUsuario', () => ({
   useEliminarUsuario: vi.fn(),
 }));
-
-vi.mock('../../../../shared/hooks/useToast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
-}));
-
-type Mutar = ReturnType<typeof useEliminarUsuario>['mutate'];
-
-const CONTEXTO_DE_MUTACION: MutationFunctionContext = {
-  client: new QueryClient(),
-  meta: undefined,
-};
 
 const ESTADOS = [
   { id: 'ACTIVO', nombre: 'Activo', descripcion: 'Puede operar' },
@@ -78,9 +42,7 @@ function crearEstadosMock(
   } as ReturnType<typeof useEstadosUsuario>;
 }
 
-function crearMutacionEliminarMock(
-  parcial: Partial<ReturnType<typeof useEliminarUsuario>> = {},
-): ReturnType<typeof useEliminarUsuario> {
+function crearMutacionEliminarMock(): ReturnType<typeof useEliminarUsuario> {
   return {
     data: undefined,
     error: null,
@@ -98,71 +60,7 @@ function crearMutacionEliminarMock(
     mutate: vi.fn(),
     mutateAsync: vi.fn(),
     reset: vi.fn(),
-    ...parcial,
   } as ReturnType<typeof useEliminarUsuario>;
-}
-
-function crearMutacionAgregarMock<T = ReturnType<typeof useAgregarRol>>(): T {
-  return {
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: 'idle',
-    isError: false,
-    isIdle: true,
-    isPending: false,
-    isSuccess: false,
-    mutate: vi.fn(),
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-  } as T;
-}
-
-function crearMutacionModificarMock(): ReturnType<typeof useModificarUsuario> {
-  return {
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: 'idle',
-    isError: false,
-    isIdle: true,
-    isPending: false,
-    isSuccess: false,
-    mutate: vi.fn(),
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-  } as ReturnType<typeof useModificarUsuario>;
-}
-
-function crearMutacionCambiarEstadoMock(): ReturnType<typeof useCambiarEstadoUsuario> {
-  return {
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: 'idle',
-    isError: false,
-    isIdle: true,
-    isPending: false,
-    isSuccess: false,
-    mutate: vi.fn(),
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-  } as ReturnType<typeof useCambiarEstadoUsuario>;
 }
 
 const USUARIO: Usuario = {
@@ -239,8 +137,8 @@ function crearHookMock(
   } as ReturnType<typeof useUsuarios>;
 }
 
-function renderizar(onRegistrar = vi.fn()) {
-  return render(<ConsultarUsuarios onRegistrar={onRegistrar} />);
+function renderizar(onRegistrar = vi.fn(), onEditar = vi.fn()) {
+  return render(<ConsultarUsuarios onRegistrar={onRegistrar} onEditar={onEditar} />);
 }
 
 // La tabla y la lista de tarjetas están las dos en el DOM (jsdom no aplica CSS): se acota a la tabla.
@@ -257,19 +155,7 @@ describe('ConsultarUsuarios', () => {
   beforeEach(() => {
     vi.mocked(useUsuarios).mockReset();
     vi.mocked(useEstadosUsuario).mockReturnValue(crearEstadosMock());
-    vi.mocked(useModificarUsuario).mockReturnValue(crearMutacionModificarMock());
-    vi.mocked(useCambiarEstadoUsuario).mockReturnValue(crearMutacionCambiarEstadoMock());
-    vi.mocked(useAgregarRol).mockReturnValue(crearMutacionAgregarMock());
-    vi.mocked(useRemoverRol).mockReturnValue({
-      objetivo: null,
-      solicitar: vi.fn(),
-      cancelar: vi.fn(),
-      confirmar: vi.fn(),
-      isPending: false,
-    });
     vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock());
-    vi.mocked(toast.success).mockClear();
-    vi.mocked(toast.error).mockClear();
   });
 
   afterEach(() => {
@@ -335,48 +221,27 @@ describe('ConsultarUsuarios', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('"Editar" desde el nombre y desde el menú de fila monta ModificarUsuarioForm con el usuario correcto', async () => {
+  it('"Editar" desde el nombre y desde el menú de fila llama a onEditar con el usuario y la pestaña Datos', async () => {
     // Arrange
     const user = userEvent.setup();
+    const onEditar = vi.fn();
     vi.mocked(useUsuarios).mockReturnValue(crearHookMock({ data: crearPagina([USUARIO]) }));
-    renderizar();
-    expect(screen.queryByRole('heading', { name: /editar usuario/i })).not.toBeInTheDocument();
+    renderizar(vi.fn(), onEditar);
 
     // Act
     await user.click(tabla().getByRole('button', { name: `Editar ${USUARIO.nombre}` }));
 
     // Assert
-    expect(
-      screen.getByRole('heading', { name: `Editar usuario: ${USUARIO.nombre}` }),
-    ).toBeInTheDocument();
+    expect(onEditar).toHaveBeenCalledTimes(1);
+    expect(onEditar).toHaveBeenLastCalledWith(USUARIO, 'datos');
 
     // Act
-    await user.click(screen.getByRole('button', { name: /cancelar/i }));
     await user.click(tabla().getByRole('button', { name: `Acciones de ${USUARIO.nombre}` }));
     await user.click(screen.getByRole('menuitem', { name: 'Editar' }));
 
     // Assert
-    expect(
-      screen.getByRole('heading', { name: `Editar usuario: ${USUARIO.nombre}` }),
-    ).toBeInTheDocument();
-  });
-
-  it('cancelar en ModificarUsuarioForm lo desmonta y vuelve a mostrar solo el listado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    vi.mocked(useUsuarios).mockReturnValue(crearHookMock({ data: crearPagina([USUARIO]) }));
-    renderizar();
-    await user.click(tabla().getByRole('button', { name: `Editar ${USUARIO.nombre}` }));
-    expect(
-      screen.getByRole('heading', { name: `Editar usuario: ${USUARIO.nombre}` }),
-    ).toBeInTheDocument();
-
-    // Act
-    await user.click(screen.getByRole('button', { name: /cancelar/i }));
-
-    // Assert
-    expect(screen.queryByRole('heading', { name: /editar usuario/i })).not.toBeInTheDocument();
-    expect(tabla().getByRole('button', { name: `Editar ${USUARIO.nombre}` })).toBeInTheDocument();
+    expect(onEditar).toHaveBeenCalledTimes(2);
+    expect(onEditar).toHaveBeenLastCalledWith(USUARIO, 'datos');
   });
 
   describe('catálogo de estados', () => {
@@ -439,94 +304,40 @@ describe('ConsultarUsuarios', () => {
   });
 
   describe('dar de baja', () => {
-    async function abrirDialogo() {
+    it('"Dar de baja…" del menú de una fila abre el diálogo de esa fila con el foco en "Cancelar", y Esc lo cierra devolviendo el foco a su ⋯', async () => {
+      // Arrange
       const user = userEvent.setup();
-      vi.mocked(useUsuarios).mockReturnValue(crearHookMock({ data: crearPagina([USUARIO]) }));
+      const otroUsuario: Usuario = {
+        ...USUARIO,
+        id: 'u-3',
+        identificador: '2003',
+        nombre: 'Ana Gómez',
+        email: 'ana@uco.edu.co',
+      };
+      vi.mocked(useUsuarios).mockReturnValue(
+        crearHookMock({ data: crearPagina([USUARIO, otroUsuario]) }),
+      );
       renderizar();
-      await user.click(tabla().getByRole('button', { name: `Acciones de ${USUARIO.nombre}` }));
+      const menuDeLaFila = tabla().getByRole('button', {
+        name: `Acciones de ${otroUsuario.nombre}`,
+      });
+
+      // Act
+      await user.click(menuDeLaFila);
       await user.click(screen.getByRole('menuitem', { name: 'Dar de baja…' }));
-      return user;
-    }
-
-    it('abre el diálogo nombrando al usuario y Cancelar lo cierra sin mutar', async () => {
-      // Arrange
-      const mutate = vi.fn();
-      vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock({ mutate }));
-
-      // Act
-      const user = await abrirDialogo();
 
       // Assert
       expect(
-        screen.getByRole('dialog', { name: `¿Dar de baja a ${USUARIO.nombre}?` }),
+        screen.getByRole('alertdialog', { name: `¿Dar de baja a ${otroUsuario.nombre}?` }),
       ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Solo se puede dar de baja a quien ya no tiene roles vigentes\./),
-      ).toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: 'Cancelar' }));
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      expect(mutate).not.toHaveBeenCalled();
-    });
-
-    it('Confirmar muta con el id y, en éxito, lanza toast.success y cierra el diálogo', async () => {
-      // Arrange
-      const mutate = vi.fn<Mutar>((id, opciones) => {
-        opciones?.onSuccess?.(undefined, id, undefined, CONTEXTO_DE_MUTACION);
-        opciones?.onSettled?.(undefined, null, id, undefined, CONTEXTO_DE_MUTACION);
-      });
-      vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock({ mutate }));
-      const user = await abrirDialogo();
+      expect(screen.getByRole('button', { name: 'Cancelar' })).toHaveFocus();
 
       // Act
-      await user.click(screen.getByRole('button', { name: 'Dar de baja' }));
+      await user.keyboard('{Escape}');
 
       // Assert
-      expect(mutate).toHaveBeenCalledWith(USUARIO.id, expect.any(Object));
-      expect(toast.success).toHaveBeenCalledTimes(1);
-      expect(toast.success).toHaveBeenCalledWith(
-        'Usuario dado de baja',
-        `${USUARIO.nombre} ya no está vigente.`,
-      );
-      expect(toast.error).not.toHaveBeenCalled();
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
-
-    it('en error lanza toast.error con el mensaje de respaldo y cierra el diálogo', async () => {
-      // Arrange
-      const mutate = vi.fn<Mutar>((id, opciones) => {
-        const error = new Error('fallo');
-        opciones?.onError?.(error, id, undefined, CONTEXTO_DE_MUTACION);
-        opciones?.onSettled?.(undefined, error, id, undefined, CONTEXTO_DE_MUTACION);
-      });
-      vi.mocked(useEliminarUsuario).mockReturnValue(crearMutacionEliminarMock({ mutate }));
-      const user = await abrirDialogo();
-
-      // Act
-      await user.click(screen.getByRole('button', { name: 'Dar de baja' }));
-
-      // Assert
-      expect(toast.error).toHaveBeenCalledTimes(1);
-      expect(toast.error).toHaveBeenCalledWith(
-        'No se pudo dar de baja al usuario',
-        'Inténtalo nuevamente.',
-      );
-      expect(toast.success).not.toHaveBeenCalled();
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
-
-    it('con la mutación pendiente bloquea Confirmar y Cancelar y no cierra el diálogo', async () => {
-      // Arrange
-      vi.mocked(useEliminarUsuario).mockReturnValue(
-        crearMutacionEliminarMock({ isPending: true, status: 'pending', isIdle: false }),
-      );
-
-      // Act
-      await abrirDialogo();
-
-      // Assert
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Procesando...' })).toBeDisabled();
-      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(menuDeLaFila).toHaveFocus();
     });
   });
 
@@ -632,7 +443,7 @@ describe('ConsultarUsuarios', () => {
           ordenDireccion: 'DESC',
         }),
       );
-      rerender(<ConsultarUsuarios onRegistrar={vi.fn()} />);
+      rerender(<ConsultarUsuarios onRegistrar={vi.fn()} onEditar={vi.fn()} />);
       await user.click(screen.getByRole('button', { name: /^filtros/i }));
       const ordenarPor = within(screen.getByRole('group', { name: 'Ordenar por' }));
 
@@ -772,13 +583,14 @@ describe('ConsultarUsuarios', () => {
       expect(fila('Ana Gómez').getByText('Activo')).toBeInTheDocument();
     });
 
-    it('"Cambiar roles" abre el formulario del usuario de esa fila y "Dar de baja…" se deshabilita si ya no está vigente', async () => {
+    it('"Cambiar roles" llama a onEditar con la pestaña Roles del usuario de esa fila y "Dar de baja…" se deshabilita si ya no está vigente', async () => {
       // Arrange
       const user = userEvent.setup();
+      const onEditar = vi.fn();
       vi.mocked(useUsuarios).mockReturnValue(
         crearHookMock({ data: crearPagina([USUARIO, USUARIO_DADO_DE_BAJA]) }),
       );
-      renderizar();
+      renderizar(vi.fn(), onEditar);
       const nombreDadoDeBaja = USUARIO_DADO_DE_BAJA.nombre;
 
       // Act
@@ -791,12 +603,10 @@ describe('ConsultarUsuarios', () => {
       await user.click(screen.getByRole('menuitem', { name: 'Cambiar roles' }));
 
       // Assert
-      expect(
-        screen.getByRole('heading', { name: `Editar usuario: ${nombreDadoDeBaja}` }),
-      ).toBeInTheDocument();
+      expect(onEditar).toHaveBeenCalledTimes(1);
+      expect(onEditar).toHaveBeenCalledWith(USUARIO_DADO_DE_BAJA, 'roles');
 
       // Act
-      await user.click(screen.getByRole('button', { name: /cancelar/i }));
       await user.click(tabla().getByRole('button', { name: `Acciones de ${USUARIO.nombre}` }));
 
       // Assert

@@ -15,6 +15,7 @@ interface Contador {
 const PROPORCION_CERCA_DEL_MAXIMO = 0.9;
 
 const RAIZ = 'flex min-w-0 flex-col';
+const RAIZ_CORTA = 'max-w-60';
 const OPCIONAL = 'font-normal text-on-surface-secondary';
 const PIE = 'flex items-start justify-between gap-3';
 const ERROR = 'field-error flex items-start gap-1.5';
@@ -32,11 +33,20 @@ interface Props {
   ayuda?: string;
   error?: string;
   opcional?: boolean;
+  corto?: boolean;
   contador?: Contador;
   children: (control: ControlDeCampo) => ReactNode;
 }
 
-export default function Field({ etiqueta, ayuda, error, opcional, contador, children }: Props) {
+export default function Field({
+  etiqueta,
+  ayuda,
+  error,
+  opcional,
+  corto,
+  contador,
+  children,
+}: Props) {
   const id = useId();
   const idError = `${id}-error`;
   const idAyuda = `${id}-ayuda`;
@@ -46,7 +56,7 @@ export default function Field({ etiqueta, ayuda, error, opcional, contador, chil
   else if (ayuda) idDescripcion = idAyuda;
 
   return (
-    <div className={RAIZ}>
+    <div className={corto ? [RAIZ, RAIZ_CORTA].join(' ') : RAIZ}>
       <label htmlFor={id} className="field-label">
         {etiqueta}
         {opcional && <span className={OPCIONAL}> (opcional)</span>}
