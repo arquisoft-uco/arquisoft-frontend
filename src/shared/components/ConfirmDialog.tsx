@@ -35,27 +35,25 @@ export default function ConfirmDialog({
       aria-labelledby="confirm-dialog-titulo"
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onCancelar}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onCancelar} aria-hidden="true" />
 
       {/* Panel */}
       <div className="relative z-10 w-full max-w-sm rounded-xl border border-border bg-surface p-6 shadow-lg animate-fade-up">
         <div className="flex items-start gap-3">
           <AlertTriangle
             size={20}
-            className={variante === 'peligro' ? 'shrink-0 text-danger' : 'shrink-0 text-warning'}
+            className={
+              variante === 'peligro'
+                ? 'shrink-0 text-danger'
+                : 'shrink-0 text-tertiary-muted-foreground'
+            }
             aria-hidden
           />
           <div className="flex flex-col gap-1">
             <h2 id="confirm-dialog-titulo" className="text-sm font-semibold text-on-surface">
               {titulo}
             </h2>
-            {descripcion && (
-              <p className="text-sm text-on-surface-secondary">{descripcion}</p>
-            )}
+            {descripcion && <p className="text-sm text-on-surface-secondary">{descripcion}</p>}
           </div>
         </div>
 

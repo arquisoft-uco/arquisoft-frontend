@@ -8,6 +8,7 @@ export interface BaselineArquitectura {
   tiposInseguros: Medicion;
   componentesGrandes: Medicion;
   coloresCrudos: Medicion;
+  coloresSinToken: Medicion;
   bloquesJsdoc: Medicion;
 }
 
@@ -40,6 +41,7 @@ export const BASELINE: BaselineArquitectura = {
     'features/fichas-perfil/components/RegistrarFichaPerfil.tsx': 3,
     'features/fichas-perfil/components/representante/EstadosEvaluacionPanel.tsx': 10,
   },
+  coloresSinToken: {},
   bloquesJsdoc: {
     'auth/authStore.ts': 3,
     'auth/devAuth.ts': 1,

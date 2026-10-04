@@ -20,25 +20,30 @@
   --color-tertiary-hover: oklch(72% 0.16 75);
   --color-tertiary-foreground: oklch(25% 0.04 75);
   --color-tertiary-muted: oklch(95% 0.04 75);
-  --color-tertiary-muted-foreground: oklch(55% 0.12 75);
+  --color-tertiary-muted-foreground: oklch(38% 0.09 70);
 
   /* ── Danger ── */
   --color-danger: oklch(55% 0.22 27);
   --color-danger-foreground: oklch(99% 0 0);
+  --color-danger-muted: oklch(96% 0.03 27);
+  --color-danger-muted-foreground: oklch(45% 0.19 27);
 
   /* ── Surfaces ── */
   --color-surface: oklch(100% 0 0);
   --color-surface-secondary: oklch(98% 0.004 230);
   --color-surface-elevated: oklch(100% 0 0);
   --color-background: oklch(97% 0.005 230);
+  --color-muted: oklch(95% 0.01 230);
 
   /* ── Text ── */
   --color-on-surface: oklch(18% 0.02 230);
   --color-on-surface-secondary: oklch(46% 0.016 230);
+  --color-muted-foreground: oklch(40% 0.02 230);
 
   /* ── Border ── */
   --color-border: oklch(91% 0.008 230);
   --color-border-strong: oklch(82% 0.018 230);
+  --color-border-input: oklch(62% 0.02 230);
 
   /* ── Sidebar nav ── */
   --color-nav-active-bg: oklch(93% 0.04 230);
@@ -57,7 +62,7 @@
 
   /* ── Shadows ── */
   --shadow-card: 0 1px 2px 0 oklch(0% 0 0 / 0.05), 0 1px 3px 0 oklch(0% 0 0 / 0.03);
-  --shadow-card-hover: 0 4px 16px -2px oklch(0% 0 0 / 0.10), 0 2px 6px -2px oklch(0% 0 0 / 0.05);
+  --shadow-card-hover: 0 4px 16px -2px oklch(0% 0 0 / 0.1), 0 2px 6px -2px oklch(0% 0 0 / 0.05);
   --shadow-dropdown: 0 8px 30px -6px oklch(0% 0 0 / 0.14), 0 4px 10px -4px oklch(0% 0 0 / 0.08);
   --shadow-lg: 0 16px 48px -8px oklch(0% 0 0 / 0.16), 0 8px 16px -4px oklch(0% 0 0 / 0.06);
 
@@ -71,38 +76,76 @@
   --animate-toast-out: toast-out 0.2s ease-in both;
 
   @keyframes fade-up {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes slide-in-left {
-    from { opacity: 0; transform: translateX(-8px); }
-    to   { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.96); }
-    to   { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   @keyframes shimmer {
-    from { background-position: -200% center; }
-    to   { background-position: 200% center; }
+    from {
+      background-position: -200% center;
+    }
+    to {
+      background-position: 200% center;
+    }
   }
 
   @keyframes toast-in {
-    from { opacity: 0; transform: translateX(calc(100% + 1.5rem)); }
-    to   { opacity: 1; transform: translateX(0); }
+    from {
+      opacity: 0;
+      transform: translateX(calc(100% + 1.5rem));
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes toast-out {
-    from { opacity: 1; transform: translateX(0); }
-    to   { opacity: 0; transform: translateX(calc(100% + 1.5rem)); }
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(calc(100% + 1.5rem));
+    }
   }
 }
 

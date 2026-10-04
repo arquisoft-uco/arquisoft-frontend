@@ -24,7 +24,7 @@ export default function ComingSoon({ title, description, icon: Icon = Hammer }: 
             Este módulo estará disponible próximamente.
           </p>
         </div>
-        <span className="rounded-full bg-secondary-muted px-4 py-1.5 text-xs font-semibold text-secondary">
+        <span className="rounded-full bg-secondary-muted px-4 py-1.5 text-xs font-semibold text-secondary-muted-foreground">
           Próximamente
         </span>
       </div>

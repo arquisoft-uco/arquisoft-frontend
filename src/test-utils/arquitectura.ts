@@ -24,6 +24,12 @@ const fuentes = import.meta.glob<string>(
   { query: '?raw', import: 'default', eager: true },
 );
 
+const hojaDeEstilos = import.meta.glob<string>('/src/tailwind.css', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
 const configProhibidaEnRaiz = import.meta.glob('/{tailwind,postcss,vitest}.config.*');
 
 const RAIZ_SRC = '/src/';
@@ -42,6 +48,9 @@ const ARCHIVO_CON_STORAGE = 'auth/roleStore.ts';
 const MODELO_CON_RUNTIME_PERMITIDO = 'shared/models/rol.ts';
 const COLORES_DE_PALETA =
   'red|blue|green|yellow|gray|slate|zinc|amber|orange|emerald|indigo|sky|purple|pink|rose|neutral|stone|lime|teal|cyan|violet|fuchsia';
+const PREFIJOS_DE_COLOR =
+  'bg|text|border|ring|from|to|via|fill|stroke|divide|outline|decoration|accent|caret|placeholder';
+const NOMBRES_DE_COLOR_SHADCN = 'muted|accent|card|popover|input|destructive|success|warning|info';
 
 const PATRON_IMPORT =
   /(?:import|export)\s[^'"]*?from\s+['"]([^'"]+)['"]|import\s+['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g;
@@ -49,14 +58,22 @@ const PATRON_QUERY_KEY = /(?:queryKey:\s*|\b\w*KEY\w*\s*=\s*)\[\s*'([^']+)'/g;
 const PATRON_TIPO_INSEGURO =
   /\bas unknown as\b|:\s*any\b|<any>|\bas any\b|@ts-ignore|@ts-expect-error/g;
 const PATRON_COLOR_CRUDO = new RegExp(
-  `\\b(?:bg|text|border|ring|from|to|via|fill|stroke|divide|outline|decoration|accent|caret|placeholder)-(?:${COLORES_DE_PALETA})-\\d{2,3}\\b`,
+  `\\b(?:${PREFIJOS_DE_COLOR})-(?:${COLORES_DE_PALETA})-\\d{2,3}\\b`,
   'g',
 );
+// Lookbehind: border-border-input no es border-input. Lookahead: bg-card-elevated no es bg-card.
+const PATRON_COLOR_SIN_TOKEN = new RegExp(
+  `(?<![\\w-])(?:${PREFIJOS_DE_COLOR})-((?:${NOMBRES_DE_COLOR_SHADCN})(?:-foreground)?|foreground)(?![\\w-])`,
+  'g',
+);
+const PATRON_TOKEN_DE_COLOR = /--color-([\w-]+)\s*:/g;
 const PATRON_JSDOC = /\/\*\*/g;
 const PATRON_CONSOLE_LOG = /\bconsole\.log\s*\(/;
 const PATRON_STORAGE = /\b(?:localStorage|sessionStorage)\b/;
 const PATRON_RUNTIME_EN_MODELO =
   /^\s*export\s+(?:const|let|var|function|class|enum|abstract|default)\b/m;
+
+const TOKENS_DE_COLOR = extraerTokensDeColor(Object.values(hojaDeEstilos).join('\n'));
 
 const esTest = (ruta: string) => /\.test\.tsx?$/.test(ruta);
 const esSoporteDeTest = (ruta: string) => ruta.startsWith('test-utils/');
@@ -261,6 +278,30 @@ export function componentesGrandes(): Medicion {
 
 export function coloresCrudos(): Medicion {
   return medirPorArchivo(produccion, ({ contenido }) => contar(contenido, PATRON_COLOR_CRUDO));
+}
+
+export function extraerTokensDeColor(css: string): ReadonlySet<string> {
+  return new Set([...css.matchAll(PATRON_TOKEN_DE_COLOR)].map((m) => m[1]));
+}
+
+export function contarColoresSinToken(
+  contenido: string,
+  tokensDeclarados: ReadonlySet<string>,
+): number {
+  const sinToken = [...contenido.matchAll(PATRON_COLOR_SIN_TOKEN)].filter(
+    (m) => !tokensDeclarados.has(m[1]),
+  );
+  return sinToken.length;
+}
+
+export function tokensDeColorDeclarados(): ReadonlySet<string> {
+  return TOKENS_DE_COLOR;
+}
+
+export function coloresSinToken(): Medicion {
+  return medirPorArchivo(produccion, ({ contenido }) =>
+    contarColoresSinToken(contenido, TOKENS_DE_COLOR),
+  );
 }
 
 export function bloquesJsdoc(): Medicion {

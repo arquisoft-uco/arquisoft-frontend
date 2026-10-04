@@ -4,12 +4,16 @@ import {
   bloquesJsdoc,
   ciclosEstaticos,
   coloresCrudos,
+  coloresSinToken,
   compararConBaseline,
   componentesGrandes,
   configuracionProhibida,
   consolesLog,
+  contarColoresSinToken,
+  extraerTokensDeColor,
   queryKeysFueraDeConvencion,
   tiposInseguros,
+  tokensDeColorDeclarados,
   usosDeStorage,
   violacionesDeCapas,
   violacionesDeHooks,
@@ -201,6 +205,18 @@ describe('Arquitectura: convenciones con deuda conocida', () => {
     );
   });
 
+  it('toda utilidad de color con nombre de convención shadcn tiene su --color-* en @theme', () => {
+    // Act
+    const problemas = compararConBaseline(coloresSinToken(), BASELINE.coloresSinToken);
+
+    // Assert
+    exigir(
+      problemas,
+      `Define el token en @theme de src/tailwind.css o usa uno existente: Tailwind descarta en silencio ` +
+        `una utilidad cuya variable no existe. ${AYUDA_BASELINE}`,
+    );
+  });
+
   it('no se agregan bloques JSDoc', () => {
     // Act
     const problemas = compararConBaseline(bloquesJsdoc(), BASELINE.bloquesJsdoc);
@@ -211,6 +227,88 @@ describe('Arquitectura: convenciones con deuda conocida', () => {
       `El código se autodocumenta con el naming; un comentario de una línea solo cuando explica un porqué. ` +
         AYUDA_BASELINE,
     );
+  });
+});
+
+describe('Arquitectura: la regla de colores sin token', () => {
+  it('acepta una utilidad cuyo token está declarado, con variante y con opacidad', () => {
+    // Arrange
+    const declarados = new Set(['muted', 'muted-foreground']);
+    const clases = 'hover:bg-muted bg-muted/50 text-muted-foreground';
+
+    // Act
+    const sinToken = contarColoresSinToken(clases, declarados);
+
+    // Assert
+    expect(sinToken).toBe(0);
+  });
+
+  it('marca cada utilidad vigilada cuyo token no está declarado', () => {
+    // Arrange
+    const declarados = new Set(['muted']);
+    // muted-foreground se resuelve aparte de muted: declarar uno no cubre al otro.
+    const clases = 'text-warning bg-card text-muted-foreground data-[state=open]:bg-accent';
+
+    // Act
+    const sinToken = contarColoresSinToken(clases, declarados);
+
+    // Assert
+    expect(sinToken).toBe(4);
+  });
+
+  it('no confunde border-border-input con border-input', () => {
+    // Arrange
+    const sinTokens = new Set<string>();
+
+    // Act
+    const propio = contarColoresSinToken('border-border-input', sinTokens);
+    const conConvencion = contarColoresSinToken('border-border-input border-input', sinTokens);
+
+    // Assert
+    expect(propio).toBe(0);
+    expect(conConvencion).toBe(1);
+  });
+
+  it('no marca los tokens propios ni lo que no vigila', () => {
+    // Arrange
+    const sinTokens = new Set<string>();
+    // bg-card-elevated solo empieza por un nombre vigilado (card): no se lee como bg-card.
+    const clases =
+      'bg-surface text-on-surface bg-primary-muted text-primary-muted-foreground ' +
+      'border-border-strong text-sm border-b bg-black/40 bg-card-elevated';
+
+    // Act
+    const sinToken = contarColoresSinToken(clases, sinTokens);
+
+    // Assert
+    expect(sinToken).toBe(0);
+  });
+
+  it('extrae solo las declaraciones y no las referencias con var()', () => {
+    // Arrange
+    const css = [
+      '--color-muted: oklch(95% 0.01 230);',
+      '--color-border-input : oklch(62% 0.02 230);',
+      'color: var(--color-primary);',
+    ].join('\n');
+
+    // Act
+    const tokens = extraerTokensDeColor(css);
+
+    // Assert
+    expect(tokens).toEqual(new Set(['muted', 'border-input']));
+  });
+
+  it('lee los tokens reales de src/tailwind.css', () => {
+    // Act
+    const tokens = tokensDeColorDeclarados();
+
+    // Assert
+    expect(
+      [...tokens],
+      'Si falla, revisa test.css.include en vite.config.ts: sin esa opción Vitest vacía ' +
+        'src/tailwind.css y no se lee ningún token.',
+    ).toEqual(expect.arrayContaining(['primary', 'muted']));
   });
 });
 
