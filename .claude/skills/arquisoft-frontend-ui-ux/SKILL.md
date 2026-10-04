@@ -76,8 +76,8 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
 - **Archivos de `adopcion.md`:** si la HU toca uno, el plan dice si se migra a la pieza o se deja (migrar al tocar).
 - **Preguntas al usuario:** solo las de producto que la tabla de arriba no resuelve (qué campos busca el listado,
   qué acciones lleva cada fila). El estilo no se pregunta: está decidido.
-- **Verifica contra el backend lo que el patrón promete:** campos filtrables y ordenables del criterio, y que los
-  endpoints por rol existan (`patrones.md` §1). Lo que falte es una dependencia de backend, no un supuesto.
+- **Verifica contra el backend lo que el patrón promete:** campos filtrables y ordenables del criterio, y qué endpoint
+  cubre cada filtro del listado (`patrones.md` §1). Lo que falte es una dependencia de backend, no un supuesto.
 
 ## Para el implementador
 

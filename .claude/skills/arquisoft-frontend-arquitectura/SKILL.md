@@ -216,8 +216,11 @@ deduce del nombre:
 | `shared/utils/monitoring.ts` | `captureError`, `captureHttpError` — único punto de integración con Sentry |
 | `shared/validation/` | `LIMITES`, `MENSAJES_VALIDACION`, regex, builders Zod; barril en `index.ts` |
 | `shared/hooks/useToast.ts` | Singleton `toast.success/info/debug/error`, usable fuera de React |
+| `shared/hooks/` | `useDebouncedValue` (retardo de 300 ms de las búsquedas) y `useClicFuera` (cierre por clic fuera de menús y paneles) |
+| `shared/utils/estado-variante.ts` | Tabla estado → variante de `Badge` por `id` del backend: ficha, evaluación y usuario |
 | `shared/stores/toastStore.ts` | Store del toaster, duración por nivel |
-| `shared/components/` | Estados de página (`PageSkeleton`, `AvisoNoDisponible`, `ComingSoon`, `ForbiddenPage`), error boundaries, `ConfirmDialog`, `Toaster` |
+| `shared/components/` | Estados de página (`PageSkeleton`, `AvisoNoDisponible`, `ComingSoon`, `ForbiddenPage`), error boundaries, `ConfirmDialog`, `Toaster`, `PaginadorListado` |
+| `shared/components/ui/` | El kit de UI (`Button`, `Badge`, `Field`, `Notice`, `Tabs`, `DataTable`, `FilterBar`, `RowMenu`…): lista la carpeta antes de escribir un botón, una insignia o un estado a mano; las recetas están en la skill `arquisoft-frontend-ui-ux` |
 
 Un componente sube a `src/shared/components/` solo con **dos consumidores de features distintas**.
 Con uno se queda en `features/{feature}/components/`.

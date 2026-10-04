@@ -13,7 +13,7 @@ FilterBar    [ buscar por nombre, correo o identificador ]  [Filtros (2)]
              Filtros aplicados: [Estado: Activo x] [Vigencia: Vigentes x]  Limpiar todo
 Resumen      12 usuarios                                              <- aria-live="polite"
 DataTable    Usuario ↑ | Identificador | Contacto | Roles | Estado | ⋯
-PaginadorListado   1–10 de 98 usuarios · Filas [10] · ‹ 1 2 3 … ›
+PaginadorListado   1–10 de 98 usuarios · ‹ 1 2 3 … ›
 ```
 
 - **Un solo paradigma:** todo filtra al instante; el texto, con retardo de 300 ms. Nada de «Buscar»,
@@ -43,11 +43,11 @@ PaginadorListado   1–10 de 98 usuarios · Filas [10] · ‹ 1 2 3 … ›
   horizontal y miden 44 px.
 - **Estados:** carga con `Skeleton variante="tabla"`; sin datos, `EmptyState` con la acción que crea el primero;
   sin resultados (solo con búsqueda o filtros activos), `EmptyState` con «Limpiar filtros»; error, `ErrorState`.
-- **Pestañas por rol de Usuarios → un solo listado con chips de rol.** Es una decisión aprobada con una
-  precondición: antes de quitar las seis pestañas, el plan comprueba contra el backend y el realm que los
-  endpoints por rol no tienen reglas o permisos propios (los client roles `usuarios:*-administrador:view` de
-  `docs/pendientes.md`) que el listado unificado no cubra. Si los tienen, los chips llaman al mismo endpoint.
-  La acción «Quitar rol», que hoy vive en esas pestañas, pasa al panel de edición (pestaña «Roles»).
+- **Pestañas por rol de Usuarios → un solo listado con chips de rol (hecho en HT-UX-02).** La precondición se
+  comprobó contra el backend: `POST /usuarios/administrador` admite los filtros de los seis roles, la búsqueda por
+  texto y el orden; los endpoints por rol solo añadían las bajas de rol (una vista de auditoría) y siete client roles
+  propios, así que se eliminaron las vistas por rol y «Vigencia» es la del usuario. «Quitar rol» vive en el
+  formulario de edición y pasa a su pestaña «Roles» con el panel lateral.
 
 ## 2. Formulario en panel lateral
 

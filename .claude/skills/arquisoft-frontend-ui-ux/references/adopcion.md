@@ -1,7 +1,7 @@
 # Adopción: el plan de cinco pasos
 
 El usuario aprobó el diseño completo el 2026-10-03, junto con cuatro decisiones: (1) un solo listado de usuarios
-con chips de rol en lugar de las seis pestañas, con la precondición de `patrones.md` §1; (2) los roles pasan
+con chips de rol en lugar de las seis pestañas (precondición comprobada en HT-UX-02, ver `patrones.md` §1); (2) los roles pasan
 de casillas a interruptores con efecto inmediato; (3) panel lateral para registrar y editar usuarios y página
 completa para registrar fichas; (4) los módulos «Próximamente» salen del menú y se agrupan aparte.
 
@@ -44,8 +44,8 @@ completa para registrar fichas; (4) los módulos «Próximamente» salen del men
 - **Crea:** `DataTable`, `FilterBar` con `useDebouncedValue`, `RowMenu` y amplía `PaginadorListado`.
 - **Orden:** primero Usuarios del administrador (con la decisión 1 y su precondición); después Fichas
   (coordinador, asesor, representante y estados del asesor) al tocarlas.
-- **Precondición:** abrir el `UsuarioCriteria` y confirmar la búsqueda por texto; comprobar los endpoints por rol
-  como dice `patrones.md` §1.
+- **Precondición (cumplida en HT-UX-02):** abrir el `UsuarioCriteria` y confirmar la búsqueda por texto; comprobar los
+  endpoints por rol como dice `patrones.md` §1.
 - **Retira:** los tres paginadores copiados, `FiltrosUsuariosPanel` y, con la decisión 1, las tablas por rol.
 
 ### Paso 3 — Formularios (1 HT por formulario)
@@ -78,7 +78,7 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 | Ninguna utilidad de color cuya variable `--color-*` no exista en `@theme` (se vigilan los nombres de convención shadcn: `muted`, `muted-foreground`, `accent`, `card`, `popover`, `foreground`, `input`, `destructive`, `success`, `warning`, `info`) | Paso 0 | 47 usos de `bg-muted` en 21 archivos y 1 de `text-warning` |
 | Un solo spinner: se prohíbe `animate-spin rounded-full border` fuera de `shared/components/ui/` | Paso 1 | 19 copias en 18 archivos (11 con `border-4` y 8 con `border-2`) |
 | Nada por debajo de 12 px: se prohíben `text-[9px]`, `text-[10px]` y `text-[11px]` | Paso 1 | 16 usos |
-| Tablas solo con `DataTable`: se prohíbe `<table` en las features | Paso 2 | 7 tablas |
+| Tablas solo con `DataTable`: se prohíbe `<table` en las features | Paso 2 | 7 tablas (5 tras HT-UX-02: las de `fichas-perfil`) |
 
 ## Qué archivo se migra a qué
 
@@ -86,7 +86,7 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 |---|---|---|
 | `usuarios/components/AdministradorView.tsx` | `PageHeader`, `FilterBar` con chips de rol y `SidePanel` | 2 y 3 |
 | `usuarios/…/FiltrosUsuariosPanel.tsx`, `UsuariosTable.tsx`, `ConsultarUsuarios.tsx` | `FilterBar`, `DataTable`, `PaginadorListado` | 2 |
-| `usuarios/…/UsuariosRolTable.tsx`, `ConsultarUsuariosRol.tsx` y los seis `Consultar{Rol}.tsx` | Desaparecen con la decisión 1 (listado único) | 2 |
+| `usuarios/…/UsuariosRolTable.tsx`, `ConsultarUsuariosRol.tsx` y los seis `Consultar{Rol}.tsx` | Eliminados en HT-UX-02 (decisión 1, listado único) | 2 |
 | `usuarios/…/RegistrarUsuarioForm.tsx`, `ModificarUsuarioForm.tsx` | `SidePanel` con `Field` y `FormSection`; edición con pestañas | 3 |
 | `usuarios/…/RolesUsuarioFieldset.tsx`, `ConfirmarRemoverRolDialog.tsx` | `Switch` y `ConfirmDialog` | 3 |
 | `usuarios/…/EstadoUsuarioFieldset.tsx` | Pestaña «Acceso» | 3 |

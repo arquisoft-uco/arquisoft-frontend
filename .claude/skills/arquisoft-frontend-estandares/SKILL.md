@@ -360,6 +360,7 @@ vive en `vite.config.ts`; **no crees `vitest.config.ts`**.
 | `src/test-utils/render.tsx` | `render` con `QueryClientProvider` (`retry: false`, `gcTime: 0`) + `MemoryRouter`; acepta `{ initialPath }` y reexporta testing-library |
 | `src/test-utils/keycloak.mock.ts` | Importarlo aplica el `vi.mock` |
 | `src/test-utils/store.utils.ts` | `resetAllStores()`, `setAuthenticatedUser(...)`, `setActiveRole(rol)` |
+| `src/test-utils/temporizadores.ts` | `usarTemporizadoresFalsos()` (devuelve el `userEvent` que avanza los temporizadores de Vitest), `avanzar(ms)` y `restaurarTemporizadores()` para el `afterEach`: úsalo en las pruebas con retardo (la búsqueda de 300 ms) en vez de copiar el puente de `jest` |
 
 **Importar `render` de `@testing-library/react` es un error**: sin el wrapper, un componente con
 `useQuery` o `<Navigate>` revienta. Escribir `useAuthStore.setState` a mano también: usa
@@ -430,7 +431,8 @@ Un archivo suelto: `npx vitest run src/features/<feature>/<Archivo>.test.tsx`.
 bundling, no de tipos. `.github/workflows/ci.yml` corre los cuatro en cada push y PR con Node 20.
 
 `npm test` incluye `src/arquitectura.test.ts` (capas, HTTP, query keys por feature, tipos inseguros,
-tamaño de componente, colores crudos, JSDoc). Si falla, el mensaje dice qué corregir; la deuda previa
+tamaño de componente, colores crudos, JSDoc, colores sin token en `@theme`, un solo spinner, nada por debajo de
+12 px y tablas solo con `DataTable`). Si falla, el mensaje dice qué corregir; la deuda previa
 vive en `src/test-utils/arquitectura.baseline.ts` y **no se amplía**. `format:check` no revisa el código
 heredado, solo lo modificado: formatea con `npx prettier --write` únicamente esos archivos.
 
