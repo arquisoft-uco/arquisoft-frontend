@@ -8,9 +8,18 @@ compilador de Tailwind y en el navegador con `getComputedStyle`**. Las de las pi
 ítem de peligro, números del paginador, contador del botón «Filtros», filtros aplicados, popover y hoja). **No se vieron en
 pantalla** los puntos suspensivos del paginador ni el paginador ampliado de `EstadosFichasAsesorPanel` (una sola página), y
 la acción deshabilitada del menú y la insignia «Dado de baja» se midieron en un DOM temporal, no en la pantalla. Las de las
-demás piezas (`Segmented`, `Switch`, `Combobox`, `FormSection`, `FormActions`, `ErrorSummary`, `SidePanel`, `ConfirmDialog`,
-`Toaster` y la disposición con panel lateral) se verificaron solo contra el compilador y se corrigen al construirlas: aplica
-la regla «Composición de clases» de abajo, no las reinventes ni las sustituyas por colores crudos.
+piezas de formularios y superposiciones (`FormSection`, `FormActions`, `ErrorSummary`, `SidePanel`, `Switch`, `ConfirmDialog`,
+`Toaster` y `Field.corto`) también están copiadas del código tal como quedó: se compilaron (`@tailwindcss/node` 4.2.2, sin
+conflictos entre utilidades de la misma propiedad) y se vieron en `/usuarios` con la sesión real del administrador a 1280, 390 y
+320 px, con teclado y ratón reales. Se midió su cascada con `getComputedStyle` (el panel a cada ancho, el `Switch` encendido,
+apagado y deshabilitado, el icono y el panel de `ConfirmDialog` en sus dos variantes, el nivel y la tarjeta del `Toaster` y el
+pie en celular) y se comprobó la trampa de foco de la hoja de `FilterBar` con su telón (a 390, 320, 639 y 640 px). **No se
+vieron en pantalla** ningún envío ni mutación (éxito, error del backend, `ocupado`, «Procesando...») ni el `alertdialog` «¿Quitar
+el rol…?»: la verificación no acciona nada sobre cuentas reales y los cubren las pruebas. El `Switch` `pendiente` y el peor caso
+de la cabecera de `SidePanel` se midieron en un DOM temporal, y de los avisos solo se leyó la animación de entrada: la de salida
+(`animate-toast-out`) no se vio. Las de las demás piezas (`Segmented`, `Combobox` y la disposición con panel lateral) se
+verificaron solo contra el compilador y se corrigen al construirlas: aplica la regla «Composición de clases» de abajo, no las
+reinventes ni las sustituyas por colores crudos.
 
 **Lista `src/shared/components/ui/` antes de crear nada**: el estado real del kit está ahí, no en esta
 página. Lo que sigue es la receta para escribir lo que falte.
@@ -48,13 +57,16 @@ página. Lo que sigue es la receta para escribir lo que falte.
 | `Button`, `IconButton`, `Badge` (+ `estado-variante.ts`), `Field`, `Notice`, `EmptyState`, `ErrorState`, `Skeleton`, `LoadingState`, `PageHeader`, `Avatar`, `Tabs`, `Segmented` | `src/shared/components/ui/` | Usuarios y Fichas ya las necesitan |
 | `DataTable`, `FilterBar`, `RowMenu`, `FormSection`, `FormActions`, `ErrorSummary` | `src/shared/components/ui/` | Usuarios y Fichas tienen listados y formularios |
 | `PaginadorListado` ampliado | se queda en `src/shared/components/` | Ya lo importan dos features |
-| `SidePanel`, `Switch` | `features/usuarios/components/` | Solo Usuarios los usa al principio |
+| `SidePanel` | `src/shared/components/ui/` | Excepción de la adopción a la regla de abajo: hoy solo Usuarios lo usa, pero su segundo consumidor llega en HT-UX-04 |
+| `Switch` | `features/usuarios/components/` | Solo Usuarios lo usa al principio |
 | `Combobox` | `features/fichas-perfil/components/` | Solo Fichas lo usa al principio |
 | `ConfirmDialog`, `Toaster`, `PageSkeleton`, `AvisoNoDisponible`, `ComingSoon` | siguen en `src/shared/components/` | Se **actualizan en su sitio**; no se mueven |
 
 Una pieza «feature primero» sube a `shared/components/ui/` cuando una segunda feature la necesita: se mueve
 el archivo y se ajustan los imports, sin cambiar su API. Si un plan declara en `shared/` una pieza con un
-solo consumidor, es una ambigüedad: pregunta, no la crees.
+solo consumidor, es una ambigüedad: pregunta, no la crees. La lógica de foco que comparten las superposiciones
+(`SidePanel`, `ConfirmDialog` y la hoja de `FilterBar`) vive en el hook `useTrampaDeFoco`, de `src/shared/hooks/`
+(ver «useTrampaDeFoco»).
 
 ## Piezas base
 
@@ -132,9 +144,9 @@ Badge.peligro | bg-danger-muted text-danger-muted-foreground
 
 ### Field
 
-- **Reemplaza:** `CampoTexto` (solo Usuarios), `.field-label`/`.field-input` armados a mano y los campos con
+- **Reemplaza:** `CampoTexto` (solo Usuarios; ya eliminado), `.field-label`/`.field-input` armados a mano y los campos con
   clases propias (`RegistrarFichaPerfil`, `SelectorAsesorFicha`, `EstadosFichaPanel`).
-- **API:** `etiqueta`, `ayuda?`, `error?`, `opcional?`, `contador?: { actual: number; max: number }` y un
+- **API:** `etiqueta`, `ayuda?`, `error?`, `opcional?`, `corto?`, `contador?: { actual: number; max: number }` y un
   hijo-función `(control) => ReactNode` que recibe `{ id, 'aria-invalid', 'aria-describedby' }` (con
   `useId`); el control es un `<input className="field-input">`, `<select>` o `<textarea>` que los usa.
   `aria-describedby` apunta al error o, si no hay, a la ayuda (el contador no entra).
@@ -146,13 +158,16 @@ Badge.peligro | bg-danger-muted text-danger-muted-foreground
   `maxLength` de `LIMITES`.
 - **Espaciado:** `Field.raiz` no lleva `gap`. `field-label` ya deja 6 px bajo la etiqueta y `field-error` y
   `field-hint` 4 px entre el control y su mensaje: con un `gap` el espacio etiqueta → control se duplicaría.
-- **Composición:** el contador es `contador` + **uno** de `contadorReposo` o `contadorCerca`; sumados, el color lo
-  decidiría el orden de la hoja y no el estado.
+- **Ancho corto:** `corto` suma `max-w-60` (240 px) a la raíz, para un valor corto (identificador, teléfono); sin la prop el
+  campo ocupa el ancho de su contenedor.
+- **Composición:** la raíz es `raiz` y, solo con `corto`, suma `corto` (una sola utilidad de ancho); el contador es `contador` +
+  **uno** de `contadorReposo` o `contadorCerca`; sumados, el color lo decidiría el orden de la hoja y no el estado.
 - **Con react-hook-form:** `useForm({ mode: 'onTouched' })`; el error aparece al salir del campo y se limpia
-  al corregir (ver «Formularios» en `patrones.md`).
+  al corregir (ver §2 «Formulario en panel lateral» en `patrones.md`).
 
 ```clases
 Field.raiz | flex min-w-0 flex-col
+Field.corto | max-w-60
 Field.opcional | font-normal text-on-surface-secondary
 Field.pie | flex items-start justify-between gap-3
 Field.error | field-error flex items-start gap-1.5
@@ -184,8 +199,8 @@ desaparecería y el icono pisaría el texto. Medido con `getComputedStyle`: el c
 }
 ```
 
-`Field.valido` (`border-secondary pr-10`) y `Field.corto` (`max-w-60`) no están en el código: ningún prop los
-activa. Se agregan cuando una pantalla los pida (`FormSection` usa el ancho corto).
+`Field.valido` (`border-secondary pr-10`) no está en el código: ningún prop lo activa. Se agrega cuando una
+pantalla lo pida.
 
 ### Notice
 
@@ -320,25 +335,37 @@ Segmented.activa | bg-surface text-on-surface shadow-card
 
 ### Switch
 
-- **Reemplaza:** las casillas que guardan al instante (`RolesUsuarioFieldset`).
-- **API:** `marcado: boolean`, `onCambiar: (valor: boolean) => void`, `etiqueta: string`, `pendiente?`, `deshabilitado?`.
-- **Reglas:** `<button type="button" role="switch" aria-checked>`; fila de 44 px o más. **Se aplica al instante y la
-  mutación avisa con toast** (`Rol agregado` / `Rol quitado`); quitar algo que da acceso pide `ConfirmDialog`.
-  Mientras la mutación corre, `pendiente` deshabilita el interruptor y pone `aria-busy`. Lo que aún no existe
-  se muestra deshabilitado con una insignia «Pronto». Una casilla (`checkbox`) o un radio se usa solo
-  cuando el valor viaja con el botón del formulario.
+- **Reemplaza:** las casillas que guardan al instante (`RolesUsuarioFieldset`, ya eliminado).
+- **API:** `marcado: boolean`, `onCambiar: (valor: boolean) => void`, `etiqueta: string`, `descripcion?: string`,
+  `insignia?: ReactNode`, `pendiente?` y `deshabilitado?`. Vive en `features/usuarios/components/Switch.tsx`.
+- **Estructura:** una `fila` con, a la izquierda, los textos (un `<label htmlFor>` con la `etiqueta` y, si hay `descripcion`, un
+  `<span>` que describe al botón con `aria-describedby`), la `insignia` (por ejemplo `<Badge variante="neutro">Pronto</Badge>`; no
+  entra en `aria-describedby`) y el `<button type="button" role="switch" aria-checked>` con la pista y el pulgar. Un clic en la
+  etiqueta también alterna. La fila mide 64 px como mínimo y la pista, 44×26 px.
+- **Reglas:** **se aplica al instante y la mutación avisa con toast** (`Rol agregado` / `Rol quitado`); quitar algo que da
+  acceso pide `ConfirmDialog`. Solo el interruptor cuya mutación corre queda `pendiente`; los demás siguen operables. Lo que aún
+  no existe se muestra `deshabilitado` con la insignia «Pronto» (al ser `disabled`, no recibe el foco con Tab). Una casilla
+  (`checkbox`) o un radio se usa solo cuando el valor viaja con el botón del formulario.
+- **`pendiente`:** pone `aria-busy` y `aria-disabled`, ignora los clics y atenúa la pista (0,5 de opacidad), pero **no** pone el
+  atributo `disabled`. Desvío de la receta anterior, que deshabilitaba el interruptor: un botón enfocado que pasa a `disabled`
+  puede perder el foco, y quien opera con teclado tendría que recorrer el panel de nuevo. `deshabilitado` sí usa `disabled`.
 
 ```clases
-Switch.pista | relative inline-flex h-6.5 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50
+Switch.pista | relative inline-flex h-6.5 w-11 shrink-0 items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50
 Switch.pistaOff | bg-border-input
 Switch.pistaOn | bg-primary
 Switch.pulgar | absolute left-0.75 size-5 rounded-full bg-surface shadow-sm transition-transform
 Switch.pulgarOn | translate-x-4.5
 Switch.fila | flex min-h-16 items-center gap-3 border-t border-border py-2.5 first:border-t-0
+Switch.textos | flex min-w-0 flex-1 flex-col
+Switch.etiqueta | text-sm font-semibold text-on-surface
+Switch.descripcion | text-[13px] text-on-surface-secondary
 ```
 
 - **Composición:** la pista es `pista` más exactamente una de `pistaOff` o `pistaOn`; el pulgar, `pulgar` más `pulgarOn` solo
-  cuando está marcado.
+  cuando está marcado. `pista` trae el atenuado de los dos estados (`disabled:` y `aria-disabled:`) porque `pendiente` usa
+  `aria-disabled` y debe verse igual. El pulgar se desplaza con la propiedad CSS `translate` (en Tailwind 4, `translate-x-4.5`
+  son 18 px), no con `transform`: se verifica con `getComputedStyle(...).translate`.
 
 ### Combobox
 
@@ -381,7 +408,8 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
   `EstadosFichasAsesorPanel` y las pestañas por rol de Usuarios.
 - **Archivos:** `FilterBar.tsx` (la tarjeta, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo,
   con su borrador y su retardo), `FilterChip.tsx` (chip de selección, `aria-pressed`; declara `OpcionFiltro = { id; etiqueta }`) y
-  `FilterBarPanel.tsx` (popover y hoja; declara `SeccionFiltro` y `OrdenFiltro`). `FilterBar` reexporta los tres tipos.
+  `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón «Filtros», y declara `SeccionFiltro` y
+  `OrdenFiltro`). `FilterBar` reexporta los tres tipos.
 - **API:** `busqueda: { valor; onCambiar; etiqueta; placeholder }`, `chips?: { etiqueta; opciones; seleccionados; onAlternar(id);
   onTodos() }`, `popover?: { secciones: SeccionFiltro[] }`, `orden?: OrdenFiltro`, `aplicados: { id; etiqueta; onQuitar }[]`,
   `onLimpiar` y `totalResultados?: number`. `SeccionFiltro = { id; etiqueta; opciones; valor; onCambiar(id); deshabilitada?; aviso? }`
@@ -407,19 +435,31 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
   que está en el panel (los chips ya se ven marcados): «Filtros aplicados:» (solo con aplicados), un chip por aplicado con ✕
   («Quitar filtro {etiqueta}») y «Limpiar todo» (solo con más de un filtro activo). «Limpiar todo» llama a `onLimpiar()` y
   **remonta el buscador** (cambia su `key`) para descartar el borrador y el retardo pendientes.
-- **Panel:** un solo `div role="dialog" aria-label="Filtros"`, **sin `aria-modal` ni trampa de foco**, para celular y escritorio.
-  Bajo 640 px es una hoja inferior (`fixed`) con su telón, una cabecera «Filtros y orden» y el cierre «Cerrar filtros»
-  (`IconButton` de 44 px); desde `sm` es un popover `absolute` anclado al botón (de ahí `fwrap`). El cuerpo trae una sección de
+- **Panel:** un solo `div role="dialog" aria-label="Filtros"` con `tabIndex={-1}` y **sin `aria-modal`** (la hoja es modal solo en
+  celular y eso lo decide el CSS), para celular y escritorio. Bajo 640 px es una hoja inferior (`fixed`) con su telón, una
+  cabecera «Filtros y orden» y el cierre «Cerrar filtros» (`IconButton` de 44 px), y **atrapa el foco**; desde `sm` es un popover
+  `absolute` anclado al botón (de ahí `fwrap`) y **no es modal**. El cuerpo trae una sección de
   chips de selección única por `SeccionFiltro` (`role="group"` con `aria-labelledby` hacia su etiqueta) y, solo en celular, la de
   `orden`; el pie, «Limpiar» (`Button` fantasma que llama a `onCambiar('')` de cada sección; deshabilitado sin aplicados) y un
   `Button` primario «Ver N resultados» («Ver 1 resultado»; «Sin resultados» con 0; «Listo» sin `totalResultados`) que cierra.
-- **Foco y cierre:** al abrir, el foco va al primer control habilitado que lo acepte (en escritorio el primer chip, porque el cierre
-  de celular está oculto; en celular, «Cerrar filtros»). Esc dentro del botón o del panel cierra y devuelve el foco al botón, igual
-  que «Ver N resultados», «Listo» y «Cerrar filtros»; un clic fuera (`useClicFuera`, de `src/shared/hooks/`) lo cierra **sin** mover
-  el foco. **Límites conocidos (HT-UX-03 y 09):** en la hoja de celular, Tab desde el último control sale al chip «Todos» de roles, que el
-  telón tapa, y desde ahí Esc ya no cierra; Mayús+Tab desde el primero sale al botón «Filtros» (también tapado), desde donde Esc sí
-  cierra; y tras un clic fuera, un ✕ de aplicado o «Limpiar todo» el foco queda en el `body`. En celular, el ✕ de un filtro
-  aplicado (24 px), «Limpiar todo» (línea de 20 px) y el ✕ del buscador (36 px) miden menos de 44 px.
+- **Foco y cierre:** el panel usa `useTrampaDeFoco` (ver «useTrampaDeFoco», en «Formularios y superposiciones») con `retorno` = el
+  botón «Filtros», `alEscape` = cerrar y `esModal` = «el telón se ve» (`getComputedStyle(telón).display !== 'none'`): así la trampa
+  sigue al `sm:hidden` sin repetir el punto de corte en JavaScript ni usar `matchMedia`. Al abrir, el foco va al primer control
+  visible (en celular, «Cerrar filtros»; en escritorio, como el cierre de celular está oculto, el primer chip).
+  - **Hoja de celular:** Tab y Mayús+Tab dan la vuelta dentro de ella y el foco no sale hacia atrás del telón. **Esc se escucha en
+    `document`**, así que cierra con el foco en cualquier control. **Todo cierre devuelve el foco a «Filtros»**: Esc, «Cerrar
+    filtros», «Ver N resultados», «Listo» y el clic o toque en el telón. El telón cierra en `click` y no en `pointerdown` (su
+    `onPointerDown` detiene la propagación para que `useClicFuera`, que escucha `pointerdown` en `document`, no cierre antes): al
+    cerrar en `pointerdown`, el `mousedown` siguiente caía en lo que queda debajo y el foco terminaba en el `body` o en el control
+    de detrás. Como el telón cubre la pantalla, un toque sobre el ✕ de un filtro aplicado o sobre «Limpiar todo» con la hoja
+    abierta cae en el telón: solo la cierra y no los activa (hace falta otro toque con la hoja cerrada).
+  - **Popover de escritorio (no modal):** Tab sale de él y lo deja abierto. Esc lo cierra con el foco donde esté (si estaba dentro,
+    vuelve a «Filtros»; si estaba en un control de fuera, ahí se queda) y «Ver N resultados» lo cierra y devuelve el foco al
+    botón. Un clic fuera (`useClicFuera`, de `src/shared/hooks/`) lo cierra **sin** mover el foco: queda en el control que se
+    pulsó, o en el `body` si fue una zona sin controles.
+- **Límites que quedan:** el panel no declara `aria-modal`; quitar un filtro con su ✕ o con «Limpiar todo» deja el foco en el
+  `body` (el control desaparece); y las áreas táctiles de 44 px son de HT-UX-09: en celular, el ✕ de un filtro aplicado (24 px),
+  «Limpiar todo» (línea de 20 px) y el ✕ del buscador (36 px) miden menos.
 - **Estado:** vive en el hook del listado (o en la URL, ver `patrones.md`), nunca dentro del panel; cualquier cambio de filtro,
   búsqueda u orden vuelve a la página 0.
 
@@ -629,23 +669,43 @@ Paginador.numeroPuntos | text-on-surface-secondary
 
 ### FormSection, FormActions y ErrorSummary
 
-- **`FormSection`:** `titulo`, `descripcion?`, `opcional?`, hijos. Agrupa campos relacionados con un `<h2>` y
-  `aria-labelledby` (un `fieldset` con su título). Rejilla de dos columnas desde `sm` para campos cortos; el campo
-  largo ocupa la fila; el valor corto (identificador, teléfono) usa `Field.corto`.
-- **`FormActions`:** barra pegada al pie del panel o de la página: a la izquierda el estado («Cambios sin
-  guardar», con punto), a la derecha `Cancelar` (secundario) y la acción con **su verbo** («Registrar usuario»,
-  «Guardar cambios»); en celular el botón principal va arriba y a ancho completo (clase global `.actions-row`).
-  **La validez no deshabilita el botón principal**: se deshabilita mientras envía y, al editar, mientras no hay
-  cambios (`!isDirty`).
-- **`ErrorSummary`:** `errores: { campo; mensaje }[]`, `onIrAlCampo`. Es un `Notice` `peligro` con título «Revisa
-  N campos antes de continuar» y una lista cuyos elementos son botones que llevan el foco al campo (`setFocus` de
-  react-hook-form). Aparece **solo** tras un envío inválido (`handleSubmit(onValido, onInvalido)`) y toma el
-  foco (`tabIndex={-1}`).
+- **`FormSection`:** `titulo`, `descripcion?`, `opcional?`, hijos. Agrupa campos relacionados en un `fieldset` con
+  `aria-labelledby` hacia el `<h2>` del título (con `opcional`, « (opcional)» con el estilo de `Field.opcional`); la
+  `descripcion` va en un `<p>` bajo el título, dentro de la misma cabecera con borde inferior. Exporta también
+  `RejillaDeCampos({ children })` (la receta `rejilla`): dos columnas desde `sm` para campos cortos que van en pareja
+  (Nombres y Apellidos); el campo largo va fuera de ella y ocupa la fila, y el valor corto (identificador, teléfono) usa
+  `Field.corto`.
+- **`FormActions`:** `accion?` (el verbo: «Registrar usuario», «Guardar cambios»), `accionEnviando?` (el gerundio,
+  «Registrando…»: lo pone quien la usa), `enviando?`, `sucio?`, `sinCambios?`, `nota?`, `formId?` y `onCancelar`. Barra pegada
+  al pie del panel o de la página: a la izquierda el estado y, a la derecha (dentro de la clase global `.actions-row`), el
+  botón secundario y la acción con **su verbo**. El estado es `nota` si llega; si no, «Cambios sin guardar», con punto, cuando
+  `sucio`, y «Sin cambios» en caso contrario. El secundario dice «Cancelar» con `sucio` y «Cerrar» sin él, y se deshabilita
+  mientras `enviando`.
+- **La validez no deshabilita el botón principal:** es `type="submit"` con `form={formId}` (el pie vive fuera del `<form>`,
+  en el `pie` de `SidePanel`) y `cargando={enviando}`, y solo se deshabilita mientras envía o con `sinCambios` (al editar,
+  `!isDirty`); no hay prop de validez. Sin `accion` no hay botón principal: las pestañas que actúan al instante pasan solo
+  `nota`. En celular `.actions-row` apila los botones con la acción arriba (`column-reverse`), pero en el DOM
+  «Cancelar»/«Cerrar» va primero, así que Tab recorre ese orden.
+- **`ErrorSummary`:** `errores: ErrorDeCampo[]` (`{ campo; etiqueta; mensaje }`) y `onIrAlCampo(campo)`. Sin errores no dibuja
+  nada. Es un `Notice` `peligro` (`role="alert"`, se anuncia al aparecer) con título «Revisa N campos antes de continuar»
+  («Revisa 1 campo antes de continuar») y una lista con un `<button type="button">` por error, «{etiqueta}: {mensaje}», que
+  llama a `onIrAlCampo(campo)` (quien lo usa lo conecta con `setFocus` de react-hook-form). Aparece **solo** tras un envío
+  inválido (`handleSubmit(onValido, onInvalido)`). Exporta `resumirErrores(errores, etiquetas)`: recorre `etiquetas` (un
+  `Record` de campo a etiqueta, en el orden del formulario en pantalla) y devuelve los campos que tienen mensaje; su `errores`
+  es estructural (`Record<string, { message?: string } | undefined>`) para aceptar el `formState.errors` de react-hook-form
+  sin importar sus tipos.
+- **Desvíos de la receta anterior:** (1) `ErrorSummary` **no toma el foco** (la receta decía que sí, con `tabIndex={-1}`),
+  porque `handleSubmit(onValido, onInvalido)` ya enfoca el primer campo con error (`patrones.md` §2) y un segundo foco en el
+  resumen lo movería otra vez. (2) Cada error trae `etiqueta`, porque el resumen dice «Contacto: …» (como el lienzo) y el nombre
+  del campo de react-hook-form no es un texto de persona. (3) El secundario de `FormActions` dice «Cerrar» cuando no hay cambios
+  (`tokens.md` §6) y `nota` reemplaza el estado, porque las pestañas Roles y Acceso no tienen botón de guardar y su pie dice
+  cómo se guarda cada cosa.
 
 ```clases
 FormSection.raiz | flex min-w-0 flex-col gap-4
 FormSection.cabecera | border-b border-border pb-2
 FormSection.titulo | text-base font-semibold text-on-surface
+FormSection.opcional | font-normal text-on-surface-secondary
 FormSection.descripcion | text-sm text-on-surface-secondary
 FormSection.rejilla | grid gap-4 sm:grid-cols-2
 FormActions.raiz | sticky bottom-0 z-10 flex flex-col gap-3 border-t border-border bg-surface p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6
@@ -655,77 +715,188 @@ ErrorSummary.lista | mt-1 list-disc space-y-1 pl-5
 ErrorSummary.enlace | text-left underline underline-offset-4
 ```
 
-- **Pruebas:** `ErrorSummary` (el clic lleva el foco al campo) y `FormActions` (el botón se deshabilita enviando y
-  sin cambios, pero no por validez).
+- **Composición:** ninguna de las tres tiene estados que excluir: cada región es una sola cadena (el punto de `FormActions`
+  aparece o no; no cambia de clase).
+- **Pruebas:** `ErrorSummary` (el clic llama a `onIrAlCampo` con el campo; `resumirErrores` respeta el orden de las etiquetas) y
+  `FormActions` (el botón se deshabilita enviando y sin cambios, pero no por validez).
+
+### useTrampaDeFoco (foco de las superposiciones)
+
+`src/shared/hooks/useTrampaDeFoco.ts`. Lo usan `SidePanel`, `ConfirmDialog` y la hoja de `FilterBarPanel`; una superposición nueva
+lo usa también en vez de manejar el foco a mano. No importa `lucide-react` ni componentes.
+
+- **API:** `useTrampaDeFoco(opciones: OpcionesTrampaDeFoco)` con `{ contenedor, focoInicial?, retorno?, alEscape?, esModal? }`, sin valor
+  de retorno. `contenedor`, `focoInicial` y `retorno` son `RefObject<HTMLElement | null>`. `contenedor` es
+  la `ref` del elemento de la capa y lleva `tabIndex={-1}` (es el último recurso del foco inicial). `focoInicial` es el control, o
+  un contenedor de controles (el cuerpo de `SidePanel`), que recibe el foco al montar; sin él, el primer control visible del
+  `contenedor` y, sin controles, el propio `contenedor`. `retorno` es a dónde vuelve el foco al cerrar; por omisión, el control
+  que lo tenía al montar. `alEscape` es lo que hace Esc. `esModal` es un `() => boolean`, `true` por omisión, que se evalúa en
+  cada evento y deja que la trampa siga al CSS (`FilterBarPanel` mide el `display` de su telón); con `false`, Tab no se atrapa ni
+  el foco que cae fuera vuelve adentro, pero Esc sigue actuando.
+- **Sin parámetro `activo`:** la capa dura lo que dure el componente que lo llama, y las tres superposiciones se montan al abrir
+  y se desmontan al cerrar. `alEscape` y `esModal` se leen desde una `ref` actualizada en cada render (el patrón de
+  `useClicFuera`), así que el efecto corre una sola vez.
+- **Una superposición sobre otra solo atiende la capa de arriba.** Hay una pila de capas a nivel de módulo: cada instancia se
+  apunta al montar y se quita al desmontar, y Tab, Esc y `focusin` solo los atiende la última. Con un `ConfirmDialog` sobre un
+  `SidePanel`, el diálogo gana la trampa: su Esc cierra solo el diálogo y, al cerrarse, el foco vuelve al control del panel que
+  lo tenía. El orden visual lo da el DOM, no el `z-index`: los dos son `z-50` y el portal del diálogo se agrega después.
+- **Tab y foco:** Tab da la vuelta dentro del `contenedor` (del último control al primero y, con Mayús+Tab, al revés). Cuenta
+  `button`, `a[href]`, `input` (menos `hidden`), `select`, `textarea` y `[tabindex]`, todos con `tabIndex >= 0` (un `tabIndex={-1}` no cuenta), que no estén
+  deshabilitados ni tengan un ancestro con `display: none` hasta el contenedor: por eso lo que lleva `hidden` o `sm:hidden` no
+  entra en el recorrido. Si el foco cae fuera de la capa de arriba, vuelve al último control que tuvo dentro. Esc se escucha en
+  `document`, en la fase de burbuja (un menú o un combo interno atiende primero su Esc), y se ignora si el evento ya está
+  manejado (`defaultPrevented`) o es de composición. Límite: un grupo de radios cuenta un control por radio, no una sola parada.
+- **Al cerrar:** devuelve el foco al disparador solo si sigue en el documento y el foco se perdió (`body`) o seguía dentro del
+  contenedor; si la persona ya lo movió a otro control (un clic fuera), no se lo quita. En el desmontaje simulado de `StrictMode`
+  no lo devuelve (el nodo sigue en el documento) y recuerda el disparador entre las dos pasadas: sin eso, en desarrollo el primer
+  campo de un panel perdía el foco al abrir y mostraba «Este campo es requerido» sin haberlo tocado.
 
 ### SidePanel
 
-- **Reemplaza:** el formulario que se abría encima de las pestañas y los filtros (`registrarAbierto &&
-  <RegistrarUsuarioForm />`, `usuarioEnEdicion && <ModificarUsuarioForm />`).
-- **API:** `titulo`, `descripcion?`, `onCerrar`, `sucio?` (hay cambios sin guardar), `pie?: ReactNode` (el
-  `FormActions`), hijos.
-- **Comportamiento:** panel a la derecha sobre un fondo oscuro; la lista **se queda detrás** con sus filtros y su
-  página. En celular ocupa toda la pantalla. Se cierra con ✕, Esc, clic en el fondo y «Cancelar»; con `sucio`
-  pide antes «¿Descartar los cambios?» (`ConfirmDialog`). El estado de abierto/cerrado y de la entidad en
-  edición vive en la `{Rol}View`, por encima del panel (regla de «Retorno tras registrar, editar o eliminar»).
-- **A11y:** `role="dialog"`, `aria-modal="true"`, `aria-labelledby`; foco atrapado, el primer campo recibe el foco,
-  se bloquea el scroll del fondo y el foco vuelve al botón que lo abrió.
-- Se dibuja en un portal. Necesita el token `--animate-slide-in-right` (ver `tokens.md`).
+- **Reemplaza:** el formulario que se abría encima de las pestañas y los filtros (`RegistrarUsuarioForm` y
+  `ModificarUsuarioForm`, ya eliminados).
+- **API:** `titulo`, `descripcion?`, `inicio?: ReactNode` (a la izquierda del título: el `Avatar`), `fin?: ReactNode` (junto al ✕:
+  la `Badge` de estado), `onCerrar`, `sucio?` (hay cambios sin guardar), `ocupado?` (está enviando), `pie?: (solicitarCierre: () =>
+  void) => ReactNode` (el `FormActions`) y hijos.
+- **Comportamiento:** panel a la derecha sobre un fondo oscuro; la lista **se queda detrás** con sus filtros y su página. En
+  celular ocupa toda la pantalla (`w-full`) y desde 640 px mide 560 px. `solicitarCierre()` atiende el ✕ «Cerrar panel», el clic
+  en el fondo, Esc y el «Cancelar»/«Cerrar» del `pie`: no hace nada si `ocupado` y, con `sucio`, pide antes «¿Descartar los
+  cambios?»; si no, llama a `onCerrar()`. El estado de abierto/cerrado y de la entidad en edición vive en la `{Rol}View`, por
+  encima del panel (regla de «Retorno tras registrar, editar o eliminar»); tras un éxito, quien usa el panel llama a `onCerrar()`
+  directo, sin pasar por la confirmación.
+- **Descartar:** un `ConfirmDialog` `advertencia` («¿Descartar los cambios?», «Tienes cambios sin guardar. Si cierras ahora, se
+  perderán.», «Descartar» y «Seguir editando»). «Descartar» llama a `onCerrar()`; «Seguir editando» (o Esc) lo cierra y el foco
+  vuelve al control que lo tenía. Se dibuja como **hermano** del fondo y no dentro de él: un portal burbujea los eventos por el
+  árbol de React, y el clic en el fondo del diálogo llegaría también al fondo del panel.
+- **A11y y foco:** `role="dialog"`, `aria-modal="true"`, `aria-labelledby` (el `<h2>` del título) y `aria-describedby` (la
+  descripción). Usa `useTrampaDeFoco({ contenedor, focoInicial: cuerpo, alEscape: solicitarCierre })` (ver «useTrampaDeFoco»): el
+  foco entra al primer control del cuerpo, queda atrapado y vuelve al botón o la fila que abrió el panel. Mientras está abierto, el
+  `overflow` del `body` del documento es `hidden` (se restaura al cerrar) y el `body` lleva el atributo `data-panel-abierto`, que usa el
+  `Toaster` para colocar los avisos sobre el pie del panel. El fondo es `aria-hidden` y lleva `onMouseDown` con
+  `preventDefault`: sin él, pulsarlo (no es enfocable) quitaba el foco al campo y «Seguir editando» lo dejaba en el `body`.
+- **Pestañas de edición:** van **dentro del cuerpo**, en una barra `sticky` que se queda bajo la cabecera al desplazar (`-top-4 sm:-top-6` y
+  márgenes negativos iguales al relleno del cuerpo: el offset de un `sticky` cuenta el relleno del contenedor) con la lista de `Tabs`, sin `children`, que solo dibuja la lista, y debajo un
+  `role="tabpanel"` con `aria-label` por pestaña), las tres **montadas siempre** y las inactivas con `hidden`. Si solo se montara
+  la activa, lo escrito en el formulario y el interruptor de rol que acaba de cambiar volverían a su valor inicial al cambiar de
+  pestaña, y una mutación en curso perdería su aviso al desmontarse. Como van en el cuerpo, se desplazan con él: con el cuerpo
+  desplazado, la lista sale de la vista (medido a 320×800, 320×480 y 1280×500). El foco inicial cae en la pestaña activa, porque
+  es el primer control del cuerpo, y un Tab más llega al primer campo.
+- Se dibuja en un portal (`createPortal` en `document.body`). Necesita el token `--animate-slide-in-right`, que ya está en `@theme`
+  de `src/tailwind.css` (0,25 s).
+- **Desvíos de la receta anterior:** (1) `pie` es una **función** y no un `ReactNode`, porque el pie necesita el cierre
+  protegido para que su «Cancelar» también pida «¿Descartar los cambios?». (2) `inicio` y `fin` existen porque un título de texto
+  no admite el `Avatar` ni la `Badge` de la cabecera de edición. (3) `ocupado` ignora el cierre mientras envía, para que no se
+  pierda el aviso de éxito de un `mutate` cuyo componente se desmontó. (4) Las pestañas van en el cuerpo y no fijas bajo la
+  cabecera como en el lienzo: `SidePanel` solo ofrece `children` para el cuerpo, sin una ranura entre la cabecera y él. (5) El
+  contenedor de los textos de la cabecera lleva `min-w-0 break-words` (`textos`), porque un correo largo junto a la insignia
+  desbordaba la cabecera a 320–390 px: el lienzo trunca, pero truncar cortaría las descripciones que son frases (el coste es de
+  altura y de palabras partidas).
 
 ```clases
 SidePanel.fondo | fixed inset-0 z-40 bg-black/40 animate-fade-in
 SidePanel.panel | fixed inset-y-0 right-0 z-50 flex w-full flex-col bg-surface shadow-lg animate-slide-in-right sm:max-w-140 sm:border-l sm:border-border
 SidePanel.cabecera | flex items-start justify-between gap-4 border-b border-border py-4 pl-4 pr-2 sm:py-5 sm:pl-6
+SidePanel.encabezado | flex min-w-0 flex-1 items-start gap-3
+SidePanel.textos | min-w-0 break-words
 SidePanel.titulo | text-xl font-bold text-on-surface
 SidePanel.descripcion | mt-1 text-sm text-on-surface-secondary
+SidePanel.acciones | flex shrink-0 items-center gap-1
 SidePanel.cuerpo | flex-1 overflow-y-auto p-4 sm:p-6
+SidePanel.pie | shrink-0
 ```
 
-- **Pruebas:** Esc cierra, el foco queda atrapado y vuelve al disparador, `sucio` pide confirmación.
+- **Composición:** cada región es una sola cadena (no hay estados que excluir). `fondo` (`z-40`) y `panel` (`z-50`) son hermanos;
+  `encabezado` aloja `inicio` y los `textos`, y `acciones`, `fin` y el ✕. El panel y el `ConfirmDialog` son ambos `z-50`: el
+  diálogo queda encima porque su portal se agrega después.
+- **Pruebas:** Esc cierra, el foco queda atrapado y vuelve al disparador, `sucio` pide confirmación y `ocupado` ignora el cierre.
 
 ### ConfirmDialog (se actualiza en su sitio)
 
-Conserva su API (`titulo`, `descripcion`, `labelConfirmar`, `labelCancelar`, `variante`, `cargando`, `onConfirmar`,
-`onCancelar`) y gana `consecuencias?: string[]`. Lo que cambia:
+Conserva su API (`titulo`, `descripcion?`, `labelConfirmar?`, `labelCancelar?`, `variante?`, `cargando?`, `onConfirmar`,
+`onCancelar`) y gana `consecuencias?: string[]` (lo que pasa al confirmar, en una lista). Lo que cambió:
 
-- **Foco:** entra al diálogo y queda atrapado; en `peligro` empieza en «Cancelar». Al cerrar, vuelve al botón que
-  lo abrió.
-- **Teclado:** Esc cancela y el fondo también, salvo mientras `cargando`.
-- **Semántica:** `role="alertdialog"` en `peligro` y `dialog` en `advertencia`; `aria-labelledby` y
-  `aria-describedby` con `useId` (hoy el `id` es fijo y se repite).
-- **Aspecto:** el icono usa `danger-muted` o `tertiary-muted` (hoy `text-warning`, que no existe); los botones
-  son `Button` (`secundario` y `peligro` o `primario`). El botón dice la acción, no «Confirmar».
+- **Foco:** usa `useTrampaDeFoco` (ver «useTrampaDeFoco») con el botón «Cancelar» como `focoInicial` y `alEscape` = cancelar: el
+  foco entra al diálogo, queda atrapado y, al cerrar, vuelve a quien lo tenía; si ese control ya no existe (la fila que lo abrió),
+  no se enfoca nada. Desde el menú de fila el disparador es el ⋯, porque `RowMenu` le devuelve ahí el foco antes de llamar a
+  `onSeleccionar`. **El foco inicial es «Cancelar» en las dos variantes**, no solo en `peligro` (desvío de la receta anterior):
+  con `advertencia` el primer control del DOM ya es ese botón, y un Enter repetido al abrirlo cancela en lugar de confirmar.
+- **Teclado:** Esc y el clic en el fondo cancelan, salvo mientras `cargando`.
+- **Semántica:** `role="alertdialog"` en `peligro` y `dialog` en `advertencia`, puesto en el panel y no en el contenedor de
+  pantalla completa; `aria-modal="true"`, `aria-labelledby` hacia el `<h2>` y, si hay descripción o consecuencias,
+  `aria-describedby` hacia el bloque `detalle`. Los ids salen de `useId` (antes el `id` era fijo y se repetía).
+- **Aspecto:** el icono (`TriangleAlert` de 16 px) va en un recuadro `iconoPeligro` (`danger-muted`) o `iconoAdvertencia`
+  (`tertiary-muted`), junto al título; **debajo de esa fila** va el bloque `detalle` con la descripción y las consecuencias
+  (desvío de la receta anterior, que no lo traía: así lo dibuja el lienzo). Los botones son `Button` (`secundario` y `peligro` o
+  `primario`); el de acción dice la acción, no «Confirmar», y mientras `cargando` dice «Procesando...» y «Cancelar» se
+  deshabilita.
+- **Margen de pantalla y botones:** el contenedor suma `p-4`, porque sin él, a 384 px de ancho o menos, el panel (`max-w-sm`)
+  tocaba el borde (medido: 16 px de margen por lado a 320, 384 y 390 px); y la fila de botones envuelve (`flex-wrap`), porque a
+  320 px el contenido mide 240 px y «Seguir editando» con «Descartar» (o «Cancelar» con «Cambiar estado») no caben en una línea.
+- **Apilado:** sobre un `SidePanel` ambos son `z-50` y el diálogo queda encima porque su portal se agrega después; la trampa solo
+  atiende al de arriba, así que su Esc no cierra el panel.
 
 ```clases
+ConfirmDialog.raiz | fixed inset-0 z-50 flex items-center justify-center p-4
+ConfirmDialog.fondo | absolute inset-0 bg-black/40
 ConfirmDialog.panel | relative z-10 w-full max-w-sm rounded-xl border border-border bg-surface p-6 shadow-lg animate-fade-up
+ConfirmDialog.cabecera | flex items-start gap-3
 ConfirmDialog.icono | flex size-9 shrink-0 items-center justify-center rounded-lg
 ConfirmDialog.iconoPeligro | bg-danger-muted text-danger-muted-foreground
 ConfirmDialog.iconoAdvertencia | bg-tertiary-muted text-tertiary-muted-foreground
+ConfirmDialog.titulo | text-base font-semibold text-on-surface
+ConfirmDialog.detalle | mt-3.5 flex flex-col gap-3.5
+ConfirmDialog.descripcion | text-sm text-on-surface-secondary
 ConfirmDialog.consecuencias | list-disc space-y-1 pl-5 text-sm text-on-surface-secondary
+ConfirmDialog.acciones | mt-5 flex flex-wrap justify-end gap-2
 ```
+
+- **Composición:** el icono es `icono` más exactamente una de `iconoPeligro` o `iconoAdvertencia`; el resto de regiones son una
+  sola cadena. Los colores del botón de acción salen de la variante de `Button`, no de estas clases.
 
 ### Toaster (se actualiza en su sitio)
 
-La API `toast.success|info|error(titulo, mensaje?)` **no cambia**; cambia el componente y el tipo `ToastLevel`:
+La API `toast.success|info|error(titulo, mensaje?)` y `toast.dismiss(id)` **no cambia**; cambian el componente, el tipo
+`ToastLevel` y el store:
 
-- Se elimina el nivel `debug` (nadie lo usa; solo está declarado en `toastStore.ts` y `useToast.ts`).
-- Posición: abajo a la derecha en escritorio y al pie, a todo el ancho, en celular. Hoy son 320 px fijos arriba a la
-  derecha, sobre el encabezado y los menús. Máximo tres a la vez; el temporizador se detiene al pasar el cursor.
-- Sin barra de color a la izquierda: icono en círculo con color de variante, título, mensaje, botón de cerrar de
-  36 px y, opcional, una acción («Deshacer»). `role="alert"` en `error` y `role="status"` en el resto.
+- **Sin el nivel `debug`:** `ToastLevel = 'success' | 'info' | 'error'` (nadie lo usaba) y `toast.debug` ya no existe. Duraciones:
+  `success` e `info`, 4 s; `error`, 6 s.
+- **El store aplica el tope de tres:** `push` conserva los tres últimos (`toastStore.ts`); si el componente solo los ocultara, volverían
+  a verse cuando otro se cerrara. Se dibujan en orden de llegada: el más viejo arriba y el más nuevo abajo.
+- **Pausa:** el temporizador de cierre se detiene con el cursor encima **y** con el foco dentro (WCAG 2.2.1) y se reanuda con el
+  **tiempo restante**, no con uno nuevo; salir con el cursor teniendo el foco dentro no lo reanuda.
+- **Posición:** un portal `fixed` en `document.body`, abajo a la derecha en escritorio (a 16 px de los bordes y de 384 px de ancho) y
+  al pie, a todo el ancho con 16 px de margen, en celular. Antes eran 320 px fijos arriba a la derecha, sobre el encabezado y los
+  menús. La región es un `div` con `aria-label="Notificaciones"` y sin `role`: lo que se anuncia es el `role` de cada aviso,
+  `alert` en `error` y `status` en el resto.
+- **Tarjeta:** sin barra de color a la izquierda; icono en círculo de 32 px con el color del nivel (`CircleCheck`, `Info` y
+  `CircleAlert`, de 16 px), título, mensaje y un botón de cerrar de 36 px («Cerrar notificación»). Entra con `animate-toast-in`
+  (0,25 s) y sale con `animate-toast-out` (200 ms, y luego se quita del store); cerrar a mano usa la misma salida. Los dos
+  tokens de animación ya existían en `@theme`.
+- **Sin la acción «Deshacer»:** la receta `Toast.accion` (`mt-1.5 text-sm font-semibold text-primary underline underline-offset-4`)
+  **no está en el código**: ningún consumidor la usa, así que el aviso no tiene una prop de acción. Se agrega cuando una
+  pantalla la pida.
+- **Con un panel abierto:** mientras el `body` tiene `data-panel-abierto` (lo pone `SidePanel`), la región sube a `bottom-24` desde
+  640 px, para quedar sobre el pie del panel, y en celular pasa a la parte de arriba (`top-4`, sin `bottom`), porque allí el pie
+  ocupa casi 150 px. Así un aviso nunca tapa el botón principal. Las clases usan `in-data-[panel-abierto]:`.
 
 ```clases
-Toaster.region | fixed inset-x-4 bottom-4 z-[9999] flex flex-col gap-2 sm:left-auto sm:right-4 sm:w-96
+Toaster.region | fixed inset-x-4 bottom-4 z-[9999] flex flex-col gap-2 sm:left-auto sm:right-4 sm:w-96 max-sm:in-data-[panel-abierto]:top-4 max-sm:in-data-[panel-abierto]:bottom-auto sm:in-data-[panel-abierto]:bottom-24
 Toast.tarjeta | flex items-start gap-3 rounded-xl border border-border bg-surface p-3 pr-1.5 shadow-dropdown
+Toast.entrada | animate-toast-in
+Toast.salida | animate-toast-out
 Toast.icono | flex size-8 shrink-0 items-center justify-center rounded-full
 Toast.exito | bg-secondary-muted text-secondary-muted-foreground
 Toast.info | bg-primary-muted text-primary-muted-foreground
 Toast.error | bg-danger-muted text-danger-muted-foreground
+Toast.textos | min-w-0 flex-1
 Toast.titulo | text-sm font-semibold text-on-surface
 Toast.mensaje | mt-0.5 text-sm text-on-surface-secondary
-Toast.accion | mt-1.5 text-sm font-semibold text-primary underline underline-offset-4
 Toast.cerrar | ml-auto inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-on-surface-secondary hover:bg-muted
 ```
+
+- **Composición:** la tarjeta es `tarjeta` más **una** de `entrada` o `salida`, y el icono, `icono` más exactamente una de `exito`,
+  `info` o `error`. Desde `sm` la región pasa de `inset-x-4` a `left-auto right-4 w-96`: las utilidades con `sm:` salen después en la
+  hoja (medido a 1280 px: `right` de 16 px y 384 px de ancho).
 
 ## Estructura de página
 

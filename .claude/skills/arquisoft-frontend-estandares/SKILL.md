@@ -240,7 +240,7 @@ Toda `useQuery` consumida por un componente maneja **las tres** ramas, y son dis
 ## Notificaciones
 
 `toast` de `src/shared/hooks/useToast.ts` — singleton, funciona dentro y fuera de un componente.
-Niveles: `success` (4 s), `info` (4 s), `debug` (8 s), `error` (6 s). Firma
+Niveles: `success` (4 s), `info` (4 s) y `error` (6 s); no hay nivel `debug`. Firma
 `toast.error(titulo, mensaje?)`, con el mensaje desde `getApiErrorMessage(...)`.
 
 Va en el `onSuccess`/`onError` de la mutación — en el hook **o** en el `mutate(...)` del componente,
@@ -374,7 +374,7 @@ eso prueba el interceptor, no la feature. Un test nunca llega a la red.
 Vitest carga el módulo real para inspeccionar qué exporta, y esa carga arrastra la cadena
 `hook → service → apiClient → config/env.ts`, que lanza en test porque `VITE_API_URL` no está
 definida: el archivo falla entero con un error de entorno que no tiene que ver con lo que se prueba.
-La fábrica corta la cadena. `RegistrarUsuarioForm.test.tsx` y `test-utils/keycloak.mock.ts` son la
+La fábrica corta la cadena. `RegistrarUsuarioPanel.test.tsx` y `test-utils/keycloak.mock.ts` son la
 referencia.
 
 `describe`/`it` en **español**, describiendo comportamiento observable. Marcadores

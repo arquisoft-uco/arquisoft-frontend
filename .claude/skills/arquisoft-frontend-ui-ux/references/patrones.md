@@ -55,7 +55,7 @@ Para crear o editar desde un listado una entidad de **hasta cinco campos simples
 
 ```
 SidePanel  [Título · descripción]                                   [x]
-           (edición) Tabs: Datos | Roles | Acceso
+           (edición, dentro del cuerpo y fijas al desplazar) Tabs: Datos | Roles | Acceso
            FormSection «Cuenta»          Identificador · Correo
            FormSection «Datos personales» Nombres | Apellidos · Contacto
            FormSection «Roles (opcional)» chips
@@ -170,7 +170,7 @@ llevan ya las piezas.
 ## 8. Acciones que se aplican al instante y confirmaciones
 
 - **Al instante** (roles, preferencias): `Switch` + toast. Cada interruptor es una mutación; el pendiente
-  deshabilita ese interruptor, no el formulario.
+  marca ese interruptor como ocupado (`aria-busy` y `aria-disabled`, sin `disabled` para no perder el foco), no el formulario.
 - **Con botón:** datos de un formulario. **Con confirmación:** lo que quita acceso o no se deshace
   (`ConfirmDialog peligro` con consecuencias y el verbo exacto: «Dar de baja», «Quitar», «Eliminar»);
   lo que cambia algo reversible pide `advertencia`.

@@ -87,10 +87,10 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 | `usuarios/components/AdministradorView.tsx` | `PageHeader`, `FilterBar` con chips de rol y `SidePanel` | 2 y 3 |
 | `usuarios/…/FiltrosUsuariosPanel.tsx`, `UsuariosTable.tsx`, `ConsultarUsuarios.tsx` | `FilterBar`, `DataTable`, `PaginadorListado` | 2 |
 | `usuarios/…/UsuariosRolTable.tsx`, `ConsultarUsuariosRol.tsx` y los seis `Consultar{Rol}.tsx` | Eliminados en HT-UX-02 (decisión 1, listado único) | 2 |
-| `usuarios/…/RegistrarUsuarioForm.tsx`, `ModificarUsuarioForm.tsx` | `SidePanel` con `Field` y `FormSection`; edición con pestañas | 3 |
-| `usuarios/…/RolesUsuarioFieldset.tsx`, `ConfirmarRemoverRolDialog.tsx` | `Switch` y `ConfirmDialog` | 3 |
-| `usuarios/…/EstadoUsuarioFieldset.tsx` | Pestaña «Acceso» | 3 |
-| `usuarios/…/CampoTexto.tsx` | `Field` | 1 |
+| `usuarios/…/RegistrarUsuarioForm.tsx`, `ModificarUsuarioForm.tsx` | Reemplazados en HT-UX-03 por `RegistrarUsuarioPanel` y `EditarUsuarioPanel` (`SidePanel` con `Field` y `FormSection`; edición con pestañas) | 3 |
+| `usuarios/…/RolesUsuarioFieldset.tsx`, `ConfirmarRemoverRolDialog.tsx` | Eliminados en HT-UX-03: `Switch` y `ConfirmDialog` | 3 |
+| `usuarios/…/EstadoUsuarioFieldset.tsx` | Eliminado en HT-UX-03: pestaña «Acceso» | 3 |
+| `usuarios/…/CampoTexto.tsx` | Eliminado en HT-UX-03: `Field` | 1 |
 | `fichas-perfil/…/FichasPerfilTable.tsx`, `ConsultarFichasPerfilCoordinador.tsx`, `ConsultarFichasAsesor.tsx`, `ConsultarFichasRepresentante.tsx`, `EstadosFichasAsesorPanel.tsx` | `DataTable` y `FilterBar` | 2 |
 | `fichas-perfil/…/EstudiantesVinculadosPanel.tsx`, `AsignarEstudianteForm.tsx`, `CambiarAsesorForm.tsx` | Panel lateral o sección del detalle (lo decide su plan) | 3 o 4 |
 | `fichas-perfil/…/RegistrarFichaPerfil.tsx`, `SelectorAsesorFicha.tsx` | Página `/fichas-perfil/nueva` con `Combobox` | 3 |

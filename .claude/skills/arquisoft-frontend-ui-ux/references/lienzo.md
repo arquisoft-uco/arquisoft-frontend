@@ -55,7 +55,7 @@ Cuando el lienzo y esta skill discrepan en un dato, **vale la skill**: se contó
 |---|---|---|
 | Spinners copiados | 11 (solo los de `border-4`) | 19 en 18 archivos (11 con `border-4` y 8 con `border-2`) |
 | Pie de formulario de edición | El prototipo `Panel-Editar` apaga «Guardar cambios» también con datos inválidos | Solo se deshabilita enviando y sin cambios; la validez no lo apaga (`patrones.md` §2) |
-| Dónde viven `SidePanel`, `Switch` y `Combobox` | El tablero `Plan` los lista en el paso 3 sin ruta | Nacen en su feature y suben con la segunda (`componentes.md`, «Dónde nace cada pieza») |
+| Dónde viven `SidePanel`, `Switch` y `Combobox` | El tablero `Plan` los lista en el paso 3 sin ruta | `SidePanel` nació en `shared/components/ui/` por la excepción declarada (su segundo consumidor llega en HT-UX-04); `Switch` en `usuarios/` y `Combobox` en `fichas-perfil/` (`componentes.md`, «Dónde nace cada pieza») |
 
 ## Decisiones aprobadas (2026-10-03)
 

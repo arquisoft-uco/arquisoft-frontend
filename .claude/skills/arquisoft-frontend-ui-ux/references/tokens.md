@@ -25,7 +25,7 @@ compruébalo antes de usarlo: `grep -n "color-<nombre>" src/tailwind.css`.
 /* y cambia un valor que ya existe (el texto ámbar llegaba a 4,3 : 1): */
 --color-tertiary-muted-foreground: oklch(38% 0.09 70); /* antes oklch(55% 0.12 75) */
 
-/* solo cuando exista SidePanel (paso 3): */
+/* ya declarado en HT-UX-03, con `SidePanel`: */
 --animate-slide-in-right: slide-in-right 0.25s cubic-bezier(0.23, 1, 0.32, 1);
 /* con @keyframes slide-in-right { from { opacity: 0; transform: translateX(2rem); } to { opacity: 1; transform: translateX(0); } } */
 ```
