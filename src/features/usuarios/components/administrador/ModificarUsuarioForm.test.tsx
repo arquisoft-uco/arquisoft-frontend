@@ -90,6 +90,7 @@ const usuario: Usuario = {
   esCoordinador: true,
   esRepresentanteComite: false,
   esAdministrador: false,
+  esBibliotecario: false,
 };
 
 const ESTADOS = [

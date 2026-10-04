@@ -1,48 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import Usuarios from './Usuarios';
 import { Rol } from '../../shared/models/rol';
 import { useRegistrarUsuario } from './hooks/useRegistrarUsuario';
-import { useCoordinadores } from './hooks/useCoordinadores';
-import { useEstudiantes } from './hooks/useEstudiantes';
-import { useAsesores } from './hooks/useAsesores';
-import { useAsesoresFicha } from './hooks/useAsesoresFicha';
-import { useRepresentantesComite } from './hooks/useRepresentantesComite';
-import { useAdministradores } from './hooks/useAdministradores';
 import { useUsuarios } from './hooks/useUsuarios';
 import { useRemoverRol } from './hooks/useRemoverRol';
+import type { Usuario } from './models/Usuario';
 
 vi.mock('./hooks/useEstadosUsuario', () => ({
   useEstadosUsuario: () => ({ data: undefined, isLoading: false, isError: false }),
 }));
 vi.mock('./hooks/useRegistrarUsuario', () => ({
   useRegistrarUsuario: vi.fn(),
-}));
-
-vi.mock('./hooks/useCoordinadores', () => ({
-  useCoordinadores: vi.fn(),
-}));
-
-vi.mock('./hooks/useEstudiantes', () => ({
-  useEstudiantes: vi.fn(),
-}));
-
-vi.mock('./hooks/useAsesores', () => ({
-  useAsesores: vi.fn(),
-}));
-
-vi.mock('./hooks/useAsesoresFicha', () => ({
-  useAsesoresFicha: vi.fn(),
-}));
-
-vi.mock('./hooks/useRepresentantesComite', () => ({
-  useRepresentantesComite: vi.fn(),
-}));
-
-vi.mock('./hooks/useAdministradores', () => ({
-  useAdministradores: vi.fn(),
 }));
 
 vi.mock('./hooks/useUsuarios', () => ({
@@ -72,163 +42,37 @@ vi.mock('./hooks/useEliminarUsuario', () => ({
   useEliminarUsuario: vi.fn(),
 }));
 
-function crearCoordinadoresMock(
-  parcial: Partial<ReturnType<typeof useCoordinadores>> = {},
-): ReturnType<typeof useCoordinadores> {
-  return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
-    page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useCoordinadores>;
-}
+const USUARIO: Usuario = {
+  id: 'u-1',
+  identificador: '2001',
+  nombre: 'Marta Ríos',
+  email: 'marta@uco.edu.co',
+  contacto: '3001234567',
+  estado: 'ACTIVO',
+  vigente: true,
+  esEstudiante: true,
+  esAsesor: false,
+  esAsesorFicha: false,
+  esCoordinador: false,
+  esRepresentanteComite: false,
+  esAdministrador: false,
+  esBibliotecario: false,
+};
 
-function crearEstudiantesMock(
-  parcial: Partial<ReturnType<typeof useEstudiantes>> = {},
-): ReturnType<typeof useEstudiantes> {
-  return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
-    page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useEstudiantes>;
-}
-
-function crearAsesoresMock(
-  parcial: Partial<ReturnType<typeof useAsesores>> = {},
-): ReturnType<typeof useAsesores> {
-  return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
-    page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useAsesores>;
-}
-
-function crearAsesoresFichaMock(
-  parcial: Partial<ReturnType<typeof useAsesoresFicha>> = {},
-): ReturnType<typeof useAsesoresFicha> {
-  return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
-    page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useAsesoresFicha>;
-}
-
-function crearRepresentantesComiteMock(
-  parcial: Partial<ReturnType<typeof useRepresentantesComite>> = {},
-): ReturnType<typeof useRepresentantesComite> {
-  return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
-    page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useRepresentantesComite>;
-}
-
-function crearAdministradoresMock(
-  parcial: Partial<ReturnType<typeof useAdministradores>> = {},
-): ReturnType<typeof useAdministradores> {
-  return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
-    page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useAdministradores>;
-}
-
+// Una fila en la respuesta: sin ella el vacío agrega un segundo «Registrar usuario».
 function crearUsuariosMock(
   parcial: Partial<ReturnType<typeof useUsuarios>> = {},
 ): ReturnType<typeof useUsuarios> {
   return {
     data: {
-      content: [],
+      content: [USUARIO],
       page: 0,
       size: 10,
-      totalElements: 0,
-      totalPages: 0,
+      totalElements: 1,
+      totalPages: 1,
       first: true,
       last: true,
-      empty: true,
+      empty: false,
     },
     error: null,
     isLoading: false,
@@ -238,15 +82,19 @@ function crearUsuariosMock(
     page: 0,
     pageSize: 10,
     goToPage: vi.fn(),
+    texto: '',
+    setTexto: vi.fn(),
     rolesSeleccionados: [],
     toggleRol: vi.fn(),
+    limpiarRoles: vi.fn(),
     estado: undefined,
     setEstado: vi.fn(),
     vigente: undefined,
     setVigente: vi.fn(),
-    ordenCampo: undefined,
+    ordenCampo: 'nombre',
     ordenDireccion: 'ASC',
     setOrden: vi.fn(),
+    limpiarFiltros: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useUsuarios>;
 }
@@ -283,12 +131,6 @@ describe('Usuarios', () => {
   beforeEach(() => {
     resetAllStores();
     vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
-    vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
-    vi.mocked(useEstudiantes).mockReturnValue(crearEstudiantesMock());
-    vi.mocked(useAsesores).mockReturnValue(crearAsesoresMock());
-    vi.mocked(useAsesoresFicha).mockReturnValue(crearAsesoresFichaMock());
-    vi.mocked(useRepresentantesComite).mockReturnValue(crearRepresentantesComiteMock());
-    vi.mocked(useAdministradores).mockReturnValue(crearAdministradoresMock());
     vi.mocked(useUsuarios).mockReturnValue(crearUsuariosMock());
     vi.mocked(useRemoverRol).mockReturnValue({
       objetivo: null,
@@ -300,50 +142,34 @@ describe('Usuarios', () => {
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {
+    // Act
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.queryByRole('heading', { name: 'Todos los usuarios' })).not.toBeInTheDocument();
+    // Assert
+    expect(screen.queryByRole('heading', { name: 'Usuarios' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /registrar usuario/i })).not.toBeInTheDocument();
   });
 
   it('redirige a forbidden cuando el rol activo no está en el mapa de vistas', () => {
+    // Arrange
     autenticarCon(Rol.Estudiante);
+
+    // Act
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.queryByRole('heading', { name: 'Todos los usuarios' })).not.toBeInTheDocument();
+    // Assert
+    expect(screen.queryByRole('heading', { name: 'Usuarios' })).not.toBeInTheDocument();
   });
 
   it('renderiza AdministradorView cuando el rol activo es Administrador', () => {
+    // Arrange
     autenticarCon(Rol.Administrador);
+
+    // Act
     render(<Usuarios />, { initialPath: '/usuarios' });
 
-    expect(screen.getByRole('heading', { name: 'Todos los usuarios' })).toBeInTheDocument();
+    // Assert
+    expect(screen.getByRole('heading', { level: 1, name: 'Usuarios' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
-  });
-
-  it('muestra la pestaña "Representantes del comité" al administrador', async () => {
-    // Arrange
-    autenticarCon(Rol.Administrador);
-    const user = userEvent.setup();
-    render(<Usuarios />, { initialPath: '/usuarios' });
-
-    // Act
-    await user.click(screen.getByRole('tab', { name: 'Representantes del comité' }));
-
-    // Assert
-    expect(screen.getByRole('heading', { name: 'Representantes del comité' })).toBeInTheDocument();
-  });
-
-  it('muestra la pestaña "Administradores" al administrador', async () => {
-    // Arrange
-    autenticarCon(Rol.Administrador);
-    const user = userEvent.setup();
-    render(<Usuarios />, { initialPath: '/usuarios' });
-
-    // Act
-    await user.click(screen.getByRole('tab', { name: 'Administradores' }));
-
-    // Assert
-    expect(screen.getByRole('heading', { name: 'Administradores' })).toBeInTheDocument();
   });
 });

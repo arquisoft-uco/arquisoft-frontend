@@ -11,10 +11,12 @@ import {
   consolesLog,
   contarColoresSinToken,
   contarSpinnersCopiados,
+  contarTablasFueraDeDataTable,
   contarTextosMenoresA12px,
   extraerTokensDeColor,
   queryKeysFueraDeConvencion,
   spinnersCopiados,
+  tablasFueraDeDataTable,
   textosMenoresA12px,
   tiposInseguros,
   tokensDeColorDeclarados,
@@ -233,6 +235,21 @@ describe('Arquitectura: convenciones con deuda conocida', () => {
     );
   });
 
+  it('las tablas solo se escriben con DataTable', () => {
+    // Act
+    const problemas = compararConBaseline(
+      tablasFueraDeDataTable(),
+      BASELINE.tablasFueraDeDataTable,
+    );
+
+    // Assert
+    exigir(
+      problemas,
+      `Usa DataTable (src/shared/components/ui/): ordena desde la cabecera, pasa a tarjetas en celular y ` +
+        `trae sus estados de carga y vacío. ${AYUDA_BASELINE}`,
+    );
+  });
+
   it('ningún texto usa menos de 12 px', () => {
     // Act
     const problemas = compararConBaseline(textosMenoresA12px(), BASELINE.textosMenoresA12px);
@@ -361,6 +378,26 @@ describe('Arquitectura: las reglas de spinner y de tamaño de texto', () => {
 
     // Assert
     expect(textosPequenos).toBe(3);
+  });
+});
+
+describe('Arquitectura: la regla de tablas', () => {
+  it('cuenta cada <table con atributos o con salto de línea y no cuenta <tablet, <tbody ni </table>', () => {
+    // Arrange
+    const fuente = [
+      '<table>',
+      '<table aria-label="Usuarios" className="w-full">',
+      '<table\n  aria-label="Fichas">',
+      '<tablet>',
+      '<tbody>',
+      '</table>',
+    ].join('\n');
+
+    // Act
+    const tablas = contarTablasFueraDeDataTable(fuente);
+
+    // Assert
+    expect(tablas).toBe(3);
   });
 });
 

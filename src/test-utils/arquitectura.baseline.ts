@@ -10,6 +10,7 @@ export interface BaselineArquitectura {
   coloresCrudos: Medicion;
   coloresSinToken: Medicion;
   spinnersCopiados: Medicion;
+  tablasFueraDeDataTable: Medicion;
   textosMenoresA12px: Medicion;
   bloquesJsdoc: Medicion;
 }
@@ -31,8 +32,6 @@ export const BASELINE: BaselineArquitectura = {
     'features/fichas-perfil/components/representante/AgregarEstadoEvaluacionPanel.tsx': 193,
     'features/fichas-perfil/components/representante/ConsultarFichasRepresentante.tsx': 288,
     'features/solicitudes/components/estudiante/EnviarSolicitudNovedadForm.tsx': 158,
-    'features/usuarios/components/administrador/ConsultarUsuarios.tsx': 152,
-    'features/usuarios/components/administrador/FiltrosUsuariosPanel.tsx': 173,
     'features/usuarios/components/administrador/ModificarUsuarioForm.tsx': 302,
     'features/usuarios/components/administrador/RegistrarUsuarioForm.tsx': 228,
     'layout/Header.tsx': 182,
@@ -52,9 +51,14 @@ export const BASELINE: BaselineArquitectura = {
     'features/fichas-perfil/components/representante/ConsultarFichasRepresentante.tsx': 1,
     'features/fichas-perfil/components/representante/ItemsFichaRepresentantePanel.tsx': 1,
     'features/fichas-perfil/components/representante/RegistrarEvaluacionPanel.tsx': 1,
-    'features/usuarios/components/administrador/ConsultarUsuarios.tsx': 1,
-    'features/usuarios/components/administrador/ConsultarUsuariosRol.tsx': 1,
     'shared/components/AppLoader.tsx': 1,
+  },
+  tablasFueraDeDataTable: {
+    'features/fichas-perfil/components/asesor-ficha/ConsultarFichasAsesor.tsx': 1,
+    'features/fichas-perfil/components/asesor-ficha/EstadosFichasAsesorPanel.tsx': 1,
+    'features/fichas-perfil/components/coordinador/FichasPerfilTable.tsx': 1,
+    'features/fichas-perfil/components/representante/ConsultarFichasRepresentante.tsx': 1,
+    'features/fichas-perfil/components/TiposItemPanel.tsx': 1,
   },
   textosMenoresA12px: {
     'features/dashboard/Dashboard.tsx': 8,

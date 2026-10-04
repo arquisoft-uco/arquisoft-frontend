@@ -1,86 +1,65 @@
 import { useState } from 'react';
-import { RefreshCw } from 'lucide-react';
-import { useUsuarios } from '../../hooks/useUsuarios';
-import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
-import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
-import { toast } from '../../../../shared/hooks/useToast';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import PaginadorListado from '../../../../shared/components/PaginadorListado';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
+import { toast } from '../../../../shared/hooks/useToast';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEliminarUsuario } from '../../hooks/useEliminarUsuario';
+import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
+import { useUsuarios } from '../../hooks/useUsuarios';
 import type { Usuario } from '../../models/Usuario';
-import FiltrosUsuariosPanel from './FiltrosUsuariosPanel';
 import ModificarUsuarioForm from './ModificarUsuarioForm';
-import UsuariosTable from './UsuariosTable';
+import UsuariosFiltros from './UsuariosFiltros';
+import UsuariosListado from './UsuariosListado';
 
-export default function ConsultarUsuarios() {
+const RAIZ = 'flex flex-col gap-4';
+const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
+
+function textoResumen(total?: number): string {
+  if (total === undefined) return '';
+  return `${total} ${total === 1 ? 'usuario' : 'usuarios'}`;
+}
+
+interface Props {
+  onRegistrar: () => void;
+}
+
+export default function ConsultarUsuarios({ onRegistrar }: Props) {
   const [usuarioEnEdicion, setUsuarioEnEdicion] = useState<Usuario | null>(null);
-  const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(null);
+  const [usuarioADarDeBaja, setUsuarioADarDeBaja] = useState<Usuario | null>(null);
+  const listado = useUsuarios();
+  const estados = useEstadosUsuario();
   const eliminar = useEliminarUsuario();
-  const estadosQuery = useEstadosUsuario();
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    isFetching,
-    refetch,
-    page,
-    pageSize,
-    goToPage,
-    rolesSeleccionados,
-    toggleRol,
-    estado,
-    setEstado,
-    vigente,
-    setVigente,
-    ordenCampo,
-    ordenDireccion,
-    setOrden,
-  } = useUsuarios();
+  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
+  const usuarios = data?.content ?? [];
+  const hayFiltros =
+    listado.texto.trim() !== '' ||
+    listado.rolesSeleccionados.length > 0 ||
+    listado.estado !== undefined ||
+    listado.vigente !== undefined;
+  const recargandoSinFilas = isPlaceholderData && usuarios.length === 0 && !hayFiltros;
 
-  const totalElements = data?.totalElements ?? 0;
-
-  function confirmarEliminacion() {
-    if (!usuarioAEliminar) return;
-    eliminar.mutate(usuarioAEliminar.id, {
-      onSuccess: () => {
-        toast.success('Usuario eliminado', `${usuarioAEliminar.nombre} ya no está vigente.`);
-      },
-      onError: (err) => {
-        toast.error('No se pudo eliminar el usuario', getApiErrorMessage(err, 'Intenta nuevamente.'));
-      },
-      onSettled: () => setUsuarioAEliminar(null),
+  function confirmarBaja() {
+    if (!usuarioADarDeBaja) return;
+    const { id, nombre } = usuarioADarDeBaja;
+    eliminar.mutate(id, {
+      onSuccess: () => toast.success('Usuario dado de baja', `${nombre} ya no está vigente.`),
+      onError: (err) =>
+        toast.error(
+          'No se pudo dar de baja al usuario',
+          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
+        ),
+      onSettled: () => setUsuarioADarDeBaja(null),
     });
   }
 
-  function cancelarEliminacion() {
-    if (!eliminar.isPending) setUsuarioAEliminar(null);
+  function cancelarBaja() {
+    if (!eliminar.isPending) setUsuarioADarDeBaja(null);
   }
 
   return (
-    <section className="flex flex-col gap-6" aria-labelledby="usuarios-titulo">
-      <header className="section-header">
-        <div>
-          <h2 id="usuarios-titulo" className="text-lg font-semibold text-on-surface">
-            Todos los usuarios
-          </h2>
-          {data && (
-            <p className="mt-1 text-sm text-on-surface-secondary">
-              {totalElements} usuario{totalElements !== 1 ? 's' : ''}
-            </p>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="header-action inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-on-surface transition-colors hover:bg-nav-hover-bg disabled:cursor-not-allowed disabled:opacity-50 sm:py-2"
-        >
-          <RefreshCw size={16} aria-hidden className={isFetching ? 'animate-spin' : ''} />
-          {isFetching ? 'Actualizando...' : 'Actualizar'}
-        </button>
-      </header>
-
+    <div className={RAIZ}>
       {usuarioEnEdicion && (
         <ModificarUsuarioForm
           usuario={usuarioEnEdicion}
@@ -88,65 +67,58 @@ export default function ConsultarUsuarios() {
         />
       )}
 
-      <FiltrosUsuariosPanel
-        rolesSeleccionados={rolesSeleccionados}
-        toggleRol={toggleRol}
-        estado={estado}
-        setEstado={setEstado}
-        estados={estadosQuery.data}
-        estadosCargando={estadosQuery.isLoading}
-        estadosNoDisponibles={estadosQuery.isError}
-        vigente={vigente}
-        setVigente={setVigente}
-        ordenCampo={ordenCampo}
-        ordenDireccion={ordenDireccion}
-        setOrden={setOrden}
-      />
+      <UsuariosFiltros listado={listado} estados={estados} />
 
-      {isLoading && (
-        <div className="flex items-center justify-center py-16" aria-live="polite" aria-busy="true">
-          <div
-            className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
-            role="status"
-          >
-            <span className="sr-only">Cargando usuarios...</span>
-          </div>
-        </div>
-      )}
+      <p aria-live="polite" className={RESUMEN}>
+        {textoResumen(data?.totalElements)}
+      </p>
 
-      {isError && (
-        <div className="rounded-xl border border-border bg-surface p-6 text-center" role="alert">
-          <p className="text-sm text-on-surface-secondary">
-            {getApiErrorMessage(error, 'No se pudieron cargar los usuarios. Intenta nuevamente.')}
-          </p>
-        </div>
-      )}
+      <div aria-busy={isFetching}>
+        {isError ? (
+          <ErrorState
+            titulo="No se pudieron cargar los usuarios"
+            descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
+            onReintentar={refetch}
+          />
+        ) : (
+          <UsuariosListado
+            usuarios={usuarios}
+            estados={estados.data}
+            cargando={isLoading || recargandoSinFilas}
+            hayFiltros={hayFiltros}
+            orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
+            onOrdenar={listado.setOrden}
+            onEditar={setUsuarioEnEdicion}
+            onDarDeBaja={setUsuarioADarDeBaja}
+            onLimpiarFiltros={listado.limpiarFiltros}
+            onRegistrar={onRegistrar}
+          />
+        )}
+      </div>
 
-      {data && (
-        <UsuariosTable
-          usuarios={data.content}
-          estados={estadosQuery.data}
-          totalElements={totalElements}
-          totalPages={data.totalPages}
-          page={page}
-          pageSize={pageSize}
-          onPageChange={goToPage}
-          onEditar={setUsuarioEnEdicion}
-          onEliminar={setUsuarioAEliminar}
+      {!isError && (
+        <PaginadorListado
+          page={listado.page}
+          pageSize={listado.pageSize}
+          totalPages={data?.totalPages ?? 0}
+          totalElements={data?.totalElements ?? 0}
+          cantidadEnPagina={usuarios.length}
+          etiquetaPlural="usuarios"
+          onPageChange={listado.goToPage}
         />
       )}
 
-      {usuarioAEliminar && (
+      {usuarioADarDeBaja && (
         <ConfirmDialog
           variante="peligro"
-          titulo="Eliminar usuario"
-          descripcion={`Se desactivará el acceso de ${usuarioAEliminar.nombre} y dejará de estar vigente.`}
-          labelConfirmar="Eliminar"
+          titulo={`¿Dar de baja a ${usuarioADarDeBaja.nombre}?`}
+          descripcion={`Se desactivará el acceso de ${usuarioADarDeBaja.nombre} y dejará de estar vigente. Solo se puede dar de baja a quien ya no tiene roles vigentes.`}
+          labelConfirmar="Dar de baja"
           cargando={eliminar.isPending}
-          onConfirmar={confirmarEliminacion}
-          onCancelar={cancelarEliminacion}
+          onConfirmar={confirmarBaja}
+          onCancelar={cancelarBaja}
         />
       )}
-    </section>
+    </div>
   );
 }

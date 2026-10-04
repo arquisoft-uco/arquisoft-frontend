@@ -1,85 +1,120 @@
 import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
-import { Rol } from '../../../shared/models/rol';
+import type { NodoFiltroDTO, PredicadoFiltro } from '../../../shared/models/query-criteria';
+import type { Rol } from '../../../shared/models/rol';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
 import { usuariosService } from '../services/usuariosService';
+import { ROLES_USUARIO } from '../utils/roles-usuario';
 
 const PAGE_SIZE = 10;
+const CAMPOS_DE_TEXTO = ['nombre', 'email', 'identificador'];
 
-type OrdenCampo = 'nombre' | 'identificador' | 'email';
-type OrdenDireccion = 'ASC' | 'DESC';
+export type OrdenCampo = 'nombre' | 'identificador';
+export type OrdenDireccion = 'ASC' | 'DESC';
 
-const CAMPO_ROL: Partial<Record<Rol, string>> = {
-  [Rol.Estudiante]: 'esEstudiante',
-  [Rol.Asesor]: 'esAsesor',
-  [Rol.AsesorFicha]: 'esAsesorFicha',
-  [Rol.Coordinador]: 'esCoordinador',
-  [Rol.RepresentanteComiteCurriculum]: 'esRepresentanteComite',
-  [Rol.Administrador]: 'esAdministrador',
+interface EstadoListado {
+  page: number;
+  texto: string;
+  rolesSeleccionados: Rol[];
+  estado: string | undefined;
+  vigente: boolean | undefined;
+  ordenCampo: OrdenCampo;
+  ordenDireccion: OrdenDireccion;
+}
+
+const ESTADO_INICIAL: EstadoListado = {
+  page: 0,
+  texto: '',
+  rolesSeleccionados: [],
+  estado: undefined,
+  vigente: undefined,
+  ordenCampo: 'nombre',
+  ordenDireccion: 'ASC',
 };
+
+const CAMPO_ROL = new Map<Rol, string>(ROLES_USUARIO.map(({ rol, campo }) => [rol, campo]));
+
+function predicado(campo: string, operador: string, valor: string): PredicadoFiltro {
+  return { tipo: 'PREDICADO', campo, operador, valor };
+}
+
+function unir(conector: 'AND' | 'OR', nodos: NodoFiltroDTO[]): NodoFiltroDTO | undefined {
+  if (nodos.length === 0) return undefined;
+  if (nodos.length === 1) return nodos[0];
+  return { tipo: 'GRUPO', conector, nodos };
+}
 
 export function construirFiltro(
   rolesSeleccionados: Rol[],
   estado?: string,
   vigente?: boolean,
+  texto?: string,
 ): NodoFiltroDTO | undefined {
-  const nodosRol: NodoFiltroDTO[] = rolesSeleccionados
-    .map((rol) => CAMPO_ROL[rol])
-    .filter((campo): campo is string => campo !== undefined)
-    .map((campo) => ({ tipo: 'PREDICADO' as const, campo, operador: 'ES', valor: 'true' }));
+  const textoRecortado = texto?.trim() ?? '';
+  const nodosRol = rolesSeleccionados.flatMap((rol) => {
+    const campo = CAMPO_ROL.get(rol);
+    return campo === undefined ? [] : [predicado(campo, 'ES', 'true')];
+  });
+  const nodosTexto =
+    textoRecortado === ''
+      ? []
+      : CAMPOS_DE_TEXTO.map((campo) => predicado(campo, 'CONTIENE', textoRecortado));
 
-  const nodoRoles: NodoFiltroDTO | undefined =
-    nodosRol.length === 0
-      ? undefined
-      : nodosRol.length === 1
-        ? nodosRol[0]
-        : { tipo: 'GRUPO' as const, conector: 'OR' as const, nodos: nodosRol };
+  const nodos: NodoFiltroDTO[] = [];
+  const grupoRoles = unir('OR', nodosRol);
+  if (grupoRoles) nodos.push(grupoRoles);
+  const grupoTexto = unir('OR', nodosTexto);
+  if (grupoTexto) nodos.push(grupoTexto);
+  if (estado !== undefined) nodos.push(predicado('estado', 'ES', estado));
+  if (vigente !== undefined) nodos.push(predicado('vigente', 'ES', String(vigente)));
 
-  const otrosNodos: NodoFiltroDTO[] = [];
-  if (estado !== undefined) {
-    otrosNodos.push({ tipo: 'PREDICADO', campo: 'estado', operador: 'ES', valor: estado });
-  }
-  if (vigente !== undefined) {
-    otrosNodos.push({
-      tipo: 'PREDICADO',
-      campo: 'vigente',
-      operador: 'ES',
-      valor: String(vigente),
-    });
-  }
-
-  const nodos: NodoFiltroDTO[] = [
-    ...(nodoRoles ? [nodoRoles] : []),
-    ...otrosNodos,
-  ];
-
-  if (nodos.length === 0) {
-    return undefined;
-  }
-  if (nodos.length === 1) {
-    return nodos[0];
-  }
-  return { tipo: 'GRUPO', conector: 'AND', nodos };
+  return unir('AND', nodos);
 }
 
 export function useUsuarios() {
-  const [page, setPage] = useState(0);
-  const [rolesSeleccionados, setRolesSeleccionados] = useState<Rol[]>([]);
-  const [estado, setEstado] = useState<string | undefined>(undefined);
-  const [vigente, setVigente] = useState<boolean | undefined>(undefined);
-  const [ordenCampo, setOrdenCampo] = useState<OrdenCampo | undefined>(undefined);
-  const [ordenDireccion, setOrdenDireccion] = useState<OrdenDireccion>('ASC');
+  const [listado, setListado] = useState(ESTADO_INICIAL);
+  const { page, texto, rolesSeleccionados, estado, vigente, ordenCampo, ordenDireccion } = listado;
 
-  function toggleRol(rol: Rol) {
-    setRolesSeleccionados((actuales) =>
-      actuales.includes(rol) ? actuales.filter((r) => r !== rol) : [...actuales, rol],
-    );
+  function cambiar(cambio: Partial<EstadoListado>) {
+    setListado((actual) => ({ ...actual, ...cambio, page: 0 }));
   }
 
-  function setOrden(campo: OrdenCampo | undefined, direccion: OrdenDireccion = 'ASC') {
-    setOrdenCampo(campo);
-    setOrdenDireccion(direccion);
+  function goToPage(pagina: number) {
+    setListado((actual) => ({ ...actual, page: pagina }));
+  }
+
+  function setTexto(valor: string) {
+    cambiar({ texto: valor });
+  }
+
+  function toggleRol(rol: Rol) {
+    setListado((actual) => ({
+      ...actual,
+      rolesSeleccionados: actual.rolesSeleccionados.includes(rol)
+        ? actual.rolesSeleccionados.filter((r) => r !== rol)
+        : [...actual.rolesSeleccionados, rol],
+      page: 0,
+    }));
+  }
+
+  function limpiarRoles() {
+    cambiar({ rolesSeleccionados: [] });
+  }
+
+  function setEstado(valor: string | undefined) {
+    cambiar({ estado: valor });
+  }
+
+  function setVigente(valor: boolean | undefined) {
+    cambiar({ vigente: valor });
+  }
+
+  function setOrden(campo: OrdenCampo, direccion: OrdenDireccion = 'ASC') {
+    cambiar({ ordenCampo: campo, ordenDireccion: direccion });
+  }
+
+  function limpiarFiltros() {
+    cambiar({ texto: '', rolesSeleccionados: [], estado: undefined, vigente: undefined });
   }
 
   const query = useQuery({
@@ -87,6 +122,7 @@ export function useUsuarios() {
       'usuarios',
       'listado',
       page,
+      texto.trim(),
       rolesSeleccionados,
       estado,
       vigente,
@@ -97,8 +133,8 @@ export function useUsuarios() {
       const request: ConsultarUsuariosRequest = {
         pagina: page,
         tamanio: PAGE_SIZE,
-        ordenamiento: ordenCampo ? [`${ordenCampo}:${ordenDireccion}`] : undefined,
-        filtros: construirFiltro(rolesSeleccionados, estado, vigente),
+        ordenamiento: [`${ordenCampo}:${ordenDireccion}`],
+        filtros: construirFiltro(rolesSeleccionados, estado, vigente, texto),
       };
       return usuariosService.consultarUsuariosAdministrador(request);
     },
@@ -109,9 +145,12 @@ export function useUsuarios() {
     ...query,
     page,
     pageSize: PAGE_SIZE,
-    goToPage: setPage,
+    goToPage,
+    texto,
+    setTexto,
     rolesSeleccionados,
     toggleRol,
+    limpiarRoles,
     estado,
     setEstado,
     vigente,
@@ -119,5 +158,6 @@ export function useUsuarios() {
     ordenCampo,
     ordenDireccion,
     setOrden,
+    limpiarFiltros,
   };
 }

@@ -273,3 +273,12 @@ h6 {
     width: auto;
   }
 }
+
+/* Van después del bloque de 640 px: este vuelve a declarar el padding de .field-input. */
+.field-input--icono {
+  padding-left: 2.5rem;
+}
+
+.field-input--accion {
+  padding-right: 2.5rem;
+}

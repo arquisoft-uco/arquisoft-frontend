@@ -1,40 +1,46 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from '../../../test-utils/render';
+import { render, screen } from '../../../test-utils/render';
 import AdministradorView from './AdministradorView';
 import { usuariosService } from '../services/usuariosService';
 import type { Page } from '../../../shared/models/api-response';
 import type { Usuario } from '../models/Usuario';
-import type { Coordinador } from '../models/Coordinador';
-import type { Estudiante } from '../models/Estudiante';
-import type { Asesor } from '../models/Asesor';
-import type { AsesorFicha } from '../models/AsesorFicha';
-import type { RepresentanteComite } from '../models/RepresentanteComite';
-import type { Administrador } from '../models/Administrador';
 
 vi.mock('../services/usuariosService', () => ({
   usuariosService: {
     registrarUsuario: vi.fn(),
     consultarUsuariosAdministrador: vi.fn(),
-    consultarCoordinadoresAdministrador: vi.fn(),
-    consultarEstudiantesAdministrador: vi.fn(),
-    consultarAsesoresAdministrador: vi.fn(),
-    consultarAsesoresFichaAdministrador: vi.fn(),
-    consultarRepresentantesComiteAdministrador: vi.fn(),
-    consultarAdministradoresAdministrador: vi.fn(),
+    getEstadosUsuario: vi.fn(),
   },
 }));
 
-function crearPaginaVacia<T>(): Page<T> {
+const USUARIO: Usuario = {
+  id: 'u-1',
+  identificador: '2001',
+  nombre: 'Marta Ríos',
+  email: 'marta@uco.edu.co',
+  contacto: '3001234567',
+  estado: 'ACTIVO',
+  vigente: true,
+  esEstudiante: true,
+  esAsesor: false,
+  esAsesorFicha: false,
+  esCoordinador: false,
+  esRepresentanteComite: false,
+  esAdministrador: false,
+  esBibliotecario: false,
+};
+
+function crearPagina(content: Usuario[]): Page<Usuario> {
   return {
-    content: [],
+    content,
     page: 0,
     size: 10,
-    totalElements: 0,
-    totalPages: 0,
+    totalElements: content.length,
+    totalPages: content.length === 0 ? 0 : 1,
     first: true,
     last: true,
-    empty: true,
+    empty: content.length === 0,
   };
 }
 
@@ -42,172 +48,65 @@ describe('AdministradorView', () => {
   beforeEach(() => {
     vi.mocked(usuariosService.consultarUsuariosAdministrador)
       .mockReset()
-      .mockResolvedValue(crearPaginaVacia<Usuario>());
-    vi.mocked(usuariosService.consultarCoordinadoresAdministrador)
+      .mockResolvedValue(crearPagina([USUARIO]));
+    vi.mocked(usuariosService.getEstadosUsuario)
       .mockReset()
-      .mockResolvedValue(crearPaginaVacia<Coordinador>());
-    vi.mocked(usuariosService.consultarEstudiantesAdministrador)
-      .mockReset()
-      .mockResolvedValue(crearPaginaVacia<Estudiante>());
-    vi.mocked(usuariosService.consultarAsesoresAdministrador)
-      .mockReset()
-      .mockResolvedValue(crearPaginaVacia<Asesor>());
-    vi.mocked(usuariosService.consultarAsesoresFichaAdministrador)
-      .mockReset()
-      .mockResolvedValue(crearPaginaVacia<AsesorFicha>());
-    vi.mocked(usuariosService.consultarRepresentantesComiteAdministrador)
-      .mockReset()
-      .mockResolvedValue(crearPaginaVacia<RepresentanteComite>());
-    vi.mocked(usuariosService.consultarAdministradoresAdministrador)
-      .mockReset()
-      .mockResolvedValue(crearPaginaVacia<Administrador>());
+      .mockResolvedValue([{ id: 'ACTIVO', nombre: 'Activo', descripcion: 'Puede operar' }]);
   });
 
-  it('monta "Todos los usuarios" desde el primer render y no monta las otras pestañas', async () => {
+  it('monta el listado único con una sola consulta ordenada por nombre y sin pestañas', async () => {
+    // Act
     render(<AdministradorView />);
+    await screen.findByRole('table', { name: 'Usuarios' });
 
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
-    expect(screen.getByRole('heading', { name: 'Todos los usuarios' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Coordinadores' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Estudiantes' })).not.toBeInTheDocument();
-    expect(usuariosService.consultarCoordinadoresAdministrador).not.toHaveBeenCalled();
-    expect(usuariosService.consultarEstudiantesAdministrador).not.toHaveBeenCalled();
-    expect(screen.queryByRole('heading', { name: 'Asesores' })).not.toBeInTheDocument();
-    expect(usuariosService.consultarAsesoresAdministrador).not.toHaveBeenCalled();
-    expect(screen.queryByRole('heading', { name: 'Asesores de ficha' })).not.toBeInTheDocument();
-    expect(usuariosService.consultarAsesoresFichaAdministrador).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole('heading', { name: 'Representantes del comité' }),
-    ).not.toBeInTheDocument();
-    expect(usuariosService.consultarRepresentantesComiteAdministrador).not.toHaveBeenCalled();
-    expect(screen.queryByRole('heading', { name: 'Administradores' })).not.toBeInTheDocument();
-    expect(usuariosService.consultarAdministradoresAdministrador).not.toHaveBeenCalled();
-  });
-
-  it('clic en "Asesores" la monta y consulta una vez; volver a "Todos los usuarios" no repite la consulta', async () => {
-    const user = userEvent.setup();
-    render(<AdministradorView />);
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
-
-    await user.click(screen.getByRole('tab', { name: 'Asesores' }));
-
-    await waitFor(() =>
-      expect(usuariosService.consultarAsesoresAdministrador).toHaveBeenCalledTimes(1),
-    );
-    expect(screen.getByRole('heading', { name: 'Asesores' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('tab', { name: 'Todos los usuarios' }));
-
-    expect(usuariosService.consultarAsesoresAdministrador).toHaveBeenCalledTimes(1);
-  });
-
-  it('clic en "Asesores de ficha" la monta y consulta una vez; volver a "Todos los usuarios" no repite la consulta', async () => {
-    const user = userEvent.setup();
-    render(<AdministradorView />);
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
-
-    await user.click(screen.getByRole('tab', { name: 'Asesores de ficha' }));
-
-    await waitFor(() =>
-      expect(usuariosService.consultarAsesoresFichaAdministrador).toHaveBeenCalledTimes(1),
-    );
-    expect(screen.getByRole('heading', { name: 'Asesores de ficha' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('tab', { name: 'Todos los usuarios' }));
-
-    expect(usuariosService.consultarAsesoresFichaAdministrador).toHaveBeenCalledTimes(1);
-  });
-
-  it('clic en "Representantes del comité" la monta y consulta una vez; volver a "Todos los usuarios" no repite la consulta', async () => {
-    const user = userEvent.setup();
-    render(<AdministradorView />);
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
-
-    await user.click(screen.getByRole('tab', { name: 'Representantes del comité' }));
-
-    await waitFor(() =>
-      expect(usuariosService.consultarRepresentantesComiteAdministrador).toHaveBeenCalledTimes(1),
-    );
-    expect(screen.getByRole('heading', { name: 'Representantes del comité' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('tab', { name: 'Todos los usuarios' }));
-
-    expect(usuariosService.consultarRepresentantesComiteAdministrador).toHaveBeenCalledTimes(1);
-  });
-
-  it('clic en "Administradores" la monta y consulta una vez; volver a "Todos los usuarios" no repite la consulta', async () => {
-    const user = userEvent.setup();
-    render(<AdministradorView />);
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
-
-    await user.click(screen.getByRole('tab', { name: 'Administradores' }));
-
-    await waitFor(() =>
-      expect(usuariosService.consultarAdministradoresAdministrador).toHaveBeenCalledTimes(1),
-    );
-    expect(screen.getByRole('heading', { name: 'Administradores' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('tab', { name: 'Todos los usuarios' }));
-
-    expect(usuariosService.consultarAdministradoresAdministrador).toHaveBeenCalledTimes(1);
-  });
-
-  it('clic en "Coordinadores" la monta y consulta por primera vez; volver a "Todos los usuarios" no repite la consulta', async () => {
-    const user = userEvent.setup();
-    render(<AdministradorView />);
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
-
-    await user.click(screen.getByRole('tab', { name: 'Coordinadores' }));
-
-    await waitFor(() =>
-      expect(usuariosService.consultarCoordinadoresAdministrador).toHaveBeenCalledTimes(1),
-    );
-    expect(screen.getByRole('heading', { name: 'Coordinadores' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('tab', { name: 'Todos los usuarios' }));
-
+    // Assert
     expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1);
-  });
-
-  it('"Registrar usuario" sigue visible al cambiar de pestaña', async () => {
-    const user = userEvent.setup();
-    render(<AdministradorView />);
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
-
-    await user.click(screen.getByRole('tab', { name: 'Coordinadores' }));
-
-    expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
+    expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledWith({
+      pagina: 0,
+      tamanio: 10,
+      ordenamiento: ['nombre:ASC'],
+      filtros: undefined,
+    });
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { level: 1, name: 'Usuarios' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 
   it('alterna el botón "Registrar usuario" con el formulario al abrir y cerrar', async () => {
+    // Arrange
     const user = userEvent.setup();
     render(<AdministradorView />);
-    await waitFor(() =>
-      expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1),
-    );
+    await screen.findByRole('table', { name: 'Usuarios' });
 
+    // Act
     await user.click(screen.getByRole('button', { name: /registrar usuario/i }));
 
+    // Assert
     expect(screen.queryByRole('button', { name: /registrar usuario/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^registrar$/i })).toBeInTheDocument();
 
+    // Act
     await user.click(screen.getByRole('button', { name: /cancelar/i }));
 
+    // Assert
     expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^registrar$/i })).not.toBeInTheDocument();
+  });
+
+  it('el vacío "Aún no hay usuarios" ofrece "Registrar usuario" y abre el formulario', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.consultarUsuariosAdministrador).mockResolvedValue(crearPagina([]));
+    render(<AdministradorView />);
+    await screen.findByText('Aún no hay usuarios');
+    const botones = screen.getAllByRole('button', { name: /registrar usuario/i });
+    expect(botones).toHaveLength(2);
+
+    // Act
+    await user.click(botones[1]);
+
+    // Assert
+    expect(screen.getByRole('button', { name: /^registrar$/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /registrar usuario/i })).toHaveLength(1);
   });
 });
