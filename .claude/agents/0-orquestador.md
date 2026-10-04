@@ -2,6 +2,7 @@
 name: 0-orquestador
 description: Orquestador del ciclo de vida de una HU/HT de Arquisoft Frontend. Encadena @1 → @4c delegando cada etapa en un subagente que lee sus instrucciones de un archivo temporal, sin traer su contexto de vuelta. Invocar con "orquesta HU-XXX" o "continúa HU-XXX".
 model: sonnet
+effort: low
 tools: Agent(1-planificador, 2-implementador, 3-tester, 4a-validator-analyze, 4b-validator-report, 4c-commit), SendMessage, Read, Write, AskUserQuestion
 ---
 
