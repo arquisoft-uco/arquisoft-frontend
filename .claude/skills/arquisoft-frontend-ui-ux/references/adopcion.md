@@ -99,8 +99,8 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 | `fichas-perfil/…/MiFichaHeader.tsx`, `EstudianteView.tsx` | Hecho en HT-UX-07: `MiFichaHeader`, `EstadosMiFichaPanel`, `RevisionesMiFichaPanel` y `EvaluacionesMiFichaPanel` se eliminaron; `EstudianteView` compone `PageHeader`, `Tabs` en modo `tablist` y `ResumenFichaPanel` con «Equipo» (de `integrantes`), y los formularios de ítem y título son `SidePanel` | 4 |
 | `fichas-perfil/…/AsesorFichaView.tsx`, `TiposItemPanel.tsx`, `DetalleFichaAsesor.tsx`, `DetalleFichaRepresentante.tsx` | Hecho en HT-UX-06: el detalle del asesor y del representante es la ruta `/fichas-perfil/:id/{items,estados,evaluaciones}` (`DetalleFicha`, `DetalleFichaEstructura`, `AsesorFichaDetalleView`, `RepresentanteDetalleView`); los dos `DetalleFicha*` se eliminaron, `AsesorFichaView` guarda la pestaña en `?vista` y `TiposItemPanel` es una lista que abre `AyudaTiposItem` | 4 |
 | `solicitudes/…/EnviarSolicitudNovedadForm.tsx` | `Field`, `FormSection` | 3 |
-| `dashboard/Dashboard.tsx` | Inicio por rol | 4 |
-| `layout/Sidebar.tsx`, `layout/Header.tsx`, `layout/nav-items.ts` | Grupos del menú, avatar, `disponible` | 4 |
+| `dashboard/Dashboard.tsx` | Hecho en HT-UX-08: fan-out por rol (`EstudianteView`, `RepresentanteView`, `AdministradorView`, `BasicaView`) sobre un `dashboardService` propio; se borraron `hero-gradient`, `hero-pattern` y `quick-card` | 4 |
+| `layout/Sidebar.tsx`, `layout/Header.tsx`, `layout/nav-items.ts` | Hecho en HT-UX-08: `Sidebar` con `SidebarGrupo` («Trabajo» y «Próximamente»), `Header` partido en `SelectorRol` y `MenuCuenta` (con `Avatar`), `NavItem.disponible` y los helpers `estaDisponible`, `navItemsDelRol` y `agruparNavItems` | 4 |
 | `shared/components/ConfirmDialog.tsx`, `Toaster.tsx`, `PageSkeleton.tsx`, `AvisoNoDisponible.tsx`, `ComingSoon.tsx`, `PaginadorListado.tsx` | Se actualizan en su sitio | 0 a 3 |
 
 ## Cómo se sabe que funcionó

@@ -152,7 +152,7 @@ Layout       principal                                  | lateral (resumen)
 - **Dos grupos:** «Trabajo» (módulos con pantalla) y «Próximamente» (los que no, en tono atenuado y sin enlace).
   `NavItem` gana `disponible?: boolean` (por defecto `true`); la HU que entrega el primer pantallazo de un
   módulo lo pone en `true` (o quita la propiedad) y lo declara en la sección 8 del plan. La ruta del módulo vacío
-  sigue existiendo por URL, con un `EmptyState` en lugar de `ComingSoon`, pero **no es destino del menú**.
+  sigue existiendo por URL y muestra `ComingSoon` (escrito sobre `PageHeader` y `EmptyState`, con «Volver al inicio»), pero **no es destino del menú**.
 - Etiquetas de grupo y de ítem de al menos 12 px; ítems de 40 px. El encabezado conserva el selector de rol y
   muestra el avatar con las iniciales (`Avatar`); el título de la página lo pone `PageHeader`, no el encabezado.
 
