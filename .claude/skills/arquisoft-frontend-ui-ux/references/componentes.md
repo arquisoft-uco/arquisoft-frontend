@@ -57,7 +57,7 @@ página. Lo que sigue es la receta para escribir lo que falte.
 | `Button`, `IconButton`, `Badge` (+ `estado-variante.ts`), `Field`, `Notice`, `EmptyState`, `ErrorState`, `Skeleton`, `LoadingState`, `PageHeader`, `Avatar`, `Tabs`, `Segmented` | `src/shared/components/ui/` | Usuarios y Fichas ya las necesitan |
 | `DataTable`, `FilterBar`, `RowMenu`, `FormSection`, `FormActions`, `ErrorSummary` | `src/shared/components/ui/` | Usuarios y Fichas tienen listados y formularios |
 | `PaginadorListado` ampliado | se queda en `src/shared/components/` | Ya lo importan dos features |
-| `SidePanel` | `src/shared/components/ui/` | Excepción de la adopción a la regla de abajo: hoy solo Usuarios lo usa, pero su segundo consumidor llega en HT-UX-04 |
+| `SidePanel` | `src/shared/components/ui/` | Excepción de la adopción a la regla de abajo: nació con Usuarios (HT-UX-03) y su segundo consumidor, `fichas-perfil` (paneles «Estudiantes de la ficha» y «Cambiar asesor» del coordinador), llegó en HT-UX-04 |
 | `Switch` | `features/usuarios/components/` | Solo Usuarios lo usa al principio |
 | `Combobox` | `features/fichas-perfil/components/` | Solo Fichas lo usa al principio |
 | `ConfirmDialog`, `Toaster`, `PageSkeleton`, `AvisoNoDisponible`, `ComingSoon` | siguen en `src/shared/components/` | Se **actualizan en su sitio**; no se mueven |
@@ -406,16 +406,23 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
 
 - **Reemplaza:** `FiltrosUsuariosPanel`, el formulario de filtros de `ConsultarFichasRepresentante`, el de
   `EstadosFichasAsesorPanel` y las pestañas por rol de Usuarios.
-- **Archivos:** `FilterBar.tsx` (la tarjeta, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo,
-  con su borrador y su retardo), `FilterChip.tsx` (chip de selección, `aria-pressed`; declara `OpcionFiltro = { id; etiqueta }`) y
-  `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón «Filtros», y declara `SeccionFiltro` y
-  `OrdenFiltro`). `FilterBar` reexporta los tres tipos.
+- **Archivos:** `FilterBar.tsx` (la tarjeta, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo; su
+  borrador y su retardo viven en el hook `useTextoConRetardo`), `FilterChip.tsx` (chip de selección, `aria-pressed`; declara
+  `OpcionFiltro = { id; etiqueta }`), `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón
+  «Filtros»), `FilterBarSecciones.tsx` (declara `SeccionFiltro` —unión de tres tipos— y `OrdenFiltro`; trae `SeccionChips`,
+  `SeccionDeFiltro`, que despacha por `tipo`, y `limpiarSeccion`) y `FilterBarSeccionTexto.tsx` (la sección de texto).
+  `FilterBar` y `FilterBarPanel` reexportan los tipos.
 - **API:** `busqueda: { valor; onCambiar; etiqueta; placeholder }`, `chips?: { etiqueta; opciones; seleccionados; onAlternar(id);
   onTodos() }`, `popover?: { secciones: SeccionFiltro[] }`, `orden?: OrdenFiltro`, `aplicados: { id; etiqueta; onQuitar }[]`,
-  `onLimpiar` y `totalResultados?: number`. `SeccionFiltro = { id; etiqueta; opciones; valor; onCambiar(id); deshabilitada?; aviso? }`
-  es de **selección única**: `valor` es el `id` elegido, «Todos» es una opción más (con `id` vacío) que pone quien la usa y `''`
-  significa «sin filtro»; `deshabilitada` deshabilita los chips de la sección y `aviso` (un `ReactNode`, por ejemplo
-  `AvisoNoDisponible`) se dibuja debajo. `OrdenFiltro = { etiqueta; opciones; valor; onCambiar(id) }` es la sección «Ordenar por» de
+  `onLimpiar` y `totalResultados?: number`. `SeccionFiltro` es una unión por `tipo`, todas con `id` y `etiqueta`: **opciones** (`tipo?: 'opciones'`, el ausente; `opciones`, `valor`,
+  `onCambiar(id)`, `deshabilitada?`, `aviso?`) es de **selección única**: `valor` es el `id` elegido, «Todos» es una opción más (con `id`
+  vacío) que pone quien la usa y `''` significa «sin filtro»; **multiple** (`tipo: 'multiple'`, `opciones`, `valores: string[]`,
+  `onAlternar(id)`, `onLimpiar()`, `deshabilitada?`, `aviso?`) pinta chips con `aria-pressed` y **sin «Todos»**: sin selección significa
+  todos; **texto** (`tipo: 'texto'`, `valor`, `onCambiar(texto)`, `placeholder?`) pinta una etiqueta y un `field-input` con el mismo
+  retardo de 300 ms que la búsqueda (`useTextoConRetardo`) y sin ✕ propio (se vacía con «Limpiar» o con el ✕ del filtro aplicado).
+  `deshabilitada` deshabilita los chips de la sección y `aviso` (un `ReactNode`, por ejemplo `AvisoNoDisponible` o un `Notice`) se
+  dibuja debajo. Un borrador de texto con el retardo pendiente se pierde si se cierra el popover antes de 300 ms (el panel solo se
+  monta abierto). `OrdenFiltro = { etiqueta; opciones; valor; onCambiar(id) }` es la sección «Ordenar por» de
   la hoja y se ve **solo bajo 640 px**: la tabla pasa a tarjetas sin cabecera y sin ella no habría cómo ordenar. `totalResultados`
   da el «Ver N resultados» del pie del panel.
 - **Búsqueda:** el campo (`type="text"`, `inputMode="search"`, `autoComplete="off"`; su etiqueta va en un `<label>` `sr-only`) se
@@ -438,9 +445,9 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
 - **Panel:** un solo `div role="dialog" aria-label="Filtros"` con `tabIndex={-1}` y **sin `aria-modal`** (la hoja es modal solo en
   celular y eso lo decide el CSS), para celular y escritorio. Bajo 640 px es una hoja inferior (`fixed`) con su telón, una
   cabecera «Filtros y orden» y el cierre «Cerrar filtros» (`IconButton` de 44 px), y **atrapa el foco**; desde `sm` es un popover
-  `absolute` anclado al botón (de ahí `fwrap`) y **no es modal**. El cuerpo trae una sección de
-  chips de selección única por `SeccionFiltro` (`role="group"` con `aria-labelledby` hacia su etiqueta) y, solo en celular, la de
-  `orden`; el pie, «Limpiar» (`Button` fantasma que llama a `onCambiar('')` de cada sección; deshabilitado sin aplicados) y un
+  `absolute` anclado al botón (de ahí `fwrap`) y **no es modal**. El cuerpo trae una sección por
+  `SeccionFiltro` (chips de selección única o múltiple en un `role="group"` con `aria-labelledby` hacia su etiqueta, o un campo de texto) y, solo en celular, la de
+  `orden`; el pie, «Limpiar» (`Button` fantasma que recorre `limpiarSeccion`: `onCambiar('')` en opciones y en texto, `onLimpiar()` en múltiple; deshabilitado sin aplicados) y un
   `Button` primario «Ver N resultados» («Ver 1 resultado»; «Sin resultados» con 0; «Listo» sin `totalResultados`) que cierra.
 - **Foco y cierre:** el panel usa `useTrampaDeFoco` (ver «useTrampaDeFoco», en «Formularios y superposiciones») con `retorno` = el
   botón «Filtros», `alEscape` = cerrar y `esModal` = «el telón se ve» (`getComputedStyle(telón).display !== 'none'`): así la trampa
@@ -458,8 +465,10 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
     botón. Un clic fuera (`useClicFuera`, de `src/shared/hooks/`) lo cierra **sin** mover el foco: queda en el control que se
     pulsó, o en el `body` si fue una zona sin controles.
 - **Límites que quedan:** el panel no declara `aria-modal`; quitar un filtro con su ✕ o con «Limpiar todo» deja el foco en el
-  `body` (el control desaparece); y las áreas táctiles de 44 px son de HT-UX-09: en celular, el ✕ de un filtro aplicado (24 px),
-  «Limpiar todo» (línea de 20 px) y el ✕ del buscador (36 px) miden menos.
+  `body` (el control desaparece). Las áreas táctiles de 44 px en celular las resolvió HT-UX-04: el ✕ de un filtro aplicado, «Limpiar
+  todo» y el ✕ del buscador (recetas `quitar`, `aplicado`, `limpiarTodo` y `limpiarBusqueda`). El relleno derecho del campo
+  (`field-input--accion`, 40 px) queda 4 px por debajo del ✕ de 44 px del buscador; si se ve texto bajo el ✕, el arreglo es subir ese
+  relleno a 2.75rem solo en celular.
 - **Estado:** vive en el hook del listado (o en la URL, ver `patrones.md`), nunca dentro del panel; cualquier cambio de filtro,
   búsqueda u orden vuelve a la página 0.
 
@@ -472,16 +481,16 @@ FilterBar.contador | inline-flex h-5 min-w-5 items-center justify-center rounded
 FilterBar.busqueda | relative min-w-0 flex-[1_1_17.5rem]
 FilterBar.busquedaIcono | pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary
 FilterBar.busquedaInput | field-input field-input--icono field-input--accion
-FilterBar.limpiarBusqueda | absolute right-1 top-1/2 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-on-surface-secondary hover:bg-muted
+FilterBar.limpiarBusqueda | absolute right-0 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-on-surface-secondary hover:bg-muted sm:right-1 sm:size-9
 FilterBar.chips | flex gap-2 overflow-x-auto -mx-4 px-4 py-1 -my-1 sm:mx-0 sm:my-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:py-0
 FilterBar.chip | inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:h-9
 FilterBar.chipInactivo | border-border-strong bg-surface text-on-surface enabled:hover:bg-muted
 FilterBar.chipActivo | border-primary bg-primary-muted text-primary-muted-foreground hover:bg-primary-muted
 FilterBar.aplicados | flex flex-wrap items-center gap-2 border-t border-border pt-3
 FilterBar.aplicadosEtiqueta | text-sm text-on-surface-secondary
-FilterBar.aplicado | inline-flex h-8 items-center gap-1 rounded-full bg-primary-muted pl-3 pr-1 text-sm font-medium text-primary-muted-foreground
-FilterBar.quitar | inline-flex size-6 items-center justify-center rounded-full hover:bg-primary/10
-FilterBar.limpiarTodo | text-sm font-semibold text-primary underline underline-offset-4
+FilterBar.aplicado | inline-flex h-11 items-center gap-1 rounded-full bg-primary-muted pl-3 pr-1 text-sm font-medium text-primary-muted-foreground sm:h-8
+FilterBar.quitar | inline-flex size-11 items-center justify-center rounded-full hover:bg-primary/10 sm:size-6
+FilterBar.limpiarTodo | inline-flex items-center text-sm font-semibold text-primary underline underline-offset-4 max-sm:min-h-11
 FilterBar.panel | fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col rounded-t-2xl bg-surface shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:bottom-auto sm:top-full sm:z-30 sm:mt-2 sm:max-h-none sm:w-85 sm:max-w-[calc(100vw-3rem)] sm:rounded-xl sm:border sm:border-border sm:shadow-dropdown
 FilterBar.telon | fixed inset-0 z-40 bg-black/40 animate-fade-in sm:hidden
 FilterBar.panelCabecera | flex shrink-0 items-center justify-between py-1 pl-5 pr-2 sm:hidden
@@ -514,7 +523,8 @@ FilterBar.panelCierre | grow sm:grow-0
 - **`chip` suma `shrink-0` y el estado deshabilitado** (`disabled:cursor-not-allowed disabled:opacity-50`, más el `enabled:hover:`
   del inactivo): `shrink-0` deja cada chip a su ancho dentro del carril desplazable y el estado deshabilitado lo exige
   `SeccionFiltro.deshabilitada`.
-- **Pruebas:** escribir y esperar el retardo antes de llamar a `onCambiar`; quitar un aplicado; «Limpiar todo».
+- **Áreas táctiles (HT-UX-04):** bajo 640 px el chip aplicado crece a `h-11` y su ✕ a `size-11` (44 px); «Limpiar todo» fija `max-sm:min-h-11` y el ✕ del buscador `size-11` pegado al borde (`right-0`). Desde `sm` quedan en 32, 24, 20 y 36 px, como antes.
+- **Pruebas:** escribir y esperar el retardo antes de llamar a `onCambiar`; quitar un aplicado; «Limpiar todo»; en las secciones, texto con retardo, alternar una múltiple y «Limpiar». Las áreas táctiles no se prueban en jsdom (sin layout).
 
 ### RowMenu
 
@@ -578,7 +588,7 @@ RowMenu.separador | my-1.5 h-px bg-border
   `<button>` o `<Link>`, no una fila con `onClick`.
 - **Archivos:** `DataTable.tsx` (la tabla, el esqueleto y el vacío), `DataTableCabecera.tsx` (el `<thead>`; declara los tipos) y
   `DataTableTarjetas.tsx` (la lista de celular). Es el **único** archivo que puede escribir `<table`: `src/arquitectura.test.ts`
-  rechaza otra, y la deuda que queda (las tablas de `fichas-perfil`) vive en su baseline.
+  rechaza otra, y ya no queda deuda de tablas en el baseline.
 
 ```clases
 DataTable.contenedor | sm:overflow-hidden sm:rounded-xl sm:border sm:border-border sm:bg-surface sm:shadow-card
@@ -630,8 +640,7 @@ DataTable.subtexto | block truncate text-[13px] text-on-surface-secondary
 
 - **No se crea `Pagination`:** se amplió `src/shared/components/PaginadorListado.tsx` con el mismo nombre y las props de hoy (`page`,
   desde 0; `pageSize`, `totalPages`, `totalElements`, `cantidadEnPagina`, `etiquetaPlural` y `onPageChange(page)`). Las tres copias
-  en línea (`FichasPerfilTable`, `ConsultarFichasRepresentante`, `ConsultarFichasAsesor`) las borra HT-UX-04, cuando migren esos
-  listados.
+  en línea (`FichasPerfilTable`, `ConsultarFichasRepresentante`, `ConsultarFichasAsesor`) las borró HT-UX-04.
 - **Añade:** números de página con puntos suspensivos y `aria-current="page"`; en celular, «Página 2 de 10» entre dos flechas de
   44 px. Sigue ocultándose (devuelve `null`) con una sola página.
 - **Todavía no:** el selector «Filas» (`tamanosDisponibles?` y `onTamanoChange?`) no existe; se agrega cuando el backend admita

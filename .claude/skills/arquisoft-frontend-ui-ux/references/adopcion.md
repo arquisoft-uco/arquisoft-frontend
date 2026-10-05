@@ -78,7 +78,7 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 | Ninguna utilidad de color cuya variable `--color-*` no exista en `@theme` (se vigilan los nombres de convención shadcn: `muted`, `muted-foreground`, `accent`, `card`, `popover`, `foreground`, `input`, `destructive`, `success`, `warning`, `info`) | Paso 0 | 47 usos de `bg-muted` en 21 archivos y 1 de `text-warning` |
 | Un solo spinner: se prohíbe `animate-spin rounded-full border` fuera de `shared/components/ui/` | Paso 1 | 19 copias en 18 archivos (11 con `border-4` y 8 con `border-2`) |
 | Nada por debajo de 12 px: se prohíben `text-[9px]`, `text-[10px]` y `text-[11px]` | Paso 1 | 16 usos |
-| Tablas solo con `DataTable`: se prohíbe `<table` en las features | Paso 2 | 7 tablas (5 tras HT-UX-02: las de `fichas-perfil`) |
+| Tablas solo con `DataTable`: se prohíbe `<table` en las features | Paso 2 | 7 tablas (5 tras HT-UX-02; 0 tras HT-UX-04) |
 
 ## Qué archivo se migra a qué
 
@@ -91,8 +91,9 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 | `usuarios/…/RolesUsuarioFieldset.tsx`, `ConfirmarRemoverRolDialog.tsx` | Eliminados en HT-UX-03: `Switch` y `ConfirmDialog` | 3 |
 | `usuarios/…/EstadoUsuarioFieldset.tsx` | Eliminado en HT-UX-03: pestaña «Acceso» | 3 |
 | `usuarios/…/CampoTexto.tsx` | Eliminado en HT-UX-03: `Field` | 1 |
-| `fichas-perfil/…/FichasPerfilTable.tsx`, `ConsultarFichasPerfilCoordinador.tsx`, `ConsultarFichasAsesor.tsx`, `ConsultarFichasRepresentante.tsx`, `EstadosFichasAsesorPanel.tsx` | `DataTable` y `FilterBar` | 2 |
-| `fichas-perfil/…/EstudiantesVinculadosPanel.tsx`, `AsignarEstudianteForm.tsx`, `CambiarAsesorForm.tsx` | Panel lateral o sección del detalle (lo decide su plan) | 3 o 4 |
+| `fichas-perfil/…/FichasPerfilTable.tsx`, `ConsultarFichasPerfilCoordinador.tsx`, `ConsultarFichasAsesor.tsx`, `ConsultarFichasRepresentante.tsx`, `EstadosFichasAsesorPanel.tsx` | `DataTable` y `FilterBar` (hecho en HT-UX-04; `FilterBar` ganó las secciones `texto` y `multiple`) | 2 |
+| `fichas-perfil/…/CoordinadorView.tsx`, `AsesorFichaView.tsx`, `RepresentanteView.tsx` | `PageHeader` con el `<h1>` del módulo (hecho en HT-UX-04; `CoordinadorView` conserva `RegistrarFichaPerfil` encima de la lista hasta el paso 3) | 2 |
+| `fichas-perfil/…/EstudiantesVinculadosPanel.tsx`, `AsignarEstudianteForm.tsx`, `CambiarAsesorForm.tsx` | Hecho en HT-UX-04: `EstudiantesVinculadosPanel` y `CambiarAsesorPanel` (reemplaza a `CambiarAsesorForm`) en `SidePanel`; `AsignarEstudianteForm` restilado con el kit | 3 o 4 |
 | `fichas-perfil/…/RegistrarFichaPerfil.tsx`, `SelectorAsesorFicha.tsx` | Página `/fichas-perfil/nueva` con `Combobox` | 3 |
 | `fichas-perfil/…/EstadosEvaluacionPanel.tsx` | `Badge` | 1 |
 | `fichas-perfil/…/MiFichaHeader.tsx`, `EstudianteView.tsx`, `AsesorFichaView.tsx`, `DetalleFichaAsesor.tsx`, `DetalleFichaRepresentante.tsx`, `TiposItemPanel.tsx` | Detalle con ruta | 4 |

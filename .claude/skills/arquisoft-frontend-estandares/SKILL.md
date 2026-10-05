@@ -264,7 +264,7 @@ Obligatoria desde el primer commit:
 - Campo con error: `aria-invalid={!!errors.campo}` + `aria-describedby` al `id` del mensaje.
   `RegistrarFichaPerfil` es la referencia completa.
 - `<label htmlFor>` con `id` en cada campo; si el control no es un input, contenedor con `aria-labelledby`.
-- `aria-expanded` en botones que despliegan (`FichasPerfilTable`).
+- `aria-expanded` en botones que despliegan (el botón «Filtros» de `FilterBar`).
 - Tablas: `<table aria-label>` y `<th scope="col">`.
 - Nunca un `<div>` con `onClick` haciendo de botón.
 

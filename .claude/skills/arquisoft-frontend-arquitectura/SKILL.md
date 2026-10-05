@@ -216,7 +216,7 @@ deduce del nombre:
 | `shared/utils/monitoring.ts` | `captureError`, `captureHttpError` — único punto de integración con Sentry |
 | `shared/validation/` | `LIMITES`, `MENSAJES_VALIDACION`, regex, builders Zod; barril en `index.ts` |
 | `shared/hooks/useToast.ts` | Singleton `toast.success/info/error`, usable fuera de React |
-| `shared/hooks/` | `useDebouncedValue` (retardo de 300 ms de las búsquedas), `useClicFuera` (cierre por clic fuera de menús y paneles) y `useTrampaDeFoco` (foco inicial, Tab, Esc y retorno del foco de paneles, diálogos y hojas, con pila de capas) |
+| `shared/hooks/` | `useDebouncedValue` (retardo de 300 ms de las búsquedas), `useTextoConRetardo` (borrador de texto con retardo de los filtros), `useClicFuera` (cierre por clic fuera de menús y paneles) y `useTrampaDeFoco` (foco inicial, Tab, Esc y retorno del foco de paneles, diálogos y hojas, con pila de capas) |
 | `shared/utils/estado-variante.ts` | Tabla estado → variante de `Badge` por `id` del backend: ficha, evaluación y usuario |
 | `shared/stores/toastStore.ts` | Store del toaster, duración por nivel |
 | `shared/components/` | Estados de página (`PageSkeleton`, `AvisoNoDisponible`, `ComingSoon`, `ForbiddenPage`), error boundaries, `ConfirmDialog`, `Toaster`, `PaginadorListado` |
