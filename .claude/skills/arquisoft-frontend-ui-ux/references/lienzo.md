@@ -41,7 +41,7 @@
 | `Listado-Movil` (interactivo) | Tarjetas, chips con desplazamiento y hoja inferior de filtros | Versión de celular |
 | `Panel-Crear` | Registrar usuario en panel lateral de 560 px | Estructura de un formulario en panel |
 | `Panel-Editar` (interactivo) | Edición con pestañas Datos, Roles y Acceso; interruptores; «Dar de baja» | Los tres modelos de guardado |
-| `Ficha-Formulario` | Nueva ficha en página con `Combobox`, estudiantes con tope y resumen | Formulario en página |
+| `Ficha-Formulario` | Nueva ficha en página con `Combobox`, estudiantes con tope y resumen | Formulario en página (obsoleto en este punto desde 2026-10-04: la ficha se registra en panel) |
 | `Formulario-Movil` | Registrar usuario a pantalla completa con pie fijo | Formulario en celular |
 | `Detalle-Ficha` (interactivo) | Detalle con migas, pestañas, ítems y panel lateral | Patrón de detalle |
 | `Inicio` (interactivo) | Inicio por rol con el selector «Ver como» | Patrón de inicio y menú en dos grupos |
@@ -66,5 +66,5 @@ Cuando el lienzo y esta skill discrepan en un dato, **vale la skill**: se contó
 1. Un solo listado de usuarios con chips de rol en lugar de las seis pestañas (con la precondición de
    `patrones.md` §1).
 2. Roles como interruptores con efecto inmediato en lugar de casillas.
-3. Panel lateral para registrar y editar usuarios; página completa para registrar fichas.
+3. Panel lateral para registrar y editar usuarios; página completa para registrar fichas. **Revertida el 2026-10-04 (HT-UX-05-AJ1):** todo formulario de alta o edición, también el de fichas, es un panel lateral.
 4. Los módulos sin pantalla salen del menú y se agrupan en «Próximamente».

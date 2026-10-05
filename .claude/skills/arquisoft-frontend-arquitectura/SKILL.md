@@ -49,7 +49,7 @@ infraestructura que consumen las features, nunca al revés.
 ```
 src/features/fichas-perfil/
 ├── FichasPerfil.tsx              # Página: destino de ruta, resuelve la vista por rol
-├── NuevaFichaPerfil.tsx          # Destinos de ruta hija (con DetalleFicha.tsx)
+├── DetalleFicha.tsx              # Destino de ruta hija (detalle por :id)
 ├── components/
 │   ├── {Rol}View.tsx             # Una por rol
 │   ├── {Concepto}.tsx            # Lo que comparten dos o más vistas
@@ -98,7 +98,7 @@ React. Su import allí es **dinámico**: uno estático crea el ciclo `router →
 
 **Rutas hijas de un módulo.** Cuelgan de un padre con `guarded('{modulo}', <Outlet />)`, no llevan
 `NavItem` ni guardia propia, y el contenido que cambia por rol hace su fan-out dentro del hijo (ejemplo:
-`fichas-perfil/nueva`, cuyo hijo verifica `Rol.Coordinador` con `useHasRole`). Un detalle usa `:id` con
+`fichas-perfil/:id`). Un detalle usa `:id` con
 subrutas por pestaña (`fichas-perfil/:id/items`, `/estados`, `/evaluaciones`): `DetalleFicha` hace el fan-out por
 rol; `PestanaFicha` resuelve el panel por pestaña y rol, y redirige a `items` si no hay.
 

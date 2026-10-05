@@ -21,7 +21,7 @@ PaginadorListado   1–10 de 98 usuarios · ‹ 1 2 3 … ›
 - **Dónde vive el estado:** en el hook del listado (`use{Recurso}`), por encima de cualquier panel o
   formulario, como ya piden los estándares. Cualquier cambio de búsqueda, filtro u orden vuelve a la página 0.
   El valor con retardo es el que entra en la query key.
-- **Si el listado tiene rutas hijas** (detalle, formulario en página), el estado vive en la URL con
+- **Si el listado tiene rutas hijas** (detalle), el estado vive en la URL con
   `useSearchParams` (`q`, `rol`, `estado`, `vigencia`, `orden`, `pagina`): un estado en `useState` se pierde al
   desmontar la vista y «Volver» dejaría al usuario sin su filtro. Con panel lateral no hace falta, porque la
   lista no se desmonta.
@@ -81,12 +81,20 @@ FormActions  Cambios sin guardar                  [Cancelar] [Registrar usuario]
   - **Acceso:** el estado de la cuenta con radio y «Aplicar cambio de estado» (con confirmación) y, aparte, la
     zona «Dar de baja» (confirmación con consecuencias). Restaurar es volver el estado a `ACTIVO`, como hoy.
 - **Móvil:** el panel ocupa toda la pantalla; el pie queda fijo con el botón principal a ancho completo.
+- **Campos con `Combobox`** (asesor único, estudiantes múltiples con tope): también van en el panel
+  (`RegistrarFichaPerfilPanel`, segundo ejemplo tras `RegistrarUsuarioPanel`; el cierre y el éxito son los mismos:
+  `useNuevaFichaForm({ onCerrar })`). La lista se pinta flotante dentro del cuerpo con scroll del panel: no abre barra
+  horizontal (medido a 1280, 390 y 320 px) y, al ser parte del cuerpo, se alcanza haciendo scroll del panel. Con la lista
+  abierta, el primer Esc la cierra y el segundo cierra el panel (o pide descartar). Los `Combobox` van en las secciones
+  de más abajo para que la lista tenga sitio.
 
-## 3. Formulario en página
+## 3. Formulario en página (reservado)
 
-Para crear con **selectores de muchas opciones, más de cinco campos o varias secciones** (la ficha de perfil).
+**Patrón reservado, sin consumidor hoy.** Registrar una ficha de perfil lo era hasta HT-UX-05-AJ1 (2026-10-04) y pasó
+a §2: todo formulario de alta o edición es un `SidePanel`. Esta receta queda para un formulario de más de una pantalla
+o con revisión previa; mientras nadie la use, no se crea una ruta de formulario.
 
-- **Ruta hija del módulo** (`/fichas-perfil/nueva`), con migas «Fichas de perfil › Nueva ficha», un `<h1>` y una
+- **Ruta hija del módulo** (por ejemplo `/{modulo}/nueva`), con migas «Módulo › Nueva …», un `<h1>` y una
   descripción de una línea. Cuerpo con `Layout.contenedor`: tarjeta del formulario (máximo `max-w-3xl`) y, si
   aporta, un panel lateral de resumen con la lista de lo ya completo.
 - **Secciones** con `FormSection` («Proyecto», «Asesor», «Estudiantes»). Los selectores con muchas opciones son
@@ -95,7 +103,7 @@ Para crear con **selectores de muchas opciones, más de cinco campos o varias se
 - **Pie** con `FormActions`, sticky. Mismas reglas de validación, éxito y fallo que el panel; al registrar se
   vuelve al listado **con su filtro y página**, que sobreviven porque viven en la URL.
 - **Móvil:** una columna; el resumen baja debajo del formulario o se omite.
-- **Si el formulario lo abre un rol que ya es el asesor** (hoy ninguno: `asesorFijoId` salió con `RegistrarFichaPerfil`), el campo
+- **Si el formulario lo abre un rol que ya es el asesor** (hoy ninguno: `asesorFijoId` salió con el `RegistrarFichaPerfil` anterior), el campo
   asesor sería solo lectura con el texto «Eres tú», no un `select` deshabilitado.
 
 ## 4. Detalle con ruta

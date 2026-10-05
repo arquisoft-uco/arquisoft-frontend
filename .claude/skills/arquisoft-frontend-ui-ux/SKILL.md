@@ -1,6 +1,6 @@
 ---
 name: arquisoft-frontend-ui-ux
-description: Diseño UI/UX de Arquisoft Frontend — tokens, tipografía y voz, kit de componentes compartidos (Button, Badge, Field, Notice, EmptyState, ErrorState, Skeleton, Tabs, DataTable, FilterBar, SidePanel, Combobox, Switch), patrones de pantalla (listado con filtros, formulario en panel o en página, detalle con ruta, inicio por rol, estados) y las reglas que los gobiernan, con el lienzo de diseño aprobado como referencia pública de solo lectura. Cargar junto con arquisoft-frontend-arquitectura y arquisoft-frontend-estandares al planificar o implementar cualquier cosa que se vea: pantallas, listados, filtros, formularios, estados vacíos o de error, navegación o piezas de shared/components/ui.
+description: Diseño UI/UX de Arquisoft Frontend — tokens, tipografía y voz, kit de componentes compartidos (Button, Badge, Field, Notice, EmptyState, ErrorState, Skeleton, Tabs, DataTable, FilterBar, SidePanel, Combobox, Switch), patrones de pantalla (listado con filtros, formulario en panel lateral, detalle con ruta, inicio por rol, estados) y las reglas que los gobiernan, con el lienzo de diseño aprobado como referencia pública de solo lectura. Cargar junto con arquisoft-frontend-arquitectura y arquisoft-frontend-estandares al planificar o implementar cualquier cosa que se vea: pantallas, listados, filtros, formularios, estados vacíos o de error, navegación o piezas de shared/components/ui.
 ---
 
 # Skill: arquisoft-frontend-ui-ux
@@ -36,8 +36,8 @@ para implementar. Nunca publiques sobre él ni lo borres. Detalle y mapa de tabl
 2. **La acción principal, siempre en el mismo sitio:** arriba a la derecha de la cabecera de página o de panel; en
    celular baja a su propia línea (la cabecera envuelve) o es un botón de icono de 44 px.
 3. **Filtrar no es navegar.** Los filtros son chips y un popover; las pestañas cambian de sección y de URL.
-4. **El formulario no tapa la lista:** se abre en un panel lateral o en su propia página, nunca encima de lo que
-   ya se estaba viendo.
+4. **El formulario no tapa la lista:** se abre en un panel lateral, nunca encima de lo que ya se estaba viendo; la
+   página propia queda reservada para formularios de más de una pantalla.
 5. **Cada cosa se guarda de una sola manera, y la pantalla lo dice:** con el botón, al instante (interruptor y
    toast) o con confirmación.
 6. **Lo que no existe no se ofrece.** Un módulo o una pestaña sin pantalla no es destino de navegación: se agrupa
@@ -50,8 +50,8 @@ para implementar. Nunca publiques sobre él ni lo borres. Detalle y mapa de tabl
 | Situación | Patrón | Piezas |
 |---|---|---|
 | Lista de entidades, con o sin filtros | §1 Listado con filtros | `PageHeader`, `FilterBar`, `DataTable`, `PaginadorListado`, `RowMenu`, `Badge` |
-| Crear o editar desde un listado, hasta 5 campos simples | §2 Formulario en panel lateral | `SidePanel`, `FormSection`, `Field`, `FormActions`, `ErrorSummary` |
-| Crear con selectores de muchas opciones, más de 5 campos o varias secciones | §3 Formulario en página | `PageHeader`, `FormSection`, `Field`, `Combobox`, `FormActions` |
+| Crear o editar desde un listado, con campos simples o con `Combobox` | §2 Formulario en panel lateral | `SidePanel`, `FormSection`, `Field`, `Combobox`, `FormActions`, `ErrorSummary` |
+| Formulario de más de una pantalla o con revisión previa (reservado, sin consumidor hoy) | §3 Formulario en página | `PageHeader`, `FormSection`, `Field`, `FormActions` |
 | Ver una entidad con sus partes (ítems, estados…) | §4 Detalle con ruta | `PageHeader` con migas, `Tabs`, disposición con panel lateral |
 | Pantalla de entrada de cada rol | §5 Inicio por rol | Tarjetas, `Badge`, cifras de `totalElements` |
 | Menú lateral o encabezado | §6 | `NavItem.disponible`, `Avatar` |
@@ -114,7 +114,7 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
 4. Los tres estados y el degradado: esqueleto con la forma de la pantalla, vacío con siguiente paso, error con
    «Reintentar».
 5. Filtros al instante (el texto con retardo de 300 ms), lo aplicado visible y «Limpiar todo».
-6. Formulario en panel o página; error al salir del campo; resumen al fallar el envío; una forma de guardar por
+6. Formulario en panel lateral; error al salir del campo; resumen al fallar el envío; una forma de guardar por
    sección y dicha en pantalla.
 7. Mobile first verificado: sin scroll horizontal, tablas como tarjetas, áreas táctiles de 44 px.
 8. Teclado: el foco entra y sale de paneles, diálogos y menús, Esc cierra y el orden es lógico.

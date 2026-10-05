@@ -375,7 +375,7 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
 ### Combobox
 
 - **Reemplazó (HT-UX-05):** el `select` con «nombre — correo» (`SelectorAsesorFicha`) y el muro de botones para elegir
-  estudiantes (`RegistrarFichaPerfil`), ya eliminados. Lo usan `NuevaFichaAsesorSeccion`, `NuevaFichaEstudiantesSeccion`, `CambiarAsesorPanel` y `AsignarEstudianteForm`.
+  estudiantes (`RegistrarFichaPerfil`), ya eliminados. Lo usan `NuevaFichaAsesorSeccion` y `NuevaFichaEstudiantesSeccion` (dentro de `RegistrarFichaPerfilPanel`, HT-UX-05-AJ1), `CambiarAsesorPanel` y `AsignarEstudianteForm`.
 - **Cuándo:** hasta 5 opciones, radio o chips; de 6 a 8, `select` nativo; más de 8, o cuando hay que reconocer
   personas, `Combobox`.
 - **API:** `opciones: { id; etiqueta; descripcion? }[]`, `valor` (un `id` o `id[]`), `onCambiar`, `multiple?`,
@@ -387,7 +387,10 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
   última fila.
 - **Archivos:** `Combobox.tsx` (campo), `ComboboxLista.tsx` (listbox, «Agregada» y texto vacío), `ComboboxElegidos.tsx` (filas con ✕, contador y
   tarjeta única) y `useCombobox` (texto, filtrado, índice activo, teclado, clic fuera). Esc con la lista abierta llama `preventDefault()` para no
-  cerrar el `SidePanel` o el `ConfirmDialog` que la contiene.
+  cerrar el `SidePanel` o el `ConfirmDialog` que la contiene (dos pasos: la lista, luego el panel).
+- **Dentro de un `SidePanel`:** la lista flotante (`absolute inset-x-0 top-full`) vive en el cuerpo con scroll del panel: su ancho es el
+  del campo (sin barra horizontal) y se alcanza con el scroll del panel. Si en una pantalla futura la lista queda inalcanzable, la salida
+  prevista es pintarla en línea (empuja el contenido); hoy no hace falta.
 - **Comportamiento:** filtra en el cliente por etiqueta y descripción, sin distinguir mayúsculas ni tildes
   (normaliza con `NFD`). Lo elegido se ve debajo como filas con ✕ (`IconButton`, «Quitar a {nombre}») y un
   contador «2 de 3»; lo ya elegido aparece en la lista deshabilitado con «Agregada»; al llegar a `max` el
@@ -404,7 +407,7 @@ Combobox.icono | pointer-events-none absolute left-3 top-1/2 size-4 -translate-y
 Combobox.lista | absolute inset-x-0 top-full z-30 mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-border bg-surface p-1.5 shadow-dropdown
 Combobox.opcion | flex min-h-12 w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm cursor-pointer
 Combobox.opcionActiva | bg-muted
-Combobox.opcionAgregada | opacity-60
+Combobox.opcionAgregada | opacity-60 cursor-not-allowed
 Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input bg-surface py-2 pl-3 pr-2
 ```
 
@@ -929,11 +932,11 @@ Toast.cerrar | ml-auto inline-flex size-9 shrink-0 items-center justify-center r
   combinadas con `PageHeader.fila`, la clase global gana y los `items-end` y `gap-4` de la fila quedan inertes.
 - **API:** `titulo` (el `<h1>`), `descripcion?`, `acciones?: ReactNode`, `insignia?: ReactNode` (junto al `<h1>`, fuera de
   él; envuelve en celular), `meta?: ReactNode` (línea bajo el título, antes de la descripción) y
-  `migas?: { etiqueta; to?; onClick? }[]`.
+  `migas?: { etiqueta; to? }[]`.
 - **Reglas:** **un solo `<h1>` por pantalla**, aquí. La acción principal va a la derecha del título, dentro de
   `PageHeader.acciones` (varias acciones quedan a 8 px); si no cabe a su lado, la fila envuelve y baja bajo el
   título. En celular puede ser un `IconButton` de 44 px con `etiqueta` (por ejemplo «Registrar usuario») o un
-  `Button`. Las migas solo existen en pantallas con ruta hija (detalle, formulario en página):
+  `Button`. Las migas solo existen en pantallas con ruta hija (detalle):
   `<nav aria-label="Ruta de navegación">` con una lista; las intermedias son `Link` si traen `to`, la última lleva
   `aria-current="page"` y el separador es un `ChevronRight` decorativo.
 
@@ -954,10 +957,10 @@ PageHeader.migaActual | font-medium text-on-surface
 
 ### Disposición con panel lateral (receta, no es un componente)
 
-En `fichas-perfil` las cinco clases viven en `components/disposicion.ts` (`DISPOSICION`), que usan el formulario de ficha
-y el detalle; otra feature las copia a su propio módulo hasta tener un segundo consumidor.
+En `fichas-perfil` las cinco clases viven en `components/disposicion.ts` (`DISPOSICION`), que usan el detalle y el inicio
+del estudiante; otra feature las copia a su propio módulo hasta tener un segundo consumidor.
 
-Para el detalle de una entidad y para el formulario en página con resumen. Se acomoda sola: sin breakpoint, el
+Para el detalle de una entidad y para el inicio del estudiante. Se acomoda sola: sin breakpoint, el
 panel lateral baja debajo del contenido cuando no cabe a su lado.
 
 ```clases

@@ -54,10 +54,10 @@ completa para registrar fichas; (4) los módulos «Próximamente» salen del men
 
 - **Creó:** `SidePanel`, `Switch`, `FormSection`, `FormActions`, `ErrorSummary` y `Combobox`; actualizó
   `ConfirmDialog` y `Toaster` (y quitó el nivel `debug`).
-- **Migró:** registrar y editar usuario al panel (con las decisiones 2 y 3); registrar ficha a la página
-  `/fichas-perfil/nueva`.
-- **Routing:** esa ruta hija exigió reestructurar `router.tsx` a «padre con `guarded` + `<Outlet />` y rutas
-  hijas», y el estado de los listados pasó a la URL; ya está descrito en `arquisoft-frontend-arquitectura`
+- **Migró:** registrar y editar usuario al panel (con las decisiones 2 y 3); registrar ficha primero a una página y, en HT-UX-05-AJ1 (2026-10-04), a un
+  `SidePanel` como el resto de los formularios.
+- **Routing:** esa ruta hija (hoy eliminada) exigió reestructurar `router.tsx` a «padre con `guarded` + `<Outlet />` y rutas
+  hijas», que se conserva para el detalle; y el estado de los listados pasó a la URL; ya está descrito en `arquisoft-frontend-arquitectura`
   («Enrutamiento») y en el check 2.7 de `@4a`.
 - **Fuera de alcance:** el campo «UUID del coordinador» de `EnviarSolicitudNovedadForm` depende del backend (F5
   y B4 de `docs/pendientes.md`); solo se migra su aspecto.
@@ -98,7 +98,7 @@ Estado: todo hecho salvo `EnviarSolicitudNovedadForm`.
 | `fichas-perfil/…/FichasPerfilTable.tsx`, `ConsultarFichasPerfilCoordinador.tsx`, `ConsultarFichasAsesor.tsx`, `ConsultarFichasRepresentante.tsx`, `EstadosFichasAsesorPanel.tsx` | `DataTable` y `FilterBar` (hecho en HT-UX-04; `FilterBar` ganó las secciones `texto` y `multiple`) | 2 |
 | `fichas-perfil/…/CoordinadorView.tsx`, `AsesorFichaView.tsx`, `RepresentanteView.tsx` | `PageHeader` con el `<h1>` del módulo (hecho en HT-UX-04; el formulario de ficha ya no va encima de la lista: hecho en HT-UX-05) | 2 |
 | `fichas-perfil/…/EstudiantesVinculadosPanel.tsx`, `AsignarEstudianteForm.tsx`, `CambiarAsesorForm.tsx` | Hecho en HT-UX-04: `EstudiantesVinculadosPanel` y `CambiarAsesorPanel` (reemplaza a `CambiarAsesorForm`) en `SidePanel`; `AsignarEstudianteForm` restilado con el kit. HT-UX-05: ambos usan `Combobox` | 3 o 4 |
-| `fichas-perfil/…/RegistrarFichaPerfil.tsx`, `SelectorAsesorFicha.tsx` | Hecho en HT-UX-05: eliminados; página `/fichas-perfil/nueva` con `Combobox` (`NuevaFichaPerfil`) | 3 |
+| `fichas-perfil/…/RegistrarFichaPerfil.tsx`, `SelectorAsesorFicha.tsx` | Hecho en HT-UX-05: eliminados; HT-UX-05-AJ1: registrar ficha en `SidePanel` con `Combobox` (`RegistrarFichaPerfilPanel`), sin página | 3 |
 | `fichas-perfil/…/EstadosEvaluacionPanel.tsx` | `Badge` (ya lo usaba); HT-UX-06 le sumó `ErrorState` con reintento y `EmptyState` | 1 |
 | `fichas-perfil/…/MiFichaHeader.tsx`, `EstudianteView.tsx` | Hecho en HT-UX-07: `MiFichaHeader`, `EstadosMiFichaPanel`, `RevisionesMiFichaPanel` y `EvaluacionesMiFichaPanel` se eliminaron; `EstudianteView` compone `PageHeader`, `Tabs` en modo `tablist` y `ResumenFichaPanel` con «Equipo» (de `integrantes`), y los formularios de ítem y título son `SidePanel` | 4 |
 | `fichas-perfil/…/AsesorFichaView.tsx`, `TiposItemPanel.tsx`, `DetalleFichaAsesor.tsx`, `DetalleFichaRepresentante.tsx` | Hecho en HT-UX-06: el detalle del asesor y del representante es la ruta `/fichas-perfil/:id/{items,estados,evaluaciones}` (`DetalleFicha`, `DetalleFichaEstructura`, `AsesorFichaDetalleView`, `RepresentanteDetalleView`); los dos `DetalleFicha*` se eliminaron, `AsesorFichaView` guarda la pestaña en `?vista` y `TiposItemPanel` es una lista que abre `AyudaTiposItem` | 4 |
