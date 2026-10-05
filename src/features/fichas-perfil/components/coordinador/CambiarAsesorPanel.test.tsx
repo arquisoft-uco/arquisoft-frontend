@@ -54,8 +54,8 @@ function renderizar(onCerrar = vi.fn()) {
 }
 
 async function elegirALuis(user: ReturnType<typeof userEvent.setup>) {
-  const select = await screen.findByRole('combobox', { name: 'Nuevo asesor' });
-  await user.selectOptions(select, await screen.findByRole('option', { name: /Luis Gómez/ }));
+  await user.click(await screen.findByRole('combobox', { name: 'Nuevo asesor' }));
+  await user.click(await screen.findByRole('option', { name: /Luis Gómez/ }));
 }
 
 describe('CambiarAsesorPanel', () => {
@@ -70,11 +70,12 @@ describe('CambiarAsesorPanel', () => {
     const user = userEvent.setup();
     renderizar();
     const panel = within(screen.getByRole('dialog', { name: 'Cambiar asesor' }));
+    await user.click(screen.getByRole('combobox', { name: 'Nuevo asesor' }));
 
     // Assert
     expect(panel.getByText('Sistema de monitoreo')).toBeInTheDocument();
     expect(panel.getByText(/Asesor actual: Ana Pérez/)).toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: /Ana Pérez —/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /Ana Pérez/ })).not.toBeInTheDocument();
     expect(panel.getByRole('button', { name: 'Cambiar asesor' })).toBeDisabled();
 
     // Act
@@ -136,7 +137,7 @@ describe('CambiarAsesorPanel', () => {
     ).not.toBeInTheDocument();
     expect(cambiarAsesor).not.toHaveBeenCalled();
     expect(onCerrar).not.toHaveBeenCalled();
-    expect(screen.getByRole('combobox', { name: 'Nuevo asesor' })).toHaveValue('a-2');
+    expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
   });
 
   it('si el backend rechaza el cambio muestra el error en un toast, cierra el diálogo y mantiene el panel', async () => {
@@ -168,7 +169,7 @@ describe('CambiarAsesorPanel', () => {
       screen.queryByRole('dialog', { name: '¿Cambiar asesor de la ficha?' }),
     ).not.toBeInTheDocument();
     expect(onCerrar).not.toHaveBeenCalled();
-    expect(screen.getByRole('combobox', { name: 'Nuevo asesor' })).toHaveValue('a-2');
+    expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
   });
 
   it('si el catálogo de asesores falla muestra el aviso y deja "Cambiar asesor" deshabilitado', () => {

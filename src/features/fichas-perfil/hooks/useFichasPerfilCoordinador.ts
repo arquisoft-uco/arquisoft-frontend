@@ -1,26 +1,22 @@
-import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import type { OrdenCampoFicha } from '../models/OrdenCampoFicha';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 
+import { leerOrden, useParametrosListado } from './useParametrosListado';
+
 const PAGE_SIZE = 10;
 
 export type OrdenDireccion = 'ASC' | 'DESC';
 
-interface EstadoListado {
-  page: number;
-  texto: string;
-  ordenCampo: OrdenCampoFicha;
-  ordenDireccion: OrdenDireccion;
-}
+const ORDENES = [
+  'tituloProyecto:ASC',
+  'tituloProyecto:DESC',
+  'asesorNombre:ASC',
+  'asesorNombre:DESC',
+] as const;
 
-const ESTADO_INICIAL: EstadoListado = {
-  page: 0,
-  texto: '',
-  ordenCampo: 'tituloProyecto',
-  ordenDireccion: 'ASC',
-};
+const ORDEN_POR_DEFECTO = 'tituloProyecto:ASC';
 
 export function construirFiltroTitulo(texto: string): NodoFiltroDTO | undefined {
   const recortado = texto.trim();
@@ -29,27 +25,25 @@ export function construirFiltroTitulo(texto: string): NodoFiltroDTO | undefined 
 }
 
 export function useFichasPerfilCoordinador() {
-  const [listado, setListado] = useState(ESTADO_INICIAL);
-  const { page, texto, ordenCampo, ordenDireccion } = listado;
-
-  function cambiar(cambio: Partial<EstadoListado>) {
-    setListado((actual) => ({ ...actual, ...cambio, page: 0 }));
-  }
-
-  function goToPage(pagina: number) {
-    setListado((actual) => ({ ...actual, page: pagina }));
-  }
+  const parametros = useParametrosListado();
+  const page = parametros.pagina;
+  const texto = parametros.texto('q');
+  const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
+  const [campo, direccion] = orden.split(':');
+  const ordenCampo = campo as OrdenCampoFicha;
+  const ordenDireccion = direccion as OrdenDireccion;
 
   function setTexto(valor: string) {
-    cambiar({ texto: valor });
+    parametros.cambiar({ q: valor });
   }
 
-  function setOrden(campo: OrdenCampoFicha, direccion: OrdenDireccion = 'ASC') {
-    cambiar({ ordenCampo: campo, ordenDireccion: direccion });
+  function setOrden(nuevoCampo: OrdenCampoFicha, nuevaDireccion: OrdenDireccion = 'ASC') {
+    const nuevo = `${nuevoCampo}:${nuevaDireccion}`;
+    parametros.cambiar({ orden: nuevo === ORDEN_POR_DEFECTO ? undefined : nuevo });
   }
 
   function limpiarFiltros() {
-    cambiar({ texto: '' });
+    parametros.cambiar({ q: undefined });
   }
 
   const query = useQuery({
@@ -68,7 +62,7 @@ export function useFichasPerfilCoordinador() {
     ...query,
     page,
     pageSize: PAGE_SIZE,
-    goToPage,
+    goToPage: parametros.irAPagina,
     texto,
     setTexto,
     ordenCampo,

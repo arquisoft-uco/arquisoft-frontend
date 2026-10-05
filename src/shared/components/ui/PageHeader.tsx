@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 
 interface Miga {
   etiqueta: string;
   to?: string;
+  onClick?: (evento: MouseEvent<HTMLAnchorElement>) => void;
 }
 
 const RAIZ = 'flex flex-col gap-4';
@@ -27,12 +28,16 @@ export default function PageHeader({ titulo, descripcion, acciones, migas }: Pro
       {migas && migas.length > 0 && (
         <nav aria-label="Ruta de navegación">
           <ol className={MIGAS}>
-            {migas.map(({ etiqueta, to }, indice) => {
+            {migas.map(({ etiqueta, to, onClick }, indice) => {
               const actual = indice === migas.length - 1;
               return (
                 <li key={etiqueta} className="inline-flex items-center gap-1.5">
                   {to && !actual ? (
-                    <Link to={to} className="hover:text-on-surface hover:underline">
+                    <Link
+                      to={to}
+                      onClick={onClick}
+                      className="hover:text-on-surface hover:underline"
+                    >
                       {etiqueta}
                     </Link>
                   ) : (

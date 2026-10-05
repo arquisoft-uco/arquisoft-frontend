@@ -1,20 +1,16 @@
-import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import { fichasPerfilService } from '../services/fichasPerfilService';
+
+import { leerOrden, useParametrosListado } from './useParametrosListado';
 
 const PAGE_SIZE = 10;
 
 export type OrdenDireccion = 'ASC' | 'DESC';
 
-interface EstadoListado {
-  page: number;
-  texto: string;
-  estadoId: string;
-  ordenDireccion: OrdenDireccion;
-}
+const ORDENES = ['tituloProyecto:ASC', 'tituloProyecto:DESC'] as const;
 
-const ESTADO_INICIAL: EstadoListado = { page: 0, texto: '', estadoId: '', ordenDireccion: 'ASC' };
+const ORDEN_POR_DEFECTO = 'tituloProyecto:ASC';
 
 export function construirFiltros(estadoId: string, titulo: string): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
@@ -41,31 +37,27 @@ export function construirFiltros(estadoId: string, titulo: string): NodoFiltroDT
 }
 
 export function useEstadosFichasAsesor() {
-  const [listado, setListado] = useState(ESTADO_INICIAL);
-  const { page, texto, estadoId, ordenDireccion } = listado;
-
-  function cambiar(cambio: Partial<EstadoListado>) {
-    setListado((actual) => ({ ...actual, ...cambio, page: 0 }));
-  }
-
-  function goToPage(pagina: number) {
-    setListado((actual) => ({ ...actual, page: pagina }));
-  }
+  const parametros = useParametrosListado();
+  const page = parametros.pagina;
+  const texto = parametros.texto('q');
+  const estadoId = parametros.texto('estado');
+  const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
+  const ordenDireccion = orden.split(':')[1] as OrdenDireccion;
 
   function setTexto(valor: string) {
-    cambiar({ texto: valor });
+    parametros.cambiar({ q: valor });
   }
 
   function setEstadoId(valor: string) {
-    cambiar({ estadoId: valor });
+    parametros.cambiar({ estado: valor });
   }
 
   function setOrden(direccion: OrdenDireccion) {
-    cambiar({ ordenDireccion: direccion });
+    parametros.cambiar({ orden: direccion === 'ASC' ? undefined : `tituloProyecto:${direccion}` });
   }
 
   function limpiarFiltros() {
-    cambiar({ texto: '', estadoId: '' });
+    parametros.cambiar({ q: undefined, estado: undefined });
   }
 
   const query = useQuery({
@@ -91,7 +83,7 @@ export function useEstadosFichasAsesor() {
     ...query,
     page,
     pageSize: PAGE_SIZE,
-    goToPage,
+    goToPage: parametros.irAPagina,
     texto,
     setTexto,
     estadoId,

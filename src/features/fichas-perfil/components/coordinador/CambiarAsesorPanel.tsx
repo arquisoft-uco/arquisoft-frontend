@@ -1,15 +1,16 @@
 import { useState, type SyntheticEvent } from 'react';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
-import SelectorAsesorFicha from '../../../../shared/components/SelectorAsesorFicha';
 import Field from '../../../../shared/components/ui/Field';
 import FormActions from '../../../../shared/components/ui/FormActions';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
+import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { useAsesoresFichaVigentes } from '../../../../shared/hooks/useAsesoresFichaVigentes';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCambiarAsesor } from '../../hooks/useCambiarAsesor';
 import type { FichaPerfil } from '../../models/FichaPerfil';
+import Combobox from '../Combobox';
 
 const ID_FORMULARIO = 'cambiar-asesor-ficha';
 
@@ -21,9 +22,16 @@ interface Props {
 export default function CambiarAsesorPanel({ ficha, onCerrar }: Props) {
   const [seleccion, setSeleccion] = useState('');
   const [confirmando, setConfirmando] = useState(false);
-  const { data: asesores = [], isError: asesoresNoDisponibles } = useAsesoresFichaVigentes();
+  const {
+    data: asesores = [],
+    isLoading: asesoresCargando,
+    isError: asesoresNoDisponibles,
+  } = useAsesoresFichaVigentes();
   const { mutate, isPending } = useCambiarAsesor();
 
+  const opciones = asesores
+    .filter((asesor) => asesor.id !== ficha.asesorFicha.id)
+    .map((asesor) => ({ id: asesor.id, etiqueta: asesor.nombre, descripcion: asesor.email }));
   const asesorNuevo = asesores.find((asesor) => asesor.id === seleccion);
 
   function solicitarConfirmacion(evento: SyntheticEvent) {
@@ -72,20 +80,22 @@ export default function CambiarAsesorPanel({ ficha, onCerrar }: Props) {
       )}
     >
       <form id={ID_FORMULARIO} onSubmit={solicitarConfirmacion} noValidate>
-        {asesoresNoDisponibles ? (
-          <AvisoNoDisponible recurso="asesores" />
-        ) : (
+        {asesoresCargando && <Skeleton variante="lineas" etiqueta="Cargando asesores…" />}
+        {asesoresNoDisponibles && <AvisoNoDisponible recurso="asesores" />}
+        {!asesoresCargando && !asesoresNoDisponibles && (
           <Field
             etiqueta="Nuevo asesor"
             ayuda={`Asesor actual: ${ficha.asesorFicha.nombre} (${ficha.asesorFicha.email})`}
           >
             {(control) => (
-              <SelectorAsesorFicha
+              <Combobox
                 {...control}
-                value={seleccion}
-                onChange={setSeleccion}
-                idsExcluidos={[ficha.asesorFicha.id]}
-                placeholder="Selecciona un asesor"
+                valor={seleccion}
+                onCambiar={setSeleccion}
+                opciones={opciones}
+                etiquetaElegidos="Asesor elegido"
+                textoVacio="No hay asesores que coincidan."
+                placeholder="Busca por nombre o correo"
               />
             )}
           </Field>

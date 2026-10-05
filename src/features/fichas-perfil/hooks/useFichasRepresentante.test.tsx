@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useLocation } from 'react-router';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
@@ -43,12 +45,16 @@ function crearPagina(
   };
 }
 
-function crearWrapper() {
+function crearWrapper(entrada = '/') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[entrada]}>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
   };
 }
 
@@ -172,5 +178,57 @@ describe('useFichasRepresentante', () => {
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
+  });
+});
+
+describe('useFichasRepresentante con la URL como estado', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    consultar.mockImplementation((page) => Promise.resolve(crearPagina(page, [ficha])));
+  });
+
+  it('traduce q, asesor, correo, estado repetido, orden y pagina de la URL', async () => {
+    // Act
+    const { result } = renderHook(() => useFichasRepresentante(), {
+      wrapper: crearWrapper(
+        '/?q=monitoreo&asesor=Ana&correo=ana@&estado=st-1&estado=st-2&orden=asesorNombre:DESC&pagina=3',
+      ),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenCalledWith(
+      2,
+      10,
+      {
+        titulo: 'monitoreo',
+        asesorNombre: 'Ana',
+        asesorEmail: 'ana@',
+        estadoIds: ['st-1', 'st-2'],
+      },
+      ['asesorNombre:DESC'],
+    );
+  });
+
+  it('toggleEstado repite el parámetro, limpiarFiltros lo quita y el cambio borra pagina', async () => {
+    // Arrange
+    const { result } = renderHook(
+      () => ({ hook: useFichasRepresentante(), url: useLocation().search }),
+      { wrapper: crearWrapper('/?pagina=2') },
+    );
+    await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
+
+    // Act
+    act(() => result.current.hook.toggleEstado('st-1'));
+    act(() => result.current.hook.toggleEstado('st-2'));
+
+    // Assert
+    expect(result.current.url).toBe('?estado=st-1&estado=st-2');
+
+    // Act
+    act(() => result.current.hook.limpiarFiltros());
+
+    // Assert
+    expect(result.current.url).toBe('');
   });
 });

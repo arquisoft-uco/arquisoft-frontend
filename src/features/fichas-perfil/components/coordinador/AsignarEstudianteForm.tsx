@@ -7,7 +7,9 @@ import { toast } from '../../../../shared/hooks/useToast';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 import Button from '../../../../shared/components/ui/Button';
+import Field from '../../../../shared/components/ui/Field';
 import { LIMITES } from '../../../../shared/validation';
+import Combobox from '../Combobox';
 
 const TEXTO_APOYO = 'text-sm text-on-surface-secondary';
 
@@ -29,6 +31,11 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
 
   const idsVinculados = new Set(vinculados.map((v) => v.id));
   const opciones = disponibles.filter((e) => !idsVinculados.has(e.id));
+  const opcionesCombobox = opciones.map((e) => ({
+    id: e.id,
+    etiqueta: e.nombre,
+    descripcion: e.email,
+  }));
   const cuposDisponibles = LIMITES.ESTUDIANTES_MAX - vinculados.length;
   const limiteAlcanzado = cuposDisponibles <= 0;
 
@@ -46,16 +53,6 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
       <p className={TEXTO_APOYO}>
         Límite alcanzado: esta ficha ya tiene {LIMITES.ESTUDIANTES_MAX} estudiantes asignados.
       </p>
-    );
-  }
-
-  function toggleSeleccionado(id: string) {
-    setSeleccionados((prev) =>
-      prev.includes(id)
-        ? prev.filter((s) => s !== id)
-        : prev.length < cuposDisponibles
-          ? [...prev, id]
-          : prev,
     );
   }
 
@@ -87,32 +84,22 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3" aria-label="Asignar estudiantes">
-      <fieldset className="flex flex-col">
-        <legend className="mb-1 text-sm font-medium text-on-surface">
-          Seleccionar hasta {cuposDisponibles} estudiante{cuposDisponibles !== 1 ? 's' : ''}
-        </legend>
-        {opciones.map((est) => {
-          const checkboxId = `estudiante-disponible-${est.id}`;
-          const marcado = seleccionados.includes(est.id);
-          return (
-            <label
-              key={est.id}
-              htmlFor={checkboxId}
-              className="tap-target gap-2.5 text-sm text-on-surface"
-            >
-              <input
-                id={checkboxId}
-                type="checkbox"
-                checked={marcado}
-                onChange={() => toggleSeleccionado(est.id)}
-                disabled={isPending || (!marcado && seleccionados.length >= cuposDisponibles)}
-                className="checkbox-control rounded border-border-input text-primary focus:ring-primary"
-              />
-              {est.nombre}
-            </label>
-          );
-        })}
-      </fieldset>
+      <Field etiqueta="Agregar estudiantes">
+        {(control) => (
+          <Combobox
+            {...control}
+            multiple
+            max={cuposDisponibles}
+            valor={seleccionados}
+            onCambiar={setSeleccionados}
+            deshabilitado={isPending}
+            opciones={opcionesCombobox}
+            etiquetaElegidos="Estudiantes por asignar"
+            textoVacio="No hay estudiantes que coincidan."
+            placeholder="Busca por nombre o correo"
+          />
+        )}
+      </Field>
       <Button
         type="submit"
         icono={UserPlus}

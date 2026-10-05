@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useLocation } from 'react-router';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor';
@@ -39,12 +41,16 @@ function crearPagina(
   };
 }
 
-function crearWrapper() {
+function crearWrapper(entrada = '/') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[entrada]}>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
   };
 }
 
@@ -198,5 +204,52 @@ describe('useEstadosFichasAsesor', () => {
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
+  });
+});
+
+describe('useEstadosFichasAsesor con la URL como estado', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    consultar.mockImplementation(({ pagina }) => Promise.resolve(crearPagina(pagina, [fila])));
+  });
+
+  it('traduce q, estado, orden y pagina de la URL a lo que recibe el service', async () => {
+    // Act
+    const { result } = renderHook(() => useEstadosFichasAsesor(), {
+      wrapper: crearWrapper('/?q=monitoreo&estado=st-1&orden=tituloProyecto:DESC&pagina=2'),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenCalledWith({
+      pagina: 1,
+      tamanio: 10,
+      ordenamiento: ['tituloProyecto:DESC'],
+      filtros: construirFiltros('st-1', 'monitoreo'),
+    });
+  });
+
+  it('cambiar filtro u orden escribe la URL y borra pagina; limpiarFiltros quita q y estado', async () => {
+    // Arrange
+    const { result } = renderHook(
+      () => ({ hook: useEstadosFichasAsesor(), url: useLocation().search }),
+      { wrapper: crearWrapper('/?pagina=3') },
+    );
+    await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
+
+    // Act
+    act(() => result.current.hook.setEstadoId('st-1'));
+    act(() => result.current.hook.setOrden('DESC'));
+
+    // Assert
+    expect(new URLSearchParams(result.current.url).get('estado')).toBe('st-1');
+    expect(new URLSearchParams(result.current.url).get('orden')).toBe('tituloProyecto:DESC');
+    expect(new URLSearchParams(result.current.url).has('pagina')).toBe(false);
+
+    // Act
+    act(() => result.current.hook.limpiarFiltros());
+
+    // Assert
+    expect(result.current.url).toBe('?orden=tituloProyecto%3ADESC');
   });
 });

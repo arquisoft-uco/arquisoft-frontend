@@ -25,14 +25,11 @@ export const BASELINE: BaselineArquitectura = {
   },
   componentesGrandes: {
     'features/dashboard/Dashboard.tsx': 273,
-    'features/fichas-perfil/components/RegistrarFichaPerfil.tsx': 273,
     'features/fichas-perfil/components/representante/AgregarEstadoEvaluacionPanel.tsx': 193,
     'features/solicitudes/components/estudiante/EnviarSolicitudNovedadForm.tsx': 158,
     'layout/Header.tsx': 182,
   },
-  coloresCrudos: {
-    'features/fichas-perfil/components/RegistrarFichaPerfil.tsx': 3,
-  },
+  coloresCrudos: {},
   coloresSinToken: {},
   spinnersCopiados: {
     'features/fichas-perfil/components/asesor-ficha/ItemsFichaAsesorPanel.tsx': 1,
@@ -58,7 +55,6 @@ export const BASELINE: BaselineArquitectura = {
     'auth/roleStore.ts': 3,
     'config/env.ts': 1,
     'features/dashboard/Dashboard.tsx': 2,
-    'features/fichas-perfil/components/RegistrarFichaPerfil.tsx': 1,
     'guards/AuthGuard.tsx': 1,
     'guards/RoleGuard.tsx': 2,
     'hooks/useAuth.ts': 3,

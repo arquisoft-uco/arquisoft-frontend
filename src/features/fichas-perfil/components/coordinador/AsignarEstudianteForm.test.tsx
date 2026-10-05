@@ -101,27 +101,33 @@ describe('AsignarEstudianteForm', () => {
 
   it('excluye de las opciones a los estudiantes ya vinculados', async () => {
     // Arrange
+    const user = userEvent.setup();
     render(<AsignarEstudianteForm idFichaPerfil="f-1" vinculados={[vinculado(E2.id)]} />);
 
+    // Act
+    await user.click(await screen.findByRole('combobox', { name: 'Agregar estudiantes' }));
+
     // Assert
-    expect(await screen.findByRole('checkbox', { name: 'Carlos Ruiz' })).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: 'Elena Vargas' })).toBeInTheDocument();
-    expect(screen.queryByRole('checkbox', { name: 'Diana Soto' })).not.toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Carlos Ruiz/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Elena Vargas/ })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /Diana Soto/ })).not.toBeInTheDocument();
   });
 
-  it('deshabilita las casillas no marcadas al llegar al tope de cupos restantes de la ficha', async () => {
+  it('deshabilita el campo al llegar al tope de cupos restantes de la ficha', async () => {
     // Arrange: un solo vinculado deja 2 cupos, no el máximo fijo de 3
     const vinculados = [vinculado('v-existente')];
     expect(LIMITES.ESTUDIANTES_MAX - vinculados.length).toBe(2);
     const user = userEvent.setup();
     render(<AsignarEstudianteForm idFichaPerfil="f-1" vinculados={vinculados} />);
+    const campo = await screen.findByRole('combobox', { name: 'Agregar estudiantes' });
 
     // Act
-    await user.click(await screen.findByRole('checkbox', { name: 'Carlos Ruiz' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Diana Soto' }));
+    await user.click(campo);
+    await user.click(screen.getByRole('option', { name: /Carlos Ruiz/ }));
+    await user.click(screen.getByRole('option', { name: /Diana Soto/ }));
 
     // Assert
-    expect(screen.getByRole('checkbox', { name: 'Elena Vargas' })).toBeDisabled();
+    expect(campo).toBeDisabled();
   });
 
   it('envía los ids seleccionados, notifica el éxito y limpia la selección', async () => {
@@ -134,14 +140,15 @@ describe('AsignarEstudianteForm', () => {
     render(<AsignarEstudianteForm idFichaPerfil="f-1" vinculados={[]} />);
 
     // Act
-    await user.click(await screen.findByRole('checkbox', { name: 'Carlos Ruiz' }));
-    await user.click(screen.getByRole('checkbox', { name: 'Elena Vargas' }));
+    await user.click(await screen.findByRole('combobox', { name: 'Agregar estudiantes' }));
+    await user.click(screen.getByRole('option', { name: /Carlos Ruiz/ }));
+    await user.click(screen.getByRole('option', { name: /Elena Vargas/ }));
     await user.click(screen.getByRole('button', { name: 'Asignar estudiantes seleccionados' }));
 
     // Assert
     expect(mutate).toHaveBeenCalledWith(['e-1', 'e-3'], expect.anything());
     expect(toast.success).toHaveBeenCalledWith('Estudiantes asignados', expect.any(String));
-    expect(screen.getByRole('checkbox', { name: 'Carlos Ruiz' })).not.toBeChecked();
-    expect(screen.getByRole('checkbox', { name: 'Elena Vargas' })).not.toBeChecked();
+    expect(screen.queryByRole('button', { name: 'Quitar a Carlos Ruiz' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Quitar a Elena Vargas' })).not.toBeInTheDocument();
   });
 });

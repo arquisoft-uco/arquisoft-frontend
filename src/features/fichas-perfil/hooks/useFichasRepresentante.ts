@@ -1,89 +1,72 @@
-import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
 import type { OrdenCampoFicha } from '../models/OrdenCampoFicha';
 
+import { leerOrden, useParametrosListado } from './useParametrosListado';
+
 const PAGE_SIZE = 10;
 
 export type OrdenDireccion = 'ASC' | 'DESC';
 
-interface EstadoListado {
-  page: number;
-  filtros: FiltrosFichasRepresentante;
-  ordenCampo: OrdenCampoFicha;
-  ordenDireccion: OrdenDireccion;
-}
+const ORDENES = [
+  'tituloProyecto:ASC',
+  'tituloProyecto:DESC',
+  'asesorNombre:ASC',
+  'asesorNombre:DESC',
+] as const;
 
-const FILTROS_VACIOS: FiltrosFichasRepresentante = {
-  titulo: '',
-  asesorNombre: '',
-  asesorEmail: '',
-  estadoIds: [],
-};
-
-const ESTADO_INICIAL: EstadoListado = {
-  page: 0,
-  filtros: FILTROS_VACIOS,
-  ordenCampo: 'tituloProyecto',
-  ordenDireccion: 'ASC',
-};
+const ORDEN_POR_DEFECTO = 'tituloProyecto:ASC';
 
 export function useFichasRepresentante() {
-  const [listado, setListado] = useState(ESTADO_INICIAL);
-  const { page, filtros, ordenCampo, ordenDireccion } = listado;
-
-  function cambiar(cambio: Partial<EstadoListado>) {
-    setListado((actual) => ({ ...actual, ...cambio, page: 0 }));
-  }
-
-  function cambiarFiltros(cambio: Partial<FiltrosFichasRepresentante>) {
-    setListado((actual) => ({
-      ...actual,
-      filtros: { ...actual.filtros, ...cambio },
-      page: 0,
-    }));
-  }
-
-  function goToPage(pagina: number) {
-    setListado((actual) => ({ ...actual, page: pagina }));
-  }
+  const parametros = useParametrosListado();
+  const page = parametros.pagina;
+  const filtros: FiltrosFichasRepresentante = {
+    titulo: parametros.texto('q'),
+    asesorNombre: parametros.texto('asesor'),
+    asesorEmail: parametros.texto('correo'),
+    estadoIds: parametros.lista('estado'),
+  };
+  const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
+  const [campo, direccion] = orden.split(':');
+  const ordenCampo = campo as OrdenCampoFicha;
+  const ordenDireccion = direccion as OrdenDireccion;
 
   function setTitulo(valor: string) {
-    cambiarFiltros({ titulo: valor });
+    parametros.cambiar({ q: valor });
   }
 
   function setAsesorNombre(valor: string) {
-    cambiarFiltros({ asesorNombre: valor });
+    parametros.cambiar({ asesor: valor });
   }
 
   function setAsesorEmail(valor: string) {
-    cambiarFiltros({ asesorEmail: valor });
+    parametros.cambiar({ correo: valor });
   }
 
   function toggleEstado(id: string) {
-    setListado((actual) => ({
-      ...actual,
-      filtros: {
-        ...actual.filtros,
-        estadoIds: actual.filtros.estadoIds.includes(id)
-          ? actual.filtros.estadoIds.filter((e) => e !== id)
-          : [...actual.filtros.estadoIds, id],
-      },
-      page: 0,
-    }));
+    const siguientes = filtros.estadoIds.includes(id)
+      ? filtros.estadoIds.filter((e) => e !== id)
+      : [...filtros.estadoIds, id];
+    parametros.cambiar({ estado: siguientes });
   }
 
   function limpiarEstados() {
-    cambiarFiltros({ estadoIds: [] });
+    parametros.cambiar({ estado: undefined });
   }
 
-  function setOrden(campo: OrdenCampoFicha, direccion: OrdenDireccion = 'ASC') {
-    cambiar({ ordenCampo: campo, ordenDireccion: direccion });
+  function setOrden(nuevoCampo: OrdenCampoFicha, nuevaDireccion: OrdenDireccion = 'ASC') {
+    const nuevo = `${nuevoCampo}:${nuevaDireccion}`;
+    parametros.cambiar({ orden: nuevo === ORDEN_POR_DEFECTO ? undefined : nuevo });
   }
 
   function limpiarFiltros() {
-    cambiar({ filtros: FILTROS_VACIOS });
+    parametros.cambiar({
+      q: undefined,
+      asesor: undefined,
+      correo: undefined,
+      estado: undefined,
+    });
   }
 
   const filtrosRecortados = {
@@ -113,7 +96,7 @@ export function useFichasRepresentante() {
     ...query,
     page,
     pageSize: PAGE_SIZE,
-    goToPage,
+    goToPage: parametros.irAPagina,
     filtros,
     setTitulo,
     setAsesorNombre,

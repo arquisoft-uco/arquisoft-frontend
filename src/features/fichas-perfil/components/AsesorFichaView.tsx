@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Page } from '../../../shared/models/api-response';
 import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
@@ -18,7 +19,13 @@ const VISTAS: { id: Vista; etiqueta: string }[] = [
 export default function AsesorFichaView() {
   const [fichaSeleccionada, setFichaSeleccionada] = useState<FichaPerfilAsesor | null>(null);
   const [vista, setVista] = useState<Vista>('fichas');
+  const [, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
+
+  function cambiarVista(nueva: Vista) {
+    setVista(nueva);
+    setSearchParams({}, { replace: true });
+  }
 
   const handleEstadoCambiado = (nuevoEstado: string) => {
     if (!fichaSeleccionada) return;
@@ -55,7 +62,7 @@ export default function AsesorFichaView() {
         titulo="Mis fichas de perfil"
         descripcion="Revisa las fichas que asesoras y el historial de sus estados."
       />
-      <Tabs items={VISTAS} valor={vista} onCambiar={setVista} etiqueta="Vistas de mis fichas">
+      <Tabs items={VISTAS} valor={vista} onCambiar={cambiarVista} etiqueta="Vistas de mis fichas">
         {vista === 'fichas' && <ConsultarFichasAsesor onSeleccionar={setFichaSeleccionada} />}
         {vista === 'estados' && <EstadosFichasAsesorPanel />}
       </Tabs>

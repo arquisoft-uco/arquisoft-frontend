@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { useLocation } from 'react-router';
 import { render, screen } from '../../../test-utils/render';
 import AsesorFichaView from './AsesorFichaView';
 import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
@@ -47,6 +48,10 @@ vi.mock('./asesor-ficha/DetalleFichaAsesor', () => ({
     </div>
   ),
 }));
+
+function Busqueda() {
+  return <p>{`busqueda:${useLocation().search}`}</p>;
+}
 
 describe('AsesorFichaView', () => {
   it('muestra un solo título de página y las dos pestañas en la vista de lista', () => {
@@ -159,5 +164,24 @@ describe('AsesorFichaView', () => {
       'aria-selected',
       'true',
     );
+  });
+
+  it('al cambiar de pestaña limpia la búsqueda de la URL', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <>
+        <AsesorFichaView />
+        <Busqueda />
+      </>,
+      { initialPath: '/fichas-perfil?pagina=3&q=monitoreo' },
+    );
+    expect(screen.getByText('busqueda:?pagina=3&q=monitoreo')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Estados de mis fichas' }));
+
+    // Assert
+    expect(screen.getByText('busqueda:')).toBeInTheDocument();
   });
 });

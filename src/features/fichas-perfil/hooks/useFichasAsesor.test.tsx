@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useLocation } from 'react-router';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { FichaPerfil } from '../models/FichaPerfil';
@@ -34,12 +36,16 @@ function crearPagina(numero: number, content: FichaPerfil[]): Page<FichaPerfil> 
   };
 }
 
-function crearWrapper() {
+function crearWrapper(entrada = '/') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[entrada]}>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
   };
 }
 
@@ -91,5 +97,31 @@ describe('useFichasAsesor', () => {
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
+  });
+});
+
+describe('useFichasAsesor con la URL como estado', () => {
+  it('lee la página 1-based de la URL, la escribe con goToPage y la borra en la primera', async () => {
+    // Arrange
+    consultar.mockImplementation((page = 0) => Promise.resolve(crearPagina(page, [ficha])));
+    const { result } = renderHook(() => ({ hook: useFichasAsesor(), url: useLocation().search }), {
+      wrapper: crearWrapper('/?pagina=3'),
+    });
+    await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenCalledWith(2, 10);
+
+    // Act
+    act(() => result.current.hook.goToPage(4));
+
+    // Assert
+    expect(result.current.url).toBe('?pagina=5');
+
+    // Act
+    act(() => result.current.hook.goToPage(0));
+
+    // Assert
+    expect(result.current.url).toBe('');
   });
 });

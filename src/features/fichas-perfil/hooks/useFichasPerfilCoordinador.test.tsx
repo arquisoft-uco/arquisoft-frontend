@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useLocation } from 'react-router';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { FichaPerfil } from '../models/FichaPerfil';
@@ -34,12 +36,16 @@ function crearPagina(numero: number, content: FichaPerfil[]): Page<FichaPerfil> 
   };
 }
 
-function crearWrapper() {
+function crearWrapper(entrada = '/') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[entrada]}>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
   };
 }
 
@@ -176,5 +182,63 @@ describe('useFichasPerfilCoordinador', () => {
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.data).toBeUndefined();
+  });
+});
+
+describe('useFichasPerfilCoordinador con la URL como estado', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    consultar.mockImplementation(({ pagina }) => Promise.resolve(crearPagina(pagina, [ficha])));
+  });
+
+  function montarEn(entrada: string) {
+    return renderHook(() => ({ hook: useFichasPerfilCoordinador(), url: useLocation().search }), {
+      wrapper: crearWrapper(entrada),
+    });
+  }
+
+  it('traduce la URL a lo que recibe el service: búsqueda, orden y página 1-based', async () => {
+    // Act
+    const { result } = montarEn('/?q=monitoreo&orden=asesorNombre:DESC&pagina=2');
+    await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenCalledWith({
+      pagina: 1,
+      tamanio: 10,
+      ordenamiento: ['asesorNombre:DESC'],
+      filtros: expect.objectContaining({ valor: 'monitoreo' }),
+    });
+    expect(result.current.hook.page).toBe(1);
+  });
+
+  it('un orden o una página inválidos en la URL caen a los valores por defecto', async () => {
+    // Act
+    const { result } = montarEn('/?orden=campoInventado:ASC&pagina=abc');
+    await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenCalledWith(
+      expect.objectContaining({ pagina: 0, ordenamiento: ['tituloProyecto:ASC'] }),
+    );
+  });
+
+  it('buscar escribe q y borra pagina; los valores por defecto no se escriben', async () => {
+    // Arrange
+    const { result } = montarEn('/?pagina=2');
+    await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
+
+    // Act
+    act(() => result.current.hook.setTexto('monitoreo'));
+
+    // Assert
+    expect(result.current.url).toBe('?q=monitoreo');
+
+    // Act
+    act(() => result.current.hook.setOrden('tituloProyecto', 'ASC'));
+    act(() => result.current.hook.goToPage(0));
+
+    // Assert
+    expect(result.current.url).toBe('?q=monitoreo');
   });
 });

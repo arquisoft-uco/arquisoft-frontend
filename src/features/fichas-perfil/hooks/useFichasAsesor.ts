@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
+import { useParametrosListado } from './useParametrosListado';
 
 const PAGE_SIZE = 10;
 
 export function useFichasAsesor() {
-  const [page, setPage] = useState(0);
+  const { pagina: page, irAPagina } = useParametrosListado();
 
   const query = useQuery({
     queryKey: ['fichas-perfil', 'asesor', page],
@@ -17,6 +17,6 @@ export function useFichasAsesor() {
     ...query,
     page,
     pageSize: PAGE_SIZE,
-    goToPage: setPage,
+    goToPage: irAPagina,
   };
 }
