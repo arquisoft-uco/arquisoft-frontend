@@ -231,7 +231,7 @@ cambia?" Solo `services/` con lo primero, solo `hooks/` con lo segundo.
 
 | Check | Sev |
 |---|:---:|
-| Ruta nueva sin su `NavItem` — sin él no hay `ROLES_POR_RUTA` ni sidebar | ❌ |
+| Ruta nueva sin su `NavItem` — sin él no hay `ROLES_POR_RUTA` ni sidebar. No aplica a una ruta hija de un módulo que ya tiene `NavItem`: para esas, el check es que cuelgue de un padre con `guarded(...)` + `<Outlet />` | ❌ |
 | `<RoleGuard>` a mano en `router.tsx` en vez de `guarded(...)` | ❌ |
 | Hay guard pero no `VIEW_POR_ROL`, o al revés | ❌ |
 | Import no perezoso de una página de feature | ❌ |
