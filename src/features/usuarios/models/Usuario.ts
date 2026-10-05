@@ -12,4 +12,5 @@ export interface Usuario {
   esCoordinador: boolean;
   esRepresentanteComite: boolean;
   esAdministrador: boolean;
+  esBibliotecario: boolean;
 }

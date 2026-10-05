@@ -3,7 +3,11 @@
 /* ── Base ─────────────────────────────────────────────── */
 html {
   height: 100%;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
@@ -17,16 +21,21 @@ body {
   background-color: var(--color-background);
   /* Subtle colour-mesh gives glassmorphism surfaces something to blur against */
   background-image:
-    radial-gradient(ellipse 80% 55% at 5%  -5%,  oklch(88% 0.07 230 / 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 55% at 5% -5%, oklch(88% 0.07 230 / 0.22) 0%, transparent 60%),
     radial-gradient(ellipse 65% 50% at 95% 110%, oklch(89% 0.09 165 / 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 45% at 55%  55%, oklch(92% 0.06 75  / 0.10) 0%, transparent 50%);
+    radial-gradient(ellipse 55% 45% at 55% 55%, oklch(92% 0.06 75 / 0.1) 0%, transparent 50%);
 }
 
 #root {
   height: 100%;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   letter-spacing: -0.01em;
 }
@@ -61,15 +70,24 @@ h1, h2, h3, h4, h5, h6 {
   outline-offset: 2px;
 }
 
+/* La lista de pestañas recorta lo que sobresale (overflow-x: auto): el anillo va hacia adentro. */
+[role='tab']:focus-visible {
+  outline-offset: -2px;
+}
+
 /* ── Sidebar nav link states ─────────────────────────── */
 .nav-link {
   color: var(--color-on-surface-secondary);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .nav-link .nav-icon {
   color: var(--color-on-surface-secondary);
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -107,33 +125,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 0.5rem;
 }
 
-/* ── Dashboard hero ──────────────────────────────────── */
-.hero-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    oklch(38% 0.10 215) 50%,
-    oklch(45% 0.09 200) 100%
-  );
-}
-
-.hero-pattern {
-  position: absolute;
-  inset: 0;
-  opacity: 0.05;
-  background-image:
-    radial-gradient(circle at 20% 30%, white 1px, transparent 1px),
-    radial-gradient(circle at 80% 70%, white 1px, transparent 1px),
-    radial-gradient(circle at 50% 50%, white 0.5px, transparent 0.5px);
-  background-size: 32px 32px, 48px 48px, 20px 20px;
-}
-
-/* ── Quick cards ─────────────────────────────────────── */
-.quick-card:active {
-  transform: scale(0.98);
-}
-
-
 /* ── Mobile first: primitivas globales ───────────────── */
 /* Único punto de corte del proyecto: 640px (el `sm` de Tailwind). El estilo
    base es el de celular; la media query solo amplía hacia pantallas grandes.
@@ -155,10 +146,10 @@ h1, h2, h3, h4, h5, h6 {
 /* Campo de formulario: etiqueta, control y mensaje de error. */
 .field-label {
   display: block;
-  margin-bottom: 0.25rem;
-  font-size: 0.75rem;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--color-on-surface-secondary);
+  color: var(--color-on-surface);
 }
 
 .field-input {
@@ -168,7 +159,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1rem;
   color: var(--color-on-surface);
   background-color: var(--color-background);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-input);
   border-radius: var(--radius-lg);
   outline: none;
 }
@@ -186,6 +177,12 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 0.25rem;
   font-size: 0.75rem;
   color: var(--color-danger);
+}
+
+.field-hint {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-on-surface-secondary);
 }
 
 /* Fila de acciones: apilada en celular, con la principal arriba. */
@@ -223,6 +220,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .field-input {
+    min-height: 2.5rem;
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
   }
@@ -245,4 +243,13 @@ h1, h2, h3, h4, h5, h6 {
   .section-header > .header-action {
     width: auto;
   }
+}
+
+/* Van después del bloque de 640 px: este vuelve a declarar el padding de .field-input. */
+.field-input--icono {
+  padding-left: 2.5rem;
+}
+
+.field-input--accion {
+  padding-right: 2.5rem;
 }

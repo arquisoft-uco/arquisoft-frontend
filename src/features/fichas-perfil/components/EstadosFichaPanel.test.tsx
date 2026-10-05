@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../test-utils/render';
 import EstadosFichaPanel from './EstadosFichaPanel';
 import { useEstadosFicha } from '../hooks/useEstadosFicha';
@@ -37,9 +38,7 @@ function crearMutacionMock(
 const ESTADOS: EstadoFicha[] = [
   { id: 'EN_CONSTRUCCION', nombre: 'En Construccion', descripcion: 'desc' },
   { id: 'DISPONIBLE_PARA_EVALUACION', nombre: 'Disponible Para Evaluacion', descripcion: 'desc' },
-  { id: 'APROBADA', nombre: 'Aprobada', descripcion: 'desc' },
-  { id: 'APROBADA_CON_OBSERVACIONES', nombre: 'Aprobada Con Observaciones', descripcion: 'desc' },
-  { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: 'desc' },
+  { id: 'DESCARTADA', nombre: 'Descartada', descripcion: 'desc' },
 ];
 
 describe('EstadosFichaPanel', () => {
@@ -57,10 +56,10 @@ describe('EstadosFichaPanel', () => {
     render(<EstadosFichaPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando estados...');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando estados…');
   });
 
-  it('deriva el <select> con solo los estados que el asesor puede asignar manualmente', () => {
+  it('deriva el <select> con todos los estados que retorna el endpoint, sin filtrar en el cliente', () => {
     // Arrange
     vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: ESTADOS }));
 
@@ -75,6 +74,32 @@ describe('EstadosFichaPanel', () => {
       'Seleccionar estado...',
       'En Construccion',
       'Disponible Para Evaluacion',
+      'Descartada',
+    ]);
+  });
+
+  it('renderiza completo un catálogo distinto (coordinador) sin depender de una lista local', () => {
+    // Arrange
+    const estadosCoordinador: EstadoFicha[] = [
+      { id: 'APROBADA', nombre: 'Aprobada', descripcion: 'desc' },
+      {
+        id: 'APROBADA_CON_OBSERVACIONES',
+        nombre: 'Aprobada Con Observaciones',
+        descripcion: 'desc',
+      },
+      { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: 'desc' },
+    ];
+    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: estadosCoordinador }));
+
+    // Act
+    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'Seleccionar estado...',
+      'Aprobada',
+      'Aprobada Con Observaciones',
+      'No Aprobada',
     ]);
   });
 
@@ -107,5 +132,23 @@ describe('EstadosFichaPanel', () => {
     // Assert
     expect(screen.getAllByRole('option')).toHaveLength(1);
     expect(screen.getByRole('option', { name: 'Seleccionar estado...' })).toBeInTheDocument();
+  });
+
+  it('avisa que cambiar el estado aún no está disponible y deja el envío deshabilitado aunque se elija un estado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = vi.fn();
+    vi.mocked(useAgregarEstadoFichaPerfil).mockReturnValue(crearMutacionMock({ mutate }));
+    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: ESTADOS }));
+    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.selectOptions(screen.getByLabelText('Nuevo estado'), 'DESCARTADA');
+    await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cambiar estado' })).toBeDisabled();
+    expect(mutate).not.toHaveBeenCalled();
   });
 });

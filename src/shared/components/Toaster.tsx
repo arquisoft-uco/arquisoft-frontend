@@ -1,117 +1,92 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle2, Info, Bug, XCircle, X } from 'lucide-react';
+import { CircleAlert, CircleCheck, Info, X, type LucideIcon } from 'lucide-react';
 import { useToastStore } from '../stores/toastStore';
 import type { Toast, ToastLevel } from '../stores/toastStore';
 
-// ── Level config ──────────────────────────────────────────────────────────────
+const DURACION_SALIDA = 200;
 
-const LEVEL_CONFIG: Record<
-  ToastLevel,
-  { icon: React.ReactNode; bar: string; container: string; title: string }
-> = {
-  success: {
-    icon:      <CheckCircle2 size={18} aria-hidden />,
-    bar:       'bg-secondary',
-    container: 'bg-secondary-muted border-secondary/25',
-    title:     'text-secondary-muted-foreground',
-  },
-  info: {
-    icon:      <Info size={18} aria-hidden />,
-    bar:       'bg-primary',
-    container: 'bg-primary-muted border-primary/25',
-    title:     'text-primary-muted-foreground',
-  },
-  debug: {
-    icon:      <Bug size={18} aria-hidden />,
-    bar:       'bg-on-surface-secondary',
-    container: 'bg-surface-secondary border-border',
-    title:     'text-on-surface',
-  },
-  error: {
-    icon:      <XCircle size={18} aria-hidden />,
-    bar:       'bg-danger',
-    container: 'bg-danger/8 border-danger/30',
-    title:     'text-danger',
-  },
+const REGION =
+  'fixed inset-x-4 bottom-4 z-[9999] flex flex-col gap-2 sm:left-auto sm:right-4 sm:w-96 max-sm:in-data-[panel-abierto]:top-4 max-sm:in-data-[panel-abierto]:bottom-auto sm:in-data-[panel-abierto]:bottom-24';
+const TARJETA =
+  'flex items-start gap-3 rounded-xl border border-border bg-surface p-3 pr-1.5 shadow-dropdown';
+const ICONO = 'flex size-8 shrink-0 items-center justify-center rounded-full';
+const TEXTOS = 'min-w-0 flex-1';
+const TITULO = 'text-sm font-semibold text-on-surface';
+const MENSAJE = 'mt-0.5 text-sm text-on-surface-secondary';
+const CERRAR =
+  'ml-auto inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-on-surface-secondary hover:bg-muted';
+
+const NIVELES: Record<ToastLevel, { icono: LucideIcon; clases: string }> = {
+  success: { icono: CircleCheck, clases: 'bg-secondary-muted text-secondary-muted-foreground' },
+  info: { icono: Info, clases: 'bg-primary-muted text-primary-muted-foreground' },
+  error: { icono: CircleAlert, clases: 'bg-danger-muted text-danger-muted-foreground' },
 };
 
-// ── ToastItem ─────────────────────────────────────────────────────────────────
+interface PropsAviso {
+  aviso: Toast;
+}
 
-const EXIT_DURATION = 200; // ms — matches toast-out keyframe
+function ToastItem({ aviso }: PropsAviso) {
+  const descartar = useToastStore((state) => state.dismiss);
+  const [saliendo, setSaliendo] = useState(false);
+  const [cursorDentro, setCursorDentro] = useState(false);
+  const [focoDentro, setFocoDentro] = useState(false);
+  const restante = useRef(aviso.duration);
+  const pausado = cursorDentro || focoDentro;
+  const { icono: Icono, clases } = NIVELES[aviso.level];
 
-function ToastItem({ toast }: { toast: Toast }) {
-  const dismiss = useToastStore((s) => s.dismiss);
-  const [exiting, setExiting] = useState(false);
-
-  const close = useCallback(() => {
-    setExiting(true);
-    setTimeout(() => dismiss(toast.id), EXIT_DURATION);
-  }, [dismiss, toast.id]);
-
-  // Auto-dismiss
   useEffect(() => {
-    if (toast.duration === 0) return;
-    const t = setTimeout(close, toast.duration);
-    return () => clearTimeout(t);
-  }, [close, toast.duration]);
+    if (aviso.duration === 0 || pausado || saliendo) return;
+    const inicio = Date.now();
+    const plazo = setTimeout(() => setSaliendo(true), restante.current);
+    return () => {
+      clearTimeout(plazo);
+      restante.current -= Date.now() - inicio;
+    };
+  }, [aviso.duration, pausado, saliendo]);
 
-  const cfg = LEVEL_CONFIG[toast.level];
+  useEffect(() => {
+    if (!saliendo) return;
+    const salida = setTimeout(() => descartar(aviso.id), DURACION_SALIDA);
+    return () => clearTimeout(salida);
+  }, [saliendo, descartar, aviso.id]);
 
   return (
     <div
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      className={[
-        'relative flex w-80 overflow-hidden rounded-xl border shadow-[var(--shadow-dropdown)]',
-        cfg.container,
-        exiting ? 'animate-toast-out' : 'animate-toast-in',
-      ].join(' ')}
+      role={aviso.level === 'error' ? 'alert' : 'status'}
+      onMouseEnter={() => setCursorDentro(true)}
+      onMouseLeave={() => setCursorDentro(false)}
+      onFocus={() => setFocoDentro(true)}
+      onBlur={() => setFocoDentro(false)}
+      className={[TARJETA, saliendo ? 'animate-toast-out' : 'animate-toast-in'].join(' ')}
     >
-      {/* Colored left bar */}
-      <div className={`w-1 shrink-0 rounded-l-xl ${cfg.bar}`} aria-hidden />
-
-      {/* Content */}
-      <div className="flex min-w-0 flex-1 gap-3 px-3 py-3">
-        <span className={`mt-0.5 shrink-0 ${cfg.title}`}>{cfg.icon}</span>
-
-        <div className="min-w-0 flex-1">
-          <p className={`text-sm font-semibold leading-snug ${cfg.title}`}>
-            {toast.title}
-          </p>
-          {toast.message && (
-            <p className="mt-0.5 text-xs leading-relaxed text-on-surface-secondary">
-              {toast.message}
-            </p>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={close}
-          aria-label="Cerrar notificación"
-          className="ml-1 mt-0.5 shrink-0 rounded-md p-0.5 text-on-surface-secondary transition-colors hover:bg-black/8 hover:text-on-surface"
-        >
-          <X size={14} />
-        </button>
+      <span className={[ICONO, clases].join(' ')}>
+        <Icono size={16} aria-hidden />
+      </span>
+      <div className={TEXTOS}>
+        <p className={TITULO}>{aviso.title}</p>
+        {aviso.message && <p className={MENSAJE}>{aviso.message}</p>}
       </div>
+      <button
+        type="button"
+        onClick={() => setSaliendo(true)}
+        aria-label="Cerrar notificación"
+        className={CERRAR}
+      >
+        <X size={16} aria-hidden />
+      </button>
     </div>
   );
 }
 
-// ── Toaster ───────────────────────────────────────────────────────────────────
-
 export default function Toaster() {
-  const toasts = useToastStore((s) => s.toasts);
+  const avisos = useToastStore((state) => state.toasts);
 
   return createPortal(
-    <div
-      aria-label="Notificaciones"
-      className="fixed right-4 top-4 z-[9999] flex flex-col gap-2"
-    >
-      {[...toasts].reverse().map((t) => (
-        <ToastItem key={t.id} toast={t} />
+    <div role="region" aria-label="Notificaciones" className={REGION}>
+      {avisos.map((aviso) => (
+        <ToastItem key={aviso.id} aviso={aviso} />
       ))}
     </div>,
     document.body,

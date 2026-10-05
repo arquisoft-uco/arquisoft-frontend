@@ -49,9 +49,10 @@ describe('useEstadosFichaPerfilEstudiante', () => {
     await waitFor(() => expect(result.current.historial).toEqual(HISTORIAL));
     expect(consultar).toHaveBeenCalledWith('f-1');
     expect(result.current.fichaPerfilIdDisponible).toBe(true);
-    expect(queryClient.getQueryData(['fichas-perfil', 'estudiante', 'f-1', 'estados-ficha'])).toEqual(
-      HISTORIAL,
-    );
+    expect(result.current.cargado).toBe(true);
+    expect(
+      queryClient.getQueryData(['fichas-perfil', 'estudiante', 'f-1', 'estados-ficha']),
+    ).toEqual(HISTORIAL);
   });
 
   it('no llama al service cuando no hay id de ficha', () => {
@@ -67,6 +68,7 @@ describe('useEstadosFichaPerfilEstudiante', () => {
     // Assert
     expect(consultar).not.toHaveBeenCalled();
     expect(result.current.fichaPerfilIdDisponible).toBe(false);
+    expect(result.current.cargado).toBe(false);
     expect(result.current.historial).toEqual([]);
   });
 

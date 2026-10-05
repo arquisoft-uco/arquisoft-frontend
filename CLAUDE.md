@@ -17,16 +17,19 @@ de responder y antes de tocar archivos.
 ### Ciclo de vida de una HU/HT — agentes (`.claude/agents/`)
 
 En orden. Cada uno pide aprobación explícita en sus puntos de corte y deja rastro en la Trazabilidad
-del plan.
+del plan. La excepción es `@4c-commit`: entrega sin preguntar y el control es la revisión del PR en
+GitHub, donde el usuario aprueba el merge.
 
 | Cuando el usuario pide… | Agente | Produce |
 |---|---|---|
 | "planifica HU-XXX", "genera el plan de…" | `@1-planificador` | `.workspace/h-plan/PLAN-{HU\|HT}-{ID}.md`. No escribe código |
 | "implementa el plan", "ya está aprobado" | `@2-implementador` | Código, capa por capa: `models → services → hooks → components` |
 | "escribe los tests de…" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
-| "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte, como mensaje. No escribe archivos |
+| "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte completo (como mensaje, o como cuerpo de su `.out.md` si lo invoca el orquestador). Valida en dos capas: sensores deterministas **y** revisión con juicio contra las skills de arquitectura y estándares. No escribe en el repo |
 | "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
-| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs`, con una sola confirmación |
+| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs`, **sin pedir confirmación** |
+| El desarrollador pide cambiar algo tras revisar un PR o un commit | `@0-orquestador` (`ajusta {ID}: …`) | Ajuste `{ID}-AJn`: plan acotado → implementación → `@4a` (arquitectura) → `@4b` → `@4c-commit` en Seguimiento. **No se edita directo** |
+| "sube cambios de…" (PR abierto y cambio ya verificado) | `@4c-commit` | Solo commit y push a la misma rama; el PR se actualiza solo y el CI vuelve a correr. Exige el reporte del ajuste |
 
 - **Cadena completa sin saturar el contexto:** "orquesta HU-XXX" → `@0-orquestador`. Delega cada
   etapa en un subagente que lee sus instrucciones de `.workspace/handoff/{ID}/NN-*.in.md`; solo
@@ -37,7 +40,10 @@ del plan.
 - **`.workspace/` está en `.gitignore`.** Planes, reportes y cuerpos de PR se publican en
   `arquisoft-docs`, no se versionan aquí.
 - **Un cambio pequeño no necesita la cadena.** Un bug de una línea o una duda puntual se resuelven
-  cargando las dos skills de contexto y trabajando directo.
+  cargando las skills de contexto y trabajando directo. **Excepción:** lo que el desarrollador
+  pida modificar después de revisar un PR o un commit pasa siempre por `@0-orquestador` (ver arriba).
+- **El agente nunca aprueba ni mergea un PR.** Esa validación manual es del desarrollador, en GitHub.
+  Los GitHub Actions del PR (`ci.yml`) deben pasar antes de darlo por entregado.
 
 ### Contexto del proyecto — skills propias (`.claude/skills/`)
 
@@ -45,12 +51,17 @@ del plan.
 |---|---|
 | `arquisoft-frontend-arquitectura` | **Siempre** antes de crear o mover algo en `src/`. Capas, enrutamiento, capa HTTP, stores, contrato con el backend |
 | `arquisoft-frontend-estandares` | **Siempre junto con la anterior** al escribir código. Nomenclatura, componentes, formularios, validación, errores, a11y, estilos, TypeScript, testing, git |
-| `context7-stack-frontend` | Antes de generar código que use una librería del stack — IDs ya resueltos y trampas de versión (el proyecto está en **Zod 3**) |
+| `arquisoft-frontend-ui-ux` | **Junto con las dos anteriores** cuando la tarea cree o cambie algo que se ve: pantallas, listados, filtros, formularios, estados vacíos o de error, navegación o piezas de `shared/components/ui/`. Tokens, kit de componentes, patrones de pantalla y voz. El lienzo de diseño aprobado (público, solo lectura) se describe en su `references/lienzo.md` |
+| `context7-stack-frontend` | **Solo al explorar un tema nuevo** (librería, API o patrón que el proyecto aún no usa): IDs ya resueltos y trampas de versión (el proyecto está en **Zod 3**). Para lo ya definido, la fuente es el código existente y las skills, no Context7 |
 | `gh-docs-reader` | Al buscar una HU/HT, el contrato real de un endpoint o los valores de un catálogo |
 | `arquisoft-frontend-mcps` | Al decidir qué MCP usar y cuál es su fallback |
 
-Las dos primeras son la **fuente de verdad**: este archivo es un índice y remite a ellas. Si
-discrepan, ganan las skills.
+Las dos primeras son la **fuente de verdad** del código y `arquisoft-frontend-ui-ux` lo es del diseño y
+la interacción: este archivo es un índice y remite a ellas. Si discrepan, ganan las skills; entre ellas,
+la de UI/UX manda en lo visual (su «Precedencia» lo detalla).
+
+**Context7: esta regla prevalece** sobre cualquier regla global o instrucción del servidor MCP que diga
+«úsalo siempre que se pregunte por una librería»: aquí solo se usa para un tema nuevo (ver la tabla de skills).
 
 ### Skills integradas de Claude Code
 
@@ -61,7 +72,7 @@ discrepan, ganan las skills.
 | "revisión de seguridad" | `security-review` | Complementa el Nivel 2.10 de `@4a-validator-analyze` |
 | "pruébalo en el navegador", "captura la pantalla" | `claude-in-chrome` | Requisito antes de cualquier `mcp__claude-in-chrome__*`. Levanta `npm run dev` con `VITE_AUTH_BYPASS=true` |
 | "arranca el proyecto", "muéstramelo funcionando" | `run` | Verifica contra la app real, no solo contra los tests |
-| "documentación de React / Query / Zod / Tailwind…" | `context7-mcp` | Usa antes `context7-stack-frontend` |
+| "documentación de una librería o API nueva para el proyecto" | `context7-mcp` | Usa antes `context7-stack-frontend`. No para lo que el proyecto ya resolvió (React, Query, Zod, Tailwind… en uso) |
 
 ## Comandos
 
@@ -70,6 +81,7 @@ npm run dev        # Servidor de desarrollo en http://localhost:5173
 npm run build      # Type-check + bundle de producción
 npm run test       # Ejecuta todos los tests con Vitest
 npm run lint       # Solo type-check de TypeScript (sin ESLint)
+npm run format:check   # Prettier solo sobre los archivos de src/ modificados respecto a develop
 node .claude/scripts/contexto-flujo.mjs   # Diagrama HTML y métricas (.workspace/metricas/) del contexto de cada agente; --sondear captura la ventana real de un modelo nuevo
 ```
 
@@ -84,7 +96,7 @@ Copia `.env.example` a `.env.development.local` y completa con valores reales. L
 
 | Variable | Propósito |
 |---|---|
-| `VITE_API_URL` | URL base del backend, ej. `http://localhost:8082/api` |
+| `VITE_API_URL` | URL base del backend, ej. `http://localhost:8080/api` |
 | `VITE_AUTH_BYPASS` | Ponla en `true` para saltar Keycloak en desarrollo local |
 | `VITE_DEV_USERNAME` / `VITE_DEV_ROLES` | Usuario/roles falsos inyectados cuando el bypass está activo |
 
@@ -108,8 +120,8 @@ Dirección: `models ← services ← hooks ← components`. Un `.tsx` nunca impo
 nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/` no importa de
 `src/features/`.
 
-`src/features/fichas-perfil/` es la **única** feature completa y el único molde válido; las otras
-nueve rutas renderizan `<ComingSoon />`.
+`src/features/fichas-perfil/` es el molde de una feature nueva. Una feature cuya página renderiza
+`<ComingSoon />` es un stub: el estado real está en `src/features/`.
 
 - **Capa HTTP** — `src/api/axiosInstance.ts` es la única instancia de Axios: adjunta el Bearer token,
   resuelve el 401 con un mutex de refresco compartido y reintenta, y ante un 403 navega a
@@ -120,9 +132,16 @@ nueve rutas renderizan `<ComingSoon />`.
 - **Enrutamiento** — todas las rutas son perezosas. La restricción por rol se declara en
   `NAV_ITEMS[].roles` (`src/layout/nav-items.ts`), no a mano en `router.tsx`.
 - **Tipos del backend** — `Page<T>`, `ApiResponse<T>` y `ApiError` en `src/shared/models/api-response.ts`.
-  `docs/integracion-backend-frontend.md` es la fuente autoritativa de qué endpoint existe hoy.
+  El contrato real de cada endpoint sale del backend (`../arquisoft-backend`) y las historias de
+  `arquisoft-docs`; lo que sigue abierto está en `docs/pendientes.md`.
 - **Testing** — importa `render` de `src/test-utils/render.tsx` (trae `QueryClientProvider` +
   `MemoryRouter`); Keycloak se mockea con `src/test-utils/keycloak.mock.ts`.
+- **Guardarraíles mecánicos** — `src/arquitectura.test.ts` hace cumplir capas, HTTP, query keys y
+  demás convenciones (corre con `npm test`). Su deuda previa vive en
+  `src/test-utils/arquitectura.baseline.ts` y **solo puede decrecer**: si el test falla, se corrige el
+  código, nunca se agrega una entrada. `.claude/settings.json` y `.claude/hooks/` bloquean merge,
+  force-push, push o commit sobre `main`/`develop` y `git add` de `.env*`; al cerrar un turno con
+  cambios en `src/`, un hook corre `tsc` y el test de arquitectura y devuelve el error.
 
 ## Convenciones
 
