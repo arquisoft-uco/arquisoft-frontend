@@ -1,24 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { Route, Routes, useLocation } from 'react-router';
-import { render, screen, within } from '../../test-utils/render';
-import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
-import NuevaFichaPerfil from './NuevaFichaPerfil';
-import { Rol } from '../../shared/models/rol';
-import { useRegistrarFichaPerfil } from './hooks/useRegistrarFichaPerfil';
-import { useAsesoresFichaVigentes } from '../../shared/hooks/useAsesoresFichaVigentes';
-import { useEstudiantesVigentes } from '../../shared/hooks/useEstudiantesVigentes';
-import { toast } from '../../shared/hooks/useToast';
-import type { Asesor } from '../../shared/models/Asesor';
-import type { EstudianteVigente } from '../../shared/models/EstudianteVigente';
+import { render, screen, within } from '../../../../test-utils/render';
+import { resetAllStores } from '../../../../test-utils/store.utils';
+import RegistrarFichaPerfilPanel from './RegistrarFichaPerfilPanel';
+import { useRegistrarFichaPerfil } from '../../hooks/useRegistrarFichaPerfil';
+import { useAsesoresFichaVigentes } from '../../../../shared/hooks/useAsesoresFichaVigentes';
+import { useEstudiantesVigentes } from '../../../../shared/hooks/useEstudiantesVigentes';
+import { toast } from '../../../../shared/hooks/useToast';
+import type { Asesor } from '../../../../shared/models/Asesor';
+import type { EstudianteVigente } from '../../../../shared/models/EstudianteVigente';
 
-vi.mock('./hooks/useRegistrarFichaPerfil', () => ({ useRegistrarFichaPerfil: vi.fn() }));
-vi.mock('../../shared/hooks/useAsesoresFichaVigentes', () => ({
+vi.mock('../../hooks/useRegistrarFichaPerfil', () => ({ useRegistrarFichaPerfil: vi.fn() }));
+vi.mock('../../../../shared/hooks/useAsesoresFichaVigentes', () => ({
   useAsesoresFichaVigentes: vi.fn(),
 }));
-vi.mock('../../shared/hooks/useEstudiantesVigentes', () => ({ useEstudiantesVigentes: vi.fn() }));
-vi.mock('../../shared/hooks/useToast', () => ({
+vi.mock('../../../../shared/hooks/useEstudiantesVigentes', () => ({
+  useEstudiantesVigentes: vi.fn(),
+}));
+vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
@@ -29,12 +29,7 @@ const useEstudiantesMock = vi.mocked(useEstudiantesVigentes);
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
 const E1: EstudianteVigente = { id: 'e-1', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' };
 const E2: EstudianteVigente = { id: 'e-2', nombre: 'Marta Ríos', email: 'marta@uco.edu.co' };
-
-const RUTA_NUEVA = '/fichas-perfil/nueva?q=monitoreo&pagina=2';
-
-function Listado() {
-  return <p>Listado de fichas{useLocation().search}</p>;
-}
+const E3: EstudianteVigente = { id: 'e-3', nombre: 'Pedro Soto', email: 'pedro@uco.edu.co' };
 
 function mockCatalogos(
   asesores: Partial<ReturnType<typeof useAsesoresFichaVigentes>> = {},
@@ -47,14 +42,14 @@ function mockCatalogos(
     ...asesores,
   } as ReturnType<typeof useAsesoresFichaVigentes>);
   useEstudiantesMock.mockReturnValue({
-    data: [E1, E2],
+    data: [E1, E2, E3],
     isLoading: false,
     isError: false,
     ...estudiantes,
   } as ReturnType<typeof useEstudiantesVigentes>);
 }
 
-function mockMutacion(mutate = vi.fn()) {
+function mockMutacion(mutate = vi.fn(), isPending = false) {
   useRegistrarMock.mockReturnValue({
     data: undefined,
     error: null,
@@ -64,32 +59,16 @@ function mockMutacion(mutate = vi.fn()) {
     failureReason: null,
     isPaused: false,
     submittedAt: 0,
-    status: 'idle',
+    status: isPending ? 'pending' : 'idle',
     isError: false,
-    isIdle: true,
-    isPending: false,
+    isIdle: !isPending,
+    isPending,
     isSuccess: false,
     mutate,
     mutateAsync: vi.fn(),
     reset: vi.fn(),
   } as ReturnType<typeof useRegistrarFichaPerfil>);
   return mutate;
-}
-
-function autenticarCon(rol: Rol) {
-  setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
-  setActiveRole(rol);
-}
-
-function renderizar(ruta = RUTA_NUEVA) {
-  return render(
-    <Routes>
-      <Route path="/fichas-perfil/nueva" element={<NuevaFichaPerfil />} />
-      <Route path="/fichas-perfil" element={<Listado />} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
-    </Routes>,
-    { initialPath: ruta },
-  );
 }
 
 function crearErrorApi(errorCode: string, message: string) {
@@ -112,40 +91,39 @@ async function llenarFormulario(user: Usuario) {
   await user.click(screen.getByRole('option', { name: /Luis Gómez/ }));
 }
 
-describe('NuevaFichaPerfil', () => {
+const DIALOGO_DESCARTAR = { name: '¿Descartar los cambios?' };
+
+describe('RegistrarFichaPerfilPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetAllStores();
-    autenticarCon(Rol.Coordinador);
     mockCatalogos();
     mockMutacion();
   });
 
-  it('un rol distinto de coordinador es enviado a /forbidden', () => {
-    // Arrange
-    autenticarCon(Rol.Estudiante);
-
+  it('abre un diálogo modal con el foco dentro y el formulario con nombre accesible', () => {
     // Act
-    renderizar();
+    render(<RegistrarFichaPerfilPanel onCerrar={vi.fn()} />);
 
     // Assert
-    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
+    const dialogo = screen.getByRole('dialog', { name: 'Nueva ficha de perfil' });
+    expect(dialogo).toBeInTheDocument();
+    expect(dialogo.contains(document.activeElement)).toBe(true);
     expect(
-      screen.queryByRole('heading', { name: 'Nueva ficha de perfil' }),
-    ).not.toBeInTheDocument();
+      within(dialogo).getByRole('textbox', { name: /Título del proyecto/ }),
+    ).toBeInTheDocument();
   });
 
   it('muestra el error del título al salir del campo vacío, sin mostrarlo al montar', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar();
-    const titulo = screen.getByRole('textbox', { name: /Título del proyecto/ });
+    render(<RegistrarFichaPerfilPanel onCerrar={vi.fn()} />);
 
     // Assert
     expect(screen.queryByText('Este campo es requerido')).not.toBeInTheDocument();
 
     // Act
-    await user.click(titulo);
+    await user.click(screen.getByRole('textbox', { name: /Título del proyecto/ }));
     await user.tab();
 
     // Assert
@@ -156,7 +134,7 @@ describe('NuevaFichaPerfil', () => {
     // Arrange
     const user = userEvent.setup();
     const mutate = mockMutacion();
-    renderizar();
+    render(<RegistrarFichaPerfilPanel onCerrar={vi.fn()} />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Registrar ficha' }));
@@ -167,13 +145,14 @@ describe('NuevaFichaPerfil', () => {
     expect(mutate).not.toHaveBeenCalled();
   });
 
-  it('con datos válidos registra con el mapeo correcto, notifica y vuelve al listado con su búsqueda', async () => {
+  it('con datos válidos registra con el mapeo correcto, notifica y cierra el panel', async () => {
     // Arrange
     const user = userEvent.setup();
+    const onCerrar = vi.fn();
     const mutate = mockMutacion(
       vi.fn((_req: unknown, opciones?: { onSuccess?: () => void }) => opciones?.onSuccess?.()),
     );
-    renderizar();
+    render(<RegistrarFichaPerfilPanel onCerrar={onCerrar} />);
 
     // Act
     await llenarFormulario(user);
@@ -185,18 +164,19 @@ describe('NuevaFichaPerfil', () => {
       expect.anything(),
     );
     expect(toast.success).toHaveBeenCalledWith('Ficha de perfil registrada', expect.any(String));
-    expect(await screen.findByText('Listado de fichas?q=monitoreo&pagina=2')).toBeInTheDocument();
+    expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
-  it('si el backend rechaza el registro notifica el error, conserva los datos y no navega', async () => {
+  it('si el backend rechaza el registro notifica el error, conserva los datos y no cierra', async () => {
     // Arrange
     const user = userEvent.setup();
+    const onCerrar = vi.fn();
     mockMutacion(
       vi.fn((_req: unknown, opciones?: { onError?: (e: unknown) => void }) =>
         opciones?.onError?.(crearErrorApi('ASESOR_NO_VIGENTE', 'El asesor ya no está vigente')),
       ),
     );
-    renderizar();
+    render(<RegistrarFichaPerfilPanel onCerrar={onCerrar} />);
 
     // Act
     await llenarFormulario(user);
@@ -211,10 +191,10 @@ describe('NuevaFichaPerfil', () => {
       'Sistema nuevo',
     );
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
-    expect(screen.queryByText(/Listado de fichas/)).not.toBeInTheDocument();
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 
-  it('un título duplicado se pinta bajo el campo además del toast', async () => {
+  it('un título duplicado se pinta bajo el campo además del único toast', async () => {
     // Arrange
     const user = userEvent.setup();
     mockMutacion(
@@ -222,7 +202,7 @@ describe('NuevaFichaPerfil', () => {
         opciones?.onError?.(crearErrorApi('FICHA_TITULO_DUPLICADO', 'Ya existe una ficha así')),
       ),
     );
-    renderizar();
+    render(<RegistrarFichaPerfilPanel onCerrar={vi.fn()} />);
 
     // Act
     await llenarFormulario(user);
@@ -241,90 +221,118 @@ describe('NuevaFichaPerfil', () => {
     mockCatalogos(parciales.asesores, parciales.estudiantes);
 
     // Act
-    renderizar();
+    render(<RegistrarFichaPerfilPanel onCerrar={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('note', { name: `No disponible: ${recurso}` })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Registrar ficha' })).toBeDisabled();
   });
 
-  it('cancelar sin cambios vuelve al listado con su búsqueda sin pedir confirmación', async () => {
+  it('al elegir el máximo de estudiantes deshabilita el campo y avisa', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar();
+    render(<RegistrarFichaPerfilPanel onCerrar={vi.fn()} />);
+
+    // Act
+    for (const nombre of [/Luis Gómez/, /Marta Ríos/, /Pedro Soto/]) {
+      await user.click(screen.getByRole('combobox', { name: 'Estudiantes' }));
+      await user.click(screen.getByRole('option', { name: nombre }));
+    }
+
+    // Assert
+    expect(screen.getByText('Alcanzaste el máximo.')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Estudiantes' })).toBeDisabled();
+  });
+
+  it('cerrar sin cambios llama onCerrar sin pedir confirmación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    render(<RegistrarFichaPerfilPanel onCerrar={onCerrar} />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
-    expect(screen.getByText('Listado de fichas?q=monitoreo&pagina=2')).toBeInTheDocument();
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog', DIALOGO_DESCARTAR)).not.toBeInTheDocument();
   });
 
-  it('cancelar con cambios pide confirmación: Seguir editando conserva y Descartar vuelve', async () => {
+  it('cancelar con cambios pide confirmación: Seguir editando conserva y Descartar cierra', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar();
+    const onCerrar = vi.fn();
+    render(<RegistrarFichaPerfilPanel onCerrar={onCerrar} />);
     await user.type(screen.getByRole('textbox', { name: /Título del proyecto/ }), 'Borrador');
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
-    const dialogo = screen.getByRole('dialog', { name: '¿Descartar los cambios?' });
+    const dialogo = screen.getByRole('dialog', DIALOGO_DESCARTAR);
     await user.click(within(dialogo).getByRole('button', { name: 'Seguir editando' }));
 
     // Assert
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', DIALOGO_DESCARTAR)).not.toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /Título del proyecto/ })).toHaveValue('Borrador');
+    expect(onCerrar).not.toHaveBeenCalled();
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
     await user.click(screen.getByRole('button', { name: 'Descartar' }));
 
     // Assert
-    expect(screen.getByText('Listado de fichas?q=monitoreo&pagina=2')).toBeInTheDocument();
+    expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
-  it('con cambios sin guardar la miga pide confirmación y no navega', async () => {
+  it('Esc con la lista abierta cierra solo la lista y el siguiente Esc cierra el panel', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar();
-    const miga = () => screen.getByRole('link', { name: 'Fichas de perfil' });
+    const onCerrar = vi.fn();
+    render(<RegistrarFichaPerfilPanel onCerrar={onCerrar} />);
+    await user.click(screen.getByRole('combobox', { name: 'Asesor' }));
+    expect(screen.getByRole('option', { name: /Ana Pérez/ })).toBeInTheDocument();
 
-    // Act: con cambios
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('option', { name: /Ana Pérez/ })).not.toBeInTheDocument();
+    expect(onCerrar).not.toHaveBeenCalled();
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('Esc con cambios pide confirmación en lugar de cerrar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    render(<RegistrarFichaPerfilPanel onCerrar={onCerrar} />);
     await user.type(screen.getByRole('textbox', { name: /Título del proyecto/ }), 'Borrador');
-    await user.click(miga());
-
-    // Assert
-    expect(screen.getByRole('dialog', { name: '¿Descartar los cambios?' })).toBeInTheDocument();
-    expect(screen.queryByText(/Listado de fichas/)).not.toBeInTheDocument();
-  });
-
-  it('la miga sin cambios vuelve al listado con la búsqueda que traía', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    renderizar();
 
     // Act
-    await user.click(screen.getByRole('link', { name: 'Fichas de perfil' }));
+    await user.keyboard('{Escape}');
 
     // Assert
-    expect(screen.getByText('Listado de fichas?q=monitoreo&pagina=2')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', DIALOGO_DESCARTAR)).toBeInTheDocument();
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 
-  it('el resumen pasa de pendiente a completo a medida que se eligen los datos', async () => {
+  it('mientras envía deshabilita el botón de cierre, muestra el estado y Esc no cierra', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar();
-    const resumen = within(screen.getByRole('complementary', { name: 'Resumen de la ficha' }));
-
-    // Assert
-    expect(resumen.getAllByText(/: pendiente/)).toHaveLength(3);
+    const onCerrar = vi.fn();
+    mockMutacion(vi.fn(), true);
+    render(<RegistrarFichaPerfilPanel onCerrar={onCerrar} />);
 
     // Act
-    await llenarFormulario(user);
+    await user.keyboard('{Escape}');
 
     // Assert
-    expect(resumen.getAllByText(/: completo/)).toHaveLength(3);
-    expect(resumen.getByText('Ana Pérez')).toBeInTheDocument();
-    expect(resumen.getByText('1 de 3: Luis Gómez')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Registrando/ })).toBeInTheDocument();
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 });

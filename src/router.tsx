@@ -10,7 +10,6 @@ import RouteErrorPage from './shared/components/RouteErrorPage';
 // Lazy feature imports — AppLayout's <Suspense> handles loading states
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'));
 const FichasPerfil = lazy(() => import('./features/fichas-perfil/FichasPerfil'));
-const NuevaFichaPerfil = lazy(() => import('./features/fichas-perfil/NuevaFichaPerfil'));
 const DetalleFicha = lazy(() => import('./features/fichas-perfil/DetalleFicha'));
 const PestanaFicha = lazy(() => import('./features/fichas-perfil/components/PestanaFicha'));
 const ProyectosGrado = lazy(() => import('./features/proyectos-grado/ProyectosGrado'));
@@ -50,7 +49,6 @@ export const router = createBrowserRouter([
             element: guarded('fichas-perfil', <Outlet />),
             children: [
               { index: true, element: <FichasPerfil /> },
-              { path: 'nueva', element: <NuevaFichaPerfil /> },
               {
                 path: ':id',
                 element: <DetalleFicha />,

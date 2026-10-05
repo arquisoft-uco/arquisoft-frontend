@@ -7,6 +7,17 @@ import CoordinadorView from './CoordinadorView';
 vi.mock('./coordinador/ConsultarFichasPerfilCoordinador', () => ({
   default: () => <p>Listado de fichas</p>,
 }));
+vi.mock('./coordinador/RegistrarFichaPerfilPanel', () => ({
+  default: ({ onCerrar }: { onCerrar: () => void }) => (
+    <div>
+      <p>Panel de registro</p>
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
 function Ubicacion() {
   const { pathname, search } = useLocation();
   return <p>{`${pathname}${search}`}</p>;
@@ -22,7 +33,7 @@ describe('CoordinadorView', () => {
     expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
   });
 
-  it('Nueva ficha de perfil navega a la página de registro conservando la búsqueda del listado', async () => {
+  it('Nueva ficha de perfil abre el panel sin cambiar la ruta y al cerrarlo lo quita', async () => {
     // Arrange
     const user = userEvent.setup();
     render(
@@ -37,6 +48,13 @@ describe('CoordinadorView', () => {
     await user.click(screen.getByRole('button', { name: 'Nueva ficha de perfil' }));
 
     // Assert
-    expect(screen.getByText('/fichas-perfil/nueva?q=sistema&pagina=2')).toBeInTheDocument();
+    expect(screen.getByText('Panel de registro')).toBeInTheDocument();
+    expect(screen.getByText('/fichas-perfil?q=sistema&pagina=2')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByText('Panel de registro')).not.toBeInTheDocument();
   });
 });

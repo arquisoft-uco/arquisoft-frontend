@@ -34,10 +34,10 @@ const CAMPOS = Object.keys(ETIQUETAS) as (keyof NuevaFichaValues)[];
 const MENSAJE_ERROR_POR_DEFECTO = 'Verifica los datos e inténtalo nuevamente.';
 
 interface Opciones {
-  alRegistrar: () => void;
+  onCerrar: () => void;
 }
 
-export function useNuevaFichaForm({ alRegistrar }: Opciones) {
+export function useNuevaFichaForm({ onCerrar }: Opciones) {
   const [resumenVisible, setResumenVisible] = useState(false);
   const form = useForm<NuevaFichaValues>({
     resolver: zodResolver(schema),
@@ -48,7 +48,7 @@ export function useNuevaFichaForm({ alRegistrar }: Opciones) {
 
   const asesores = useAsesoresFichaVigentes();
   const estudiantes = useEstudiantesVigentes();
-  const { mutate, isPending } = useRegistrarFichaPerfil();
+  const { mutate, isPending, reset: reiniciarMutacion } = useRegistrarFichaPerfil();
 
   const catalogoNoDisponible = asesores.isError || estudiantes.isError;
 
@@ -78,7 +78,7 @@ export function useNuevaFichaForm({ alRegistrar }: Opciones) {
             'Ficha de perfil registrada',
             `"${valores.titulo}" fue creada correctamente.`,
           );
-          alRegistrar();
+          onCerrar();
         },
         onError: (err) => {
           const mensaje = getApiErrorMessage(err, MENSAJE_ERROR_POR_DEFECTO);
@@ -91,12 +91,19 @@ export function useNuevaFichaForm({ alRegistrar }: Opciones) {
     );
   }
 
+  function cerrar() {
+    form.reset();
+    reiniciarMutacion();
+    onCerrar();
+  }
+
   const enviar = form.handleSubmit(registrar, () => setResumenVisible(true));
 
   return {
     form,
     enviar,
     enviando: isPending,
+    cerrar,
     isDirty,
     catalogos: { asesores, estudiantes },
     catalogoNoDisponible,
