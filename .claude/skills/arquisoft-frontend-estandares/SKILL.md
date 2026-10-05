@@ -25,6 +25,9 @@ entera hasta que un usuario ve dos comportamientos distintos en dos pantallas.
 | Texto de error de validación | `MENSAJES_VALIDACION` |
 | Lectura de un error de API | Helpers de `shared/utils/api-error.ts` |
 | Restricción de rol por ruta | `NAV_ITEMS[].roles` |
+| Módulo sin pantalla | `NavItem.disponible` en `nav-items.ts` |
+| Estado de negocio → variante de `Badge` | `shared/utils/estado-variante.ts` |
+| Duración y tope de los toasts | `shared/stores/toastStore.ts` |
 | Token, refresco y ruteo de 401/403 | `api/axiosInstance.ts` |
 
 **Cuándo se sube algo.** A la segunda vista que necesita lo mismo: la primera lo resuelve local, la
@@ -47,7 +50,7 @@ una pasada aparte: se migra cuando se toque ese archivo por otra razón. Un plan
 | Panel/tabla/formulario de un rol | `components/{rol}/{Concepto}{Panel\|Table\|Form}.tsx` | `coordinador/EstudiantesVinculadosPanel.tsx` |
 | Hook | `use{Accion\|Recurso}.ts`, `export function` | `useRegistrarFichaPerfil.ts` |
 | Service | `{feature}Service.ts`, `export const` | `fichasPerfilService.ts` |
-| Modelo | `PascalCase.ts` | `FichaPerfilAsesor.ts` |
+| Modelo | `PascalCase.ts` | `FichaPerfilRepresentante.ts` |
 | Request/Response | `{Accion}{Entidad}Request.ts` / `{Entidad}{Estado}Response.ts` | `AsignarEstudianteRequest.ts` |
 | Store | `{concepto}Store.ts` → `use{Concepto}Store` | `toastStore.ts` |
 | Test | `{ArchivoBajoPrueba}.test.ts(x)`, junto al archivo | `AvisoNoDisponible.test.tsx` |
@@ -205,7 +208,7 @@ consultó el objeto afectado. No se deja al usuario en el formulario limpio ni s
 
 - **Orden en el éxito:** el hook invalida la query del listado por prefijo (para que refleje el
   cambio); el componente, en el `onSuccess` del `mutate(...)`, lanza el toast de éxito y cierra la
-  vista (`onCerrar()` / `onVolver()`). `NuevaFichaPerfil` (`alRegistrar`) es la referencia; en el detalle con
+  vista (`onCerrar()` / `onVolver()`). `NuevaFichaContenido` (`useNuevaFichaForm({ alRegistrar })`) es la referencia; en el detalle con
   ruta (`DetalleFichaEstructura`) la miga «Fichas de perfil» restaura la `search` del listado.
 - **Cuando el formulario es una página**, se vuelve al listado con la misma búsqueda guardada en la
   URL: `navigate({ pathname, search })`, con la `search` que el listado pasó al abrir la página.
@@ -219,10 +222,13 @@ consultó el objeto afectado. No se deja al usuario en el formulario limpio ni s
 
 Toda `useQuery` consumida por un componente maneja **las tres** ramas, y son distintas:
 
-- **Carga** → `<PageSkeleton />` (página) o spinner con `role="status"`, `aria-live="polite"`,
-  `aria-busy="true"` y un `<span className="sr-only">` que diga qué carga.
-- **Vacío** → texto en una fila o bloque. **No es un error.**
-- **Error** → contenedor con `role="alert"` y texto accionable.
+- **Carga** → `Skeleton` con la forma de lo que viene (`tabla`, `tarjetas`, `formulario` o `lineas`),
+  `PageSkeleton` como fallback de la página y `Button cargando` al enviar. Nunca un spinner escrito a mano:
+  `src/arquitectura.test.ts` lo rechaza fuera de `shared/components/ui/`.
+- **Vacío** → `EmptyState`. **No es un error.**
+- **Error** → `ErrorState` con `onReintentar` (o `Notice` para un aviso en línea).
+
+Las recetas de cada pieza están en `arquisoft-frontend-ui-ux`.
 
 ## Errores de API
 
@@ -255,6 +261,9 @@ el envío falló, aunque el campo quede fuera de la vista. Un `onError` que solo
 mutación sin toast de éxito, es un hallazgo. Las validaciones de Zod mientras se escribe no llevan
 toast: se pintan en el campo.
 
+El `Toaster` (en `shared/components/`) muestra como máximo tres, pausa al pasar el cursor o con el foco y
+usa `role="alert"` en el error; no se monta en una feature.
+
 Acción destructiva → `<ConfirmDialog />` (`variante: 'peligro' | 'advertencia'`), nunca `window.confirm`.
 
 ## Accesibilidad
@@ -267,7 +276,7 @@ Obligatoria desde el primer commit:
   `Field` y `NuevaFichaForm` son la referencia completa.
 - `<label htmlFor>` con `id` en cada campo; si el control no es un input, contenedor con `aria-labelledby`.
 - `aria-expanded` en botones que despliegan (el botón «Filtros» de `FilterBar`).
-- Tablas: `<table aria-label>` y `<th scope="col">`.
+- Tablas: solo con `DataTable` (trae `aria-label`, `scope="col"` y las tarjetas del celular); un `<table>` suelto lo rechaza el test de arquitectura.
 - Nunca un `<div>` con `onClick` haciendo de botón.
 
 ## Estilos
@@ -282,12 +291,15 @@ Solo clases semánticas, nunca un color crudo de la paleta:
 | Superficies | `bg-surface`, `bg-surface-secondary`, `bg-surface-elevated`, `bg-background`, `bg-muted` |
 | Texto | `text-on-surface`, `text-on-surface-secondary`, `text-muted-foreground` |
 | Bordes | `border-border`, `border-border-strong`, `border-border-input` |
-| Marca | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted` |
+| Marca | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted`, `text-primary-muted-foreground` |
 | Secundario / terciario | misma familia de sufijos con `-secondary` / `-tertiary` |
 | Peligro | `bg-danger`, `text-danger`, `text-danger-foreground`, `bg-danger-muted`, `text-danger-muted-foreground` |
 | Navegación | `bg-nav-active-bg`, `text-nav-active-text`, `bg-nav-hover-bg` |
 | Sombras | `shadow-card`, `shadow-card-hover`, `shadow-dropdown`, `shadow-lg` |
-| Animaciones | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-scale-in` |
+| Animaciones | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-slide-in-right`, `animate-scale-in`, `animate-shimmer` (`Skeleton`), `animate-toast-in` y `animate-toast-out` (solo `Toaster`) |
+| Radios | `rounded-sm` a `rounded-2xl`; easing `ease-out-strong` |
+
+El escaneo de clases de Tailwind excluye `.claude/` y `docs/` (`@source not` en `src/tailwind.css`): los nombres de clase que citan los `.md` no inflan el CSS.
 
 Contraste y uso de cada token: `arquisoft-frontend-ui-ux` (`references/tokens.md`). Un `--color-*` que
 falte en `@theme` no genera estilo y `src/arquitectura.test.ts` lo vigila.
@@ -314,7 +326,7 @@ decisión y se desincroniza el día que cambie: usa la clase.
 
 | Clase global | Qué resuelve |
 |---|---|
-| `.field-label` / `.field-input` / `.field-error` | El campo completo: etiqueta, control y mensaje. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
+| `.field-label` / `.field-input` / `.field-error` / `.field-hint` | El campo completo: etiqueta, control, mensaje y ayuda bajo el campo; `.field-input--icono` y `.field-input--accion` dan sitio a un icono o un botón dentro del input. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
 | `.tap-target` | Área táctil de 44 px en celular, sin mínimo desde `sm` — para la etiqueta que envuelve una casilla o un radio |
 | `.checkbox-control` | Casilla de 20 px para el dedo, 16 px desde `sm` |
 | `.actions-row` | Fila de botones: apilada y de ancho completo en celular, con la acción principal arriba; en fila a la derecha desde `sm` |
@@ -327,7 +339,7 @@ segunda vista, sube a `index.css`:
 |---|---|
 | Nada de anchos fijos | `w-full` + `max-w-*`; nunca `w-[720px]` ni `min-w` por encima de 320 px |
 | Columnas | apiladas por defecto, `sm:grid-cols-2` o `sm:flex-row` después |
-| Icono-botón | `h-11 w-11 sm:h-9 sm:w-9` |
+| Icono-botón | la pieza `IconButton`; a mano, `h-11 w-11 sm:h-9 sm:w-9` |
 | Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
 
 **Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber

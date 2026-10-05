@@ -86,8 +86,8 @@ La validación tiene **dos capas** y ninguna sustituye a la otra:
 | 2.2 HTTP y services | `axios` directo y cliente HTTP fuera de un service | Traducción de nombres contra el DTO real; ausencia de `try/catch` que esconda el error; verbo, ruta y body frente al contrato |
 | 2.3 Modelos | Runtime en `models/` | Enums que replican un catálogo, interfaces demasiado grandes, opcionales sin justificación |
 | 2.4 Hooks | Query key que empieza por la feature | Que sea la del plan, la estrategia de refresco (`invalidateQueries`/`setQueryData`), `enabled`, un solo lugar para el toast |
-| 2.5 Componentes | `console.log` y tamaño por encima de 150 líneas | Los tres estados reales, el orden interno, schema fuera del componente, claves estables |
-| 2.9 Estilos | Colores crudos nuevos y config prohibida | Tokens correctos, mobile first, clases globales de `index.css` |
+| 2.5 Componentes | `console.log`, tamaño por encima de 150 líneas, un spinner fuera de `shared/components/ui/`, texto de menos de 12 px y `<table>` fuera de `DataTable` | Los tres estados reales con `Skeleton`, `EmptyState` y `ErrorState` del kit, el orden interno, schema fuera del componente, claves estables |
+| 2.9 Estilos | Colores crudos nuevos, config prohibida y utilidad de color (`bg-x`, `text-x`, `border-x`…) sin su `--color-*` en `@theme` | Tokens correctos, mobile first, clases globales de `index.css` |
 | 2.10 Seguridad | Storage fuera del store del rol | Datos sensibles, `dangerouslySetInnerHTML`, secretos en `VITE_*` |
 | 2.11 TypeScript | `any`, `@ts-ignore`, `as unknown as` y JSDoc nuevo | `!` injustificados; tipos que esconden un contrato mal modelado |
 

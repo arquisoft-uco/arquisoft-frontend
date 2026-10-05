@@ -55,11 +55,11 @@ para implementar. Nunca publiques sobre él ni lo borres. Detalle y mapa de tabl
 | Ver una entidad con sus partes (ítems, estados…) | §4 Detalle con ruta | `PageHeader` con migas, `Tabs`, disposición con panel lateral |
 | Pantalla de entrada de cada rol | §5 Inicio por rol | Tarjetas, `Badge`, cifras de `totalElements` |
 | Menú lateral o encabezado | §6 | `NavItem.disponible`, `Avatar` |
-| Cargando, vacío, error, no disponible | §7 Estados | `Skeleton`, `LoadingState`, `EmptyState`, `ErrorState`, `Notice` |
+| Cargando, vacío, error, no disponible | §7 Estados | `Skeleton`, `EmptyState`, `ErrorState`, `Notice` |
 | Cambio que se aplica al instante (roles, preferencias) | §8 | `Switch` y toast |
 | Acción que quita acceso o no se deshace | §8 | `ConfirmDialog` `peligro`, con consecuencias |
 | Elegir entre ≤ 5 / 6 a 8 / más de 8 opciones | — | Chips o radio / `select` nativo / `Combobox` |
-| Cambiar la vista de los mismos datos | — | `Segmented` |
+| Cambiar la vista de los mismos datos | — | `Segmented` (aún no existe: se crea con la receta de `componentes.md` cuando haya un consumidor) |
 | Cambiar de sección con URL propia | — | `Tabs` con `to` |
 
 ## Para el planificador
@@ -73,7 +73,8 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
   `EmptyState` y el `ErrorState` con `onReintentar`.
 - **Sección 8:** declara `NavItem.disponible` y, si hay rutas hijas, que cuelgan del módulo y **no** llevan
   `NavItem` propio (`patrones.md` §4).
-- **Archivos de `adopcion.md`:** si la HU toca uno, el plan dice si se migra a la pieza o se deja (migrar al tocar).
+- **Archivos escritos a mano:** si la HU toca uno (`EnviarSolicitudNovedadForm` u otro de los 13 `<button` que quedan
+  fuera de `ui/`; ver `adopcion.md`), el plan dice si se migra a la pieza o se deja (migrar al tocar).
 - **Preguntas al usuario:** solo las de producto que la tabla de arriba no resuelve (qué campos busca el listado,
   qué acciones lleva cada fila). El estilo no se pregunta: está decidido.
 - **Verifica contra el backend lo que el patrón promete:** campos filtrables y ordenables del criterio, y qué endpoint
@@ -81,13 +82,13 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
 
 ## Para el implementador
 
-1. **Antes de teclear UI:** lista `src/shared/components/ui/` y `src/shared/components/`, y mira si el paso 0 ya
-   está (`grep -n "color-muted" src/tailwind.css`). El estado real del kit está en el código, no aquí.
+1. **Antes de teclear UI:** lista `src/shared/components/ui/` y `src/shared/components/`. El estado real del kit
+   está en el código, no aquí.
 2. **Kit primero.** Si la pieza existe, úsala. Si el plan declara una pieza nueva, créala con las clases de
    `componentes.md` (están verificadas contra el Tailwind del proyecto) y su prueba de comportamiento. Si el caso
    no está cubierto, es una ambigüedad: usa el protocolo del agente, no inventes una variante.
-3. **Sin el paso 0**, no uses `bg-muted`, `text-muted-foreground`, `border-border-input`, `bg-danger-muted` ni
-   `text-danger-muted-foreground`: no generan estilo. Usa `bg-surface-secondary` o `hover:bg-nav-hover-bg`.
+3. **Un token nuevo** se comprueba con `grep -n "color-<nombre>" src/tailwind.css` antes de usarlo
+   (`references/tokens.md`): una utilidad sin su variable no genera estilo.
 4. **Al cerrar una pantalla:** la lista de abajo y la verificación a 390, 320 y 1280 px de los estándares. Una
    pantalla que no viste no se reporta como verificada.
 

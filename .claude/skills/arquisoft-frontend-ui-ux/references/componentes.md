@@ -17,9 +17,9 @@ pie en celular) y se comprobó la trampa de foco de la hoja de `FilterBar` con s
 vieron en pantalla** ningún envío ni mutación (éxito, error del backend, `ocupado`, «Procesando...») ni el `alertdialog` «¿Quitar
 el rol…?»: la verificación no acciona nada sobre cuentas reales y los cubren las pruebas. El `Switch` `pendiente` y el peor caso
 de la cabecera de `SidePanel` se midieron en un DOM temporal, y de los avisos solo se leyó la animación de entrada: la de salida
-(`animate-toast-out`) no se vio. Las de las demás piezas (`Segmented`, `Combobox` y la disposición con panel lateral) se
-verificaron solo contra el compilador y se corrigen al construirlas: aplica la regla «Composición de clases» de abajo, no las
-reinventes ni las sustituyas por colores crudos.
+(`animate-toast-out`) no se vio. `Combobox` y la disposición con panel lateral se construyeron en HT-UX-05 y sus
+recetas coinciden con el código. `Segmented` aún no existe (sin consumidor) y su receta queda como referencia: aplica la regla
+«Composición de clases» de abajo, no la reinventes ni la sustituyas por colores crudos.
 
 **Lista `src/shared/components/ui/` antes de crear nada**: el estado real del kit está ahí, no en esta
 página. Lo que sigue es la receta para escribir lo que falte.
@@ -54,12 +54,13 @@ página. Lo que sigue es la receta para escribir lo que falte.
 
 | Pieza | Nace en | Por qué |
 |---|---|---|
-| `Button`, `IconButton`, `Badge` (+ `estado-variante.ts`), `Field`, `Notice`, `EmptyState`, `ErrorState`, `Skeleton`, `LoadingState`, `PageHeader`, `Avatar`, `Tabs`, `Segmented` | `src/shared/components/ui/` | Usuarios y Fichas ya las necesitan |
+| `Button`, `IconButton`, `Badge` (+ `estado-variante.ts`), `Field`, `Notice`, `EmptyState`, `ErrorState`, `Skeleton`, `PageHeader`, `Avatar`, `Tabs` | `src/shared/components/ui/` | Usuarios y Fichas ya las necesitan |
+| `Segmented` | no creada | Sin consumidor aún: se crea con la receta de abajo cuando una pantalla cambie la vista de los mismos datos |
 | `DataTable`, `FilterBar`, `RowMenu`, `FormSection`, `FormActions`, `ErrorSummary` | `src/shared/components/ui/` | Usuarios y Fichas tienen listados y formularios |
 | `PaginadorListado` ampliado | se queda en `src/shared/components/` | Ya lo importan dos features |
 | `SidePanel` | `src/shared/components/ui/` | Excepción de la adopción a la regla de abajo: nació con Usuarios (HT-UX-03) y su segundo consumidor, `fichas-perfil` (paneles «Estudiantes de la ficha» y «Cambiar asesor» del coordinador), llegó en HT-UX-04 |
-| `Switch` | `features/usuarios/components/` | Solo Usuarios lo usa al principio |
-| `Combobox` | `features/fichas-perfil/components/` | Solo Fichas lo usa al principio |
+| `Switch` | `features/usuarios/components/` | Solo Usuarios lo usa; sube a `ui/` con el segundo consumidor |
+| `Combobox` | `features/fichas-perfil/components/` | Solo Fichas lo usa; sube a `ui/` con el segundo consumidor. Su lógica, `useCombobox`, vive en `src/shared/hooks/` |
 | `ConfirmDialog`, `Toaster`, `PageSkeleton`, `AvisoNoDisponible`, `ComingSoon` | siguen en `src/shared/components/` | Se **actualizan en su sitio**; no se mueven |
 
 Una pieza «feature primero» sube a `shared/components/ui/` cuando una segunda feature la necesita: se mueve
@@ -72,7 +73,7 @@ solo consumidor, es una ambigüedad: pregunta, no la crees. La lógica de foco q
 
 ### Button
 
-- **Reemplaza:** los 54 botones escritos a mano (22 primarios, 32 secundarios).
+- **Reemplaza:** los botones escritos a mano; quedan 13 en 9 archivos fuera de `ui/`, que se migran al tocarlos.
 - **API:** `variante?: 'primario' | 'secundario' | 'fantasma' | 'peligro' | 'peligroContorno'`,
   `tamano?: 'md' | 'sm'`, `cargando?: boolean`, `icono?: LucideIcon`, más los atributos de `<button>`.
 - **Reglas:** una acción primaria por pantalla o panel. Cargando: `aria-busy`, deshabilitado y el spinner antes
@@ -113,7 +114,7 @@ IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-
 ### Badge y `estado-variante.ts`
 
 - **Reemplaza:** las pastillas hechas con `bg-green-100`, `bg-red-100`… (`EstadosEvaluacionPanel`, ya migrada) y con
-  `bg-muted` (`FichasPerfilTable`; `EstadosFichaPanel` ya usa `InsigniaEstadoFicha`).
+  `bg-muted` (ya migradas a `Badge`: `FichaCeldas`, `EstadosEvaluacionPanel` y `EstadosFichaPanel`).
 - **API:** `variante: 'neutro' | 'info' | 'exito' | 'advertencia' | 'peligro'`. Siempre lleva punto y texto.
 - **Composición:** `base` + **una** variante; el `punto` es un `<span aria-hidden="true">` que toma el color del
   texto (`bg-current`).
@@ -226,9 +227,9 @@ Notice.titulo | block font-semibold
 Notice.accion | ml-auto font-semibold whitespace-nowrap underline underline-offset-4
 ```
 
-### EmptyState, ErrorState, Skeleton y LoadingState
+### EmptyState, ErrorState y Skeleton
 
-- **Reemplazan:** los 19 spinners copiados, `PageSkeleton` con forma de dashboard dentro de una pantalla,
+- **Reemplazan:** los 18 spinners copiados que se migraron (`AppLoader`, la pantalla de arranque, sigue en el baseline), `PageSkeleton` con forma de dashboard dentro de una pantalla,
   las líneas «No hay …» en una celda, los recuadros «No se pudo cargar…» sin salida y `ComingSoon` dentro
   de una pestaña.
 - **`EmptyState`:** `icono`, `titulo`, `descripcion?`, `accion?: ReactNode`. Tres tipos: **aún no hay datos**
@@ -249,9 +250,9 @@ Notice.accion | ml-auto font-semibold whitespace-nowrap underline underline-offs
   `skeleton h-3 w-4/5`. `formulario` (en una `caja`): tres `pila` con una barra `skeleton h-3 w-1/3` y un bloque
   `skeleton h-10 w-full`. `lineas` (en una `columna`): cuatro barras `skeleton h-4` de ancho `w-full`, `w-5/6`,
   `w-2/3` y `w-3/4`.
-- **`LoadingState`:** `etiqueta` (visible). Solo cuando no se conoce la forma. `role="status"`,
-  `aria-live="polite"` y `aria-busy="true"`. Es, con el de `Button` (`cargando`), el único spinner del
-  proyecto: `src/arquitectura.test.ts` rechaza otro fuera de `shared/components/ui/`.
+- **Un solo spinner:** el de `Button` (`cargando`). `src/arquitectura.test.ts` rechaza otro fuera de
+  `shared/components/ui/`; solo `AppLoader` (arranque de la app) queda en el baseline. Una carga de forma desconocida se
+  resuelve con la forma de `Skeleton` más cercana (`lineas`).
 - **`PageSkeleton`** (fallback de `Suspense` en `AppLayout`) se simplifica: cabecera y una tarjeta, sin la
   fila de cifras.
 
@@ -272,8 +273,6 @@ Skeleton.fila | grid grid-cols-[2.25rem_1fr_4.5rem] items-center gap-3 border-t 
 Skeleton.pila | flex flex-col gap-1.5
 Skeleton.bloque | skeleton h-4 w-full
 Skeleton.avatar | skeleton size-9
-LoadingState.raiz | flex flex-col items-center justify-center gap-2 py-12 text-sm text-on-surface-secondary
-LoadingState.spinner | size-5 animate-spin rounded-full border-2 border-primary border-t-transparent
 ```
 
 - **Pruebas:** `ErrorState` (el clic en «Reintentar» llama a `onReintentar`).
@@ -290,7 +289,7 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
 
 ## Navegación y selección
 
-### Tabs y Segmented
+### Tabs y Segmented (esta última sin crear)
 
 - **Reemplazan:** las cinco pestañas copiadas (una con subrayado en `AdministradorView`, cuatro segmentadas
   cuya pista `bg-muted/50` no se pintaba).
@@ -307,12 +306,15 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
 - **Modo `to` y `state`:** `to` es una cadena, así que el `state` de la navegación (por ejemplo, el resumen que viaja
   desde el listado) **no** pasa de una pestaña a otra. Quien lo necesite lo lee una vez y lo guarda en un contenedor
   que siga montado (`useResumenFicha`). En este modo el contenido va en un `<Outlet />` hermano, no en `children`.
+- **`idBase`:** opcional (por defecto `useId()`). Sin `children`, la pestaña activa lleva `aria-controls` al id
+  `${idBase}-panel-${id}`: el consumidor monta sus paneles, con ese `id` y `aria-labelledby` hacia `${idBase}-pestana-${id}`.
+  Con `children` el comportamiento no cambia.
 - **Sin `-mb-px`:** la pestaña no se monta sobre el borde de la lista. Ese solape de 1 px desborda la lista (que
   lleva `overflow-x-auto`), abre una barra vertical y recorta el subrayado.
 - **Composición de `Tabs`:** `pestana` + **una** de `activa` o `inactiva`; `contador` + **una** de
   `contadorActiva` o `contadorInactiva`. La activa no lleva hover. `raiz` envuelve la lista y el panel solo en el
   modo `tablist`; en el modo `to` la raíz es el `<nav>`.
-- **`Segmented`:** `opciones: { id; etiqueta }[]`, `valor`, `onCambiar`, `etiqueta`. Cambia la **vista** de los
+- **`Segmented` (sin consumidor aún, no creada: la receta queda como referencia):** `opciones: { id; etiqueta }[]`, `valor`, `onCambiar`, `etiqueta`. Cambia la **vista** de los
   mismos datos (tabla/tarjetas); `role="group"` y `aria-pressed`.
 - **Regla:** una pestaña que todavía no tiene pantalla no se muestra.
 - **Foco:** la lista de pestañas recorta lo que sobresale (`overflow-x-auto`), así que `src/index.css` dibuja el anillo de
@@ -373,7 +375,7 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
 ### Combobox
 
 - **Reemplazó (HT-UX-05):** el `select` con «nombre — correo» (`SelectorAsesorFicha`) y el muro de botones para elegir
-  estudiantes (`RegistrarFichaPerfil`), ya eliminados. Lo usan `NuevaFichaPerfil`, `CambiarAsesorPanel` y `AsignarEstudianteForm`.
+  estudiantes (`RegistrarFichaPerfil`), ya eliminados. Lo usan `NuevaFichaAsesorSeccion`, `NuevaFichaEstudiantesSeccion`, `CambiarAsesorPanel` y `AsignarEstudianteForm`.
 - **Cuándo:** hasta 5 opciones, radio o chips; de 6 a 8, `select` nativo; más de 8, o cuando hay que reconocer
   personas, `Combobox`.
 - **API:** `opciones: { id; etiqueta; descripcion? }[]`, `valor` (un `id` o `id[]`), `onCambiar`, `multiple?`,
@@ -400,7 +402,7 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
 Combobox.input | field-input field-input--icono
 Combobox.icono | pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary
 Combobox.lista | absolute inset-x-0 top-full z-30 mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-border bg-surface p-1.5 shadow-dropdown
-Combobox.opcion | flex min-h-12 w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm
+Combobox.opcion | flex min-h-12 w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-sm cursor-pointer
 Combobox.opcionActiva | bg-muted
 Combobox.opcionAgregada | opacity-60
 Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input bg-surface py-2 pl-3 pr-2

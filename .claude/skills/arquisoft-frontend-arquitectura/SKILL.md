@@ -49,11 +49,13 @@ infraestructura que consumen las features, nunca al revés.
 ```
 src/features/fichas-perfil/
 ├── FichasPerfil.tsx              # Página: destino de ruta, resuelve la vista por rol
+├── NuevaFichaPerfil.tsx          # Destinos de ruta hija (con DetalleFicha.tsx)
 ├── components/
 │   ├── {Rol}View.tsx             # Una por rol
 │   ├── {Concepto}.tsx            # Lo que comparten dos o más vistas
 │   └── {rol}/{Concepto}{Panel|Table|Form}.tsx
 ├── hooks/use{Accion|Recurso}.ts  # Uno por caso de uso
+├── utils/                        # Lógica pura de la feature, sin React
 ├── models/{Entidad}.ts           # + {Accion}{Entidad}Request.ts / Response.ts
 │   └── {feature}.ts              # Barril: catálogos y DTOs menores
 └── services/{feature}Service.ts  # UN objeto plano, un método por endpoint
@@ -67,6 +69,8 @@ compone una query y una mutación porque su consumidor las necesita juntas.
 
 `FichasPerfil.tsx` es el patrón, con tres ramas en orden: `useRolActivo()` es `null` → `/seleccionar-rol`;
 el rol no está en `VIEW_POR_ROL` → `/forbidden`; hay vista → se renderiza.
+
+Excepción: el inicio (`Dashboard`) cae a una vista básica en lugar de `/forbidden`, porque ningún rol sobra.
 
 El mapa se declara a nivel de módulo (`Record<string, React.ComponentType>` con claves del enum
 `Rol`), nunca como `switch` ni ternarios dentro del componente.
@@ -85,6 +89,9 @@ perezosas**. `/forbidden` cuelga de la raíz, fuera de `AuthGuard`: un 403 no de
 envuelve en `<RoleGuard>`. Escribir el guard a mano duplica la declaración y permite que el sidebar y
 la ruta diverjan.
 
+`NavItem.disponible: false` marca un módulo sin pantalla: `agruparNavItems` lo manda al grupo «Próximamente»
+del menú (sin enlace) y `navItemsDelRol` y `estaDisponible` lo distinguen. Al entregar la pantalla se quita la bandera.
+
 `export const router` está exportado para que el interceptor de Axios navegue fuera del árbol de
 React. Su import allí es **dinámico**: uno estático crea el ciclo `router → features → axiosInstance
 → router`.
@@ -93,7 +100,7 @@ React. Su import allí es **dinámico**: uno estático crea el ciclo `router →
 `NavItem` ni guardia propia, y el contenido que cambia por rol hace su fan-out dentro del hijo (ejemplo:
 `fichas-perfil/nueva`, cuyo hijo verifica `Rol.Coordinador` con `useHasRole`). Un detalle usa `:id` con
 subrutas por pestaña (`fichas-perfil/:id/items`, `/estados`, `/evaluaciones`): `DetalleFicha` hace el fan-out por
-rol y la pestaña ajena redirige a `items`.
+rol; `PestanaFicha` resuelve el panel por pestaña y rol, y redirige a `items` si no hay.
 
 ## Capa HTTP
 
@@ -217,16 +224,17 @@ deduce del nombre:
 | Ruta | Contenido |
 |---|---|
 | `shared/models/api-response.ts` | `Page<T>`, `ApiResponse<T>`, `ApiError`, `FieldError` |
+| `shared/models/` (otros) | `Asesor`, `EstudianteVigente`, `query-criteria` (`ConsultaCriteriaRequest`) |
 | `shared/models/rol.ts` | Enum `Rol`, `ETIQUETAS_ROL`, `ICONOS_ROL` |
 | `shared/utils/api-error.ts` | `getApiErrorMessage`, `getApiErrorStatus`, `isApiErrorWithStatus`, `hasApiErrorCode`, `getApiFieldErrors`, `classifyApiError` |
 | `shared/utils/monitoring.ts` | `captureError`, `captureHttpError` — único punto de integración con Sentry |
 | `shared/validation/` | `LIMITES`, `MENSAJES_VALIDACION`, regex, builders Zod; barril en `index.ts` |
 | `shared/hooks/useToast.ts` | Singleton `toast.success/info/error`, usable fuera de React |
-| `shared/hooks/` | `useDebouncedValue` (retardo de 300 ms de las búsquedas), `useTextoConRetardo` (borrador de texto con retardo de los filtros), `useClicFuera` (cierre por clic fuera de menús y paneles) y `useTrampaDeFoco` (foco inicial, Tab, Esc y retorno del foco de paneles, diálogos y hojas, con pila de capas) |
+| `shared/hooks/` | `useDebouncedValue` (retardo de 300 ms de las búsquedas), `useTextoConRetardo` (borrador de texto con retardo de los filtros), `useCombobox` (filtrado y teclado de listas con búsqueda), `useEstudiantesVigentes` y `useAsesoresFichaVigentes` (catálogos que consumen dos features), `useClicFuera` (cierre por clic fuera de menús y paneles) y `useTrampaDeFoco` (foco inicial, Tab, Esc y retorno del foco de paneles, diálogos y hojas, con pila de capas) |
 | `shared/utils/estado-variante.ts` | Tabla estado → variante de `Badge` por `id` del backend: ficha, evaluación y usuario |
 | `shared/stores/toastStore.ts` | Store del toaster, duración por nivel |
-| `shared/components/` | Estados de página (`PageSkeleton`, `AvisoNoDisponible`, `ComingSoon`, `ForbiddenPage`), error boundaries, `ConfirmDialog`, `Toaster`, `PaginadorListado` |
-| `shared/components/ui/` | El kit de UI (`Button`, `Badge`, `Field`, `Notice`, `Tabs`, `DataTable`, `FilterBar`, `RowMenu`…): lista la carpeta antes de escribir un botón, una insignia o un estado a mano; las recetas están en la skill `arquisoft-frontend-ui-ux` |
+| `shared/components/` | Estados de página (`PageSkeleton`, `AvisoNoDisponible`, `ComingSoon`, `ForbiddenPage`), error boundaries, `AppLoader` (pantalla de arranque mientras Keycloak inicia; no es para páginas), `ConfirmDialog`, `Toaster`, `PaginadorListado` |
+| `shared/components/ui/` | El kit de UI (`Button`, `Badge`, `Field`, `Notice`, `Tabs`, `DataTable`, `FilterBar`, `RowMenu`, `Skeleton`, `EmptyState`, `ErrorState`, `SidePanel`…): lista la carpeta antes de escribir un botón, una insignia o un estado a mano; las recetas están en la skill `arquisoft-frontend-ui-ux` |
 
 Un componente sube a `src/shared/components/` solo con **dos consumidores de features distintas**.
 Con uno se queda en `features/{feature}/components/`.

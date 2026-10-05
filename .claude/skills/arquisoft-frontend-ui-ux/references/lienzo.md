@@ -53,9 +53,13 @@ Cuando el lienzo y esta skill discrepan en un dato, **vale la skill**: se contó
 
 | Dato | Lienzo | Skill |
 |---|---|---|
-| Spinners copiados | 11 (solo los de `border-4`) | 19 en 18 archivos (11 con `border-4` y 8 con `border-2`) |
+| Spinners copiados | 11 (solo los de `border-4`) | 19 en 18 archivos (11 con `border-4` y 8 con `border-2`); tras la adopción queda 1 (`AppLoader`) |
 | Pie de formulario de edición | El prototipo `Panel-Editar` apaga «Guardar cambios» también con datos inválidos | Solo se deshabilita enviando y sin cambios; la validez no lo apaga (`patrones.md` §2) |
 | Dónde viven `SidePanel`, `Switch` y `Combobox` | El tablero `Plan` los lista en el paso 3 sin ruta | `SidePanel` nació en `shared/components/ui/` por la excepción declarada (su segundo consumidor llega en HT-UX-04); `Switch` en `usuarios/` y `Combobox` en `fichas-perfil/` (`componentes.md`, «Dónde nace cada pieza») |
+| Pestañas del panel de edición | Fijas bajo la cabecera del panel | Dentro del cuerpo del panel, con `sticky` (`componentes.md`, `SidePanel`) |
+| Cabecera del `SidePanel` con un texto largo | Trunca | `min-w-0 break-words`, sin truncar |
+| `Switch` en estado `pendiente` | Deshabilita el botón | `aria-busy` y `aria-disabled`, sin `disabled`, para no perder el foco |
+| Piezas del lienzo sin código | `Field.valido`, aviso con «Deshacer», selector «Filas» del paginador y `Segmented` | No existen: no hay consumidor que las pida |
 
 ## Decisiones aprobadas (2026-10-03)
 

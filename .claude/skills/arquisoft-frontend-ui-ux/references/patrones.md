@@ -144,8 +144,8 @@ Layout       principal                                  | lateral (resumen)
   atajos (enviar una solicitud). **Representante:** bandeja «Fichas por evaluar» (título, asesor, `Badge`, fecha,
   «Revisar») y dos cifras. **Administrador:** usuarios vigentes y dados de baja, «Registrar usuario» y los
   usuarios por rol. Los demás roles reciben su bandeja cuando su módulo exista.
-- Al reescribir `Dashboard.tsx` se borran de `index.css` las clases que dejan de usarse (`hero-gradient`,
-  `hero-pattern`, `quick-card`).
+- Al reescribir `Dashboard.tsx` (HT-UX-08) se borraron de `index.css` las clases que dejaron de usarse (`hero-gradient`,
+  `hero-pattern`, `quick-card`); no las reintroduzcas.
 
 ## 6. Menú lateral y encabezado
 
@@ -161,7 +161,7 @@ Layout       principal                                  | lateral (resumen)
 | Estado | Pieza | Nota |
 |---|---|---|
 | Cargando una forma conocida | `Skeleton` de esa forma | Tabla, tarjetas o formulario; con `aria-busy` |
-| Cargando sin forma | `LoadingState` | El spinner de página; el de `Button cargando` va dentro del botón y no se escribe ningún otro |
+| Cargando sin forma | `Skeleton` `lineas` | No hay spinner de página: el único es el de `Button cargando`, dentro del botón, y no se escribe ningún otro |
 | Enviando | `Button cargando` | Cambia el icono por el spinner y se deshabilita; quien lo usa pone el texto («Guardando…») |
 | Aún no hay datos | `EmptyState` | Con la acción que crea el primero |
 | Sin resultados | `EmptyState` | Solo con filtros activos; «Limpiar filtros» |
