@@ -24,13 +24,20 @@ const FICHA_1: FichaPerfil = {
   id: 'f-1',
   tituloProyecto: 'Sistema de monitoreo',
   asesorFicha: ANA,
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
 };
 const FICHA_2: FichaPerfil = {
   id: 'f-2',
   tituloProyecto: 'Plataforma de tutorías',
   asesorFicha: ANA,
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
 };
-const FICHA_3: FichaPerfil = { id: 'f-3', tituloProyecto: 'Bot académico', asesorFicha: ANA };
+const FICHA_3: FichaPerfil = {
+  id: 'f-3',
+  tituloProyecto: 'Bot académico',
+  asesorFicha: ANA,
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
+};
 
 function crearPagina(numero: number, content: FichaPerfil[]): Page<FichaPerfil> {
   return {
@@ -85,6 +92,10 @@ describe('useCambiarAsesor', () => {
     expect(
       queryClient.getQueryData<Page<FichaPerfil>>(['fichas-perfil', 'coordinador', 1])?.content,
     ).toEqual([FICHA_3, { ...FICHA_1, asesorFicha: LUIS }]);
+    expect(
+      queryClient.getQueryData<Page<FichaPerfil>>(['fichas-perfil', 'coordinador', 0])?.content[0]
+        .estado,
+    ).toEqual(FICHA_1.estado);
     expect(queryClient.getQueryData(['fichas-perfil', 'asesor', 0])).toEqual(
       crearPagina(0, [FICHA_1]),
     );

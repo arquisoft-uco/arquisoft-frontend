@@ -6,10 +6,12 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { OrdenDireccion } from '../../hooks/useEstadosFichasAsesor';
 import type { EstadoFichaPerfilAsesor } from '../../models/EstadoFichaPerfilAsesor';
 import type { ResumenFicha } from '../../models/ResumenFicha';
-import { FechaDeEstado, InsigniaEstadoFicha, TituloFicha } from '../FichaCeldas';
-
-const INSIGNIAS_TARJETA = 'flex flex-wrap items-center gap-1.5';
-const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
+import {
+  EstadoYFechaTarjeta,
+  FechaDeEstado,
+  InsigniaEstadoFicha,
+  TituloFicha,
+} from '../FichaCeldas';
 
 function resumenDe(fila: EstadoFichaPerfilAsesor): ResumenFicha {
   return {
@@ -94,12 +96,11 @@ export default function EstadosFichasAsesorListado({
       tarjeta={(fila) => (
         <>
           <TituloFicha titulo={fila.tituloProyecto} abrir={resumenDe(fila)} />
-          <div className={INSIGNIAS_TARJETA}>
-            <InsigniaEstadoFicha estadoId={fila.estadoId} nombre={fila.estadoNombre} />
-          </div>
-          <p className={DATO_TARJETA}>
-            <FechaDeEstado iso={fila.fechaActualizacion} />
-          </p>
+          <EstadoYFechaTarjeta
+            estadoId={fila.estadoId}
+            nombre={fila.estadoNombre}
+            iso={fila.fechaActualizacion}
+          />
         </>
       )}
     />

@@ -7,7 +7,8 @@ import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { OrdenDireccion } from '../../hooks/useFichasPerfilCoordinador';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
-import { AsesorDeFicha, TituloFicha } from '../FichaCeldas';
+import { EstadoYFechaTarjeta, AsesorDeFicha, TituloFicha } from '../FichaCeldas';
+import { columnaAsesor, columnasEstado } from '../columnasFicha';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoFicha {
   return clave === 'tituloProyecto' || clave === 'asesorNombre';
@@ -42,15 +43,12 @@ export default function FichasPerfilTable({
       ordenable: true,
       celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} />,
     },
-    {
-      id: 'asesor',
-      encabezado: 'Asesor',
-      clave: 'asesorNombre',
-      ordenable: true,
-      celda: (ficha) => (
-        <AsesorDeFicha nombre={ficha.asesorFicha.nombre} email={ficha.asesorFicha.email} />
-      ),
-    },
+    columnaAsesor<FichaPerfil>((ficha) => ficha.asesorFicha),
+    ...columnasEstado<FichaPerfil>((ficha) => ({
+      estadoId: ficha.estado.id,
+      nombre: ficha.estado.nombre,
+      fechaActualizacion: ficha.estado.fechaActualizacion,
+    })),
   ];
 
   function ordenar(clave: string, direccion: OrdenDireccion) {
@@ -111,6 +109,11 @@ export default function FichasPerfilTable({
         <>
           <TituloFicha titulo={ficha.tituloProyecto} />
           <AsesorDeFicha nombre={ficha.asesorFicha.nombre} email={ficha.asesorFicha.email} />
+          <EstadoYFechaTarjeta
+            estadoId={ficha.estado.id}
+            nombre={ficha.estado.nombre}
+            iso={ficha.estado.fechaActualizacion}
+          />
         </>
       )}
     />

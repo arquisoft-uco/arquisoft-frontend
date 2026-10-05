@@ -13,6 +13,7 @@ const FICHA: FichaPerfil = {
   id: 'f-1',
   tituloProyecto: 'Sistema de monitoreo',
   asesorFicha: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
 };
 
 function crearPagina(
@@ -97,6 +98,28 @@ describe('ConsultarFichasAsesor', () => {
 
     // Assert
     expect(screen.getByText('Aún no tienes fichas asignadas')).toBeInTheDocument();
+  });
+
+  it('cada ficha muestra su estado actual y su fecha, en la tabla y en la tarjeta, sin columna de asesor', () => {
+    // Arrange
+    mockHook({ data: crearPagina([FICHA]) });
+
+    // Act
+    render(<ConsultarFichasAsesor />);
+    const tarjetas = within(screen.getByRole('list', { name: 'Fichas de perfil que asesoras' }));
+
+    // Assert
+    expect(tabla().getByRole('columnheader', { name: 'Estado actual' })).toBeInTheDocument();
+    expect(tabla().getByRole('columnheader', { name: 'Última actualización' })).toBeInTheDocument();
+    expect(tabla().queryByRole('columnheader', { name: 'Asesor' })).not.toBeInTheDocument();
+    expect(tabla().getByText('En revisión')).toBeInTheDocument();
+    expect(tabla().getByText((_, el) => el?.tagName === 'TIME')).toHaveAttribute(
+      'datetime',
+      '2026-10-01T15:30:00',
+    );
+    expect(tarjetas.getByText('En revisión')).toBeInTheDocument();
+    expect(tarjetas.getByText((_, el) => el?.tagName === 'TIME')).toBeInTheDocument();
+    expect(screen.queryByText('ana@uco.edu.co')).not.toBeInTheDocument();
   });
 
   it('el título de la ficha es un enlace al detalle que lleva el resumen y la búsqueda del listado, sin "Ver detalle" ni "Actualizar"', async () => {

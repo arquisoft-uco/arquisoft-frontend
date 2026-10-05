@@ -8,7 +8,8 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useFichasAsesor } from '../../hooks/useFichasAsesor';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 import type { ResumenFicha } from '../../models/ResumenFicha';
-import { TituloFicha } from '../FichaCeldas';
+import { EstadoYFechaTarjeta, TituloFicha } from '../FichaCeldas';
+import { columnasEstado } from '../columnasFicha';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -22,9 +23,9 @@ function resumenDe(ficha: FichaPerfil): ResumenFicha {
   return {
     id: ficha.id,
     titulo: ficha.tituloProyecto,
-    estadoId: ficha.estado?.id,
-    estadoNombre: ficha.estado?.nombre,
-    fechaActualizacion: ficha.estado?.fechaActualizacion,
+    estadoId: ficha.estado.id,
+    estadoNombre: ficha.estado.nombre,
+    fechaActualizacion: ficha.estado.fechaActualizacion,
   };
 }
 
@@ -39,6 +40,11 @@ export default function ConsultarFichasAsesor() {
       encabezado: 'Ficha',
       celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDe(ficha)} />,
     },
+    ...columnasEstado<FichaPerfil>((ficha) => ({
+      estadoId: ficha.estado.id,
+      nombre: ficha.estado.nombre,
+      fechaActualizacion: ficha.estado.fechaActualizacion,
+    })),
   ];
 
   return (
@@ -69,7 +75,14 @@ export default function ConsultarFichasAsesor() {
               />
             }
             tarjeta={(ficha) => (
-              <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDe(ficha)} />
+              <>
+                <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDe(ficha)} />
+                <EstadoYFechaTarjeta
+                  estadoId={ficha.estado.id}
+                  nombre={ficha.estado.nombre}
+                  iso={ficha.estado.fechaActualizacion}
+                />
+              </>
             )}
           />
         )}

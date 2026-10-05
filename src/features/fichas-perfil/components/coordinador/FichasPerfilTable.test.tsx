@@ -8,11 +8,13 @@ const FICHA_1: FichaPerfil = {
   id: 'f-1',
   tituloProyecto: 'Sistema de monitoreo',
   asesorFicha: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
 };
 const FICHA_2: FichaPerfil = {
   id: 'f-2',
   tituloProyecto: 'Plataforma de riego',
   asesorFicha: { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' },
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof FichasPerfilTable>> = {}) {
@@ -46,6 +48,25 @@ describe('FichasPerfilTable', () => {
     expect(tabla().getByText('Ana Pérez')).toBeInTheDocument();
     expect(tabla().getByText('ana@uco.edu.co')).toBeInTheDocument();
     expect(tabla().getByText('Plataforma de riego')).toBeInTheDocument();
+  });
+
+  it('muestra el estado actual y la fecha de cada ficha, en la tabla y en la tarjeta de celular, sin ordenar por ellos', () => {
+    // Act
+    renderizar();
+    const tarjetas = within(screen.getByRole('list', { name: 'Fichas de perfil' }));
+
+    // Assert
+    expect(tabla().getAllByText('En revisión')).toHaveLength(2);
+    const fechas = tabla()
+      .getAllByText((_, el) => el?.tagName === 'TIME')
+      .map((el) => el.getAttribute('datetime'));
+    expect(fechas).toEqual(['2026-10-01T15:30:00', '2026-10-01T15:30:00']);
+    expect(tabla().getByRole('columnheader', { name: 'Estado actual' })).toBeInTheDocument();
+    expect(tabla().getByRole('columnheader', { name: 'Última actualización' })).toBeInTheDocument();
+    expect(tabla().queryByRole('button', { name: 'Estado actual' })).not.toBeInTheDocument();
+    expect(tabla().queryByRole('button', { name: 'Última actualización' })).not.toBeInTheDocument();
+    expect(tarjetas.getAllByText('En revisión')).toHaveLength(2);
+    expect(tarjetas.getAllByText((_, el) => el?.tagName === 'TIME')).toHaveLength(2);
   });
 
   it('sin fichas y sin filtros muestra el vacío "sin datos"', () => {

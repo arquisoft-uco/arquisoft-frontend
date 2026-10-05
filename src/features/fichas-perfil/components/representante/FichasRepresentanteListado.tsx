@@ -7,10 +7,8 @@ import type { OrdenDireccion } from '../../hooks/useFichasRepresentante';
 import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
 import type { ResumenFicha } from '../../models/ResumenFicha';
-import { AsesorDeFicha, FechaDeEstado, InsigniaEstadoFicha, TituloFicha } from '../FichaCeldas';
-
-const INSIGNIAS_TARJETA = 'flex flex-wrap items-center gap-1.5';
-const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
+import { EstadoYFechaTarjeta, AsesorDeFicha, TituloFicha } from '../FichaCeldas';
+import { columnaAsesor, columnasEstado } from '../columnasFicha';
 
 function resumenDe(ficha: FichaPerfilRepresentante): ResumenFicha {
   return {
@@ -51,19 +49,18 @@ export default function FichasRepresentanteListado({
   const asesor = (ficha: FichaPerfilRepresentante) => (
     <AsesorDeFicha nombre={ficha.asesorNombre} email={ficha.asesorEmail} />
   );
-  const estado = (ficha: FichaPerfilRepresentante) => (
-    <InsigniaEstadoFicha estadoId={ficha.estadoId} nombre={ficha.estadoActual} />
-  );
 
   const columnas: ColumnaTabla<FichaPerfilRepresentante>[] = [
     { id: 'ficha', encabezado: 'Ficha', clave: 'tituloProyecto', ordenable: true, celda: titulo },
-    { id: 'asesor', encabezado: 'Asesor', clave: 'asesorNombre', ordenable: true, celda: asesor },
-    { id: 'estado', encabezado: 'Estado actual', celda: estado },
-    {
-      id: 'actualizacion',
-      encabezado: 'Última actualización',
-      celda: (ficha) => <FechaDeEstado iso={ficha.estadoFechaActualizacion} />,
-    },
+    columnaAsesor<FichaPerfilRepresentante>((ficha) => ({
+      nombre: ficha.asesorNombre,
+      email: ficha.asesorEmail,
+    })),
+    ...columnasEstado<FichaPerfilRepresentante>((ficha) => ({
+      estadoId: ficha.estadoId,
+      nombre: ficha.estadoActual,
+      fechaActualizacion: ficha.estadoFechaActualizacion,
+    })),
   ];
 
   function ordenar(clave: string, direccion: OrdenDireccion) {
@@ -103,10 +100,11 @@ export default function FichasRepresentanteListado({
         <>
           {titulo(ficha)}
           {asesor(ficha)}
-          <div className={INSIGNIAS_TARJETA}>{estado(ficha)}</div>
-          <p className={DATO_TARJETA}>
-            <FechaDeEstado iso={ficha.estadoFechaActualizacion} />
-          </p>
+          <EstadoYFechaTarjeta
+            estadoId={ficha.estadoId}
+            nombre={ficha.estadoActual}
+            iso={ficha.estadoFechaActualizacion}
+          />
         </>
       )}
     />

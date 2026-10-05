@@ -11,6 +11,8 @@ const TEXTOS = 'flex min-w-0 flex-col';
 const TITULO =
   'block truncate text-left font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
 const TITULO_PLANO = 'block truncate font-semibold text-on-surface';
+const INSIGNIAS_TARJETA = 'flex flex-wrap items-center gap-1.5';
+const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
 const SUBTEXTO = 'block truncate text-[13px] text-on-surface-secondary';
 
 interface PropsTitulo {
@@ -83,4 +85,23 @@ export function FechaDeEstado({ iso }: PropsFecha) {
   if (!iso || Number.isNaN(fecha.getTime())) return <span>—</span>;
 
   return <time dateTime={iso}>{formatoFecha.format(fecha)}</time>;
+}
+
+interface PropsEstadoYFechaTarjeta {
+  estadoId: string;
+  nombre: string;
+  iso: string;
+}
+
+export function EstadoYFechaTarjeta({ estadoId, nombre, iso }: PropsEstadoYFechaTarjeta) {
+  return (
+    <>
+      <div className={INSIGNIAS_TARJETA}>
+        <InsigniaEstadoFicha estadoId={estadoId} nombre={nombre} />
+      </div>
+      <p className={DATO_TARJETA}>
+        <FechaDeEstado iso={iso} />
+      </p>
+    </>
+  );
 }

@@ -25,7 +25,12 @@ const useAsesoresMock = vi.mocked(useAsesoresFichaVigentes);
 
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
 const LUIS: Asesor = { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' };
-const FICHA: FichaPerfil = { id: 'f-1', tituloProyecto: 'Sistema de monitoreo', asesorFicha: ANA };
+const FICHA: FichaPerfil = {
+  id: 'f-1',
+  tituloProyecto: 'Sistema de monitoreo',
+  asesorFicha: ANA,
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
+};
 
 type ResultadoAsesores = ReturnType<typeof useAsesoresFichaVigentes>;
 
