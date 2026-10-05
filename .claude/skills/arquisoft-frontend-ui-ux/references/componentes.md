@@ -112,8 +112,8 @@ IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-
 
 ### Badge y `estado-variante.ts`
 
-- **Reemplaza:** las pastillas hechas con `bg-green-100`, `bg-red-100`… (`EstadosEvaluacionPanel`) y con
-  `bg-muted` (`FichasPerfilTable`, `DetalleFicha*`, `EstadosFichaPanel`).
+- **Reemplaza:** las pastillas hechas con `bg-green-100`, `bg-red-100`… (`EstadosEvaluacionPanel`, ya migrada) y con
+  `bg-muted` (`FichasPerfilTable`; `EstadosFichaPanel` ya usa `InsigniaEstadoFicha`).
 - **API:** `variante: 'neutro' | 'info' | 'exito' | 'advertencia' | 'peligro'`. Siempre lleva punto y texto.
 - **Composición:** `base` + **una** variante; el `punto` es un `<span aria-hidden="true">` que toma el color del
   texto (`bg-current`).
@@ -145,7 +145,7 @@ Badge.peligro | bg-danger-muted text-danger-muted-foreground
 ### Field
 
 - **Reemplaza:** `CampoTexto` (solo Usuarios; ya eliminado), `.field-label`/`.field-input` armados a mano y los campos con
-  clases propias (`EstadosFichaPanel` y los formularios de fichas).
+  clases propias (los formularios de fichas; `EstadosFichaPanel` y los de evaluación ya usan `Field`).
 - **API:** `etiqueta`, `ayuda?`, `error?`, `opcional?`, `corto?`, `contador?: { actual: number; max: number }` y un
   hijo-función `(control) => ReactNode` que recibe `{ id, 'aria-invalid', 'aria-describedby' }` (con
   `useId`); el control es un `<input className="field-input">`, `<select>` o `<textarea>` que los usa.
@@ -304,6 +304,9 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
   Los `children` se envuelven en `<div role="tabpanel" aria-labelledby>` ligado a la pestaña activa, y la activa
   lleva `aria-controls` hacia él (solo si hay `children`): sin el panel, `aria-controls` apuntaría a nada y cada
   consumidor repetiría los ids.
+- **Modo `to` y `state`:** `to` es una cadena, así que el `state` de la navegación (por ejemplo, el resumen que viaja
+  desde el listado) **no** pasa de una pestaña a otra. Quien lo necesite lo lee una vez y lo guarda en un contenedor
+  que siga montado (`useResumenFicha`). En este modo el contenido va en un `<Outlet />` hermano, no en `children`.
 - **Sin `-mb-px`:** la pestaña no se monta sobre el borde de la lista. Ese solape de 1 px desborda la lista (que
   lleva `overflow-x-auto`), abre una barra vertical y recorta el subrayado.
 - **Composición de `Tabs`:** `pestana` + **una** de `activa` o `inactiva`; `contador` + **una** de
@@ -922,7 +925,9 @@ Toast.cerrar | ml-auto inline-flex size-9 shrink-0 items-center justify-center r
 - **Reemplaza:** los encabezados distintos de cada pantalla (`h1` semibold, `h1` bold, `h2` xl, `h2` lg) y las
   cabeceras sin `<h1>` de las vistas de fichas. No usa las clases globales `.section-header` ni `.header-action`:
   combinadas con `PageHeader.fila`, la clase global gana y los `items-end` y `gap-4` de la fila quedan inertes.
-- **API:** `titulo` (el `<h1>`), `descripcion?`, `acciones?: ReactNode`, `migas?: { etiqueta; to? }[]`.
+- **API:** `titulo` (el `<h1>`), `descripcion?`, `acciones?: ReactNode`, `insignia?: ReactNode` (junto al `<h1>`, fuera de
+  él; envuelve en celular), `meta?: ReactNode` (línea bajo el título, antes de la descripción) y
+  `migas?: { etiqueta; to?; onClick? }[]`.
 - **Reglas:** **un solo `<h1>` por pantalla**, aquí. La acción principal va a la derecha del título, dentro de
   `PageHeader.acciones` (varias acciones quedan a 8 px); si no cabe a su lado, la fila envuelve y baja bajo el
   título. En celular puede ser un `IconButton` de 44 px con `etiqueta` (por ejemplo «Registrar usuario») o un
@@ -935,6 +940,8 @@ PageHeader.raiz | flex flex-col gap-4
 PageHeader.fila | flex flex-wrap items-end justify-between gap-4
 PageHeader.encabezado | min-w-0
 PageHeader.titulo | text-xl font-bold text-on-surface sm:text-2xl
+PageHeader.encabezadoConInsignia | flex flex-wrap items-center gap-x-3 gap-y-1
+PageHeader.meta | mt-1 text-sm text-on-surface-secondary
 PageHeader.descripcion | mt-1 text-sm text-on-surface-secondary
 PageHeader.acciones | flex flex-wrap items-center gap-2
 PageHeader.migas | flex flex-wrap items-center gap-1.5 text-[13px] text-on-surface-secondary
@@ -944,6 +951,9 @@ PageHeader.migaActual | font-medium text-on-surface
 ```
 
 ### Disposición con panel lateral (receta, no es un componente)
+
+En `fichas-perfil` las cinco clases viven en `components/disposicion.ts` (`DISPOSICION`), que usan el formulario de ficha
+y el detalle; otra feature las copia a su propio módulo hasta tener un segundo consumidor.
 
 Para el detalle de una entidad y para el formulario en página con resumen. Se acomoda sola: sin breakpoint, el
 panel lateral baja debajo del contenido cuando no cabe a su lado.

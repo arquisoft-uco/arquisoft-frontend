@@ -116,7 +116,10 @@ Layout       principal                                  | lateral (resumen)
   (sin eso, el check 2.7 de `@4a` marcaría una «ruta nueva sin `NavItem`»), y el HT que lo implemente actualiza la
   sección «Enrutamiento» de `arquisoft-frontend-arquitectura` y ese check. Si el contenido cambia por rol, la
   página hija repite el fan-out `VIEW_POR_ROL` a nivel de módulo.
-- **Panel lateral de resumen:** estado actual con su `Badge`, asesor, equipo y, según el rol, **su** acción
+- **`Tabs` no lleva `state`.** Si el resumen viaja en el `state` del `Link` del listado, se lee una vez en el
+  contenedor de `:id`; sin `state` (URL directa o recarga en otra pestaña) la pantalla muestra el título genérico y
+  solo lo que depende del id, sin inventar datos.
+- **Panel lateral de resumen:** estado actual con su `Badge`, asesor, equipo (se omite si el rol no tiene permiso para consultarlo) y, según el rol, **su** acción
   (asesor: «Cambiar estado»; representante: «Iniciar evaluación»; estudiante: ninguna).
 - **Pestañas solo de lo que existe.** Revisiones y Evaluaciones reaparecen cuando exista su historia. El
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el

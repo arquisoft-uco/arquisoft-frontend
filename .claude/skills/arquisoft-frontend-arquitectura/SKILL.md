@@ -16,7 +16,7 @@ Ningún ejemplo se pega como bloque largo: cada regla apunta al archivo real de 
 
 El estado cambia con cada HU: míralo en `src/features/` en vez de fiarte de una lista. Una feature
 cuya página renderiza `<ComingSoon />` es un stub (sus carpetas solo tienen `.gitkeep`), y también lo
-es una vista por rol que lo renderiza (`AdministradorView` de `fichas-perfil`, `DetalleFichaAsesor`).
+es una vista por rol que lo renderiza (`AdministradorView` de `fichas-perfil`).
 
 El molde para una feature nueva es `fichas-perfil`: una vista por rol, un hook por caso de uso, **un**
 service, modelos en archivos propios más el barril. Nunca copies un archivo que renderice `ComingSoon`.
@@ -91,7 +91,9 @@ React. Su import allí es **dinámico**: uno estático crea el ciclo `router →
 
 **Rutas hijas de un módulo.** Cuelgan de un padre con `guarded('{modulo}', <Outlet />)`, no llevan
 `NavItem` ni guardia propia, y el contenido que cambia por rol hace su fan-out dentro del hijo (ejemplo:
-`fichas-perfil/nueva`, cuyo hijo verifica `Rol.Coordinador` con `useHasRole`).
+`fichas-perfil/nueva`, cuyo hijo verifica `Rol.Coordinador` con `useHasRole`). Un detalle usa `:id` con
+subrutas por pestaña (`fichas-perfil/:id/items`, `/estados`, `/evaluaciones`): `DetalleFicha` hace el fan-out por
+rol y la pestaña ajena redirige a `items`.
 
 ## Capa HTTP
 

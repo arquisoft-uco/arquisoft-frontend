@@ -205,8 +205,8 @@ consultó el objeto afectado. No se deja al usuario en el formulario limpio ni s
 
 - **Orden en el éxito:** el hook invalida la query del listado por prefijo (para que refleje el
   cambio); el componente, en el `onSuccess` del `mutate(...)`, lanza el toast de éxito y cierra la
-  vista (`onCerrar()` / `onVolver()`). `NuevaFichaPerfil` (`alRegistrar`) y
-  `AsesorFichaView` → `onVolver` son la referencia.
+  vista (`onCerrar()` / `onVolver()`). `NuevaFichaPerfil` (`alRegistrar`) es la referencia; en el detalle con
+  ruta (`DetalleFichaEstructura`) la miga «Fichas de perfil» restaura la `search` del listado.
 - **Cuando el formulario es una página**, se vuelve al listado con la misma búsqueda guardada en la
   URL: `navigate({ pathname, search })`, con la `search` que el listado pasó al abrir la página.
 - **Filtros y paginación viven por encima del formulario**, en la `{Rol}View` o en el hook del listado

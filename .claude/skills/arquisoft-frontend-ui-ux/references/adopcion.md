@@ -34,7 +34,7 @@ completa para registrar fichas; (4) los módulos «Próximamente» salen del men
 
 - **PR a:** `Button`, `IconButton`, `Badge` y `estado-variante.ts`. **PR b:** `Field` y `Notice`. **PR c:**
   `EmptyState`, `ErrorState`, `Skeleton`, `LoadingState`, `Tabs`, `Segmented`, `PageHeader` y `Avatar`.
-- **Reemplazan:** botones a mano; `CampoTexto`; los colores crudos de `EstadosEvaluacionPanel`;
+- **Reemplazan:** botones a mano; `CampoTexto`; los colores crudos que tenían las pastillas de evaluación (`EstadosEvaluacionPanel` ya usa `Badge`);
   `AvisoNoDisponible` (pasa a usar `Notice` y su texto cambia: se actualizan sus tests); `ComingSoon` dentro de
   pestañas; los spinners; las cinco pestañas.
 - **Verificación:** pruebas de comportamiento solo donde hay (`Tabs`, `ErrorState`, `estado-variante`).
@@ -95,8 +95,9 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 | `fichas-perfil/…/CoordinadorView.tsx`, `AsesorFichaView.tsx`, `RepresentanteView.tsx` | `PageHeader` con el `<h1>` del módulo (hecho en HT-UX-04; el formulario de ficha ya no va encima de la lista: hecho en HT-UX-05) | 2 |
 | `fichas-perfil/…/EstudiantesVinculadosPanel.tsx`, `AsignarEstudianteForm.tsx`, `CambiarAsesorForm.tsx` | Hecho en HT-UX-04: `EstudiantesVinculadosPanel` y `CambiarAsesorPanel` (reemplaza a `CambiarAsesorForm`) en `SidePanel`; `AsignarEstudianteForm` restilado con el kit. HT-UX-05: ambos usan `Combobox` | 3 o 4 |
 | `fichas-perfil/…/RegistrarFichaPerfil.tsx`, `SelectorAsesorFicha.tsx` | Hecho en HT-UX-05: eliminados; página `/fichas-perfil/nueva` con `Combobox` (`NuevaFichaPerfil`) | 3 |
-| `fichas-perfil/…/EstadosEvaluacionPanel.tsx` | `Badge` | 1 |
-| `fichas-perfil/…/MiFichaHeader.tsx`, `EstudianteView.tsx`, `AsesorFichaView.tsx`, `DetalleFichaAsesor.tsx`, `DetalleFichaRepresentante.tsx`, `TiposItemPanel.tsx` | Detalle con ruta | 4 |
+| `fichas-perfil/…/EstadosEvaluacionPanel.tsx` | `Badge` (ya lo usaba); HT-UX-06 le sumó `ErrorState` con reintento y `EmptyState` | 1 |
+| `fichas-perfil/…/MiFichaHeader.tsx`, `EstudianteView.tsx` | Detalle con ruta (el estudiante, HT-UX-07) | 4 |
+| `fichas-perfil/…/AsesorFichaView.tsx`, `TiposItemPanel.tsx`, `DetalleFichaAsesor.tsx`, `DetalleFichaRepresentante.tsx` | Hecho en HT-UX-06: el detalle del asesor y del representante es la ruta `/fichas-perfil/:id/{items,estados,evaluaciones}` (`DetalleFicha`, `DetalleFichaEstructura`, `AsesorFichaDetalleView`, `RepresentanteDetalleView`); los dos `DetalleFicha*` se eliminaron, `AsesorFichaView` guarda la pestaña en `?vista` y `TiposItemPanel` es una lista que abre `AyudaTiposItem` | 4 |
 | `solicitudes/…/EnviarSolicitudNovedadForm.tsx` | `Field`, `FormSection` | 3 |
 | `dashboard/Dashboard.tsx` | Inicio por rol | 4 |
 | `layout/Sidebar.tsx`, `layout/Header.tsx`, `layout/nav-items.ts` | Grupos del menú, avatar, `disponible` | 4 |
