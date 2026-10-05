@@ -95,8 +95,8 @@ Para crear con **selectores de muchas opciones, más de cinco campos o varias se
 - **Pie** con `FormActions`, sticky. Mismas reglas de validación, éxito y fallo que el panel; al registrar se
   vuelve al listado **con su filtro y página**, que sobreviven porque viven en la URL.
 - **Móvil:** una columna; el resumen baja debajo del formulario o se omite.
-- **Si el formulario es de la feature de un rol que ya tiene `asesorFijoId`** (modo asesor), el campo asesor es
-  solo lectura con el texto «Eres tú», no un `select` deshabilitado.
+- **Si el formulario lo abre un rol que ya es el asesor** (hoy ninguno: `asesorFijoId` salió con `RegistrarFichaPerfil`), el campo
+  asesor sería solo lectura con el texto «Eres tú», no un `select` deshabilitado.
 
 ## 4. Detalle con ruta
 

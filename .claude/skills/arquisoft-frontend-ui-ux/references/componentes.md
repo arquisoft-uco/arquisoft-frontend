@@ -145,7 +145,7 @@ Badge.peligro | bg-danger-muted text-danger-muted-foreground
 ### Field
 
 - **Reemplaza:** `CampoTexto` (solo Usuarios; ya eliminado), `.field-label`/`.field-input` armados a mano y los campos con
-  clases propias (`RegistrarFichaPerfil`, `SelectorAsesorFicha`, `EstadosFichaPanel`).
+  clases propias (`EstadosFichaPanel` y los formularios de fichas).
 - **API:** `etiqueta`, `ayuda?`, `error?`, `opcional?`, `corto?`, `contador?: { actual: number; max: number }` y un
   hijo-función `(control) => ReactNode` que recibe `{ id, 'aria-invalid', 'aria-describedby' }` (con
   `useId`); el control es un `<input className="field-input">`, `<select>` o `<textarea>` que los usa.
@@ -369,12 +369,20 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
 
 ### Combobox
 
-- **Reemplaza:** el `select` con «nombre — correo» (`SelectorAsesorFicha`) y el muro de botones para elegir
-  estudiantes (`RegistrarFichaPerfil`), que crece con cada estudiante vigente.
+- **Reemplazó (HT-UX-05):** el `select` con «nombre — correo» (`SelectorAsesorFicha`) y el muro de botones para elegir
+  estudiantes (`RegistrarFichaPerfil`), ya eliminados. Lo usan `NuevaFichaPerfil`, `CambiarAsesorPanel` y `AsignarEstudianteForm`.
 - **Cuándo:** hasta 5 opciones, radio o chips; de 6 a 8, `select` nativo; más de 8, o cuando hay que reconocer
   personas, `Combobox`.
 - **API:** `opciones: { id; etiqueta; descripcion? }[]`, `valor` (un `id` o `id[]`), `onCambiar`, `multiple?`,
-  `max?`, `textoVacio`, y se envuelve en `Field` para su etiqueta.
+  `max?`, `textoVacio`, `etiquetaElegidos` (nombre accesible de la lista de elegidos), `placeholder?`, `deshabilitado?`, `onBlur?`, `ref?` (React 19) y los
+  atributos de `Field` (`id`, `aria-invalid`, `aria-describedby`); se envuelve en `Field` para su etiqueta. El tipo `OpcionCombobox` vive en
+  `useCombobox.ts` y `Combobox.tsx` lo reexporta.
+- **Modo único:** con valor, el input se oculta y se muestra una tarjeta (`Combobox.elegido`) con el nombre, el correo y «Cambiar», que recibe el
+  `id` del `Field`, vacía el valor y devuelve el foco al input. **Modo múltiple:** al llegar a `max` el input se deshabilita y el foco pasa al ✕ de la
+  última fila.
+- **Archivos:** `Combobox.tsx` (campo), `ComboboxLista.tsx` (listbox, «Agregada» y texto vacío), `ComboboxElegidos.tsx` (filas con ✕, contador y
+  tarjeta única) y `useCombobox` (texto, filtrado, índice activo, teclado, clic fuera). Esc con la lista abierta llama `preventDefault()` para no
+  cerrar el `SidePanel` o el `ConfirmDialog` que la contiene.
 - **Comportamiento:** filtra en el cliente por etiqueta y descripción, sin distinguir mayúsculas ni tildes
   (normaliza con `NFD`). Lo elegido se ve debajo como filas con ✕ (`IconButton`, «Quitar a {nombre}») y un
   contador «2 de 3»; lo ya elegido aparece en la lista deshabilitado con «Agregada»; al llegar a `max` el
@@ -382,8 +390,8 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
   el servidor (otra historia).
 - **A11y:** patrón ARIA combobox/listbox: `role="combobox"`, `aria-expanded`, `aria-controls`,
   `aria-autocomplete="list"`, `aria-activedescendant`; opciones en `<li role="option">`; el foco no sale del
-  campo; flechas, Enter, Esc, Inicio y Fin. La lógica de teclado y filtrado sube a `useCombobox` en
-  `src/shared/hooks/` si el archivo pasa de 150 líneas.
+  campo; flechas, Enter, Esc, Inicio y Fin. La lógica de teclado y filtrado vive en `useCombobox`
+  (`src/shared/hooks/`, un solo consumidor por decisión de HT-UX-05).
 
 ```clases
 Combobox.input | field-input field-input--icono

@@ -92,9 +92,9 @@ Se agregan a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrudos
 | `usuarios/…/EstadoUsuarioFieldset.tsx` | Eliminado en HT-UX-03: pestaña «Acceso» | 3 |
 | `usuarios/…/CampoTexto.tsx` | Eliminado en HT-UX-03: `Field` | 1 |
 | `fichas-perfil/…/FichasPerfilTable.tsx`, `ConsultarFichasPerfilCoordinador.tsx`, `ConsultarFichasAsesor.tsx`, `ConsultarFichasRepresentante.tsx`, `EstadosFichasAsesorPanel.tsx` | `DataTable` y `FilterBar` (hecho en HT-UX-04; `FilterBar` ganó las secciones `texto` y `multiple`) | 2 |
-| `fichas-perfil/…/CoordinadorView.tsx`, `AsesorFichaView.tsx`, `RepresentanteView.tsx` | `PageHeader` con el `<h1>` del módulo (hecho en HT-UX-04; `CoordinadorView` conserva `RegistrarFichaPerfil` encima de la lista hasta el paso 3) | 2 |
-| `fichas-perfil/…/EstudiantesVinculadosPanel.tsx`, `AsignarEstudianteForm.tsx`, `CambiarAsesorForm.tsx` | Hecho en HT-UX-04: `EstudiantesVinculadosPanel` y `CambiarAsesorPanel` (reemplaza a `CambiarAsesorForm`) en `SidePanel`; `AsignarEstudianteForm` restilado con el kit | 3 o 4 |
-| `fichas-perfil/…/RegistrarFichaPerfil.tsx`, `SelectorAsesorFicha.tsx` | Página `/fichas-perfil/nueva` con `Combobox` | 3 |
+| `fichas-perfil/…/CoordinadorView.tsx`, `AsesorFichaView.tsx`, `RepresentanteView.tsx` | `PageHeader` con el `<h1>` del módulo (hecho en HT-UX-04; el formulario de ficha ya no va encima de la lista: hecho en HT-UX-05) | 2 |
+| `fichas-perfil/…/EstudiantesVinculadosPanel.tsx`, `AsignarEstudianteForm.tsx`, `CambiarAsesorForm.tsx` | Hecho en HT-UX-04: `EstudiantesVinculadosPanel` y `CambiarAsesorPanel` (reemplaza a `CambiarAsesorForm`) en `SidePanel`; `AsignarEstudianteForm` restilado con el kit. HT-UX-05: ambos usan `Combobox` | 3 o 4 |
+| `fichas-perfil/…/RegistrarFichaPerfil.tsx`, `SelectorAsesorFicha.tsx` | Hecho en HT-UX-05: eliminados; página `/fichas-perfil/nueva` con `Combobox` (`NuevaFichaPerfil`) | 3 |
 | `fichas-perfil/…/EstadosEvaluacionPanel.tsx` | `Badge` | 1 |
 | `fichas-perfil/…/MiFichaHeader.tsx`, `EstudianteView.tsx`, `AsesorFichaView.tsx`, `DetalleFichaAsesor.tsx`, `DetalleFichaRepresentante.tsx`, `TiposItemPanel.tsx` | Detalle con ruta | 4 |
 | `solicitudes/…/EnviarSolicitudNovedadForm.tsx` | `Field`, `FormSection` | 3 |

@@ -89,6 +89,10 @@ la ruta diverjan.
 React. Su import allí es **dinámico**: uno estático crea el ciclo `router → features → axiosInstance
 → router`.
 
+**Rutas hijas de un módulo.** Cuelgan de un padre con `guarded('{modulo}', <Outlet />)`, no llevan
+`NavItem` ni guardia propia, y el contenido que cambia por rol hace su fan-out dentro del hijo (ejemplo:
+`fichas-perfil/nueva`, cuyo hijo verifica `Rol.Coordinador` con `useHasRole`).
+
 ## Capa HTTP
 
 `src/api/axiosInstance.ts` es la **única** instancia de Axios. Importar `axios` en un service pierde
@@ -173,7 +177,7 @@ contra el controller real — una ruta pendiente puede responder **405 y no 404*
 cuántos son** (ni aquí ni en un plan): se desactualiza solo.
 
 La UI degrada con aviso, no con un desplegable vacío: `<AvisoNoDisponible recurso="…" />` más envío
-deshabilitado (`RegistrarFichaPerfil` es la referencia).
+deshabilitado (`NuevaFichaAsesorSeccion` es la referencia).
 
 ### Verificar Nivel 2 es tres pasos, no uno
 

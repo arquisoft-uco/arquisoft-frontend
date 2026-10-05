@@ -82,8 +82,8 @@ mezcla fetch + transformación + estado, lo que sale es un **hook**, no un sub-c
 | Compartido entre features, no del servidor | Store Zustand en `src/shared/stores/` |
 
 **Nunca `useEffect` + `axios`/`fetch` para cargar datos.** `useEffect` es solo para sincronizar con
-algo externo a React: el `keycloak.init()` de `AuthGuard`, el listener de `Escape` de `AppLayout`, el
-`setValue` de un prop que llega tarde en `RegistrarFichaPerfil`.
+algo externo a React: el `keycloak.init()` de `AuthGuard`, el listener de `Escape` de `AppLayout` y el
+listener de clic fuera de `useClicFuera`.
 
 ## Services
 
@@ -205,8 +205,10 @@ consultó el objeto afectado. No se deja al usuario en el formulario limpio ni s
 
 - **Orden en el éxito:** el hook invalida la query del listado por prefijo (para que refleje el
   cambio); el componente, en el `onSuccess` del `mutate(...)`, lanza el toast de éxito y cierra la
-  vista (`onCerrar()` / `onVolver()`). `CoordinadorView` → `RegistrarFichaPerfil onCerrar` y
+  vista (`onCerrar()` / `onVolver()`). `NuevaFichaPerfil` (`alRegistrar`) y
   `AsesorFichaView` → `onVolver` son la referencia.
+- **Cuando el formulario es una página**, se vuelve al listado con la misma búsqueda guardada en la
+  URL: `navigate({ pathname, search })`, con la `search` que el listado pasó al abrir la página.
 - **Filtros y paginación viven por encima del formulario**, en la `{Rol}View` o en el hook del listado
   (`useFichasPerfilCoordinador`), nunca dentro del panel que se desmonta: si viven dentro, volver los
   resetea.
@@ -262,7 +264,7 @@ Obligatoria desde el primer commit:
 - `role="alert"` en errores; `role="status"` + `aria-live="polite"` + `aria-busy` en carga.
 - `aria-label` en botones solo-icono; `aria-hidden` en iconos decorativos.
 - Campo con error: `aria-invalid={!!errors.campo}` + `aria-describedby` al `id` del mensaje.
-  `RegistrarFichaPerfil` es la referencia completa.
+  `Field` y `NuevaFichaForm` son la referencia completa.
 - `<label htmlFor>` con `id` en cada campo; si el control no es un input, contenedor con `aria-labelledby`.
 - `aria-expanded` en botones que despliegan (el botón «Filtros» de `FilterBar`).
 - Tablas: `<table aria-label>` y `<th scope="col">`.
