@@ -1,5 +1,9 @@
+import { useNavigate } from 'react-router';
 import type { LucideIcon } from 'lucide-react';
 import { Hammer } from 'lucide-react';
+import Button from './ui/Button';
+import EmptyState from './ui/EmptyState';
+import PageHeader from './ui/PageHeader';
 
 interface Props {
   title: string;
@@ -7,27 +11,22 @@ interface Props {
   icon?: LucideIcon;
 }
 
-export default function ComingSoon({ title, description, icon: Icon = Hammer }: Props) {
+export default function ComingSoon({ title, description, icon = Hammer }: Props) {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex flex-col gap-6 animate-fade-up">
-      <header>
-        <h1 className="text-2xl font-bold text-on-surface">{title}</h1>
-        <p className="mt-1 text-sm text-on-surface-secondary">{description}</p>
-      </header>
-      <div className="flex min-h-[320px] flex-col items-center justify-center gap-5 rounded-2xl border border-dashed border-border bg-surface p-8 text-center shadow-card">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-muted">
-          <Icon size={28} className="text-primary" aria-hidden />
-        </div>
-        <div>
-          <p className="font-semibold text-on-surface">En construcción</p>
-          <p className="mt-1 max-w-xs text-sm leading-relaxed text-on-surface-secondary">
-            Este módulo estará disponible próximamente.
-          </p>
-        </div>
-        <span className="rounded-full bg-secondary-muted px-4 py-1.5 text-xs font-semibold text-secondary-muted-foreground">
-          Próximamente
-        </span>
-      </div>
+    <div className="flex animate-fade-up flex-col gap-6">
+      <PageHeader titulo={title} descripcion={description} />
+      <EmptyState
+        icono={icon}
+        titulo="Esta opción aún no está disponible."
+        descripcion="Cuando esté lista, la encontrarás en el menú."
+        accion={
+          <Button variante="secundario" onClick={() => navigate('/dashboard')}>
+            Volver al inicio
+          </Button>
+        }
+      />
     </div>
   );
 }

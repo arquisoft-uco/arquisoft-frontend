@@ -117,7 +117,10 @@ src/
 ├── layout/                   # Shell de la aplicación
 │   ├── AppLayout.tsx         # Layout principal (Header + Sidebar + contenido)
 │   ├── Header.tsx
+│   ├── MenuCuenta.tsx
+│   ├── SelectorRol.tsx
 │   ├── Sidebar.tsx
+│   ├── SidebarGrupo.tsx
 │   └── nav-items.ts          # Configuración de navegación
 │
 ├── shared/                   # Código compartido entre features

@@ -125,35 +125,6 @@ h6 {
   border-radius: 0.5rem;
 }
 
-/* ── Dashboard hero ──────────────────────────────────── */
-.hero-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    oklch(38% 0.1 215) 50%,
-    oklch(45% 0.09 200) 100%
-  );
-}
-
-.hero-pattern {
-  position: absolute;
-  inset: 0;
-  opacity: 0.05;
-  background-image:
-    radial-gradient(circle at 20% 30%, white 1px, transparent 1px),
-    radial-gradient(circle at 80% 70%, white 1px, transparent 1px),
-    radial-gradient(circle at 50% 50%, white 0.5px, transparent 0.5px);
-  background-size:
-    32px 32px,
-    48px 48px,
-    20px 20px;
-}
-
-/* ── Quick cards ─────────────────────────────────────── */
-.quick-card:active {
-  transform: scale(0.98);
-}
-
 /* ── Mobile first: primitivas globales ───────────────── */
 /* Único punto de corte del proyecto: 640px (el `sm` de Tailwind). El estilo
    base es el de celular; la media query solo amplía hacia pantallas grandes.
