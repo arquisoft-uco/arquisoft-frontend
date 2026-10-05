@@ -84,7 +84,7 @@ export default function Toaster() {
   const avisos = useToastStore((state) => state.toasts);
 
   return createPortal(
-    <div aria-label="Notificaciones" className={REGION}>
+    <div role="region" aria-label="Notificaciones" className={REGION}>
       {avisos.map((aviso) => (
         <ToastItem key={aviso.id} aviso={aviso} />
       ))}

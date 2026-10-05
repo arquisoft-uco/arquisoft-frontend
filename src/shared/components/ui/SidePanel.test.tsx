@@ -3,6 +3,7 @@ import { describe, it, expect, vi, onTestFinished } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../test-utils/render';
 import SidePanel from './SidePanel';
+import { fondoDe } from '../../../test-utils/dom';
 
 const TITULO_DESCARTAR = '¿Descartar los cambios?';
 
@@ -42,13 +43,6 @@ function Pantalla({ sucio, ocupado, onCerrar }: PropsPantalla) {
       )}
     </>
   );
-}
-
-// El fondo es aria-hidden y no tiene rol: se llega a él desde el diálogo, su hermano anterior.
-function fondoDe(dialogo: HTMLElement): HTMLElement {
-  const fondo = dialogo.previousElementSibling;
-  if (!(fondo instanceof HTMLElement)) throw new Error('El diálogo no tiene fondo');
-  return fondo;
 }
 
 describe('SidePanel', () => {
@@ -285,6 +279,51 @@ describe('SidePanel', () => {
     await user.keyboard('{Escape}');
 
     // Assert
+    expect(document.body.style.overflow).toBe('scroll');
+  });
+
+  it('con dos paneles montados, cerrar uno no libera el scroll y cerrar el último lo restaura', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    onTestFinished(() => {
+      document.body.style.overflow = '';
+    });
+    document.body.style.overflow = 'scroll';
+    function DosPaneles() {
+      const [segundo, setSegundo] = useState(true);
+      const [primero, setPrimero] = useState(true);
+      return (
+        <>
+          {primero && (
+            <SidePanel titulo="Primero" onCerrar={() => setPrimero(false)}>
+              <input aria-label="Campo uno" />
+            </SidePanel>
+          )}
+          {segundo && (
+            <SidePanel titulo="Segundo" onCerrar={() => setSegundo(false)}>
+              <input aria-label="Campo dos" />
+            </SidePanel>
+          )}
+        </>
+      );
+    }
+    render(<DosPaneles />);
+
+    // Assert
+    expect(document.body.style.overflow).toBe('hidden');
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    expect(document.body.style.overflow).toBe('hidden');
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(document.body.style.overflow).toBe('scroll');
   });
 });

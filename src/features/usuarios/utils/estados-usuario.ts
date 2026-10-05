@@ -49,7 +49,7 @@ export function textosCambioEstado(
     descripcion,
     labelConfirmar: 'Cambiar estado',
     exito: {
-      titulo: 'Estado actualizado',
+      titulo: 'Estado cambiado',
       mensaje: `${usuario.nombre} ahora está en estado ${destino.nombre}.`,
     },
     error: 'No se pudo cambiar el estado',

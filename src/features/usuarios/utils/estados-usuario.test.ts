@@ -73,14 +73,14 @@ describe('textosCambioEstado', () => {
       descripcion:
         'Se cambiará el estado de Marta Ríos de Activo a Inactivo. Se deshabilitará su acceso.',
       labelConfirmar: 'Cambiar estado',
-      exito: { titulo: 'Estado actualizado', mensaje: 'Marta Ríos ahora está en estado Inactivo.' },
+      exito: { titulo: 'Estado cambiado', mensaje: 'Marta Ríos ahora está en estado Inactivo.' },
       error: 'No se pudo cambiar el estado',
     });
     expect(activarVigente).toEqual({
       titulo: '¿Cambiar el estado de Marta Ríos?',
       descripcion: 'Se cambiará el estado de Marta Ríos de Inactivo a Activo.',
       labelConfirmar: 'Cambiar estado',
-      exito: { titulo: 'Estado actualizado', mensaje: 'Marta Ríos ahora está en estado Activo.' },
+      exito: { titulo: 'Estado cambiado', mensaje: 'Marta Ríos ahora está en estado Activo.' },
       error: 'No se pudo cambiar el estado',
     });
   });

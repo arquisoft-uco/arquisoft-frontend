@@ -1,5 +1,6 @@
+import { useId } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
-import Field from '../../../../shared/components/ui/Field';
+import Field, { type ControlDeCampo } from '../../../../shared/components/ui/Field';
 import FilterChip from '../../../../shared/components/ui/FilterChip';
 import FormSection, { RejillaDeCampos } from '../../../../shared/components/ui/FormSection';
 import { ETIQUETAS_ROL, type Rol } from '../../../../shared/models/rol';
@@ -35,6 +36,10 @@ export default function RegistrarUsuarioCampos({
   rolesSeleccionados,
   onAlternarRol,
 }: Props) {
+  const idAyudaNombres = useId();
+  const describirNombre = (control: ControlDeCampo) =>
+    [control['aria-describedby'], idAyudaNombres].filter(Boolean).join(' ');
+
   return (
     <>
       <FormSection titulo="Cuenta">
@@ -59,15 +64,29 @@ export default function RegistrarUsuarioCampos({
         <div>
           <RejillaDeCampos>
             <Field etiqueta={ETIQUETAS_CAMPO.nombres} error={errors.nombres?.message}>
-              {(control) => <input className="field-input" {...control} {...register('nombres')} />}
+              {(control) => (
+                <input
+                  className="field-input"
+                  {...control}
+                  aria-describedby={describirNombre(control)}
+                  {...register('nombres')}
+                />
+              )}
             </Field>
             <Field etiqueta={ETIQUETAS_CAMPO.apellidos} error={errors.apellidos?.message}>
               {(control) => (
-                <input className="field-input" {...control} {...register('apellidos')} />
+                <input
+                  className="field-input"
+                  {...control}
+                  aria-describedby={describirNombre(control)}
+                  {...register('apellidos')}
+                />
               )}
             </Field>
           </RejillaDeCampos>
-          <p className="field-hint">{AYUDA_NOMBRES}</p>
+          <p id={idAyudaNombres} className="field-hint">
+            {AYUDA_NOMBRES}
+          </p>
         </div>
         <Field
           etiqueta={ETIQUETAS_CAMPO.contacto}

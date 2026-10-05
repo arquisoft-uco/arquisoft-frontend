@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
@@ -6,9 +5,8 @@ import FormActions from '../../../../shared/components/ui/FormActions';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Rol } from '../../../../shared/models/rol';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEnvioFormularioUsuario } from '../../hooks/useEnvioFormularioUsuario';
 import { useRegistrarUsuario } from '../../hooks/useRegistrarUsuario';
-import { aplicarErroresDeApi } from '../../utils/errores-api-usuario';
 import { registrarUsuarioSchema } from '../../utils/registrar-usuario-schema';
 import type { RegistrarUsuarioValues } from '../../utils/registrar-usuario-schema';
 import RegistrarUsuarioCampos, { ETIQUETAS_CAMPO } from './RegistrarUsuarioCampos';
@@ -39,7 +37,6 @@ interface Props {
 }
 
 export default function RegistrarUsuarioPanel({ onCerrar }: Props) {
-  const [resumenVisible, setResumenVisible] = useState(false);
   const formulario = useForm<RegistrarUsuarioValues>({
     resolver: zodResolver(registrarUsuarioSchema),
     defaultValues: VALORES_INICIALES,
@@ -47,6 +44,15 @@ export default function RegistrarUsuarioPanel({ onCerrar }: Props) {
   });
   const { errors, isDirty } = formulario.formState;
   const { mutate, isPending, reset: reiniciarMutacion } = useRegistrarUsuario();
+  const { resumenVisible, irAlCampo, alInvalido, alErrorDeApi, cerrar } = useEnvioFormularioUsuario(
+    {
+      formulario,
+      campos: CAMPOS,
+      reiniciarMutacion,
+      onCerrar,
+      alias: ALIAS_DEL_BACKEND,
+    },
+  );
 
   const roles = formulario.watch('roles') ?? [];
   const errores = resumenVisible ? resumirErrores(errors, ETIQUETAS_CAMPO) : [];
@@ -70,15 +76,6 @@ export default function RegistrarUsuarioPanel({ onCerrar }: Props) {
     formulario.setValue('roles', siguientes, { shouldDirty: true, shouldValidate: true });
   }
 
-  function irAlCampo(campo: string) {
-    const destino = CAMPOS.find((c) => c === campo);
-    if (destino) formulario.setFocus(destino);
-  }
-
-  function alInvalido() {
-    setResumenVisible(true);
-  }
-
   function enviar(valores: RegistrarUsuarioValues) {
     mutate(valores, {
       onSuccess: () => {
@@ -88,21 +85,8 @@ export default function RegistrarUsuarioPanel({ onCerrar }: Props) {
         );
         onCerrar();
       },
-      onError: (err) => {
-        toast.error(
-          'No se pudo registrar el usuario',
-          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
-        );
-        aplicarErroresDeApi(err, formulario.setError, CAMPOS, ALIAS_DEL_BACKEND);
-        setResumenVisible(true);
-      },
+      onError: (err) => alErrorDeApi(err, 'No se pudo registrar el usuario'),
     });
-  }
-
-  function cerrar() {
-    formulario.reset();
-    reiniciarMutacion();
-    onCerrar();
   }
 
   return (
@@ -125,6 +109,7 @@ export default function RegistrarUsuarioPanel({ onCerrar }: Props) {
     >
       <form
         id={ID_FORMULARIO}
+        aria-label="Registro de usuario"
         noValidate
         aria-busy={isPending}
         onSubmit={formulario.handleSubmit(enviar, alInvalido)}

@@ -8,6 +8,8 @@ import { toast } from '../../../../shared/hooks/useToast';
 import { textosCambioEstado } from '../../utils/estados-usuario';
 import type { EstadoUsuario } from '../../models/EstadoUsuario';
 import type { Usuario } from '../../models/Usuario';
+import { errorApi } from '../../../../test-utils/errores-api';
+import { diferida } from '../../../../test-utils/promesas';
 
 vi.mock('../../services/usuariosService', () => ({
   usuariosService: {
@@ -52,20 +54,6 @@ const USUARIO_DADO_DE_BAJA: Usuario = {
   estado: 'INACTIVO',
   vigente: false,
 };
-
-function errorApi(status: number, data: Record<string, unknown>) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
-}
-
-function diferida() {
-  let resolver: () => void = () => undefined;
-  let rechazar: (motivo: unknown) => void = () => undefined;
-  const promesa = new Promise<void>((resolve, reject) => {
-    resolver = resolve;
-    rechazar = reject;
-  });
-  return { promesa, resolver, rechazar };
-}
 
 interface PropsAnfitrion {
   usuario: Usuario;

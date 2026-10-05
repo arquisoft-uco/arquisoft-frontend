@@ -18,6 +18,9 @@ const ACCIONES = 'flex shrink-0 items-center gap-1';
 const CUERPO = 'flex-1 overflow-y-auto p-4 sm:p-6';
 const PIE = 'shrink-0';
 
+let panelesAbiertos = 0;
+let overflowAnterior = '';
+
 interface Props {
   titulo: string;
   descripcion?: string;
@@ -62,11 +65,16 @@ export default function SidePanel({
 
   // El atributo deja que el Toaster se coloque sobre el pie del panel en lugar de tapar su botón principal.
   useEffect(() => {
-    const anterior = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.body.dataset.panelAbierto = '';
+    if (panelesAbiertos === 0) {
+      overflowAnterior = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.body.dataset.panelAbierto = '';
+    }
+    panelesAbiertos += 1;
     return () => {
-      document.body.style.overflow = anterior;
+      panelesAbiertos -= 1;
+      if (panelesAbiertos > 0) return;
+      document.body.style.overflow = overflowAnterior;
       delete document.body.dataset.panelAbierto;
     };
   }, []);

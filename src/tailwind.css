@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@source not "../.claude";
+@source not "../docs";
 
 @theme {
   /* ── Brand / Primary (deep teal-navy) ── */

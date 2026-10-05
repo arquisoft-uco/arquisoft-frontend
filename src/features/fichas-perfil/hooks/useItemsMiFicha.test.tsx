@@ -6,6 +6,7 @@ import { fichasPerfilService } from '../services/fichasPerfilService';
 import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 import { useItemsMiFicha } from './useItemsMiFicha';
 import { useTiposItem } from './useTiposItem';
+import { errorApi } from '../../../test-utils/errores-api';
 
 vi.mock('../services/fichasPerfilService', () => ({
   fichasPerfilService: {
@@ -27,10 +28,6 @@ function conTipos(parcial: { data?: unknown[]; isLoading?: boolean; isError?: bo
   tipos.mockReturnValue({ data: [], isLoading: false, isError: false, ...parcial } as ReturnType<
     typeof useTiposItem
   >);
-}
-
-function errorApi(status: number, data: Record<string, unknown> = {}) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
 }
 
 const ITEM = {

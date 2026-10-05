@@ -6,6 +6,7 @@ import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import { LIMITES } from '../../../../shared/validation';
 import type { Item, TipoItem } from '../../models/fichas-perfil';
+import { errorApi } from '../../../../test-utils/errores-api';
 
 vi.mock('../../hooks/useItemsMiFicha', () => ({ useItemsMiFicha: vi.fn() }));
 vi.mock('../../../../shared/hooks/useToast', () => ({
@@ -28,10 +29,6 @@ const ITEM_USADO: Item = {
   tipoItem: { id: TIPOS[0].id, nombre: TIPOS[0].nombre },
   contenido: 'Ya existe',
 };
-
-function errorApi(status: number, data: Record<string, unknown>) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
-}
 
 function mockHook(mutate = vi.fn(), parcial: Partial<Resultado> = {}) {
   const reset = vi.fn();

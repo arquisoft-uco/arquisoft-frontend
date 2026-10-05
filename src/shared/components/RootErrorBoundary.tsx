@@ -10,13 +10,7 @@ interface State {
   error: Error | null;
 }
 
-/**
- * Top-level error boundary wrapping the entire application tree.
- * Catches errors that escape AuthGuard, AppLayout, or any other root component,
- * preventing the user from seeing a blank screen with no recovery path.
- *
- * Must be a class component — React has no functional equivalent for error boundaries.
- */
+// Clase: React no tiene equivalente funcional para un error boundary.
 export class RootErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 

@@ -18,6 +18,14 @@ describe('Toaster', () => {
     restaurarTemporizadores();
   });
 
+  it('expone la región de notificaciones con su nombre accesible', () => {
+    // Act
+    render(<Toaster />);
+
+    // Assert
+    expect(screen.getByRole('region', { name: 'Notificaciones' })).toBeInTheDocument();
+  });
+
   it('el error se anuncia como alerta y el éxito y la información como estado', () => {
     // Arrange
     render(<Toaster />);

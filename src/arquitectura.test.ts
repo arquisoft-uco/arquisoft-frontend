@@ -230,7 +230,7 @@ describe('Arquitectura: convenciones con deuda conocida', () => {
     // Assert
     exigir(
       problemas,
-      `Usa LoadingState (carga sin forma conocida), Skeleton (forma conocida) o el prop cargando de ` +
+      `Usa Skeleton (carga con forma conocida) o el prop cargando de ` +
         `Button: el único spinner vive en src/shared/components/ui/. ${AYUDA_BASELINE}`,
     );
   });

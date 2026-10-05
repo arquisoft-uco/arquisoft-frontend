@@ -16,6 +16,7 @@ vi.mock('../../services/usuariosService', () => ({
     modificarUsuario: vi.fn(),
     getEstadosUsuario: vi.fn(),
     agregarRol: vi.fn(),
+    cambiarEstadoUsuario: vi.fn(),
   },
 }));
 vi.mock('../../../../shared/hooks/useToast', () => ({
@@ -254,8 +255,8 @@ describe('EditarUsuarioPanel', () => {
     // Assert
     await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
     expect(toast.success).toHaveBeenCalledWith(
-      'Usuario actualizado',
-      `${USUARIO.nombre} fue actualizado correctamente.`,
+      'Cambios guardados',
+      `Los datos de ${USUARIO.nombre} se guardaron.`,
     );
     expect(toast.error).not.toHaveBeenCalled();
   });
@@ -277,7 +278,7 @@ describe('EditarUsuarioPanel', () => {
     // Assert
     expect(await screen.findByText('Revisa 1 campo antes de continuar')).toBeInTheDocument();
     expect(toast.error).toHaveBeenCalledWith(
-      'No se pudo actualizar el usuario',
+      'No se pudieron guardar los cambios',
       DUPLICADO_DE_CORREO.message,
     );
     expect(campo('Correo electrónico')).toHaveAccessibleDescription(DUPLICADO_DE_CORREO.message);
@@ -361,5 +362,42 @@ describe('EditarUsuarioPanel', () => {
       await screen.findByRole('dialog', { name: /Descartar los cambios/ }),
     ).toBeInTheDocument();
     expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('desde Acceso, con cambios sin guardar en Datos, un cambio de estado exitoso no cierra el panel y deja visible Datos; sin cambios, cierra', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.cambiarEstadoUsuario).mockResolvedValue(undefined);
+    const onCerrar = renderizar();
+    await user.type(campo('Contacto'), '0');
+    await user.click(screen.getByRole('tab', { name: 'Acceso' }));
+    await user.click(await screen.findByRole('radio', { name: 'Inactivo' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Aplicar cambio de estado' }));
+    await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith('Estado cambiado', expect.any(String)),
+    );
+    expect(onCerrar).not.toHaveBeenCalled();
+    expect(pestanaActiva()).toHaveAccessibleName('Datos');
+    expect(campo('Contacto')).toHaveValue(`${USUARIO.contacto}0`);
+  });
+
+  it('desde Acceso, sin cambios en Datos, un cambio de estado exitoso cierra el panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.cambiarEstadoUsuario).mockResolvedValue(undefined);
+    const onCerrar = renderizar({ pestanaInicial: 'acceso' });
+    await user.click(await screen.findByRole('radio', { name: 'Inactivo' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Aplicar cambio de estado' }));
+    await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
   });
 });

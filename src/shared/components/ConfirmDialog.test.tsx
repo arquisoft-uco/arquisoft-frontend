@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../test-utils/render';
 import ConfirmDialog from './ConfirmDialog';
+import { fondoDe } from '../../test-utils/dom';
 
 type PropsDialogo = Omit<
   ComponentProps<typeof ConfirmDialog>,
@@ -38,13 +39,6 @@ function Pantalla({ onConfirmar, onCancelar, ...dialogo }: PropsPantalla) {
       )}
     </>
   );
-}
-
-// El fondo es aria-hidden y no tiene rol: se llega a él desde el diálogo, su hermano anterior.
-function fondoDe(dialogo: HTMLElement): HTMLElement {
-  const fondo = dialogo.previousElementSibling;
-  if (!(fondo instanceof HTMLElement)) throw new Error('El diálogo no tiene fondo');
-  return fondo;
 }
 
 describe('ConfirmDialog', () => {

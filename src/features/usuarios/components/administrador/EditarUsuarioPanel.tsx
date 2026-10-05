@@ -6,14 +6,13 @@ import { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Tabs from '../../../../shared/components/ui/Tabs';
 import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEnvioFormularioUsuario } from '../../hooks/useEnvioFormularioUsuario';
 import { useEstadosUsuario } from '../../hooks/useEstadosUsuario';
 import { useModificarUsuario } from '../../hooks/useModificarUsuario';
 import type { PestanaUsuario } from '../../models/PestanaUsuario';
 import type { Usuario } from '../../models/Usuario';
 import { editarUsuarioSchema } from '../../utils/editar-usuario-schema';
 import type { EditarUsuarioValues } from '../../utils/editar-usuario-schema';
-import { aplicarErroresDeApi } from '../../utils/errores-api-usuario';
 import EditarUsuarioAcceso from './EditarUsuarioAcceso';
 import EditarUsuarioDatos, { ETIQUETAS_CAMPO } from './EditarUsuarioDatos';
 import EditarUsuarioRoles from './EditarUsuarioRoles';
@@ -21,6 +20,7 @@ import PieEditarUsuario from './PieEditarUsuario';
 import { InsigniaEstadoUsuario } from './UsuarioCeldas';
 
 const ID_FORMULARIO = 'editar-usuario';
+const ID_PESTANAS = 'editar-usuario-tabs';
 const CAMPOS = ['identificador', 'nombre', 'email', 'contacto'] as const;
 const PESTANAS: { id: PestanaUsuario; etiqueta: string }[] = [
   { id: 'datos', etiqueta: 'Datos' },
@@ -40,7 +40,6 @@ interface Props {
 
 export default function EditarUsuarioPanel({ usuario, pestanaInicial, onCerrar }: Props) {
   const [pestana, setPestana] = useState<PestanaUsuario>(pestanaInicial);
-  const [resumenVisible, setResumenVisible] = useState(false);
   const formulario = useForm<EditarUsuarioValues>({
     resolver: zodResolver(editarUsuarioSchema),
     defaultValues: {
@@ -54,42 +53,29 @@ export default function EditarUsuarioPanel({ usuario, pestanaInicial, onCerrar }
   const { errors, isDirty } = formulario.formState;
   const { mutate, isPending, reset: reiniciarMutacion } = useModificarUsuario();
   const estados = useEstadosUsuario();
+  const { resumenVisible, irAlCampo, alInvalido, alErrorDeApi, cerrar } = useEnvioFormularioUsuario(
+    { formulario, campos: CAMPOS, reiniciarMutacion, onCerrar },
+  );
 
   const resumen = resumenVisible ? resumirErrores(errors, ETIQUETAS_CAMPO) : [];
-
-  function irAlCampo(campo: string) {
-    const destino = CAMPOS.find((c) => c === campo);
-    if (destino) formulario.setFocus(destino);
-  }
-
-  function alInvalido() {
-    setResumenVisible(true);
-  }
 
   function enviar(valores: EditarUsuarioValues) {
     mutate(
       { usuarioId: usuario.id, req: valores },
       {
         onSuccess: () => {
-          toast.success('Usuario actualizado', `${valores.nombre} fue actualizado correctamente.`);
+          toast.success('Cambios guardados', `Los datos de ${valores.nombre} se guardaron.`);
           onCerrar();
         },
-        onError: (err) => {
-          toast.error(
-            'No se pudo actualizar el usuario',
-            getApiErrorMessage(err, 'Inténtalo nuevamente.'),
-          );
-          aplicarErroresDeApi(err, formulario.setError, CAMPOS);
-          setResumenVisible(true);
-        },
+        onError: (err) => alErrorDeApi(err, 'No se pudieron guardar los cambios'),
       },
     );
   }
 
-  function cerrar() {
-    formulario.reset();
-    reiniciarMutacion();
-    onCerrar();
+  // Si Datos tiene cambios sin guardar, el éxito de Acceso no cierra el panel: vuelve a Datos.
+  function alTerminarEnAcceso() {
+    if (isDirty) setPestana('datos');
+    else onCerrar();
   }
 
   return (
@@ -117,10 +103,16 @@ export default function EditarUsuarioPanel({ usuario, pestanaInicial, onCerrar }
             items={PESTANAS}
             valor={pestana}
             etiqueta="Secciones del usuario"
+            idBase={ID_PESTANAS}
             onCambiar={setPestana}
           />
         </div>
-        <div role="tabpanel" aria-label="Datos" hidden={pestana !== 'datos'}>
+        <div
+          role="tabpanel"
+          id={`${ID_PESTANAS}-panel-datos`}
+          aria-labelledby={`${ID_PESTANAS}-pestana-datos`}
+          hidden={pestana !== 'datos'}
+        >
           <EditarUsuarioDatos
             formId={ID_FORMULARIO}
             register={formulario.register}
@@ -131,11 +123,25 @@ export default function EditarUsuarioPanel({ usuario, pestanaInicial, onCerrar }
             onIrAlCampo={irAlCampo}
           />
         </div>
-        <div role="tabpanel" aria-label="Roles" hidden={pestana !== 'roles'}>
+        <div
+          role="tabpanel"
+          id={`${ID_PESTANAS}-panel-roles`}
+          aria-labelledby={`${ID_PESTANAS}-pestana-roles`}
+          hidden={pestana !== 'roles'}
+        >
           <EditarUsuarioRoles usuario={usuario} />
         </div>
-        <div role="tabpanel" aria-label="Acceso" hidden={pestana !== 'acceso'}>
-          <EditarUsuarioAcceso usuario={usuario} estados={estados} onCerrarPanel={onCerrar} />
+        <div
+          role="tabpanel"
+          id={`${ID_PESTANAS}-panel-acceso`}
+          aria-labelledby={`${ID_PESTANAS}-pestana-acceso`}
+          hidden={pestana !== 'acceso'}
+        >
+          <EditarUsuarioAcceso
+            usuario={usuario}
+            estados={estados}
+            onCerrarPanel={alTerminarEnAcceso}
+          />
         </div>
       </div>
     </SidePanel>

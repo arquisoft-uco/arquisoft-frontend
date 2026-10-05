@@ -30,7 +30,7 @@ export default function Sidebar({ onClose }: Props) {
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-bold tracking-tight text-on-surface">ArquiSoft</span>
-            <span className="text-xs text-on-surface-secondary">Gestión Académica</span>
+            <span className="text-xs text-on-surface-secondary">Gestión académica</span>
           </div>
         </div>
 

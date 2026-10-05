@@ -10,11 +10,7 @@ interface State {
   hasError: boolean;
 }
 
-/**
- * ErrorBoundary that catches React.lazy() chunk load failures.
- * Offers a reload button so users can recover from deploy-mismatch errors.
- * Must be a class component — React has no functional equivalent for error boundaries.
- */
+// Clase: React no tiene equivalente funcional para un error boundary.
 export class ChunkErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
 

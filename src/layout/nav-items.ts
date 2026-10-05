@@ -30,7 +30,7 @@ const ROLES_GENERALES = [Rol.Administrador, Rol.Asesor, Rol.Estudiante, Rol.Coor
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Inicio', icon: House, path: '/dashboard', order: 0 },
   {
-    label: 'Fichas Perfil',
+    label: 'Fichas de perfil',
     icon: FileText,
     path: '/fichas-perfil',
     order: 1,
@@ -43,7 +43,7 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    label: 'Proyectos Grado',
+    label: 'Proyectos de grado',
     icon: GraduationCap,
     path: '/proyectos-grado',
     order: 2,
@@ -75,7 +75,7 @@ export const NAV_ITEMS: NavItem[] = [
     disponible: false,
   },
   {
-    label: 'Mapas Ruta',
+    label: 'Mapas de ruta',
     icon: Map,
     path: '/mapas-ruta',
     order: 6,

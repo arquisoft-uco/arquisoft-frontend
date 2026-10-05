@@ -139,11 +139,10 @@ describe('RegistrarUsuarioPanel', () => {
       `De ${LIMITES.USUARIO_IDENTIFICADOR_MIN} a ${LIMITES.USUARIO_IDENTIFICADOR_MAX} caracteres. No se puede repetir.`,
     );
     expect(campo('Correo electrónico')).toHaveAccessibleDescription('No se puede repetir.');
-    expect(
-      screen.getByText(
-        `Nombres y apellidos juntos pueden tener hasta ${LIMITES.USUARIO_NOMBRE_MAX} caracteres.`,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('form', { name: 'Registro de usuario' })).toBeInTheDocument();
+    const ayudaNombres = `Nombres y apellidos juntos pueden tener hasta ${LIMITES.USUARIO_NOMBRE_MAX} caracteres.`;
+    expect(campo('Nombres')).toHaveAccessibleDescription(ayudaNombres);
+    expect(campo('Apellidos')).toHaveAccessibleDescription(ayudaNombres);
     expect(campo('Contacto')).toHaveAccessibleDescription(
       `Entre ${LIMITES.USUARIO_CONTACTO_MIN} y ${LIMITES.USUARIO_CONTACTO_MAX} dígitos.`,
     );
@@ -309,8 +308,8 @@ describe('RegistrarUsuarioPanel', () => {
         'No se pudo registrar el usuario',
         NOMBRE_NO_VALIDO.message,
       );
-      expect(campo('Nombres')).toHaveAccessibleDescription(NOMBRE_NO_VALIDO.message);
-      expect(campo('Apellidos')).toHaveAccessibleDescription(NOMBRE_NO_VALIDO.message);
+      expect(campo('Nombres')).toHaveAccessibleDescription(new RegExp(NOMBRE_NO_VALIDO.message));
+      expect(campo('Apellidos')).toHaveAccessibleDescription(new RegExp(NOMBRE_NO_VALIDO.message));
       expect(campo('Nombres')).toHaveFocus();
       expect(campo('Identificador')).toBeValid();
       expect(screen.getByText('Revisa 2 campos antes de continuar')).toBeInTheDocument();

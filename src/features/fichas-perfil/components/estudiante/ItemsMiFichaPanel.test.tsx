@@ -4,6 +4,7 @@ import { render, screen, within } from '../../../../test-utils/render';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import ItemsMiFichaPanel from './ItemsMiFichaPanel';
+import { errorApi } from '../../../../test-utils/errores-api';
 
 vi.mock('../../hooks/useItemsMiFicha', () => ({ useItemsMiFicha: vi.fn() }));
 vi.mock('../AyudaTiposItem', () => ({
@@ -15,10 +16,6 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
 }));
 
 type Opciones = { onSuccess?: () => void; onError?: (err: unknown) => void };
-
-function errorApi(status: number, data: Record<string, unknown> = {}) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
-}
 
 const ITEM = {
   id: 'i-1',

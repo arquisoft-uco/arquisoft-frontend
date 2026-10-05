@@ -26,17 +26,13 @@ const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
 const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
 
-/** Wraps element with RoleGuard if the path has a role restriction in nav-items. */
 function guarded(path: string, element: ReactElement): ReactElement {
   const roles = ROLES_POR_RUTA[path];
   if (!roles) return element;
   return <RoleGuard roles={roles}>{element}</RoleGuard>;
 }
 
-/**
- * Exported so the Axios error interceptor can call router.navigate('/forbidden')
- * outside the React tree (hooks/useNavigate unavailable in interceptors).
- */
+// Exportado para que el interceptor de Axios navegue a /forbidden fuera del árbol de React.
 export const router = createBrowserRouter([
   {
     // AuthGuard: shows AppLoader while Keycloak initializes, then renders Outlet

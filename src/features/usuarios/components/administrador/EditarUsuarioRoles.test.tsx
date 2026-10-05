@@ -6,6 +6,8 @@ import { usuariosService } from '../../services/usuariosService';
 import { toast } from '../../../../shared/hooks/useToast';
 import { ETIQUETAS_ROL, Rol } from '../../../../shared/models/rol';
 import type { Usuario } from '../../models/Usuario';
+import { errorApi } from '../../../../test-utils/errores-api';
+import { diferida } from '../../../../test-utils/promesas';
 
 vi.mock('../../services/usuariosService', () => ({
   usuariosService: {
@@ -57,20 +59,6 @@ const ROLES_CAMBIABLES = [
   Rol.Administrador,
 ];
 
-function errorApi(status: number, data: Record<string, unknown>) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
-}
-
-function diferida() {
-  let resolver: () => void = () => undefined;
-  let rechazar: (motivo: unknown) => void = () => undefined;
-  const promesa = new Promise<void>((resolve, reject) => {
-    resolver = resolve;
-    rechazar = reject;
-  });
-  return { promesa, resolver, rechazar };
-}
-
 const interruptor = (rol: Rol) => screen.getByRole('switch', { name: ETIQUETAS_ROL[rol] });
 
 describe('EditarUsuarioRoles', () => {
@@ -91,6 +79,8 @@ describe('EditarUsuarioRoles', () => {
     expect(interruptor(Rol.Jurado)).toBeDisabled();
     expect(interruptor(Rol.Bibliotecario)).toBeDisabled();
     expect(screen.getAllByText('Pronto')).toHaveLength(2);
+    expect(interruptor(Rol.Jurado)).toHaveAccessibleDescription(/Pronto/);
+    expect(interruptor(Rol.Bibliotecario)).toHaveAccessibleDescription(/Pronto/);
 
     // Act
     await user.click(interruptor(Rol.Jurado));

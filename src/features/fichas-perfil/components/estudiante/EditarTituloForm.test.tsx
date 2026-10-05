@@ -4,15 +4,12 @@ import { render, screen } from '../../../../test-utils/render';
 import EditarTituloForm from './EditarTituloForm';
 import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
 import { LIMITES } from '../../../../shared/validation';
+import { errorApi } from '../../../../test-utils/errores-api';
 
 vi.mock('../../hooks/useMiFichaPerfil', () => ({ useMiFichaPerfil: vi.fn() }));
 
 type Resultado = ReturnType<typeof useMiFichaPerfil>;
 type Opciones = { onSuccess?: () => void; onError?: (err: unknown) => void };
-
-function errorApi(status: number, data: Record<string, unknown>) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
-}
 
 function mockHook(mutate = vi.fn()) {
   const reset = vi.fn();

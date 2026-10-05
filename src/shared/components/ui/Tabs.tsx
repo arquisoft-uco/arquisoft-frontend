@@ -57,6 +57,7 @@ interface Props<T extends string> {
   items: ItemPestana<T>[];
   valor: T;
   etiqueta: string;
+  idBase?: string;
   onCambiar?: (id: T) => void;
   children?: ReactNode;
   className?: string;
@@ -66,11 +67,13 @@ export default function Tabs<T extends string>({
   items,
   valor,
   etiqueta,
+  idBase,
   onCambiar,
   children,
   className,
 }: Props<T>) {
-  const base = useId();
+  const generado = useId();
+  const base = idBase ?? generado;
   const pestanas = useRef<Record<string, HTMLButtonElement | null>>({});
 
   if (items.every(tieneRuta)) {
@@ -94,9 +97,10 @@ export default function Tabs<T extends string>({
     );
   }
 
-  const idPanel = `${base}-panel`;
+  const idPanel = (id: T) => `${base}-panel-${id}`;
   const idPestana = (id: T) => `${base}-pestana-${id}`;
   const hayPanel = Boolean(children);
+  const panelesDelConsumidor = Boolean(idBase) && !hayPanel;
 
   function alTeclear(evento: KeyboardEvent<HTMLButtonElement>, indice: number) {
     const destino = indiceDestino(evento.key, indice, items.length);
@@ -122,7 +126,9 @@ export default function Tabs<T extends string>({
               role="tab"
               id={idPestana(item.id)}
               aria-selected={activa}
-              aria-controls={activa && hayPanel ? idPanel : undefined}
+              aria-controls={
+                (activa && hayPanel) || panelesDelConsumidor ? idPanel(item.id) : undefined
+              }
               tabIndex={activa ? 0 : -1}
               onClick={() => onCambiar?.(item.id)}
               onKeyDown={(evento) => alTeclear(evento, indice)}
@@ -135,7 +141,7 @@ export default function Tabs<T extends string>({
         })}
       </div>
       {hayPanel && (
-        <div role="tabpanel" id={idPanel} aria-labelledby={idPestana(valor)}>
+        <div role="tabpanel" id={idPanel(valor)} aria-labelledby={idPestana(valor)}>
           {children}
         </div>
       )}

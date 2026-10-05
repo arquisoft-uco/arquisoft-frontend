@@ -5,6 +5,7 @@ import EditarItemForm from './EditarItemForm';
 import { useItemsMiFicha } from '../../hooks/useItemsMiFicha';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Item } from '../../models/fichas-perfil';
+import { errorApi } from '../../../../test-utils/errores-api';
 
 vi.mock('../../hooks/useItemsMiFicha', () => ({ useItemsMiFicha: vi.fn() }));
 vi.mock('../../../../shared/hooks/useToast', () => ({
@@ -20,10 +21,6 @@ const ITEM: Item = {
   tipoItem: { id: 't-1', nombre: 'Objetivo General' },
   contenido: 'Medir consumo',
 };
-
-function errorApi(status: number, data: Record<string, unknown>) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
-}
 
 function mockHook(mutate = vi.fn()) {
   const reset = vi.fn();

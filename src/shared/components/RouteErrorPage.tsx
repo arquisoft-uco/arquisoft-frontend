@@ -1,11 +1,6 @@
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router';
 import Button from './ui/Button';
 
-/**
- * Error page for React Router's errorElement prop.
- * Handles errors thrown inside route components (AuthGuard, AppLayout, feature pages).
- * useRouteError() gives access to the thrown value — could be an Error, a Response, or anything.
- */
 export default function RouteErrorPage() {
   const error = useRouteError();
   const navigate = useNavigate();

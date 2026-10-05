@@ -104,6 +104,31 @@ describe('Tabs', () => {
     expect(screen.getByRole('tab', { name: 'Datos' })).not.toHaveAttribute('aria-controls');
   });
 
+  it('con idBase y paneles del consumidor, cada pestaña apunta al panel con su id derivado', () => {
+    // Act
+    render(
+      <>
+        <Tabs items={ITEMS} valor="datos" etiqueta={ETIQUETA} idBase="ficha" />
+        {ITEMS.map((item) => (
+          <div
+            key={item.id}
+            role="tabpanel"
+            id={`ficha-panel-${item.id}`}
+            aria-labelledby={`ficha-pestana-${item.id}`}
+          />
+        ))}
+      </>,
+    );
+
+    // Assert
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
+    for (const item of ITEMS) {
+      const pestana = screen.getByRole('tab', { name: item.etiqueta });
+      expect(pestana).toHaveAttribute('aria-controls', `ficha-panel-${item.id}`);
+      expect(pestana).toHaveAttribute('id', `ficha-pestana-${item.id}`);
+    }
+  });
+
   it('en modo navegación marca con aria-current solo el valor y no usa roles de pestaña', () => {
     // Arrange
     const itemsConRuta = ITEMS.map((item) => ({ ...item, to: `/ficha/${item.id}` }));

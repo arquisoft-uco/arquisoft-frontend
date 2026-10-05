@@ -38,6 +38,10 @@ export default function Switch({
 }: Props) {
   const id = useId();
   const idDescripcion = `${id}-descripcion`;
+  const idInsignia = `${id}-insignia`;
+  const descritoPor = [descripcion && idDescripcion, insignia && idInsignia]
+    .filter(Boolean)
+    .join(' ');
 
   function alternar() {
     if (!pendiente) onCambiar(!marcado);
@@ -55,13 +59,13 @@ export default function Switch({
           </span>
         )}
       </div>
-      {insignia}
+      {insignia && <span id={idInsignia}>{insignia}</span>}
       <button
         type="button"
         id={id}
         role="switch"
         aria-checked={marcado}
-        aria-describedby={descripcion ? idDescripcion : undefined}
+        aria-describedby={descritoPor || undefined}
         aria-busy={pendiente || undefined}
         aria-disabled={pendiente || undefined}
         disabled={deshabilitado}

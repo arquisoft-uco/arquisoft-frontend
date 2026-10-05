@@ -7,7 +7,7 @@ export interface ErrorDeCampo {
 }
 
 const LISTA = 'mt-1 list-disc space-y-1 pl-5';
-const ENLACE = 'text-left underline underline-offset-4';
+const ENLACE = 'text-left underline underline-offset-4 max-sm:min-h-11';
 
 // Tipo estructural: el formState.errors de react-hook-form lo cumple sin importar sus tipos aquí.
 export function resumirErrores(

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { aplicarErroresDeApi } from './errores-api-usuario';
+import { errorApi } from '../../../test-utils/errores-api';
 
 const CAMPOS = ['identificador', 'nombres', 'apellidos', 'email', 'contacto'] as const;
 type Campo = (typeof CAMPOS)[number];
@@ -21,10 +22,6 @@ const DUPLICADOS = [
     respaldo: 'Ya existe un usuario con este contacto.',
   },
 ] as const;
-
-function errorApi(status: number, data: Record<string, unknown>) {
-  return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
-}
 
 function pintado(
   err: unknown,

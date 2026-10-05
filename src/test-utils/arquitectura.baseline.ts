@@ -21,9 +21,7 @@ export const BASELINE: BaselineArquitectura = {
     'api/axiosInstance.test.ts': 1,
     'auth/devAuth.ts': 1,
   },
-  componentesGrandes: {
-    'features/solicitudes/components/estudiante/EnviarSolicitudNovedadForm.tsx': 158,
-  },
+  componentesGrandes: {},
   coloresCrudos: {},
   coloresSinToken: {},
   spinnersCopiados: {
@@ -40,10 +38,6 @@ export const BASELINE: BaselineArquitectura = {
     'guards/AuthGuard.tsx': 1,
     'guards/RoleGuard.tsx': 2,
     'hooks/useHasRole.ts': 1,
-    'router.tsx': 2,
-    'shared/components/ChunkErrorBoundary.tsx': 1,
-    'shared/components/RootErrorBoundary.tsx': 1,
-    'shared/components/RouteErrorPage.tsx': 1,
     'shared/models/api-response.ts': 3,
     'shared/models/rol.ts': 2,
     'shared/utils/api-error.ts': 7,

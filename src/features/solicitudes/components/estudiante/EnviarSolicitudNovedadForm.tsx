@@ -1,30 +1,20 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useEnviarSolicitudNovedadCoordinador } from '../../hooks/useEnviarSolicitudNovedadCoordinador';
+import { enviarSolicitudSchema, esCampoDelFormulario } from '../../utils/enviar-solicitud-schema';
+import type { EnviarSolicitudValues } from '../../utils/enviar-solicitud-schema';
+import { LIMITES } from '../../../../shared/validation';
 import { toast } from '../../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,
   getApiFieldErrors,
   hasApiErrorCode,
 } from '../../../../shared/utils/api-error';
-import { LIMITES, textoRequerido, uuidValido } from '../../../../shared/validation';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import Button from '../../../../shared/components/ui/Button';
 import Field from '../../../../shared/components/ui/Field';
-
-const schema = z.object({
-  destinatario: uuidValido(),
-  mensajeSolicitud: textoRequerido(LIMITES.MENSAJE_SOLICITUD_MAX),
-});
-
-type FormValues = z.infer<typeof schema>;
-
-function esCampoDelFormulario(campo: string): campo is keyof FormValues {
-  return campo === 'destinatario' || campo === 'mensajeSolicitud';
-}
 
 export default function EnviarSolicitudNovedadForm() {
   const [confirmando, setConfirmando] = useState(false);
@@ -35,15 +25,15 @@ export default function EnviarSolicitudNovedadForm() {
     reset,
     setError,
     formState: { errors, isValid },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  } = useForm<EnviarSolicitudValues>({
+    resolver: zodResolver(enviarSolicitudSchema),
     defaultValues: { destinatario: '', mensajeSolicitud: '' },
     mode: 'onChange',
   });
 
   const { mutate, isPending, reset: resetMutation } = useEnviarSolicitudNovedadCoordinador();
 
-  function onSubmit(values: FormValues) {
+  function onSubmit(values: EnviarSolicitudValues) {
     mutate(
       { destinatario: values.destinatario, mensajeSolicitud: values.mensajeSolicitud },
       {
