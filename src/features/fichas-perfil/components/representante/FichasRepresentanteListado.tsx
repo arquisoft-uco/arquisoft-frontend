@@ -6,10 +6,23 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { OrdenDireccion } from '../../hooks/useFichasRepresentante';
 import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
+import type { ResumenFicha } from '../../models/ResumenFicha';
 import { AsesorDeFicha, FechaDeEstado, InsigniaEstadoFicha, TituloFicha } from '../FichaCeldas';
 
 const INSIGNIAS_TARJETA = 'flex flex-wrap items-center gap-1.5';
 const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
+
+function resumenDe(ficha: FichaPerfilRepresentante): ResumenFicha {
+  return {
+    id: ficha.id,
+    titulo: ficha.titulo,
+    asesorNombre: ficha.asesorNombre,
+    asesorEmail: ficha.asesorEmail,
+    estadoId: ficha.estadoId,
+    estadoNombre: ficha.estadoActual,
+    fechaActualizacion: ficha.estadoFechaActualizacion,
+  };
+}
 
 function esOrdenCampo(clave: string): clave is OrdenCampoFicha {
   return clave === 'tituloProyecto' || clave === 'asesorNombre';
@@ -21,7 +34,6 @@ interface Props {
   hayFiltros: boolean;
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoFicha, direccion: OrdenDireccion) => void;
-  onSeleccionar: (ficha: FichaPerfilRepresentante) => void;
   onLimpiarFiltros: () => void;
 }
 
@@ -31,11 +43,10 @@ export default function FichasRepresentanteListado({
   hayFiltros,
   orden,
   onOrdenar,
-  onSeleccionar,
   onLimpiarFiltros,
 }: Props) {
   const titulo = (ficha: FichaPerfilRepresentante) => (
-    <TituloFicha titulo={ficha.titulo} onAbrir={() => onSeleccionar(ficha)} />
+    <TituloFicha titulo={ficha.titulo} abrir={resumenDe(ficha)} />
   );
   const asesor = (ficha: FichaPerfilRepresentante) => (
     <AsesorDeFicha nombre={ficha.asesorNombre} email={ficha.asesorEmail} />

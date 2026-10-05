@@ -2,10 +2,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MessageSquarePlus } from 'lucide-react';
-import { useAgregarObservacionEvaluacion } from '../../hooks/useAgregarObservacionEvaluacion';
+import Button from '../../../../shared/components/ui/Button';
+import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
+import Field from '../../../../shared/components/ui/Field';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, getApiFieldErrors } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../../shared/validation';
+import { useAgregarObservacionEvaluacion } from '../../hooks/useAgregarObservacionEvaluacion';
 
 const schema = z.object({
   observacion: textoRequerido(LIMITES.OBSERVACION_EVALUACION_MAX),
@@ -14,6 +17,10 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const MENSAJE_FALLBACK = 'Ocurrió un error al agregar la observación. Intenta nuevamente.';
+const ETIQUETAS = { observacion: 'Observación' };
+const TARJETA =
+  'flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 animate-fade-up';
+const TITULO = 'flex items-center gap-2 text-sm font-semibold text-on-surface';
 
 interface Props {
   evaluacionId: string;
@@ -25,16 +32,16 @@ export default function AgregarObservacionEvaluacionPanel({ evaluacionId }: Prop
     handleSubmit,
     reset,
     setError,
+    setFocus,
     watch,
-    formState: { errors, isValid },
+    formState: { errors, isSubmitted },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { observacion: '' },
-    mode: 'onChange',
+    mode: 'onTouched',
   });
 
-  const { mutate, reset: resetMutacion, isPending, isError, error } =
-    useAgregarObservacionEvaluacion();
+  const { mutate, reset: resetMutacion, isPending } = useAgregarObservacionEvaluacion();
 
   const longitud = watch('observacion').length;
 
@@ -45,7 +52,10 @@ export default function AgregarObservacionEvaluacionPanel({ evaluacionId }: Prop
         onSuccess: () => {
           reset();
           resetMutacion();
-          toast.success('Observación agregada', 'La observación quedó registrada en la evaluación.');
+          toast.success(
+            'Observación agregada',
+            'La observación quedó registrada en la evaluación.',
+          );
         },
         onError: (err) => {
           const mensaje = getApiErrorMessage(err, MENSAJE_FALLBACK);
@@ -58,63 +68,39 @@ export default function AgregarObservacionEvaluacionPanel({ evaluacionId }: Prop
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className="rounded-xl border border-border bg-surface p-4 space-y-3 animate-fade-up"
-    >
-      <h4 className="text-sm font-semibold text-on-surface flex items-center gap-2">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className={TARJETA}>
+      <h4 className={TITULO}>
         <MessageSquarePlus size={16} className="text-primary" aria-hidden />
         Agregar observación
       </h4>
 
-      <div>
-        <label htmlFor="observacion-evaluacion" className="field-label">
-          Observación
-        </label>
-        <textarea
-          id="observacion-evaluacion"
-          rows={4}
-          maxLength={LIMITES.OBSERVACION_EVALUACION_MAX}
-          aria-invalid={!!errors.observacion}
-          aria-describedby={
-            errors.observacion ? 'observacion-evaluacion-error' : 'observacion-evaluacion-contador'
-          }
-          className="field-input"
-          {...register('observacion')}
+      {isSubmitted && (
+        <ErrorSummary
+          errores={resumirErrores(errors, ETIQUETAS)}
+          onIrAlCampo={() => setFocus('observacion')}
         />
-        <div className="mt-1 flex items-start justify-between gap-2">
-          {errors.observacion ? (
-            <p id="observacion-evaluacion-error" className="field-error" role="alert">
-              {errors.observacion.message}
-            </p>
-          ) : (
-            <span />
-          )}
-          <span
-            id="observacion-evaluacion-contador"
-            className="text-xs text-on-surface-secondary shrink-0"
-          >
-            {longitud}/{LIMITES.OBSERVACION_EVALUACION_MAX}
-          </span>
-        </div>
-      </div>
-
-      {isError && (
-        <p className="text-sm text-danger" role="alert">
-          {getApiErrorMessage(error, MENSAJE_FALLBACK)}
-        </p>
       )}
 
+      <Field
+        etiqueta="Observación"
+        error={errors.observacion?.message}
+        contador={{ actual: longitud, max: LIMITES.OBSERVACION_EVALUACION_MAX }}
+      >
+        {(control) => (
+          <textarea
+            {...control}
+            rows={4}
+            maxLength={LIMITES.OBSERVACION_EVALUACION_MAX}
+            className="field-input"
+            {...register('observacion')}
+          />
+        )}
+      </Field>
+
       <div className="actions-row">
-        <button
-          type="submit"
-          disabled={!isValid || isPending}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-        >
-          <MessageSquarePlus size={15} aria-hidden />
+        <Button type="submit" icono={MessageSquarePlus} cargando={isPending}>
           {isPending ? 'Agregando...' : 'Agregar observación'}
-        </button>
+        </Button>
       </div>
     </form>
   );

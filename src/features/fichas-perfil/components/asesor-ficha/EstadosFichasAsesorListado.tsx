@@ -5,10 +5,21 @@ import type { ColumnaTabla, OrdenTabla } from '../../../../shared/components/ui/
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { OrdenDireccion } from '../../hooks/useEstadosFichasAsesor';
 import type { EstadoFichaPerfilAsesor } from '../../models/EstadoFichaPerfilAsesor';
+import type { ResumenFicha } from '../../models/ResumenFicha';
 import { FechaDeEstado, InsigniaEstadoFicha, TituloFicha } from '../FichaCeldas';
 
 const INSIGNIAS_TARJETA = 'flex flex-wrap items-center gap-1.5';
 const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
+
+function resumenDe(fila: EstadoFichaPerfilAsesor): ResumenFicha {
+  return {
+    id: fila.fichaPerfilId,
+    titulo: fila.tituloProyecto,
+    estadoId: fila.estadoId,
+    estadoNombre: fila.estadoNombre,
+    fechaActualizacion: fila.fechaActualizacion,
+  };
+}
 
 function idDeFila(fila: EstadoFichaPerfilAsesor): string {
   return `${fila.fichaPerfilId}-${fila.fechaActualizacion}-${fila.estadoId}`;
@@ -37,7 +48,7 @@ export default function EstadosFichasAsesorListado({
       encabezado: 'Ficha',
       clave: 'tituloProyecto',
       ordenable: true,
-      celda: (fila) => <TituloFicha titulo={fila.tituloProyecto} />,
+      celda: (fila) => <TituloFicha titulo={fila.tituloProyecto} abrir={resumenDe(fila)} />,
     },
     {
       id: 'estado',
@@ -82,7 +93,7 @@ export default function EstadosFichasAsesorListado({
       vacio={vacio}
       tarjeta={(fila) => (
         <>
-          <TituloFicha titulo={fila.tituloProyecto} />
+          <TituloFicha titulo={fila.tituloProyecto} abrir={resumenDe(fila)} />
           <div className={INSIGNIAS_TARJETA}>
             <InsigniaEstadoFicha estadoId={fila.estadoId} nombre={fila.estadoNombre} />
           </div>

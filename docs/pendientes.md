@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-03.
+Última revisión: 2026-10-04.
 
 ## Bloqueados por el backend
 
@@ -14,6 +14,7 @@ Al resolver un pendiente, se borra de aquí.
 | B2 | **Catálogo de estados del representante incompleto** | `GET /fichas-perfil/estados-ficha` filtra por rol y al representante no le llega `DISPONIBLE_PARA_EVALUACION`, por lo que el filtro del listado no lo ofrece | Backend (Juan Fernando) |
 | B3 | **Client roles de Keycloak sin confirmar** | Pueden faltar en el realm desplegado (no se pudo verificar; el export de `arquisoft-infra` es del 2026-09-11 y está desactualizado). Si faltan, con login real se llega a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota. Ver lista abajo | Infra / backend |
 | B4 | Mejoras menores del backend | Consulta de fichas del estudiante con `INNER JOIN`: una ficha sin estado o sin asesor se omite. Falta `esJurado` en el listado unificado de usuarios (a la espera de HU-252). No hay endpoint para que el estudiante obtenga su coordinador (solicitudes). El listado de estados de las fichas del asesor (HU-205) no tiene orden secundario: las filas con el mismo título no tienen orden determinista entre páginas | Backend |
+| B5 | **Detalle de ficha para asesor y representante** | (a) No existe `GET /fichas-perfil/{id}` para estos roles: abrir el detalle por URL directa o recargar en otra pestaña muestra el título genérico «Ficha de perfil», sin estado ni asesor. (b) `FichaPerfilCriteria` no filtra por `id`, así que tampoco se puede recuperar la ficha por el listado. (c) `fichas:estudiante-ficha-perfil-coordinador:view` no la tienen `asesor-ficha` ni `representante-comite`, por eso el detalle omite la sección «Equipo». (d) El backend no lista las observaciones ni el historial de estados de una evaluación | Backend |
 
 Client roles a confirmar en el realm desplegado:
 
@@ -28,10 +29,9 @@ Client roles a confirmar en el realm desplegado:
 
 | # | Pendiente | Detalle |
 |---|---|---|
-| F1 | **Pestaña Estados ofrece un cambio que siempre falla** | Mientras exista B1, el selector "Nuevo estado" lista estados que no se pueden enviar. Opción: mostrar `AvisoNoDisponible` con el envío deshabilitado |
 | F2 | **Panel "Cambiar estado" visible para el estudiante** | `EstadosMiFichaPanel` reutiliza el panel del asesor. El backend no asigna estados de ficha al rol estudiante, así que su selector queda vacío. Decidir si se oculta |
 | F3 | **HU que el backend ya entregó y no tienen frontend** | Revisado el 2026-10-03 contra `origin/develop` del backend. **Representante:** HU-188 (modificar observación de evaluación) y HU-189 (remover observación de evaluación), con `PATCH` y `DELETE /fichas-perfil/observaciones-evaluacion/{id}`. **Bibliotecario:** HU-240 (agregar bibliotecario). **Revisiones y observaciones de ítem:** HU-195, 196, 198, 199, 200, 204 y HU-026 (consulta del estudiante). **Solicitudes:** HU-056, 057, 061, 062, 066, 067, 071, 076, 082 a 084, 086, 087, 091, 092, 096, 097 y 101; solo HU-081 y HU-082 tienen PR (el #89 abierto). **Evaluaciones (jurado):** HU-212, 215, 225, 226, 267 y 268 (HU-225 en el PR #50). **Usuarios sin cliente:** `POST /usuarios/coordinadores/vigentes`, `/asesores/vigentes` y `/representantes-comite/vigentes` |
-| F4 | **Pantallas en construcción** | Pestañas Revisiones y Evaluaciones del estudiante (`RevisionesMiFichaPanel`, `EvaluacionesMiFichaPanel`) y del asesor (`DetalleFichaAsesor`); `AdministradorView` de fichas |
+| F4 | **Pantallas en construcción** | Pestañas Revisiones y Evaluaciones del estudiante (`RevisionesMiFichaPanel`, `EvaluacionesMiFichaPanel`) y `AdministradorView` de fichas. Las pestañas Revisiones y Evaluaciones del asesor se ocultaron del detalle hasta que exista su historia |
 | F5 | **Solicitudes** | `EnviarSolicitudNovedadForm` pide el UUID del coordinador a mano, con aviso y sin deshabilitar el envío |
 | F6 | **Revisar el PR #175 del backend** | "Filtro por estado actual en el listado de fichas de perfil", ya mergeado. Puede cambiar cómo filtra HU-160 por estado |
 | F7 | **Prueba funcional manual** | Checklist en `.workspace/pruebas/prueba-funcional-representante.md` (HU-036, 160, 182, 185, 186, 187, 190 y 191). Falta ejecutarla con un usuario que tenga el rol `representante-comite` |

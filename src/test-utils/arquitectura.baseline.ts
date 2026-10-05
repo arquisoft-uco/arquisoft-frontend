@@ -25,26 +25,17 @@ export const BASELINE: BaselineArquitectura = {
   },
   componentesGrandes: {
     'features/dashboard/Dashboard.tsx': 273,
-    'features/fichas-perfil/components/representante/AgregarEstadoEvaluacionPanel.tsx': 193,
     'features/solicitudes/components/estudiante/EnviarSolicitudNovedadForm.tsx': 158,
     'layout/Header.tsx': 182,
   },
   coloresCrudos: {},
   coloresSinToken: {},
   spinnersCopiados: {
-    'features/fichas-perfil/components/asesor-ficha/ItemsFichaAsesorPanel.tsx': 1,
-    'features/fichas-perfil/components/representante/AgregarEstadoEvaluacionPanel.tsx': 1,
-    'features/fichas-perfil/components/representante/ItemsFichaRepresentantePanel.tsx': 1,
-    'features/fichas-perfil/components/representante/RegistrarEvaluacionPanel.tsx': 1,
     'shared/components/AppLoader.tsx': 1,
   },
-  tablasFueraDeDataTable: {
-    'features/fichas-perfil/components/TiposItemPanel.tsx': 1,
-  },
+  tablasFueraDeDataTable: {},
   textosMenoresA12px: {
     'features/dashboard/Dashboard.tsx': 8,
-    'features/fichas-perfil/components/asesor-ficha/ItemsFichaAsesorPanel.tsx': 1,
-    'features/fichas-perfil/components/representante/ItemsFichaRepresentantePanel.tsx': 1,
     'layout/Header.tsx': 1,
     'layout/Sidebar.tsx': 3,
   },

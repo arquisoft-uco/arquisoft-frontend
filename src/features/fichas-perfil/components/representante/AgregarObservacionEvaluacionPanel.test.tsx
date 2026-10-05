@@ -47,22 +47,36 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     mockMutacion({});
   });
 
-  it('deshabilita el envío con el campo vacío o en blanco y lo habilita con texto válido', async () => {
+  it('no deshabilita el envío por validez: vacío o en blanco muestra el error del campo y el resumen, sin enviar', async () => {
     // Arrange
+    const mutate = vi.fn();
+    mockMutacion({ mutate });
     const user = userEvent.setup();
     render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
     const boton = screen.getByRole('button', { name: 'Agregar observación' });
-    const campo = screen.getByLabelText('Observación');
 
-    // Act / Assert
-    expect(boton).toBeDisabled();
-    await user.type(campo, '   ');
-    expect(boton).toBeDisabled();
-    await user.type(campo, 'Buen avance');
+    // Assert
     expect(boton).toBeEnabled();
+    expect(screen.getByText(`0/${LIMITES.OBSERVACION_EVALUACION_MAX}`)).toBeInTheDocument();
+
+    // Act
+    await user.click(boton);
+
+    // Assert
+    expect(screen.getByText('Revisa 1 campo antes de continuar')).toBeInTheDocument();
+    expect(screen.getAllByText(new RegExp(MENSAJES_VALIDACION.requerido)).length).toBeGreaterThan(
+      0,
+    );
+
+    // Act
+    await user.type(screen.getByLabelText('Observación'), '   ');
+    await user.click(boton);
+
+    // Assert
+    expect(mutate).not.toHaveBeenCalled();
   });
 
-  it('muestra el error de longitud y no envía cuando se supera el máximo', async () => {
+  it('muestra el error de longitud al salir del campo y no envía cuando se supera el máximo', async () => {
     // Arrange
     const mutate = vi.fn();
     mockMutacion({ mutate });
@@ -76,12 +90,17 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     campo.removeAttribute('maxlength');
     await user.click(campo);
     await user.paste(textoLargo);
+    await user.tab();
+    await user.click(screen.getByRole('button', { name: 'Agregar observación' }));
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      MENSAJES_VALIDACION.longitudMaxima(LIMITES.OBSERVACION_EVALUACION_MAX),
-    );
-    expect(screen.getByRole('button', { name: 'Agregar observación' })).toBeDisabled();
+    expect(
+      (
+        await screen.findAllByText(
+          MENSAJES_VALIDACION.longitudMaxima(LIMITES.OBSERVACION_EVALUACION_MAX),
+        )
+      ).length,
+    ).toBeGreaterThan(0);
     expect(mutate).not.toHaveBeenCalled();
   });
 
@@ -121,16 +140,19 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     expect(screen.getByLabelText('Observación')).toHaveValue('');
   });
 
-  it('muestra toast y alerta con el mensaje del backend y conserva el texto cuando el envío falla', async () => {
+  it('si el backend señala el campo, muestra el toast y el error junto al campo conservando el texto', async () => {
     // Arrange
     const errorApi = crearErrorApi({
       error: 'Unprocessable Entity',
       errorCode: 'OBSERVACION_EVALUACION_DUPLICADA',
       message: 'La observación ya existe en la evaluación.',
       status: 422,
+      fieldErrors: [{ field: 'observacion', message: 'Observación duplicada.' }],
     });
-    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) => opciones?.onError?.(errorApi));
-    mockMutacion({ mutate, isError: true, error: errorApi });
+    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) =>
+      opciones?.onError?.(errorApi),
+    );
+    mockMutacion({ mutate });
     const user = userEvent.setup();
     render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
 
@@ -143,7 +165,29 @@ describe('AgregarObservacionEvaluacionPanel', () => {
       'No se pudo agregar la observación',
       'La observación ya existe en la evaluación.',
     );
-    expect(screen.getByRole('alert')).toHaveTextContent('La observación ya existe en la evaluación.');
+    expect(screen.getAllByText('Observación duplicada.').length).toBeGreaterThan(0);
+    expect(screen.getByLabelText('Observación')).toHaveValue('Buen avance');
+  });
+
+  it('si el error no señala el campo, solo avisa con el toast y conserva el texto', async () => {
+    // Arrange
+    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) =>
+      opciones?.onError?.(new Error('Red caída')),
+    );
+    mockMutacion({ mutate });
+    const user = userEvent.setup();
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+
+    // Act
+    await user.type(screen.getByLabelText('Observación'), 'Buen avance');
+    await user.click(screen.getByRole('button', { name: 'Agregar observación' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo agregar la observación',
+      expect.any(String),
+    );
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Observación')).toHaveValue('Buen avance');
   });
 

@@ -1,10 +1,13 @@
+import { ListChecks } from 'lucide-react';
 import { useEstadosEvaluacion } from '../../hooks/useEstadosEvaluacion';
 import Badge from '../../../../shared/components/ui/Badge';
+import EmptyState from '../../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { varianteEstadoEvaluacion } from '../../../../shared/utils/estado-variante';
 
 export default function EstadosEvaluacionPanel() {
-  const { data: estados = [], isLoading, isError } = useEstadosEvaluacion();
+  const { data: estados = [], isLoading, isError, refetch } = useEstadosEvaluacion();
 
   if (isLoading) {
     return <Skeleton variante="tarjetas" etiqueta="Cargando estados de evaluación..." />;
@@ -12,12 +15,16 @@ export default function EstadosEvaluacionPanel() {
 
   if (isError) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-4 text-center" role="alert">
-        <p className="text-sm text-on-surface-secondary">
-          No se pudieron cargar los estados de evaluación. Intenta nuevamente.
-        </p>
-      </div>
+      <ErrorState
+        titulo="No se pudieron cargar los estados de evaluación"
+        descripcion="Inténtalo nuevamente."
+        onReintentar={refetch}
+      />
     );
+  }
+
+  if (estados.length === 0) {
+    return <EmptyState icono={ListChecks} titulo="No hay estados de evaluación registrados" />;
   }
 
   return (

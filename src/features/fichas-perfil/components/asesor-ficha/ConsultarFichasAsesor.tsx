@@ -7,7 +7,7 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useFichasAsesor } from '../../hooks/useFichasAsesor';
 import type { FichaPerfil } from '../../models/FichaPerfil';
-import type { FichaPerfilAsesor } from '../../models/FichaPerfilAsesor';
+import type { ResumenFicha } from '../../models/ResumenFicha';
 import { TituloFicha } from '../FichaCeldas';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -18,24 +18,26 @@ function textoResumen(total?: number): string {
   return `${total} ${total === 1 ? 'ficha' : 'fichas'}`;
 }
 
-interface Props {
-  onSeleccionar: (ficha: FichaPerfilAsesor) => void;
+function resumenDe(ficha: FichaPerfil): ResumenFicha {
+  return {
+    id: ficha.id,
+    titulo: ficha.tituloProyecto,
+    estadoId: ficha.estado?.id,
+    estadoNombre: ficha.estado?.nombre,
+    fechaActualizacion: ficha.estado?.fechaActualizacion,
+  };
 }
 
-export default function ConsultarFichasAsesor({ onSeleccionar }: Props) {
+export default function ConsultarFichasAsesor() {
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, ...paginacion } =
     useFichasAsesor();
   const fichas = data?.content ?? [];
-
-  function abrir(ficha: FichaPerfil) {
-    onSeleccionar({ id: ficha.id, titulo: ficha.tituloProyecto, estadoActual: '' });
-  }
 
   const columnas: ColumnaTabla<FichaPerfil>[] = [
     {
       id: 'ficha',
       encabezado: 'Ficha',
-      celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} onAbrir={() => abrir(ficha)} />,
+      celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDe(ficha)} />,
     },
   ];
 
@@ -67,7 +69,7 @@ export default function ConsultarFichasAsesor({ onSeleccionar }: Props) {
               />
             }
             tarjeta={(ficha) => (
-              <TituloFicha titulo={ficha.tituloProyecto} onAbrir={() => abrir(ficha)} />
+              <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDe(ficha)} />
             )}
           />
         )}

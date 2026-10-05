@@ -5,12 +5,10 @@ import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import PageHeader from '../../../../shared/components/ui/PageHeader';
 import { LIMITES } from '../../../../shared/validation';
 import { useNuevaFichaForm } from '../../hooks/useNuevaFichaForm';
+import { DISPOSICION } from '../disposicion';
 import NuevaFichaForm from './NuevaFichaForm';
 import NuevaFichaResumenPanel from './NuevaFichaResumenPanel';
 
-const CONTENEDOR = 'flex flex-wrap items-start gap-5';
-const PRINCIPAL = 'flex min-w-0 flex-[1_1_35rem] flex-col gap-4';
-const LATERAL = 'flex w-full min-w-0 flex-[0_1_20rem] flex-col gap-4 max-sm:flex-[1_1_100%]';
 const TARJETA = 'max-w-3xl rounded-xl border border-border bg-surface shadow-card';
 const RUTA_LISTADO = '/fichas-perfil';
 
@@ -48,8 +46,8 @@ export default function NuevaFichaContenido() {
           { etiqueta: 'Nueva ficha' },
         ]}
       />
-      <div className={CONTENEDOR}>
-        <div className={PRINCIPAL}>
+      <div className={DISPOSICION.contenedor}>
+        <div className={DISPOSICION.principal}>
           <div className={TARJETA}>
             <NuevaFichaForm
               nueva={nueva}
@@ -58,7 +56,7 @@ export default function NuevaFichaContenido() {
             />
           </div>
         </div>
-        <div className={LATERAL}>
+        <div className={DISPOSICION.lateral}>
           <NuevaFichaResumenPanel
             titulo={valores.titulo ?? ''}
             asesor={asesores.data?.find((a) => a.id === valores.idAsesorFicha)?.nombre}

@@ -1,8 +1,7 @@
 import { Circle, CircleCheck } from 'lucide-react';
 import { LIMITES } from '../../../../shared/validation';
+import { DISPOSICION } from '../disposicion';
 
-const TARJETA = 'flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 shadow-card';
-const TITULO = 'text-xs font-semibold tracking-wider text-on-surface-secondary uppercase';
 const FILA = 'flex items-start gap-2.5 text-sm';
 
 interface FilaProps {
@@ -41,8 +40,8 @@ export default function NuevaFichaResumenPanel({ titulo, asesor, estudiantes }: 
   const tituloLimpio = titulo.trim();
 
   return (
-    <aside className={TARJETA} aria-label="Resumen de la ficha">
-      <h2 className={TITULO}>Resumen</h2>
+    <aside className={DISPOSICION.tarjetaLateral} aria-label="Resumen de la ficha">
+      <h2 className={DISPOSICION.tituloLateral}>Resumen</h2>
       <ul className="flex flex-col gap-3">
         <Fila etiqueta="Título" completo={!!tituloLimpio} valor={tituloLimpio || 'Sin definir'} />
         <Fila etiqueta="Asesor" completo={!!asesor} valor={asesor ?? 'Sin elegir'} />

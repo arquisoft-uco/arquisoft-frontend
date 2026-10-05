@@ -33,7 +33,7 @@ describe('TiposItemPanel', () => {
     render(<TiposItemPanel />);
 
     // Assert
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando tipos de ítem...');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando tipos de ítem…');
   });
 
   it('muestra nombre y descripción de cada tipo de ítem', () => {
@@ -51,7 +51,8 @@ describe('TiposItemPanel', () => {
     render(<TiposItemPanel />);
 
     // Assert
-    expect(screen.getByRole('table', { name: 'Tipos de ítem' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Tipos de ítem' })).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.getByText('Problema')).toBeInTheDocument();
     expect(screen.getByText('Describe el problema')).toBeInTheDocument();
     expect(screen.getByText('Objetivo')).toBeInTheDocument();

@@ -12,6 +12,8 @@ const RAIZ = 'flex flex-col gap-4';
 const FILA = 'flex flex-wrap items-end justify-between gap-4';
 const TITULO = 'text-xl font-bold text-on-surface sm:text-2xl';
 const DESCRIPCION = 'mt-1 text-sm text-on-surface-secondary';
+const ENCABEZADO_CON_INSIGNIA = 'flex flex-wrap items-center gap-x-3 gap-y-1';
+const META = 'mt-1 text-sm text-on-surface-secondary';
 const MIGAS = 'flex flex-wrap items-center gap-1.5 text-[13px] text-on-surface-secondary';
 const MIGA_ACTUAL = 'font-medium text-on-surface';
 
@@ -19,10 +21,19 @@ interface Props {
   titulo: string;
   descripcion?: string;
   acciones?: ReactNode;
+  insignia?: ReactNode;
+  meta?: ReactNode;
   migas?: Miga[];
 }
 
-export default function PageHeader({ titulo, descripcion, acciones, migas }: Props) {
+export default function PageHeader({
+  titulo,
+  descripcion,
+  acciones,
+  insignia,
+  meta,
+  migas,
+}: Props) {
   return (
     <div className={RAIZ}>
       {migas && migas.length > 0 && (
@@ -57,7 +68,15 @@ export default function PageHeader({ titulo, descripcion, acciones, migas }: Pro
       )}
       <div className={FILA}>
         <div className="min-w-0">
-          <h1 className={TITULO}>{titulo}</h1>
+          {insignia ? (
+            <div className={ENCABEZADO_CON_INSIGNIA}>
+              <h1 className={TITULO}>{titulo}</h1>
+              {insignia}
+            </div>
+          ) : (
+            <h1 className={TITULO}>{titulo}</h1>
+          )}
+          {meta && <p className={META}>{meta}</p>}
           {descripcion && <p className={DESCRIPCION}>{descripcion}</p>}
         </div>
         {acciones && <div className="flex flex-wrap items-center gap-2">{acciones}</div>}

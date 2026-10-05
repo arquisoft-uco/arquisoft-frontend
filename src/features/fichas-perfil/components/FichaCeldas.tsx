@@ -1,6 +1,8 @@
+import { Link, useLocation } from 'react-router';
 import Avatar from '../../../shared/components/ui/Avatar';
 import Badge from '../../../shared/components/ui/Badge';
 import { varianteEstadoFicha } from '../../../shared/utils/estado-variante';
+import type { NavegacionDetalleFicha, ResumenFicha } from '../models/ResumenFicha';
 
 const formatoFecha = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -13,11 +15,13 @@ const SUBTEXTO = 'block truncate text-[13px] text-on-surface-secondary';
 
 interface PropsTitulo {
   titulo: string;
-  onAbrir?: () => void;
+  abrir?: ResumenFicha;
 }
 
-export function TituloFicha({ titulo, onAbrir }: PropsTitulo) {
-  if (!onAbrir) {
+export function TituloFicha({ titulo, abrir }: PropsTitulo) {
+  const { search } = useLocation();
+
+  if (!abrir) {
     return (
       <span title={titulo} className={TITULO_PLANO}>
         {titulo}
@@ -25,16 +29,18 @@ export function TituloFicha({ titulo, onAbrir }: PropsTitulo) {
     );
   }
 
+  const navegacion: NavegacionDetalleFicha = { resumen: abrir, search };
+
   return (
-    <button
-      type="button"
+    <Link
+      to={`/fichas-perfil/${abrir.id}/items`}
+      state={navegacion}
       aria-label={`Abrir la ficha ${titulo}`}
       title={titulo}
-      onClick={onAbrir}
       className={TITULO}
     >
       {titulo}
-    </button>
+    </Link>
   );
 }
 

@@ -11,6 +11,8 @@ import RouteErrorPage from './shared/components/RouteErrorPage';
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'));
 const FichasPerfil = lazy(() => import('./features/fichas-perfil/FichasPerfil'));
 const NuevaFichaPerfil = lazy(() => import('./features/fichas-perfil/NuevaFichaPerfil'));
+const DetalleFicha = lazy(() => import('./features/fichas-perfil/DetalleFicha'));
+const PestanaFicha = lazy(() => import('./features/fichas-perfil/components/PestanaFicha'));
 const ProyectosGrado = lazy(() => import('./features/proyectos-grado/ProyectosGrado'));
 const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
@@ -53,6 +55,16 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <FichasPerfil /> },
               { path: 'nueva', element: <NuevaFichaPerfil /> },
+              {
+                path: ':id',
+                element: <DetalleFicha />,
+                children: [
+                  { index: true, element: <Navigate to="items" replace /> },
+                  { path: 'items', element: <PestanaFicha pestana="items" /> },
+                  { path: 'estados', element: <PestanaFicha pestana="estados" /> },
+                  { path: 'evaluaciones', element: <PestanaFicha pestana="evaluaciones" /> },
+                ],
+              },
             ],
           },
           { path: 'proyectos-grado', element: guarded('proyectos-grado', <ProyectosGrado />) },

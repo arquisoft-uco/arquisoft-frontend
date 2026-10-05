@@ -13,19 +13,29 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 vi.mock('./AgregarEstadoEvaluacionPanel', () => ({
-  default: ({ evaluacionId }: { evaluacionId: string }) => <div>Agregar estado a {evaluacionId}</div>,
+  default: ({ evaluacionId }: { evaluacionId: string }) => (
+    <div>Agregar estado a {evaluacionId}</div>
+  ),
 }));
 vi.mock('./EstadosEvaluacionPanel', () => ({ default: () => <div>Catálogo de estados</div> }));
-vi.mock('./AgregarObservacionEvaluacionPanel', () => ({ default: () => <div>Agregar observación</div> }));
+vi.mock('./AgregarObservacionEvaluacionPanel', () => ({
+  default: () => <div>Agregar observación</div>,
+}));
 
 const consulta = vi.mocked(useEvaluacionFicha);
 const registro = vi.mocked(useRegistrarEvaluacion);
 
-function mockConsulta(parcial: { data?: EvaluacionFichaPerfil[]; isLoading?: boolean; isError?: boolean }) {
+function mockConsulta(parcial: {
+  data?: EvaluacionFichaPerfil[];
+  isLoading?: boolean;
+  isError?: boolean;
+  refetch?: () => void;
+}) {
   consulta.mockReturnValue({
     data: undefined,
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useEvaluacionFicha>);
 }
@@ -76,20 +86,22 @@ describe('RegistrarEvaluacionPanel', () => {
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando evaluación...');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando evaluación…');
   });
 
-  it('muestra un alert cuando la consulta falla', () => {
+  it('muestra un alert cuando la consulta falla y "Reintentar" vuelve a consultar', async () => {
     // Arrange
-    mockConsulta({ isError: true });
-
-    // Act
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    mockConsulta({ isError: true, refetch });
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
     // Assert
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'No se pudo cargar la evaluación. Intenta nuevamente.',
-    );
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudo cargar la evaluación');
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
   it('muestra el estado vacío con el botón Iniciar evaluación cuando no hay evaluaciones', () => {
@@ -100,7 +112,7 @@ describe('RegistrarEvaluacionPanel', () => {
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getByText(/Aún no se ha iniciado la evaluación/)).toBeInTheDocument();
+    expect(screen.getByText('Aún no se ha iniciado la evaluación')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Iniciar evaluación' })).toBeEnabled();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
@@ -113,8 +125,9 @@ describe('RegistrarEvaluacionPanel', () => {
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getByText('ev-2')).toBeInTheDocument();
-    expect(screen.getByText(/2026-10-02/)).toBeInTheDocument();
+    expect(screen.getByText(/2026/)).toHaveAttribute('datetime', '2026-10-02');
+    expect(screen.queryByText(/ID:/)).not.toBeInTheDocument();
+    expect(screen.queryByText('ev-2')).not.toBeInTheDocument();
     expect(screen.getByText('Sin estado')).toBeInTheDocument();
     expect(screen.getByText('Agregar estado a ev-2')).toBeInTheDocument();
     expect(screen.queryByText('ev-1')).not.toBeInTheDocument();
@@ -135,18 +148,25 @@ describe('RegistrarEvaluacionPanel', () => {
   it('al confirmar el inicio lanza el toast de éxito y cierra el diálogo', async () => {
     // Arrange
     const user = userEvent.setup();
-    const mutate = vi.fn((_vars: unknown, opciones?: { onSuccess?: () => void }) => opciones?.onSuccess?.());
+    const mutate = vi.fn((_vars: unknown, opciones?: { onSuccess?: () => void }) =>
+      opciones?.onSuccess?.(),
+    );
     registro.mockReturnValue({ ...registro('f-1'), mutate } as never);
     mockConsulta({ data: [] });
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Iniciar evaluación' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Iniciar evaluación' }));
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Iniciar evaluación' }),
+    );
 
     // Assert
     expect(mutate).toHaveBeenCalledTimes(1);
-    expect(toast.success).toHaveBeenCalledWith('Evaluación iniciada', 'Se registró la evaluación de la ficha.');
+    expect(toast.success).toHaveBeenCalledWith(
+      'Evaluación iniciada',
+      'Se registró la evaluación de la ficha.',
+    );
     expect(toast.error).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -163,7 +183,9 @@ describe('RegistrarEvaluacionPanel', () => {
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Iniciar evaluación' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Iniciar evaluación' }));
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Iniciar evaluación' }),
+    );
 
     // Assert
     expect(toast.error).toHaveBeenCalledWith('Error al iniciar la evaluación', expect.any(String));

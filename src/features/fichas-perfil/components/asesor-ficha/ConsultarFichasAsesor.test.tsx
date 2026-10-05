@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { useLocation } from 'react-router';
 import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarFichasAsesor from './ConsultarFichasAsesor';
 import { useFichasAsesor } from '../../hooks/useFichasAsesor';
@@ -48,6 +49,11 @@ function mockHook(parcial: Partial<ReturnType<typeof useFichasAsesor>> = {}) {
   return hook;
 }
 
+function EstadoDeNavegacion() {
+  const { pathname, state } = useLocation();
+  return <p>{`destino:${pathname}:${JSON.stringify(state)}`}</p>;
+}
+
 function tabla() {
   return within(screen.getByRole('table', { name: 'Fichas de perfil que asesoras' }));
 }
@@ -62,7 +68,7 @@ describe('ConsultarFichasAsesor', () => {
     mockHook({ isLoading: true });
 
     // Act
-    render(<ConsultarFichasAsesor onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasAsesor />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Cargando fichas de perfil que asesoras…');
@@ -72,7 +78,7 @@ describe('ConsultarFichasAsesor', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ isError: true, error: new Error('fallo') });
-    render(<ConsultarFichasAsesor onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasAsesor />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
@@ -87,29 +93,56 @@ describe('ConsultarFichasAsesor', () => {
     mockHook({ data: crearPagina([]) });
 
     // Act
-    render(<ConsultarFichasAsesor onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasAsesor />);
 
     // Assert
     expect(screen.getByText('Aún no tienes fichas asignadas')).toBeInTheDocument();
   });
 
-  it('el título de la ficha llama a onSeleccionar con su id y título, y no hay "Ver detalle" ni "Actualizar"', async () => {
+  it('el título de la ficha es un enlace al detalle que lleva el resumen y la búsqueda del listado, sin "Ver detalle" ni "Actualizar"', async () => {
     // Arrange
     const user = userEvent.setup();
-    const onSeleccionar = vi.fn();
-    mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasAsesor onSeleccionar={onSeleccionar} />);
+    mockHook({
+      data: crearPagina([
+        {
+          ...FICHA,
+          estado: {
+            id: 'EN_CONSTRUCCION',
+            nombre: 'En Construccion',
+            fechaActualizacion: '2026-10-01T15:30:00Z',
+          },
+        },
+      ]),
+    });
+    render(
+      <>
+        <ConsultarFichasAsesor />
+        <EstadoDeNavegacion />
+      </>,
+      { initialPath: '/fichas-perfil?pagina=2' },
+    );
+    const enlace = tabla().getByRole('link', { name: 'Abrir la ficha Sistema de monitoreo' });
 
     // Act
-    await user.click(tabla().getByRole('button', { name: 'Abrir la ficha Sistema de monitoreo' }));
+    await user.click(enlace);
 
     // Assert
     expect(screen.getByText('1 ficha')).toBeInTheDocument();
-    expect(onSeleccionar).toHaveBeenCalledWith({
-      id: 'f-1',
-      titulo: 'Sistema de monitoreo',
-      estadoActual: '',
-    });
+    expect(
+      screen.getByText(
+        'destino:/fichas-perfil/f-1/items:' +
+          JSON.stringify({
+            resumen: {
+              id: 'f-1',
+              titulo: 'Sistema de monitoreo',
+              estadoId: 'EN_CONSTRUCCION',
+              estadoNombre: 'En Construccion',
+              fechaActualizacion: '2026-10-01T15:30:00Z',
+            },
+            search: '?pagina=2',
+          }),
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /Ver detalle|Actualizar/ }),
     ).not.toBeInTheDocument();
@@ -119,7 +152,7 @@ describe('ConsultarFichasAsesor', () => {
     // Arrange
     const user = userEvent.setup();
     mockHook({ data: crearPagina([FICHA]) });
-    const { unmount } = render(<ConsultarFichasAsesor onSeleccionar={vi.fn()} />);
+    const { unmount } = render(<ConsultarFichasAsesor />);
 
     // Assert
     expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument();
@@ -127,7 +160,7 @@ describe('ConsultarFichasAsesor', () => {
 
     // Arrange
     const hook = mockHook({ data: crearPagina([FICHA], { totalElements: 25, totalPages: 3 }) });
-    render(<ConsultarFichasAsesor onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasAsesor />);
     const paginador = within(screen.getByRole('navigation', { name: 'Paginación' }));
 
     // Act

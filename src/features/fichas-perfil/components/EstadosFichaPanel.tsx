@@ -4,9 +4,14 @@ import { useEstadosFicha } from '../hooks/useEstadosFicha';
 import { useAgregarEstadoFichaPerfil } from '../hooks/useAgregarEstadoFichaPerfil';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
-import Badge from '../../../shared/components/ui/Badge';
+import AvisoNoDisponible from '../../../shared/components/AvisoNoDisponible';
 import Button from '../../../shared/components/ui/Button';
+import Field from '../../../shared/components/ui/Field';
 import Skeleton from '../../../shared/components/ui/Skeleton';
+import { InsigniaEstadoFicha } from './FichaCeldas';
+
+// Pendiente B1: el endpoint de cambio de estado aún no existe en el backend.
+const CAMBIO_DE_ESTADO_PENDIENTE = true;
 
 interface Props {
   fichaPerfilId: string;
@@ -23,6 +28,7 @@ export default function EstadosFichaPanel({
   const { mutate, isPending } = useAgregarEstadoFichaPerfil(fichaPerfilId);
   const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
   const [estadoActualNombre, setEstadoActualNombre] = useState(estadoActual);
+  const estadoActualId = estados.find((e) => e.nombre === estadoActualNombre)?.id;
 
   const handleCambiarEstado = () => {
     if (!estadoSeleccionado) return;
@@ -45,48 +51,48 @@ export default function EstadosFichaPanel({
   };
 
   return (
-    <div className="space-y-6 animate-fade-up">
+    <div className="flex flex-col gap-4 animate-fade-up">
       {estadoActualNombre && (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="text-sm text-on-surface-secondary">Estado actual:</span>
-          <Badge variante="neutro">{estadoActualNombre}</Badge>
+          <InsigniaEstadoFicha estadoId={estadoActualId ?? ''} nombre={estadoActualNombre} />
         </div>
       )}
 
-      <div className="rounded-xl border border-border bg-surface p-5 space-y-4">
+      <AvisoNoDisponible recurso="el cambio de estado" />
+
+      <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-5">
         <h3 className="text-sm font-semibold text-on-surface">Cambiar estado</h3>
 
         {isLoadingEstados ? (
-          <Skeleton variante="formulario" etiqueta="Cargando estados..." />
+          <Skeleton variante="formulario" etiqueta="Cargando estados…" />
         ) : (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1 space-y-1.5">
-              <label
-                htmlFor="select-estado"
-                className="block text-xs font-medium text-on-surface-secondary"
-              >
-                Nuevo estado
-              </label>
-              <select
-                id="select-estado"
-                value={estadoSeleccionado}
-                onChange={(e) => setEstadoSeleccionado(e.target.value)}
-                disabled={isPending}
-                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-              >
-                <option value="">Seleccionar estado...</option>
-                {estados.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.nombre}
-                  </option>
-                ))}
-              </select>
+            <div className="flex-1">
+              <Field etiqueta="Nuevo estado">
+                {(control) => (
+                  <select
+                    {...control}
+                    value={estadoSeleccionado}
+                    onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                    disabled={isPending}
+                    className="field-input"
+                  >
+                    <option value="">Seleccionar estado...</option>
+                    {estados.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.nombre}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </Field>
             </div>
 
             <Button
               icono={RefreshCw}
               onClick={handleCambiarEstado}
-              disabled={!estadoSeleccionado}
+              disabled={CAMBIO_DE_ESTADO_PENDIENTE || !estadoSeleccionado}
               cargando={isPending}
             >
               {isPending ? 'Cambiando…' : 'Cambiar estado'}

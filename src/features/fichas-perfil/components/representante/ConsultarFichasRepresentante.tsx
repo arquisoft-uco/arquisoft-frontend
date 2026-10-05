@@ -3,7 +3,6 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstadosFicha } from '../../hooks/useEstadosFicha';
 import { useFichasRepresentante } from '../../hooks/useFichasRepresentante';
-import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
 import FichasRepresentanteFiltros from './FichasRepresentanteFiltros';
 import FichasRepresentanteListado from './FichasRepresentanteListado';
 
@@ -15,11 +14,7 @@ function textoResumen(total?: number): string {
   return `${total} ${total === 1 ? 'ficha' : 'fichas'}`;
 }
 
-interface Props {
-  onSeleccionar: (ficha: FichaPerfilRepresentante) => void;
-}
-
-export default function ConsultarFichasRepresentante({ onSeleccionar }: Props) {
+export default function ConsultarFichasRepresentante() {
   const listado = useFichasRepresentante();
   const estados = useEstadosFicha();
 
@@ -55,7 +50,6 @@ export default function ConsultarFichasRepresentante({ onSeleccionar }: Props) {
             hayFiltros={hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
-            onSeleccionar={onSeleccionar}
             onLimpiarFiltros={listado.limpiarFiltros}
           />
         )}

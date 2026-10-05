@@ -155,10 +155,12 @@ describe('EstadosFichasAsesorPanel', () => {
     render(<EstadosFichasAsesorPanel />);
 
     // Assert
-    expect(tabla().getByText('Sistema de monitoreo')).toBeInTheDocument();
     expect(tabla().getByText('En Construccion')).toBeInTheDocument();
     expect(tabla().getByText(/2026/)).toHaveAttribute('datetime', '2026-10-01T15:30:00Z');
     expect(screen.getByText('1 registro')).toBeInTheDocument();
+    expect(
+      tabla().getByRole('link', { name: 'Abrir la ficha Sistema de monitoreo' }),
+    ).toHaveAttribute('href', '/fichas-perfil/f-1/items');
   });
 
   it('la búsqueda llama a setTexto tras el retardo y la sección Estado filtra al instante', async () => {

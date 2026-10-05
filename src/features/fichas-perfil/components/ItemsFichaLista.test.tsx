@@ -1,0 +1,75 @@
+import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { render, screen } from '../../../test-utils/render';
+import type { Item } from '../models/fichas-perfil';
+import ItemsFichaLista from './ItemsFichaLista';
+
+const ITEMS: Item[] = [
+  {
+    id: 'i-1',
+    tipoItem: { id: 't-1', nombre: 'Objetivo General' },
+    contenido: 'Contenido uno',
+    fichaPerfilId: 'f-1',
+  },
+  {
+    id: 'i-2',
+    tipoItem: { id: 't-2', nombre: 'Justificacion' },
+    contenido: 'Contenido dos',
+    fichaPerfilId: 'f-1',
+  },
+];
+
+function renderizar(parcial: Partial<React.ComponentProps<typeof ItemsFichaLista>> = {}) {
+  return render(
+    <ItemsFichaLista
+      items={undefined}
+      cargando={false}
+      error={false}
+      onReintentar={vi.fn()}
+      {...parcial}
+    />,
+  );
+}
+
+describe('ItemsFichaLista', () => {
+  it('muestra la carga accesible', () => {
+    // Act
+    renderizar({ cargando: true });
+
+    // Assert
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando ítems…');
+  });
+
+  it('muestra el vacío cuando no hay ítems', () => {
+    // Act
+    renderizar({ items: [] });
+
+    // Assert
+    expect(screen.getByText('Esta ficha aún no tiene ítems.')).toBeInTheDocument();
+  });
+
+  it('muestra el error y "Reintentar" invoca onReintentar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onReintentar = vi.fn();
+    renderizar({ error: true, onReintentar });
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los ítems');
+    expect(onReintentar).toHaveBeenCalledTimes(1);
+  });
+
+  it('lista cada ítem con su tipo y su contenido', () => {
+    // Act
+    renderizar({ items: ITEMS });
+
+    // Assert
+    expect(screen.getByRole('list', { name: 'Ítems de la ficha' })).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.getByText('Objetivo General')).toBeInTheDocument();
+    expect(screen.getByText('Contenido dos')).toBeInTheDocument();
+  });
+});

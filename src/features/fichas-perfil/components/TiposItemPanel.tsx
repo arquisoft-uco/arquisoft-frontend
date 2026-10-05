@@ -9,7 +9,7 @@ export default function TiposItemPanel() {
   const { data: tiposItem = [], isLoading, isError, error, refetch } = useTiposItem();
 
   if (isLoading) {
-    return <Skeleton variante="tabla" etiqueta="Cargando tipos de ítem..." />;
+    return <Skeleton variante="tarjetas" etiqueta="Cargando tipos de ítem…" />;
   }
 
   if (isError) {
@@ -27,27 +27,13 @@ export default function TiposItemPanel() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-surface">
-      <table className="w-full text-left text-sm" aria-label="Tipos de ítem">
-        <thead className="bg-surface-secondary text-on-surface-secondary">
-          <tr>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Nombre
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
-              Descripción
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {tiposItem.map((t) => (
-            <tr key={t.id} className="border-t border-border">
-              <td className="px-4 py-3 font-medium text-on-surface">{t.nombre}</td>
-              <td className="px-4 py-3 text-on-surface-secondary">{t.descripcion}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <ul aria-label="Tipos de ítem" className="flex flex-col gap-3">
+      {tiposItem.map((tipo) => (
+        <li key={tipo.id} className="flex flex-col gap-0.5 rounded-xl border border-border p-3.5">
+          <span className="text-sm font-semibold break-words text-on-surface">{tipo.nombre}</span>
+          <span className="text-sm break-words text-on-surface-secondary">{tipo.descripcion}</span>
+        </li>
+      ))}
+    </ul>
   );
 }

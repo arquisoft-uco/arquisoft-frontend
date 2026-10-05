@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { useLocation } from 'react-router';
 import { render, screen, within } from '../../../../test-utils/render';
 import {
   avanzar,
@@ -83,6 +84,11 @@ function mockCatalogo(parcial: Partial<ReturnType<typeof useEstadosFicha>> = {})
   } as ReturnType<typeof useEstadosFicha>);
 }
 
+function EstadoDeNavegacion() {
+  const { pathname, state } = useLocation();
+  return <p>{`destino:${pathname}:${JSON.stringify(state)}`}</p>;
+}
+
 function tabla() {
   return within(screen.getByRole('table', { name: 'Fichas de perfil a evaluar' }));
 }
@@ -102,15 +108,20 @@ describe('ConsultarFichasRepresentante', () => {
     restaurarTemporizadores();
   });
 
-  it('muestra las fichas con asesor, estado y fecha, y el título abre el detalle', async () => {
+  it('muestra las fichas con asesor, estado y fecha, y el título enlaza al detalle con el resumen', async () => {
     // Arrange
     const user = userEvent.setup();
-    const onSeleccionar = vi.fn();
     mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasRepresentante onSeleccionar={onSeleccionar} />);
+    render(
+      <>
+        <ConsultarFichasRepresentante />
+        <EstadoDeNavegacion />
+      </>,
+      { initialPath: '/fichas-perfil?q=sis' },
+    );
 
     // Act
-    await user.click(tabla().getByRole('button', { name: 'Abrir la ficha Sistema de monitoreo' }));
+    await user.click(tabla().getByRole('link', { name: 'Abrir la ficha Sistema de monitoreo' }));
 
     // Assert
     expect(screen.getByText('1 ficha')).toBeInTheDocument();
@@ -118,14 +129,30 @@ describe('ConsultarFichasRepresentante', () => {
     expect(tabla().getByText('ana@uco.edu.co')).toBeInTheDocument();
     expect(tabla().getByText('Aprobada')).toBeInTheDocument();
     expect(tabla().getByText(/2026/)).toHaveAttribute('datetime', '2026-10-01T15:30:00Z');
-    expect(onSeleccionar).toHaveBeenCalledWith(FICHA);
+    expect(
+      screen.getByText(
+        'destino:/fichas-perfil/f-1/items:' +
+          JSON.stringify({
+            resumen: {
+              id: 'f-1',
+              titulo: 'Sistema de monitoreo',
+              asesorNombre: 'Ana Pérez',
+              asesorEmail: 'ana@uco.edu.co',
+              estadoId: 'APROBADA',
+              estadoNombre: 'Aprobada',
+              fechaActualizacion: '2026-10-01T15:30:00Z',
+            },
+            search: '?q=sis',
+          }),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('los cuatro filtros llaman a su setter: título y asesor con retardo, estados al instante', async () => {
     // Arrange
     const user = usarTemporizadoresFalsos();
     const hook = mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Act
     await user.type(screen.getByRole('textbox', { name: 'Buscar fichas' }), 'sis');
@@ -164,7 +191,7 @@ describe('ConsultarFichasRepresentante', () => {
         estadoIds: ['APROBADA', 'NO_APROBADA'],
       },
     });
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Quitar filtro Asesor: Ana' }));
@@ -187,7 +214,7 @@ describe('ConsultarFichasRepresentante', () => {
       data: crearPagina([FICHA]),
       filtros: { titulo: 'sis', asesorNombre: 'Ana', asesorEmail: '', estadoIds: [] },
     });
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Limpiar todo' }));
@@ -200,7 +227,7 @@ describe('ConsultarFichasRepresentante', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Act
     await user.click(tabla().getByRole('button', { name: 'Ficha' }));
@@ -214,7 +241,7 @@ describe('ConsultarFichasRepresentante', () => {
   it('distingue el vacío sin datos del vacío con filtros', () => {
     // Arrange
     mockHook({ data: crearPagina([]) });
-    const { unmount } = render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    const { unmount } = render(<ConsultarFichasRepresentante />);
 
     // Assert
     expect(screen.getByText('Aún no hay fichas para evaluar')).toBeInTheDocument();
@@ -227,7 +254,7 @@ describe('ConsultarFichasRepresentante', () => {
     });
 
     // Act
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
@@ -237,7 +264,7 @@ describe('ConsultarFichasRepresentante', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ isError: true, error: new Error('fallo') });
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
@@ -254,7 +281,7 @@ describe('ConsultarFichasRepresentante', () => {
     const user = userEvent.setup();
     mockCatalogo({ data: undefined, isError: true });
     mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Act
     const panel = await abrirFiltros(user);
@@ -269,7 +296,7 @@ describe('ConsultarFichasRepresentante', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ data: crearPagina([FICHA], { totalElements: 25, totalPages: 3 }) });
-    render(<ConsultarFichasRepresentante onSeleccionar={vi.fn()} />);
+    render(<ConsultarFichasRepresentante />);
 
     // Act
     await user.click(

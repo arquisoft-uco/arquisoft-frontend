@@ -1,12 +1,7 @@
-import { useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { useQueryClient } from '@tanstack/react-query';
-import type { Page } from '../../../shared/models/api-response';
-import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import ConsultarFichasAsesor from './asesor-ficha/ConsultarFichasAsesor';
-import DetalleFichaAsesor from './asesor-ficha/DetalleFichaAsesor';
 import EstadosFichasAsesorPanel from './asesor-ficha/EstadosFichasAsesorPanel';
 
 type Vista = 'fichas' | 'estados';
@@ -17,43 +12,11 @@ const VISTAS: { id: Vista; etiqueta: string }[] = [
 ];
 
 export default function AsesorFichaView() {
-  const [fichaSeleccionada, setFichaSeleccionada] = useState<FichaPerfilAsesor | null>(null);
-  const [vista, setVista] = useState<Vista>('fichas');
-  const [, setSearchParams] = useSearchParams();
-  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const vista: Vista = searchParams.get('vista') === 'estados' ? 'estados' : 'fichas';
 
   function cambiarVista(nueva: Vista) {
-    setVista(nueva);
-    setSearchParams({}, { replace: true });
-  }
-
-  const handleEstadoCambiado = (nuevoEstado: string) => {
-    if (!fichaSeleccionada) return;
-
-    setFichaSeleccionada((prev) => (prev ? { ...prev, estadoActual: nuevoEstado } : prev));
-
-    queryClient.setQueriesData<Page<FichaPerfilAsesor>>(
-      { queryKey: ['fichas-perfil', 'asesor'] },
-      (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          content: old.content.map((f) =>
-            f.id === fichaSeleccionada.id ? { ...f, estadoActual: nuevoEstado } : f,
-          ),
-        };
-      },
-    );
-  };
-
-  if (fichaSeleccionada) {
-    return (
-      <DetalleFichaAsesor
-        ficha={fichaSeleccionada}
-        onVolver={() => setFichaSeleccionada(null)}
-        onEstadoCambiado={handleEstadoCambiado}
-      />
-    );
+    setSearchParams(nueva === 'estados' ? { vista: 'estados' } : {}, { replace: true });
   }
 
   return (
@@ -63,7 +26,7 @@ export default function AsesorFichaView() {
         descripcion="Revisa las fichas que asesoras y el historial de sus estados."
       />
       <Tabs items={VISTAS} valor={vista} onCambiar={cambiarVista} etiqueta="Vistas de mis fichas">
-        {vista === 'fichas' && <ConsultarFichasAsesor onSeleccionar={setFichaSeleccionada} />}
+        {vista === 'fichas' && <ConsultarFichasAsesor />}
         {vista === 'estados' && <EstadosFichasAsesorPanel />}
       </Tabs>
     </div>
