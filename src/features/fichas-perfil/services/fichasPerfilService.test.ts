@@ -3,12 +3,13 @@ import apiClient from '../../../api/axiosInstance';
 import { fichasPerfilService } from './fichasPerfilService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), patch: vi.fn(), post: vi.fn() },
+  default: { get: vi.fn(), patch: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const patch = vi.mocked(apiClient.patch);
 const post = vi.mocked(apiClient.post);
+const eliminar = vi.mocked(apiClient.delete);
 
 describe('fichasPerfilService', () => {
   beforeEach(() => {
@@ -94,22 +95,33 @@ describe('fichasPerfilService', () => {
       // Arrange
       get.mockResolvedValue({
         status: 200,
-        data: [{
-          idFichaPerfil: 'f-1',
-          titulo: 'Sistema de monitoreo',
-          asesor: { id: 'a-1', identificador: 'ASE-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
-          estado: { id: 'st-1', nombre: 'En revisión', fechaActualizacion: '2026-09-01T10:00:00' },
-          estudiantes: [
-            {
-              id: 'v-1',
-              fichaPerfilId: 'f-1',
-              estudianteId: 'e-1',
-              nombre: 'Luis Pérez',
-              email: 'luis@uco.edu.co',
-              vigente: true,
+        data: [
+          {
+            idFichaPerfil: 'f-1',
+            titulo: 'Sistema de monitoreo',
+            asesor: {
+              id: 'a-1',
+              identificador: 'ASE-1',
+              nombre: 'Ana Ruiz',
+              email: 'ana@uco.edu.co',
             },
-          ],
-        }],
+            estado: {
+              id: 'st-1',
+              nombre: 'En revisión',
+              fechaActualizacion: '2026-09-01T10:00:00',
+            },
+            estudiantes: [
+              {
+                id: 'v-1',
+                fichaPerfilId: 'f-1',
+                estudianteId: 'e-1',
+                nombre: 'Luis Pérez',
+                email: 'luis@uco.edu.co',
+                vigente: true,
+              },
+            ],
+          },
+        ],
       });
 
       // Act
@@ -117,13 +129,19 @@ describe('fichasPerfilService', () => {
 
       // Assert
       expect(get).toHaveBeenCalledWith('/fichas-perfil/estudiante');
-      expect(resultado).toEqual([{
-        id: 'f-1',
-        tituloProyecto: 'Sistema de monitoreo',
-        asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
-        estadoActual: { id: 'st-1', nombre: 'En revisión', fechaActualizacion: '2026-09-01T10:00:00' },
-        integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
-      }]);
+      expect(resultado).toEqual([
+        {
+          id: 'f-1',
+          tituloProyecto: 'Sistema de monitoreo',
+          asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
+          estadoActual: {
+            id: 'st-1',
+            nombre: 'En revisión',
+            fechaActualizacion: '2026-09-01T10:00:00',
+          },
+          integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
+        },
+      ]);
     });
 
     it('devuelve una lista vacía cuando el backend responde []', async () => {
@@ -171,7 +189,15 @@ describe('fichasPerfilService', () => {
       // Arrange
       get.mockResolvedValue({
         status: 200,
-        data: [{ id: 'i-1', fichaPerfilId: 'f-1', tipoItem: 't-1', tipoItemNombre: 'Objetivo', contenido: 'Medir' }],
+        data: [
+          {
+            id: 'i-1',
+            fichaPerfilId: 'f-1',
+            tipoItem: 't-1',
+            tipoItemNombre: 'Objetivo',
+            contenido: 'Medir',
+          },
+        ],
       });
 
       // Act
@@ -180,7 +206,12 @@ describe('fichasPerfilService', () => {
       // Assert
       expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/items/estudiante');
       expect(resultado).toEqual([
-        { id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir' },
+        {
+          id: 'i-1',
+          fichaPerfilId: 'f-1',
+          tipoItem: { id: 't-1', nombre: 'Objetivo' },
+          contenido: 'Medir',
+        },
       ]);
     });
   });
@@ -192,7 +223,12 @@ describe('fichasPerfilService', () => {
         pagina: 1,
         tamanio: 10,
         ordenamiento: ['tituloProyecto:ASC'],
-        filtros: { tipo: 'PREDICADO' as const, campo: 'estadoFicha', operador: 'ES', valor: 'st-1' },
+        filtros: {
+          tipo: 'PREDICADO' as const,
+          campo: 'estadoFicha',
+          operador: 'ES',
+          valor: 'st-1',
+        },
       };
       post.mockResolvedValue({
         status: 200,
@@ -230,7 +266,53 @@ describe('fichasPerfilService', () => {
           fechaActualizacion: '2026-09-01T10:00:00',
         },
       ]);
-      expect(resultado).toMatchObject({ page: 1, size: 10, totalElements: 11, totalPages: 2, last: true });
+      expect(resultado).toMatchObject({
+        page: 1,
+        size: 10,
+        totalElements: 11,
+        totalPages: 2,
+        last: true,
+      });
+    });
+  });
+
+  describe('getFichasCoordinador', () => {
+    it('hace POST /fichas-perfil/coordinador con el criterio recibido y resuelve la página', async () => {
+      // Arrange
+      const pagina = { content: [], page: 0, size: 10, totalElements: 0, totalPages: 0 };
+      const req = {
+        pagina: 0,
+        tamanio: 10,
+        ordenamiento: ['tituloProyecto:ASC'],
+        filtros: {
+          tipo: 'PREDICADO' as const,
+          campo: 'tituloProyecto',
+          operador: 'CONTIENE',
+          valor: 'monitoreo',
+        },
+      };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await fichasPerfilService.getFichasCoordinador(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', req);
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('removerEstudiante', () => {
+    it('hace DELETE /fichas-perfil/{id}/estudiantes/{estudianteId} y resuelve sin cuerpo', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await fichasPerfilService.removerEstudiante('f-1', 'e-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/fichas-perfil/f-1/estudiantes/e-1');
+      expect(resultado).toBeUndefined();
     });
   });
 
@@ -241,8 +323,17 @@ describe('fichasPerfilService', () => {
         {
           id: 'f-1',
           tituloProyecto: 'Sistema de monitoreo',
-          asesorFicha: { id: 'a-1', identificador: 'ASE-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
-          estado: { id: 'st-1', nombre: 'Disponible para evaluación', fechaActualizacion: '2026-09-01T10:00:00' },
+          asesorFicha: {
+            id: 'a-1',
+            identificador: 'ASE-1',
+            nombre: 'Ana Ruiz',
+            email: 'ana@uco.edu.co',
+          },
+          estado: {
+            id: 'st-1',
+            nombre: 'Disponible para evaluación',
+            fechaActualizacion: '2026-09-01T10:00:00',
+          },
         },
       ],
       page: 0,
@@ -271,10 +362,26 @@ describe('fichasPerfilService', () => {
             titulo: 'Sistema de monitoreo',
             asesorNombre: 'Ana Ruiz',
             asesorEmail: 'ana@uco.edu.co',
+            estadoId: 'st-1',
             estadoActual: 'Disponible para evaluación',
             estadoFechaActualizacion: '2026-09-01T10:00:00',
           },
         ],
+      });
+    });
+
+    it('envía el ordenamiento solo cuando llega', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: paginaDto });
+
+      // Act
+      await fichasPerfilService.getFichasRepresentante(0, 10, vacios, ['asesorNombre:DESC']);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', {
+        pagina: 0,
+        tamanio: 10,
+        ordenamiento: ['asesorNombre:DESC'],
       });
     });
 
@@ -295,7 +402,12 @@ describe('fichasPerfilService', () => {
       expect(post).toHaveBeenNthCalledWith(1, '/fichas-perfil/coordinador', {
         pagina: 1,
         tamanio: 10,
-        filtros: { tipo: 'PREDICADO', campo: 'tituloProyecto', operador: 'CONTIENE', valor: 'monitoreo' },
+        filtros: {
+          tipo: 'PREDICADO',
+          campo: 'tituloProyecto',
+          operador: 'CONTIENE',
+          valor: 'monitoreo',
+        },
       });
       expect(post).toHaveBeenNthCalledWith(2, '/fichas-perfil/coordinador', {
         pagina: 0,
@@ -304,9 +416,19 @@ describe('fichasPerfilService', () => {
           tipo: 'GRUPO',
           conector: 'AND',
           nodos: [
-            { tipo: 'PREDICADO', campo: 'tituloProyecto', operador: 'CONTIENE', valor: 'monitoreo' },
+            {
+              tipo: 'PREDICADO',
+              campo: 'tituloProyecto',
+              operador: 'CONTIENE',
+              valor: 'monitoreo',
+            },
             { tipo: 'PREDICADO', campo: 'asesorEmail', operador: 'CONTIENE', valor: 'ana@' },
-            { tipo: 'PREDICADO_MULTIVALOR', campo: 'estadoFicha', operador: 'IN', valores: ['st-1', 'st-2'] },
+            {
+              tipo: 'PREDICADO_MULTIVALOR',
+              campo: 'estadoFicha',
+              operador: 'IN',
+              valores: ['st-1', 'st-2'],
+            },
           ],
         },
       });
@@ -318,7 +440,15 @@ describe('fichasPerfilService', () => {
       // Arrange
       get.mockResolvedValue({
         status: 200,
-        data: [{ id: 'i-1', fichaPerfilId: 'f-1', tipoItem: 't-1', tipoItemNombre: 'Objetivo', contenido: 'Medir' }],
+        data: [
+          {
+            id: 'i-1',
+            fichaPerfilId: 'f-1',
+            tipoItem: 't-1',
+            tipoItemNombre: 'Objetivo',
+            contenido: 'Medir',
+          },
+        ],
       });
 
       // Act
@@ -327,7 +457,12 @@ describe('fichasPerfilService', () => {
       // Assert
       expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/items/representante');
       expect(resultado).toEqual([
-        { id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir' },
+        {
+          id: 'i-1',
+          fichaPerfilId: 'f-1',
+          tipoItem: { id: 't-1', nombre: 'Objetivo' },
+          contenido: 'Medir',
+        },
       ]);
     });
 
@@ -349,8 +484,20 @@ describe('fichasPerfilService', () => {
       get.mockResolvedValue({
         status: 200,
         data: [
-          { id: 'ev-1', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-01', estadoEvaluacion: 'st-1', estadoEvaluacionNombre: 'Aprobada' },
-          { id: 'ev-2', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-02', estadoEvaluacion: null, estadoEvaluacionNombre: null },
+          {
+            id: 'ev-1',
+            fichaPerfilId: 'f-1',
+            fechaCreacion: '2026-10-01',
+            estadoEvaluacion: 'st-1',
+            estadoEvaluacionNombre: 'Aprobada',
+          },
+          {
+            id: 'ev-2',
+            fichaPerfilId: 'f-1',
+            fechaCreacion: '2026-10-02',
+            estadoEvaluacion: null,
+            estadoEvaluacionNombre: null,
+          },
         ],
       });
 
@@ -360,8 +507,20 @@ describe('fichasPerfilService', () => {
       // Assert
       expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/evaluaciones/representante');
       expect(resultado).toEqual([
-        { id: 'ev-1', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-01', estadoEvaluacionId: 'st-1', estadoEvaluacionNombre: 'Aprobada' },
-        { id: 'ev-2', fichaPerfilId: 'f-1', fechaCreacion: '2026-10-02', estadoEvaluacionId: null, estadoEvaluacionNombre: null },
+        {
+          id: 'ev-1',
+          fichaPerfilId: 'f-1',
+          fechaCreacion: '2026-10-01',
+          estadoEvaluacionId: 'st-1',
+          estadoEvaluacionNombre: 'Aprobada',
+        },
+        {
+          id: 'ev-2',
+          fichaPerfilId: 'f-1',
+          fechaCreacion: '2026-10-02',
+          estadoEvaluacionId: null,
+          estadoEvaluacionNombre: null,
+        },
       ]);
     });
 

@@ -1,114 +1,111 @@
-import { Mail, User, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Users } from 'lucide-react';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import EmptyState from '../../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
+import FormActions from '../../../../shared/components/ui/FormActions';
+import FormSection from '../../../../shared/components/ui/FormSection';
+import SidePanel from '../../../../shared/components/ui/SidePanel';
+import Skeleton from '../../../../shared/components/ui/Skeleton';
+import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstudiantesVinculados } from '../../hooks/useEstudiantesVinculados';
 import { useRemoverEstudiante } from '../../hooks/useRemoverEstudiante';
-import { toast } from '../../../../shared/hooks/useToast';
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
+import type { FichaPerfil } from '../../models/FichaPerfil';
 import AsignarEstudianteForm from './AsignarEstudianteForm';
+import EstudiantesVinculadosLista from './EstudiantesVinculadosLista';
+
+const CONTENIDO = 'flex flex-col gap-6';
 
 interface Props {
-  idFichaPerfil: string;
+  ficha: FichaPerfil;
+  onCerrar: () => void;
 }
 
-export default function EstudiantesVinculadosPanel({ idFichaPerfil }: Props) {
-  const { data, isLoading, isError } = useEstudiantesVinculados(idFichaPerfil);
-  const { mutate: remover, isPending: removiendo } = useRemoverEstudiante(idFichaPerfil);
-  const [pendienteRemover, setPendienteRemover] = useState<{ estudianteId: string; nombre: string } | null>(null);
+export default function EstudiantesVinculadosPanel({ ficha, onCerrar }: Props) {
+  const { data, isLoading, isError, error, refetch } = useEstudiantesVinculados(ficha.id);
+  const { mutate: remover, isPending: quitando } = useRemoverEstudiante(ficha.id);
+  const [pendiente, setPendiente] = useState<EstudianteVinculado | null>(null);
 
-  function handleConfirmarRemover() {
-    if (!pendienteRemover) return;
-    const { estudianteId, nombre } = pendienteRemover;
-    remover(estudianteId, {
+  const estudiantes = data ?? [];
+
+  function confirmarQuitar() {
+    if (!pendiente) return;
+    const { id, nombre } = pendiente;
+    remover(id, {
       onSuccess: () => {
-        toast.success('Estudiante removido', `${nombre} fue removido de la ficha correctamente.`);
-        setPendienteRemover(null);
+        toast.success('Estudiante quitado', `${nombre} fue quitado de la ficha.`);
+        setPendiente(null);
       },
       onError: (err) => {
         toast.error(
-          'Error al remover estudiante',
+          'No se pudo quitar al estudiante',
           getApiErrorMessage(err, 'Inténtalo nuevamente.'),
         );
-        setPendienteRemover(null);
+        setPendiente(null);
       },
     });
   }
 
-  if (isLoading) {
-    return (
-      <div
-        className="flex items-center gap-2 py-3 px-4 text-sm text-on-surface-secondary"
-        aria-live="polite"
-        aria-busy="true"
-      >
-        <div
-          className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
-          role="status"
-        >
-          <span className="sr-only">Cargando estudiantes vinculados...</span>
-        </div>
-        Cargando estudiantes...
-      </div>
-    );
-  }
+  function contenido() {
+    if (isLoading) {
+      return <Skeleton variante="lineas" etiqueta="Cargando estudiantes vinculados…" />;
+    }
+    if (isError) {
+      return (
+        <ErrorState
+          titulo="No se pudieron cargar los estudiantes"
+          descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
+          onReintentar={refetch}
+        />
+      );
+    }
 
-  if (isError) {
     return (
-      <p className="py-3 px-4 text-sm text-red-600" role="alert">
-        No se pudieron cargar los estudiantes vinculados.
-      </p>
-    );
-  }
-
-  const estudiantes = data ?? [];
-
-  if (estudiantes.length === 0) {
-    return (
-      <div>
-        <p className="py-3 px-4 text-sm text-on-surface-secondary">
-          No hay estudiantes vinculados a esta ficha.
-        </p>
-        <AsignarEstudianteForm idFichaPerfil={idFichaPerfil} vinculados={[]} />
-      </div>
+      <>
+        {estudiantes.length === 0 ? (
+          <EmptyState
+            icono={Users}
+            titulo="Aún no hay estudiantes vinculados"
+            descripcion="Asigna estudiantes a esta ficha desde la lista de abajo."
+          />
+        ) : (
+          <EstudiantesVinculadosLista
+            estudiantes={estudiantes}
+            quitando={quitando}
+            onQuitar={setPendiente}
+          />
+        )}
+        <FormSection titulo="Asignar estudiantes">
+          <AsignarEstudianteForm idFichaPerfil={ficha.id} vinculados={estudiantes} />
+        </FormSection>
+      </>
     );
   }
 
   return (
-    <div>
-      <ul className="divide-y divide-border" aria-label="Estudiantes vinculados">
-        {estudiantes.map((est) => (
-          <li key={est.idVinculo} className="flex items-center gap-3 px-4 py-2">
-            <User size={15} className="shrink-0 text-on-surface-secondary" aria-hidden />
-            <span className="text-sm font-medium text-on-surface">{est.nombre}</span>
-            <span className="flex items-center gap-1 ml-auto text-xs text-on-surface-secondary">
-              <Mail size={13} aria-hidden />
-              {est.email}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPendienteRemover({ estudianteId: est.id, nombre: est.nombre })}
-              disabled={removiendo}
-              aria-label={`Remover a ${est.nombre} de la ficha`}
-              className="ml-2 rounded-md p-1 text-on-surface-secondary transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Trash2 size={14} aria-hidden />
-            </button>
-          </li>
-        ))}
-      </ul>
-      <AsignarEstudianteForm idFichaPerfil={idFichaPerfil} vinculados={estudiantes} />
-
-      {pendienteRemover && (
+    <SidePanel
+      titulo="Estudiantes de la ficha"
+      descripcion={ficha.tituloProyecto}
+      onCerrar={onCerrar}
+      ocupado={quitando}
+      pie={(solicitarCierre) => (
+        <FormActions nota="Los cambios se aplican al instante." onCancelar={solicitarCierre} />
+      )}
+    >
+      <div className={CONTENIDO}>{contenido()}</div>
+      {pendiente && (
         <ConfirmDialog
-          titulo="¿Remover estudiante?"
-          descripcion={`${pendienteRemover.nombre} será removido de esta ficha de perfil.`}
-          labelConfirmar="Remover"
+          titulo="¿Quitar estudiante?"
+          descripcion={`${pendiente.nombre} será quitado de esta ficha de perfil.`}
+          labelConfirmar="Quitar"
           variante="peligro"
-          cargando={removiendo}
-          onConfirmar={handleConfirmarRemover}
-          onCancelar={() => setPendienteRemover(null)}
+          cargando={quitando}
+          onConfirmar={confirmarQuitar}
+          onCancelar={() => setPendiente(null)}
         />
       )}
-    </div>
+    </SidePanel>
   );
 }

@@ -23,7 +23,10 @@ const fila: EstadoFichaPerfilAsesor = {
   fechaActualizacion: '2026-09-01T10:00:00',
 };
 
-function crearPagina(numero: number, content: EstadoFichaPerfilAsesor[]): Page<EstadoFichaPerfilAsesor> {
+function crearPagina(
+  numero: number,
+  content: EstadoFichaPerfilAsesor[],
+): Page<EstadoFichaPerfilAsesor> {
   return {
     content,
     page: numero,
@@ -98,7 +101,7 @@ describe('useEstadosFichasAsesor', () => {
     expect(result.current.pageSize).toBe(10);
   });
 
-  it('aplicarFiltros consulta con el grupo AND de estado y título y vuelve a la página 0', async () => {
+  it('el texto y el estado se combinan en un grupo AND y cada cambio vuelve a la página 0', async () => {
     // Arrange
     consultar.mockImplementation(({ pagina }) => Promise.resolve(crearPagina(pagina, [fila])));
     const { result } = renderHook(() => useEstadosFichasAsesor(), { wrapper: crearWrapper() });
@@ -107,7 +110,11 @@ describe('useEstadosFichasAsesor', () => {
     await waitFor(() => expect(result.current.page).toBe(1));
 
     // Act
-    act(() => result.current.aplicarFiltros('st-1', 'monitoreo'));
+    act(() => result.current.setEstadoId('st-1'));
+    await waitFor(() => expect(result.current.page).toBe(0));
+    act(() => result.current.goToPage(1));
+    await waitFor(() => expect(result.current.page).toBe(1));
+    act(() => result.current.setTexto(' monitoreo '));
 
     // Assert
     await waitFor(() =>
@@ -120,14 +127,49 @@ describe('useEstadosFichasAsesor', () => {
           conector: 'AND',
           nodos: [
             { tipo: 'PREDICADO', campo: 'estadoFicha', operador: 'ES', valor: 'st-1' },
-            { tipo: 'PREDICADO', campo: 'tituloProyecto', operador: 'CONTIENE', valor: 'monitoreo' },
+            {
+              tipo: 'PREDICADO',
+              campo: 'tituloProyecto',
+              operador: 'CONTIENE',
+              valor: 'monitoreo',
+            },
           ],
         },
       }),
     );
     expect(result.current.page).toBe(0);
     expect(result.current.estadoId).toBe('st-1');
-    expect(result.current.titulo).toBe('monitoreo');
+  });
+
+  it('setOrden cambia la dirección del título y limpiarFiltros vacía texto y estado', async () => {
+    // Arrange
+    consultar.mockImplementation(({ pagina }) => Promise.resolve(crearPagina(pagina, [fila])));
+    const { result } = renderHook(() => useEstadosFichasAsesor(), { wrapper: crearWrapper() });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    act(() => result.current.setTexto('monitoreo'));
+    act(() => result.current.setEstadoId('st-1'));
+
+    // Act
+    act(() => result.current.setOrden('DESC'));
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({ ordenamiento: ['tituloProyecto:DESC'] }),
+      ),
+    );
+    act(() => result.current.limpiarFiltros());
+
+    // Assert
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith({
+        pagina: 0,
+        tamanio: 10,
+        ordenamiento: ['tituloProyecto:DESC'],
+        filtros: undefined,
+      }),
+    );
+    expect(result.current.texto).toBe('');
+    expect(result.current.estadoId).toBe('');
+    expect(result.current.ordenDireccion).toBe('DESC');
   });
 
   it('vuelve a consultar con la página nueva cuando se llama a goToPage', async () => {
@@ -140,7 +182,9 @@ describe('useEstadosFichasAsesor', () => {
     act(() => result.current.goToPage(1));
 
     // Assert
-    await waitFor(() => expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 1 })));
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 1 })),
+    );
     await waitFor(() => expect(result.current.data?.page).toBe(1));
   });
 

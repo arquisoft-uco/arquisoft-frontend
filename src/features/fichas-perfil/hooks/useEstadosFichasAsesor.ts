@@ -1,10 +1,20 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 
 const PAGE_SIZE = 10;
-const ORDENAMIENTO = ['tituloProyecto:ASC'];
+
+export type OrdenDireccion = 'ASC' | 'DESC';
+
+interface EstadoListado {
+  page: number;
+  texto: string;
+  estadoId: string;
+  ordenDireccion: OrdenDireccion;
+}
+
+const ESTADO_INICIAL: EstadoListado = { page: 0, texto: '', estadoId: '', ordenDireccion: 'ASC' };
 
 export function construirFiltros(estadoId: string, titulo: string): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
@@ -31,34 +41,63 @@ export function construirFiltros(estadoId: string, titulo: string): NodoFiltroDT
 }
 
 export function useEstadosFichasAsesor() {
-  const [page, setPage] = useState(0);
-  const [estadoId, setEstadoId] = useState('');
-  const [titulo, setTitulo] = useState('');
+  const [listado, setListado] = useState(ESTADO_INICIAL);
+  const { page, texto, estadoId, ordenDireccion } = listado;
 
-  function aplicarFiltros(nuevoEstadoId: string, nuevoTitulo: string) {
-    setEstadoId(nuevoEstadoId);
-    setTitulo(nuevoTitulo);
-    setPage(0);
+  function cambiar(cambio: Partial<EstadoListado>) {
+    setListado((actual) => ({ ...actual, ...cambio, page: 0 }));
+  }
+
+  function goToPage(pagina: number) {
+    setListado((actual) => ({ ...actual, page: pagina }));
+  }
+
+  function setTexto(valor: string) {
+    cambiar({ texto: valor });
+  }
+
+  function setEstadoId(valor: string) {
+    cambiar({ estadoId: valor });
+  }
+
+  function setOrden(direccion: OrdenDireccion) {
+    cambiar({ ordenDireccion: direccion });
+  }
+
+  function limpiarFiltros() {
+    cambiar({ texto: '', estadoId: '' });
   }
 
   const query = useQuery({
-    queryKey: ['fichas-perfil', 'estados-ficha-asesor', page, estadoId, titulo],
+    queryKey: [
+      'fichas-perfil',
+      'estados-ficha-asesor',
+      page,
+      texto.trim(),
+      estadoId,
+      ordenDireccion,
+    ],
     queryFn: () =>
       fichasPerfilService.getEstadosFichasAsesor({
         pagina: page,
         tamanio: PAGE_SIZE,
-        ordenamiento: ORDENAMIENTO,
-        filtros: construirFiltros(estadoId, titulo),
+        ordenamiento: [`tituloProyecto:${ordenDireccion}`],
+        filtros: construirFiltros(estadoId, texto),
       }),
+    placeholderData: keepPreviousData,
   });
 
   return {
     ...query,
     page,
     pageSize: PAGE_SIZE,
-    goToPage: setPage,
+    goToPage,
+    texto,
+    setTexto,
     estadoId,
-    titulo,
-    aplicarFiltros,
+    setEstadoId,
+    ordenDireccion,
+    setOrden,
+    limpiarFiltros,
   };
 }

@@ -20,8 +20,16 @@ const cambiarAsesor = vi.mocked(fichasPerfilService.cambiarAsesor);
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
 const LUIS: Asesor = { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' };
 
-const FICHA_1: FichaPerfil = { id: 'f-1', tituloProyecto: 'Sistema de monitoreo', asesorFicha: ANA };
-const FICHA_2: FichaPerfil = { id: 'f-2', tituloProyecto: 'Plataforma de tutorías', asesorFicha: ANA };
+const FICHA_1: FichaPerfil = {
+  id: 'f-1',
+  tituloProyecto: 'Sistema de monitoreo',
+  asesorFicha: ANA,
+};
+const FICHA_2: FichaPerfil = {
+  id: 'f-2',
+  tituloProyecto: 'Plataforma de tutorías',
+  asesorFicha: ANA,
+};
 const FICHA_3: FichaPerfil = { id: 'f-3', tituloProyecto: 'Bot académico', asesorFicha: ANA };
 
 function crearPagina(numero: number, content: FichaPerfil[]): Page<FichaPerfil> {
@@ -59,16 +67,14 @@ describe('useCambiarAsesor', () => {
     vi.clearAllMocks();
   });
 
-  it('envía solo idFicha e idAsesorFicha y reemplaza el asesor de esa ficha en todas las páginas cacheadas del coordinador sin refetch', async () => {
+  it('envía solo idFicha e idAsesorFicha y reemplaza el asesor de esa ficha en todas las páginas cacheadas del coordinador e invalida el prefijo del coordinador', async () => {
     // Arrange
     cambiarAsesor.mockResolvedValue(undefined);
     const { Wrapper, queryClient, invalidar } = crearContexto();
     const { result } = renderHook(() => useCambiarAsesor(), { wrapper: Wrapper });
 
     // Act
-    act(() =>
-      result.current.mutate({ idFicha: 'f-1', idAsesorFicha: LUIS.id, asesorNuevo: LUIS }),
-    );
+    act(() => result.current.mutate({ idFicha: 'f-1', idAsesorFicha: LUIS.id, asesorNuevo: LUIS }));
 
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -82,8 +88,7 @@ describe('useCambiarAsesor', () => {
     expect(queryClient.getQueryData(['fichas-perfil', 'asesor', 0])).toEqual(
       crearPagina(0, [FICHA_1]),
     );
-    expect(invalidar).not.toHaveBeenCalled();
-    expect(fichasPerfilService.getFichasCoordinador).not.toHaveBeenCalled();
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'coordinador'] });
   });
 
   it('deja la caché intacta y expone el error cuando el service rechaza', async () => {
@@ -93,9 +98,7 @@ describe('useCambiarAsesor', () => {
     const { result } = renderHook(() => useCambiarAsesor(), { wrapper: Wrapper });
 
     // Act
-    act(() =>
-      result.current.mutate({ idFicha: 'f-1', idAsesorFicha: LUIS.id, asesorNuevo: LUIS }),
-    );
+    act(() => result.current.mutate({ idFicha: 'f-1', idAsesorFicha: LUIS.id, asesorNuevo: LUIS }));
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));

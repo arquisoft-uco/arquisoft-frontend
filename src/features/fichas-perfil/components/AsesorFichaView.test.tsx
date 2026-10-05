@@ -4,7 +4,11 @@ import { render, screen } from '../../../test-utils/render';
 import AsesorFichaView from './AsesorFichaView';
 import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
 
-const FICHA: FichaPerfilAsesor = { id: 'f-1', titulo: 'Sistema de monitoreo', estadoActual: 'En Construcción' };
+const FICHA: FichaPerfilAsesor = {
+  id: 'f-1',
+  titulo: 'Sistema de monitoreo',
+  estadoActual: 'En Construcción',
+};
 
 vi.mock('./asesor-ficha/ConsultarFichasAsesor', () => ({
   default: ({ onSeleccionar }: { onSeleccionar: (ficha: FichaPerfilAsesor) => void }) => (
@@ -45,6 +49,18 @@ vi.mock('./asesor-ficha/DetalleFichaAsesor', () => ({
 }));
 
 describe('AsesorFichaView', () => {
+  it('muestra un solo título de página y las dos pestañas en la vista de lista', () => {
+    // Act
+    render(<AsesorFichaView />);
+
+    // Assert
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Mis fichas de perfil' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
+  });
+
   it('sin ficha seleccionada, renderiza el listado', () => {
     // Act
     render(<AsesorFichaView />);
@@ -99,7 +115,10 @@ describe('AsesorFichaView', () => {
     // Arrange
     const user = userEvent.setup();
     render(<AsesorFichaView />);
-    expect(screen.getByRole('tab', { name: 'Mis fichas' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Mis fichas' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
 
     // Act
     await user.click(screen.getByRole('tab', { name: 'Estados de mis fichas' }));
@@ -107,7 +126,10 @@ describe('AsesorFichaView', () => {
     // Assert
     expect(screen.getByText('Panel de estados de fichas')).toBeInTheDocument();
     expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Estados de mis fichas' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Estados de mis fichas' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
 
     // Act
     await user.click(screen.getByRole('tab', { name: 'Mis fichas' }));
@@ -133,6 +155,9 @@ describe('AsesorFichaView', () => {
 
     // Assert
     expect(screen.getByRole('tablist')).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Mis fichas' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Mis fichas' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
   });
 });

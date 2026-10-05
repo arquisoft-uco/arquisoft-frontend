@@ -9,6 +9,7 @@ import {
 } from '../../../test-utils/temporizadores';
 import FilterBar from './FilterBar';
 import type { OpcionFiltro, SeccionFiltro } from './FilterBar';
+import type { SeccionOpciones } from './FilterBarSecciones';
 
 type Props = ComponentProps<typeof FilterBar>;
 type PropsChips = NonNullable<Props['chips']>;
@@ -41,7 +42,7 @@ function crearChips(parcial: Partial<PropsChips> = {}): PropsChips {
 }
 
 function crearSeccion(
-  parcial: Partial<SeccionFiltro> & Pick<SeccionFiltro, 'id' | 'etiqueta'>,
+  parcial: Partial<SeccionOpciones> & Pick<SeccionOpciones, 'id' | 'etiqueta'>,
 ): SeccionFiltro {
   return { opciones: [TODOS], valor: '', onCambiar: vi.fn(), ...parcial };
 }

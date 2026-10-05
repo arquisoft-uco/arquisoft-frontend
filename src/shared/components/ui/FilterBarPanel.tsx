@@ -1,28 +1,13 @@
-import { useId, useRef } from 'react';
-import type { ReactNode, RefObject } from 'react';
+import { useRef } from 'react';
+import type { RefObject } from 'react';
 import { X } from 'lucide-react';
 import { useTrampaDeFoco } from '../../hooks/useTrampaDeFoco';
 import Button from './Button';
-import FilterChip from './FilterChip';
 import IconButton from './IconButton';
-import type { OpcionFiltro } from './FilterChip';
+import { SeccionChips, SeccionDeFiltro, limpiarSeccion } from './FilterBarSecciones';
+import type { OrdenFiltro, SeccionFiltro } from './FilterBarSecciones';
 
-export interface SeccionFiltro {
-  id: string;
-  etiqueta: string;
-  opciones: OpcionFiltro[];
-  valor: string;
-  onCambiar: (id: string) => void;
-  deshabilitada?: boolean;
-  aviso?: ReactNode;
-}
-
-export interface OrdenFiltro {
-  etiqueta: string;
-  opciones: OpcionFiltro[];
-  valor: string;
-  onCambiar: (id: string) => void;
-}
+export type { OrdenFiltro, SeccionFiltro };
 
 const PANEL =
   'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col rounded-t-2xl bg-surface shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:bottom-auto sm:top-full sm:z-30 sm:mt-2 sm:max-h-none sm:w-85 sm:max-w-[calc(100vw-3rem)] sm:rounded-xl sm:border sm:border-border sm:shadow-dropdown';
@@ -31,10 +16,7 @@ const CABECERA = 'flex shrink-0 items-center justify-between py-1 pl-5 pr-2 sm:h
 const TITULO = 'text-lg font-semibold text-on-surface';
 const CUERPO =
   'flex min-h-0 flex-col gap-5 overflow-y-auto px-5 pb-4 pt-2 sm:gap-4 sm:overflow-visible sm:p-4';
-const SECCION = 'flex flex-col gap-2.5 sm:gap-2';
 const SOLO_CELULAR = 'sm:hidden';
-const ETIQUETA = 'text-sm font-semibold text-on-surface sm:font-medium';
-const OPCIONES = 'flex flex-wrap gap-2';
 const PIE =
   'flex shrink-0 items-center justify-between gap-3 border-t border-border px-5 pb-4 pt-3 sm:mx-4 sm:px-0';
 
@@ -42,42 +24,6 @@ function textoCierre(total?: number): string {
   if (total === undefined) return 'Listo';
   if (total === 0) return 'Sin resultados';
   return `Ver ${total} ${total === 1 ? 'resultado' : 'resultados'}`;
-}
-
-interface PropsSeccion extends Omit<SeccionFiltro, 'id'> {
-  className?: string;
-}
-
-function SeccionChips({
-  etiqueta,
-  opciones,
-  valor,
-  onCambiar,
-  deshabilitada,
-  aviso,
-  className,
-}: PropsSeccion) {
-  const idEtiqueta = useId();
-
-  return (
-    <div className={[SECCION, className].filter(Boolean).join(' ')}>
-      <span id={idEtiqueta} className={ETIQUETA}>
-        {etiqueta}
-      </span>
-      <div role="group" aria-labelledby={idEtiqueta} className={OPCIONES}>
-        {opciones.map((opcion) => (
-          <FilterChip
-            key={opcion.id}
-            etiqueta={opcion.etiqueta}
-            activo={opcion.id === valor}
-            disabled={deshabilitada}
-            onClick={() => onCambiar(opcion.id)}
-          />
-        ))}
-      </div>
-      {aviso}
-    </div>
-  );
 }
 
 interface Props {
@@ -111,7 +57,7 @@ export default function FilterBarPanel({
   });
 
   function limpiar() {
-    secciones.forEach((seccion) => seccion.onCambiar(''));
+    secciones.forEach(limpiarSeccion);
   }
 
   return (
@@ -123,7 +69,7 @@ export default function FilterBarPanel({
         </div>
         <div className={CUERPO}>
           {secciones.map((seccion) => (
-            <SeccionChips key={seccion.id} {...seccion} />
+            <SeccionDeFiltro key={seccion.id} seccion={seccion} />
           ))}
           {orden && <SeccionChips {...orden} className={SOLO_CELULAR} />}
         </div>

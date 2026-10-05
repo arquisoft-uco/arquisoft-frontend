@@ -6,7 +6,10 @@ import { useEstudiantesVigentes } from '../../../../shared/hooks/useEstudiantesV
 import { toast } from '../../../../shared/hooks/useToast';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
+import Button from '../../../../shared/components/ui/Button';
 import { LIMITES } from '../../../../shared/validation';
+
+const TEXTO_APOYO = 'text-sm text-on-surface-secondary';
 
 interface Props {
   idFichaPerfil: string;
@@ -31,12 +34,7 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
 
   if (estudiantesCargando) {
     return (
-      <p
-        role="status"
-        aria-live="polite"
-        aria-busy="true"
-        className="border-t border-border px-4 py-3 text-xs text-on-surface-secondary"
-      >
+      <p role="status" aria-live="polite" aria-busy="true" className={TEXTO_APOYO}>
         <span className="sr-only">Cargando estudiantes disponibles…</span>
         Cargando estudiantes...
       </p>
@@ -45,7 +43,7 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
 
   if (limiteAlcanzado) {
     return (
-      <p className="border-t border-border px-4 py-3 text-xs text-on-surface-secondary">
+      <p className={TEXTO_APOYO}>
         Límite alcanzado: esta ficha ya tiene {LIMITES.ESTUDIANTES_MAX} estudiantes asignados.
       </p>
     );
@@ -82,23 +80,15 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
   }
 
   if (estudiantesNoDisponibles) {
-    return (
-      <div className="border-t border-border px-4 py-3">
-        <AvisoNoDisponible recurso="estudiantes" />
-      </div>
-    );
+    return <AvisoNoDisponible recurso="estudiantes" />;
   }
 
   if (opciones.length === 0) return null;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-2 border-t border-border px-4 py-3"
-      aria-label="Asignar estudiantes"
-    >
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="text-xs font-medium text-on-surface-secondary">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3" aria-label="Asignar estudiantes">
+      <fieldset className="flex flex-col">
+        <legend className="mb-1 text-sm font-medium text-on-surface">
           Seleccionar hasta {cuposDisponibles} estudiante{cuposDisponibles !== 1 ? 's' : ''}
         </legend>
         {opciones.map((est) => {
@@ -108,7 +98,7 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
             <label
               key={est.id}
               htmlFor={checkboxId}
-              className="flex items-center gap-2 text-sm text-on-surface"
+              className="tap-target gap-2.5 text-sm text-on-surface"
             >
               <input
                 id={checkboxId}
@@ -116,22 +106,23 @@ export default function AsignarEstudianteForm({ idFichaPerfil, vinculados }: Pro
                 checked={marcado}
                 onChange={() => toggleSeleccionado(est.id)}
                 disabled={isPending || (!marcado && seleccionados.length >= cuposDisponibles)}
-                className="rounded border-border text-primary focus:ring-primary"
+                className="checkbox-control rounded border-border-input text-primary focus:ring-primary"
               />
               {est.nombre}
             </label>
           );
         })}
       </fieldset>
-      <button
+      <Button
         type="submit"
-        disabled={seleccionados.length === 0 || isPending}
+        icono={UserPlus}
+        disabled={seleccionados.length === 0}
+        cargando={isPending}
         aria-label="Asignar estudiantes seleccionados"
-        className="inline-flex w-fit items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="self-start"
       >
-        <UserPlus size={13} aria-hidden />
         Asignar{seleccionados.length > 0 ? ` (${seleccionados.length})` : ''}
-      </button>
+      </Button>
     </form>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Page } from '../../../shared/models/api-response';
 import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
+import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import ConsultarFichasAsesor from './asesor-ficha/ConsultarFichasAsesor';
 import DetalleFichaAsesor from './asesor-ficha/DetalleFichaAsesor';
@@ -49,7 +50,11 @@ export default function AsesorFichaView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        titulo="Mis fichas de perfil"
+        descripcion="Revisa las fichas que asesoras y el historial de sus estados."
+      />
       <Tabs items={VISTAS} valor={vista} onCambiar={setVista} etiqueta="Vistas de mis fichas">
         {vista === 'fichas' && <ConsultarFichasAsesor onSeleccionar={setFichaSeleccionada} />}
         {vista === 'estados' && <EstadosFichasAsesorPanel />}

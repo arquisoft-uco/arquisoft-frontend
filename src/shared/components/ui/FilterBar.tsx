@@ -3,7 +3,8 @@ import { SlidersHorizontal, X } from 'lucide-react';
 import { useClicFuera } from '../../hooks/useClicFuera';
 import Button from './Button';
 import FilterBarBusqueda from './FilterBarBusqueda';
-import FilterBarPanel, { type OrdenFiltro, type SeccionFiltro } from './FilterBarPanel';
+import FilterBarPanel from './FilterBarPanel';
+import type { OrdenFiltro, SeccionFiltro } from './FilterBarSecciones';
 import FilterChip, { type OpcionFiltro } from './FilterChip';
 
 export type { OpcionFiltro, OrdenFiltro, SeccionFiltro };
@@ -19,9 +20,11 @@ const CHIPS =
 const APLICADOS = 'flex flex-wrap items-center gap-2 border-t border-border pt-3';
 const APLICADOS_ETIQUETA = 'text-sm text-on-surface-secondary';
 const APLICADO =
-  'inline-flex h-8 items-center gap-1 rounded-full bg-primary-muted pl-3 pr-1 text-sm font-medium text-primary-muted-foreground';
-const QUITAR = 'inline-flex size-6 items-center justify-center rounded-full hover:bg-primary/10';
-const LIMPIAR_TODO = 'text-sm font-semibold text-primary underline underline-offset-4';
+  'inline-flex h-11 items-center gap-1 rounded-full bg-primary-muted pl-3 pr-1 text-sm font-medium text-primary-muted-foreground sm:h-8';
+const QUITAR =
+  'inline-flex size-11 items-center justify-center rounded-full hover:bg-primary/10 sm:size-6';
+const LIMPIAR_TODO =
+  'inline-flex items-center text-sm font-semibold text-primary underline underline-offset-4 max-sm:min-h-11';
 
 interface Props {
   busqueda: ComponentProps<typeof FilterBarBusqueda>;

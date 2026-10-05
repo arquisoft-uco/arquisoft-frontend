@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 
 const PAGE_SIZE = 10;
@@ -10,6 +10,7 @@ export function useFichasAsesor() {
   const query = useQuery({
     queryKey: ['fichas-perfil', 'asesor', page],
     queryFn: () => fichasPerfilService.getFichasAsesor(page, PAGE_SIZE),
+    placeholderData: keepPreviousData,
   });
 
   return {

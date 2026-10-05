@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import Button from '../../../shared/components/ui/Button';
+import PageHeader from '../../../shared/components/ui/PageHeader';
 import ConsultarFichasPerfilCoordinador from './coordinador/ConsultarFichasPerfilCoordinador';
 import RegistrarFichaPerfil from './RegistrarFichaPerfil';
 
@@ -8,25 +10,19 @@ export default function CoordinadorView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <ConsultarFichasPerfilCoordinador
-        accionHeader={
+      <PageHeader
+        titulo="Fichas de perfil"
+        descripcion="Consulta las fichas, sus estudiantes y su asesor."
+        acciones={
           !registrarAbierto ? (
-            <button
-              type="button"
-              onClick={() => setRegistrarAbierto(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              <Plus size={16} aria-hidden />
-              Nueva Ficha de Perfil
-            </button>
-          ) : undefined
-        }
-        formulario={
-          registrarAbierto ? (
-            <RegistrarFichaPerfil onCerrar={() => setRegistrarAbierto(false)} />
+            <Button icono={Plus} onClick={() => setRegistrarAbierto(true)}>
+              Nueva ficha de perfil
+            </Button>
           ) : undefined
         }
       />
+      {registrarAbierto && <RegistrarFichaPerfil onCerrar={() => setRegistrarAbierto(false)} />}
+      <ConsultarFichasPerfilCoordinador />
     </div>
   );
 }

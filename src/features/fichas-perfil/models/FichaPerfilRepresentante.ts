@@ -3,6 +3,7 @@ export interface FichaPerfilRepresentante {
   titulo: string;
   asesorNombre: string;
   asesorEmail: string;
+  estadoId: string;
   estadoActual: string;
   estadoFechaActualizacion: string;
 }

@@ -1,57 +1,87 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
+import {
+  avanzar,
+  restaurarTemporizadores,
+  usarTemporizadoresFalsos,
+} from '../../../../test-utils/temporizadores';
 import ConsultarFichasPerfilCoordinador from './ConsultarFichasPerfilCoordinador';
 import { useFichasPerfilCoordinador } from '../../hooks/useFichasPerfilCoordinador';
-import type { FichaPerfil } from '../../models/FichaPerfil';
 import type { Page } from '../../../../shared/models/api-response';
+import type { FichaPerfil } from '../../models/FichaPerfil';
 
-vi.mock('../../hooks/useFichasPerfilCoordinador', () => ({
-  useFichasPerfilCoordinador: vi.fn(),
+vi.mock('../../hooks/useFichasPerfilCoordinador', () => ({ useFichasPerfilCoordinador: vi.fn() }));
+vi.mock('./EstudiantesVinculadosPanel', () => ({
+  default: ({ ficha, onCerrar }: { ficha: FichaPerfil; onCerrar: () => void }) => (
+    <div role="dialog" aria-label="Panel de estudiantes">
+      <p>Estudiantes de {ficha.tituloProyecto}</p>
+      <button type="button" onClick={onCerrar}>
+        Cerrar estudiantes
+      </button>
+    </div>
+  ),
+}));
+vi.mock('./CambiarAsesorPanel', () => ({
+  default: ({ ficha }: { ficha: FichaPerfil }) => (
+    <div role="dialog" aria-label="Panel de asesor">
+      <p>Asesor de {ficha.tituloProyecto}</p>
+    </div>
+  ),
 }));
 
-vi.mock('./EstudiantesVinculadosPanel', () => ({ default: () => null }));
-vi.mock('./CambiarAsesorForm', () => ({ default: () => null }));
-
-const FICHA_ANA: FichaPerfil = {
+const FICHA: FichaPerfil = {
   id: 'f-1',
   tituloProyecto: 'Sistema de monitoreo',
   asesorFicha: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
 };
 
-const FICHA_LUIS: FichaPerfil = {
-  id: 'f-2',
-  tituloProyecto: 'Plataforma de tutorías',
-  asesorFicha: { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' },
-};
-
-function crearPagina(content: FichaPerfil[]): Page<FichaPerfil> {
+function crearPagina(
+  content: FichaPerfil[],
+  { totalPages = 1, totalElements = content.length } = {},
+) {
   return {
     content,
     page: 0,
     size: 10,
-    totalElements: content.length,
-    totalPages: 1,
+    totalElements,
+    totalPages,
     first: true,
-    last: true,
+    last: totalPages <= 1,
     empty: content.length === 0,
-  };
+  } as Page<FichaPerfil>;
 }
 
-function crearHookMock(
-  parcial: Partial<ReturnType<typeof useFichasPerfilCoordinador>> = {},
-): ReturnType<typeof useFichasPerfilCoordinador> {
+function crearHookMock(parcial: Partial<ReturnType<typeof useFichasPerfilCoordinador>> = {}) {
   return {
     data: undefined,
     error: null,
     isLoading: false,
     isError: false,
+    isFetching: false,
+    isPlaceholderData: false,
+    refetch: vi.fn(),
     page: 0,
     pageSize: 10,
     goToPage: vi.fn(),
-    refetch: vi.fn(),
+    texto: '',
+    setTexto: vi.fn(),
+    ordenCampo: 'tituloProyecto',
+    ordenDireccion: 'ASC',
+    setOrden: vi.fn(),
+    limpiarFiltros: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useFichasPerfilCoordinador>;
+}
+
+function mockHook(parcial: Partial<ReturnType<typeof useFichasPerfilCoordinador>> = {}) {
+  const hook = crearHookMock(parcial);
+  vi.mocked(useFichasPerfilCoordinador).mockReturnValue(hook);
+  return hook;
+}
+
+function tabla() {
+  return within(screen.getByRole('table', { name: 'Fichas de perfil' }));
 }
 
 describe('ConsultarFichasPerfilCoordinador', () => {
@@ -59,66 +89,156 @@ describe('ConsultarFichasPerfilCoordinador', () => {
     vi.mocked(useFichasPerfilCoordinador).mockReset();
   });
 
-  it('muestra el estado de carga con un texto accesible', () => {
-    vi.mocked(useFichasPerfilCoordinador).mockReturnValue(crearHookMock({ isLoading: true }));
+  afterEach(() => {
+    restaurarTemporizadores();
+  });
 
+  it('muestra un estado de carga accesible mientras llega la primera página', () => {
+    // Arrange
+    mockHook({ isLoading: true });
+
+    // Act
     render(<ConsultarFichasPerfilCoordinador />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando fichas de perfil...');
+    // Assert
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando fichas de perfil…');
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('muestra un aviso con role="alert" cuando la consulta falla', () => {
-    vi.mocked(useFichasPerfilCoordinador).mockReturnValue(
-      crearHookMock({ isError: true, error: new Error('fallo de red') }),
-    );
-
-    render(<ConsultarFichasPerfilCoordinador />);
-
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'No se pudieron cargar las fichas de perfil. Intenta nuevamente.',
-    );
-  });
-
-  it('muestra el contador en plural, una fila por ficha y los slots de cabecera y formulario', () => {
-    vi.mocked(useFichasPerfilCoordinador).mockReturnValue(
-      crearHookMock({ data: crearPagina([FICHA_ANA, FICHA_LUIS]) }),
-    );
-
-    render(
-      <ConsultarFichasPerfilCoordinador
-        accionHeader={<button type="button">Acción de prueba</button>}
-        formulario={<p>Formulario de prueba</p>}
-      />,
-    );
-
-    expect(screen.getByRole('heading', { name: 'Fichas de Perfil' })).toBeInTheDocument();
-    expect(screen.getByText('2 fichas registradas')).toBeInTheDocument();
-    expect(screen.getByText('Sistema de monitoreo')).toBeInTheDocument();
-    expect(screen.getByText('Plataforma de tutorías')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Acción de prueba' })).toBeInTheDocument();
-    expect(screen.getByText('Formulario de prueba')).toBeInTheDocument();
-  });
-
-  it('muestra el contador en singular cuando hay una sola ficha', () => {
-    vi.mocked(useFichasPerfilCoordinador).mockReturnValue(
-      crearHookMock({ data: crearPagina([FICHA_ANA]) }),
-    );
-
-    render(<ConsultarFichasPerfilCoordinador />);
-
-    expect(screen.getByText('1 ficha registrada')).toBeInTheDocument();
-  });
-
-  it('vuelve a consultar cuando se pulsa Actualizar', async () => {
-    const refetch = vi.fn();
-    vi.mocked(useFichasPerfilCoordinador).mockReturnValue(
-      crearHookMock({ data: crearPagina([FICHA_ANA]), refetch }),
-    );
+  it('muestra el error con "Reintentar" que vuelve a consultar y oculta el paginador', async () => {
+    // Arrange
     const user = userEvent.setup();
-
+    const hook = mockHook({ isError: true, error: new Error('fallo') });
     render(<ConsultarFichasPerfilCoordinador />);
-    await user.click(screen.getByRole('button', { name: 'Actualizar' }));
 
-    expect(refetch).toHaveBeenCalledTimes(1);
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se pudieron cargar las fichas de perfil',
+    );
+    expect(hook.refetch).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument();
+  });
+
+  it('resume el total con singular y plural y lista las fichas', () => {
+    // Arrange
+    mockHook({ data: crearPagina([FICHA]) });
+    const { rerender } = render(<ConsultarFichasPerfilCoordinador />);
+
+    // Assert
+    expect(screen.getByText('1 ficha')).toBeInTheDocument();
+    expect(tabla().getByText('Sistema de monitoreo')).toBeInTheDocument();
+
+    // Act
+    mockHook({ data: crearPagina([FICHA], { totalElements: 12, totalPages: 2 }) });
+    rerender(<ConsultarFichasPerfilCoordinador />);
+
+    // Assert
+    expect(screen.getByText('12 fichas')).toBeInTheDocument();
+  });
+
+  it('la búsqueda por título llama a setTexto solo tras el retardo de 300 ms', async () => {
+    // Arrange
+    const user = usarTemporizadoresFalsos();
+    const hook = mockHook({ data: crearPagina([FICHA]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.type(screen.getByRole('textbox', { name: 'Buscar fichas' }), 'monitoreo');
+
+    // Assert
+    expect(hook.setTexto).not.toHaveBeenCalled();
+
+    // Act
+    avanzar(300);
+
+    // Assert
+    expect(hook.setTexto).toHaveBeenCalledWith('monitoreo');
+  });
+
+  it('sin resultados con búsqueda activa "Limpiar filtros" quita la búsqueda', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([]), texto: 'zzz' });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(hook.limpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('"Ver estudiantes" abre el panel de esa ficha sobre la lista y se puede cerrar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([FICHA]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver estudiantes' }));
+
+    // Assert
+    expect(screen.getByText('Estudiantes de Sistema de monitoreo')).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Fichas de perfil' })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar estudiantes' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Panel de estudiantes' })).not.toBeInTheDocument();
+  });
+
+  it('"Cambiar asesor" abre el panel del asesor de esa ficha', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([FICHA]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar asesor' }));
+
+    // Assert
+    expect(screen.getByText('Asesor de Sistema de monitoreo')).toBeInTheDocument();
+  });
+
+  it('el paginador navega a la página siguiente y a la última', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({
+      data: crearPagina([FICHA], { totalElements: 30, totalPages: 3 }),
+    });
+    render(<ConsultarFichasPerfilCoordinador />);
+    const paginador = within(screen.getByRole('navigation', { name: 'Paginación' }));
+
+    // Act
+    await user.click(paginador.getByRole('button', { name: 'Página siguiente' }));
+    await user.click(paginador.getByRole('button', { name: 'Página 3' }));
+
+    // Assert
+    expect(hook.goToPage).toHaveBeenNthCalledWith(1, 1);
+    expect(hook.goToPage).toHaveBeenNthCalledWith(2, 2);
+  });
+
+  it('ordenar por una cabecera llama a setOrden con el campo y la dirección', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([FICHA]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Asesor' }));
+
+    // Assert
+    expect(hook.setOrden).toHaveBeenCalledWith('asesorNombre', 'ASC');
   });
 });
