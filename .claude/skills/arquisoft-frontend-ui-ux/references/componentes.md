@@ -6,7 +6,7 @@ compilador de Tailwind y en el navegador con `getComputedStyle`**. Las de las pi
 `DataTable`, `FilterBar` y `PaginadorListado`) están copiadas del código tal como quedó: se compilaron, se vieron en
 `/usuarios` con datos reales a 1280, 390 y 320 px y se midió su cascada con `getComputedStyle` (campo de búsqueda, chips,
 ítem de peligro, números del paginador, contador del botón «Filtros», filtros aplicados, popover y hoja). **No se vieron en
-pantalla** los puntos suspensivos del paginador ni el paginador ampliado de `EstadosFichasAsesorPanel` (una sola página), y
+pantalla** los puntos suspensivos del paginador ni el paginador ampliado (no se ve en ninguna pantalla actual con una sola página), y
 la acción deshabilitada del menú y la insignia «Dado de baja» se midieron en un DOM temporal, no en la pantalla. Las de las
 piezas de formularios y superposiciones (`FormSection`, `FormActions`, `ErrorSummary`, `SidePanel`, `Switch`, `ConfirmDialog`,
 `Toaster` y `Field.corto`) también están copiadas del código tal como quedó: se compilaron (`@tailwindcss/node` 4.2.2, sin
@@ -421,7 +421,7 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
 ### FilterBar
 
 - **Reemplaza:** `FiltrosUsuariosPanel`, el formulario de filtros de `ConsultarFichasRepresentante`, el de
-  `EstadosFichasAsesorPanel` y las pestañas por rol de Usuarios.
+  la lista de estados del asesor (eliminada en HT-UX-06-AJ1) y las pestañas por rol de Usuarios.
 - **Archivos:** `FilterBar.tsx` (la tarjeta, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo; su
   borrador y su retardo viven en el hook `useTextoConRetardo`), `FilterChip.tsx` (chip de selección, `aria-pressed`; declara
   `OpcionFiltro = { id; etiqueta }`), `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón
@@ -579,7 +579,7 @@ RowMenu.separador | my-1.5 h-px bg-border
 ### DataTable
 
 - **Reemplaza:** `UsuariosTable`, `UsuariosRolTable`, `FichasPerfilTable`, las tablas de `ConsultarFichasAsesor`,
-  `ConsultarFichasRepresentante` y `EstadosFichasAsesorPanel`.
+  `ConsultarFichasRepresentante` y la lista de estados del asesor (eliminada en HT-UX-06-AJ1).
 - **API:** `columnas: ColumnaTabla<T>[]` (`{ id; encabezado; celda: (fila) => ReactNode; ordenable?; clave? }`), `filas`,
   `idDeFila: (fila) => string`, `etiqueta` (obligatoria; va al `aria-label` de la tabla y de la lista de tarjetas), `orden?: { clave;
   direccion: 'ASC' | 'DESC' }`, `onOrdenar?: (clave, direccion) => void`, `acciones?: (fila) => ReactNode` (una función que devuelve

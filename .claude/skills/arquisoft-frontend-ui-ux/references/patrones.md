@@ -112,7 +112,7 @@ o con revisión previa; mientras nadie la use, no se crea una ruta de formulario
 PageHeader   migas: Fichas de perfil › {título}
              h1 título  [Badge de estado]  ·  actualizada el … · 3 estudiantes
 Layout       principal                                  | lateral (resumen)
-             Tabs: Ítems 4 | Historial de estados       | Estado · Asesor · Equipo
+             Tabs: Ítems 4 | Estados                 | Estado · Asesor · Equipo
              contenido de la pestaña                    | acciones propias del rol
 ```
 
@@ -137,7 +137,11 @@ Layout       principal                                  | lateral (resumen)
 - **El estudiante** ve su ficha en la raíz del módulo (`EstudianteView`, sin ruta propia: las pestañas «Ítems» e
   «Historial de estados» son estado de React). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
-  una línea de tiempo (`<ol>`) con «Actual» en el estado más reciente.
+  una línea de tiempo (`LineaTiempoEstados`, un `<ol>`) con «Actual» en el estado más reciente. En el diagrama, la
+  pestaña se llama «Historial de estados» solo para el estudiante.
+- **Asesor:** la pestaña «Estados» (subruta `/estados`) muestra el historial de esa ficha con la misma
+  `LineaTiempoEstados`, ordenado por fecha en el cliente (el backend solo ordena por título), y debajo «Cambiar
+  estado» deshabilitado mientras no exista el endpoint.
 
 ## 5. Inicio por rol
 
