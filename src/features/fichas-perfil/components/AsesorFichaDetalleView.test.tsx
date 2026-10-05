@@ -12,7 +12,6 @@ import AsesorFichaDetalleView from './AsesorFichaDetalleView';
 
 vi.mock('../hooks/useEstudiantesVinculados', () => ({ useEstudiantesVinculados: vi.fn() }));
 vi.mock('./asesor-ficha/ItemsFichaAsesorPanel', () => ({ default: () => <div>Panel ítems</div> }));
-vi.mock('./EstadosFichaPanel', () => ({ default: () => <div>Panel estados</div> }));
 
 function entrarComo(...roles: Rol[]) {
   setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles } } });

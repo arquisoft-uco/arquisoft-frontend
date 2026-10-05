@@ -2,7 +2,7 @@ import type { ComponentType } from 'react';
 import { Navigate, useParams } from 'react-router';
 import { Rol } from '../../../shared/models/rol';
 import { useRolActivo } from '../../../hooks/useAuth';
-import EstadosFichaPanel from './EstadosFichaPanel';
+import EstadosFichaAsesorPanel from './asesor-ficha/EstadosFichaAsesorPanel';
 import ItemsFichaAsesorPanel from './asesor-ficha/ItemsFichaAsesorPanel';
 import ItemsFichaRepresentantePanel from './representante/ItemsFichaRepresentantePanel';
 import RegistrarEvaluacionPanel from './representante/RegistrarEvaluacionPanel';
@@ -16,7 +16,7 @@ const PANEL_POR_PESTANA: Record<Pestana, Record<string, PanelDeFicha>> = {
     [Rol.AsesorFicha]: ItemsFichaAsesorPanel,
     [Rol.RepresentanteComiteCurriculum]: ItemsFichaRepresentantePanel,
   },
-  estados: { [Rol.AsesorFicha]: EstadosFichaPanel },
+  estados: { [Rol.AsesorFicha]: EstadosFichaAsesorPanel },
   evaluaciones: { [Rol.RepresentanteComiteCurriculum]: RegistrarEvaluacionPanel },
 };
 

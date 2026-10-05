@@ -22,7 +22,9 @@ vi.mock('./components/representante/ItemsFichaRepresentantePanel', () => ({
     <div>Ítems representante {fichaPerfilId}</div>
   ),
 }));
-vi.mock('./components/EstadosFichaPanel', () => ({ default: () => <div>Panel estados</div> }));
+vi.mock('./components/asesor-ficha/EstadosFichaAsesorPanel', () => ({
+  default: () => <div>Panel estados</div>,
+}));
 vi.mock('./components/representante/RegistrarEvaluacionPanel', () => ({
   default: () => <div>Panel evaluaciones</div>,
 }));

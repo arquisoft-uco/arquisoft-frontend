@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-04.
+Última revisión: 2026-10-05.
 
 ## Bloqueados por el backend
 
@@ -13,14 +13,14 @@ Al resolver un pendiente, se borra de aquí.
 | B1 | **HU-206 — cambiar el estado de una ficha** | El backend no tiene endpoint para esto: solo asigna el estado inicial al registrar la ficha (PR #55 y #56). El service apunta a `POST /fichas-perfil/estados`, que responde 405 (reproducido en la UI el 2026-10-02). Hace falta ruta, rol que lo ejecuta y reglas de transición (qué estados puede asignar el asesor). Al publicarse, el cambio en el frontend es apuntar `agregarEstadoFichaPerfil` a la ruta real y quitar el `// Pendiente` | Backend (Juan Fernando) |
 | B2 | **Catálogo de estados del representante incompleto** | `GET /fichas-perfil/estados-ficha` filtra por rol y al representante no le llega `DISPONIBLE_PARA_EVALUACION`, por lo que el filtro del listado no lo ofrece. El inicio del representante filtra su bandeja «Fichas por evaluar» con el id fijo `DISPONIBLE_PARA_EVALUACION` (`dashboardService`) y la ordena por título: `FichaPerfilCriteria` no admite orden por fecha de actualización | Backend (Juan Fernando) |
 | B3 | **Client roles de Keycloak sin confirmar** | Pueden faltar en el realm desplegado (no se pudo verificar; el export de `arquisoft-infra` es del 2026-09-11 y está desactualizado). Si faltan, con login real se llega a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota. Ver lista abajo | Infra / backend |
-| B4 | Mejoras menores del backend | Consulta de fichas del estudiante con `INNER JOIN`: una ficha sin estado o sin asesor se omite. Falta `esJurado` en el listado unificado de usuarios (a la espera de HU-252). No hay endpoint para que el estudiante obtenga su coordinador (solicitudes). El listado de estados de las fichas del asesor (HU-205) no tiene orden secundario: las filas con el mismo título no tienen orden determinista entre páginas | Backend |
+| B4 | Mejoras menores del backend | Consulta de fichas del estudiante con `INNER JOIN`: una ficha sin estado o sin asesor se omite. Falta `esJurado` en el listado unificado de usuarios (a la espera de HU-252). No hay endpoint para que el estudiante obtenga su coordinador (solicitudes). El endpoint de estados del asesor (HU-205) solo ordena por título: el detalle ordena por fecha en el cliente | Backend |
 | B5 | **Detalle de ficha para asesor y representante** | (a) No existe `GET /fichas-perfil/{id}` para estos roles: abrir el detalle por URL directa o recargar en otra pestaña muestra el título genérico «Ficha de perfil», sin estado ni asesor. (b) `FichaPerfilCriteria` no filtra por `id`, así que tampoco se puede recuperar la ficha por el listado. (c) `fichas:estudiante-ficha-perfil-coordinador:view` no la tienen `asesor-ficha` ni `representante-comite`, por eso el detalle omite la sección «Equipo». (d) El backend no lista las observaciones ni el historial de estados de una evaluación | Backend |
 
 Client roles a confirmar en el realm desplegado:
 
 - `fichas:ficha-perfil-coordinador:view` para `representante-comite` (listado de HU-160). Con `dev-user` carga; falta probar con un usuario que solo tenga ese rol.
 - `fichas:estado-ficha:view` para los roles que consultan el catálogo de estados.
-- `fichas:estado-ficha-perfil-asesor:view` para el asesor de ficha (estados de sus fichas, HU-205), sin verificar en el realm export: un 403 con login real lleva a `/forbidden`.
+- `fichas:estado-ficha-perfil-asesor:view` para el asesor de ficha (historial de estados de una ficha en su detalle, HU-205), sin verificar en el realm export: un 403 con login real lleva a `/forbidden`.
 - `fichas:estudiante-ficha-perfil-estudiante:view` para el estudiante (compañeros de su ficha, HU-039); el frontend ya no consume el endpoint (Equipo sale de `integrantes` de «mi ficha»); falta el permiso en el realm si se quiere volver a usar.
 - `usuarios:usuario-administrador:view`, `usuarios:*-vigente:view`, `usuarios:estado-usuario:view`, `usuarios:usuario-estado:update`, `usuarios:usuario:update` y `usuarios:*:delete` para el administrador.
 - `solicitudes:solicitud:create` para el estudiante.
