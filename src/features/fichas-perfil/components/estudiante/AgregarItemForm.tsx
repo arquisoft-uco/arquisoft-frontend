@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,7 +10,12 @@ import {
   hasApiErrorCode,
 } from '../../../../shared/utils/api-error';
 import { LIMITES, opcionRequerida, textoRequerido } from '../../../../shared/validation';
-import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
+import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
+import Field from '../../../../shared/components/ui/Field';
+import FormActions from '../../../../shared/components/ui/FormActions';
+import Notice from '../../../../shared/components/ui/Notice';
+import SidePanel from '../../../../shared/components/ui/SidePanel';
+import SelectorTipoItem from './SelectorTipoItem';
 
 const schema = z.object({
   tipoItemId: opcionRequerida(),
@@ -18,48 +24,53 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const ID_FORMULARIO = 'agregar-item';
+const ETIQUETAS = { tipoItemId: 'Tipo de ítem', contenido: 'Contenido' };
 const CAMPO_POR_FIELD: Record<string, keyof FormValues> = {
   tipoItem: 'tipoItemId',
   contenido: 'contenido',
 };
+const FORMULARIO = 'flex flex-col gap-5';
 
 interface Props {
   onCerrar: () => void;
 }
 
 export default function AgregarItemForm({ onCerrar }: Props) {
-  const { fichaId, tiposItem, isLoading, agregar } = useItemsMiFicha();
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isValid },
-  } = useForm<FormValues>({
+  const { fichaId, items, tiposItem, cargandoTipos, errorTipos, agregar } = useItemsMiFicha();
+  const [resumenVisible, setResumenVisible] = useState(false);
+  const formulario = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { tipoItemId: '', contenido: '' },
-    mode: 'onChange',
+    mode: 'onTouched',
   });
+  const { register, setError, setFocus, watch } = formulario;
+  const { errors, isDirty } = formulario.formState;
 
-  const sinTipos = !isLoading && tiposItem.length === 0;
+  const usados = items.map((i) => i.tipoItem.id);
+  const sinCatalogo = !cargandoTipos && (errorTipos || tiposItem.length === 0);
+  const todosUsados = !sinCatalogo && tiposItem.every((t) => usados.includes(t.id));
+  const sinDisponibles = sinCatalogo || todosUsados;
+  const errores = resumenVisible ? resumirErrores(errors, ETIQUETAS) : [];
 
-  function handleCancelar() {
-    reset();
+  function cerrar() {
+    formulario.reset();
     agregar.reset();
     onCerrar();
   }
 
-  function onSubmit(values: FormValues) {
+  function irAlCampo(campo: string) {
+    if (campo === 'tipoItemId' || campo === 'contenido') setFocus(campo);
+  }
+
+  function enviar(values: FormValues) {
     if (!fichaId) return;
     agregar.mutate(
       { fichaPerfilId: fichaId, tipoItemId: values.tipoItemId, contenido: values.contenido },
       {
         onSuccess: () => {
           toast.success('Ítem agregado', 'El ítem se registró correctamente.');
-          reset();
-          agregar.reset();
-          onCerrar();
+          cerrar();
         },
         onError: (err) => {
           const mensaje = getApiErrorMessage(err, 'No se pudo registrar el ítem.');
@@ -71,81 +82,69 @@ export default function AgregarItemForm({ onCerrar }: Props) {
             const campo = CAMPO_POR_FIELD[field];
             if (campo) setError(campo, { message });
           });
+          setResumenVisible(true);
         },
       },
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-3"
-      aria-label="Agregar ítem a la ficha"
-    >
-      {sinTipos && <AvisoNoDisponible recurso="tipos de ítem" />}
-
-      <div>
-        <label htmlFor="item-tipo" className="field-label">
-          Tipo de ítem <span aria-hidden>*</span>
-        </label>
-        <select
-          id="item-tipo"
-          className="field-input"
-          aria-invalid={!!errors.tipoItemId}
-          aria-describedby={errors.tipoItemId ? 'item-tipo-error' : undefined}
-          aria-busy={isLoading}
-          {...register('tipoItemId')}
-        >
-          <option value="">{isLoading ? 'Cargando tipos…' : 'Selecciona un tipo'}</option>
-          {tiposItem.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.nombre}
-            </option>
-          ))}
-        </select>
-        {errors.tipoItemId && (
-          <p id="item-tipo-error" className="field-error" role="alert">
-            {errors.tipoItemId.message}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="item-contenido" className="field-label">
-          Contenido <span aria-hidden>*</span>
-        </label>
-        <textarea
-          id="item-contenido"
-          rows={4}
-          maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-          className="field-input"
-          aria-invalid={!!errors.contenido}
-          aria-describedby={errors.contenido ? 'item-contenido-error' : undefined}
-          {...register('contenido')}
+    <SidePanel
+      titulo="Agregar ítem"
+      descripcion="Elige un tipo y escribe el contenido."
+      sucio={isDirty}
+      ocupado={agregar.isPending}
+      onCerrar={cerrar}
+      pie={(solicitarCierre) => (
+        <FormActions
+          formId={ID_FORMULARIO}
+          accion="Agregar ítem"
+          accionEnviando="Agregando…"
+          enviando={agregar.isPending}
+          sucio={isDirty}
+          sinCambios={!fichaId || sinDisponibles}
+          nota={sinDisponibles ? 'Sin tipos de ítem disponibles' : undefined}
+          onCancelar={solicitarCierre}
         />
-        {errors.contenido && (
-          <p id="item-contenido-error" className="field-error" role="alert">
-            {errors.contenido.message}
-          </p>
+      )}
+    >
+      <form
+        id={ID_FORMULARIO}
+        noValidate
+        aria-busy={agregar.isPending}
+        onSubmit={formulario.handleSubmit(enviar, () => setResumenVisible(true))}
+        className={FORMULARIO}
+      >
+        {sinCatalogo && (
+          <Notice variante="advertencia">No hay tipos de ítem disponibles por ahora.</Notice>
         )}
-      </div>
-
-      <div className="actions-row">
-        <button
-          type="button"
-          onClick={handleCancelar}
-          className="rounded-lg border border-border px-3 py-2 text-sm text-on-surface hover:bg-muted"
+        {todosUsados && (
+          <Notice variante="advertencia">Tu ficha ya tiene un ítem de cada tipo.</Notice>
+        )}
+        <SelectorTipoItem
+          tipos={tiposItem}
+          usados={usados}
+          cargando={cargandoTipos}
+          error={errors.tipoItemId?.message}
+          registro={register('tipoItemId')}
+        />
+        <Field
+          etiqueta="Contenido"
+          error={errors.contenido?.message}
+          contador={{ actual: watch('contenido').length, max: LIMITES.ITEM_CONTENIDO_MAX }}
         >
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={!isValid || !fichaId || sinTipos || agregar.isPending}
-          className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-        >
-          {agregar.isPending ? 'Agregando…' : 'Agregar'}
-        </button>
-      </div>
-    </form>
+          {(control) => (
+            <textarea
+              rows={6}
+              maxLength={LIMITES.ITEM_CONTENIDO_MAX}
+              className="field-input"
+              {...register('contenido')}
+              {...control}
+            />
+          )}
+        </Field>
+        <ErrorSummary errores={errores} onIrAlCampo={irAlCampo} />
+      </form>
+    </SidePanel>
   );
 }

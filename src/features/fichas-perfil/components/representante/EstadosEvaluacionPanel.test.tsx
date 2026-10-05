@@ -44,8 +44,9 @@ describe('EstadosEvaluacionPanel', () => {
 
     // Assert
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'No se pudieron cargar los estados de evaluación. Intenta nuevamente.',
+      'No se pudieron cargar los estados de evaluación',
     );
+    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument();
   });
 
   it('lista cada estado con su nombre y descripción bajo el título', async () => {
@@ -62,5 +63,16 @@ describe('EstadosEvaluacionPanel', () => {
       expect(screen.getByText(estado.descripcion)).toBeInTheDocument();
     }
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('con el catálogo vacío muestra el estado vacío', async () => {
+    // Arrange
+    getEstadosEvaluacion.mockResolvedValue([]);
+
+    // Act
+    render(<EstadosEvaluacionPanel />);
+
+    // Assert
+    expect(await screen.findByText('No hay estados de evaluación registrados')).toBeInTheDocument();
   });
 });

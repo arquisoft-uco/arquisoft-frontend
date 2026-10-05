@@ -80,8 +80,8 @@ src/
 ├── main.tsx                  # Punto de entrada de la aplicación
 ├── router.tsx                # Definición de rutas (React Router)
 ├── vite-env.d.ts             # Tipos de variables de entorno VITE_*
-├── tailwind.css              # Estilos base de Tailwind CSS
-├── index.css                 # Estilos globales
+├── tailwind.css              # Tokens de diseño (@theme) y animaciones
+├── index.css                 # Estilos globales y primitivas mobile first
 │
 ├── api/                      # Cliente HTTP (Axios + interceptores)
 │   └── axiosInstance.ts
@@ -93,7 +93,7 @@ src/
 │   └── devAuth.ts            # Bypass de autenticación para desarrollo local
 │
 ├── features/                 # Módulos de negocio (feature-based)
-│   ├── dashboard/
+│   ├── dashboard/            # Inicio por rol con datos reales (service, hooks, models y utils propios)
 │   ├── seleccionar-rol/
 │   ├── artefactos/
 │   ├── biblioteca/
@@ -117,21 +117,25 @@ src/
 ├── layout/                   # Shell de la aplicación
 │   ├── AppLayout.tsx         # Layout principal (Header + Sidebar + contenido)
 │   ├── Header.tsx
+│   ├── MenuCuenta.tsx
+│   ├── SelectorRol.tsx
 │   ├── Sidebar.tsx
+│   ├── SidebarGrupo.tsx
 │   └── nav-items.ts          # Configuración de navegación
 │
 ├── shared/                   # Código compartido entre features
-│   ├── components/           # Componentes reutilizables (loaders, dialogs, etc.)
-│   ├── hooks/                # Hooks reutilizables (useToast, etc.)
+│   ├── components/           # Componentes reutilizables (loaders, dialogs, etc.); ui/ es el kit de piezas base
+│   ├── hooks/                # Hooks reutilizables (useToast, useTrampaDeFoco, useDebouncedValue, useTextoConRetardo, etc.)
 │   ├── models/               # Interfaces compartidas (Page<T>, ApiResponse<T>, Rol)
 │   ├── stores/               # Estado de UI global (toastStore)
-│   ├── utils/                # Utilidades (manejo de errores de API, monitoring)
+│   ├── utils/                # Utilidades (manejo de errores de API, monitoring, estado → variante de insignia)
 │   └── validation/           # Validación reutilizable alineada al backend (límites, regex, mensajes, validadores Zod)
 │
 └── test-utils/               # Utilidades de testing
     ├── setup.ts
     ├── render.tsx
     ├── store.utils.ts
+    ├── temporizadores.ts     # Temporizadores falsos para pruebas con retardo
     ├── keycloak.mock.ts
     ├── arquitectura.ts       # Mediciones del test estructural (grafo de imports)
     └── arquitectura.baseline.ts  # Deuda previa conocida; solo decrece
@@ -145,8 +149,10 @@ Cada feature sigue la estructura de `fichas-perfil/` como referencia:
 features/<nombre-feature>/
 ├── <NombreFeature>.tsx       # Componente principal (página)
 ├── components/               # Componentes internos del feature
+├── hooks/                    # React Query sobre el service, un hook por caso de uso
 ├── models/                   # Interfaces y tipos del dominio
-└── services/                 # Servicios HTTP y lógica de negocio
+├── services/                 # Servicios HTTP y lógica de negocio
+└── utils/                    # Lógica pura de la feature (opcional)
 ```
 
 ### Validaciones compartidas

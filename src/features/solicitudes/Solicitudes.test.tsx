@@ -49,7 +49,7 @@ describe('Solicitudes', () => {
     expect(
       screen.queryByRole('heading', { name: 'Enviar solicitud de novedad al coordinador' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
+    expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
   it('muestra ComingSoon cuando el rol activo no tiene vista real de HU-081', () => {
@@ -57,7 +57,7 @@ describe('Solicitudes', () => {
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
-    expect(screen.getByText('En construcción')).toBeInTheDocument();
+    expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).not.toBeInTheDocument();
@@ -71,6 +71,6 @@ describe('Solicitudes', () => {
     expect(
       screen.getByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).toBeInTheDocument();
-    expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 });

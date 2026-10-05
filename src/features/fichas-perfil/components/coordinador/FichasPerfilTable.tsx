@@ -1,153 +1,121 @@
-import { useState, Fragment } from 'react';
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { SearchX, UserCog, Users } from 'lucide-react';
+import Button from '../../../../shared/components/ui/Button';
+import DataTable from '../../../../shared/components/ui/DataTable';
+import type { ColumnaTabla, OrdenTabla } from '../../../../shared/components/ui/DataTable';
+import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
+import type { OrdenDireccion } from '../../hooks/useFichasPerfilCoordinador';
 import type { FichaPerfil } from '../../models/FichaPerfil';
-import EstudiantesVinculadosPanel from './EstudiantesVinculadosPanel';
-import CambiarAsesorForm from './CambiarAsesorForm';
+import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
+import { EstadoYFechaTarjeta, AsesorDeFicha, TituloFicha } from '../FichaCeldas';
+import { columnaAsesor, columnasEstado } from '../columnasFicha';
+
+function esOrdenCampo(clave: string): clave is OrdenCampoFicha {
+  return clave === 'tituloProyecto' || clave === 'asesorNombre';
+}
 
 interface Props {
   fichas: FichaPerfil[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
+  cargando: boolean;
+  hayFiltros: boolean;
+  orden: OrdenTabla;
+  onOrdenar: (campo: OrdenCampoFicha, direccion: OrdenDireccion) => void;
+  onVerEstudiantes: (ficha: FichaPerfil) => void;
+  onCambiarAsesor: (ficha: FichaPerfil) => void;
+  onLimpiarFiltros: () => void;
 }
 
 export default function FichasPerfilTable({
   fichas,
-  totalElements,
-  totalPages,
-  page,
-  pageSize,
-  onPageChange,
+  cargando,
+  hayFiltros,
+  orden,
+  onOrdenar,
+  onVerEstudiantes,
+  onCambiarAsesor,
+  onLimpiarFiltros,
 }: Props) {
-  const [fichaExpandida, setFichaExpandida] = useState<string | null>(null);
-  const [fichaAsesorExpandida, setFichaAsesorExpandida] = useState<string | null>(null);
+  const columnas: ColumnaTabla<FichaPerfil>[] = [
+    {
+      id: 'ficha',
+      encabezado: 'Ficha',
+      clave: 'tituloProyecto',
+      ordenable: true,
+      celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} />,
+    },
+    columnaAsesor<FichaPerfil>((ficha) => ficha.asesorFicha),
+    ...columnasEstado<FichaPerfil>((ficha) => ({
+      estadoId: ficha.estado.id,
+      nombre: ficha.estado.nombre,
+      fechaActualizacion: ficha.estado.fechaActualizacion,
+    })),
+  ];
 
-  const from = totalElements === 0 ? 0 : page * pageSize + 1;
-  const to = Math.min(page * pageSize + fichas.length, totalElements);
-
-  function toggleExpandir(id: string) {
-    setFichaExpandida((prev) => (prev === id ? null : id));
+  function ordenar(clave: string, direccion: OrdenDireccion) {
+    if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
   }
 
-  function toggleAsesor(id: string) {
-    setFichaAsesorExpandida((prev) => (prev === id ? null : id));
+  function acciones(ficha: FichaPerfil) {
+    return (
+      <RowMenu
+        etiqueta={`Acciones de la ficha ${ficha.tituloProyecto}`}
+        acciones={[
+          {
+            etiqueta: 'Ver estudiantes',
+            icono: Users,
+            onSeleccionar: () => onVerEstudiantes(ficha),
+          },
+          {
+            etiqueta: 'Cambiar asesor',
+            icono: UserCog,
+            onSeleccionar: () => onCambiarAsesor(ficha),
+          },
+        ]}
+      />
+    );
   }
+
+  const vacio = hayFiltros ? (
+    <EmptyState
+      icono={SearchX}
+      titulo="Sin resultados"
+      descripcion="No hay fichas que coincidan con tu búsqueda o tus filtros."
+      accion={
+        <Button variante="secundario" onClick={onLimpiarFiltros}>
+          Limpiar filtros
+        </Button>
+      }
+    />
+  ) : (
+    <EmptyState
+      icono={Users}
+      titulo="Aún no hay fichas de perfil"
+      descripcion="Registra la primera con «Nueva ficha de perfil»."
+    />
+  );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-        <table className="w-full text-left text-sm" aria-label="Fichas de perfil del coordinador">
-          <thead className="border-b border-border bg-muted/50">
-            <tr>
-              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Título del Proyecto</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Asesor</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Correo del Asesor</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Estudiantes</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-on-surface">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {fichas.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-sm text-on-surface-secondary">
-                  No hay fichas de perfil registradas.
-                </td>
-              </tr>
-            ) : (
-              fichas.map((ficha) => {
-                const expandida = fichaExpandida === ficha.id;
-                const asesorExpandida = fichaAsesorExpandida === ficha.id;
-                return (
-                  <Fragment key={ficha.id}>
-                    <tr className="transition-colors hover:bg-muted/30">
-                      <td className="px-4 py-3 font-medium text-on-surface">{ficha.tituloProyecto}</td>
-                      <td className="px-4 py-3 text-on-surface">{ficha.asesorFicha.nombre}</td>
-                      <td className="px-4 py-3 text-on-surface-secondary">{ficha.asesorFicha.email}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => toggleExpandir(ficha.id)}
-                          aria-expanded={expandida}
-                          aria-label={expandida ? 'Ocultar estudiantes' : 'Ver estudiantes vinculados'}
-                          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-on-surface transition-colors hover:bg-muted"
-                        >
-                          {expandida ? <ChevronUp size={13} aria-hidden /> : <ChevronDown size={13} aria-hidden />}
-                          Estudiantes
-                        </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => toggleAsesor(ficha.id)}
-                          aria-expanded={asesorExpandida}
-                          aria-label={asesorExpandida ? 'Ocultar formulario de cambio de asesor' : 'Cambiar asesor'}
-                          className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-on-surface transition-colors hover:bg-muted"
-                        >
-                          {asesorExpandida ? <ChevronUp size={13} aria-hidden /> : <ChevronDown size={13} aria-hidden />}
-                          Cambiar Asesor
-                        </button>
-                      </td>
-                    </tr>
-                    {expandida && (
-                      <tr className="bg-surface-secondary">
-                        <td colSpan={5} className="p-0">
-                          <EstudiantesVinculadosPanel idFichaPerfil={ficha.id} />
-                        </td>
-                      </tr>
-                    )}
-                    {asesorExpandida && (
-                      <tr className="bg-surface-secondary">
-                        <td colSpan={5} className="p-0">
-                          <CambiarAsesorForm
-                            idFichaPerfil={ficha.id}
-                            idAsesorActual={ficha.asesorFicha.id}
-                            onExito={() => setFichaAsesorExpandida(null)}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                  </Fragment>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-on-surface-secondary">
-            {from}–{to} de {totalElements} fichas
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => onPageChange(page - 1)}
-              disabled={page === 0}
-              aria-label="Página anterior"
-              className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-on-surface transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronLeft size={14} aria-hidden />
-              Anterior
-            </button>
-            <span className="px-3 py-1.5 text-xs text-on-surface-secondary">
-              {page + 1} / {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() => onPageChange(page + 1)}
-              disabled={page >= totalPages - 1}
-              aria-label="Página siguiente"
-              className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-on-surface transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Siguiente
-              <ChevronRight size={14} aria-hidden />
-            </button>
-          </div>
-        </div>
+    <DataTable
+      etiqueta="Fichas de perfil"
+      columnas={columnas}
+      filas={fichas}
+      idDeFila={(ficha) => ficha.id}
+      orden={orden}
+      onOrdenar={ordenar}
+      acciones={acciones}
+      cargando={cargando}
+      vacio={vacio}
+      tarjeta={(ficha) => (
+        <>
+          <TituloFicha titulo={ficha.tituloProyecto} />
+          <AsesorDeFicha nombre={ficha.asesorFicha.nombre} email={ficha.asesorFicha.email} />
+          <EstadoYFechaTarjeta
+            estadoId={ficha.estado.id}
+            nombre={ficha.estado.nombre}
+            iso={ficha.estado.fechaActualizacion}
+          />
+        </>
       )}
-    </div>
+    />
   );
 }

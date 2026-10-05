@@ -3,12 +3,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { PlusCircle } from 'lucide-react';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import Button from '../../../../shared/components/ui/Button';
+import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
+import Notice from '../../../../shared/components/ui/Notice';
+import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../../shared/validation';
-import { useEstadosEvaluacion } from '../../hooks/useEstadosEvaluacion';
 import { useAgregarEstadoEvaluacion } from '../../hooks/useAgregarEstadoEvaluacion';
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import { useEstadosEvaluacion } from '../../hooks/useEstadosEvaluacion';
+import SelectorEstadoEvaluacion from './SelectorEstadoEvaluacion';
 
 const ESTADOS_SELECCIONABLES_IDS = new Set([
   'APROBADA',
@@ -21,49 +26,38 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
+const ETIQUETAS = { estadoEvaluacion: 'Estado' };
+const TARJETA =
+  'flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 animate-fade-up';
+const TITULO = 'flex items-center gap-2 text-sm font-semibold text-on-surface';
+
 interface Props {
   evaluacionId: string;
   fichaPerfilId: string;
 }
 
 export default function AgregarEstadoEvaluacionPanel({ evaluacionId, fichaPerfilId }: Props) {
-  const [confirmarAbierto, setConfirmarAbierto] = useState(false);
-
+  const [confirmando, setConfirmando] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
     watch,
-    formState: { errors, isValid },
+    setFocus,
+    formState: { errors, isSubmitted },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { estadoEvaluacion: '' },
-    mode: 'onChange',
+    mode: 'onTouched',
   });
-
-  const {
-    data: todosEstados = [],
-    isLoading: cargandoEstados,
-    isError: errorEstados,
-  } = useEstadosEvaluacion();
-  const {
-    mutate,
-    reset: resetMutacion,
-    isPending,
-    isError: isErrorMutacion,
-    error,
-  } = useAgregarEstadoEvaluacion(fichaPerfilId);
+  const { data: todosEstados = [], isLoading, isError } = useEstadosEvaluacion();
+  const { mutate, reset: resetMutacion, isPending } = useAgregarEstadoEvaluacion(fichaPerfilId);
 
   const estados = todosEstados.filter((e) => ESTADOS_SELECCIONABLES_IDS.has(e.id));
-  const estadoSeleccionadoId = watch('estadoEvaluacion');
-  const estadoSeleccionado = estados.find((e) => e.id === estadoSeleccionadoId);
+  const seleccionado = estados.find((e) => e.id === watch('estadoEvaluacion'));
 
-  function handleAbrir() {
-    setConfirmarAbierto(true);
-  }
-
-  function handleCancelar() {
-    setConfirmarAbierto(false);
+  function cancelar() {
+    setConfirmando(false);
     resetMutacion();
   }
 
@@ -74,9 +68,9 @@ export default function AgregarEstadoEvaluacionPanel({ evaluacionId, fichaPerfil
         onSuccess: () => {
           toast.success(
             'Estado registrado',
-            `Se registró el estado "${estadoSeleccionado?.nombre ?? ''}" de la evaluación.`,
+            `Se registró el estado "${seleccionado?.nombre ?? ''}" de la evaluación.`,
           );
-          setConfirmarAbierto(false);
+          setConfirmando(false);
           reset();
         },
         onError: (err) => {
@@ -84,32 +78,19 @@ export default function AgregarEstadoEvaluacionPanel({ evaluacionId, fichaPerfil
             'Error al registrar el estado',
             getApiErrorMessage(err, 'Ocurrió un error al registrar el estado. Intenta nuevamente.'),
           );
-          setConfirmarAbierto(false);
+          setConfirmando(false);
         },
       },
     );
   }
 
-  if (cargandoEstados) {
-    return (
-      <div className="flex items-center justify-center py-6" aria-live="polite" aria-busy="true">
-        <div
-          className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"
-          role="status"
-        >
-          <span className="sr-only">Cargando estados...</span>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <Skeleton variante="formulario" etiqueta="Cargando estados…" />;
 
-  if (errorEstados) {
+  if (isError) {
     return (
-      <div className="rounded-xl border border-border bg-surface p-4 text-center" role="alert">
-        <p className="text-sm text-on-surface-secondary">
-          No se pudieron cargar los estados disponibles. Intenta nuevamente.
-        </p>
-      </div>
+      <Notice variante="peligro">
+        No se pudieron cargar los estados disponibles. Intenta nuevamente.
+      </Notice>
     );
   }
 
@@ -117,75 +98,46 @@ export default function AgregarEstadoEvaluacionPanel({ evaluacionId, fichaPerfil
 
   return (
     <>
-      <form
-        onSubmit={handleSubmit(handleAbrir)}
-        noValidate
-        className="rounded-xl border border-border bg-surface p-4 space-y-3 animate-fade-up"
-      >
-        <h4 className="text-sm font-semibold text-on-surface flex items-center gap-2">
+      <form onSubmit={handleSubmit(() => setConfirmando(true))} noValidate className={TARJETA}>
+        <h4 className={TITULO}>
           <PlusCircle size={16} className="text-primary" aria-hidden />
           Registrar nuevo estado
         </h4>
 
-        {sinEstados ? (
-          <p className="text-sm text-on-surface-secondary">
-            No hay estados disponibles para registrar
-          </p>
-        ) : (
-          <div>
-            <label htmlFor="estado-evaluacion-select" className="field-label">
-              Estado
-            </label>
-            <select
-              id="estado-evaluacion-select"
-              className="field-input"
-              aria-invalid={!!errors.estadoEvaluacion}
-              aria-describedby={errors.estadoEvaluacion ? 'estado-evaluacion-error' : undefined}
-              disabled={isPending}
-              {...register('estadoEvaluacion')}
-            >
-              <option value="">Selecciona un estado...</option>
-              {estados.map((estado) => (
-                <option key={estado.id} value={estado.id}>
-                  {estado.nombre}
-                </option>
-              ))}
-            </select>
-            {errors.estadoEvaluacion && (
-              <p id="estado-evaluacion-error" className="field-error" role="alert">
-                {errors.estadoEvaluacion.message}
-              </p>
-            )}
-          </div>
+        {isSubmitted && (
+          <ErrorSummary
+            errores={resumirErrores(errors, ETIQUETAS)}
+            onIrAlCampo={() => setFocus('estadoEvaluacion')}
+          />
         )}
 
-        {isErrorMutacion && (
-          <p className="text-sm text-danger" role="alert">
-            {getApiErrorMessage(error, 'Ocurrió un error al registrar el estado. Intenta nuevamente.')}
-          </p>
+        {sinEstados ? (
+          <Notice variante="info">No hay estados disponibles para registrar</Notice>
+        ) : (
+          <SelectorEstadoEvaluacion
+            estados={estados}
+            error={errors.estadoEvaluacion?.message}
+            deshabilitado={isPending}
+            registro={register('estadoEvaluacion')}
+          />
         )}
 
         <div className="actions-row sm:justify-end">
-          <button
-            type="submit"
-            disabled={!isValid || isPending || sinEstados}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
-          >
-            <PlusCircle size={15} aria-hidden />
+          <Button type="submit" icono={PlusCircle} disabled={sinEstados} cargando={isPending}>
             {isPending ? 'Registrando...' : 'Registrar estado'}
-          </button>
+          </Button>
         </div>
       </form>
 
-      {confirmarAbierto && (
+      {confirmando && (
         <ConfirmDialog
           titulo="Registrar estado de evaluación"
-          descripcion={`¿Confirmas registrar el estado "${estadoSeleccionado?.nombre ?? ''}" para esta evaluación?`}
+          descripcion={`¿Confirmas registrar el estado "${seleccionado?.nombre ?? ''}" para esta evaluación?`}
           labelConfirmar="Registrar estado"
           variante="advertencia"
           cargando={isPending}
           onConfirmar={handleSubmit(registrar)}
-          onCancelar={handleCancelar}
+          onCancelar={cancelar}
         />
       )}
     </>

@@ -24,6 +24,12 @@ const fuentes = import.meta.glob<string>(
   { query: '?raw', import: 'default', eager: true },
 );
 
+const hojaDeEstilos = import.meta.glob<string>('/src/tailwind.css', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
 const configProhibidaEnRaiz = import.meta.glob('/{tailwind,postcss,vitest}.config.*');
 
 const RAIZ_SRC = '/src/';
@@ -39,9 +45,14 @@ const RANGO_DE_CAPA: Record<Capa, number> = {
 const UMBRAL_LINEAS_COMPONENTE = 150;
 const ARCHIVOS_CON_AXIOS = ['api/axiosInstance.ts', 'shared/utils/api-error.ts'];
 const ARCHIVO_CON_STORAGE = 'auth/roleStore.ts';
+const CARPETA_DEL_KIT = 'shared/components/ui';
+const PREFIJO_DATATABLE = 'shared/components/ui/DataTable';
 const MODELO_CON_RUNTIME_PERMITIDO = 'shared/models/rol.ts';
 const COLORES_DE_PALETA =
   'red|blue|green|yellow|gray|slate|zinc|amber|orange|emerald|indigo|sky|purple|pink|rose|neutral|stone|lime|teal|cyan|violet|fuchsia';
+const PREFIJOS_DE_COLOR =
+  'bg|text|border|ring|from|to|via|fill|stroke|divide|outline|decoration|accent|caret|placeholder';
+const NOMBRES_DE_COLOR_SHADCN = 'muted|accent|card|popover|input|destructive|success|warning|info';
 
 const PATRON_IMPORT =
   /(?:import|export)\s[^'"]*?from\s+['"]([^'"]+)['"]|import\s+['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g;
@@ -49,14 +60,27 @@ const PATRON_QUERY_KEY = /(?:queryKey:\s*|\b\w*KEY\w*\s*=\s*)\[\s*'([^']+)'/g;
 const PATRON_TIPO_INSEGURO =
   /\bas unknown as\b|:\s*any\b|<any>|\bas any\b|@ts-ignore|@ts-expect-error/g;
 const PATRON_COLOR_CRUDO = new RegExp(
-  `\\b(?:bg|text|border|ring|from|to|via|fill|stroke|divide|outline|decoration|accent|caret|placeholder)-(?:${COLORES_DE_PALETA})-\\d{2,3}\\b`,
+  `\\b(?:${PREFIJOS_DE_COLOR})-(?:${COLORES_DE_PALETA})-\\d{2,3}\\b`,
   'g',
 );
+// Lookbehind: border-border-input no es border-input. Lookahead: bg-card-elevated no es bg-card.
+const PATRON_COLOR_SIN_TOKEN = new RegExp(
+  `(?<![\\w-])(?:${PREFIJOS_DE_COLOR})-((?:${NOMBRES_DE_COLOR_SHADCN})(?:-foreground)?|foreground)(?![\\w-])`,
+  'g',
+);
+const PATRON_TOKEN_DE_COLOR = /--color-([\w-]+)\s*:/g;
+// Estas reglas no ven clases por interpolación, animate-spin en otro orden ni text-[0.6875rem].
+const PATRON_SPINNER = /animate-spin rounded-full border/g;
+const PATRON_TEXTO_MENOR_A_12PX = /text-\[(?:9|10|11)px\]/g;
+// No ve createElement('table') ni una etiqueta armada por interpolación.
+const PATRON_TABLA = /<table[\s>]/g;
 const PATRON_JSDOC = /\/\*\*/g;
 const PATRON_CONSOLE_LOG = /\bconsole\.log\s*\(/;
 const PATRON_STORAGE = /\b(?:localStorage|sessionStorage)\b/;
 const PATRON_RUNTIME_EN_MODELO =
   /^\s*export\s+(?:const|let|var|function|class|enum|abstract|default)\b/m;
+
+const TOKENS_DE_COLOR = extraerTokensDeColor(Object.values(hojaDeEstilos).join('\n'));
 
 const esTest = (ruta: string) => /\.test\.tsx?$/.test(ruta);
 const esSoporteDeTest = (ruta: string) => ruta.startsWith('test-utils/');
@@ -261,6 +285,60 @@ export function componentesGrandes(): Medicion {
 
 export function coloresCrudos(): Medicion {
   return medirPorArchivo(produccion, ({ contenido }) => contar(contenido, PATRON_COLOR_CRUDO));
+}
+
+export function extraerTokensDeColor(css: string): ReadonlySet<string> {
+  return new Set([...css.matchAll(PATRON_TOKEN_DE_COLOR)].map((m) => m[1]));
+}
+
+export function contarColoresSinToken(
+  contenido: string,
+  tokensDeclarados: ReadonlySet<string>,
+): number {
+  const sinToken = [...contenido.matchAll(PATRON_COLOR_SIN_TOKEN)].filter(
+    (m) => !tokensDeclarados.has(m[1]),
+  );
+  return sinToken.length;
+}
+
+export function tokensDeColorDeclarados(): ReadonlySet<string> {
+  return TOKENS_DE_COLOR;
+}
+
+export function coloresSinToken(): Medicion {
+  return medirPorArchivo(produccion, ({ contenido }) =>
+    contarColoresSinToken(contenido, TOKENS_DE_COLOR),
+  );
+}
+
+export function contarSpinnersCopiados(contenido: string): number {
+  return contar(contenido, PATRON_SPINNER);
+}
+
+export function contarTablasFueraDeDataTable(contenido: string): number {
+  return contar(contenido, PATRON_TABLA);
+}
+
+export function contarTextosMenoresA12px(contenido: string): number {
+  return contar(contenido, PATRON_TEXTO_MENOR_A_12PX);
+}
+
+export function spinnersCopiados(): Medicion {
+  return medirPorArchivo(
+    produccion.filter(({ ruta }) => !dentroDe(ruta, CARPETA_DEL_KIT)),
+    ({ contenido }) => contarSpinnersCopiados(contenido),
+  );
+}
+
+export function tablasFueraDeDataTable(): Medicion {
+  return medirPorArchivo(
+    produccion.filter(({ ruta }) => ruta.endsWith('.tsx') && !ruta.startsWith(PREFIJO_DATATABLE)),
+    ({ contenido }) => contarTablasFueraDeDataTable(contenido),
+  );
+}
+
+export function textosMenoresA12px(): Medicion {
+  return medirPorArchivo(produccion, ({ contenido }) => contarTextosMenoresA12px(contenido));
 }
 
 export function bloquesJsdoc(): Medicion {

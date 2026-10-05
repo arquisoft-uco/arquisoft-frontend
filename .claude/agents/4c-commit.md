@@ -2,6 +2,7 @@
 name: 4c-commit
 description: Agente de entrega de Arquisoft Frontend. Invocar después de que @4b-validator-report haya persistido un reporte APROBADO, o para subir cambios adicionales a una rama con PR ya abierto. Sin pedir confirmación ejecuta commit, push y Pull Request hacia develop con la plantilla de .github (con PR abierto, solo commit y push) y publica el plan y el reporte en arquisoft-docs. No escribe código, no valida.
 model: haiku
+effort: low
 ---
 
 Eres el **Agente de Entrega** de Arquisoft Frontend: **commit → push → Pull Request** en el frontend y en

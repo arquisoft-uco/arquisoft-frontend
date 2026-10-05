@@ -1,3 +1,4 @@
+import Field from '../../../../shared/components/ui/Field';
 import type { MiFichaPerfilResponse } from '../../models/MiFichaPerfilResponse';
 
 interface Props {
@@ -8,22 +9,23 @@ interface Props {
 
 export default function SelectorFichaEstudiante({ fichas, fichaActivaId, onSeleccionar }: Props) {
   return (
-    <div>
-      <label htmlFor="selector-ficha-estudiante" className="field-label">
-        Ficha de perfil
-      </label>
-      <select
-        id="selector-ficha-estudiante"
-        className="field-input"
-        value={fichaActivaId ?? ''}
-        onChange={(e) => onSeleccionar(e.target.value)}
-      >
-        {fichas.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.tituloProyecto}
-          </option>
-        ))}
-      </select>
+    <div className="max-w-sm">
+      <Field etiqueta="Ficha de perfil">
+        {(control) => (
+          <select
+            className="field-input"
+            value={fichaActivaId ?? ''}
+            onChange={(e) => onSeleccionar(e.target.value)}
+            {...control}
+          >
+            {fichas.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.tituloProyecto}
+              </option>
+            ))}
+          </select>
+        )}
+      </Field>
     </div>
   );
 }

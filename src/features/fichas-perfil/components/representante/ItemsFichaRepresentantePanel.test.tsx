@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import ItemsFichaRepresentantePanel from './ItemsFichaRepresentantePanel';
 import { useItemsFichaRepresentante } from '../../hooks/useItemsFichaRepresentante';
 import type { Item } from '../../models/fichas-perfil';
 
+vi.mock('../../hooks/useTiposItem', () => ({ useTiposItem: vi.fn() }));
 vi.mock('../../hooks/useItemsFichaRepresentante', () => ({
   useItemsFichaRepresentante: vi.fn(),
 }));
@@ -15,6 +17,7 @@ function crearHookMock(
     data: undefined,
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useItemsFichaRepresentante>;
 }
@@ -38,42 +41,59 @@ describe('ItemsFichaRepresentantePanel', () => {
     vi.mocked(useItemsFichaRepresentante).mockReset();
   });
 
-  it('muestra el estado de carga con un texto accesible', () => {
+  it('consulta los ítems de la ficha indicada y muestra la carga accesible', () => {
+    // Arrange
     vi.mocked(useItemsFichaRepresentante).mockReturnValue(crearHookMock({ isLoading: true }));
 
+    // Act
     render(<ItemsFichaRepresentantePanel fichaPerfilId="f-1" />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando ítems...');
+    // Assert
+    expect(useItemsFichaRepresentante).toHaveBeenCalledWith('f-1');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando ítems…');
   });
 
-  it('muestra un aviso con role="alert" cuando la consulta falla', () => {
-    vi.mocked(useItemsFichaRepresentante).mockReturnValue(crearHookMock({ isError: true }));
-
+  it('cuando la consulta falla avisa y "Reintentar" vuelve a consultar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = crearHookMock({ isError: true });
+    vi.mocked(useItemsFichaRepresentante).mockReturnValue(hook);
     render(<ItemsFichaRepresentantePanel fichaPerfilId="f-1" />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'No se pudieron cargar los ítems. Intenta nuevamente.',
-    );
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los ítems');
+    expect(hook.refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('muestra el bloque vacío, sin alerta, cuando la ficha no tiene ítems', () => {
+  it('muestra el vacío cuando la ficha no tiene ítems', () => {
+    // Arrange
     vi.mocked(useItemsFichaRepresentante).mockReturnValue(crearHookMock({ data: [] }));
 
+    // Act
     render(<ItemsFichaRepresentantePanel fichaPerfilId="f-1" />);
 
-    expect(screen.getByText('Esta ficha no tiene ítems registrados.')).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    // Assert
+    expect(screen.getByText('Esta ficha aún no tiene ítems.')).toBeInTheDocument();
   });
 
-  it('lista el tipo y el contenido de cada ítem y consulta con el id de la ficha', () => {
-    vi.mocked(useItemsFichaRepresentante).mockReturnValue(crearHookMock({ data: [ITEM_1, ITEM_2] }));
+  it('lista cada ítem con su tipo y su contenido, y ofrece la ayuda de tipos de ítem', () => {
+    // Arrange
+    vi.mocked(useItemsFichaRepresentante).mockReturnValue(
+      crearHookMock({ data: [ITEM_1, ITEM_2] }),
+    );
 
+    // Act
     render(<ItemsFichaRepresentantePanel fichaPerfilId="f-1" />);
 
-    expect(useItemsFichaRepresentante).toHaveBeenCalledWith('f-1');
+    // Assert
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
     expect(screen.getByText('Habilidad técnica')).toBeInTheDocument();
     expect(screen.getByText('React y TypeScript')).toBeInTheDocument();
     expect(screen.getByText('Idioma')).toBeInTheDocument();
     expect(screen.getByText('Inglés B2')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '¿Qué tipos de ítem existen?' })).toBeInTheDocument();
   });
 });

@@ -11,7 +11,10 @@ import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaRespo
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
-import type { EstadoFichaPerfil, AgregarEstadoFichaPerfilRequest } from '../models/EstadoFichaPerfil';
+import type {
+  EstadoFichaPerfil,
+  AgregarEstadoFichaPerfilRequest,
+} from '../models/EstadoFichaPerfil';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
@@ -139,7 +142,8 @@ function aEstadoFichaPerfilAsesor(
 }
 
 // Forma cruda de FichaPerfilResponseDTO (POST /fichas-perfil/coordinador);
-// se traduce a FichaPerfilRepresentante (estadoActual = estado.nombre) en getFichasRepresentante.
+// se traduce a FichaPerfilRepresentante (estadoId = estado.id, estadoActual = estado.nombre)
+// en getFichasRepresentante.
 interface FichaPerfilRepresentanteResponseDTO {
   id: string;
   tituloProyecto: string;
@@ -147,7 +151,9 @@ interface FichaPerfilRepresentanteResponseDTO {
   estado: { id: string; nombre: string; fechaActualizacion: string };
 }
 
-function construirFiltrosRepresentante(filtros: FiltrosFichasRepresentante): NodoFiltroDTO | undefined {
+function construirFiltrosRepresentante(
+  filtros: FiltrosFichasRepresentante,
+): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
   const contiene = (campo: string, valor: string) => {
     const texto = valor.trim();
@@ -191,10 +197,8 @@ export const fichasPerfilService = {
       .patch(`/fichas-perfil/${req.idFicha}/asesor-ficha`, { asesorFicha: req.idAsesorFicha })
       .then(() => undefined),
 
-  getFichasCoordinador: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
-    apiClient
-      .post<Page<FichaPerfil>>('/fichas-perfil/coordinador', { pagina: page, tamanio: size })
-      .then((r) => r.data),
+  getFichasCoordinador: (req: ConsultaCriteriaRequest): Promise<Page<FichaPerfil>> =>
+    apiClient.post<Page<FichaPerfil>>('/fichas-perfil/coordinador', req).then((r) => r.data),
 
   agregarItemFichaPerfil: (req: CrearItemRequest): Promise<ItemCreadoResponse> =>
     apiClient
@@ -209,7 +213,9 @@ export const fichasPerfilService = {
       .patch(`/fichas-perfil/items/${req.itemId}`, { contenido: req.contenido })
       .then(() => undefined),
 
-  registrarEvaluacion: (req: CrearEvaluacionFichaPerfilRequest): Promise<EvaluacionCreadaResponse> =>
+  registrarEvaluacion: (
+    req: CrearEvaluacionFichaPerfilRequest,
+  ): Promise<EvaluacionCreadaResponse> =>
     apiClient
       .post<EvaluacionCreadaResponse>(`/fichas-perfil/${req.fichaPerfilId}/evaluaciones`)
       .then((r) => r.data),
@@ -233,14 +239,10 @@ export const fichasPerfilService = {
       .then((r) => r.data),
 
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
-    apiClient
-      .get<EstadoFicha[]>('/fichas-perfil/estados-ficha')
-      .then((r) => r.data),
+    apiClient.get<EstadoFicha[]>('/fichas-perfil/estados-ficha').then((r) => r.data),
 
   removerItem: (itemId: string): Promise<void> =>
-    apiClient
-      .delete(`/fichas-perfil/items/${itemId}`)
-      .then(() => undefined),
+    apiClient.delete(`/fichas-perfil/items/${itemId}`).then(() => undefined),
 
   consultarEstudiantesVinculados: (idFichaPerfil: string): Promise<EstudianteVinculado[]> =>
     apiClient
@@ -249,9 +251,9 @@ export const fichasPerfilService = {
 
   consultarCompanerosFichaPerfil: (idFichaPerfil: string): Promise<EstudianteVinculado[]> =>
     apiClient
-      .get<EstudianteFichaPerfilResponseDTO[]>(
-        `/fichas-perfil/${idFichaPerfil}/estudiantes/companeros`,
-      )
+      .get<
+        EstudianteFichaPerfilResponseDTO[]
+      >(`/fichas-perfil/${idFichaPerfil}/estudiantes/companeros`)
       .then((r) => r.data.map(aEstudianteVinculado)),
 
   asignarEstudiantes: (req: AsignarEstudianteRequest): Promise<void> =>
@@ -265,14 +267,10 @@ export const fichasPerfilService = {
       .then(() => undefined),
 
   consultarTodosTipoItem: (): Promise<TipoItem[]> =>
-    apiClient
-      .get<TipoItem[]>('/fichas-perfil/tipos-item')
-      .then((r) => r.data),
+    apiClient.get<TipoItem[]>('/fichas-perfil/tipos-item').then((r) => r.data),
 
   getEstadosEvaluacion: (): Promise<EstadoEvaluacion[]> =>
-    apiClient
-      .get<EstadoEvaluacion[]>('/fichas-perfil/estados-evaluacion')
-      .then((r) => r.data),
+    apiClient.get<EstadoEvaluacion[]>('/fichas-perfil/estados-evaluacion').then((r) => r.data),
 
   getFichasAsesor: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
     apiClient
@@ -296,7 +294,9 @@ export const fichasPerfilService = {
 
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>
     apiClient
-      .get<EvaluacionFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/evaluaciones/representante`)
+      .get<
+        EvaluacionFichaPerfilResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/representante`)
       .then((r) =>
         r.data.map((dto) => ({
           id: dto.id,
@@ -326,8 +326,10 @@ export const fichasPerfilService = {
     page: number,
     size: number,
     filtros: FiltrosFichasRepresentante,
+    ordenamiento?: string[],
   ): Promise<Page<FichaPerfilRepresentante>> => {
     const body: ConsultaCriteriaRequest = { pagina: page, tamanio: size };
+    if (ordenamiento) body.ordenamiento = ordenamiento;
     const nodo = construirFiltrosRepresentante(filtros);
     if (nodo) body.filtros = nodo;
     return apiClient
@@ -339,6 +341,7 @@ export const fichasPerfilService = {
           titulo: dto.tituloProyecto,
           asesorNombre: dto.asesorFicha.nombre,
           asesorEmail: dto.asesorFicha.email,
+          estadoId: dto.estado.id,
           estadoActual: dto.estado.nombre,
           estadoFechaActualizacion: dto.estado.fechaActualizacion,
         })),
@@ -349,7 +352,5 @@ export const fichasPerfilService = {
 
   // Pendiente: sin endpoint en el backend.
   agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
-    apiClient
-      .post<EstadoFichaPerfil>('/fichas-perfil/estados', req)
-      .then((r) => r.data),
+    apiClient.post<EstadoFichaPerfil>('/fichas-perfil/estados', req).then((r) => r.data),
 };

@@ -4,12 +4,22 @@ import {
   bloquesJsdoc,
   ciclosEstaticos,
   coloresCrudos,
+  coloresSinToken,
   compararConBaseline,
   componentesGrandes,
   configuracionProhibida,
   consolesLog,
+  contarColoresSinToken,
+  contarSpinnersCopiados,
+  contarTablasFueraDeDataTable,
+  contarTextosMenoresA12px,
+  extraerTokensDeColor,
   queryKeysFueraDeConvencion,
+  spinnersCopiados,
+  tablasFueraDeDataTable,
+  textosMenoresA12px,
   tiposInseguros,
+  tokensDeColorDeclarados,
   usosDeStorage,
   violacionesDeCapas,
   violacionesDeHooks,
@@ -201,6 +211,57 @@ describe('Arquitectura: convenciones con deuda conocida', () => {
     );
   });
 
+  it('toda utilidad de color con nombre de convención shadcn tiene su --color-* en @theme', () => {
+    // Act
+    const problemas = compararConBaseline(coloresSinToken(), BASELINE.coloresSinToken);
+
+    // Assert
+    exigir(
+      problemas,
+      `Define el token en @theme de src/tailwind.css o usa uno existente: Tailwind descarta en silencio ` +
+        `una utilidad cuya variable no existe. ${AYUDA_BASELINE}`,
+    );
+  });
+
+  it('el spinner solo vive en shared/components/ui', () => {
+    // Act
+    const problemas = compararConBaseline(spinnersCopiados(), BASELINE.spinnersCopiados);
+
+    // Assert
+    exigir(
+      problemas,
+      `Usa Skeleton (carga con forma conocida) o el prop cargando de ` +
+        `Button: el único spinner vive en src/shared/components/ui/. ${AYUDA_BASELINE}`,
+    );
+  });
+
+  it('las tablas solo se escriben con DataTable', () => {
+    // Act
+    const problemas = compararConBaseline(
+      tablasFueraDeDataTable(),
+      BASELINE.tablasFueraDeDataTable,
+    );
+
+    // Assert
+    exigir(
+      problemas,
+      `Usa DataTable (src/shared/components/ui/): ordena desde la cabecera, pasa a tarjetas en celular y ` +
+        `trae sus estados de carga y vacío. ${AYUDA_BASELINE}`,
+    );
+  });
+
+  it('ningún texto usa menos de 12 px', () => {
+    // Act
+    const problemas = compararConBaseline(textosMenoresA12px(), BASELINE.textosMenoresA12px);
+
+    // Assert
+    exigir(
+      problemas,
+      `Usa text-xs (12 px) como mínimo: el piso tipográfico es 12 px (tokens.md §4 de ` +
+        `arquisoft-frontend-ui-ux). ${AYUDA_BASELINE}`,
+    );
+  });
+
   it('no se agregan bloques JSDoc', () => {
     // Act
     const problemas = compararConBaseline(bloquesJsdoc(), BASELINE.bloquesJsdoc);
@@ -211,6 +272,132 @@ describe('Arquitectura: convenciones con deuda conocida', () => {
       `El código se autodocumenta con el naming; un comentario de una línea solo cuando explica un porqué. ` +
         AYUDA_BASELINE,
     );
+  });
+});
+
+describe('Arquitectura: la regla de colores sin token', () => {
+  it('acepta una utilidad cuyo token está declarado, con variante y con opacidad', () => {
+    // Arrange
+    const declarados = new Set(['muted', 'muted-foreground']);
+    const clases = 'hover:bg-muted bg-muted/50 text-muted-foreground';
+
+    // Act
+    const sinToken = contarColoresSinToken(clases, declarados);
+
+    // Assert
+    expect(sinToken).toBe(0);
+  });
+
+  it('marca cada utilidad vigilada cuyo token no está declarado', () => {
+    // Arrange
+    const declarados = new Set(['muted']);
+    // muted-foreground se resuelve aparte de muted: declarar uno no cubre al otro.
+    const clases = 'text-warning bg-card text-muted-foreground data-[state=open]:bg-accent';
+
+    // Act
+    const sinToken = contarColoresSinToken(clases, declarados);
+
+    // Assert
+    expect(sinToken).toBe(4);
+  });
+
+  it('no confunde border-border-input con border-input', () => {
+    // Arrange
+    const sinTokens = new Set<string>();
+
+    // Act
+    const propio = contarColoresSinToken('border-border-input', sinTokens);
+    const conConvencion = contarColoresSinToken('border-border-input border-input', sinTokens);
+
+    // Assert
+    expect(propio).toBe(0);
+    expect(conConvencion).toBe(1);
+  });
+
+  it('no marca los tokens propios ni lo que no vigila', () => {
+    // Arrange
+    const sinTokens = new Set<string>();
+    // bg-card-elevated solo empieza por un nombre vigilado (card): no se lee como bg-card.
+    const clases =
+      'bg-surface text-on-surface bg-primary-muted text-primary-muted-foreground ' +
+      'border-border-strong text-sm border-b bg-black/40 bg-card-elevated';
+
+    // Act
+    const sinToken = contarColoresSinToken(clases, sinTokens);
+
+    // Assert
+    expect(sinToken).toBe(0);
+  });
+
+  it('extrae solo las declaraciones y no las referencias con var()', () => {
+    // Arrange
+    const css = [
+      '--color-muted: oklch(95% 0.01 230);',
+      '--color-border-input : oklch(62% 0.02 230);',
+      'color: var(--color-primary);',
+    ].join('\n');
+
+    // Act
+    const tokens = extraerTokensDeColor(css);
+
+    // Assert
+    expect(tokens).toEqual(new Set(['muted', 'border-input']));
+  });
+
+  it('lee los tokens reales de src/tailwind.css', () => {
+    // Act
+    const tokens = tokensDeColorDeclarados();
+
+    // Assert
+    expect(
+      [...tokens],
+      'Si falla, revisa test.css.include en vite.config.ts: sin esa opción Vitest vacía ' +
+        'src/tailwind.css y no se lee ningún token.',
+    ).toEqual(expect.arrayContaining(['primary', 'muted']));
+  });
+});
+
+describe('Arquitectura: las reglas de spinner y de tamaño de texto', () => {
+  it('cuenta el spinner copiado y no el animate-spin suelto', () => {
+    // Arrange
+    const clases = 'h-8 animate-spin rounded-full border-4 animate-pulse animate-spin';
+
+    // Act
+    const spinners = contarSpinnersCopiados(clases);
+
+    // Assert
+    expect(spinners).toBe(1);
+  });
+
+  it('cuenta los textos de 9, 10 y 11 px y no los de 12 px o más', () => {
+    // Arrange
+    const clases = 'text-[9px] text-[10px] text-[11px] text-[12px] text-xs text-[13px]';
+
+    // Act
+    const textosPequenos = contarTextosMenoresA12px(clases);
+
+    // Assert
+    expect(textosPequenos).toBe(3);
+  });
+});
+
+describe('Arquitectura: la regla de tablas', () => {
+  it('cuenta cada <table con atributos o con salto de línea y no cuenta <tablet, <tbody ni </table>', () => {
+    // Arrange
+    const fuente = [
+      '<table>',
+      '<table aria-label="Usuarios" className="w-full">',
+      '<table\n  aria-label="Fichas">',
+      '<tablet>',
+      '<tbody>',
+      '</table>',
+    ].join('\n');
+
+    // Act
+    const tablas = contarTablasFueraDeDataTable(fuente);
+
+    // Assert
+    expect(tablas).toBe(3);
   });
 });
 

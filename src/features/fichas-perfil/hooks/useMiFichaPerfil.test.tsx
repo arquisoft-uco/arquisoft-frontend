@@ -29,7 +29,9 @@ const FICHA = {
   integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
 };
 
-function crearWrapper(queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
+function crearWrapper(
+  queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
@@ -44,7 +46,7 @@ describe('useMiFichaPerfil', () => {
     vi.clearAllMocks();
   });
 
-  it('expone la ficha activa y los compañeros del listado', async () => {
+  it('expone la ficha activa con sus integrantes', async () => {
     // Arrange
     consultar.mockResolvedValue([FICHA]);
 
@@ -53,9 +55,24 @@ describe('useMiFichaPerfil', () => {
     await waitFor(() => expect(result.current.ficha).toEqual(FICHA));
 
     // Assert
-    expect(result.current.companeros).toEqual(FICHA.integrantes);
+    expect(result.current.ficha?.integrantes).toEqual(FICHA.integrantes);
     expect(result.current.sinFicha).toBe(false);
     expect(result.current.errorFicha).toBe(false);
+  });
+
+  it('cargada es falsa hasta resolver, sinFicha no se marca antes y reintentar vuelve a pedir la ficha', async () => {
+    // Arrange
+    consultar.mockResolvedValue([FICHA]);
+
+    // Act
+    const { result } = renderHook(() => useMiFichaPerfil(), { wrapper: crearWrapper() });
+    const antes = { cargada: result.current.cargada, sinFicha: result.current.sinFicha };
+    await waitFor(() => expect(result.current.cargada).toBe(true));
+    await act(() => result.current.reintentar());
+
+    // Assert
+    expect(antes).toEqual({ cargada: false, sinFicha: false });
+    expect(consultar).toHaveBeenCalledTimes(2);
   });
 
   it('marca sinFicha con la lista vacía y errorFicha ante un fallo del service', async () => {
@@ -86,7 +103,10 @@ describe('useMiFichaPerfil', () => {
 
     // Assert
     await waitFor(() => expect(result.current.ficha?.tituloProyecto).toBe('Nuevo título'));
-    expect(modificar).toHaveBeenCalledWith({ fichaPerfilId: 'f-1', tituloProyecto: 'Nuevo título' });
+    expect(modificar).toHaveBeenCalledWith({
+      fichaPerfilId: 'f-1',
+      tituloProyecto: 'Nuevo título',
+    });
     expect(result.current.fichas[1].tituloProyecto).toBe('Otra');
   });
 
@@ -119,7 +139,9 @@ describe('useMiFichaPerfil', () => {
     act(() => result.current.modificarTitulo.mutate('Nuevo título'));
 
     // Assert
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Error al modificar', expect.any(String)));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Error al modificar', expect.any(String)),
+    );
     expect(modificar).not.toHaveBeenCalled();
   });
 
@@ -136,7 +158,9 @@ describe('useMiFichaPerfil', () => {
     act(() => result.current.modificarTitulo.mutate('Nuevo título'));
 
     // Assert
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Error al modificar', expect.any(String)));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Error al modificar', expect.any(String)),
+    );
     expect(result.current.ficha?.tituloProyecto).toBe('Sistema de monitoreo');
     expect(invalidar).not.toHaveBeenCalled();
   });

@@ -1,28 +1,20 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useEnviarSolicitudNovedadCoordinador } from '../../hooks/useEnviarSolicitudNovedadCoordinador';
+import { enviarSolicitudSchema, esCampoDelFormulario } from '../../utils/enviar-solicitud-schema';
+import type { EnviarSolicitudValues } from '../../utils/enviar-solicitud-schema';
+import { LIMITES } from '../../../../shared/validation';
 import { toast } from '../../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,
   getApiFieldErrors,
   hasApiErrorCode,
 } from '../../../../shared/utils/api-error';
-import { LIMITES, textoRequerido, uuidValido } from '../../../../shared/validation';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-
-const schema = z.object({
-  destinatario: uuidValido(),
-  mensajeSolicitud: textoRequerido(LIMITES.MENSAJE_SOLICITUD_MAX),
-});
-
-type FormValues = z.infer<typeof schema>;
-
-function esCampoDelFormulario(campo: string): campo is keyof FormValues {
-  return campo === 'destinatario' || campo === 'mensajeSolicitud';
-}
+import Button from '../../../../shared/components/ui/Button';
+import Field from '../../../../shared/components/ui/Field';
 
 export default function EnviarSolicitudNovedadForm() {
   const [confirmando, setConfirmando] = useState(false);
@@ -33,15 +25,15 @@ export default function EnviarSolicitudNovedadForm() {
     reset,
     setError,
     formState: { errors, isValid },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  } = useForm<EnviarSolicitudValues>({
+    resolver: zodResolver(enviarSolicitudSchema),
     defaultValues: { destinatario: '', mensajeSolicitud: '' },
     mode: 'onChange',
   });
 
   const { mutate, isPending, reset: resetMutation } = useEnviarSolicitudNovedadCoordinador();
 
-  function onSubmit(values: FormValues) {
+  function onSubmit(values: EnviarSolicitudValues) {
     mutate(
       { destinatario: values.destinatario, mensajeSolicitud: values.mensajeSolicitud },
       {
@@ -101,63 +93,42 @@ export default function EnviarSolicitudNovedadForm() {
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo} aria-busy={isPending}>
         <div>
-          <label htmlFor="sn-destinatario" className="field-label">
-            Destinatario (UUID del coordinador){' '}
-            <span aria-hidden className="text-danger">
-              *
-            </span>
-          </label>
-          <input
-            id="sn-destinatario"
-            type="text"
-            className="field-input"
-            aria-invalid={!!errors.destinatario}
-            aria-describedby={errors.destinatario ? 'sn-destinatario-error' : undefined}
-            placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            {...register('destinatario')}
-          />
-          {errors.destinatario && (
-            <p id="sn-destinatario-error" className="field-error" role="alert">
-              {errors.destinatario.message}
-            </p>
-          )}
+          <Field
+            etiqueta="Destinatario (UUID del coordinador)"
+            error={errors.destinatario?.message}
+          >
+            {(control) => (
+              <input
+                type="text"
+                className="field-input"
+                placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                {...register('destinatario')}
+                {...control}
+              />
+            )}
+          </Field>
           <div className="mt-2">
             <AvisoNoDisponible recurso="coordinadores" />
           </div>
         </div>
 
-        <div>
-          <label htmlFor="sn-mensaje" className="field-label">
-            Mensaje{' '}
-            <span aria-hidden className="text-danger">
-              *
-            </span>
-          </label>
-          <textarea
-            id="sn-mensaje"
-            rows={4}
-            maxLength={LIMITES.MENSAJE_SOLICITUD_MAX}
-            className="field-input"
-            aria-invalid={!!errors.mensajeSolicitud}
-            aria-describedby={errors.mensajeSolicitud ? 'sn-mensaje-error' : undefined}
-            placeholder="Describe la novedad que quieres reportar al coordinador"
-            {...register('mensajeSolicitud')}
-          />
-          {errors.mensajeSolicitud && (
-            <p id="sn-mensaje-error" className="field-error" role="alert">
-              {errors.mensajeSolicitud.message}
-            </p>
+        <Field etiqueta="Mensaje" error={errors.mensajeSolicitud?.message}>
+          {(control) => (
+            <textarea
+              rows={4}
+              maxLength={LIMITES.MENSAJE_SOLICITUD_MAX}
+              className="field-input"
+              placeholder="Describe la novedad que quieres reportar al coordinador"
+              {...register('mensajeSolicitud')}
+              {...control}
+            />
           )}
-        </div>
+        </Field>
 
         <div className="actions-row border-t border-border pt-4">
-          <button
-            type="submit"
-            disabled={!isValid || isPending}
-            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:py-2"
-          >
+          <Button type="submit" disabled={!isValid} cargando={isPending}>
             {isPending ? 'Enviando...' : 'Enviar solicitud'}
-          </button>
+          </Button>
         </div>
       </form>
 

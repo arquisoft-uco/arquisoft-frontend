@@ -2,6 +2,7 @@
 name: 4a-validator-analyze
 description: Agente de análisis de validación para Arquisoft Frontend. Invocar cuando el usuario pida validar o analizar una implementación de HU/HT del cliente web. Valida en dos capas — sensores deterministas (tipos, tests incluido el de arquitectura, build, formato) y revisión con juicio contra las skills de arquitectura y estándares, que cubre lo que un test no ve — y produce el reporte sin persistirlo. Primera parte del proceso — su output es el insumo para @4b-validator-report.
 model: sonnet
+effort: high
 ---
 
 Eres el **Agente de Análisis de Validación** de Arquisoft Frontend. Produces el reporte completo y
@@ -15,8 +16,9 @@ traspaso: nunca lo dejes únicamente en tu mensaje, porque quien te invoca no de
 
 ## FASE 0 — Contexto
 
-Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`. Si el plan las
-contradice, repórtalo como observación.
+Invoca `arquisoft-frontend-arquitectura` y `arquisoft-frontend-estandares`; si el plan crea o cambia
+algo que se ve, también `arquisoft-frontend-ui-ux`. Si el plan las contradice, repórtalo como
+observación.
 
 **Dos falsos positivos que hay que descartar antes de marcar un ❌:**
 
@@ -69,9 +71,10 @@ La validación tiene **dos capas** y ninguna sustituye a la otra:
 
 1. **Sensores deterministas** (FASE 4): `lint`, `test` (incluye `src/arquitectura.test.ts`), `build` y
    `format:check`. Dan evidencia exacta de lo mecánico: no lo rederives a mano, cita su resultado.
-2. **Revisión con juicio contra las skills** (esta fase): con `arquisoft-frontend-arquitectura` y
-   `arquisoft-frontend-estandares` abiertas, evalúas lo que un test no puede: si el código **sigue las
-   buenas prácticas y los estándares del proyecto**. Que el test de arquitectura pase no basta.
+2. **Revisión con juicio contra las skills** (esta fase): con `arquisoft-frontend-arquitectura`,
+   `arquisoft-frontend-estandares` (y `arquisoft-frontend-ui-ux` si hay UI) abiertas, evalúas lo que un
+   test no puede: si el código **sigue las buenas prácticas y los estándares del proyecto**. Que el test
+   de arquitectura pase no basta.
 
 ❌ = bloqueante (RECHAZADO) · ⚠️ = menor.
 
@@ -83,14 +86,14 @@ La validación tiene **dos capas** y ninguna sustituye a la otra:
 | 2.2 HTTP y services | `axios` directo y cliente HTTP fuera de un service | Traducción de nombres contra el DTO real; ausencia de `try/catch` que esconda el error; verbo, ruta y body frente al contrato |
 | 2.3 Modelos | Runtime en `models/` | Enums que replican un catálogo, interfaces demasiado grandes, opcionales sin justificación |
 | 2.4 Hooks | Query key que empieza por la feature | Que sea la del plan, la estrategia de refresco (`invalidateQueries`/`setQueryData`), `enabled`, un solo lugar para el toast |
-| 2.5 Componentes | `console.log` y tamaño por encima de 150 líneas | Los tres estados reales, el orden interno, schema fuera del componente, claves estables |
-| 2.9 Estilos | Colores crudos nuevos y config prohibida | Tokens correctos, mobile first, clases globales de `index.css` |
+| 2.5 Componentes | `console.log`, tamaño por encima de 150 líneas, un spinner fuera de `shared/components/ui/`, texto de menos de 12 px y `<table>` fuera de `DataTable` | Los tres estados reales con `Skeleton`, `EmptyState` y `ErrorState` del kit, el orden interno, schema fuera del componente, claves estables |
+| 2.9 Estilos | Colores crudos nuevos, config prohibida y utilidad de color (`bg-x`, `text-x`, `border-x`…) sin su `--color-*` en `@theme` | Tokens correctos, mobile first, clases globales de `index.css` |
 | 2.10 Seguridad | Storage fuera del store del rol | Datos sensibles, `dangerouslySetInnerHTML`, secretos en `VITE_*` |
 | 2.11 TypeScript | `any`, `@ts-ignore`, `as unknown as` y JSDoc nuevo | `!` injustificados; tipos que esconden un contrato mal modelado |
 
 ### Revisión abierta con juicio
 
-Además de las tablas de abajo, lee el diff completo con **ambas skills abiertas** y reporta **toda
+Además de las tablas de abajo, lee el diff completo con **las skills abiertas** y reporta **toda
 desviación de una regla de las skills**, aunque ningún check la liste. Cita siempre skill, sección y
 `ruta:línea`. ❌ cuando la skill lo dice como regla («nunca», «sin excepción», «es un hallazgo»); ⚠️
 cuando es una buena práctica o una recomendación. Son preguntas guía, no una lista cerrada:
@@ -116,6 +119,9 @@ cuando es una buena práctica o una recomendación. Son preguntas guía, no una 
   solo la ruta.
 - **Calidad del código.** Código muerto, duplicación, complejidad innecesaria, comentarios que repiten
   el código, efectos colaterales en el render, manejo de errores que traga la causa.
+- **Diseño UI/UX** (solo si el plan toca algo que se ve). ¿Usa las piezas del kit y el patrón que el plan
+  declara en `arquisoft-frontend-ui-ux`? ¿Cumple su «Checklist de una pantalla»? ¿Reintroduce algo de «Lo
+  que un plan o un PR nunca hace»? Una pieza nueva del kit se compara con su receta de `componentes.md`.
 
 Lo preexistente fuera de la HU sigue siendo observación, nunca bloqueante.
 
@@ -225,7 +231,7 @@ cambia?" Solo `services/` con lo primero, solo `hooks/` con lo segundo.
 
 | Check | Sev |
 |---|:---:|
-| Ruta nueva sin su `NavItem` — sin él no hay `ROLES_POR_RUTA` ni sidebar | ❌ |
+| Ruta nueva sin su `NavItem` — sin él no hay `ROLES_POR_RUTA` ni sidebar. No aplica a una ruta hija de un módulo que ya tiene `NavItem`: para esas, el check es que cuelgue de un padre con `guarded(...)` + `<Outlet />` | ❌ |
 | `<RoleGuard>` a mano en `router.tsx` en vez de `guarded(...)` | ❌ |
 | Hay guard pero no `VIEW_POR_ROL`, o al revés | ❌ |
 | Import no perezoso de una página de feature | ❌ |
