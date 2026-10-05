@@ -5,24 +5,40 @@ import { renderHook, waitFor } from '../../../test-utils/render';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 import { useItemsMiFicha } from './useItemsMiFicha';
+import { useTiposItem } from './useTiposItem';
 
 vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: { consultarItemsMiFichaPerfil: vi.fn(), agregarItemFichaPerfil: vi.fn(), modificarItem: vi.fn(), removerItem: vi.fn() },
+  fichasPerfilService: {
+    consultarItemsMiFichaPerfil: vi.fn(),
+    agregarItemFichaPerfil: vi.fn(),
+    modificarItem: vi.fn(),
+    removerItem: vi.fn(),
+  },
 }));
 vi.mock('./useFichaPerfilIdEstudiante', () => ({ useFichaPerfilIdEstudiante: vi.fn() }));
 vi.mock('./useMiFichaPerfil', () => ({ useMiFichaPerfil: () => ({ ficha: { id: 'f-1' } }) }));
-vi.mock('./useTiposItem', () => ({
-  useTiposItem: () => ({ data: [], isLoading: false, isError: false }),
-}));
+vi.mock('./useTiposItem', () => ({ useTiposItem: vi.fn() }));
 
 const consultar = vi.mocked(fichasPerfilService.consultarItemsMiFichaPerfil);
 const idEstudiante = vi.mocked(useFichaPerfilIdEstudiante);
+const tipos = vi.mocked(useTiposItem);
+
+function conTipos(parcial: { data?: unknown[]; isLoading?: boolean; isError?: boolean } = {}) {
+  tipos.mockReturnValue({ data: [], isLoading: false, isError: false, ...parcial } as ReturnType<
+    typeof useTiposItem
+  >);
+}
 
 function errorApi(status: number, data: Record<string, unknown> = {}) {
   return Object.assign(new Error('fallo'), { isAxiosError: true, response: { status, data } });
 }
 
-const ITEM = { id: 'i-1', fichaPerfilId: 'f-1', tipoItem: { id: 't-1', nombre: 'Objetivo' }, contenido: 'Medir' };
+const ITEM = {
+  id: 'i-1',
+  fichaPerfilId: 'f-1',
+  tipoItem: { id: 't-1', nombre: 'Objetivo' },
+  contenido: 'Medir',
+};
 
 function crearWrapper() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
@@ -38,6 +54,7 @@ function conFicha(fichaPerfilId: string | null) {
 describe('useItemsMiFicha', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    conTipos();
   });
 
   it('consulta los ítems de la ficha activa y los expone', async () => {
@@ -67,7 +84,9 @@ describe('useItemsMiFicha', () => {
 
     // Assert
     await waitFor(() => expect(result.current.items).toEqual([ITEM]));
-    expect(queryClient.getQueryData(['fichas-perfil', 'estudiante', 'f-1', 'items'])).toEqual([ITEM]);
+    expect(queryClient.getQueryData(['fichas-perfil', 'estudiante', 'f-1', 'items'])).toEqual([
+      ITEM,
+    ]);
   });
 
   it('no consulta mientras no haya ficha activa', () => {
@@ -92,6 +111,53 @@ describe('useItemsMiFicha', () => {
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it('refetch vuelve a consultar los ítems de la ficha activa', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+    await waitFor(() => expect(result.current.itemsCargados).toBe(true));
+
+    // Act
+    await result.current.refetch();
+
+    // Assert
+    expect(consultar).toHaveBeenCalledTimes(2);
+    expect(consultar).toHaveBeenLastCalledWith('f-1');
+  });
+
+  it('itemsCargados solo es verdadero con los ítems resueltos', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+    const antes = result.current.itemsCargados;
+    await waitFor(() => expect(result.current.itemsCargados).toBe(true));
+
+    // Assert
+    expect(antes).toBe(false);
+  });
+
+  it('un fallo o carga del catálogo de tipos no marca error ni carga de los ítems', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+    conTipos({ isLoading: true, isError: true });
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+    await waitFor(() => expect(result.current.itemsCargados).toBe(true));
+
+    // Assert
+    expect(result.current.isError).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.errorTipos).toBe(true);
+    expect(result.current.cargandoTipos).toBe(true);
+    expect(result.current.items).toEqual([ITEM]);
   });
 
   describe('agregar', () => {
@@ -135,7 +201,11 @@ describe('useItemsMiFicha', () => {
 
       // Act
       await expect(
-        result.current.agregar.mutateAsync({ fichaPerfilId: 'f-1', tipoItemId: 't-1', contenido: 'x' }),
+        result.current.agregar.mutateAsync({
+          fichaPerfilId: 'f-1',
+          tipoItemId: 't-1',
+          contenido: 'x',
+        }),
       ).rejects.toThrow('422');
 
       // Assert

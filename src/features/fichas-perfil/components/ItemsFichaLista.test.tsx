@@ -72,4 +72,37 @@ describe('ItemsFichaLista', () => {
     expect(screen.getByText('Objetivo General')).toBeInTheDocument();
     expect(screen.getByText('Contenido dos')).toBeInTheDocument();
   });
+
+  it('con items sin definir y sin error ni carga pinta el esqueleto, nunca el vacío', () => {
+    // Act
+    renderizar({ items: undefined });
+
+    // Assert
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando ítems…');
+    expect(screen.queryByText('Esta ficha aún no tiene ítems.')).not.toBeInTheDocument();
+  });
+
+  it('usa el vacío propio cuando se pasa y las acciones se pintan por tarjeta', () => {
+    // Act
+    const { rerender } = renderizar({ items: [], vacio: <p>Sin ítems propios</p> });
+
+    // Assert
+    expect(screen.getByText('Sin ítems propios')).toBeInTheDocument();
+    expect(screen.queryByText('Esta ficha aún no tiene ítems.')).not.toBeInTheDocument();
+
+    // Act
+    rerender(
+      <ItemsFichaLista
+        items={ITEMS}
+        cargando={false}
+        error={false}
+        onReintentar={vi.fn()}
+        acciones={(item) => <button type="button">Acción {item.id}</button>}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Acción i-1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Acción i-2' })).toBeInTheDocument();
+  });
 });

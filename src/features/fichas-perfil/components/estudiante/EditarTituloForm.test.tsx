@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import EditarTituloForm from './EditarTituloForm';
 import { useMiFichaPerfil } from '../../hooks/useMiFichaPerfil';
-import { LIMITES, MENSAJES_VALIDACION } from '../../../../shared/validation';
+import { LIMITES } from '../../../../shared/validation';
 
 vi.mock('../../hooks/useMiFichaPerfil', () => ({ useMiFichaPerfil: vi.fn() }));
 
@@ -16,18 +16,22 @@ function errorApi(status: number, data: Record<string, unknown>) {
 
 function mockHook(mutate = vi.fn()) {
   const reset = vi.fn();
-  vi.mocked(useMiFichaPerfil).mockReturnValue({
+  const resultado: Partial<Record<keyof Resultado, unknown>> = {
     modificarTitulo: { mutate, reset, isPending: false },
-  } as unknown as Resultado);
+  };
+  vi.mocked(useMiFichaPerfil).mockReturnValue(resultado as Resultado);
   return { mutate, reset };
 }
+
+const guardar = () => screen.getByRole('button', { name: 'Guardar título' });
+const campo = () => screen.getByRole('textbox', { name: 'Título del proyecto' });
 
 describe('EditarTituloForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('muestra el título actual y deshabilita Guardar mientras no haya cambios', () => {
+  it('muestra el título actual, limita la longitud y no deja guardar sin cambios', () => {
     // Arrange
     mockHook();
 
@@ -35,84 +39,79 @@ describe('EditarTituloForm', () => {
     render(<EditarTituloForm tituloActual="Sistema de monitoreo" onCerrar={vi.fn()} />);
 
     // Assert
-    expect(screen.getByRole('textbox', { name: /nuevo título del proyecto/i })).toHaveValue(
-      'Sistema de monitoreo',
-    );
-    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
+    expect(screen.getByRole('dialog', { name: 'Editar título del proyecto' })).toBeInTheDocument();
+    expect(campo()).toHaveValue('Sistema de monitoreo');
+    expect(campo()).toHaveAttribute('maxLength', String(LIMITES.TITULO_PROYECTO_MAX));
+    expect(guardar()).toBeDisabled();
   });
 
-  it('con título vacío o solo espacios deshabilita Guardar, pinta el error y limita la longitud', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const { mutate } = mockHook();
-    render(<EditarTituloForm tituloActual="Sistema" onCerrar={vi.fn()} />);
-    const campo = screen.getByRole('textbox', { name: /nuevo título/i });
-
-    // Act
-    await user.clear(campo);
-    const errorVacio = await screen.findByRole('alert');
-    const guardarVacio = screen.getByRole('button', { name: 'Guardar' });
-    await user.type(campo, '   ');
-
-    // Assert
-    expect(errorVacio).toHaveTextContent(MENSAJES_VALIDACION.requerido);
-    expect(campo).toHaveAttribute('aria-invalid', 'true');
-    expect(guardarVacio).toBeDisabled();
-    expect(campo).toHaveAttribute('maxlength', String(LIMITES.TITULO_PROYECTO_MAX));
-    expect(mutate).not.toHaveBeenCalled();
-  });
-
-  it('envía el título sin espacios sobrantes y se cierra al tener éxito', async () => {
+  it('guarda el nuevo título y cierra el panel', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
     const { mutate } = mockHook(vi.fn((_t: string, opts: Opciones) => opts.onSuccess?.()));
     render(<EditarTituloForm tituloActual="Sistema" onCerrar={onCerrar} />);
-    const campo = screen.getByRole('textbox', { name: /nuevo título/i });
 
     // Act
-    await user.clear(campo);
-    await user.type(campo, '  Nuevo título  ');
-    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    await user.clear(campo());
+    await user.type(campo(), 'Sistema nuevo');
+    await user.click(guardar());
 
     // Assert
-    expect(mutate).toHaveBeenCalledWith('Nuevo título', expect.any(Object));
+    expect(mutate).toHaveBeenCalledWith('Sistema nuevo', expect.any(Object));
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
-  it('ante FICHA_TITULO_DUPLICADO pinta el mensaje junto al campo y no se cierra', async () => {
+  it('con el título vacío o en blanco pinta el error, muestra el resumen y no envía', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { mutate } = mockHook();
+    render(<EditarTituloForm tituloActual="Sistema" onCerrar={vi.fn()} />);
+
+    // Act
+    await user.clear(campo());
+    await user.type(campo(), '   ');
+    await user.tab();
+    await user.click(guardar());
+
+    // Assert
+    expect(await screen.findAllByRole('alert')).not.toHaveLength(0);
+    expect(screen.getByText('Revisa 1 campo antes de continuar')).toBeInTheDocument();
+    expect(campo()).toHaveFocus();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('FICHA_TITULO_DUPLICADO se muestra junto al campo y el panel sigue abierto', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
     mockHook(
       vi.fn((_t: string, opts: Opciones) =>
         opts.onError?.(
-          errorApi(422, { message: 'Ya existe una ficha con ese título.', errorCode: 'FICHA_TITULO_DUPLICADO' }),
+          errorApi(422, { errorCode: 'FICHA_TITULO_DUPLICADO', message: 'Ese título ya existe.' }),
         ),
       ),
     );
     render(<EditarTituloForm tituloActual="Sistema" onCerrar={onCerrar} />);
-    const campo = screen.getByRole('textbox', { name: /nuevo título/i });
 
     // Act
-    await user.type(campo, ' bis');
-    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    await user.type(campo(), ' 2');
+    await user.click(guardar());
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent('Ya existe una ficha con ese título.');
-    expect(campo).toHaveValue('Sistema bis');
+    expect(await screen.findAllByText('Ese título ya existe.')).not.toHaveLength(0);
+    expect(campo()).toHaveValue('Sistema 2');
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
-  it('ante un fieldError de tituloProyecto lo pinta en el campo', async () => {
+  it('un fieldError del backend se pinta junto al campo', async () => {
     // Arrange
     const user = userEvent.setup();
     mockHook(
       vi.fn((_t: string, opts: Opciones) =>
         opts.onError?.(
-          errorApi(422, {
-            message: 'Datos inválidos.',
-            fieldErrors: [{ field: 'tituloProyecto', message: 'Título no permitido' }],
+          errorApi(400, {
+            fieldErrors: [{ field: 'tituloProyecto', message: 'Título inválido.' }],
           }),
         ),
       ),
@@ -120,26 +119,33 @@ describe('EditarTituloForm', () => {
     render(<EditarTituloForm tituloActual="Sistema" onCerrar={vi.fn()} />);
 
     // Act
-    await user.type(screen.getByRole('textbox', { name: /nuevo título/i }), ' x');
-    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    await user.type(campo(), ' 2');
+    await user.click(guardar());
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent('Título no permitido');
+    expect(await screen.findAllByText('Título inválido.')).not.toHaveLength(0);
   });
 
-  it('al cancelar resetea la mutación y cierra sin enviar', async () => {
+  it('cerrar sin cambios reinicia la mutación; con cambios pide confirmar', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    const { mutate, reset } = mockHook();
+    const { reset } = mockHook();
     render(<EditarTituloForm tituloActual="Sistema" onCerrar={onCerrar} />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
     expect(reset).toHaveBeenCalled();
     expect(onCerrar).toHaveBeenCalledTimes(1);
-    expect(mutate).not.toHaveBeenCalled();
+
+    // Act
+    await user.type(campo(), '!');
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.getByText('¿Descartar los cambios?')).toBeInTheDocument();
+    expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 });

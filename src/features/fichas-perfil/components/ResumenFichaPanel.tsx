@@ -11,9 +11,10 @@ const ACCIONES = 'flex flex-col items-start gap-2 border-t border-border pt-3';
 interface Props {
   resumen: ResumenFicha | null;
   accion?: ReactNode;
+  equipo?: ReactNode;
 }
 
-export default function ResumenFichaPanel({ resumen, accion }: Props) {
+export default function ResumenFichaPanel({ resumen, accion, equipo }: Props) {
   const tieneEstado = Boolean(resumen?.estadoId && resumen.estadoNombre);
   const tieneAsesor = Boolean(resumen?.asesorNombre && resumen.asesorEmail);
 
@@ -40,6 +41,12 @@ export default function ResumenFichaPanel({ resumen, accion }: Props) {
         <div className={FILA}>
           <span className={ETIQUETA}>Asesor</span>
           <AsesorDeFicha nombre={resumen.asesorNombre ?? ''} email={resumen.asesorEmail ?? ''} />
+        </div>
+      )}
+      {equipo && (
+        <div className={FILA}>
+          <span className={ETIQUETA}>Equipo</span>
+          {equipo}
         </div>
       )}
       {accion && (

@@ -20,8 +20,6 @@ export const BASELINE: BaselineArquitectura = {
   tiposInseguros: {
     'api/axiosInstance.test.ts': 1,
     'auth/devAuth.ts': 1,
-    'features/fichas-perfil/components/estudiante/EditarItemForm.test.tsx': 1,
-    'features/fichas-perfil/components/estudiante/EditarTituloForm.test.tsx': 1,
   },
   componentesGrandes: {
     'features/dashboard/Dashboard.tsx': 273,

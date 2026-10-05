@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,8 +7,10 @@ import type { Item } from '../../models/fichas-perfil';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, getApiFieldErrors } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../../shared/validation';
-import Button from '../../../../shared/components/ui/Button';
+import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
 import Field from '../../../../shared/components/ui/Field';
+import FormActions from '../../../../shared/components/ui/FormActions';
+import SidePanel from '../../../../shared/components/ui/SidePanel';
 
 const schema = z.object({
   contenido: textoRequerido(LIMITES.ITEM_CONTENIDO_MAX),
@@ -15,9 +18,8 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const CAMPO_POR_FIELD: Record<string, keyof FormValues> = {
-  contenido: 'contenido',
-};
+const ID_FORMULARIO = 'editar-item';
+const ETIQUETAS = { contenido: 'Contenido' };
 
 interface Props {
   item: Item;
@@ -26,78 +28,85 @@ interface Props {
 
 export default function EditarItemForm({ item, onCerrar }: Props) {
   const { modificar } = useItemsMiFicha();
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isValid, isDirty },
-  } = useForm<FormValues>({
+  const [resumenVisible, setResumenVisible] = useState(false);
+  const formulario = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { contenido: item.contenido },
-    mode: 'onChange',
+    mode: 'onTouched',
   });
+  const { register, setError, setFocus, watch } = formulario;
+  const { errors, isDirty } = formulario.formState;
+  const errores = resumenVisible ? resumirErrores(errors, ETIQUETAS) : [];
 
-  function handleCancelar() {
-    reset();
+  function cerrar() {
+    formulario.reset();
     modificar.reset();
     onCerrar();
   }
 
-  function onSubmit(values: FormValues) {
+  function enviar(values: FormValues) {
     modificar.mutate(
       { itemId: item.id, contenido: values.contenido },
       {
         onSuccess: () => {
           toast.success('Ítem actualizado', 'El contenido se guardó correctamente.');
-          reset();
-          modificar.reset();
-          onCerrar();
+          cerrar();
         },
         onError: (err) => {
           toast.error(
             'Error al modificar',
             getApiErrorMessage(err, 'No se pudo actualizar el ítem.'),
           );
-          getApiFieldErrors(err).forEach(({ field, message }) => {
-            const campo = CAMPO_POR_FIELD[field];
-            if (campo) setError(campo, { message });
-          });
+          const delCampo = getApiFieldErrors(err).find((e) => e.field === 'contenido');
+          if (delCampo) setError('contenido', { message: delCampo.message });
+          setResumenVisible(true);
         },
       },
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="mt-2 flex flex-col gap-3"
-      aria-label={`Editar ítem ${item.tipoItem.nombre}`}
+    <SidePanel
+      titulo={`Editar ítem ${item.tipoItem.nombre}`}
+      sucio={isDirty}
+      ocupado={modificar.isPending}
+      onCerrar={cerrar}
+      pie={(solicitarCierre) => (
+        <FormActions
+          formId={ID_FORMULARIO}
+          accion="Guardar cambios"
+          accionEnviando="Guardando…"
+          enviando={modificar.isPending}
+          sucio={isDirty}
+          sinCambios={!isDirty}
+          onCancelar={solicitarCierre}
+        />
+      )}
     >
-      <Field
-        etiqueta={`Contenido del ítem ${item.tipoItem.nombre}`}
-        error={errors.contenido?.message}
+      <form
+        id={ID_FORMULARIO}
+        noValidate
+        aria-busy={modificar.isPending}
+        onSubmit={formulario.handleSubmit(enviar, () => setResumenVisible(true))}
+        className="flex flex-col gap-5"
       >
-        {(control) => (
-          <textarea
-            rows={4}
-            maxLength={LIMITES.ITEM_CONTENIDO_MAX}
-            className="field-input"
-            {...register('contenido')}
-            {...control}
-          />
-        )}
-      </Field>
-
-      <div className="actions-row">
-        <Button variante="secundario" onClick={handleCancelar}>
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={!isValid || !isDirty} cargando={modificar.isPending}>
-          {modificar.isPending ? 'Guardando…' : 'Guardar'}
-        </Button>
-      </div>
-    </form>
+        <Field
+          etiqueta="Contenido"
+          error={errors.contenido?.message}
+          contador={{ actual: watch('contenido').length, max: LIMITES.ITEM_CONTENIDO_MAX }}
+        >
+          {(control) => (
+            <textarea
+              rows={6}
+              maxLength={LIMITES.ITEM_CONTENIDO_MAX}
+              className="field-input"
+              {...register('contenido')}
+              {...control}
+            />
+          )}
+        </Field>
+        <ErrorSummary errores={errores} onIrAlCampo={() => setFocus('contenido')} />
+      </form>
+    </SidePanel>
   );
 }

@@ -12,6 +12,7 @@ function conEstado(parcial: Partial<ReturnType<typeof useEstadosFichaPerfilEstud
   vi.mocked(useEstadosFichaPerfilEstudiante).mockReturnValue({
     historial: [],
     isLoading: false,
+    cargado: true,
     isError: false,
     error: null,
     refetch: vi.fn(),
@@ -43,31 +44,54 @@ describe('HistorialEstadosFichaPanel', () => {
 
   it('muestra el estado de carga', () => {
     // Arrange
-    conEstado({ isLoading: true });
+    conEstado({ isLoading: true, cargado: false });
 
     // Act
     render(<HistorialEstadosFichaPanel />);
 
     // Assert
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando historial de estados');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando historial de estados…');
+    expect(screen.queryByText(/aún no tiene estados/)).not.toBeInTheDocument();
   });
 
-  it('muestra una alerta cuando falla la consulta', () => {
+  it('con la consulta pausada (sin datos cargados) no pinta el vacío', () => {
     // Arrange
-    conEstado({ isError: true, error: new Error('fallo') });
+    conEstado({ historial: [], cargado: false, isLoading: false });
 
     // Act
     render(<HistorialEstadosFichaPanel />);
 
     // Assert
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByText(/aún no tiene estados/)).not.toBeInTheDocument();
+  });
+
+  it('muestra una alerta con el mensaje del backend como detalle cuando falla la consulta', () => {
+    // Arrange
+    conEstado({
+      isError: true,
+      cargado: false,
+      error: Object.assign(new Error('fallo'), {
+        isAxiosError: true,
+        response: { status: 500, data: { message: 'Servicio caído.' } },
+      }),
+    });
+
+    // Act
+    render(<HistorialEstadosFichaPanel />);
+
+    // Assert
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se pudo cargar el historial de estados',
+    );
+    expect(screen.getByText('Servicio caído.')).toBeInTheDocument();
   });
 
   it('vuelve a consultar el historial al pulsar «Reintentar» tras un error', async () => {
     // Arrange
     const user = userEvent.setup();
     const refetch = vi.fn();
-    conEstado({ isError: true, error: new Error('fallo'), refetch });
+    conEstado({ isError: true, cargado: false, error: new Error('fallo'), refetch });
     render(<HistorialEstadosFichaPanel />);
 
     // Act
@@ -85,7 +109,7 @@ describe('HistorialEstadosFichaPanel', () => {
     render(<HistorialEstadosFichaPanel />);
 
     // Assert
-    expect(screen.getByText('Tu ficha aún no tiene estados registrados.')).toBeInTheDocument();
+    expect(screen.getByText('Tu ficha aún no tiene estados registrados')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
@@ -112,5 +136,9 @@ describe('HistorialEstadosFichaPanel', () => {
     expect(within(items[1]).getByText('En construccion')).toBeInTheDocument();
     expect(screen.getAllByText('Actual')).toHaveLength(1);
     expect(within(items[0]).getByText('Actual')).toBeInTheDocument();
+    expect(
+      screen.getByRole('list', { name: 'Historial de estados de la ficha' }),
+    ).toBeInTheDocument();
+    expect(items[0].querySelector('time')).toHaveAttribute('datetime', '2026-09-02T10:00:00Z');
   });
 });

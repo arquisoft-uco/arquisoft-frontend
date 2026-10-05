@@ -17,7 +17,7 @@ type Opciones = { onSuccess?: () => void; onError?: (err: unknown) => void };
 const ITEM: Item = {
   id: 'i-1',
   fichaPerfilId: 'f-1',
-  tipoItem: { id: 't-1', nombre: 'Objetivo' },
+  tipoItem: { id: 't-1', nombre: 'Objetivo General' },
   contenido: 'Medir consumo',
 };
 
@@ -27,18 +27,21 @@ function errorApi(status: number, data: Record<string, unknown>) {
 
 function mockHook(mutate = vi.fn()) {
   const reset = vi.fn();
-  vi.mocked(useItemsMiFicha).mockReturnValue({
+  const resultado: Partial<Record<keyof Resultado, unknown>> = {
     modificar: { mutate, reset, isPending: false },
-  } as unknown as Resultado);
+  };
+  vi.mocked(useItemsMiFicha).mockReturnValue(resultado as Resultado);
   return { mutate, reset };
 }
+
+const guardar = () => screen.getByRole('button', { name: 'Guardar cambios' });
 
 describe('EditarItemForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('muestra el contenido actual y deshabilita Guardar mientras no haya cambios', () => {
+  it('abre con el contenido del ítem y no deja guardar mientras no haya cambios', () => {
     // Arrange
     mockHook();
 
@@ -46,32 +49,14 @@ describe('EditarItemForm', () => {
     render(<EditarItemForm item={ITEM} onCerrar={vi.fn()} />);
 
     // Assert
-    expect(screen.getByRole('textbox', { name: /contenido del ítem objetivo/i })).toHaveValue(
-      'Medir consumo',
-    );
-    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
+    expect(
+      screen.getByRole('dialog', { name: 'Editar ítem Objetivo General' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Contenido' })).toHaveValue('Medir consumo');
+    expect(guardar()).toBeDisabled();
   });
 
-  it('deshabilita Guardar y pinta el error con contenido vacío o solo espacios', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const { mutate } = mockHook();
-    render(<EditarItemForm item={ITEM} onCerrar={vi.fn()} />);
-    const campo = screen.getByRole('textbox', { name: /contenido del ítem/i });
-
-    // Act
-    await user.clear(campo);
-    const errorVacio = await screen.findByRole('alert');
-    await user.type(campo, '   ');
-
-    // Assert
-    expect(errorVacio).toHaveTextContent('Este campo es requerido');
-    expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
-    expect(mutate).not.toHaveBeenCalled();
-  });
-
-  it('envía el contenido editado, avisa del éxito y se cierra', async () => {
+  it('guarda el nuevo contenido, avisa del éxito y cierra', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
@@ -79,59 +64,83 @@ describe('EditarItemForm', () => {
     render(<EditarItemForm item={ITEM} onCerrar={onCerrar} />);
 
     // Act
-    await user.type(screen.getByRole('textbox', { name: /contenido del ítem/i }), ' y costo');
-    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    await user.type(screen.getByRole('textbox', { name: 'Contenido' }), ' mensual');
+    await user.click(guardar());
 
     // Assert
     expect(mutate).toHaveBeenCalledWith(
-      { itemId: 'i-1', contenido: 'Medir consumo y costo' },
+      { itemId: 'i-1', contenido: 'Medir consumo mensual' },
       expect.any(Object),
     );
     expect(toast.success).toHaveBeenCalledWith('Ítem actualizado', expect.any(String));
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
-  it('ante un 422 con fieldError muestra toast, pinta el campo y conserva el texto', async () => {
+  it('con el contenido vacío pinta el error al salir del campo, sin apagar el botón, y no envía', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { mutate } = mockHook();
+    render(<EditarItemForm item={ITEM} onCerrar={vi.fn()} />);
+
+    // Act
+    await user.clear(screen.getByRole('textbox', { name: 'Contenido' }));
+    await user.tab();
+    await user.click(guardar());
+
+    // Assert
+    expect(await screen.findAllByRole('alert')).not.toHaveLength(0);
+    expect(screen.getByText('Revisa 1 campo antes de continuar')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Contenido' })).toHaveFocus();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('ante un error del backend da toast, pinta el campo y deja el panel abierto con los datos', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
     mockHook(
       vi.fn((_req: unknown, opts: Opciones) =>
         opts.onError?.(
-          errorApi(422, {
-            message: 'Contenido inválido.',
-            fieldErrors: [{ field: 'contenido', message: 'Contenido duplicado' }],
+          errorApi(400, {
+            message: 'Datos inválidos.',
+            fieldErrors: [{ field: 'contenido', message: 'Contenido no permitido.' }],
           }),
         ),
       ),
     );
     render(<EditarItemForm item={ITEM} onCerrar={onCerrar} />);
-    const campo = screen.getByRole('textbox', { name: /contenido del ítem/i });
 
     // Act
-    await user.type(campo, ' nuevo');
-    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+    await user.type(screen.getByRole('textbox', { name: 'Contenido' }), ' x');
+    await user.click(guardar());
 
     // Assert
-    expect(toast.error).toHaveBeenCalledWith('Error al modificar', 'Contenido inválido.');
-    expect(await screen.findByRole('alert')).toHaveTextContent('Contenido duplicado');
-    expect(campo).toHaveValue('Medir consumo nuevo');
+    expect(toast.error).toHaveBeenCalledWith('Error al modificar', 'Datos inválidos.');
+    expect(await screen.findAllByText('Contenido no permitido.')).not.toHaveLength(0);
+    expect(screen.getByRole('textbox', { name: 'Contenido' })).toHaveValue('Medir consumo x');
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
-  it('al cancelar resetea la mutación y cierra sin enviar', async () => {
+  it('cerrar sin cambios reinicia la mutación y cierra; con cambios pide confirmar', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    const { mutate, reset } = mockHook();
+    const { reset } = mockHook();
     render(<EditarItemForm item={ITEM} onCerrar={onCerrar} />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
     expect(reset).toHaveBeenCalled();
     expect(onCerrar).toHaveBeenCalledTimes(1);
-    expect(mutate).not.toHaveBeenCalled();
+
+    // Act
+    await user.type(screen.getByRole('textbox', { name: 'Contenido' }), '!');
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.getByText('¿Descartar los cambios?')).toBeInTheDocument();
+    expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 });

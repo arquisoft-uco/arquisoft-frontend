@@ -1,59 +1,76 @@
 import { useState } from 'react';
+import { Edit3, FileText } from 'lucide-react';
+import { useItemsMiFicha } from '../hooks/useItemsMiFicha';
 import { useMiFichaPerfil } from '../hooks/useMiFichaPerfil';
-import LoadingState from '../../../shared/components/ui/LoadingState';
+import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
+import type { ResumenFicha } from '../models/ResumenFicha';
+import Button from '../../../shared/components/ui/Button';
+import EmptyState from '../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../shared/components/ui/ErrorState';
+import PageHeader from '../../../shared/components/ui/PageHeader';
+import Skeleton from '../../../shared/components/ui/Skeleton';
 import Tabs from '../../../shared/components/ui/Tabs';
-import MiFichaHeader from './estudiante/MiFichaHeader';
+import { DISPOSICION } from './disposicion';
+import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
+import ResumenFichaPanel from './ResumenFichaPanel';
+import CompanerosFichaPanel from './estudiante/CompanerosFichaPanel';
+import EditarTituloForm from './estudiante/EditarTituloForm';
+import HistorialEstadosFichaPanel from './estudiante/HistorialEstadosFichaPanel';
 import ItemsMiFichaPanel from './estudiante/ItemsMiFichaPanel';
-import EstadosMiFichaPanel from './estudiante/EstadosMiFichaPanel';
-import RevisionesMiFichaPanel from './estudiante/RevisionesMiFichaPanel';
-import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
-import TiposItemPanel from './TiposItemPanel';
 import SelectorFichaEstudiante from './estudiante/SelectorFichaEstudiante';
 
-type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones' | 'tipos-item';
+type Pestana = 'items' | 'estados';
 
-const TABS: { id: Tab; etiqueta: string }[] = [
-  { id: 'items', etiqueta: 'Ítems' },
-  { id: 'estados', etiqueta: 'Estados' },
-  { id: 'revisiones', etiqueta: 'Revisiones' },
-  { id: 'evaluaciones', etiqueta: 'Evaluaciones' },
-  { id: 'tipos-item', etiqueta: 'Tipos de ítem' },
-];
+const RAIZ = 'flex flex-col gap-6';
+
+function aResumen(ficha: MiFichaPerfilResponse): ResumenFicha {
+  return {
+    id: ficha.id,
+    titulo: ficha.tituloProyecto,
+    estadoId: ficha.estadoActual.id,
+    estadoNombre: ficha.estadoActual.nombre,
+    fechaActualizacion: ficha.estadoActual.fechaActualizacion,
+    asesorNombre: ficha.asesor.nombre,
+    asesorEmail: ficha.asesor.email,
+  };
+}
 
 export default function EstudianteView() {
-  const { ficha, fichas, isLoadingFicha, sinFicha, errorFicha, seleccionarFicha } =
+  const { ficha, fichas, cargada, sinFicha, errorFicha, seleccionarFicha, reintentar } =
     useMiFichaPerfil();
-  const [tab, setTab] = useState<Tab>('items');
-
-  if (isLoadingFicha) {
-    return <LoadingState etiqueta="Cargando ficha de perfil..." />;
-  }
+  const { items, itemsCargados } = useItemsMiFicha();
+  const [pestana, setPestana] = useState<Pestana>('items');
+  const [editandoTitulo, setEditandoTitulo] = useState(false);
 
   if (errorFicha) {
     return (
-      <div role="alert" className="py-16 text-center">
-        <p className="text-lg font-medium text-on-surface">
-          No pudimos cargar tu ficha de perfil. Intenta de nuevo más tarde.
-        </p>
-      </div>
+      <ErrorState
+        titulo="No pudimos cargar tu ficha de perfil"
+        descripcion="Inténtalo nuevamente."
+        onReintentar={reintentar}
+      />
     );
   }
+
+  if (!cargada) return <Skeleton variante="tarjetas" etiqueta="Cargando tu ficha…" />;
 
   if (sinFicha || !ficha) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-lg font-medium text-on-surface">
-          No tienes una ficha de perfil asignada
-        </p>
-        <p className="mt-1 text-sm text-on-surface-secondary">
-          Contacta al coordinador para ser asignado a una ficha.
-        </p>
-      </div>
+      <EmptyState
+        icono={FileText}
+        titulo="Aún no tienes una ficha de perfil"
+        descripcion="Cuando tu coordinador te asigne a una, aparecerá aquí."
+      />
     );
   }
 
+  const pestanas = [
+    { id: 'items' as const, etiqueta: 'Ítems', contador: itemsCargados ? items.length : undefined },
+    { id: 'estados' as const, etiqueta: 'Historial de estados' },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className={RAIZ}>
       {fichas.length > 1 && (
         <SelectorFichaEstudiante
           fichas={fichas}
@@ -61,15 +78,55 @@ export default function EstudianteView() {
           onSeleccionar={seleccionarFicha}
         />
       )}
-      <MiFichaHeader />
-
-      <Tabs items={TABS} valor={tab} onCambiar={setTab} etiqueta="Secciones de mi ficha">
-        {tab === 'items' && <ItemsMiFichaPanel />}
-        {tab === 'estados' && <EstadosMiFichaPanel />}
-        {tab === 'revisiones' && <RevisionesMiFichaPanel />}
-        {tab === 'evaluaciones' && <EvaluacionesMiFichaPanel />}
-        {tab === 'tipos-item' && <TiposItemPanel />}
-      </Tabs>
+      <PageHeader
+        titulo={ficha.tituloProyecto}
+        insignia={
+          <InsigniaEstadoFicha
+            estadoId={ficha.estadoActual.id}
+            nombre={ficha.estadoActual.nombre}
+          />
+        }
+        meta={
+          <>
+            Mi ficha de perfil · Actualizada el{' '}
+            <FechaDeEstado iso={ficha.estadoActual.fechaActualizacion} />
+          </>
+        }
+        acciones={
+          <Button variante="secundario" icono={Edit3} onClick={() => setEditandoTitulo(true)}>
+            Editar título
+          </Button>
+        }
+      />
+      <div className={DISPOSICION.contenedor}>
+        <div className={DISPOSICION.principal}>
+          <Tabs
+            items={pestanas}
+            valor={pestana}
+            onCambiar={setPestana}
+            etiqueta="Secciones de mi ficha"
+          >
+            {pestana === 'items' ? (
+              <ItemsMiFichaPanel key={ficha.id} />
+            ) : (
+              <HistorialEstadosFichaPanel key={ficha.id} />
+            )}
+          </Tabs>
+        </div>
+        <div className={DISPOSICION.lateral}>
+          <ResumenFichaPanel
+            resumen={aResumen(ficha)}
+            equipo={<CompanerosFichaPanel integrantes={ficha.integrantes} />}
+          />
+        </div>
+      </div>
+      {editandoTitulo && (
+        <EditarTituloForm
+          key={ficha.id}
+          tituloActual={ficha.tituloProyecto}
+          onCerrar={() => setEditandoTitulo(false)}
+        />
+      )}
     </div>
   );
 }

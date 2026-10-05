@@ -1,111 +1,31 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
 import { render, screen, within } from '../../../../test-utils/render';
-import { useCompanerosFichaPerfil } from '../../hooks/useCompanerosFichaPerfil';
 import CompanerosFichaPanel from './CompanerosFichaPanel';
 
-vi.mock('../../hooks/useCompanerosFichaPerfil', () => ({
-  useCompanerosFichaPerfil: vi.fn(),
-}));
-
-function conConsulta(parcial: Record<string, unknown>) {
-  vi.mocked(useCompanerosFichaPerfil).mockReturnValue({
-    data: undefined,
-    isLoading: false,
-    isError: false,
-    error: null,
-    ...parcial,
-  } as ReturnType<typeof useCompanerosFichaPerfil>);
-}
-
 describe('CompanerosFichaPanel', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('consulta los compañeros de la ficha recibida', () => {
+  it('lista a cada integrante con su nombre y su correo', () => {
     // Arrange
-    conConsulta({ data: [] });
+    const integrantes = [
+      { id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' },
+      { id: 'e-2', nombre: 'Marta Gómez', email: 'marta@uco.edu.co' },
+    ];
 
     // Act
-    render(<CompanerosFichaPanel idFichaPerfil="f-1" />);
+    render(<CompanerosFichaPanel integrantes={integrantes} />);
 
     // Assert
-    expect(useCompanerosFichaPerfil).toHaveBeenCalledWith('f-1');
+    const lista = screen.getByRole('list', { name: 'Equipo de la ficha' });
+    expect(within(lista).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(lista).getByText('Luis Pérez')).toBeInTheDocument();
+    expect(within(lista).getByText('marta@uco.edu.co')).toBeInTheDocument();
   });
 
-  it('muestra el estado de carga', () => {
-    // Arrange
-    conConsulta({ isLoading: true });
-
+  it('sin integrantes muestra una línea compacta y no una lista', () => {
     // Act
-    render(<CompanerosFichaPanel idFichaPerfil="f-1" />);
+    render(<CompanerosFichaPanel integrantes={[]} />);
 
     // Assert
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando compañeros');
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('muestra el texto de vacío sin alerta cuando no hay compañeros', () => {
-    // Arrange
-    conConsulta({ data: [] });
-
-    // Act
-    render(<CompanerosFichaPanel idFichaPerfil="f-1" />);
-
-    // Assert
-    expect(screen.getByText('No tienes compañeros vinculados a esta ficha.')).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.queryByRole('list', { name: 'Compañeros' })).not.toBeInTheDocument();
-  });
-
-  it('muestra una alerta con el mensaje de respaldo cuando falla la consulta', () => {
-    // Arrange
-    conConsulta({ isError: true, error: new Error('fallo') });
-
-    // Act
-    render(<CompanerosFichaPanel idFichaPerfil="f-1" />);
-
-    // Assert
-    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los compañeros.');
-    expect(
-      screen.queryByText('No tienes compañeros vinculados a esta ficha.'),
-    ).not.toBeInTheDocument();
-  });
-
-  it('vuelve a consultar los compañeros al pulsar «Reintentar» tras un error', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const refetch = vi.fn();
-    conConsulta({ isError: true, error: new Error('fallo'), refetch });
-    render(<CompanerosFichaPanel idFichaPerfil="f-1" />);
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
-
-    // Assert
-    expect(refetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('lista el nombre y el correo de cada compañero', () => {
-    // Arrange
-    conConsulta({
-      data: [
-        { idVinculo: 'v-2', id: 'e-2', nombre: 'Marta Gómez', email: 'marta@uco.edu.co' },
-        { idVinculo: 'v-3', id: 'e-3', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' },
-      ],
-    });
-
-    // Act
-    render(<CompanerosFichaPanel idFichaPerfil="f-1" />);
-
-    // Assert
-    const items = within(screen.getByRole('list', { name: 'Compañeros' })).getAllByRole('listitem');
-    expect(items).toHaveLength(2);
-    expect(within(items[0]).getByText('Marta Gómez')).toBeInTheDocument();
-    expect(within(items[0]).getByText('marta@uco.edu.co')).toBeInTheDocument();
-    expect(within(items[1]).getByText('Luis Pérez')).toBeInTheDocument();
-    expect(within(items[1]).getByText('luis@uco.edu.co')).toBeInTheDocument();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByText('Aún no hay integrantes registrados.')).toBeInTheDocument();
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
   });
 });

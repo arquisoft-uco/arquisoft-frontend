@@ -60,6 +60,20 @@ describe('useFichaPerfilIdEstudiante', () => {
     expect(vacio.result.current.ficha).toBeNull();
   });
 
+  it('reexpone isSuccess solo con la consulta resuelta y refetch vuelve a pedir las fichas', async () => {
+    // Arrange
+    consultar.mockResolvedValue([crearFicha('f-1')]);
+    const { result } = renderHook(() => useFichaPerfilIdEstudiante(), { wrapper: crearWrapper() });
+    expect(result.current.isSuccess).toBe(false);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Act
+    await act(() => result.current.refetch());
+
+    // Assert
+    expect(consultar).toHaveBeenCalledTimes(2);
+  });
+
   it('con varias fichas usa ?ficha= válido, la primera si falta o es inválido, y seleccionarFicha escribe el param', async () => {
     // Arrange
     consultar.mockResolvedValue([crearFicha('f-1'), crearFicha('f-2')]);

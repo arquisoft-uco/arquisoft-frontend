@@ -6,58 +6,70 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { varianteEstadoFicha } from '../../../../shared/utils/estado-variante';
+import { FechaDeEstado } from '../FichaCeldas';
 
-const formatoFecha = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+const LISTA = 'flex flex-col';
+const PASO = 'flex gap-3';
+const RIEL = 'flex flex-col items-center';
+const PUNTO = 'mt-1.5 size-3 shrink-0 rounded-full';
+const PUNTO_ACTUAL = 'bg-primary';
+const PUNTO_ANTERIOR = 'bg-border-strong';
+const LINEA = 'w-px flex-1 bg-border';
+const CONTENIDO = 'flex min-w-0 flex-col gap-1 pb-5';
+const FILA_ESTADO = 'flex flex-wrap items-center gap-2';
+const FECHA = 'text-sm text-on-surface-secondary';
 
 export default function HistorialEstadosFichaPanel() {
-  const { historial, isLoading, isError, error, refetch, fichaPerfilIdDisponible } =
+  const { historial, isLoading, cargado, isError, error, refetch, fichaPerfilIdDisponible } =
     useEstadosFichaPerfilEstudiante();
 
   if (!fichaPerfilIdDisponible) {
     return <AvisoNoDisponible recurso="historial de estados de tu ficha de perfil" />;
   }
 
-  if (isLoading) {
-    return <Skeleton variante="tarjetas" etiqueta="Cargando historial de estados" />;
-  }
-
   if (isError) {
     return (
       <ErrorState
-        titulo={getApiErrorMessage(error, 'No se pudo cargar el historial de estados.')}
+        titulo="No se pudo cargar el historial de estados"
+        descripcion="Inténtalo nuevamente."
+        detalle={getApiErrorMessage(error, 'No se pudo cargar el historial de estados.')}
         onReintentar={refetch}
       />
     );
   }
 
+  if (isLoading || !cargado) {
+    return <Skeleton variante="lineas" etiqueta="Cargando historial de estados…" />;
+  }
+
+  if (historial.length === 0) {
+    return <EmptyState icono={History} titulo="Tu ficha aún no tiene estados registrados" />;
+  }
+
   return (
-    <section aria-labelledby="historial-estados-titulo" className="space-y-3">
-      <h3 id="historial-estados-titulo" className="text-sm font-semibold text-on-surface">
-        Historial de estados
-      </h3>
-      {historial.length === 0 ? (
-        <EmptyState icono={History} titulo="Tu ficha aún no tiene estados registrados." />
-      ) : (
-        <ul className="space-y-2">
-          {historial.map((estado, indice) => (
-            <li
-              key={estado.id + estado.fechaActualizacion}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface p-3"
-            >
-              <span className="flex items-center gap-2 text-sm text-on-surface">
-                {estado.nombre}
-                {indice === 0 && <Badge variante="info">Actual</Badge>}
+    <ol aria-label="Historial de estados de la ficha" className={LISTA}>
+      {historial.map((estado, indice) => {
+        const esActual = indice === 0;
+        const esUltimo = indice === historial.length - 1;
+        return (
+          <li key={estado.id + estado.fechaActualizacion} className={PASO}>
+            <div className={RIEL} aria-hidden="true">
+              <span className={[PUNTO, esActual ? PUNTO_ACTUAL : PUNTO_ANTERIOR].join(' ')} />
+              {!esUltimo && <span className={LINEA} />}
+            </div>
+            <div className={CONTENIDO}>
+              <div className={FILA_ESTADO}>
+                <Badge variante={varianteEstadoFicha(estado.id)}>{estado.nombre}</Badge>
+                {esActual && <Badge variante="info">Actual</Badge>}
+              </div>
+              <span className={FECHA}>
+                <FechaDeEstado iso={estado.fechaActualizacion} />
               </span>
-              <time
-                dateTime={estado.fechaActualizacion}
-                className="text-xs text-on-surface-secondary"
-              >
-                {formatoFecha.format(new Date(estado.fechaActualizacion))}
-              </time>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
