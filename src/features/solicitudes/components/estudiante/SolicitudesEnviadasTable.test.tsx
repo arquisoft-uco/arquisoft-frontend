@@ -52,8 +52,13 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesEnvi
 
 describe('SolicitudesEnviadasTable', () => {
   it('muestra una fila por solicitud con coordinador, correo, mensaje y la fecha ISO en <time>', () => {
-    renderizar();
+    // Arrange
+    const props = { solicitudes: SOLICITUDES };
 
+    // Act
+    renderizar(props);
+
+    // Assert
     const tabla = screen.getByRole('table', {
       name: 'Solicitudes de novedad enviadas al coordinador',
     });
@@ -67,15 +72,25 @@ describe('SolicitudesEnviadasTable', () => {
   });
 
   it('sin solicitudes muestra el vacío con el siguiente paso y sin tabla', () => {
-    renderizar({ solicitudes: [] });
+    // Arrange
+    const props = { solicitudes: [] };
 
+    // Act
+    renderizar(props);
+
+    // Assert
     expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
   it('mientras carga muestra el esqueleto y no la tabla', () => {
-    renderizar({ cargando: true });
+    // Arrange
+    const props = { cargando: true };
 
+    // Act
+    renderizar(props);
+
+    // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });

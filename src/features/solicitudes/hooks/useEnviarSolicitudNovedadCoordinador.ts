@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { solicitudesService } from '../services/solicitudesService';
+import { SOLICITUDES_ENVIADAS_QUERY_KEY } from './useSolicitudesNovedadCoordinadorEnviadas';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
 
 export function useEnviarSolicitudNovedadCoordinador() {
@@ -8,9 +9,6 @@ export function useEnviarSolicitudNovedadCoordinador() {
   return useMutation({
     mutationFn: (req: EnviarSolicitudNovedadCoordinadorRequest) =>
       solicitudesService.enviarSolicitudNovedadCoordinador(req),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ['solicitudes', 'novedad-coordinador', 'enviadas'],
-      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: SOLICITUDES_ENVIADAS_QUERY_KEY }),
   });
 }

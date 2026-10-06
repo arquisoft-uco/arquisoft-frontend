@@ -62,49 +62,61 @@ describe('SolicitudesEnviadasPanel', () => {
   });
 
   it('mientras carga muestra el esqueleto y no la tabla', () => {
+    // Arrange
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ isLoading: true }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
 
+    // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
   it('ante un error muestra el aviso con «Reintentar», que vuelve a consultar', async () => {
+    // Arrange
     const user = userEvent.setup();
     const refetch = vi.fn();
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ isError: true, error: new Error('fallo de red'), refetch }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
+    // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las solicitudes');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(refetch).toHaveBeenCalled();
   });
 
   it('sin solicitudes muestra el vacío y no un error', () => {
+    // Arrange
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ data: crearPagina([]) }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
 
+    // Assert
     expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('con datos muestra el resumen y la fila con coordinador y mensaje', () => {
+    // Arrange
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ data: crearPagina([SOLICITUD]) }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
 
+    // Assert
     const tabla = screen.getByRole('table', {
       name: 'Solicitudes de novedad enviadas al coordinador',
     });
@@ -115,6 +127,7 @@ describe('SolicitudesEnviadasPanel', () => {
   });
 
   it('con varias páginas el paginador pide la siguiente', async () => {
+    // Arrange
     const user = userEvent.setup();
     const goToPage = vi.fn();
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
@@ -124,9 +137,11 @@ describe('SolicitudesEnviadasPanel', () => {
       }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
+    // Assert
     expect(goToPage).toHaveBeenCalledWith(1);
   });
 });
