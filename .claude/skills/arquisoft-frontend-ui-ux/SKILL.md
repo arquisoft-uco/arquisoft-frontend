@@ -73,8 +73,8 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
   `EmptyState` y el `ErrorState` con `onReintentar`.
 - **Sección 8:** declara `NavItem.disponible` y, si hay rutas hijas, que cuelgan del módulo y **no** llevan
   `NavItem` propio (`patrones.md` §4).
-- **Archivos escritos a mano:** si la HU toca uno (`EnviarSolicitudNovedadForm` u otro de los 13 `<button` que quedan
-  fuera de `ui/`; ver `adopcion.md`), el plan dice si se migra a la pieza o se deja (migrar al tocar).
+- **Archivos escritos a mano:** si la HU toca uno (uno de los 13 `<button` que quedan fuera de `ui/`; ver
+  `adopcion.md`), el plan dice si se migra a la pieza o se deja (migrar al tocar).
 - **Preguntas al usuario:** solo las de producto que la tabla de arriba no resuelve (qué campos busca el listado,
   qué acciones lleva cada fila). El estilo no se pregunta: está decidido.
 - **Verifica contra el backend lo que el patrón promete:** campos filtrables y ordenables del criterio, y qué endpoint

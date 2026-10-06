@@ -77,6 +77,18 @@ describe('SolicitudNovedadForm', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('el contador del mensaje sigue lo que se escribe frente al límite', async () => {
+    renderizarFormulario();
+    const user = userEvent.setup();
+
+    expect(screen.getByText('0/100')).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText(/^Mensaje/));
+    await user.paste(MENSAJE_VALIDO);
+
+    expect(screen.getByText(`${MENSAJE_VALIDO.length}/100`)).toBeInTheDocument();
+  });
+
   it('al enviar vacío enfoca el primer campo con error y el enlace del resumen enfoca el otro campo', async () => {
     renderizarFormulario();
     const user = userEvent.setup();

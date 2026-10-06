@@ -200,6 +200,32 @@ desaparecería y el icono pisaría el texto. Medido con `getComputedStyle`: el c
 }
 ```
 
+**`select` en un `Field`.** El `select` usa la clase global `select.field-input` (`index.css`, tras `.field-input--accion`,
+por el mismo motivo que `--icono` y `--accion`: va después del bloque de 640 px): quita la flecha nativa
+(`appearance: none`), dibuja una propia con dos `linear-gradient` del color `on-surface-secondary` y reserva 2.5 rem a la
+derecha. La regla vive solo en `index.css`: un `select` no repite flecha ni `padding-right`. Con un icono a la izquierda
+suma `field-input--icono` y el icono sigue `Combobox.icono` (16 px, `text-on-surface-secondary`, dentro de un contenedor
+`relative`); el ancho por contenido (`w-fit max-w-full`) se resuelve en ese contenedor, no con `corto`. Referencia:
+`NuevaSolicitudPanel`. Sin medir: la flecha en modo de contraste forzado del sistema (los degradados no se pintan).
+
+```css
+/* Va después del bloque de 640 px, igual que --icono y --accion. */
+select.field-input {
+  padding-right: 2.5rem;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-on-surface-secondary) 50%),
+    linear-gradient(135deg, var(--color-on-surface-secondary) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.25rem) 50%,
+    calc(100% - 0.9rem) 50%;
+  background-size:
+    0.35rem 0.35rem,
+    0.35rem 0.35rem;
+  background-repeat: no-repeat;
+}
+```
+
 `Field.valido` (`border-secondary pr-10`) no está en el código: ningún prop lo activa. Se agrega cuando una
 pantalla lo pida.
 
@@ -293,7 +319,7 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
 
 - **Reemplazan:** las cinco pestañas copiadas (una con subrayado en `AdministradorView`, cuatro segmentadas
   cuya pista `bg-muted/50` no se pintaba).
-- **`Tabs`** (subrayado): genérico, `Tabs<T extends string>`: `items: { id: T; etiqueta; contador?; to? }[]`,
+- **`Tabs`** (subrayado): genérico, `Tabs<T extends string>`: `items: { id: T; etiqueta; contador?; icono?; to? }[]`,
   `valor: T`, `etiqueta` (va a `aria-label`), `onCambiar?: (id: T) => void`, `children?` y `className?`.
   Si **todos** los ítems traen `to` (subrutas) renderiza `<nav aria-label>` con un `Link` por ítem y
   `aria-current="page"` solo en el de `valor` (no `NavLink`: así `valor` es la única fuente de la pestaña
@@ -303,6 +329,11 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
   Los `children` se envuelven en `<div role="tabpanel" aria-labelledby>` ligado a la pestaña activa, y la activa
   lleva `aria-controls` hacia él (solo si hay `children`): sin el panel, `aria-controls` apuntaría a nada y cada
   consumidor repetiría los ids.
+- **`icono` (opcional):** un `LucideIcon` que va **antes** de la etiqueta, a 16 px y con `aria-hidden`, en los dos
+  modos (`tablist` y `to`): el nombre accesible de la pestaña sigue siendo solo la etiqueta. `ContenidoPestana`
+  (`shared/components/ui/ContenidoPestana.tsx`) dibuja ese contenido común (icono, etiqueta y contador) y `Tabs` lo usa
+  dentro del `<button>` y del `Link`. Es opcional y no lleva clase propia: `Tabs.pestana` ya trae `gap-2`. Una sola
+  pestaña con icono (el «+» de «Nueva solicitud») es aceptable si las demás no lo llevan.
 - **Modo `to` y `state`:** `to` es una cadena, así que el `state` de la navegación (por ejemplo, el resumen que viaja
   desde el listado) **no** pasa de una pestaña a otra. Quien lo necesite lo lee una vez y lo guarda en un contenedor
   que siga montado (`useResumenFicha`). En este modo el contenido va en un `<Outlet />` hermano, no en `children`.
@@ -336,7 +367,8 @@ Segmented.inactiva | text-muted-foreground
 Segmented.activa | bg-surface text-on-surface shadow-card
 ```
 
-- **Pruebas:** `Tabs` en modo `tablist` (flechas mueven el foco y la selección; solo la activa es tabulable).
+- **Pruebas:** `Tabs` en modo `tablist` (flechas mueven el foco y la selección; solo la activa es tabulable) y el
+  `icono` decorativo (no cambia el nombre accesible y queda fuera del árbol de accesibilidad).
 
 ### Switch
 

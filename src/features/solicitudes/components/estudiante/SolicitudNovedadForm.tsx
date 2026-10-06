@@ -33,6 +33,7 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
   const {
     register,
     errors,
+    longitudMensaje,
     resumenVisible,
     confirmando,
     alEnviarFormulario,
@@ -64,7 +65,11 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
             </div>
           </div>
 
-          <Field etiqueta="Mensaje" error={errors.mensajeSolicitud?.message}>
+          <Field
+            etiqueta={ETIQUETAS.mensajeSolicitud}
+            error={errors.mensajeSolicitud?.message}
+            contador={{ actual: longitudMensaje, max: LIMITES.MENSAJE_SOLICITUD_MAX }}
+          >
             {(control) => (
               <textarea
                 rows={4}

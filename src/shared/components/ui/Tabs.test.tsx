@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { forwardRef, useState } from 'react';
+import type { LucideIcon, LucideProps } from 'lucide-react';
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
 import Tabs from './Tabs';
+import type { ItemPestana } from './ContenidoPestana';
 
 type Seccion = 'datos' | 'items' | 'historial';
 
@@ -15,6 +17,10 @@ const ITEMS: { id: Seccion; etiqueta: string }[] = [
   { id: 'items', etiqueta: 'Ítems' },
   { id: 'historial', etiqueta: 'Historial' },
 ];
+
+const IconoDePrueba: LucideIcon = forwardRef<SVGSVGElement, Omit<LucideProps, 'ref'>>(
+  (props, ref) => <svg ref={ref} role="img" aria-label="Icono de prueba" {...props} />,
+);
 
 const CASOS_DE_TECLADO: CasoDeTeclado[] = [
   [
@@ -148,5 +154,23 @@ describe('Tabs', () => {
     );
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+  });
+
+  it('el icono de una pestaña es decorativo: no cambia su nombre accesible y las demás no lo traen', () => {
+    // Arrange
+    const itemsConIcono: ItemPestana<Seccion>[] = ITEMS.map((item) =>
+      item.id === 'datos' ? { ...item, icono: IconoDePrueba } : item,
+    );
+
+    // Act
+    render(<Tabs items={itemsConIcono} valor="datos" etiqueta={ETIQUETA} />);
+
+    // Assert
+    const conIcono = screen.getByRole('tab', { name: 'Datos' });
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(within(conIcono).getByRole('img', { hidden: true })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('tab', { name: 'Ítems' })).queryByRole('img', { hidden: true }),
+    ).not.toBeInTheDocument();
   });
 });

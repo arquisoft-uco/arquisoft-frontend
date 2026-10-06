@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook } from '../../../test-utils/render';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { useSolicitudNovedadForm } from './useSolicitudNovedadForm';
 import { toast } from '../../../shared/hooks/useToast';

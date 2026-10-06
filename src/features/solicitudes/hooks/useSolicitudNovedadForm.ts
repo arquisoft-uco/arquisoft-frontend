@@ -32,8 +32,9 @@ export function useSolicitudNovedadForm({ mensajeExito, enviar, reiniciar }: Opc
     defaultValues: { destinatario: '', mensajeSolicitud: '' },
     mode: 'onTouched',
   });
-  const { register, handleSubmit, reset, setError, setFocus } = formulario;
+  const { register, handleSubmit, reset, setError, setFocus, watch } = formulario;
   const { errors } = formulario.formState;
+  const longitudMensaje = watch('mensajeSolicitud').length;
 
   function onSubmit(values: EnviarSolicitudValues) {
     enviar(
@@ -96,6 +97,7 @@ export function useSolicitudNovedadForm({ mensajeExito, enviar, reiniciar }: Opc
   return {
     register,
     errors,
+    longitudMensaje,
     resumenVisible,
     confirmando,
     alEnviarFormulario,

@@ -17,10 +17,8 @@ const FORM_POR_TIPO: Record<TipoSolicitudUi, React.ComponentType> = {
 };
 
 const RAIZ = 'flex flex-col gap-4';
-
-function esTipoSolicitudUi(valor: string): valor is TipoSolicitudUi {
-  return valor in FORM_POR_TIPO;
-}
+const ICONO_DEL_TIPO =
+  'pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary';
 
 export default function NuevaSolicitudPanel() {
   const [tipo, setTipo] = useState<TipoSolicitudUi>('coordinador');
@@ -33,16 +31,13 @@ export default function NuevaSolicitudPanel() {
       <Field etiqueta="Tipo de solicitud">
         {(control) => (
           <div className="relative w-fit max-w-full self-start">
-            {IconoElegido && (
-              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-primary">
-                <IconoElegido size={18} aria-hidden />
-              </span>
-            )}
+            {IconoElegido && <IconoElegido className={ICONO_DEL_TIPO} aria-hidden />}
             <select
               className="field-input field-input--icono font-medium"
               value={tipo}
               onChange={(e) => {
-                if (esTipoSolicitudUi(e.target.value)) setTipo(e.target.value);
+                const elegido = TIPOS_SOLICITUD_LOCALES.find((t) => t.value === e.target.value);
+                if (elegido) setTipo(elegido.value);
               }}
               {...control}
             >
