@@ -95,10 +95,9 @@ describe('ROLES_DEL_PANEL', () => {
 });
 
 describe('puedeCambiarRol', () => {
-  it('permite quitar un rol asignado y agregar uno que falta, salvo Jurado y Bibliotecario, que no se cambian desde la pestaña', () => {
+  it('permite quitar y agregar los roles gestionables, Bibliotecario incluido; Jurado no se cambia', () => {
     // Arrange
-    // Hoy ROLES_QUITABLES y ROLES_AGREGABLES coinciden: si divergen, se esperan por separado.
-    const esperado = {
+    const esperadoAlQuitar = {
       [Rol.Estudiante]: true,
       [Rol.Asesor]: true,
       [Rol.AsesorFicha]: true,
@@ -106,8 +105,9 @@ describe('puedeCambiarRol', () => {
       [Rol.RepresentanteComiteCurriculum]: true,
       [Rol.Administrador]: true,
       [Rol.Jurado]: false,
-      [Rol.Bibliotecario]: false,
+      [Rol.Bibliotecario]: true,
     };
+    const esperadoAlAgregar = esperadoAlQuitar;
 
     // Act
     const [quitar, agregar] = [true, false].map((asignado) =>
@@ -115,13 +115,13 @@ describe('puedeCambiarRol', () => {
     );
 
     // Assert
-    expect(quitar).toEqual(esperado);
-    expect(agregar).toEqual(esperado);
+    expect(quitar).toEqual(esperadoAlQuitar);
+    expect(agregar).toEqual(esperadoAlAgregar);
   });
 });
 
 describe('ROLES_REGISTRABLES', () => {
-  it('ofrece los siete roles del lienzo: suma a Bibliotecario aunque no sea agregable y deja fuera a Jurado', () => {
+  it('ofrece los siete roles del lienzo: con Bibliotecario agregable y sin Jurado', () => {
     // Assert
     expect(ROLES_REGISTRABLES).toEqual([
       Rol.Estudiante,
@@ -132,7 +132,7 @@ describe('ROLES_REGISTRABLES', () => {
       Rol.Administrador,
       Rol.Bibliotecario,
     ]);
-    expect(ROLES_AGREGABLES.has(Rol.Bibliotecario)).toBe(false);
+    expect(ROLES_AGREGABLES.has(Rol.Bibliotecario)).toBe(true);
     expect(ROLES_REGISTRABLES).not.toContain(Rol.Jurado);
   });
 });

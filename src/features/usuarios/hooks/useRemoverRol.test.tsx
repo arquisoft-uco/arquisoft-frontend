@@ -15,6 +15,7 @@ vi.mock('../services/usuariosService', () => ({
     removerAsesorFicha: vi.fn(),
     removerRepresentanteComite: vi.fn(),
     removerAdministrador: vi.fn(),
+    removerBibliotecario: vi.fn(),
   },
 }));
 
@@ -29,6 +30,7 @@ const removerAsesorFicha = vi.mocked(usuariosService.removerAsesorFicha);
 const removerRepresentanteComite = vi.mocked(usuariosService.removerRepresentanteComite);
 
 const removerAdministrador = vi.mocked(usuariosService.removerAdministrador);
+const removerBibliotecario = vi.mocked(usuariosService.removerBibliotecario);
 
 function crearContexto() {
   const queryClient = new QueryClient({
@@ -164,6 +166,27 @@ describe('useRemoverRol', () => {
     expect(removerRepresentanteComite).not.toHaveBeenCalled();
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
     expect(toast.success).toHaveBeenCalledWith('Rol quitado', 'Ana Pérez ya no es administrador.');
+  });
+
+  it('despacha removerBibliotecario, invalida usuarios, avisa el éxito y ejecuta onExito cuando el rol es bibliotecario', async () => {
+    // Arrange
+    removerBibliotecario.mockResolvedValue(undefined);
+    const onExito = vi.fn();
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useRemoverRol(), { wrapper: Wrapper });
+    act(() =>
+      result.current.solicitar({ usuarioId: 'u-7', nombre: 'Ana Pérez', rol: Rol.Bibliotecario }),
+    );
+
+    // Act
+    act(() => result.current.confirmar(onExito));
+
+    // Assert
+    await waitFor(() => expect(removerBibliotecario).toHaveBeenCalledWith('u-7'));
+    expect(removerAdministrador).not.toHaveBeenCalled();
+    await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
+    expect(toast.success).toHaveBeenCalledWith('Rol quitado', 'Ana Pérez ya no es bibliotecario.');
+    await waitFor(() => expect(onExito).toHaveBeenCalledOnce());
   });
 
   it('avisa el error, no invalida ni ejecuta onExito y limpia el objetivo cuando el backend falla', async () => {

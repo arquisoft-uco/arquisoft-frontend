@@ -18,6 +18,7 @@ vi.mock('../../services/usuariosService', () => ({
     removerAsesorFicha: vi.fn(),
     removerRepresentanteComite: vi.fn(),
     removerAdministrador: vi.fn(),
+    removerBibliotecario: vi.fn(),
   },
 }));
 
@@ -57,6 +58,7 @@ const ROLES_CAMBIABLES = [
   Rol.Coordinador,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Bibliotecario,
 ];
 
 const interruptor = (rol: Rol) => screen.getByRole('switch', { name: ETIQUETAS_ROL[rol] });
@@ -66,7 +68,7 @@ describe('EditarUsuarioRoles', () => {
     vi.resetAllMocks();
   });
 
-  it('muestra un interruptor por rol marcado según el usuario, con Jurado y Bibliotecario deshabilitados y "Pronto"', async () => {
+  it('muestra un interruptor por rol marcado según el usuario, con Jurado deshabilitado y "Pronto"', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<EditarUsuarioRoles usuario={USUARIO} />);
@@ -77,14 +79,11 @@ describe('EditarUsuarioRoles', () => {
     for (const rol of ROLES_APAGADOS) expect(interruptor(rol)).not.toBeChecked();
     for (const rol of ROLES_CAMBIABLES) expect(interruptor(rol)).toBeEnabled();
     expect(interruptor(Rol.Jurado)).toBeDisabled();
-    expect(interruptor(Rol.Bibliotecario)).toBeDisabled();
-    expect(screen.getAllByText('Pronto')).toHaveLength(2);
+    expect(screen.getAllByText('Pronto')).toHaveLength(1);
     expect(interruptor(Rol.Jurado)).toHaveAccessibleDescription(/Pronto/);
-    expect(interruptor(Rol.Bibliotecario)).toHaveAccessibleDescription(/Pronto/);
 
     // Act
     await user.click(interruptor(Rol.Jurado));
-    await user.click(interruptor(Rol.Bibliotecario));
 
     // Assert
     expect(usuariosService.agregarRol).not.toHaveBeenCalled();
@@ -115,6 +114,64 @@ describe('EditarUsuarioRoles', () => {
       `Se agregó el rol ${ETIQUETAS_ROL[Rol.Asesor]} a ${USUARIO.nombre}.`,
     );
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('un usuario sin el rol de bibliotecario lo tiene habilitado y al encenderlo se agrega y se avisa', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.agregarRol).mockResolvedValue(undefined);
+    render(<EditarUsuarioRoles usuario={{ ...USUARIO, esBibliotecario: false }} />);
+    expect(interruptor(Rol.Bibliotecario)).toBeEnabled();
+    expect(interruptor(Rol.Bibliotecario)).not.toBeChecked();
+
+    // Act
+    await user.click(interruptor(Rol.Bibliotecario));
+
+    // Assert
+    expect(
+      await screen.findByRole('switch', {
+        name: ETIQUETAS_ROL[Rol.Bibliotecario],
+        checked: true,
+        busy: false,
+      }),
+    ).toBeEnabled();
+    expect(usuariosService.agregarRol).toHaveBeenCalledWith(USUARIO.id, Rol.Bibliotecario);
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      `Se agregó el rol ${ETIQUETAS_ROL[Rol.Bibliotecario]} a ${USUARIO.nombre}.`,
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('si el backend rechaza al bibliotecario duplicado avisa con su mensaje y el interruptor queda apagado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.agregarRol).mockRejectedValue(
+      errorApi(422, {
+        errorCode: 'BIBLIOTECARIO_USUARIO_DUPLICADO',
+        message: 'El usuario ya es bibliotecario',
+      }),
+    );
+    render(<EditarUsuarioRoles usuario={{ ...USUARIO, esBibliotecario: false }} />);
+
+    // Act
+    await user.click(interruptor(Rol.Bibliotecario));
+
+    // Assert
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudo agregar el rol',
+        'El usuario ya es bibliotecario',
+      ),
+    );
+    expect(
+      await screen.findByRole('switch', {
+        name: ETIQUETAS_ROL[Rol.Bibliotecario],
+        checked: false,
+        busy: false,
+      }),
+    ).toBeEnabled();
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it('si agregar falla avisa con toast.error y el interruptor queda apagado', async () => {
@@ -187,6 +244,35 @@ describe('EditarUsuarioRoles', () => {
     expect(usuariosService.removerEstudiante).toHaveBeenCalledTimes(1);
     expect(usuariosService.removerEstudiante).toHaveBeenCalledWith(USUARIO.id);
     expect(interruptor(Rol.Estudiante)).not.toBeChecked();
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol quitado',
+      `${USUARIO.nombre} ya no es ${rol.toLowerCase()}.`,
+    );
+  });
+
+  it('apagar a un bibliotecario vigente pide confirmación, quita el rol con el id y deja el interruptor apagado y habilitado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.removerBibliotecario).mockResolvedValue(undefined);
+    const rol = ETIQUETAS_ROL[Rol.Bibliotecario];
+    render(<EditarUsuarioRoles usuario={USUARIO} />);
+
+    // Act
+    await user.click(interruptor(Rol.Bibliotecario));
+
+    // Assert
+    expect(
+      screen.getByRole('alertdialog', { name: `¿Quitar el rol ${rol} a ${USUARIO.nombre}?` }),
+    ).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
+
+    // Assert
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(usuariosService.removerBibliotecario).toHaveBeenCalledWith(USUARIO.id);
+    expect(interruptor(Rol.Bibliotecario)).not.toBeChecked();
+    expect(interruptor(Rol.Bibliotecario)).toBeEnabled();
     expect(toast.success).toHaveBeenCalledWith(
       'Rol quitado',
       `${USUARIO.nombre} ya no es ${rol.toLowerCase()}.`,

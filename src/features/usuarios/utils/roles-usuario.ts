@@ -28,6 +28,7 @@ export const ROLES_AGREGABLES: ReadonlySet<Rol> = new Set([
   Rol.AsesorFicha,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Bibliotecario,
 ]);
 
 // Cada HU de quitar rol habilita el suyo añadiendo una entrada aquí y un método de service.
@@ -38,6 +39,7 @@ export const ROLES_QUITABLES: ReadonlySet<Rol> = new Set([
   Rol.AsesorFicha,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Bibliotecario,
 ]);
 
 export const ROLES_DEL_PANEL: readonly Rol[] = [
@@ -52,8 +54,8 @@ export const ROLES_DEL_PANEL: readonly Rol[] = [
 ];
 
 // Sin Jurado: el backend aún no lo asigna al registrar (TODO HU250 en RegistrarUsuarioUseCaseImpl).
-export const ROLES_REGISTRABLES: readonly Rol[] = ROLES_DEL_PANEL.filter(
-  (rol) => ROLES_AGREGABLES.has(rol) || rol === Rol.Bibliotecario,
+export const ROLES_REGISTRABLES: readonly Rol[] = ROLES_DEL_PANEL.filter((rol) =>
+  ROLES_AGREGABLES.has(rol),
 );
 
 export const DESCRIPCIONES_ROL: Record<Rol, string> = {
