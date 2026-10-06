@@ -66,7 +66,7 @@ describe('EditarUsuarioRoles', () => {
     vi.resetAllMocks();
   });
 
-  it('muestra un interruptor por rol marcado según el usuario, con Jurado y Bibliotecario deshabilitados y "Pronto"', async () => {
+  it('muestra un interruptor por rol marcado según el usuario, con Jurado y Bibliotecario ya asignado deshabilitados y "Pronto"', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<EditarUsuarioRoles usuario={USUARIO} />);
@@ -115,6 +115,64 @@ describe('EditarUsuarioRoles', () => {
       `Se agregó el rol ${ETIQUETAS_ROL[Rol.Asesor]} a ${USUARIO.nombre}.`,
     );
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('un usuario sin el rol de bibliotecario lo tiene habilitado y al encenderlo se agrega y se avisa', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.agregarRol).mockResolvedValue(undefined);
+    render(<EditarUsuarioRoles usuario={{ ...USUARIO, esBibliotecario: false }} />);
+    expect(interruptor(Rol.Bibliotecario)).toBeEnabled();
+    expect(interruptor(Rol.Bibliotecario)).not.toBeChecked();
+
+    // Act
+    await user.click(interruptor(Rol.Bibliotecario));
+
+    // Assert
+    expect(
+      await screen.findByRole('switch', {
+        name: ETIQUETAS_ROL[Rol.Bibliotecario],
+        checked: true,
+        busy: false,
+      }),
+    ).toBeDisabled();
+    expect(usuariosService.agregarRol).toHaveBeenCalledWith(USUARIO.id, Rol.Bibliotecario);
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol agregado',
+      `Se agregó el rol ${ETIQUETAS_ROL[Rol.Bibliotecario]} a ${USUARIO.nombre}.`,
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('si el backend rechaza al bibliotecario duplicado avisa con su mensaje y el interruptor queda apagado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.agregarRol).mockRejectedValue(
+      errorApi(422, {
+        errorCode: 'BIBLIOTECARIO_USUARIO_DUPLICADO',
+        message: 'El usuario ya es bibliotecario',
+      }),
+    );
+    render(<EditarUsuarioRoles usuario={{ ...USUARIO, esBibliotecario: false }} />);
+
+    // Act
+    await user.click(interruptor(Rol.Bibliotecario));
+
+    // Assert
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudo agregar el rol',
+        'El usuario ya es bibliotecario',
+      ),
+    );
+    expect(
+      await screen.findByRole('switch', {
+        name: ETIQUETAS_ROL[Rol.Bibliotecario],
+        checked: false,
+        busy: false,
+      }),
+    ).toBeEnabled();
+    expect(toast.success).not.toHaveBeenCalled();
   });
 
   it('si agregar falla avisa con toast.error y el interruptor queda apagado', async () => {
