@@ -95,7 +95,7 @@ describe('ROLES_DEL_PANEL', () => {
 });
 
 describe('puedeCambiarRol', () => {
-  it('permite quitar y agregar los roles gestionables; Bibliotecario solo se agrega y Jurado no se cambia', () => {
+  it('permite quitar y agregar los roles gestionables, Bibliotecario incluido; Jurado no se cambia', () => {
     // Arrange
     const esperadoAlQuitar = {
       [Rol.Estudiante]: true,
@@ -105,9 +105,9 @@ describe('puedeCambiarRol', () => {
       [Rol.RepresentanteComiteCurriculum]: true,
       [Rol.Administrador]: true,
       [Rol.Jurado]: false,
-      [Rol.Bibliotecario]: false,
+      [Rol.Bibliotecario]: true,
     };
-    const esperadoAlAgregar = { ...esperadoAlQuitar, [Rol.Bibliotecario]: true };
+    const esperadoAlAgregar = esperadoAlQuitar;
 
     // Act
     const [quitar, agregar] = [true, false].map((asignado) =>
