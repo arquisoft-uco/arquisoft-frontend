@@ -1,8 +1,9 @@
-import { Send } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 import Avatar from '../../../../shared/components/ui/Avatar';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import type { Solicitud } from '../../models/Solicitud';
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
@@ -58,15 +59,35 @@ const COLUMNAS: ColumnaTabla<Solicitud>[] = [
 interface Props {
   solicitudes: Solicitud[];
   cargando: boolean;
+  eliminando: boolean;
+  onEliminar: (solicitud: Solicitud) => void;
 }
 
-export default function SolicitudesEnviadasTable({ solicitudes, cargando }: Props) {
+export default function SolicitudesEnviadasTable({
+  solicitudes,
+  cargando,
+  eliminando,
+  onEliminar,
+}: Props) {
+  function acciones(solicitud: Solicitud) {
+    return (
+      <IconButton
+        etiqueta={`Eliminar la solicitud enviada a ${solicitud.destinatario.nombre}`}
+        icono={Trash2}
+        tono="peligro"
+        disabled={eliminando}
+        onClick={() => onEliminar(solicitud)}
+      />
+    );
+  }
+
   return (
     <DataTable
       etiqueta="Solicitudes de novedad enviadas al coordinador"
       columnas={COLUMNAS}
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
+      acciones={acciones}
       cargando={cargando}
       vacio={
         <EmptyState

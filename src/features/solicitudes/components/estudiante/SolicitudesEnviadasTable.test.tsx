@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesEnviadasTable from './SolicitudesEnviadasTable';
@@ -46,8 +47,20 @@ const SOLICITUDES: Solicitud[] = [
   },
 ];
 
+function tabla() {
+  return screen.getByRole('table', { name: 'Solicitudes de novedad enviadas al coordinador' });
+}
+
 function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesEnviadasTable>> = {}) {
-  render(<SolicitudesEnviadasTable solicitudes={SOLICITUDES} cargando={false} {...parcial} />);
+  const props = {
+    solicitudes: SOLICITUDES,
+    cargando: false,
+    eliminando: false,
+    onEliminar: vi.fn(),
+    ...parcial,
+  };
+  render(<SolicitudesEnviadasTable {...props} />);
+  return props;
 }
 
 describe('SolicitudesEnviadasTable', () => {
@@ -93,5 +106,33 @@ describe('SolicitudesEnviadasTable', () => {
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('el botón de eliminar de una fila llama a onEliminar con esa solicitud', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onEliminar } = renderizar();
+
+    // Act
+    await user.click(
+      within(tabla()).getByRole('button', { name: 'Eliminar la solicitud enviada a Carlos Ruiz' }),
+    );
+
+    // Assert
+    expect(onEliminar).toHaveBeenCalledTimes(1);
+    expect(onEliminar).toHaveBeenCalledWith(SOLICITUDES[1]);
+  });
+
+  it('deshabilita todos los botones de eliminar mientras se elimina', () => {
+    // Arrange / Act
+    renderizar({ eliminando: true });
+
+    // Assert
+    expect(
+      within(tabla()).getByRole('button', { name: 'Eliminar la solicitud enviada a Ana Pérez' }),
+    ).toBeDisabled();
+    expect(
+      within(tabla()).getByRole('button', { name: 'Eliminar la solicitud enviada a Carlos Ruiz' }),
+    ).toBeDisabled();
   });
 });
