@@ -5,6 +5,8 @@ import { Rol } from '../../../shared/models/rol';
 import { useHasRole } from '../../../hooks/useHasRole';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
 import ItemsCualitativosJuradoTable from './ItemsCualitativosJuradoTable';
+import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
+import ModificarItemCualitativoJurado from './ModificarItemCualitativoJurado';
 import RegistrarItemCualitativoJurado from './RegistrarItemCualitativoJurado';
 
 const ROLES_REGISTRAN = [Rol.Administrador];
@@ -13,11 +15,20 @@ export default function ItemsCualitativosJuradoView() {
   const { data, isLoading, isError, error } = useItemsCualitativosJurado();
   const esAdministrador = useHasRole(ROLES_REGISTRAN);
   const [registrando, setRegistrando] = useState(false);
+  const [editando, setEditando] = useState<ItemCualitativoJurado | null>(null);
 
   if (registrando) {
     return (
       <section className="flex flex-col gap-6 animate-fade-up">
         <RegistrarItemCualitativoJurado onCerrar={() => setRegistrando(false)} />
+      </section>
+    );
+  }
+
+  if (editando) {
+    return (
+      <section className="flex flex-col gap-6 animate-fade-up">
+        <ModificarItemCualitativoJurado item={editando} onCerrar={() => setEditando(null)} />
       </section>
     );
   }
@@ -65,7 +76,12 @@ export default function ItemsCualitativosJuradoView() {
         </div>
       )}
 
-      {data && <ItemsCualitativosJuradoTable items={data} />}
+      {data && (
+        <ItemsCualitativosJuradoTable
+          items={data}
+          onEditar={esAdministrador ? setEditando : undefined}
+        />
+      )}
     </section>
   );
 }

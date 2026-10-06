@@ -6,6 +6,7 @@ import { Rol } from '../../../shared/models/rol';
 import ItemsCualitativosJuradoView from './ItemsCualitativosJuradoView';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
 import { useRegistrarItemCualitativoJurado } from '../hooks/useRegistrarItemCualitativoJurado';
+import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 
 vi.mock('../hooks/useItemsCualitativosJurado', () => ({
@@ -14,6 +15,10 @@ vi.mock('../hooks/useItemsCualitativosJurado', () => ({
 
 vi.mock('../hooks/useRegistrarItemCualitativoJurado', () => ({
   useRegistrarItemCualitativoJurado: vi.fn(),
+}));
+
+vi.mock('../hooks/useModificarItemCualitativoJurado', () => ({
+  useModificarItemCualitativoJurado: vi.fn(),
 }));
 
 const ITEMS: ItemCualitativoJurado[] = [
@@ -136,5 +141,47 @@ describe('ItemsCualitativosJuradoView', () => {
     // Assert
     expect(screen.getByRole('table', { name: 'Ítems cualitativos del jurado' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument();
+  });
+
+  it('el administrador ve un lápiz por ítem, abre la edición y vuelve a la lista', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    vi.mocked(useModificarItemCualitativoJurado).mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+      reset: vi.fn(),
+    } as Partial<ReturnType<typeof useModificarItemCualitativoJurado>> as ReturnType<
+      typeof useModificarItemCualitativoJurado
+    >);
+    setActiveRole(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<ItemsCualitativosJuradoView />);
+    expect(screen.getAllByRole('button', { name: /^Editar ítem/ })).toHaveLength(2);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Editar ítem Claridad' }));
+
+    // Assert
+    expect(screen.getByLabelText('Nombre')).toHaveValue('Claridad');
+    expect(screen.getByLabelText('Descripción')).toHaveValue(ITEMS[0].descripcion);
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.getByRole('table', { name: 'Ítems cualitativos del jurado' })).toBeInTheDocument();
+  });
+
+  it('el jurado no ve el lápiz de edición', () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    setActiveRole(Rol.Jurado);
+
+    // Act
+    render(<ItemsCualitativosJuradoView />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /^Editar ítem/ })).not.toBeInTheDocument();
   });
 });

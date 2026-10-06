@@ -1,28 +1,29 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRegistrarItemCualitativoJurado } from '../hooks/useRegistrarItemCualitativoJurado';
+import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
+import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
+import { descripcionItemCualitativoJurado } from '../validation/itemCualitativoJuradoSchema';
 import { toast } from '../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,
   getApiFieldErrors,
   hasApiErrorCode,
 } from '../../../shared/utils/api-error';
-import { LIMITES, textoRequerido } from '../../../shared/validation';
-import { descripcionItemCualitativoJurado } from '../validation/itemCualitativoJuradoSchema';
+import { LIMITES } from '../../../shared/validation';
 
 const schema = z.object({
-  nombre: textoRequerido(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX),
   descripcion: descripcionItemCualitativoJurado,
 });
 
 type FormValues = z.infer<typeof schema>;
 
 interface Props {
+  item: ItemCualitativoJurado;
   onCerrar: () => void;
 }
 
-export default function RegistrarItemCualitativoJurado({ onCerrar }: Props) {
+export default function ModificarItemCualitativoJurado({ item, onCerrar }: Props) {
   const {
     register,
     handleSubmit,
@@ -31,11 +32,11 @@ export default function RegistrarItemCualitativoJurado({ onCerrar }: Props) {
     formState: { errors, isValid },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { nombre: '', descripcion: '' },
+    defaultValues: { descripcion: item.descripcion },
     mode: 'onChange',
   });
 
-  const { mutate, isPending, reset: resetMutation } = useRegistrarItemCualitativoJurado();
+  const { mutate, isPending, reset: resetMutation } = useModificarItemCualitativoJurado();
 
   function handleCancelar() {
     reset();
@@ -44,57 +45,47 @@ export default function RegistrarItemCualitativoJurado({ onCerrar }: Props) {
   }
 
   function onSubmit(values: FormValues) {
-    mutate(values, {
-      onSuccess: () => {
-        toast.success('Ítem registrado', `"${values.nombre}" fue registrado correctamente.`);
-        reset();
-        resetMutation();
-        onCerrar();
-      },
-      onError: (err) => {
-        // El toast es incondicional: el usuario debe enterarse del fallo aunque el
-        // campo con el error quede fuera de la vista.
-        const mensaje = getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
-        toast.error('Error al registrar el ítem', mensaje);
+    mutate(
+      { itemId: item.id, descripcion: values.descripcion },
+      {
+        onSuccess: () => {
+          toast.success('Ítem modificado', `"${item.nombre}" fue actualizado correctamente.`);
+          reset();
+          resetMutation();
+          onCerrar();
+        },
+        onError: (err) => {
+          // El toast es incondicional: el usuario debe enterarse del fallo aunque el
+          // campo con el error quede fuera de la vista.
+          const mensaje = getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
+          toast.error('Error al modificar el ítem', mensaje);
 
-        if (hasApiErrorCode(err, 'ITEM_CUALITATIVO_JURADO_NOMBRE_DUPLICADO')) {
-          setError('nombre', { message: mensaje });
-        }
-
-        getApiFieldErrors(err).forEach((fe) => {
-          if (fe.field === 'nombre' || fe.field === 'descripcion') {
-            setError(fe.field, { message: fe.message });
+          if (hasApiErrorCode(err, 'ITEM_CUALITATIVO_JURADO_NO_ENCONTRADO')) {
+            resetMutation();
+            onCerrar();
+            return;
           }
-        });
+
+          getApiFieldErrors(err).forEach((fe) => {
+            if (fe.field === 'descripcion') {
+              setError('descripcion', { message: fe.message });
+            }
+          });
+        },
       },
-    });
+    );
   }
 
   return (
     <div className="rounded-xl border border-border bg-surface p-4 shadow-card sm:p-5">
-      <h3 className="mb-4 text-base font-semibold text-on-surface">
-        Registrar nuevo ítem cualitativo
-      </h3>
+      <h3 className="mb-4 text-base font-semibold text-on-surface">Modificar ítem cualitativo</h3>
 
       <form onSubmit={handleSubmit(onSubmit)} aria-busy={isPending} className="flex flex-col gap-4">
         <div>
           <label htmlFor="icj-nombre" className="field-label">
             Nombre
           </label>
-          <input
-            id="icj-nombre"
-            type="text"
-            maxLength={LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX}
-            className="field-input"
-            aria-invalid={!!errors.nombre}
-            aria-describedby={errors.nombre ? 'icj-nombre-error' : undefined}
-            {...register('nombre')}
-          />
-          {errors.nombre && (
-            <p id="icj-nombre-error" className="field-error" role="alert">
-              {errors.nombre.message}
-            </p>
-          )}
+          <input id="icj-nombre" type="text" readOnly value={item.nombre} className="field-input" />
         </div>
 
         <div>
@@ -131,7 +122,7 @@ export default function RegistrarItemCualitativoJurado({ onCerrar }: Props) {
             aria-busy={isPending}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-50"
           >
-            {isPending ? 'Registrando...' : 'Registrar ítem'}
+            {isPending ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </div>
       </form>

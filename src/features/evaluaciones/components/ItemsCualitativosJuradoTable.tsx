@@ -1,10 +1,12 @@
+import { Pencil } from 'lucide-react';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 
 interface Props {
   items: ItemCualitativoJurado[];
+  onEditar?: (item: ItemCualitativoJurado) => void;
 }
 
-export default function ItemsCualitativosJuradoTable({ items }: Props) {
+export default function ItemsCualitativosJuradoTable({ items, onEditar }: Props) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-card">
       <table className="w-full text-left text-sm" aria-label="Ítems cualitativos del jurado">
@@ -16,12 +18,20 @@ export default function ItemsCualitativosJuradoTable({ items }: Props) {
             <th scope="col" className="px-4 py-3 font-medium">
               Descripción
             </th>
+            {onEditar && (
+              <th scope="col" className="px-4 py-3 font-medium">
+                Acciones
+              </th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {items.length === 0 ? (
             <tr>
-              <td colSpan={2} className="px-4 py-6 text-center text-on-surface-secondary">
+              <td
+                colSpan={onEditar ? 3 : 2}
+                className="px-4 py-6 text-center text-on-surface-secondary"
+              >
                 No hay ítems cualitativos registrados.
               </td>
             </tr>
@@ -30,6 +40,18 @@ export default function ItemsCualitativosJuradoTable({ items }: Props) {
               <tr key={item.id}>
                 <td className="px-4 py-3 align-top font-medium text-on-surface">{item.nombre}</td>
                 <td className="px-4 py-3 align-top text-on-surface-secondary">{item.descripcion}</td>
+                {onEditar && (
+                  <td className="px-4 py-3 align-top">
+                    <button
+                      type="button"
+                      onClick={() => onEditar(item)}
+                      aria-label={`Editar ítem ${item.nombre}`}
+                      className="rounded-lg p-2 text-on-surface-secondary transition-colors hover:bg-surface-secondary hover:text-on-surface"
+                    >
+                      <Pencil size={16} aria-hidden />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))
           )}
