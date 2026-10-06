@@ -1,89 +1,89 @@
-import PaginadorListado from '../../../../shared/components/PaginadorListado';
+import { Send } from 'lucide-react';
+import Avatar from '../../../../shared/components/ui/Avatar';
+import DataTable from '../../../../shared/components/ui/DataTable';
+import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
+import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { Solicitud } from '../../models/Solicitud';
-
-interface Props {
-  solicitudes: Solicitud[];
-  totalElements: number;
-  totalPages: number;
-  page: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-}
-
-const COLUMNAS = ['Fecha de envío', 'Destinatario', 'Mensaje'];
 
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 
-export default function SolicitudesEnviadasTable({
-  solicitudes,
-  totalElements,
-  totalPages,
-  page,
-  pageSize,
-  onPageChange,
-}: Props) {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface shadow-sm">
-        <table
-          className="w-full text-left text-sm"
-          aria-label="Solicitudes de novedad enviadas al coordinador"
-        >
-          <thead className="border-b border-border bg-surface-secondary">
-            <tr>
-              {COLUMNAS.map((columna) => (
-                <th key={columna} scope="col" className="px-4 py-3 font-semibold text-on-surface">
-                  {columna}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {solicitudes.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={COLUMNAS.length}
-                  className="px-4 py-10 text-center text-sm text-on-surface-secondary"
-                >
-                  Aún no has enviado solicitudes de novedad al coordinador.
-                </td>
-              </tr>
-            ) : (
-              solicitudes.map((solicitud) => (
-                <tr
-                  key={solicitud.id}
-                  className="align-top transition-colors hover:bg-nav-hover-bg"
-                >
-                  <td className="whitespace-nowrap px-4 py-3 text-on-surface">
-                    <time dateTime={solicitud.fechaCreacion}>
-                      {FORMATO_FECHA.format(new Date(solicitud.fechaCreacion))}
-                    </time>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-on-surface">{solicitud.destinatario.nombre}</p>
-                    <p className="text-xs text-on-surface-secondary">
-                      {solicitud.destinatario.identificador} · {solicitud.destinatario.email}
-                    </p>
-                  </td>
-                  <td className="min-w-64 px-4 py-3 text-on-surface-secondary">
-                    {solicitud.mensajeSolicitud}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+const IDENTIDAD = 'flex min-w-0 items-center gap-3';
+const TEXTOS = 'flex min-w-0 flex-col';
+const NOMBRE = 'block truncate font-semibold text-on-surface';
+const SUBTEXTO = 'block truncate text-[13px] text-on-surface-secondary';
+const MENSAJE = 'max-w-md text-on-surface-secondary';
+const FECHA_TARJETA = 'text-[13px] text-on-surface-secondary';
 
-      <PaginadorListado
-        page={page}
-        pageSize={pageSize}
-        totalPages={totalPages}
-        totalElements={totalElements}
-        cantidadEnPagina={solicitudes.length}
-        etiquetaPlural="solicitudes"
-        onPageChange={onPageChange}
-      />
+function Destinatario({ solicitud }: { solicitud: Solicitud }) {
+  const { nombre, email } = solicitud.destinatario;
+  return (
+    <div className={IDENTIDAD}>
+      <Avatar nombre={nombre} />
+      <div className={TEXTOS}>
+        <span title={nombre} className={NOMBRE}>
+          {nombre}
+        </span>
+        <span title={email} className={SUBTEXTO}>
+          {email}
+        </span>
+      </div>
     </div>
+  );
+}
+
+function FechaEnvio({ iso }: { iso: string }) {
+  const fecha = new Date(iso);
+  if (!iso || Number.isNaN(fecha.getTime())) return <span>—</span>;
+  return <time dateTime={iso}>{FORMATO_FECHA.format(fecha)}</time>;
+}
+
+const COLUMNAS: ColumnaTabla<Solicitud>[] = [
+  {
+    id: 'destinatario',
+    encabezado: 'Coordinador',
+    celda: (solicitud) => <Destinatario solicitud={solicitud} />,
+  },
+  {
+    id: 'mensaje',
+    encabezado: 'Mensaje',
+    celda: (solicitud) => <p className={MENSAJE}>{solicitud.mensajeSolicitud}</p>,
+  },
+  {
+    id: 'fecha',
+    encabezado: 'Enviada',
+    celda: (solicitud) => <FechaEnvio iso={solicitud.fechaCreacion} />,
+  },
+];
+
+interface Props {
+  solicitudes: Solicitud[];
+  cargando: boolean;
+}
+
+export default function SolicitudesEnviadasTable({ solicitudes, cargando }: Props) {
+  return (
+    <DataTable
+      etiqueta="Solicitudes de novedad enviadas al coordinador"
+      columnas={COLUMNAS}
+      filas={solicitudes}
+      idDeFila={(solicitud) => solicitud.id}
+      cargando={cargando}
+      vacio={
+        <EmptyState
+          icono={Send}
+          titulo="Aún no has enviado solicitudes"
+          descripcion="Cuando envíes una novedad al coordinador, aparecerá aquí."
+        />
+      }
+      tarjeta={(solicitud) => (
+        <>
+          <Destinatario solicitud={solicitud} />
+          <p className="text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
+          <p className={FECHA_TARJETA}>
+            <FechaEnvio iso={solicitud.fechaCreacion} />
+          </p>
+        </>
+      )}
+    />
   );
 }

@@ -33,14 +33,9 @@ Destino: .workspace/h-plan/PLAN-{HU|HT}-{ID}.md
 
 ## 3. Reglas de Negocio — dónde se valida cada una
 
-> **El cliente valida forma; el backend decide conjunto.** Obligatoriedad, longitud, formato y tamaño
-> de lista → schema Zod con los builders de `src/shared/validation/` y las constantes de `LIMITES`,
-> nunca un número mágico. Unicidad, existencia, propiedad y transición permitida → **no se validan en
-> el cliente**: llegan como 422 y se muestran con `getApiErrorMessage` o `getApiFieldErrors`.
->
-> Duplicar una regla de conjunto da falsos negativos: el frontend no tiene los datos para decidirla.
-> Y una regla de forma sin validar deja al usuario descubriendo por un 400 lo que el campo pudo
-> decirle al teclear.
+> **El cliente valida forma; el backend decide conjunto** (detalle en `arquisoft-frontend-estandares`,
+> "Validación compartida"). Forma → schema Zod con builders de `src/shared/validation/` y `LIMITES`.
+> Conjunto (unicidad, existencia, propiedad, transición) → no se valida en el cliente: llega como 422.
 >
 > Sin reglas de forma nuevas, no hay schema Zod nuevo. Si un límite no está en `LIMITES`, di de qué
 > archivo del backend o del MER se copia.

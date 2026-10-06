@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '../../../../test-utils/render';
+import userEvent from '@testing-library/user-event';
+import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import { useSolicitudesNovedadCoordinadorEnviadas } from '../../hooks/useSolicitudesNovedadCoordinadorEnviadas';
 import type { Solicitud } from '../../models/Solicitud';
@@ -45,6 +46,9 @@ function crearHookMock(parcial: Partial<HookEnviadas> = {}): HookEnviadas {
     error: null,
     isLoading: false,
     isError: false,
+    isFetching: false,
+    isPlaceholderData: false,
+    refetch: vi.fn(),
     page: 0,
     pageSize: 10,
     goToPage: vi.fn(),
@@ -57,53 +61,72 @@ describe('SolicitudesEnviadasPanel', () => {
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReset();
   });
 
-  it('muestra el estado de carga y no muestra la tabla', () => {
+  it('mientras carga muestra el esqueleto y no la tabla', () => {
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ isLoading: true }),
     );
 
     render(<SolicitudesEnviadasPanel />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando solicitudes enviadas');
+    expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('muestra el texto de respaldo en un alert y no muestra la tabla', () => {
+  it('ante un error muestra el aviso con «Reintentar», que vuelve a consultar', async () => {
+    const user = userEvent.setup();
+    const refetch = vi.fn();
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
-      crearHookMock({ isError: true, error: new Error('fallo de red') }),
+      crearHookMock({ isError: true, error: new Error('fallo de red'), refetch }),
     );
 
     render(<SolicitudesEnviadasPanel />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'No se pudieron cargar las solicitudes enviadas.',
-    );
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las solicitudes');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+    expect(refetch).toHaveBeenCalled();
   });
 
-  it('muestra el mensaje de vacío cuando no hay solicitudes', () => {
+  it('sin solicitudes muestra el vacío y no un error', () => {
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ data: crearPagina([]) }),
     );
 
     render(<SolicitudesEnviadasPanel />);
 
-    expect(
-      screen.getByText('Aún no has enviado solicitudes de novedad al coordinador.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('con datos muestra el contador, el destinatario y el mensaje', () => {
+  it('con datos muestra el resumen y la fila con coordinador y mensaje', () => {
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ data: crearPagina([SOLICITUD]) }),
     );
 
     render(<SolicitudesEnviadasPanel />);
 
+    const tabla = screen.getByRole('table', {
+      name: 'Solicitudes de novedad enviadas al coordinador',
+    });
     expect(screen.getByText('1 solicitud')).toBeInTheDocument();
-    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
-    expect(screen.getByText(/ana@uco\.edu\.co/)).toBeInTheDocument();
-    expect(screen.getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
+    expect(within(tabla).getByText('Ana Pérez')).toBeInTheDocument();
+    expect(within(tabla).getByText('ana@uco.edu.co')).toBeInTheDocument();
+    expect(within(tabla).getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
+  });
+
+  it('con varias páginas el paginador pide la siguiente', async () => {
+    const user = userEvent.setup();
+    const goToPage = vi.fn();
+    vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
+      crearHookMock({
+        data: { ...crearPagina([SOLICITUD]), totalElements: 25, totalPages: 3 },
+        goToPage,
+      }),
+    );
+
+    render(<SolicitudesEnviadasPanel />);
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+
+    expect(goToPage).toHaveBeenCalledWith(1);
   });
 });

@@ -1,53 +1,60 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { useLocation } from 'react-router';
 import { render, screen } from '../../../test-utils/render';
 import CoordinadorView from './CoordinadorView';
 
 vi.mock('./coordinador/ConsultarFichasPerfilCoordinador', () => ({
-  default: ({
-    accionHeader,
-    formulario,
-  }: {
-    accionHeader?: React.ReactNode;
-    formulario?: React.ReactNode;
-  }) => (
-    <div>
-      {accionHeader}
-      {formulario}
-    </div>
-  ),
+  default: () => <p>Listado de fichas</p>,
 }));
-vi.mock('./RegistrarFichaPerfil', () => ({
+vi.mock('./coordinador/RegistrarFichaPerfilPanel', () => ({
   default: ({ onCerrar }: { onCerrar: () => void }) => (
     <div>
-      <p>Formulario de registro</p>
+      <p>Panel de registro</p>
       <button type="button" onClick={onCerrar}>
-        Cerrar formulario
+        Cerrar panel
       </button>
     </div>
   ),
 }));
 
+function Ubicacion() {
+  const { pathname, search } = useLocation();
+  return <p>{`${pathname}${search}`}</p>;
+}
+
 describe('CoordinadorView', () => {
-  it('abre el formulario al pulsar Nueva Ficha de Perfil, oculta el botón, y lo cierra devolviendo el botón', async () => {
+  it('muestra el título de la página y el listado', () => {
+    // Act
+    render(<CoordinadorView />);
+
+    // Assert
+    expect(screen.getByRole('heading', { level: 1, name: 'Fichas de perfil' })).toBeInTheDocument();
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
+  });
+
+  it('Nueva ficha de perfil abre el panel sin cambiar la ruta y al cerrarlo lo quita', async () => {
     // Arrange
     const user = userEvent.setup();
-    render(<CoordinadorView />);
-    const abrir = screen.getByRole('button', { name: 'Nueva Ficha de Perfil' });
-    expect(screen.queryByText('Formulario de registro')).not.toBeInTheDocument();
+    render(
+      <>
+        <CoordinadorView />
+        <Ubicacion />
+      </>,
+      { initialPath: '/fichas-perfil?q=sistema&pagina=2' },
+    );
 
-    // Act: abrir
-    await user.click(abrir);
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Nueva ficha de perfil' }));
 
-    // Assert: formulario visible, botón de apertura oculto
-    expect(screen.getByText('Formulario de registro')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Nueva Ficha de Perfil' })).not.toBeInTheDocument();
+    // Assert
+    expect(screen.getByText('Panel de registro')).toBeInTheDocument();
+    expect(screen.getByText('/fichas-perfil?q=sistema&pagina=2')).toBeInTheDocument();
 
-    // Act: cerrar
-    await user.click(screen.getByRole('button', { name: 'Cerrar formulario' }));
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
 
-    // Assert: vuelve el botón, se oculta el formulario
-    expect(screen.getByRole('button', { name: 'Nueva Ficha de Perfil' })).toBeInTheDocument();
-    expect(screen.queryByText('Formulario de registro')).not.toBeInTheDocument();
+    // Assert
+    expect(screen.queryByText('Panel de registro')).not.toBeInTheDocument();
   });
 });

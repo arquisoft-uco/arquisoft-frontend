@@ -70,7 +70,10 @@ describe('solicitudesService', () => {
       post.mockResolvedValue({ status: 200, data: pagina });
 
       // Act
-      const resultado = await solicitudesService.consultarSolicitudesNovedadCoordinadorEnviadas(2, 10);
+      const resultado = await solicitudesService.consultarSolicitudesNovedadCoordinadorEnviadas(
+        2,
+        10,
+      );
 
       // Assert
       expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/enviadas', {

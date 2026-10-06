@@ -11,9 +11,7 @@ vi.mock('../services/solicitudesService', () => ({
   },
 }));
 
-const enviarSolicitudNovedadAsesor = vi.mocked(
-  solicitudesService.enviarSolicitudNovedadAsesor,
-);
+const enviarSolicitudNovedadAsesor = vi.mocked(solicitudesService.enviarSolicitudNovedadAsesor);
 
 const REQUEST = {
   destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',

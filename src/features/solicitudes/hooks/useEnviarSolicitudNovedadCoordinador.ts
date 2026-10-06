@@ -9,6 +9,8 @@ export function useEnviarSolicitudNovedadCoordinador() {
     mutationFn: (req: EnviarSolicitudNovedadCoordinadorRequest) =>
       solicitudesService.enviarSolicitudNovedadCoordinador(req),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['solicitudes', 'novedad-coordinador', 'enviadas'] }),
+      queryClient.invalidateQueries({
+        queryKey: ['solicitudes', 'novedad-coordinador', 'enviadas'],
+      }),
   });
 }

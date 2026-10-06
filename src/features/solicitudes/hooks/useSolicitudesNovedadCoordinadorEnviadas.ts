@@ -9,7 +9,8 @@ export function useSolicitudesNovedadCoordinadorEnviadas() {
 
   const query = useQuery({
     queryKey: ['solicitudes', 'novedad-coordinador', 'enviadas', page],
-    queryFn: () => solicitudesService.consultarSolicitudesNovedadCoordinadorEnviadas(page, PAGE_SIZE),
+    queryFn: () =>
+      solicitudesService.consultarSolicitudesNovedadCoordinadorEnviadas(page, PAGE_SIZE),
     placeholderData: keepPreviousData,
   });
 

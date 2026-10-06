@@ -1,5 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesEnviadasTable from './SolicitudesEnviadasTable';
@@ -13,7 +12,12 @@ const SOLICITUDES: Solicitud[] = [
     fechaCreacion: FECHA_ISO,
     tipoSolicitudId: 't-1',
     tipoSolicitudNombre: 'NOVEDAD_PARA_EL_COORDINADOR',
-    remitente: { usuarioId: 'u-1', identificador: '2001', nombre: 'Luis', email: 'luis@uco.edu.co' },
+    remitente: {
+      usuarioId: 'u-1',
+      identificador: '2001',
+      nombre: 'Luis',
+      email: 'luis@uco.edu.co',
+    },
     destinatario: {
       usuarioId: 'u-2',
       identificador: '1001',
@@ -27,7 +31,12 @@ const SOLICITUDES: Solicitud[] = [
     fechaCreacion: '2026-09-05T10:00:00Z',
     tipoSolicitudId: 't-1',
     tipoSolicitudNombre: 'NOVEDAD_PARA_EL_COORDINADOR',
-    remitente: { usuarioId: 'u-1', identificador: '2001', nombre: 'Luis', email: 'luis@uco.edu.co' },
+    remitente: {
+      usuarioId: 'u-1',
+      identificador: '2001',
+      nombre: 'Luis',
+      email: 'luis@uco.edu.co',
+    },
     destinatario: {
       usuarioId: 'u-3',
       identificador: '1002',
@@ -38,21 +47,11 @@ const SOLICITUDES: Solicitud[] = [
 ];
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesEnviadasTable>> = {}) {
-  const props = {
-    solicitudes: SOLICITUDES,
-    totalElements: 25,
-    totalPages: 3,
-    page: 0,
-    pageSize: 10,
-    onPageChange: vi.fn(),
-    ...parcial,
-  };
-  render(<SolicitudesEnviadasTable {...props} />);
-  return props;
+  render(<SolicitudesEnviadasTable solicitudes={SOLICITUDES} cargando={false} {...parcial} />);
 }
 
 describe('SolicitudesEnviadasTable', () => {
-  it('muestra una fila por solicitud con destinatario, correo, mensaje y la fecha ISO en <time>', () => {
+  it('muestra una fila por solicitud con coordinador, correo, mensaje y la fecha ISO en <time>', () => {
     renderizar();
 
     const tabla = screen.getByRole('table', {
@@ -61,19 +60,23 @@ describe('SolicitudesEnviadasTable', () => {
     const filas = within(tabla).getAllByRole('row');
     expect(filas).toHaveLength(SOLICITUDES.length + 1);
     expect(within(filas[1]).getByText('Ana Pérez')).toBeInTheDocument();
-    expect(within(filas[1]).getByText(/1001.*ana@uco\.edu\.co/)).toBeInTheDocument();
+    expect(within(filas[1]).getByText('ana@uco.edu.co')).toBeInTheDocument();
     expect(within(filas[1]).getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
     expect(filas[1].querySelector('time')).toHaveAttribute('datetime', FECHA_ISO);
     expect(within(filas[2]).getByText('Carlos Ruiz')).toBeInTheDocument();
   });
 
-  it('el paginador muestra el rango y llama a onPageChange con la página siguiente', async () => {
-    const user = userEvent.setup();
-    const { onPageChange } = renderizar();
+  it('sin solicitudes muestra el vacío con el siguiente paso y sin tabla', () => {
+    renderizar({ solicitudes: [] });
 
-    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+    expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByText('1–2 de 25 solicitudes')).toBeInTheDocument();
-    expect(onPageChange).toHaveBeenCalledWith(1);
+  it('mientras carga muestra el esqueleto y no la tabla', () => {
+    renderizar({ cargando: true });
+
+    expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 });
