@@ -209,16 +209,29 @@ describe('SolicitudesEnviadasPanel', () => {
     expect(goToPage).toHaveBeenCalledWith(1);
   });
 
-  it('al pulsar eliminar abre el diálogo con el nombre del destinatario y cancelar no elimina', async () => {
+  it('al pulsar eliminar abre el diálogo con el destinatario y las consecuencias', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar();
+
+    // Act
+    await abrirDialogoEliminar(user);
+
+    // Assert
+    const dialogo = screen.getByRole('alertdialog');
+    expect(dialogo).toHaveTextContent('¿Eliminar solicitud?');
+    expect(dialogo).toHaveTextContent('Vas a eliminar la solicitud enviada a Ana Pérez.');
+    expect(dialogo).toHaveTextContent('Dejará de aparecer en tus solicitudes enviadas.');
+    expect(dialogo).toHaveTextContent('No se puede deshacer.');
+  });
+
+  it('cancelar el diálogo de eliminar lo cierra sin eliminar', async () => {
     // Arrange
     const user = userEvent.setup();
     const mutate = mockearEliminar();
     await abrirDialogoEliminar(user);
 
     // Act
-    const dialogo = screen.getByRole('alertdialog');
-    expect(dialogo).toHaveTextContent('¿Eliminar solicitud?');
-    expect(dialogo).toHaveTextContent(/Ana Pérez/);
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     // Assert
@@ -239,10 +252,7 @@ describe('SolicitudesEnviadasPanel', () => {
 
     // Assert
     expect(mutate).toHaveBeenCalledWith('s-1', expect.any(Object));
-    expect(toast.success).toHaveBeenCalledWith(
-      'Solicitud eliminada',
-      expect.any(String),
-    );
+    expect(toast.success).toHaveBeenCalledWith('Solicitud eliminada', expect.any(String));
     expect(toast.error).not.toHaveBeenCalled();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });

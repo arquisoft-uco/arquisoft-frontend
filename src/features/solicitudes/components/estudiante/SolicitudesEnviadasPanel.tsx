@@ -29,7 +29,10 @@ export default function SolicitudesEnviadasPanel() {
     if (!pendienteEliminar) return;
     eliminar(pendienteEliminar.id, {
       onSuccess: () => {
-        toast.success('Solicitud eliminada', 'La solicitud de novedad fue eliminada correctamente.');
+        toast.success(
+          'Solicitud eliminada',
+          'La solicitud de novedad fue eliminada correctamente.',
+        );
         setPendienteEliminar(null);
       },
       onError: (err) => {
@@ -86,7 +89,11 @@ export default function SolicitudesEnviadasPanel() {
         <ConfirmDialog
           variante="peligro"
           titulo="¿Eliminar solicitud?"
-          descripcion={`Se eliminará la solicitud enviada a ${pendienteEliminar.destinatario.nombre}. Esta acción no se puede deshacer.`}
+          descripcion={`Vas a eliminar la solicitud enviada a ${pendienteEliminar.destinatario.nombre}.`}
+          consecuencias={[
+            'Dejará de aparecer en tus solicitudes enviadas.',
+            'No se puede deshacer.',
+          ]}
           labelConfirmar="Eliminar"
           cargando={eliminando}
           onConfirmar={handleConfirmarEliminar}
