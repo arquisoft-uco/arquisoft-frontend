@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../test-utils/render';
-import ModificarItemCualitativoJurado from './ModificarItemCualitativoJurado';
+import { render, screen, waitFor } from '../../../test-utils/render';
+import ModificarItemCualitativoJuradoPanel from './ModificarItemCualitativoJuradoPanel';
 import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
 import { toast } from '../../../shared/hooks/useToast';
 import { LIMITES, MENSAJES_VALIDACION } from '../../../shared/validation';
@@ -50,7 +50,7 @@ function mockMutacion(mutate = vi.fn(), isPending = false) {
   return mutate;
 }
 
-describe('ModificarItemCualitativoJurado', () => {
+describe('ModificarItemCualitativoJuradoPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -60,7 +60,7 @@ describe('ModificarItemCualitativoJurado', () => {
     mockMutacion();
 
     // Act
-    render(<ModificarItemCualitativoJurado item={ITEM} onCerrar={vi.fn()} />);
+    render(<ModificarItemCualitativoJuradoPanel item={ITEM} onCerrar={vi.fn()} />);
 
     // Assert
     expect(screen.getByLabelText('Nombre')).toHaveValue(ITEM.nombre);
@@ -72,18 +72,18 @@ describe('ModificarItemCualitativoJurado', () => {
     );
   });
 
-  it('con la descripción vacía muestra el requerido y deshabilita el envío', async () => {
+  it('con la descripción vacía muestra el requerido al salir del campo', async () => {
     // Arrange
     mockMutacion();
     const user = userEvent.setup();
-    render(<ModificarItemCualitativoJurado item={ITEM} onCerrar={vi.fn()} />);
+    render(<ModificarItemCualitativoJuradoPanel item={ITEM} onCerrar={vi.fn()} />);
 
     // Act
     await user.clear(screen.getByLabelText('Descripción'));
+    await user.tab();
 
     // Assert
     expect(await screen.findByRole('alert')).toHaveTextContent(MENSAJES_VALIDACION.requerido);
-    expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeDisabled();
   });
 
   it('envía itemId y descripción con trim, notifica el éxito y cierra', async () => {
@@ -92,7 +92,7 @@ describe('ModificarItemCualitativoJurado', () => {
     mockMutacion(mutate);
     const onCerrar = vi.fn();
     const user = userEvent.setup();
-    render(<ModificarItemCualitativoJurado item={ITEM} onCerrar={onCerrar} />);
+    render(<ModificarItemCualitativoJuradoPanel item={ITEM} onCerrar={onCerrar} />);
 
     // Act
     await user.clear(screen.getByLabelText('Descripción'));
@@ -126,16 +126,20 @@ describe('ModificarItemCualitativoJurado', () => {
     mockMutacion(mutate);
     const onCerrar = vi.fn();
     const user = userEvent.setup();
-    render(<ModificarItemCualitativoJurado item={ITEM} onCerrar={onCerrar} />);
+    render(<ModificarItemCualitativoJuradoPanel item={ITEM} onCerrar={onCerrar} />);
 
     // Act
     await user.type(screen.getByLabelText('Descripción'), ' extra');
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent('Descripción no permitida');
-    expect(screen.getByLabelText('Descripción')).toHaveAttribute('aria-invalid', 'true');
-    expect(toast.error).toHaveBeenCalledWith('Error al modificar el ítem', 'Datos inválidos');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Descripción')).toHaveAttribute('aria-invalid', 'true'),
+    );
+    expect(screen.getByLabelText('Descripción')).toHaveAccessibleDescription(
+      'Descripción no permitida',
+    );
+    expect(toast.error).toHaveBeenCalledWith('No se pudo modificar el ítem', 'Datos inválidos');
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
@@ -155,14 +159,14 @@ describe('ModificarItemCualitativoJurado', () => {
     mockMutacion(mutate);
     const onCerrar = vi.fn();
     const user = userEvent.setup();
-    render(<ModificarItemCualitativoJurado item={ITEM} onCerrar={onCerrar} />);
+    render(<ModificarItemCualitativoJuradoPanel item={ITEM} onCerrar={onCerrar} />);
 
     // Act
     await user.type(screen.getByLabelText('Descripción'), ' extra');
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     // Assert
-    expect(toast.error).toHaveBeenCalledWith('Error al modificar el ítem', mensaje);
+    expect(toast.error).toHaveBeenCalledWith('No se pudo modificar el ítem', mensaje);
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
@@ -171,10 +175,10 @@ describe('ModificarItemCualitativoJurado', () => {
     const mutate = mockMutacion();
     const onCerrar = vi.fn();
     const user = userEvent.setup();
-    render(<ModificarItemCualitativoJurado item={ITEM} onCerrar={onCerrar} />);
+    render(<ModificarItemCualitativoJuradoPanel item={ITEM} onCerrar={onCerrar} />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
     expect(onCerrar).toHaveBeenCalledTimes(1);

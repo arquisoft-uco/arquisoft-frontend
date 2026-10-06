@@ -122,7 +122,7 @@ describe('ItemsCualitativosJuradoView', () => {
     expect(screen.queryByRole('button', { name: 'Registrar ítem' })).not.toBeInTheDocument();
   });
 
-  it('alterna de la lista al formulario y vuelve a la lista al cancelar', async () => {
+  it('abre el panel de registro sobre la lista y lo cierra sin perderla', async () => {
     // Arrange
     mockConsulta({ data: ITEMS });
     vi.mocked(useRegistrarItemCualitativoJurado).mockReturnValue({
@@ -141,19 +141,19 @@ describe('ItemsCualitativosJuradoView', () => {
 
     // Assert
     expect(screen.getByLabelText('Nombre')).toBeInTheDocument();
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(
       screen.getByRole('table', { name: 'Ítems cualitativos del jurado' }),
     ).toBeInTheDocument();
-    expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument();
   });
 
-  it('el administrador ve un lápiz por ítem, abre la edición y vuelve a la lista', async () => {
+  it('el administrador ve un lápiz por ítem, abre el panel de edición y lo cierra', async () => {
     // Arrange
     mockConsulta({ data: ITEMS });
     vi.mocked(useModificarItemCualitativoJurado).mockReturnValue({
@@ -175,15 +175,13 @@ describe('ItemsCualitativosJuradoView', () => {
     // Assert
     expect(screen.getByLabelText('Nombre')).toHaveValue('Claridad');
     expect(screen.getByLabelText('Descripción')).toHaveValue(ITEMS[0].descripcion);
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
-    expect(
-      screen.getByRole('table', { name: 'Ítems cualitativos del jurado' }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('el jurado no ve el lápiz de edición', () => {
