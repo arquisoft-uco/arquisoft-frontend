@@ -39,6 +39,7 @@ export const ROLES_QUITABLES: ReadonlySet<Rol> = new Set([
   Rol.AsesorFicha,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Bibliotecario,
 ]);
 
 export const ROLES_DEL_PANEL: readonly Rol[] = [
