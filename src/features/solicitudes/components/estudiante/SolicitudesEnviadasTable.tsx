@@ -11,7 +11,7 @@ const IDENTIDAD = 'flex min-w-0 items-center gap-3';
 const TEXTOS = 'flex min-w-0 flex-col';
 const NOMBRE = 'block truncate font-semibold text-on-surface';
 const SUBTEXTO = 'block truncate text-[13px] text-on-surface-secondary';
-const MENSAJE = 'max-w-md text-on-surface-secondary';
+const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
 const FECHA_TARJETA = 'text-[13px] text-on-surface-secondary';
 
 function Destinatario({ solicitud }: { solicitud: Solicitud }) {
@@ -78,7 +78,7 @@ export default function SolicitudesEnviadasTable({ solicitudes, cargando }: Prop
       tarjeta={(solicitud) => (
         <>
           <Destinatario solicitud={solicitud} />
-          <p className="text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
+          <p className="break-words text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
           <p className={FECHA_TARJETA}>
             <FechaEnvio iso={solicitud.fechaCreacion} />
           </p>
