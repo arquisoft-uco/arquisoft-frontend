@@ -1,12 +1,7 @@
 import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Link } from 'react-router';
-
-interface ItemPestana<T extends string> {
-  id: T;
-  etiqueta: string;
-  contador?: number;
-  to?: string;
-}
+import ContenidoPestana from './ContenidoPestana';
+import type { ItemPestana } from './ContenidoPestana';
 
 type ItemConRuta<T extends string> = ItemPestana<T> & { to: string };
 
@@ -17,9 +12,6 @@ const PESTANA =
   'inline-flex h-11 shrink-0 items-center gap-2 border-b-2 px-3.5 text-sm font-medium whitespace-nowrap transition-colors';
 const PESTANA_ACTIVA = 'border-primary text-primary';
 const PESTANA_INACTIVA = 'border-transparent text-on-surface-secondary hover:text-on-surface';
-const CONTADOR = 'rounded-full px-2 py-px text-xs font-semibold';
-const CONTADOR_ACTIVO = 'bg-primary-muted text-primary-muted-foreground';
-const CONTADOR_INACTIVO = 'bg-muted text-muted-foreground';
 
 const clasesDePestana = (activa: boolean) =>
   [PESTANA, activa ? PESTANA_ACTIVA : PESTANA_INACTIVA].join(' ');
@@ -43,14 +35,6 @@ function indiceDestino(tecla: string, actual: number, total: number): number | n
     default:
       return null;
   }
-}
-
-function Contador({ valor, activa }: { valor: number; activa: boolean }) {
-  return (
-    <span className={[CONTADOR, activa ? CONTADOR_ACTIVO : CONTADOR_INACTIVO].join(' ')}>
-      {valor}
-    </span>
-  );
 }
 
 interface Props<T extends string> {
@@ -88,8 +72,7 @@ export default function Tabs<T extends string>({
               aria-current={activa ? 'page' : undefined}
               className={clasesDePestana(activa)}
             >
-              {item.etiqueta}
-              {item.contador !== undefined && <Contador valor={item.contador} activa={activa} />}
+              <ContenidoPestana item={item} activa={activa} />
             </Link>
           );
         })}
@@ -134,8 +117,7 @@ export default function Tabs<T extends string>({
               onKeyDown={(evento) => alTeclear(evento, indice)}
               className={clasesDePestana(activa)}
             >
-              {item.etiqueta}
-              {item.contador !== undefined && <Contador valor={item.contador} activa={activa} />}
+              <ContenidoPestana item={item} activa={activa} />
             </button>
           );
         })}

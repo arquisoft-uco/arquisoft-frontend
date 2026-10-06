@@ -32,4 +32,24 @@ describe('solicitudesService', () => {
       expect(resultado).toEqual({ id: 's-1' });
     });
   });
+
+  describe('enviarSolicitudNovedadAsesor', () => {
+    it('llama POST /solicitudes/novedad-asesor con { destinatario, mensajeSolicitud } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 's-2' } });
+
+      // Act
+      const resultado = await solicitudesService.enviarSolicitudNovedadAsesor({
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Mi asesor no ha respondido.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-asesor', {
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Mi asesor no ha respondido.',
+      });
+      expect(resultado).toEqual({ id: 's-2' });
+    });
+  });
 });

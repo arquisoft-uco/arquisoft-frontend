@@ -1,15 +1,52 @@
+import { useState } from 'react';
+import { Clock, Plus, type LucideIcon } from 'lucide-react';
+import EmptyState from '../../../shared/components/ui/EmptyState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
-import EnviarSolicitudNovedadForm from './estudiante/EnviarSolicitudNovedadForm';
+import Tabs from '../../../shared/components/ui/Tabs';
+import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
+
+type Pestana = 'nueva' | 'enviadas' | 'respuestas';
+
+const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
+  { id: 'nueva', etiqueta: 'Nueva solicitud', icono: Plus },
+  { id: 'enviadas', etiqueta: 'Enviadas' },
+  { id: 'respuestas', etiqueta: 'Respuestas' },
+];
+
+const PANEL_POR_PESTANA: Record<Pestana, React.ReactNode> = {
+  nueva: <NuevaSolicitudPanel />,
+  enviadas: (
+    <EmptyState
+      icono={Clock}
+      titulo="Solicitudes enviadas"
+      descripcion="El seguimiento de tus solicitudes enviadas estará disponible próximamente."
+    />
+  ),
+  respuestas: (
+    <EmptyState
+      icono={Clock}
+      titulo="Respuestas"
+      descripcion="Las respuestas a tus solicitudes estarán disponibles próximamente."
+    />
+  ),
+};
 
 export default function EstudianteView() {
+  const [pestana, setPestana] = useState<Pestana>('nueva');
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        titulo="Solicitudes"
-        descripcion="Envía una solicitud de novedad al coordinador de tu proyecto."
-      />
+      <PageHeader titulo="Solicitudes" descripcion="Envía solicitudes y consulta su seguimiento." />
 
-      <EnviarSolicitudNovedadForm />
+      <Tabs
+        items={PESTANAS}
+        valor={pestana}
+        onCambiar={setPestana}
+        etiqueta="Secciones de solicitudes"
+        idBase="solicitudes"
+      >
+        {PANEL_POR_PESTANA[pestana]}
+      </Tabs>
     </div>
   );
 }

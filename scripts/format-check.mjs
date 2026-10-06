@@ -40,6 +40,7 @@ if (archivos.length === 0) {
 
 const resultado = spawnSync('npx', ['prettier', '--list-different', ...archivos], {
   encoding: 'utf8',
+  shell: process.platform === 'win32',
 });
 const sinFormato = lineas(resultado.stdout ?? '');
 if (sinFormato.length === 0 && resultado.status === 0) {
