@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Menu, UserCog, CircleUser, LogOut, ChevronDown, Check } from 'lucide-react';
-import { cerrarSesion } from '../auth/session';
-import { useUsername, useRolActivo, useRolesDisponibles } from '../hooks/useAuth';
-import { useRoleStore } from '../auth/roleStore';
-import { ETIQUETAS_ROL, Rol } from '../shared/models/rol';
+import { useEffect, useRef, useState } from 'react';
+import { Menu } from 'lucide-react';
+import MenuCuenta from './MenuCuenta';
+import SelectorRol from './SelectorRol';
+import { useClicFuera } from '../shared/hooks/useClicFuera';
+
+type MenuAbierto = 'rol' | 'cuenta' | null;
 
 interface Props {
   onMenuToggle: () => void;
@@ -11,50 +12,29 @@ interface Props {
 }
 
 export default function Header({ onMenuToggle, isSidenavOpen }: Props) {
-  const username = useUsername();
-  const rolActivo = useRolActivo();
-  const rolesDisponibles = useRolesDisponibles();
-  const setRolSeleccionado = useRoleStore((s) => s.setRolSeleccionado);
+  const [menuAbierto, setMenuAbierto] = useState<MenuAbierto>(null);
+  const refRol = useRef<HTMLDivElement>(null);
+  const refCuenta = useRef<HTMLDivElement>(null);
 
-  const [rolMenuOpen, setRolMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const cerrar = () => setMenuAbierto(null);
+  const alternar = (menu: Exclude<MenuAbierto, null>) =>
+    setMenuAbierto((actual) => (actual === menu ? null : menu));
 
-  const closeMenus = useCallback(() => {
-    setRolMenuOpen(false);
-    setUserMenuOpen(false);
-  }, []);
+  useClicFuera(menuAbierto !== null, [refRol, refCuenta], cerrar);
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') closeMenus(); };
-    const onClick = () => closeMenus();
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('click', onClick);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('click', onClick);
+    const alPulsarTecla = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuAbierto(null);
     };
-  }, [closeMenus]);
-
-  const etiquetaRolActivo = rolActivo ? ETIQUETAS_ROL[rolActivo] : 'Sin rol';
-  const tieneMultiplesRoles = rolesDisponibles.length > 1;
-
-  function seleccionarRol(rol: Rol) {
-    setRolSeleccionado(rol);
-    closeMenus();
-  }
-
-  function logout() {
-    closeMenus();
-    // Revoca el token en el backend (blacklist Redis) y luego cierra la sesión SSO.
-    void cerrarSesion();
-  }
+    document.addEventListener('keydown', alPulsarTecla);
+    return () => document.removeEventListener('keydown', alPulsarTecla);
+  }, []);
 
   return (
     <header
       className="relative z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border/50 bg-white/70 px-3 backdrop-blur-xl sm:h-16 sm:px-4"
       role="banner"
     >
-      {/* Skip to main content */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
@@ -75,108 +55,21 @@ export default function Header({ onMenuToggle, isSidenavOpen }: Props) {
 
       <span className="flex-1" aria-hidden />
 
-      {/* Role selector */}
-      {tieneMultiplesRoles ? (
-        <div className="relative">
-          <button
-            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-on-surface transition-all duration-150 hover:border-primary/40 hover:bg-primary-muted hover:text-primary active:scale-[0.97] sm:text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            onClick={(e) => { e.stopPropagation(); setRolMenuOpen((v) => !v); setUserMenuOpen(false); }}
-            aria-expanded={rolMenuOpen}
-            aria-haspopup="true"
-            aria-label={`Rol activo: ${etiquetaRolActivo}. Haz clic para cambiar.`}
-            type="button"
-          >
-            <UserCog size={14} className="text-primary" aria-hidden />
-            <span className="max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap sm:max-w-[160px]">
-              {etiquetaRolActivo}
-            </span>
-            <ChevronDown
-              size={13}
-              className="shrink-0 text-on-surface-secondary transition-transform duration-150"
-              aria-hidden
-              style={{ transform: rolMenuOpen ? 'rotate(180deg)' : 'none' }}
-            />
-          </button>
+      <div ref={refRol} className="relative">
+        <SelectorRol
+          abierto={menuAbierto === 'rol'}
+          onAlternar={() => alternar('rol')}
+          onCerrar={cerrar}
+        />
+      </div>
 
-          {rolMenuOpen && (
-            <div
-              className="animate-scale-in absolute right-0 top-full z-50 mt-1.5 min-w-[210px] overflow-hidden rounded-xl border border-white/40 bg-white/85 shadow-dropdown backdrop-blur-xl"
-              role="menu"
-              aria-label="Cambiar rol activo"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <p className="border-b border-border px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-on-surface-secondary">
-                Cambiar rol
-              </p>
-              <div className="p-1">
-                {rolesDisponibles.map((rol) => (
-                  <button
-                    key={rol}
-                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm text-on-surface transition-colors hover:bg-primary-muted focus-visible:bg-primary-muted focus-visible:outline-none"
-                    role="menuitem"
-                    onClick={() => seleccionarRol(rol)}
-                    type="button"
-                  >
-                    <span className={rolActivo === rol ? 'font-semibold text-primary' : ''}>
-                      {ETIQUETAS_ROL[rol]}
-                    </span>
-                    {rolActivo === rol && <Check size={14} className="shrink-0 text-primary" aria-hidden />}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ) : rolActivo ? (
-        <span
-          className="flex items-center gap-1.5 rounded-full bg-primary-muted px-3 py-1 text-xs font-semibold text-primary sm:text-sm"
-          aria-label={`Rol activo: ${etiquetaRolActivo}`}
-        >
-          <UserCog size={13} aria-hidden />
-          <span className="max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap sm:max-w-[160px]">
-            {etiquetaRolActivo}
-          </span>
-        </span>
-      ) : null}
-
-      {/* User menu */}
-      <div className="relative ml-1">
-        <button
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-md active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-9 sm:w-9"
-          onClick={(e) => { e.stopPropagation(); setUserMenuOpen((v) => !v); setRolMenuOpen(false); }}
-          aria-expanded={userMenuOpen}
-          aria-haspopup="true"
-          aria-label="Menú de cuenta de usuario"
-          type="button"
-        >
-          <CircleUser size={18} aria-hidden />
-        </button>
-
-        {userMenuOpen && (
-          <div
-            className="animate-scale-in absolute right-0 top-full z-50 mt-1.5 min-w-[210px] overflow-hidden rounded-xl border border-white/40 bg-white/85 shadow-dropdown backdrop-blur-xl"
-            role="menu"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="border-b border-border px-4 py-3">
-              <p className="truncate text-sm font-semibold text-on-surface">{username}</p>
-              <p className="mt-0.5 truncate text-xs text-on-surface-secondary">{etiquetaRolActivo}</p>
-            </div>
-            <div className="p-1">
-              <button
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-on-surface transition-colors hover:bg-danger/10 hover:text-danger focus-visible:bg-danger/10 focus-visible:text-danger focus-visible:outline-none"
-                role="menuitem"
-                onClick={logout}
-                type="button"
-              >
-                <LogOut size={15} aria-hidden />
-                Cerrar sesión
-              </button>
-            </div>
-          </div>
-        )}
+      <div ref={refCuenta} className="relative ml-1">
+        <MenuCuenta
+          abierto={menuAbierto === 'cuenta'}
+          onAlternar={() => alternar('cuenta')}
+          onCerrar={cerrar}
+        />
       </div>
     </header>
   );
 }
-
