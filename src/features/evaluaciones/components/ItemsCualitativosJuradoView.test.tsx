@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
-import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../../test-utils/store.utils';
+import {
+  resetAllStores,
+  setActiveRole,
+  setAuthenticatedUser,
+} from '../../../test-utils/store.utils';
 import { Rol } from '../../../shared/models/rol';
 import ItemsCualitativosJuradoView from './ItemsCualitativosJuradoView';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
@@ -23,7 +27,11 @@ vi.mock('../hooks/useModificarItemCualitativoJurado', () => ({
 
 const ITEMS: ItemCualitativoJurado[] = [
   { id: 'i-2', nombre: 'Claridad', descripcion: 'El documento se comprende sin ambigüedades.' },
-  { id: 'i-1', nombre: 'Aplicabilidad', descripcion: 'La propuesta resuelve un problema real del contexto.' },
+  {
+    id: 'i-1',
+    nombre: 'Aplicabilidad',
+    descripcion: 'La propuesta resuelve un problema real del contexto.',
+  },
 ];
 
 function mockConsulta(parcial: Partial<ReturnType<typeof useItemsCualitativosJurado>>) {
@@ -82,7 +90,7 @@ describe('ItemsCualitativosJuradoView', () => {
     render(<ItemsCualitativosJuradoView />);
 
     // Assert
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando ítems cualitativos del jurado');
+    expect(screen.getByRole('status')).toHaveTextContent(/cargando ítems cualitativos del jurado/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
@@ -139,7 +147,9 @@ describe('ItemsCualitativosJuradoView', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     // Assert
-    expect(screen.getByRole('table', { name: 'Ítems cualitativos del jurado' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('table', { name: 'Ítems cualitativos del jurado' }),
+    ).toBeInTheDocument();
     expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument();
   });
 
@@ -156,10 +166,11 @@ describe('ItemsCualitativosJuradoView', () => {
     setActiveRole(Rol.Administrador);
     const user = userEvent.setup();
     render(<ItemsCualitativosJuradoView />);
-    expect(screen.getAllByRole('button', { name: /^Editar ítem/ })).toHaveLength(2);
+    const tabla = screen.getByRole('table', { name: 'Ítems cualitativos del jurado' });
+    expect(within(tabla).getAllByRole('button', { name: /^Editar ítem/ })).toHaveLength(2);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Editar ítem Claridad' }));
+    await user.click(within(tabla).getByRole('button', { name: 'Editar ítem Claridad' }));
 
     // Assert
     expect(screen.getByLabelText('Nombre')).toHaveValue('Claridad');
@@ -170,7 +181,9 @@ describe('ItemsCualitativosJuradoView', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     // Assert
-    expect(screen.getByRole('table', { name: 'Ítems cualitativos del jurado' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('table', { name: 'Ítems cualitativos del jurado' }),
+    ).toBeInTheDocument();
   });
 
   it('el jurado no ve el lápiz de edición', () => {

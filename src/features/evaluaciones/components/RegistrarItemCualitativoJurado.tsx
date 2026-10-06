@@ -9,7 +9,7 @@ import {
   hasApiErrorCode,
 } from '../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../shared/validation';
-import { descripcionItemCualitativoJurado } from '../validation/itemCualitativoJuradoSchema';
+import { descripcionItemCualitativoJurado } from '../utils/item-cualitativo-jurado-schema';
 
 const schema = z.object({
   nombre: textoRequerido(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX),

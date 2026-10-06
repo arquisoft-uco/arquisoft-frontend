@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import ErrorState from '../../../shared/components/ui/ErrorState';
+import Skeleton from '../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { Rol } from '../../../shared/models/rol';
 import { useHasRole } from '../../../hooks/useHasRole';
@@ -12,7 +14,7 @@ import RegistrarItemCualitativoJurado from './RegistrarItemCualitativoJurado';
 const ROLES_REGISTRAN = [Rol.Administrador];
 
 export default function ItemsCualitativosJuradoView() {
-  const { data, isLoading, isError, error } = useItemsCualitativosJurado();
+  const { data, isLoading, isError, error, refetch } = useItemsCualitativosJurado();
   const esAdministrador = useHasRole(ROLES_REGISTRAN);
   const [registrando, setRegistrando] = useState(false);
   const [editando, setEditando] = useState<ItemCualitativoJurado | null>(null);
@@ -54,26 +56,14 @@ export default function ItemsCualitativosJuradoView() {
         )}
       </header>
 
-      {isLoading && (
-        <div className="flex items-center justify-center py-16" aria-live="polite" aria-busy="true">
-          <div
-            className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
-            role="status"
-          >
-            <span className="sr-only">Cargando ítems cualitativos del jurado</span>
-          </div>
-        </div>
-      )}
+      {isLoading && <Skeleton variante="tabla" etiqueta="Cargando ítems cualitativos del jurado" />}
 
       {isError && (
-        <div className="rounded-xl border border-border bg-surface p-6 text-center" role="alert">
-          <p className="text-sm text-on-surface-secondary">
-            {getApiErrorMessage(
-              error,
-              'No se pudieron cargar los ítems cualitativos del jurado. Intenta nuevamente.',
-            )}
-          </p>
-        </div>
+        <ErrorState
+          titulo="No se pudieron cargar los ítems cualitativos del jurado."
+          descripcion={getApiErrorMessage(error, 'Intenta nuevamente.')}
+          onReintentar={() => void refetch()}
+        />
       )}
 
       {data && (

@@ -101,7 +101,10 @@ describe('RegistrarItemCualitativoJurado', () => {
       { nombre: 'Claridad', descripcion: 'Se comprende sin ambigüedades.' },
       expect.anything(),
     );
-    expect(toast.success).toHaveBeenCalledWith('Ítem registrado', expect.stringContaining('Claridad'));
+    expect(toast.success).toHaveBeenCalledWith(
+      'Ítem registrado',
+      expect.stringContaining('Claridad'),
+    );
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 

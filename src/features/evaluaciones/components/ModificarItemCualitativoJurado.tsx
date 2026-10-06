@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
-import { descripcionItemCualitativoJurado } from '../validation/itemCualitativoJuradoSchema';
+import { descripcionItemCualitativoJurado } from '../utils/item-cualitativo-jurado-schema';
 import { toast } from '../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,

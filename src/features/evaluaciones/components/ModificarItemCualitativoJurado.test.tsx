@@ -104,7 +104,10 @@ describe('ModificarItemCualitativoJurado', () => {
       { itemId: 'i-1', descripcion: 'Nueva descripción' },
       expect.anything(),
     );
-    expect(toast.success).toHaveBeenCalledWith('Ítem modificado', expect.stringContaining('Claridad'));
+    expect(toast.success).toHaveBeenCalledWith(
+      'Ítem modificado',
+      expect.stringContaining('Claridad'),
+    );
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 

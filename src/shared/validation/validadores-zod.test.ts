@@ -119,7 +119,10 @@ describe('emailValido', () => {
 });
 
 describe('textoEntre', () => {
-  const validador = textoEntre(LIMITES.USUARIO_IDENTIFICADOR_MIN, LIMITES.USUARIO_IDENTIFICADOR_MAX);
+  const validador = textoEntre(
+    LIMITES.USUARIO_IDENTIFICADOR_MIN,
+    LIMITES.USUARIO_IDENTIFICADOR_MAX,
+  );
 
   it('rechaza vacío con el mensaje de requerido, corto y largo con el de longitud, y acepta en rango', () => {
     const vacio = validador.safeParse('');
@@ -175,7 +178,10 @@ describe('soloDigitosEntre', () => {
     expect(corto.success).toBe(false);
     if (!corto.success) {
       expect(corto.error.issues[0].message).toBe(
-        MENSAJES_VALIDACION.longitudEntre(LIMITES.USUARIO_CONTACTO_MIN, LIMITES.USUARIO_CONTACTO_MAX),
+        MENSAJES_VALIDACION.longitudEntre(
+          LIMITES.USUARIO_CONTACTO_MIN,
+          LIMITES.USUARIO_CONTACTO_MAX,
+        ),
       );
     }
 
