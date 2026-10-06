@@ -53,7 +53,9 @@ describe('NovedadCoordinadorForm', () => {
     expect(
       screen.getByRole('heading', { name: 'Enviar solicitud de novedad al coordinador' }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/Destinatario \(UUID del coordinador\)/)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/Destinatario \(identificador del coordinador\)/),
+    ).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/reportar al coordinador/)).toBeInTheDocument();
     expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
   });

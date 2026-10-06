@@ -13,7 +13,7 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
 
 const TEXTOS: TextosSolicitudNovedad = {
   titulo: 'Enviar solicitud de novedad al coordinador',
-  etiquetaDestinatario: 'Destinatario (UUID del coordinador)',
+  etiquetaDestinatario: 'Destinatario (identificador del coordinador)',
   placeholderMensaje: 'Describe la novedad',
   recursoAviso: 'coordinadores',
   tituloConfirmacion: 'Enviar solicitud al coordinador',
@@ -41,7 +41,12 @@ type MutateOptions = {
 
 function renderizarFormulario(enviar = vi.fn(), enviando = false) {
   render(
-    <SolicitudNovedadForm textos={TEXTOS} enviar={enviar} enviando={enviando} reiniciar={vi.fn()} />,
+    <SolicitudNovedadForm
+      textos={TEXTOS}
+      enviar={enviar}
+      enviando={enviando}
+      reiniciar={vi.fn()}
+    />,
   );
   return enviar;
 }
@@ -58,17 +63,47 @@ describe('SolicitudNovedadForm', () => {
     vi.clearAllMocks();
   });
 
-  it('mantiene Enviar solicitud deshabilitado hasta que los campos son válidos y muestra el aviso de catálogo no disponible', async () => {
+  it('no abre la confirmación con campos vacíos, resume los errores y muestra el aviso de catálogo no disponible', async () => {
     renderizarFormulario();
     const user = userEvent.setup();
     const submit = screen.getByRole('button', { name: 'Enviar solicitud' });
 
-    await waitFor(() => expect(submit).toBeDisabled());
+    expect(submit).toBeEnabled();
     expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
 
-    await llenarFormularioValido(user);
+    await user.click(submit);
 
-    await waitFor(() => expect(submit).toBeEnabled());
+    expect(await screen.findByText('Revisa 2 campos antes de continuar')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('al enviar vacío enfoca el primer campo con error y el enlace del resumen enfoca el otro campo', async () => {
+    renderizarFormulario();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    await waitFor(() => expect(screen.getByLabelText(/Destinatario/)).toHaveFocus());
+
+    await user.click(screen.getByRole('button', { name: /^Mensaje:/ }));
+
+    expect(screen.getByLabelText(/^Mensaje/)).toHaveFocus();
+  });
+
+  it('el resumen de errores desaparece tras un envío exitoso', async () => {
+    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) => opciones?.onSuccess?.());
+    renderizarFormulario(mutate);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    expect(await screen.findByText('Revisa 2 campos antes de continuar')).toBeInTheDocument();
+
+    await llenarFormularioValido(user);
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
+
+    expect(mutate).toHaveBeenCalled();
+    expect(screen.queryByText(/Revisa \d campos? antes de continuar/)).not.toBeInTheDocument();
   });
 
   it('bloquea el envío cuando el destinatario no tiene formato UUID', async () => {
@@ -79,9 +114,10 @@ describe('SolicitudNovedadForm', () => {
     await user.paste('no-es-un-uuid');
     await user.click(screen.getByLabelText(/^Mensaje/));
     await user.paste(MENSAJE_VALIDO);
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
     expect(await screen.findByText('Identificador inválido')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeDisabled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('abre el diálogo de confirmación al enviar y lo cierra sin llamar a mutate al cancelar', async () => {

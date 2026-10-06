@@ -53,7 +53,7 @@ describe('NovedadAsesorForm', () => {
     expect(
       screen.getByRole('heading', { name: 'Enviar solicitud de novedad al asesor' }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/Destinatario \(UUID del asesor\)/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Destinatario \(identificador del asesor\)/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/reportar al asesor/)).toBeInTheDocument();
     expect(screen.getByRole('note', { name: 'No disponible: asesores' })).toBeInTheDocument();
   });

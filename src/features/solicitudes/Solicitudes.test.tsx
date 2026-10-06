@@ -96,9 +96,9 @@ describe('Solicitudes', () => {
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     await user.click(screen.getByRole('tab', { name: 'Enviadas' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
+    expect(screen.getByText(/próximamente/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
+    expect(screen.getByText(/próximamente/i)).toBeInTheDocument();
   });
 });
