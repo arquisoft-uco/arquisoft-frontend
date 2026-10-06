@@ -4,7 +4,7 @@ import ComingSoon from '../../shared/components/ComingSoon';
 export default function MapasRuta() {
   return (
     <ComingSoon
-      title="Mapas de Ruta"
+      title="Mapas de ruta"
       description="Planificación e itinerarios de proyectos académicos"
       icon={Map}
     />

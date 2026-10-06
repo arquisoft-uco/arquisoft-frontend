@@ -26,10 +26,7 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
-  consultarSolicitudesNovedadCoordinadorEnviadas: (
-    page = 0,
-    size = 10,
-  ): Promise<Page<Solicitud>> =>
+  consultarSolicitudesNovedadCoordinadorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/enviadas', {
         pagina: page,

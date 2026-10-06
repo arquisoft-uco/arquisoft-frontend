@@ -1,170 +1,127 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import FichasPerfilTable from './FichasPerfilTable';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 
-vi.mock('./EstudiantesVinculadosPanel', () => ({
-  default: ({ idFichaPerfil }: { idFichaPerfil: string }) => (
-    <p>Panel de estudiantes de {idFichaPerfil}</p>
-  ),
-}));
-vi.mock('./CambiarAsesorForm', () => ({
-  default: ({
-    idFichaPerfil,
-    idAsesorActual,
-    onExito,
-  }: {
-    idFichaPerfil: string;
-    idAsesorActual: string;
-    onExito?: () => void;
-  }) => (
-    <div>
-      <p>
-        Formulario de asesor de {idFichaPerfil} con asesor actual {idAsesorActual}
-      </p>
-      <button type="button" onClick={onExito}>
-        Simular éxito
-      </button>
-    </div>
-  ),
-}));
-
-const FICHA_ANA: FichaPerfil = {
+const FICHA_1: FichaPerfil = {
   id: 'f-1',
   tituloProyecto: 'Sistema de monitoreo',
   asesorFicha: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
 };
-
-const FICHA_LUIS: FichaPerfil = {
+const FICHA_2: FichaPerfil = {
   id: 'f-2',
-  tituloProyecto: 'Plataforma de tutorías',
+  tituloProyecto: 'Plataforma de riego',
   asesorFicha: { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' },
+  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
 };
 
-function renderTabla(parcial: Partial<React.ComponentProps<typeof FichasPerfilTable>> = {}) {
-  const onPageChange = vi.fn();
-  render(
-    <FichasPerfilTable
-      fichas={[FICHA_ANA, FICHA_LUIS]}
-      totalElements={2}
-      totalPages={1}
-      page={0}
-      pageSize={10}
-      onPageChange={onPageChange}
-      {...parcial}
-    />,
-  );
-  return { onPageChange };
+function renderizar(parcial: Partial<React.ComponentProps<typeof FichasPerfilTable>> = {}) {
+  const props = {
+    fichas: [FICHA_1, FICHA_2],
+    cargando: false,
+    hayFiltros: false,
+    orden: { clave: 'tituloProyecto', direccion: 'ASC' as const },
+    onOrdenar: vi.fn(),
+    onVerEstudiantes: vi.fn(),
+    onCambiarAsesor: vi.fn(),
+    onLimpiarFiltros: vi.fn(),
+    ...parcial,
+  };
+  render(<FichasPerfilTable {...props} />);
+  return props;
+}
+
+// La tabla y la lista de tarjetas están las dos en el DOM (jsdom no aplica CSS): se acota a la tabla.
+function tabla() {
+  return within(screen.getByRole('table', { name: 'Fichas de perfil' }));
 }
 
 describe('FichasPerfilTable', () => {
-  it('muestra una fila por ficha con el título del proyecto y el nombre y correo del asesor', () => {
-    renderTabla();
+  it('muestra el título de cada ficha y su asesor con el correo', () => {
+    // Act
+    renderizar();
 
-    // 1 fila de cabecera + 2 de datos
-    expect(screen.getAllByRole('row')).toHaveLength(3);
-    expect(screen.getByText('Sistema de monitoreo')).toBeInTheDocument();
-    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
-    expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
-    expect(screen.getByText('Plataforma de tutorías')).toBeInTheDocument();
-    expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
-    expect(screen.getByText('luis@uco.edu.co')).toBeInTheDocument();
+    // Assert
+    expect(tabla().getByText('Sistema de monitoreo')).toBeInTheDocument();
+    expect(tabla().getByText('Ana Pérez')).toBeInTheDocument();
+    expect(tabla().getByText('ana@uco.edu.co')).toBeInTheDocument();
+    expect(tabla().getByText('Plataforma de riego')).toBeInTheDocument();
   });
 
-  it('muestra el mensaje de vacío cuando no hay fichas', () => {
-    renderTabla({ fichas: [], totalElements: 0, totalPages: 0 });
+  it('muestra el estado actual y la fecha de cada ficha, en la tabla y en la tarjeta de celular, sin ordenar por ellos', () => {
+    // Act
+    renderizar();
+    const tarjetas = within(screen.getByRole('list', { name: 'Fichas de perfil' }));
 
-    expect(screen.getByText('No hay fichas de perfil registradas.')).toBeInTheDocument();
+    // Assert
+    expect(tabla().getAllByText('En revisión')).toHaveLength(2);
+    const fechas = tabla()
+      .getAllByText((_, el) => el?.tagName === 'TIME')
+      .map((el) => el.getAttribute('datetime'));
+    expect(fechas).toEqual(['2026-10-01T15:30:00', '2026-10-01T15:30:00']);
+    expect(tabla().getByRole('columnheader', { name: 'Estado actual' })).toBeInTheDocument();
+    expect(tabla().getByRole('columnheader', { name: 'Última actualización' })).toBeInTheDocument();
+    expect(tabla().queryByRole('button', { name: 'Estado actual' })).not.toBeInTheDocument();
+    expect(tabla().queryByRole('button', { name: 'Última actualización' })).not.toBeInTheDocument();
+    expect(tarjetas.getAllByText('En revisión')).toHaveLength(2);
+    expect(tarjetas.getAllByText((_, el) => el?.tagName === 'TIME')).toHaveLength(2);
   });
 
-  it('no muestra el paginador cuando hay una sola página', () => {
-    renderTabla({ totalPages: 1 });
+  it('sin fichas y sin filtros muestra el vacío "sin datos"', () => {
+    // Act
+    renderizar({ fichas: [] });
 
-    expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument();
+    // Assert
+    expect(screen.getByText('Aún no hay fichas de perfil')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument();
   });
 
-  it('en la primera página muestra el rango, deshabilita Anterior y Siguiente pide la página 1', async () => {
+  it('sin fichas y con filtros muestra "Sin resultados" y "Limpiar filtros" los quita', async () => {
+    // Arrange
     const user = userEvent.setup();
-    const { onPageChange } = renderTabla({ totalElements: 25, totalPages: 3, page: 0 });
+    const { onLimpiarFiltros } = renderizar({ fichas: [], hayFiltros: true });
 
-    expect(screen.getByText('1–2 de 25 fichas')).toBeInTheDocument();
-    expect(screen.getByText('1 / 3')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Página anterior' })).toBeDisabled();
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
 
-    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
-
-    expect(onPageChange).toHaveBeenCalledWith(1);
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
 
-  it('en la última página deshabilita Siguiente y Anterior pide la página previa', async () => {
+  it('"Ver estudiantes" y "Cambiar asesor" del menú actúan sobre la ficha de esa fila', async () => {
+    // Arrange
     const user = userEvent.setup();
-    const { onPageChange } = renderTabla({ totalElements: 22, totalPages: 3, page: 2 });
+    const { onVerEstudiantes, onCambiarAsesor } = renderizar();
 
-    expect(screen.getByText('21–22 de 22 fichas')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeDisabled();
-
-    await user.click(screen.getByRole('button', { name: 'Página anterior' }));
-
-    expect(onPageChange).toHaveBeenCalledWith(1);
-  });
-
-  it('alterna el panel de estudiantes vinculados de la ficha con aria-expanded', async () => {
-    const user = userEvent.setup();
-    renderTabla({ fichas: [FICHA_ANA], totalElements: 1 });
-
-    const abrir = screen.getByRole('button', { name: 'Ver estudiantes vinculados' });
-    expect(abrir).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('Panel de estudiantes de f-1')).not.toBeInTheDocument();
-
-    await user.click(abrir);
-
-    expect(screen.getByRole('button', { name: 'Ocultar estudiantes' })).toHaveAttribute(
-      'aria-expanded',
-      'true',
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la ficha Plataforma de riego' }),
     );
-    expect(screen.getByText('Panel de estudiantes de f-1')).toBeInTheDocument();
+    await user.click(screen.getByRole('menuitem', { name: 'Ver estudiantes' }));
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar asesor' }));
 
-    await user.click(screen.getByRole('button', { name: 'Ocultar estudiantes' }));
-
-    expect(screen.queryByText('Panel de estudiantes de f-1')).not.toBeInTheDocument();
+    // Assert
+    expect(onVerEstudiantes).toHaveBeenCalledWith(FICHA_2);
+    expect(onCambiarAsesor).toHaveBeenCalledWith(FICHA_1);
   });
 
-  it('despliega el formulario de cambio de asesor solo de la fila elegida, con la ficha y el asesor actual, y lo cierra al terminar con éxito', async () => {
+  it('ordenar desde la cabecera Ficha invierte la dirección y desde Asesor ordena por asesor', async () => {
+    // Arrange
     const user = userEvent.setup();
-    renderTabla();
+    const { onOrdenar } = renderizar();
 
-    const [, abrirLuis] = screen.getAllByRole('button', { name: 'Cambiar asesor' });
-    expect(abrirLuis).toHaveAttribute('aria-expanded', 'false');
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Ficha' }));
+    await user.click(tabla().getByRole('button', { name: 'Asesor' }));
 
-    await user.click(abrirLuis);
-
-    expect(
-      screen.getByText('Formulario de asesor de f-2 con asesor actual a-2'),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/Formulario de asesor de f-1/)).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Ocultar formulario de cambio de asesor' }),
-    ).toHaveAttribute('aria-expanded', 'true');
-
-    await user.click(screen.getByRole('button', { name: 'Simular éxito' }));
-
-    expect(screen.queryByText(/Formulario de asesor de/)).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Cambiar asesor' })).toHaveLength(2);
-  });
-
-  it('mantiene independientes el formulario de cambio de asesor y el panel de estudiantes de la misma ficha', async () => {
-    const user = userEvent.setup();
-    renderTabla({ fichas: [FICHA_ANA], totalElements: 1 });
-
-    await user.click(screen.getByRole('button', { name: 'Cambiar asesor' }));
-
-    expect(screen.getByText(/Formulario de asesor de f-1/)).toBeInTheDocument();
-    expect(screen.queryByText('Panel de estudiantes de f-1')).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Ver estudiantes vinculados' }));
-
-    expect(screen.getByText(/Formulario de asesor de f-1/)).toBeInTheDocument();
-    expect(screen.getByText('Panel de estudiantes de f-1')).toBeInTheDocument();
+    // Assert
+    expect(onOrdenar).toHaveBeenNthCalledWith(1, 'tituloProyecto', 'DESC');
+    expect(onOrdenar).toHaveBeenNthCalledWith(2, 'asesorNombre', 'ASC');
   });
 });

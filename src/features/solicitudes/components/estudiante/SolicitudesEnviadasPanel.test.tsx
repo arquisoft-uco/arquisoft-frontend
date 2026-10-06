@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { ApiError, Page } from '../../../../shared/models/api-response';
 import { useEliminarSolicitudNovedadCoordinador } from '../../hooks/useEliminarSolicitudNovedadCoordinador';
@@ -63,6 +63,9 @@ function crearHookMock(parcial: Partial<HookEnviadas> = {}): HookEnviadas {
     error: null,
     isLoading: false,
     isError: false,
+    isFetching: false,
+    isPlaceholderData: false,
+    refetch: vi.fn(),
     page: 0,
     pageSize: 10,
     goToPage: vi.fn(),
@@ -107,8 +110,11 @@ async function abrirDialogoEliminar(user: ReturnType<typeof userEvent.setup>) {
     crearHookMock({ data: crearPagina([SOLICITUD]) }),
   );
   render(<SolicitudesEnviadasPanel />);
+  const tabla = screen.getByRole('table', {
+    name: 'Solicitudes de novedad enviadas al coordinador',
+  });
   await user.click(
-    screen.getByRole('button', { name: 'Eliminar la solicitud enviada a Ana Pérez' }),
+    within(tabla).getByRole('button', { name: 'Eliminar la solicitud enviada a Ana Pérez' }),
   );
 }
 
@@ -119,54 +125,88 @@ describe('SolicitudesEnviadasPanel', () => {
     mockearEliminar();
   });
 
-  it('muestra el estado de carga y no muestra la tabla', () => {
+  it('mientras carga muestra el esqueleto y no la tabla', () => {
+    // Arrange
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ isLoading: true }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando solicitudes enviadas');
+    // Assert
+    expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('muestra el texto de respaldo en un alert y no muestra la tabla', () => {
+  it('ante un error muestra el aviso con «Reintentar», que vuelve a consultar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const refetch = vi.fn();
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
-      crearHookMock({ isError: true, error: new Error('fallo de red') }),
+      crearHookMock({ isError: true, error: new Error('fallo de red'), refetch }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'No se pudieron cargar las solicitudes enviadas.',
-    );
+    // Assert
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las solicitudes');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(refetch).toHaveBeenCalled();
   });
 
-  it('muestra el mensaje de vacío cuando no hay solicitudes', () => {
+  it('sin solicitudes muestra el vacío y no un error', () => {
+    // Arrange
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ data: crearPagina([]) }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
 
-    expect(
-      screen.getByText('Aún no has enviado solicitudes de novedad al coordinador.'),
-    ).toBeInTheDocument();
+    // Assert
+    expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('con datos muestra el contador, el destinatario y el mensaje', () => {
+  it('con datos muestra el resumen y la fila con coordinador y mensaje', () => {
+    // Arrange
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
       crearHookMock({ data: crearPagina([SOLICITUD]) }),
     );
 
+    // Act
     render(<SolicitudesEnviadasPanel />);
 
+    // Assert
+    const tabla = screen.getByRole('table', {
+      name: 'Solicitudes de novedad enviadas al coordinador',
+    });
     expect(screen.getByText('1 solicitud')).toBeInTheDocument();
-    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
-    expect(screen.getByText(/ana@uco\.edu\.co/)).toBeInTheDocument();
-    expect(screen.getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
+    expect(within(tabla).getByText('Ana Pérez')).toBeInTheDocument();
+    expect(within(tabla).getByText('ana@uco.edu.co')).toBeInTheDocument();
+    expect(within(tabla).getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
+  });
+
+  it('con varias páginas el paginador pide la siguiente', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const goToPage = vi.fn();
+    vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
+      crearHookMock({
+        data: { ...crearPagina([SOLICITUD]), totalElements: 25, totalPages: 3 },
+        goToPage,
+      }),
+    );
+
+    // Act
+    render(<SolicitudesEnviadasPanel />);
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+
+    // Assert
+    expect(goToPage).toHaveBeenCalledWith(1);
   });
 
   it('al pulsar eliminar abre el diálogo con el nombre del destinatario y cancelar no elimina', async () => {
@@ -176,13 +216,13 @@ describe('SolicitudesEnviadasPanel', () => {
     await abrirDialogoEliminar(user);
 
     // Act
-    const dialogo = screen.getByRole('dialog');
+    const dialogo = screen.getByRole('alertdialog');
     expect(dialogo).toHaveTextContent('¿Eliminar solicitud?');
     expect(dialogo).toHaveTextContent(/Ana Pérez/);
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     // Assert
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(mutate).not.toHaveBeenCalled();
   });
 
@@ -204,7 +244,7 @@ describe('SolicitudesEnviadasPanel', () => {
       expect.any(String),
     );
     expect(toast.error).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   it('en error lanza toast.error con el mensaje del backend y cierra el diálogo', async () => {
@@ -233,6 +273,6 @@ describe('SolicitudesEnviadasPanel', () => {
       'La solicitud ya tiene respuestas y no puede eliminarse.',
     );
     expect(toast.success).not.toHaveBeenCalled();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });

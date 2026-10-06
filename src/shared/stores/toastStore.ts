@@ -1,28 +1,29 @@
 import { create } from 'zustand';
 
+const MAX_VISIBLES = 3;
+
 let _nextId = 0;
 
-export type ToastLevel = 'success' | 'info' | 'debug' | 'error';
+export type ToastLevel = 'success' | 'info' | 'error';
 
 export interface Toast {
   id: string;
   level: ToastLevel;
   title: string;
   message?: string;
-  /** Milisegundos antes de auto-cerrar. 0 = persistente. */
+  // Milisegundos antes de auto-cerrar. 0 = persistente.
   duration: number;
 }
 
 const DEFAULT_DURATIONS: Record<ToastLevel, number> = {
   success: 4000,
-  info:    4000,
-  debug:   8000,
-  error:   6000,
+  info: 4000,
+  error: 6000,
 };
 
 interface ToastStore {
   toasts: Toast[];
-  push:    (toast: Omit<Toast, 'id' | 'duration'> & { duration?: number }) => void;
+  push: (toast: Omit<Toast, 'id' | 'duration'> & { duration?: number }) => void;
   dismiss: (id: string) => void;
 }
 
@@ -34,11 +35,11 @@ export const useToastStore = create<ToastStore>((set) => ({
       toasts: [
         ...state.toasts,
         {
-          id:       String(++_nextId),
+          id: String(++_nextId),
           duration: DEFAULT_DURATIONS[toast.level],
           ...toast,
         },
-      ],
+      ].slice(-MAX_VISIBLES),
     })),
 
   dismiss: (id) =>
