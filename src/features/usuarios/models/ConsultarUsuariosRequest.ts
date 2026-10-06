@@ -1,28 +1,3 @@
-export interface PredicadoFiltro {
-  tipo: 'PREDICADO';
-  campo: string;
-  operador: string;
-  valor: string;
-}
+import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 
-export interface PredicadoMultivalorFiltro {
-  tipo: 'PREDICADO_MULTIVALOR';
-  campo: string;
-  operador: string;
-  valores: string[];
-}
-
-export interface GrupoFiltro {
-  tipo: 'GRUPO';
-  conector: 'AND' | 'OR';
-  nodos: NodoFiltroDTO[];
-}
-
-export type NodoFiltroDTO = PredicadoFiltro | PredicadoMultivalorFiltro | GrupoFiltro;
-
-export interface ConsultarUsuariosRequest {
-  pagina: number;
-  tamanio: number;
-  ordenamiento?: string[];
-  filtros?: NodoFiltroDTO;
-}
+export type ConsultarUsuariosRequest = ConsultaCriteriaRequest;

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import PageHeader from '../../../shared/components/ui/PageHeader';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
 import PestanaEnConstruccion from './PestanaEnConstruccion';
 import Tabs from './Tabs';
@@ -33,12 +34,7 @@ export default function EstudianteView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-xl font-bold text-on-surface sm:text-2xl">Solicitudes</h1>
-        <p className="mt-1 text-sm text-on-surface-secondary">
-          Envía solicitudes y consulta su seguimiento.
-        </p>
-      </header>
+      <PageHeader titulo="Solicitudes" descripcion="Envía solicitudes y consulta su seguimiento." />
 
       <Tabs
         tabs={TABS}

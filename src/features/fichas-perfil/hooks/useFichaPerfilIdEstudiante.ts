@@ -4,7 +4,7 @@ import { useFichasPerfilEstudiante } from './useFichasPerfilEstudiante';
 const PARAM_FICHA = 'ficha';
 
 export function useFichaPerfilIdEstudiante() {
-  const { fichas, isLoading, isError } = useFichasPerfilEstudiante();
+  const { fichas, isLoading, isError, isSuccess, refetch } = useFichasPerfilEstudiante();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const idEnUrl = searchParams.get(PARAM_FICHA);
@@ -28,5 +28,7 @@ export function useFichaPerfilIdEstudiante() {
     seleccionarFicha,
     isLoading,
     isError,
+    isSuccess,
+    refetch,
   };
 }

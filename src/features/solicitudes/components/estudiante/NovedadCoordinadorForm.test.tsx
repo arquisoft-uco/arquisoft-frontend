@@ -55,7 +55,7 @@ describe('NovedadCoordinadorForm', () => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario \(UUID del coordinador\)/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/reportar al coordinador/)).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent(/catálogo de coordinadores/i);
+    expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
   });
 
   it('al confirmar envía con el hook del coordinador y nunca con el del asesor', async () => {

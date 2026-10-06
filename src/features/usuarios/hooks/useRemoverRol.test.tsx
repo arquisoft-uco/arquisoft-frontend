@@ -19,7 +19,7 @@ vi.mock('../services/usuariosService', () => ({
 }));
 
 vi.mock('../../../shared/hooks/useToast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), dismiss: vi.fn() },
 }));
 
 const removerCoordinador = vi.mocked(usuariosService.removerCoordinador);
@@ -64,7 +64,7 @@ describe('useRemoverRol', () => {
     expect(removerEstudiante).toHaveBeenCalledWith('u-1');
     expect(removerCoordinador).not.toHaveBeenCalled();
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] });
-    expect(toast.success).toHaveBeenCalledWith('Rol eliminado', 'Ana Gómez ya no es estudiante.');
+    expect(toast.success).toHaveBeenCalledWith('Rol quitado', 'Ana Gómez ya no es estudiante.');
     await waitFor(() => expect(result.current.objetivo).toBeNull());
   });
 
@@ -118,7 +118,7 @@ describe('useRemoverRol', () => {
     await waitFor(() => expect(removerAsesorFicha).toHaveBeenCalledWith('u-4'));
     expect(removerAsesor).not.toHaveBeenCalled();
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
-    expect(toast.success).toHaveBeenCalledWith('Rol eliminado', 'Eva Ruiz ya no es asesor de ficha.');
+    expect(toast.success).toHaveBeenCalledWith('Rol quitado', 'Eva Ruiz ya no es asesor de ficha.');
   });
 
   it('despacha removerRepresentanteComite, invalida usuarios y avisa el éxito cuando el rol es representante del comité', async () => {
@@ -142,7 +142,7 @@ describe('useRemoverRol', () => {
     expect(removerAsesorFicha).not.toHaveBeenCalled();
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
     expect(toast.success).toHaveBeenCalledWith(
-      'Rol eliminado',
+      'Rol quitado',
       'Ana Pérez ya no es representante del comité.',
     );
   });
@@ -163,7 +163,7 @@ describe('useRemoverRol', () => {
     await waitFor(() => expect(removerAdministrador).toHaveBeenCalledWith('u-6'));
     expect(removerRepresentanteComite).not.toHaveBeenCalled();
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
-    expect(toast.success).toHaveBeenCalledWith('Rol eliminado', 'Ana Pérez ya no es administrador.');
+    expect(toast.success).toHaveBeenCalledWith('Rol quitado', 'Ana Pérez ya no es administrador.');
   });
 
   it('avisa el error, no invalida ni ejecuta onExito y limpia el objetivo cuando el backend falla', async () => {

@@ -63,8 +63,8 @@ describe('SolicitudNovedadForm', () => {
     const user = userEvent.setup();
     const submit = screen.getByRole('button', { name: 'Enviar solicitud' });
 
-    expect(submit).toBeDisabled();
-    expect(screen.getByRole('alert')).toHaveTextContent(/catálogo de coordinadores/i);
+    await waitFor(() => expect(submit).toBeDisabled());
+    expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
 
     await llenarFormularioValido(user);
 
