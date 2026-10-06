@@ -4,6 +4,7 @@ import EmptyState from '../../../shared/components/ui/EmptyState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
+import SolicitudesEnviadasPanel from './estudiante/SolicitudesEnviadasPanel';
 
 type Pestana = 'nueva' | 'enviadas' | 'respuestas';
 
@@ -15,13 +16,7 @@ const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
 
 const PANEL_POR_PESTANA: Record<Pestana, React.ReactNode> = {
   nueva: <NuevaSolicitudPanel />,
-  enviadas: (
-    <EmptyState
-      icono={Clock}
-      titulo="Solicitudes enviadas"
-      descripcion="El seguimiento de tus solicitudes enviadas estará disponible próximamente."
-    />
-  ),
+  enviadas: <SolicitudesEnviadasPanel />,
   respuestas: (
     <EmptyState
       icono={Clock}
