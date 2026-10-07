@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import ErrorSummary, { resumirErrores } from '../../../shared/components/ui/ErrorSummary';
 import FormActions from '../../../shared/components/ui/FormActions';
 import SidePanel from '../../../shared/components/ui/SidePanel';
@@ -11,20 +10,17 @@ import {
   getApiFieldErrors,
   hasApiErrorCode,
 } from '../../../shared/utils/api-error';
-import { LIMITES, textoRequerido } from '../../../shared/validation';
 import { useRegistrarItemCualitativoJurado } from '../hooks/useRegistrarItemCualitativoJurado';
+import {
+  registrarItemCualitativoJuradoSchema,
+  type RegistrarItemCualitativoJuradoValues,
+} from '../utils/registrar-item-cualitativo-jurado-schema';
 import RegistrarItemCualitativoJuradoCampos, {
   ETIQUETAS_CAMPO,
 } from './RegistrarItemCualitativoJuradoCampos';
 
 const ID_FORMULARIO = 'registrar-item-cualitativo-jurado';
-
-const schema = z.object({
-  nombre: textoRequerido(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX),
-  descripcion: textoRequerido(LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX),
-});
-
-type FormValues = z.infer<typeof schema>;
+const CAMPOS = ['nombre', 'descripcion'] as const;
 
 interface Props {
   onCerrar: () => void;
@@ -34,14 +30,14 @@ export default function RegistrarItemCualitativoJuradoPanel({ onCerrar }: Props)
   const [resumenVisible, setResumenVisible] = useState(false);
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setError,
     setFocus,
-    watch,
     formState: { errors, isDirty },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  } = useForm<RegistrarItemCualitativoJuradoValues>({
+    resolver: zodResolver(registrarItemCualitativoJuradoSchema),
     defaultValues: { nombre: '', descripcion: '' },
     mode: 'onTouched',
   });
@@ -56,10 +52,11 @@ export default function RegistrarItemCualitativoJuradoPanel({ onCerrar }: Props)
   }
 
   function irAlCampo(campo: string) {
-    if (campo === 'nombre' || campo === 'descripcion') setFocus(campo);
+    const destino = CAMPOS.find((c) => c === campo);
+    if (destino) setFocus(destino);
   }
 
-  function enviar(values: FormValues) {
+  function enviar(values: RegistrarItemCualitativoJuradoValues) {
     mutate(values, {
       onSuccess: () => {
         toast.success('Ítem registrado', `"${values.nombre}" fue registrado correctamente.`);
@@ -111,10 +108,7 @@ export default function RegistrarItemCualitativoJuradoPanel({ onCerrar }: Props)
         <RegistrarItemCualitativoJuradoCampos
           register={register}
           errors={errors}
-          longitudes={{
-            nombre: (watch('nombre') ?? '').length,
-            descripcion: (watch('descripcion') ?? '').length,
-          }}
+          controlFormulario={control}
         />
         <ErrorSummary errores={errores} onIrAlCampo={irAlCampo} />
       </form>

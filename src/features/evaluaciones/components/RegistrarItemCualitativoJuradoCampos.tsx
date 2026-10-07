@@ -1,30 +1,36 @@
-import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
+import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import Field from '../../../shared/components/ui/Field';
 import FormSection from '../../../shared/components/ui/FormSection';
 import { LIMITES } from '../../../shared/validation';
+import type { RegistrarItemCualitativoJuradoValues as Values } from '../utils/registrar-item-cualitativo-jurado-schema';
 
-export const ETIQUETAS_CAMPO = { nombre: 'Nombre', descripcion: 'Descripción' };
-
-export interface RegistrarItemValues {
-  nombre: string;
-  descripcion: string;
-}
+export const ETIQUETAS_CAMPO = { nombre: 'Nombre', descripcion: 'Descripción' } as const;
 
 interface Props {
-  register: UseFormRegister<RegistrarItemValues>;
-  errors: FieldErrors<RegistrarItemValues>;
-  longitudes: RegistrarItemValues extends infer V ? { [K in keyof V]: number } : never;
+  register: UseFormRegister<Values>;
+  errors: FieldErrors<Values>;
+  controlFormulario: Control<Values>;
 }
 
 export default function RegistrarItemCualitativoJuradoCampos({
   register,
   errors,
-  longitudes,
+  controlFormulario,
 }: Props) {
+  const [nombre, descripcion] = useWatch({
+    control: controlFormulario,
+    name: ['nombre', 'descripcion'],
+  });
+  const longitudes: Record<keyof Values, number> = {
+    nombre: nombre.length,
+    descripcion: descripcion.length,
+  };
+
   return (
     <FormSection titulo="Datos del ítem">
       <Field
-        etiqueta="Nombre"
+        etiqueta={ETIQUETAS_CAMPO.nombre}
         error={errors.nombre?.message}
         contador={{ actual: longitudes.nombre, max: LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX }}
       >
@@ -39,7 +45,7 @@ export default function RegistrarItemCualitativoJuradoCampos({
         )}
       </Field>
       <Field
-        etiqueta="Descripción"
+        etiqueta={ETIQUETAS_CAMPO.descripcion}
         error={errors.descripcion?.message}
         contador={{ actual: longitudes.descripcion, max: LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX }}
       >
