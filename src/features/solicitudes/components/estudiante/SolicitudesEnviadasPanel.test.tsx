@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen, within } from '../../../../test-utils/render';
-import type { Page } from '../../../../shared/models/api-response';
+import { toast } from '../../../../shared/hooks/useToast';
+import type { ApiError, Page } from '../../../../shared/models/api-response';
+import { useEliminarSolicitudNovedadCoordinador } from '../../hooks/useEliminarSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadCoordinadorEnviadas } from '../../hooks/useSolicitudesNovedadCoordinadorEnviadas';
 import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesEnviadasPanel from './SolicitudesEnviadasPanel';
@@ -10,7 +13,21 @@ vi.mock('../../hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
   useSolicitudesNovedadCoordinadorEnviadas: vi.fn(),
 }));
 
+vi.mock('../../hooks/useEliminarSolicitudNovedadCoordinador', () => ({
+  useEliminarSolicitudNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+}));
+
 type HookEnviadas = ReturnType<typeof useSolicitudesNovedadCoordinadorEnviadas>;
+type HookEliminar = ReturnType<typeof useEliminarSolicitudNovedadCoordinador>;
+
+type OpcionesMutate = {
+  onSuccess?: () => void;
+  onError?: (err: unknown) => void;
+};
 
 const SOLICITUD: Solicitud = {
   id: 's-1',
@@ -56,9 +73,56 @@ function crearHookMock(parcial: Partial<HookEnviadas> = {}): HookEnviadas {
   } as HookEnviadas;
 }
 
+function crearErrorApi(cuerpo: ApiError) {
+  return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+    data: cuerpo,
+    status: cuerpo.status,
+    statusText: 'Unprocessable Entity',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
+}
+
+function mockearEliminar(mutate = vi.fn()) {
+  vi.mocked(useEliminarSolicitudNovedadCoordinador).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookEliminar);
+  return mutate;
+}
+
+async function abrirDialogoEliminar(user: ReturnType<typeof userEvent.setup>) {
+  vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReturnValue(
+    crearHookMock({ data: crearPagina([SOLICITUD]) }),
+  );
+  render(<SolicitudesEnviadasPanel />);
+  const tabla = screen.getByRole('table', {
+    name: 'Solicitudes de novedad enviadas al coordinador',
+  });
+  await user.click(
+    within(tabla).getByRole('button', { name: 'Eliminar la solicitud enviada a Ana Pérez' }),
+  );
+}
+
 describe('SolicitudesEnviadasPanel', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(useSolicitudesNovedadCoordinadorEnviadas).mockReset();
+    mockearEliminar();
   });
 
   it('mientras carga muestra el esqueleto y no la tabla', () => {
@@ -143,5 +207,82 @@ describe('SolicitudesEnviadasPanel', () => {
 
     // Assert
     expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('al pulsar eliminar abre el diálogo con el destinatario y las consecuencias', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar();
+
+    // Act
+    await abrirDialogoEliminar(user);
+
+    // Assert
+    const dialogo = screen.getByRole('alertdialog');
+    expect(dialogo).toHaveTextContent('¿Eliminar solicitud?');
+    expect(dialogo).toHaveTextContent('Vas a eliminar la solicitud enviada a Ana Pérez.');
+    expect(dialogo).toHaveTextContent('Dejará de aparecer en tus solicitudes enviadas.');
+    expect(dialogo).toHaveTextContent('No se puede deshacer.');
+  });
+
+  it('cancelar el diálogo de eliminar lo cierra sin eliminar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearEliminar();
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('al confirmar elimina por id y, en éxito, lanza el toast y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearEliminar(
+      vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()),
+    );
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith('s-1', expect.any(Object));
+    expect(toast.success).toHaveBeenCalledWith('Solicitud eliminada', expect.any(String));
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('en error lanza toast.error con el mensaje del backend y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar(
+      vi.fn((_id: string, opciones?: OpcionesMutate) =>
+        opciones?.onError?.(
+          crearErrorApi({
+            error: 'Unprocessable Entity',
+            errorCode: 'SOLICITUD_CON_RESPUESTAS',
+            message: 'La solicitud ya tiene respuestas y no puede eliminarse.',
+            status: 422,
+          }),
+        ),
+      ),
+    );
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo eliminar la solicitud',
+      'La solicitud ya tiene respuestas y no puede eliminarse.',
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });
