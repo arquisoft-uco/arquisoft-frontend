@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
-import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../../test-utils/store.utils';
+import {
+  resetAllStores,
+  setActiveRole,
+  setAuthenticatedUser,
+} from '../../../test-utils/store.utils';
 import { Rol } from '../../../shared/models/rol';
 import ItemsCualitativosJuradoView from './ItemsCualitativosJuradoView';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
@@ -18,7 +22,11 @@ vi.mock('../hooks/useRegistrarItemCualitativoJurado', () => ({
 
 const ITEMS: ItemCualitativoJurado[] = [
   { id: 'i-2', nombre: 'Claridad', descripcion: 'El documento se comprende sin ambigüedades.' },
-  { id: 'i-1', nombre: 'Aplicabilidad', descripcion: 'La propuesta resuelve un problema real del contexto.' },
+  {
+    id: 'i-1',
+    nombre: 'Aplicabilidad',
+    descripcion: 'La propuesta resuelve un problema real del contexto.',
+  },
 ];
 
 function mockConsulta(parcial: Partial<ReturnType<typeof useItemsCualitativosJurado>>) {
@@ -109,7 +117,7 @@ describe('ItemsCualitativosJuradoView', () => {
     expect(screen.queryByRole('button', { name: 'Registrar ítem' })).not.toBeInTheDocument();
   });
 
-  it('alterna de la lista al formulario y vuelve a la lista al cancelar', async () => {
+  it('abre el panel de registro sobre la lista y lo cierra sin perderla', async () => {
     // Arrange
     mockConsulta({ data: ITEMS });
     vi.mocked(useRegistrarItemCualitativoJurado).mockReturnValue({
@@ -128,13 +136,15 @@ describe('ItemsCualitativosJuradoView', () => {
 
     // Assert
     expect(screen.getByLabelText('Nombre')).toBeInTheDocument();
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
-    expect(screen.getByRole('table', { name: 'Ítems cualitativos del jurado' })).toBeInTheDocument();
-    expect(screen.queryByLabelText('Nombre')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('table', { name: 'Ítems cualitativos del jurado' }),
+    ).toBeInTheDocument();
   });
 });

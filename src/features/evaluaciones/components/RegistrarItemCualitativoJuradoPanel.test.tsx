@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../test-utils/render';
-import RegistrarItemCualitativoJurado from './RegistrarItemCualitativoJurado';
+import { render, screen, waitFor } from '../../../test-utils/render';
+import RegistrarItemCualitativoJuradoPanel from './RegistrarItemCualitativoJuradoPanel';
 import { useRegistrarItemCualitativoJurado } from '../hooks/useRegistrarItemCualitativoJurado';
 import { toast } from '../../../shared/hooks/useToast';
 import { LIMITES, MENSAJES_VALIDACION } from '../../../shared/validation';
@@ -55,16 +55,16 @@ async function llenarValido(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Descripción'), 'Se comprende sin ambigüedades.');
 }
 
-describe('RegistrarItemCualitativoJurado', () => {
+describe('RegistrarItemCualitativoJuradoPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('exige nombre y descripción, deshabilita el envío y limita la longitud con LIMITES', async () => {
+  it('exige nombre y descripción al salir del campo y limita la longitud con LIMITES', async () => {
     // Arrange
     mockMutacion();
     const user = userEvent.setup();
-    render(<RegistrarItemCualitativoJurado onCerrar={vi.fn()} />);
+    render(<RegistrarItemCualitativoJuradoPanel onCerrar={vi.fn()} />);
     const nombre = screen.getByLabelText('Nombre');
     const descripcion = screen.getByLabelText('Descripción');
 
@@ -72,11 +72,12 @@ describe('RegistrarItemCualitativoJurado', () => {
     await user.type(nombre, 'a');
     await user.clear(nombre);
     await user.type(descripcion, '   ');
+    await user.tab();
 
     // Assert
     expect(await screen.findAllByRole('alert')).toHaveLength(2);
     expect(screen.getAllByText(MENSAJES_VALIDACION.requerido)).toHaveLength(2);
-    expect(screen.getByRole('button', { name: 'Registrar ítem' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Registrar ítem' })).toBeEnabled();
     expect(nombre).toHaveAttribute('maxlength', String(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX));
     expect(descripcion).toHaveAttribute(
       'maxlength',
@@ -90,7 +91,7 @@ describe('RegistrarItemCualitativoJurado', () => {
     mockMutacion(mutate);
     const onCerrar = vi.fn();
     const user = userEvent.setup();
-    render(<RegistrarItemCualitativoJurado onCerrar={onCerrar} />);
+    render(<RegistrarItemCualitativoJuradoPanel onCerrar={onCerrar} />);
 
     // Act
     await llenarValido(user);
@@ -101,7 +102,10 @@ describe('RegistrarItemCualitativoJurado', () => {
       { nombre: 'Claridad', descripcion: 'Se comprende sin ambigüedades.' },
       expect.anything(),
     );
-    expect(toast.success).toHaveBeenCalledWith('Ítem registrado', expect.stringContaining('Claridad'));
+    expect(toast.success).toHaveBeenCalledWith(
+      'Ítem registrado',
+      expect.stringContaining('Claridad'),
+    );
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
@@ -121,17 +125,19 @@ describe('RegistrarItemCualitativoJurado', () => {
     mockMutacion(mutate);
     const onCerrar = vi.fn();
     const user = userEvent.setup();
-    render(<RegistrarItemCualitativoJurado onCerrar={onCerrar} />);
+    render(<RegistrarItemCualitativoJuradoPanel onCerrar={onCerrar} />);
 
     // Act
     await llenarValido(user);
     await user.click(screen.getByRole('button', { name: 'Registrar ítem' }));
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent(mensaje);
-    expect(screen.getByLabelText('Nombre')).toHaveAttribute('aria-invalid', 'true');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Nombre')).toHaveAttribute('aria-invalid', 'true'),
+    );
+    expect(screen.getByLabelText('Nombre')).toHaveAccessibleDescription(mensaje);
     expect(screen.getByLabelText('Nombre')).toHaveValue('Claridad');
-    expect(toast.error).toHaveBeenCalledWith('Error al registrar el ítem', mensaje);
+    expect(toast.error).toHaveBeenCalledWith('No se pudo registrar el ítem', mensaje);
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
@@ -149,17 +155,21 @@ describe('RegistrarItemCualitativoJurado', () => {
     );
     mockMutacion(mutate);
     const user = userEvent.setup();
-    render(<RegistrarItemCualitativoJurado onCerrar={vi.fn()} />);
+    render(<RegistrarItemCualitativoJuradoPanel onCerrar={vi.fn()} />);
 
     // Act
     await llenarValido(user);
     await user.click(screen.getByRole('button', { name: 'Registrar ítem' }));
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent('Descripción no permitida');
-    expect(screen.getByLabelText('Descripción')).toHaveAttribute('aria-invalid', 'true');
+    await waitFor(() =>
+      expect(screen.getByLabelText('Descripción')).toHaveAttribute('aria-invalid', 'true'),
+    );
+    expect(screen.getByLabelText('Descripción')).toHaveAccessibleDescription(
+      'Descripción no permitida',
+    );
     expect(screen.getByLabelText('Nombre')).toHaveAttribute('aria-invalid', 'false');
-    expect(toast.error).toHaveBeenCalledWith('Error al registrar el ítem', 'Datos inválidos');
+    expect(toast.error).toHaveBeenCalledWith('No se pudo registrar el ítem', 'Datos inválidos');
   });
 
   it('durante el envío deshabilita el botón y marca el formulario como ocupado', () => {
@@ -167,12 +177,14 @@ describe('RegistrarItemCualitativoJurado', () => {
     mockMutacion(vi.fn(), true);
 
     // Act
-    render(<RegistrarItemCualitativoJurado onCerrar={vi.fn()} />);
+    render(<RegistrarItemCualitativoJuradoPanel onCerrar={vi.fn()} />);
 
     // Assert
-    const boton = screen.getByRole('button', { name: 'Registrando...' });
-    expect(boton).toBeDisabled();
-    expect(boton).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('button', { name: 'Registrando…' })).toBeDisabled();
+    expect(screen.getByRole('form', { name: 'Registro de ítem cualitativo' })).toHaveAttribute(
+      'aria-busy',
+      'true',
+    );
   });
 
   it('al cancelar cierra el formulario sin enviar', async () => {
@@ -180,10 +192,10 @@ describe('RegistrarItemCualitativoJurado', () => {
     const mutate = mockMutacion();
     const onCerrar = vi.fn();
     const user = userEvent.setup();
-    render(<RegistrarItemCualitativoJurado onCerrar={onCerrar} />);
+    render(<RegistrarItemCualitativoJuradoPanel onCerrar={onCerrar} />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
     expect(onCerrar).toHaveBeenCalledTimes(1);
