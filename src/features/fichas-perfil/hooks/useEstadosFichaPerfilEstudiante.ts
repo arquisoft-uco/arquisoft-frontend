@@ -5,7 +5,7 @@ import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 export function useEstadosFichaPerfilEstudiante() {
   const { fichaPerfilId } = useFichaPerfilIdEstudiante();
 
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, isSuccess, error, refetch } = useQuery({
     queryKey: ['fichas-perfil', 'estudiante', fichaPerfilId, 'estados-ficha'],
     queryFn: () => fichasPerfilService.getEstadosFichaPerfilEstudiante(fichaPerfilId ?? ''),
     enabled: !!fichaPerfilId,
@@ -14,8 +14,10 @@ export function useEstadosFichaPerfilEstudiante() {
   return {
     historial: data ?? [],
     isLoading,
+    cargado: isSuccess,
     isError,
     error,
+    refetch,
     fichaPerfilIdDisponible: !!fichaPerfilId,
   };
 }

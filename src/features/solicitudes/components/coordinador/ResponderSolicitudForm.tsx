@@ -1,8 +1,11 @@
-import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
+import Field from '../../../../shared/components/ui/Field';
+import FormActions from '../../../../shared/components/ui/FormActions';
+import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, getApiFieldErrors } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../../shared/validation';
@@ -15,130 +18,107 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const ID_FORMULARIO = 'responder-solicitud';
+const ETIQUETAS = { contenido: 'Respuesta' };
+const CONTEXTO = 'rounded-xl border border-border bg-surface-secondary p-3.5';
+
 interface Props {
   solicitud: Solicitud;
   onCerrar: () => void;
 }
 
 export default function ResponderSolicitudForm({ solicitud, onCerrar }: Props) {
-  const { mutate, isPending } = useResponderSolicitudNovedadCoordinador();
-
-  const {
-    register,
-    handleSubmit,
-    setError,
-    setFocus,
-    formState: { errors, isValid },
-  } = useForm<FormValues>({
+  const { mutate, isPending, reset: reiniciarMutacion } = useResponderSolicitudNovedadCoordinador();
+  const [resumenVisible, setResumenVisible] = useState(false);
+  const formulario = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { contenido: '' },
-    mode: 'onChange',
+    mode: 'onTouched',
   });
+  const { register, setError, setFocus, watch } = formulario;
+  const { errors, isDirty } = formulario.formState;
+  const erroresResumidos = resumenVisible ? resumirErrores(errors, ETIQUETAS) : [];
 
-  useEffect(() => {
-    setFocus('contenido');
-  }, [setFocus]);
+  function cerrar() {
+    formulario.reset();
+    reiniciarMutacion();
+    onCerrar();
+  }
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !isPending) onCerrar();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isPending, onCerrar]);
-
-  function onSubmit(values: FormValues) {
+  function enviar(values: FormValues) {
     mutate(
       { solicitudId: solicitud.id, contenido: values.contenido },
       {
         onSuccess: () => {
-          toast.success('Respuesta enviada', `Se respondió la solicitud de ${solicitud.remitente.nombre}.`);
-          onCerrar();
+          toast.success(
+            'Respuesta enviada',
+            `Se respondió la solicitud de ${solicitud.remitente.nombre}.`,
+          );
+          cerrar();
         },
         onError: (err) => {
-          getApiFieldErrors(err).forEach((fieldError) => {
-            if (fieldError.field === 'contenido') {
-              setError('contenido', { message: fieldError.message });
-            }
-          });
+          // El toast es incondicional: el usuario debe enterarse del fallo aunque el
+          // campo con el error quede fuera de la vista.
           toast.error(
             'No se pudo enviar la respuesta',
             getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.'),
           );
+          const delCampo = getApiFieldErrors(err).find((e) => e.field === 'contenido');
+          if (delCampo) setError('contenido', { message: delCampo.message });
+          setResumenVisible(true);
         },
       },
     );
   }
 
-  function handleBackdrop() {
-    if (!isPending) onCerrar();
-  }
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="responder-solicitud-titulo"
+  return (
+    <SidePanel
+      titulo="Responder solicitud"
+      descripcion={`Solicitud de ${solicitud.remitente.nombre}`}
+      sucio={isDirty}
+      ocupado={isPending}
+      onCerrar={cerrar}
+      pie={(solicitarCierre) => (
+        <FormActions
+          formId={ID_FORMULARIO}
+          accion="Enviar respuesta"
+          accionEnviando="Enviando…"
+          enviando={isPending}
+          sucio={isDirty}
+          onCancelar={solicitarCierre}
+        />
+      )}
     >
-      <div className="absolute inset-0 bg-black/40" onClick={handleBackdrop} aria-hidden="true" />
-
-      <div className="relative z-10 flex max-h-full w-full max-w-lg flex-col gap-4 overflow-y-auto rounded-xl border border-border bg-surface p-6 shadow-lg animate-fade-up">
-        <h2 id="responder-solicitud-titulo" className="text-base font-semibold text-on-surface">
-          Responder solicitud
-        </h2>
-
-        <div className="rounded-lg border border-border bg-surface-secondary p-3">
-          <p className="text-sm font-medium text-on-surface">{solicitud.remitente.nombre}</p>
-          <p className="mt-1 text-sm text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
+      <form
+        id={ID_FORMULARIO}
+        noValidate
+        aria-busy={isPending}
+        onSubmit={formulario.handleSubmit(enviar, () => setResumenVisible(true))}
+        className="flex flex-col gap-5"
+      >
+        <div className={CONTEXTO}>
+          <p className="break-words text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
         </div>
 
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div>
-            <label htmlFor="rs-contenido" className="field-label">
-              Respuesta <span aria-hidden className="text-danger">*</span>
-            </label>
+        <Field
+          etiqueta="Respuesta"
+          ayuda="La respuesta es única para esta solicitud y no se puede editar después de enviarla."
+          error={errors.contenido?.message}
+          contador={{ actual: watch('contenido').length, max: LIMITES.RESPUESTA_CONTENIDO_MAX }}
+        >
+          {(control) => (
             <textarea
-              id="rs-contenido"
-              rows={4}
+              rows={5}
               maxLength={LIMITES.RESPUESTA_CONTENIDO_MAX}
               className="field-input"
-              aria-invalid={!!errors.contenido}
-              aria-describedby={
-                errors.contenido ? 'rs-contenido-error rs-contenido-ayuda' : 'rs-contenido-ayuda'
-              }
               {...register('contenido')}
+              {...control}
             />
-            {errors.contenido && (
-              <p id="rs-contenido-error" className="field-error" role="alert">
-                {errors.contenido.message}
-              </p>
-            )}
-            <p id="rs-contenido-ayuda" className="mt-1 text-xs text-on-surface-secondary">
-              La respuesta es única para esta solicitud y no se puede editar después de enviarla.
-            </p>
-          </div>
+          )}
+        </Field>
 
-          <div className="actions-row border-t border-border pt-4">
-            <button
-              type="button"
-              onClick={onCerrar}
-              disabled={isPending}
-              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={!isValid || isPending}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isPending ? 'Enviando...' : 'Enviar respuesta'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>,
-    document.body,
+        <ErrorSummary errores={erroresResumidos} onIrAlCampo={() => setFocus('contenido')} />
+      </form>
+    </SidePanel>
   );
 }

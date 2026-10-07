@@ -21,6 +21,7 @@ const REMOVER_POR_ROL: Partial<Record<Rol, (usuarioId: string) => Promise<void>>
   [Rol.AsesorFicha]: usuariosService.removerAsesorFicha,
   [Rol.RepresentanteComiteCurriculum]: usuariosService.removerRepresentanteComite,
   [Rol.Administrador]: usuariosService.removerAdministrador,
+  [Rol.Bibliotecario]: usuariosService.removerBibliotecario,
 };
 
 export function useRemoverRol() {
@@ -54,11 +55,11 @@ export function useRemoverRol() {
       { usuarioId, rol },
       {
         onSuccess: () => {
-          toast.success('Rol eliminado', `${nombre} ya no es ${ETIQUETAS_ROL[rol].toLowerCase()}.`);
+          toast.success('Rol quitado', `${nombre} ya no es ${ETIQUETAS_ROL[rol].toLowerCase()}.`);
           onExito?.();
         },
         onError: (err) => {
-          toast.error('No se pudo eliminar el rol', getApiErrorMessage(err, 'Intenta nuevamente.'));
+          toast.error('No se pudo quitar el rol', getApiErrorMessage(err, 'Inténtalo nuevamente.'));
         },
         onSettled: () => setObjetivo(null),
       },

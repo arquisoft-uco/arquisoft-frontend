@@ -77,27 +77,32 @@ describe('ResponderSolicitudForm', () => {
     mockearMutacion();
   });
 
-  it('muestra el contexto de la solicitud, limita el campo y habilita el envío solo con texto', async () => {
-    // Arrange
-    const user = userEvent.setup();
+  it('muestra el contexto de la solicitud y limita el campo a la longitud del backend', () => {
+    // Arrange / Act
     render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={vi.fn()} />);
-    const campo = screen.getByRole('textbox', { name: /Respuesta/ });
-    const enviar = screen.getByRole('button', { name: 'Enviar respuesta' });
 
-    // Assert inicial
+    // Assert
     expect(screen.getByRole('dialog', { name: 'Responder solicitud' })).toHaveTextContent(
       'No he podido contactar a mi asesor.',
     );
-    expect(campo).toHaveAttribute('maxLength', String(LIMITES.RESPUESTA_CONTENIDO_MAX));
-    expect(enviar).toBeDisabled();
+    expect(screen.getByRole('textbox', { name: /Respuesta/ })).toHaveAttribute(
+      'maxLength',
+      String(LIMITES.RESPUESTA_CONTENIDO_MAX),
+    );
+  });
+
+  it('enviar vacío muestra el resumen de errores y no llama a la mutación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearMutacion();
+    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={vi.fn()} />);
 
     // Act
-    await user.type(campo, '   ');
-    expect(enviar).toBeDisabled();
-    await user.type(campo, 'Listo');
+    await user.click(screen.getByRole('button', { name: 'Enviar respuesta' }));
 
     // Assert
-    expect(enviar).toBeEnabled();
+    expect(await screen.findByText('Revisa 1 campo antes de continuar')).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
   });
 
   it('en éxito envía solicitudId y el contenido recortado, lanza el toast y cierra', async () => {
@@ -128,7 +133,7 @@ describe('ResponderSolicitudForm', () => {
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
-  it('en error pinta el mensaje del campo en un alert, lanza toast.error y no cierra', async () => {
+  it('en error pinta el mensaje del campo, lanza toast.error y no cierra', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
@@ -151,13 +156,13 @@ describe('ResponderSolicitudForm', () => {
     await user.click(screen.getByRole('button', { name: 'Enviar respuesta' }));
 
     // Assert
-    expect(await screen.findByRole('alert')).toHaveTextContent('La respuesta es obligatoria.');
+    expect(await screen.findAllByText('La respuesta es obligatoria.')).not.toHaveLength(0);
     expect(toast.error).toHaveBeenCalledWith('No se pudo enviar la respuesta', 'Datos inválidos');
     expect(onCerrar).not.toHaveBeenCalled();
     expect(screen.getByRole('textbox', { name: /Respuesta/ })).toHaveValue('Hola');
   });
 
-  it('cancelar cierra sin enviar', async () => {
+  it('cerrar sin cambios llama a onCerrar sin enviar', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
@@ -165,14 +170,30 @@ describe('ResponderSolicitudForm', () => {
     render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={onCerrar} />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
     expect(onCerrar).toHaveBeenCalledTimes(1);
     expect(mutate).not.toHaveBeenCalled();
   });
 
-  it('mientras envía muestra "Enviando...", bloquea Cancelar e ignora Escape', async () => {
+  it('con cambios, cancelar pide confirmar el descarte antes de cerrar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={onCerrar} />);
+    await user.type(screen.getByRole('textbox', { name: /Respuesta/ }), 'Borrador');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(onCerrar).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'Descartar' }));
+
+    // Assert
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('mientras envía bloquea Cerrar e ignora Escape', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
@@ -183,8 +204,8 @@ describe('ResponderSolicitudForm', () => {
     await user.keyboard('{Escape}');
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Enviando...' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Enviando…/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeDisabled();
     expect(onCerrar).not.toHaveBeenCalled();
   });
 });

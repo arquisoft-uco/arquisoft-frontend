@@ -1,16 +1,10 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { Rol } from '../../../shared/models/rol';
-import type { Administrador } from '../models/Administrador';
 import type { AgregarRolUsuarioRequest } from '../models/AgregarRolUsuarioRequest';
-import type { Asesor } from '../models/Asesor';
-import type { AsesorFicha } from '../models/AsesorFicha';
 import type { CambiarEstadoUsuarioRequest } from '../models/CambiarEstadoUsuarioRequest';
-import type { RepresentanteComite } from '../models/RepresentanteComite';
-import type { Coordinador } from '../models/Coordinador';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
 import type { EstadoUsuario } from '../models/EstadoUsuario';
-import type { Estudiante } from '../models/Estudiante';
 import type { ModificarUsuarioRequest } from '../models/ModificarUsuarioRequest';
 import type { RegistrarUsuarioRequest } from '../models/RegistrarUsuarioRequest';
 import type { Usuario } from '../models/Usuario';
@@ -49,6 +43,9 @@ export const usuariosService = {
   removerAdministrador: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}/administrador`).then(() => undefined),
 
+  removerBibliotecario: (usuarioId: string): Promise<void> =>
+    apiClient.delete<void>(`/usuarios/${usuarioId}/bibliotecario`).then(() => undefined),
+
   eliminarUsuario: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}`).then(() => undefined),
 
@@ -57,55 +54,4 @@ export const usuariosService = {
 
   getEstadosUsuario: (): Promise<EstadoUsuario[]> =>
     apiClient.get<EstadoUsuario[]>('/usuarios/estados').then((r) => r.data),
-
-  consultarCoordinadoresAdministrador: (page = 0, size = 10): Promise<Page<Coordinador>> =>
-    apiClient
-      .post<Page<Coordinador>>('/usuarios/coordinadores/administrador', {
-        pagina: page,
-        tamanio: size,
-      })
-      .then((r) => r.data),
-
-  consultarEstudiantesAdministrador: (page = 0, size = 10): Promise<Page<Estudiante>> =>
-    apiClient
-      .post<Page<Estudiante>>('/usuarios/estudiantes/administrador', {
-        pagina: page,
-        tamanio: size,
-      })
-      .then((r) => r.data),
-
-  consultarAsesoresAdministrador: (page = 0, size = 10): Promise<Page<Asesor>> =>
-    apiClient
-      .post<Page<Asesor>>('/usuarios/asesores/administrador', {
-        pagina: page,
-        tamanio: size,
-      })
-      .then((r) => r.data),
-
-  consultarAsesoresFichaAdministrador: (page = 0, size = 10): Promise<Page<AsesorFicha>> =>
-    apiClient
-      .post<Page<AsesorFicha>>('/usuarios/asesores-ficha/administrador', {
-        pagina: page,
-        tamanio: size,
-      })
-      .then((r) => r.data),
-
-  consultarRepresentantesComiteAdministrador: (
-    page = 0,
-    size = 10,
-  ): Promise<Page<RepresentanteComite>> =>
-    apiClient
-      .post<Page<RepresentanteComite>>('/usuarios/representantes-comite/administrador', {
-        pagina: page,
-        tamanio: size,
-      })
-      .then((r) => r.data),
-
-  consultarAdministradoresAdministrador: (page = 0, size = 10): Promise<Page<Administrador>> =>
-    apiClient
-      .post<Page<Administrador>>('/usuarios/administradores/administrador', {
-        pagina: page,
-        tamanio: size,
-      })
-      .then((r) => r.data),
 };

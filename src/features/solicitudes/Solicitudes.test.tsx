@@ -73,7 +73,7 @@ describe('Solicitudes', () => {
     expect(
       screen.queryByRole('heading', { name: 'Enviar solicitud de novedad al coordinador' }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
+    expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
   it('muestra ComingSoon cuando el rol activo no tiene vista real de solicitudes', () => {
@@ -81,7 +81,7 @@ describe('Solicitudes', () => {
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
-    expect(screen.getByText('En construcción')).toBeInTheDocument();
+    expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).not.toBeInTheDocument();
@@ -104,10 +104,10 @@ describe('Solicitudes', () => {
     expect(
       screen.getByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).toBeInTheDocument();
-    expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 
-  it('renderiza CoordinadorView con el panel de novedades recibidas cuando el rol activo es Coordinador', () => {
+  it('renderiza CoordinadorView sin pestañas y con el panel de recibidas cuando el rol activo es Coordinador', () => {
     autenticarCon(Rol.Coordinador);
     const hookRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
       data: {
@@ -123,6 +123,9 @@ describe('Solicitudes', () => {
       error: null,
       isLoading: false,
       isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
       page: 0,
       pageSize: 10,
       goToPage: vi.fn(),
@@ -133,38 +136,8 @@ describe('Solicitudes', () => {
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
-      'Nueva solicitud',
-      'Recibidas',
-      'Respondidas',
-    ]);
-    expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
-    expect(screen.getByRole('heading', { name: 'Novedades recibidas' })).toBeInTheDocument();
-    expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
-  });
-
-  it('muestra el aviso de próximamente al abrir Nueva solicitud como Coordinador', async () => {
-    autenticarCon(Rol.Coordinador);
-    const hookRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
-      data: undefined,
-      error: null,
-      isLoading: true,
-      isError: false,
-      page: 0,
-      pageSize: 10,
-      goToPage: vi.fn(),
-    };
-    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
-      hookRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
-    );
-    const user = userEvent.setup();
-    render(<Solicitudes />, { initialPath: '/solicitudes' });
-
-    await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
   });
 
   it('muestra el aviso de próximamente al abrir Respuestas', async () => {
@@ -173,6 +146,6 @@ describe('Solicitudes', () => {
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
+    expect(screen.getByText(/próximamente/i)).toBeInTheDocument();
   });
 });

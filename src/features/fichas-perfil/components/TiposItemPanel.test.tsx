@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../test-utils/render';
 import TiposItemPanel from './TiposItemPanel';
 import { useTiposItem } from '../hooks/useTiposItem';
@@ -32,7 +33,7 @@ describe('TiposItemPanel', () => {
     render(<TiposItemPanel />);
 
     // Assert
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando tipos de ítem...');
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando tipos de ítem…');
   });
 
   it('muestra nombre y descripción de cada tipo de ítem', () => {
@@ -50,7 +51,8 @@ describe('TiposItemPanel', () => {
     render(<TiposItemPanel />);
 
     // Assert
-    expect(screen.getByRole('table', { name: 'Tipos de ítem' })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Tipos de ítem' })).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.getByText('Problema')).toBeInTheDocument();
     expect(screen.getByText('Describe el problema')).toBeInTheDocument();
     expect(screen.getByText('Objetivo')).toBeInTheDocument();
@@ -80,5 +82,21 @@ describe('TiposItemPanel', () => {
 
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los tipos de ítem');
+  });
+
+  it('vuelve a consultar el catálogo al pulsar «Reintentar» tras un error de carga', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    vi.mocked(useTiposItem).mockReturnValue(
+      crearTiposMock({ isError: true, error: new Error('boom'), refetch }),
+    );
+    render(<TiposItemPanel />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 });

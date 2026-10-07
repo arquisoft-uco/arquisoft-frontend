@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import { solicitudesService } from '../services/solicitudesService';
 import { useEliminarSolicitudNovedadCoordinador } from './useEliminarSolicitudNovedadCoordinador';
+import { SOLICITUDES_ENVIADAS_QUERY_KEY } from './useSolicitudesNovedadCoordinadorEnviadas';
 
 vi.mock('../services/solicitudesService', () => ({
   solicitudesService: {
@@ -14,8 +15,6 @@ vi.mock('../services/solicitudesService', () => ({
 const eliminarSolicitudNovedadCoordinador = vi.mocked(
   solicitudesService.eliminarSolicitudNovedadCoordinador,
 );
-
-const KEY_ENVIADAS = ['solicitudes', 'novedad-coordinador', 'enviadas'];
 
 function crearContexto() {
   const queryClient = new QueryClient({
@@ -51,7 +50,7 @@ describe('useEliminarSolicitudNovedadCoordinador', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(eliminarSolicitudNovedadCoordinador).toHaveBeenCalledWith('s-1');
     expect(invalidar).toHaveBeenCalledTimes(1);
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY_ENVIADAS });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: SOLICITUDES_ENVIADAS_QUERY_KEY });
   });
 
   it('expone el error e invalida igual el listado cuando el service rechaza', async () => {
@@ -69,6 +68,6 @@ describe('useEliminarSolicitudNovedadCoordinador', () => {
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(invalidar).toHaveBeenCalledTimes(1);
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY_ENVIADAS });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: SOLICITUDES_ENVIADAS_QUERY_KEY });
   });
 });

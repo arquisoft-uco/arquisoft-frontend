@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { Rol } from '../../../shared/models/rol';
 import type { Usuario } from '../models/Usuario';
-import { rolesDeUsuario } from './roles-usuario';
+import {
+  ROLES_AGREGABLES,
+  ROLES_DEL_PANEL,
+  ROLES_FILTRABLES,
+  ROLES_REGISTRABLES,
+  ROLES_USUARIO,
+  puedeCambiarRol,
+  rolesDeUsuario,
+} from './roles-usuario';
 
 function crearUsuario(parcial: Partial<Usuario> = {}): Usuario {
   return {
@@ -18,6 +26,7 @@ function crearUsuario(parcial: Partial<Usuario> = {}): Usuario {
     esCoordinador: false,
     esRepresentanteComite: false,
     esAdministrador: false,
+    esBibliotecario: false,
     ...parcial,
   };
 }
@@ -44,5 +53,87 @@ describe('rolesDeUsuario', () => {
 
     // Assert
     expect(roles).toEqual([Rol.Estudiante, Rol.Coordinador, Rol.Administrador]);
+  });
+
+  it('suma al bibliotecario al final del catálogo, que ya es un rol filtrable', () => {
+    // Arrange
+    const soloBibliotecario = crearUsuario({ esBibliotecario: true });
+    const varios = crearUsuario({
+      esAdministrador: true,
+      esBibliotecario: true,
+      esEstudiante: true,
+    });
+    const filtrables = ROLES_FILTRABLES.map(({ rol }) => rol);
+
+    // Act
+    const rolesDelBibliotecario = rolesDeUsuario(soloBibliotecario);
+    const rolesDeVarios = rolesDeUsuario(varios);
+
+    // Assert
+    expect(rolesDelBibliotecario).toEqual([Rol.Bibliotecario]);
+    expect(rolesDeVarios).toEqual([Rol.Estudiante, Rol.Administrador, Rol.Bibliotecario]);
+    expect(filtrables).toEqual([
+      Rol.Estudiante,
+      Rol.Asesor,
+      Rol.AsesorFicha,
+      Rol.Coordinador,
+      Rol.RepresentanteComiteCurriculum,
+      Rol.Administrador,
+      Rol.Bibliotecario,
+    ]);
+    expect(ROLES_USUARIO.map(({ rol }) => rol)).toEqual(expect.arrayContaining(filtrables));
+  });
+});
+
+describe('ROLES_DEL_PANEL', () => {
+  it('contiene exactamente los valores de Rol, sin faltantes ni repetidos', () => {
+    // Act
+    const delPanel = [...ROLES_DEL_PANEL].sort();
+
+    // Assert
+    expect(delPanel).toEqual(Object.values(Rol).sort());
+  });
+});
+
+describe('puedeCambiarRol', () => {
+  it('permite quitar y agregar los roles gestionables, Bibliotecario incluido; Jurado no se cambia', () => {
+    // Arrange
+    const esperadoAlQuitar = {
+      [Rol.Estudiante]: true,
+      [Rol.Asesor]: true,
+      [Rol.AsesorFicha]: true,
+      [Rol.Coordinador]: true,
+      [Rol.RepresentanteComiteCurriculum]: true,
+      [Rol.Administrador]: true,
+      [Rol.Jurado]: false,
+      [Rol.Bibliotecario]: true,
+    };
+    const esperadoAlAgregar = esperadoAlQuitar;
+
+    // Act
+    const [quitar, agregar] = [true, false].map((asignado) =>
+      Object.fromEntries(Object.values(Rol).map((rol) => [rol, puedeCambiarRol(rol, asignado)])),
+    );
+
+    // Assert
+    expect(quitar).toEqual(esperadoAlQuitar);
+    expect(agregar).toEqual(esperadoAlAgregar);
+  });
+});
+
+describe('ROLES_REGISTRABLES', () => {
+  it('ofrece los siete roles del lienzo: con Bibliotecario agregable y sin Jurado', () => {
+    // Assert
+    expect(ROLES_REGISTRABLES).toEqual([
+      Rol.Estudiante,
+      Rol.Asesor,
+      Rol.AsesorFicha,
+      Rol.Coordinador,
+      Rol.RepresentanteComiteCurriculum,
+      Rol.Administrador,
+      Rol.Bibliotecario,
+    ]);
+    expect(ROLES_AGREGABLES.has(Rol.Bibliotecario)).toBe(true);
+    expect(ROLES_REGISTRABLES).not.toContain(Rol.Jurado);
   });
 });

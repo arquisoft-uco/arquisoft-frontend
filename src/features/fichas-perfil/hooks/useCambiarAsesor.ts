@@ -28,6 +28,7 @@ export function useCambiarAsesor() {
           };
         },
       );
+      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'coordinador'] });
     },
   });
 }

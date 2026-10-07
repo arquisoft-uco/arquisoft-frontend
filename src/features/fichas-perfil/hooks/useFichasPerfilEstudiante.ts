@@ -13,6 +13,8 @@ export function useFichasPerfilEstudiante() {
     fichas: query.data ?? [],
     isLoading: query.isLoading,
     isError: query.isError,
+    isSuccess: query.isSuccess,
+    refetch: query.refetch,
     error: query.error,
   };
 }
