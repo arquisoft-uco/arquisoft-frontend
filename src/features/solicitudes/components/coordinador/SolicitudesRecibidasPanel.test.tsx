@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '../../../../test-utils/render';
+import userEvent from '@testing-library/user-event';
+import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import { useSolicitudesNovedadCoordinadorRecibidas } from '../../hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import type { Solicitud } from '../../models/Solicitud';
@@ -45,6 +46,9 @@ function mockearHook(parcial: Partial<HookRecibidas> = {}) {
     error: null,
     isLoading: false,
     isError: false,
+    isFetching: false,
+    isPlaceholderData: false,
+    refetch: vi.fn(),
     page: 0,
     pageSize: 10,
     goToPage: vi.fn(),
@@ -57,43 +61,79 @@ describe('SolicitudesRecibidasPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('muestra el estado de carga y no muestra la tabla', () => {
+  it('muestra el esqueleto de carga y no la tabla', () => {
+    // Arrange
     mockearHook({ isLoading: true });
 
+    // Act
     render(<SolicitudesRecibidasPanel />);
 
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando solicitudes recibidas');
+    // Assert
+    expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('muestra el texto de respaldo en un alert y no muestra la tabla', () => {
-    mockearHook({ isError: true, error: new Error('fallo de red') });
+  it('ante un error muestra el alert con el respaldo y Reintentar vuelve a consultar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    mockearHook({ isError: true, error: new Error('fallo de red'), refetch });
 
+    // Act
     render(<SolicitudesRecibidasPanel />);
 
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      'No se pudieron cargar las solicitudes recibidas.',
-    );
+    // Assert
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las solicitudes');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /reintentar/i }));
+
+    // Assert
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('muestra el mensaje de vacío cuando no hay solicitudes', () => {
+  it('muestra el vacío cuando no hay solicitudes', () => {
+    // Arrange
     mockearHook({ data: crearPagina([]) });
 
+    // Act
     render(<SolicitudesRecibidasPanel />);
 
-    expect(screen.getByText('Aún no has recibido solicitudes de novedad.')).toBeInTheDocument();
+    // Assert
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('con datos muestra el contador, el remitente y el mensaje', () => {
+  it('con datos muestra el resumen, el remitente y el mensaje en la tabla', () => {
+    // Arrange
     mockearHook({ data: crearPagina([SOLICITUD]) });
 
+    // Act
     render(<SolicitudesRecibidasPanel />);
 
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Solicitudes de novedad recibidas' });
     expect(screen.getByText('1 solicitud')).toBeInTheDocument();
-    expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
-    expect(screen.getByText(/luis@uco\.edu\.co/)).toBeInTheDocument();
-    expect(screen.getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
+    expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
+    expect(within(tabla).getByText(/luis@uco.edu.co/)).toBeInTheDocument();
+    expect(within(tabla).getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
+  });
+
+  it('con varias páginas el paginador llama a goToPage con la siguiente', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const goToPage = vi.fn();
+    mockearHook({
+      data: { ...crearPagina([SOLICITUD]), totalElements: 25, totalPages: 3 },
+      goToPage,
+    });
+
+    // Act
+    render(<SolicitudesRecibidasPanel />);
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+
+    // Assert
+    expect(goToPage).toHaveBeenCalledWith(1);
   });
 });

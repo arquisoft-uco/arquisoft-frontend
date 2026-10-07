@@ -103,7 +103,7 @@ describe('Solicitudes', () => {
     expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 
-  it('renderiza CoordinadorView con el panel de novedades recibidas cuando el rol activo es Coordinador', () => {
+  it('renderiza CoordinadorView sin pestañas y con el panel de recibidas cuando el rol activo es Coordinador', () => {
     autenticarCon(Rol.Coordinador);
     const hookRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
       data: {
@@ -119,6 +119,9 @@ describe('Solicitudes', () => {
       error: null,
       isLoading: false,
       isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
       page: 0,
       pageSize: 10,
       goToPage: vi.fn(),
@@ -129,38 +132,8 @@ describe('Solicitudes', () => {
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
-      'Nueva solicitud',
-      'Recibidas',
-      'Respondidas',
-    ]);
-    expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
-    expect(screen.getByRole('heading', { name: 'Novedades recibidas' })).toBeInTheDocument();
-    expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
-  });
-
-  it('muestra el aviso de próximamente al abrir Nueva solicitud como Coordinador', async () => {
-    autenticarCon(Rol.Coordinador);
-    const hookRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
-      data: undefined,
-      error: null,
-      isLoading: true,
-      isError: false,
-      page: 0,
-      pageSize: 10,
-      goToPage: vi.fn(),
-    };
-    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
-      hookRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
-    );
-    const user = userEvent.setup();
-    render(<Solicitudes />, { initialPath: '/solicitudes' });
-
-    await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
-    expect(screen.getByRole('status')).toHaveTextContent(/próximamente/i);
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
   });
 
   it('muestra el aviso de próximamente al abrir Respuestas', async () => {

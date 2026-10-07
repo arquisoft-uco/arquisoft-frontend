@@ -1,57 +1,54 @@
+import PaginadorListado from '../../../../shared/components/PaginadorListado';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useSolicitudesNovedadCoordinadorRecibidas } from '../../hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
 
-export default function SolicitudesRecibidasPanel() {
-  const { data, isLoading, isError, error, page, pageSize, goToPage } =
-    useSolicitudesNovedadCoordinadorRecibidas();
+const RAIZ = 'flex flex-col gap-4';
+const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-  const totalElements = data?.totalElements ?? 0;
+function textoResumen(total?: number): string {
+  if (total === undefined) return '';
+  return `${total} ${total === 1 ? 'solicitud' : 'solicitudes'}`;
+}
+
+export default function SolicitudesRecibidasPanel() {
+  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, ...paginacion } =
+    useSolicitudesNovedadCoordinadorRecibidas();
+  const solicitudes = data?.content ?? [];
 
   return (
-    <section className="flex flex-col gap-6" aria-labelledby="solicitudes-recibidas-titulo">
-      <header className="section-header">
-        <div>
-          <h2 id="solicitudes-recibidas-titulo" className="text-lg font-semibold text-on-surface">
-            Novedades recibidas
-          </h2>
-          {data && (
-            <p className="mt-1 text-sm text-on-surface-secondary">
-              {totalElements} solicitud{totalElements !== 1 ? 'es' : ''}
-            </p>
-          )}
-        </div>
-      </header>
+    <div className={RAIZ}>
+      <p aria-live="polite" className={RESUMEN}>
+        {textoResumen(data?.totalElements)}
+      </p>
 
-      {isLoading && (
-        <div className="flex items-center justify-center py-16" aria-live="polite" aria-busy="true">
-          <div
-            className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
-            role="status"
-          >
-            <span className="sr-only">Cargando solicitudes recibidas</span>
-          </div>
-        </div>
-      )}
+      <div aria-busy={isFetching}>
+        {isError ? (
+          <ErrorState
+            titulo="No se pudieron cargar las solicitudes"
+            descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
+            onReintentar={refetch}
+          />
+        ) : (
+          <SolicitudesRecibidasTable
+            solicitudes={solicitudes}
+            cargando={isLoading || (isPlaceholderData && solicitudes.length === 0)}
+          />
+        )}
+      </div>
 
-      {isError && (
-        <div className="rounded-xl border border-border bg-surface p-6 text-center" role="alert">
-          <p className="text-sm text-on-surface-secondary">
-            {getApiErrorMessage(error, 'No se pudieron cargar las solicitudes recibidas.')}
-          </p>
-        </div>
-      )}
-
-      {data && (
-        <SolicitudesRecibidasTable
-          solicitudes={data.content}
-          totalElements={totalElements}
-          totalPages={data.totalPages}
-          page={page}
-          pageSize={pageSize}
-          onPageChange={goToPage}
+      {!isError && (
+        <PaginadorListado
+          page={paginacion.page}
+          pageSize={paginacion.pageSize}
+          totalPages={data?.totalPages ?? 0}
+          totalElements={data?.totalElements ?? 0}
+          cantidadEnPagina={solicitudes.length}
+          etiquetaPlural="solicitudes"
+          onPageChange={paginacion.goToPage}
         />
       )}
-    </section>
+    </div>
   );
 }
