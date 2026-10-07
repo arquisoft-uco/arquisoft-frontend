@@ -55,7 +55,7 @@ describe('rolesDeUsuario', () => {
     expect(roles).toEqual([Rol.Estudiante, Rol.Coordinador, Rol.Administrador]);
   });
 
-  it('suma al bibliotecario al final del catálogo, aunque no sea un rol filtrable', () => {
+  it('suma al bibliotecario al final del catálogo, que ya es un rol filtrable', () => {
     // Arrange
     const soloBibliotecario = crearUsuario({ esBibliotecario: true });
     const varios = crearUsuario({
@@ -79,6 +79,7 @@ describe('rolesDeUsuario', () => {
       Rol.Coordinador,
       Rol.RepresentanteComiteCurriculum,
       Rol.Administrador,
+      Rol.Bibliotecario,
     ]);
     expect(ROLES_USUARIO.map(({ rol }) => rol)).toEqual(expect.arrayContaining(filtrables));
   });

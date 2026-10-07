@@ -18,6 +18,7 @@ export const ROLES_FILTRABLES: { rol: Rol; etiqueta: string }[] = [
   { rol: Rol.Coordinador, etiqueta: 'Coordinadores' },
   { rol: Rol.RepresentanteComiteCurriculum, etiqueta: 'Comité' },
   { rol: Rol.Administrador, etiqueta: 'Administradores' },
+  { rol: Rol.Bibliotecario, etiqueta: 'Bibliotecarios' },
 ];
 
 // Cada HU de agregar rol habilita el suyo añadiendo una entrada aquí y un método de service.
