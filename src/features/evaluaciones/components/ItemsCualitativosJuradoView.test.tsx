@@ -10,7 +10,11 @@ vi.mock('../hooks/useItemsCualitativosJurado', () => ({
 
 const ITEMS: ItemCualitativoJurado[] = [
   { id: 'i-2', nombre: 'Claridad', descripcion: 'El documento se comprende sin ambigüedades.' },
-  { id: 'i-1', nombre: 'Aplicabilidad', descripcion: 'La propuesta resuelve un problema real del contexto.' },
+  {
+    id: 'i-1',
+    nombre: 'Aplicabilidad',
+    descripcion: 'La propuesta resuelve un problema real del contexto.',
+  },
 ];
 
 function mockConsulta(parcial: Partial<ReturnType<typeof useItemsCualitativosJurado>>) {

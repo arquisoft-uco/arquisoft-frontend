@@ -29,7 +29,7 @@ describe('Evaluaciones', () => {
 
       // Assert
       expect(screen.getByText('Vista de ítems cualitativos')).toBeInTheDocument();
-      expect(screen.queryByText('En construcción')).not.toBeInTheDocument();
+      expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
       unmount();
     }
   });
@@ -44,7 +44,7 @@ describe('Evaluaciones', () => {
 
       // Assert
       expect(screen.getByRole('heading', { name: 'Evaluaciones' })).toBeInTheDocument();
-      expect(screen.getByText('En construcción')).toBeInTheDocument();
+      expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
       expect(screen.queryByText('Vista de ítems cualitativos')).not.toBeInTheDocument();
       unmount();
     }
