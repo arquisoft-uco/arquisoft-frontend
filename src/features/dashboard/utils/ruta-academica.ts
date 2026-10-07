@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
-import { NAV_ITEMS, estaDisponible } from '../../../layout/nav-items';
-import { Rol } from '../../../shared/models/rol';
+import { NAV_ITEMS, estaDisponible, navItemsDelRol } from '../../../layout/nav-items';
+import type { Rol } from '../../../shared/models/rol';
 
 const RUTAS_ACADEMICAS = [
   '/fichas-perfil',
@@ -18,7 +18,8 @@ export interface PasoRutaAcademica {
   disponible: boolean;
 }
 
-export function pasosRutaAcademica(): PasoRutaAcademica[] {
+export function pasosRutaAcademica(rol: Rol): PasoRutaAcademica[] {
+  const rutasDelRol = new Set(navItemsDelRol(rol).map((i) => i.path));
   return RUTAS_ACADEMICAS.flatMap((path) => {
     const item = NAV_ITEMS.find((i) => i.path === path);
     return item
@@ -27,7 +28,7 @@ export function pasosRutaAcademica(): PasoRutaAcademica[] {
             path,
             label: item.label,
             icon: item.icon,
-            disponible: estaDisponible(item) && (item.roles?.includes(Rol.Estudiante) ?? true),
+            disponible: estaDisponible(item) && rutasDelRol.has(path),
           },
         ]
       : [];
