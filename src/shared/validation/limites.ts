@@ -3,6 +3,8 @@ export const LIMITES = {
   TITULO_PROYECTO_MAX: 100,
   ITEM_CONTENIDO_MAX: 7000,
   ESTADO_EVALUACION_ID_MAX: 50,
+  // estado_ficha_perfil.estado_ficha_id VARCHAR(50), FichasLimits.ESTADO_MAX
+  ESTADO_FICHA_ID_MAX: 50,
   ESTUDIANTES_MAX: 3,
   // FichasLimits.ObservacionEvaluacion.OBSERVACION_MAX
   OBSERVACION_EVALUACION_MAX: 200,
