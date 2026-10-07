@@ -8,6 +8,7 @@ import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitud
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
+import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -31,6 +32,10 @@ vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
 
 vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
   useRespuestasNovedadCoordinadorEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
+  useRespuestasNovedadCoordinadorRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
@@ -167,12 +172,44 @@ describe('Solicitudes', () => {
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
   });
 
-  it('muestra el aviso de próximamente al abrir Respuestas', async () => {
+  it('abre Respuestas con su contenido real y conserva la página al ir a otra pestaña y volver', async () => {
     autenticarCon(Rol.Estudiante);
+    const hook = vi.mocked(useRespuestasNovedadCoordinadorRecibidas);
+    const hookRespuestas: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>> = {
+      data: {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 25,
+        totalPages: 3,
+        first: true,
+        last: false,
+        empty: true,
+      },
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      pageSize: 10,
+    };
+    hook.mockReturnValue(
+      hookRespuestas as ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>,
+    );
     const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
-    expect(screen.getByText(/próximamente/i)).toBeInTheDocument();
+    expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
+    expect(screen.queryByText(/próximamente/i)).not.toBeInTheDocument();
+    expect(hook).toHaveBeenLastCalledWith(0);
+
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+    expect(hook).toHaveBeenLastCalledWith(1);
+
+    await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
+    await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
+    expect(hook).toHaveBeenLastCalledWith(1);
   });
 });

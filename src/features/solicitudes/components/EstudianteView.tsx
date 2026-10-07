@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Clock, Plus, type LucideIcon } from 'lucide-react';
-import EmptyState from '../../../shared/components/ui/EmptyState';
+import { Plus, type LucideIcon } from 'lucide-react';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
+import RespuestasRecibidasPanel from './estudiante/RespuestasRecibidasPanel';
 import SolicitudesEnviadasPanel from './estudiante/SolicitudesEnviadasPanel';
 
 type Pestana = 'nueva' | 'enviadas' | 'respuestas';
@@ -14,20 +14,25 @@ const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
   { id: 'respuestas', etiqueta: 'Respuestas' },
 ];
 
-const PANEL_POR_PESTANA: Record<Pestana, React.ReactNode> = {
-  nueva: <NuevaSolicitudPanel />,
-  enviadas: <SolicitudesEnviadasPanel />,
-  respuestas: (
-    <EmptyState
-      icono={Clock}
-      titulo="Respuestas"
-      descripcion="Las respuestas a tus solicitudes estarán disponibles próximamente."
-    />
-  ),
-};
-
 export default function EstudianteView() {
   const [pestana, setPestana] = useState<Pestana>('nueva');
+  const [paginas, setPaginas] = useState<Record<Pestana, number>>({
+    nueva: 0,
+    enviadas: 0,
+    respuestas: 0,
+  });
+
+  function irAPagina(destino: Pestana) {
+    return (pagina: number) => setPaginas((actuales) => ({ ...actuales, [destino]: pagina }));
+  }
+
+  const panelPorPestana: Record<Pestana, React.ReactNode> = {
+    nueva: <NuevaSolicitudPanel />,
+    enviadas: <SolicitudesEnviadasPanel />,
+    respuestas: (
+      <RespuestasRecibidasPanel page={paginas.respuestas} onPageChange={irAPagina('respuestas')} />
+    ),
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,7 +45,7 @@ export default function EstudianteView() {
         etiqueta="Secciones de solicitudes"
         idBase="solicitudes"
       >
-        {PANEL_POR_PESTANA[pestana]}
+        {panelPorPestana[pestana]}
       </Tabs>
     </div>
   );
