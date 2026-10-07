@@ -1,8 +1,7 @@
-import { Send, Trash2 } from 'lucide-react';
+import { Inbox } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import IconButton from '../../../../shared/components/ui/IconButton';
 import type { Solicitud } from '../../models/Solicitud';
 import FechaSolicitud from '../FechaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
@@ -10,16 +9,16 @@ import ParticipanteCelda from '../ParticipanteCelda';
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
 const FECHA_TARJETA = 'text-[13px] text-on-surface-secondary';
 
+function Remitente({ solicitud }: { solicitud: Solicitud }) {
+  const { nombre, identificador, email } = solicitud.remitente;
+  return <ParticipanteCelda nombre={nombre} detalle={`${identificador} · ${email}`} />;
+}
+
 const COLUMNAS: ColumnaTabla<Solicitud>[] = [
   {
-    id: 'destinatario',
-    encabezado: 'Coordinador',
-    celda: (solicitud) => (
-      <ParticipanteCelda
-        nombre={solicitud.destinatario.nombre}
-        detalle={solicitud.destinatario.email}
-      />
-    ),
+    id: 'remitente',
+    encabezado: 'Remitente',
+    celda: (solicitud) => <Remitente solicitud={solicitud} />,
   },
   {
     id: 'mensaje',
@@ -28,7 +27,7 @@ const COLUMNAS: ColumnaTabla<Solicitud>[] = [
   },
   {
     id: 'fecha',
-    encabezado: 'Enviada',
+    encabezado: 'Recibida',
     celda: (solicitud) => <FechaSolicitud iso={solicitud.fechaCreacion} />,
   },
 ];
@@ -36,49 +35,26 @@ const COLUMNAS: ColumnaTabla<Solicitud>[] = [
 interface Props {
   solicitudes: Solicitud[];
   cargando: boolean;
-  eliminando: boolean;
-  onEliminar: (solicitud: Solicitud) => void;
 }
 
-export default function SolicitudesEnviadasTable({
-  solicitudes,
-  cargando,
-  eliminando,
-  onEliminar,
-}: Props) {
-  function acciones(solicitud: Solicitud) {
-    return (
-      <IconButton
-        etiqueta={`Eliminar la solicitud enviada a ${solicitud.destinatario.nombre}`}
-        icono={Trash2}
-        tono="peligro"
-        disabled={eliminando}
-        onClick={() => onEliminar(solicitud)}
-      />
-    );
-  }
-
+export default function SolicitudesRecibidasTable({ solicitudes, cargando }: Props) {
   return (
     <DataTable
-      etiqueta="Solicitudes de novedad enviadas al coordinador"
+      etiqueta="Solicitudes de novedad recibidas"
       columnas={COLUMNAS}
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
-      acciones={acciones}
       cargando={cargando}
       vacio={
         <EmptyState
-          icono={Send}
-          titulo="Aún no has enviado solicitudes"
-          descripcion="Cuando envíes una novedad al coordinador, aparecerá aquí."
+          icono={Inbox}
+          titulo="Aún no has recibido solicitudes"
+          descripcion="Cuando alguien te envíe una novedad, aparecerá aquí."
         />
       }
       tarjeta={(solicitud) => (
         <>
-          <ParticipanteCelda
-            nombre={solicitud.destinatario.nombre}
-            detalle={solicitud.destinatario.email}
-          />
+          <Remitente solicitud={solicitud} />
           <p className="break-words text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
           <p className={FECHA_TARJETA}>
             <FechaSolicitud iso={solicitud.fechaCreacion} />

@@ -6,6 +6,7 @@ import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
+import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -21,6 +22,10 @@ vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
 
 vi.mock('./hooks/useEliminarSolicitudNovedadCoordinador', () => ({
   useEliminarSolicitudNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
+  useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
 }));
 
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
@@ -96,6 +101,39 @@ describe('Solicitudes', () => {
       screen.getByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
+  });
+
+  it('renderiza CoordinadorView sin pestañas y con el panel de recibidas cuando el rol activo es Coordinador', () => {
+    autenticarCon(Rol.Coordinador);
+    const hookRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
+      data: {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      },
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      page: 0,
+      pageSize: 10,
+      goToPage: vi.fn(),
+    };
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      hookRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
   });
 
   it('muestra el aviso de próximamente al abrir Respuestas', async () => {
