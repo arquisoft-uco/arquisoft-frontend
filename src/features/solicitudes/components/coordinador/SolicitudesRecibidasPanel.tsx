@@ -4,28 +4,26 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useSolicitudesNovedadCoordinadorRecibidas } from '../../hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import type { Solicitud } from '../../models/Solicitud';
+import ResumenListado from '../ResumenListado';
 import ResponderSolicitudForm from './ResponderSolicitudForm';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
 
 const RAIZ = 'flex flex-col gap-4';
-const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total?: number): string {
-  if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'solicitud' : 'solicitudes'}`;
+interface Props {
+  page: number;
+  onPageChange: (page: number) => void;
 }
 
-export default function SolicitudesRecibidasPanel() {
-  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, ...paginacion } =
-    useSolicitudesNovedadCoordinadorRecibidas();
+export default function SolicitudesRecibidasPanel({ page, onPageChange }: Props) {
+  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, pageSize } =
+    useSolicitudesNovedadCoordinadorRecibidas(page);
   const solicitudes = data?.content ?? [];
   const [solicitudAResponder, setSolicitudAResponder] = useState<Solicitud | null>(null);
 
   return (
     <div className={RAIZ}>
-      <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
-      </p>
+      <ResumenListado total={data?.totalElements} singular="solicitud" plural="solicitudes" />
 
       <div aria-busy={isFetching}>
         {isError ? (
@@ -45,13 +43,13 @@ export default function SolicitudesRecibidasPanel() {
 
       {!isError && (
         <PaginadorListado
-          page={paginacion.page}
-          pageSize={paginacion.pageSize}
+          page={page}
+          pageSize={pageSize}
           totalPages={data?.totalPages ?? 0}
           totalElements={data?.totalElements ?? 0}
           cantidadEnPagina={solicitudes.length}
           etiquetaPlural="solicitudes"
-          onPageChange={paginacion.goToPage}
+          onPageChange={onPageChange}
         />
       )}
 

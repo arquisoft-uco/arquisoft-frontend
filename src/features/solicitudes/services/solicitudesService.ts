@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
+import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import type { Solicitud } from '../models/Solicitud';
 import type { SolicitudCreadaResponse } from '../models/SolicitudCreadaResponse';
 
@@ -41,6 +42,17 @@ export const solicitudesService = {
   ): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/recibidas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarRespuestasNovedadCoordinadorEnviadas: (
+    page = 0,
+    size = 10,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-coordinador/respuestas/enviadas', {
         pagina: page,
         tamanio: size,
       })

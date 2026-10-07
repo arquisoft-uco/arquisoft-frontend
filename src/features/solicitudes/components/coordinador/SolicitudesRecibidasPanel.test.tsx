@@ -54,9 +54,7 @@ function mockearHook(parcial: Partial<HookRecibidas> = {}) {
     isFetching: false,
     isPlaceholderData: false,
     refetch: vi.fn(),
-    page: 0,
     pageSize: 10,
-    goToPage: vi.fn(),
     ...parcial,
   } as HookRecibidas);
 }
@@ -89,7 +87,7 @@ describe('SolicitudesRecibidasPanel', () => {
     mockearHook({ isLoading: true });
 
     // Act
-    render(<SolicitudesRecibidasPanel />);
+    render(<SolicitudesRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
@@ -103,7 +101,7 @@ describe('SolicitudesRecibidasPanel', () => {
     mockearHook({ isError: true, error: new Error('fallo de red'), refetch });
 
     // Act
-    render(<SolicitudesRecibidasPanel />);
+    render(<SolicitudesRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las solicitudes');
@@ -121,7 +119,7 @@ describe('SolicitudesRecibidasPanel', () => {
     mockearHook({ data: crearPagina([]) });
 
     // Act
-    render(<SolicitudesRecibidasPanel />);
+    render(<SolicitudesRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
@@ -133,7 +131,7 @@ describe('SolicitudesRecibidasPanel', () => {
     mockearHook({ data: crearPagina([SOLICITUD]) });
 
     // Act
-    render(<SolicitudesRecibidasPanel />);
+    render(<SolicitudesRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     const tabla = screen.getByRole('table', { name: 'Solicitudes de novedad recibidas' });
@@ -143,28 +141,27 @@ describe('SolicitudesRecibidasPanel', () => {
     expect(within(tabla).getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
   });
 
-  it('con varias páginas el paginador llama a goToPage con la siguiente', async () => {
+  it('con varias páginas el paginador llama a onPageChange con la siguiente', async () => {
     // Arrange
     const user = userEvent.setup();
-    const goToPage = vi.fn();
+    const onPageChange = vi.fn();
     mockearHook({
       data: { ...crearPagina([SOLICITUD]), totalElements: 25, totalPages: 3 },
-      goToPage,
     });
 
     // Act
-    render(<SolicitudesRecibidasPanel />);
+    render(<SolicitudesRecibidasPanel page={0} onPageChange={onPageChange} />);
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
     // Assert
-    expect(goToPage).toHaveBeenCalledWith(1);
+    expect(onPageChange).toHaveBeenCalledWith(1);
   });
 
   it('Responder abre el panel con el mensaje de esa solicitud y Cerrar lo cierra dejando la tabla', async () => {
     // Arrange
     const user = userEvent.setup();
     mockearHook({ data: crearPagina([SOLICITUD]) });
-    render(<SolicitudesRecibidasPanel />);
+    render(<SolicitudesRecibidasPanel page={0} onPageChange={vi.fn()} />);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     // Act
