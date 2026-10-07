@@ -5,6 +5,7 @@ import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObser
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
+import type { EvaluacionFichaPerfilEstudiante } from '../models/EvaluacionFichaPerfilEstudiante';
 import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
@@ -80,6 +81,30 @@ interface EvaluacionFichaPerfilResponseDTO {
   fechaCreacion: string;
   estadoEvaluacion: string | null;
   estadoEvaluacionNombre: string | null;
+}
+
+// Forma cruda de EvaluacionFichaPerfilEstudianteResponseDTO (GET .../evaluaciones/estudiante):
+// difiere del hermano /representante, se traduce con aEvaluacionEstudiante.
+interface EvaluacionFichaPerfilEstudianteResponseDTO {
+  id: string;
+  fichaPerfil: string;
+  fechaCreacion: string;
+  estadoEvaluacion: string | null;
+  estadoEvaluacionNombre: string | null;
+  representanteComite: { id: string; nombre: string };
+}
+
+function aEvaluacionEstudiante(
+  dto: EvaluacionFichaPerfilEstudianteResponseDTO,
+): EvaluacionFichaPerfilEstudiante {
+  return {
+    id: dto.id,
+    fichaPerfilId: dto.fichaPerfil,
+    fechaCreacion: dto.fechaCreacion,
+    estadoEvaluacionId: dto.estadoEvaluacion,
+    estadoEvaluacionNombre: dto.estadoEvaluacionNombre,
+    representante: { id: dto.representanteComite.id, nombre: dto.representanteComite.nombre },
+  };
 }
 
 // Forma cruda de FichaPerfilEstudianteResponseDTO (GET /fichas-perfil/estudiante, lista);
@@ -289,6 +314,15 @@ export const fichasPerfilService = {
     apiClient
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/estudiante`)
       .then((r) => r.data.map(toItem)),
+
+  consultarEvaluacionesMiFichaPerfil: (
+    fichaPerfilId: string,
+  ): Promise<EvaluacionFichaPerfilEstudiante[]> =>
+    apiClient
+      .get<
+        EvaluacionFichaPerfilEstudianteResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/estudiante`)
+      .then((r) => r.data.map(aEvaluacionEstudiante)),
 
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>
     apiClient
