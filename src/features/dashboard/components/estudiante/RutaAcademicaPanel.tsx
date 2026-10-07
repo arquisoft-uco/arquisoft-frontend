@@ -1,10 +1,11 @@
 import { Link } from 'react-router';
 import Badge from '../../../../shared/components/ui/Badge';
+import { Rol } from '../../../../shared/models/rol';
 import { pasosRutaAcademica } from '../../utils/ruta-academica';
 import { LISTA } from '../disposicion';
 import SeccionInicio from '../SeccionInicio';
 
-const PASOS = pasosRutaAcademica();
+const PASOS = pasosRutaAcademica(Rol.Estudiante);
 
 export default function RutaAcademicaPanel() {
   return (
