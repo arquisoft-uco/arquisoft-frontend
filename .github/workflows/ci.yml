@@ -1,7 +1,7 @@
 # ==============================================================================
 # Arquisoft Frontend — CI Pipeline
 # ==============================================================================
-# Ejecuta linting, tests y build en cada push/PR
+# Ejecuta formato (solo lo modificado), type-check, tests y build en cada push/PR
 # Runner: GitHub-hosted (ubuntu-latest) — gratis
 # Nota: Se activa solo cuando existe package.json (HT-010)
 # ==============================================================================
@@ -29,6 +29,8 @@ jobs:
       # ── Checkout ──
       - name: Checkout código
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       # ── Verificar si hay código frontend ──
       - name: Verificar package.json
@@ -41,7 +43,7 @@ jobs:
             echo "⚠️ package.json no encontrado. Saltando CI (pendiente HT-010)."
           fi
 
-      # ── Setup Node 18 ──
+      # ── Setup Node 20 ──
       - name: Setup Node.js 20
         if: steps.check.outputs.exists == 'true'
         uses: actions/setup-node@v6
@@ -62,8 +64,15 @@ jobs:
           echo "VITE_KEYCLOAK_REALM=ci-realm" >> .env
           echo "VITE_KEYCLOAK_CLIENT_ID=ci-client" >> .env
 
-      # ── Lint (ESLint) ──
-      - name: Lint — ESLint
+      # ── Formato: solo los archivos de src/ modificados respecto a develop ──
+      - name: Formato — Prettier (archivos modificados)
+        if: steps.check.outputs.exists == 'true'
+        env:
+          FORMAT_BASE: origin/develop
+        run: npm run format:check
+
+      # ── Type-check (no hay ESLint: `npm run lint` es `tsc --noEmit`) ──
+      - name: Type-check — tsc
         if: steps.check.outputs.exists == 'true'
         run: npm run lint
 

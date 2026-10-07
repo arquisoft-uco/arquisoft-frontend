@@ -1,81 +1,132 @@
 import { useState } from 'react';
+import { Edit3, FileText } from 'lucide-react';
+import { useItemsMiFicha } from '../hooks/useItemsMiFicha';
 import { useMiFichaPerfil } from '../hooks/useMiFichaPerfil';
-import MiFichaHeader from './estudiante/MiFichaHeader';
+import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
+import type { ResumenFicha } from '../models/ResumenFicha';
+import Button from '../../../shared/components/ui/Button';
+import EmptyState from '../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../shared/components/ui/ErrorState';
+import PageHeader from '../../../shared/components/ui/PageHeader';
+import Skeleton from '../../../shared/components/ui/Skeleton';
+import Tabs from '../../../shared/components/ui/Tabs';
+import { DISPOSICION } from './disposicion';
+import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
+import ResumenFichaPanel from './ResumenFichaPanel';
+import CompanerosFichaPanel from './estudiante/CompanerosFichaPanel';
+import EditarTituloForm from './estudiante/EditarTituloForm';
+import HistorialEstadosFichaPanel from './estudiante/HistorialEstadosFichaPanel';
 import ItemsMiFichaPanel from './estudiante/ItemsMiFichaPanel';
-import EstadosMiFichaPanel from './estudiante/EstadosMiFichaPanel';
-import RevisionesMiFichaPanel from './estudiante/RevisionesMiFichaPanel';
-import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
+import SelectorFichaEstudiante from './estudiante/SelectorFichaEstudiante';
 
-type Tab = 'items' | 'estados' | 'revisiones' | 'evaluaciones';
+type Pestana = 'items' | 'estados';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'items', label: 'Ítems' },
-  { key: 'estados', label: 'Estados' },
-  { key: 'revisiones', label: 'Revisiones' },
-  { key: 'evaluaciones', label: 'Evaluaciones' },
-];
+const RAIZ = 'flex flex-col gap-6';
+
+function aResumen(ficha: MiFichaPerfilResponse): ResumenFicha {
+  return {
+    id: ficha.id,
+    titulo: ficha.tituloProyecto,
+    estadoId: ficha.estadoActual.id,
+    estadoNombre: ficha.estadoActual.nombre,
+    fechaActualizacion: ficha.estadoActual.fechaActualizacion,
+    asesorNombre: ficha.asesor.nombre,
+    asesorEmail: ficha.asesor.email,
+  };
+}
 
 export default function EstudianteView() {
-  const { ficha, isLoadingFicha } = useMiFichaPerfil();
-  const [tab, setTab] = useState<Tab>('items');
+  const { ficha, fichas, cargada, sinFicha, errorFicha, seleccionarFicha, reintentar } =
+    useMiFichaPerfil();
+  const { items, itemsCargados } = useItemsMiFicha();
+  const [pestana, setPestana] = useState<Pestana>('items');
+  const [editandoTitulo, setEditandoTitulo] = useState(false);
 
-  if (isLoadingFicha) {
+  if (errorFicha) {
     return (
-      <div
-        className="flex items-center justify-center py-16"
-        aria-live="polite"
-        aria-busy="true"
-      >
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"
-          role="status"
-        >
-          <span className="sr-only">Cargando ficha de perfil...</span>
-        </div>
-      </div>
+      <ErrorState
+        titulo="No pudimos cargar tu ficha de perfil"
+        descripcion="Inténtalo nuevamente."
+        onReintentar={reintentar}
+      />
     );
   }
 
-  if (!ficha) {
+  if (!cargada) return <Skeleton variante="tarjetas" etiqueta="Cargando tu ficha…" />;
+
+  if (sinFicha || !ficha) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-lg font-medium text-on-surface">
-          No tienes una ficha de perfil asignada
-        </p>
-        <p className="mt-1 text-sm text-on-surface-secondary">
-          Contacta al coordinador para ser asignado a una ficha.
-        </p>
-      </div>
+      <EmptyState
+        icono={FileText}
+        titulo="Aún no tienes una ficha de perfil"
+        descripcion="Cuando tu coordinador te asigne a una, aparecerá aquí."
+      />
     );
   }
+
+  const pestanas = [
+    { id: 'items' as const, etiqueta: 'Ítems', contador: itemsCargados ? items.length : undefined },
+    { id: 'estados' as const, etiqueta: 'Historial de estados' },
+  ];
 
   return (
-    <div className="space-y-6">
-      <MiFichaHeader />
-
-      <div className="flex gap-1 rounded-lg bg-muted/50 p-1" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            role="tab"
-            aria-selected={tab === t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-              tab === t.key
-                ? 'bg-surface text-on-surface shadow-sm'
-                : 'text-on-surface-secondary hover:text-on-surface'
-            }`}
+    <div className={RAIZ}>
+      {fichas.length > 1 && (
+        <SelectorFichaEstudiante
+          fichas={fichas}
+          fichaActivaId={ficha.id}
+          onSeleccionar={seleccionarFicha}
+        />
+      )}
+      <PageHeader
+        titulo={ficha.tituloProyecto}
+        insignia={
+          <InsigniaEstadoFicha
+            estadoId={ficha.estadoActual.id}
+            nombre={ficha.estadoActual.nombre}
+          />
+        }
+        meta={
+          <>
+            Mi ficha de perfil · Actualizada el{' '}
+            <FechaDeEstado iso={ficha.estadoActual.fechaActualizacion} />
+          </>
+        }
+        acciones={
+          <Button variante="secundario" icono={Edit3} onClick={() => setEditandoTitulo(true)}>
+            Editar título
+          </Button>
+        }
+      />
+      <div className={DISPOSICION.contenedor}>
+        <div className={DISPOSICION.principal}>
+          <Tabs
+            items={pestanas}
+            valor={pestana}
+            onCambiar={setPestana}
+            etiqueta="Secciones de mi ficha"
           >
-            {t.label}
-          </button>
-        ))}
+            {pestana === 'items' ? (
+              <ItemsMiFichaPanel key={ficha.id} />
+            ) : (
+              <HistorialEstadosFichaPanel key={ficha.id} />
+            )}
+          </Tabs>
+        </div>
+        <div className={DISPOSICION.lateral}>
+          <ResumenFichaPanel
+            resumen={aResumen(ficha)}
+            equipo={<CompanerosFichaPanel integrantes={ficha.integrantes} />}
+          />
+        </div>
       </div>
-
-      {tab === 'items' && <ItemsMiFichaPanel />}
-      {tab === 'estados' && <EstadosMiFichaPanel />}
-      {tab === 'revisiones' && <RevisionesMiFichaPanel />}
-      {tab === 'evaluaciones' && <EvaluacionesMiFichaPanel />}
+      {editandoTitulo && (
+        <EditarTituloForm
+          key={ficha.id}
+          tituloActual={ficha.tituloProyecto}
+          onCerrar={() => setEditandoTitulo(false)}
+        />
+      )}
     </div>
   );
 }

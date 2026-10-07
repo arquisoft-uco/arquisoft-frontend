@@ -1,91 +1,50 @@
-import { useState } from 'react';
 import { ClipboardCheck } from 'lucide-react';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
-import { useRegistrarEvaluacion } from '../../hooks/useRegistrarEvaluacion';
+import Badge from '../../../../shared/components/ui/Badge';
+import EmptyState from '../../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
+import Skeleton from '../../../../shared/components/ui/Skeleton';
+import { varianteEstadoEvaluacion } from '../../../../shared/utils/estado-variante';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import EstadosEvaluacionPanel from './EstadosEvaluacionPanel';
+import { FechaDeEstado } from '../FichaCeldas';
 import AgregarEstadoEvaluacionPanel from './AgregarEstadoEvaluacionPanel';
+import AgregarObservacionEvaluacionPanel from './AgregarObservacionEvaluacionPanel';
+import EstadosEvaluacionPanel from './EstadosEvaluacionPanel';
+import IniciarEvaluacionBoton from './IniciarEvaluacionBoton';
+
+const TARJETA = 'flex flex-col gap-2 rounded-xl border border-border bg-surface p-4 shadow-card';
+const CABECERA = 'flex flex-wrap items-center gap-3';
+const DATO = 'text-sm text-on-surface-secondary';
 
 interface Props {
   fichaPerfilId: string;
 }
 
 export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
-  const [confirmarAbierto, setConfirmarAbierto] = useState(false);
+  const { data: evaluaciones, isLoading, isError, refetch } = useEvaluacionFicha(fichaPerfilId);
 
-  const { data: evaluaciones, isLoading, isError: isErrorConsulta } = useEvaluacionFicha(fichaPerfilId);
-  const { mutate, isPending, isError: isErrorMutacion, error } = useRegistrarEvaluacion(fichaPerfilId);
+  if (isLoading) return <Skeleton variante="tarjetas" etiqueta="Cargando evaluación…" />;
 
-  function handleIniciar() {
-    setConfirmarAbierto(true);
-  }
-
-  function handleConfirmar() {
-    mutate(undefined, {
-      onSuccess: () => {
-        setConfirmarAbierto(false);
-      },
-      onError: () => {
-        setConfirmarAbierto(false);
-      },
-    });
-  }
-
-  if (isLoading) {
+  if (isError) {
     return (
-      <div className="flex items-center justify-center py-10" aria-live="polite" aria-busy="true">
-        <div
-          className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"
-          role="status"
-        >
-          <span className="sr-only">Cargando evaluación...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (isErrorConsulta) {
-    return (
-      <div className="rounded-xl border border-border bg-surface p-6 text-center" role="alert">
-        <p className="text-sm text-on-surface-secondary">
-          No se pudo cargar la evaluación. Intenta nuevamente.
-        </p>
-      </div>
+      <ErrorState
+        titulo="No se pudo cargar la evaluación"
+        descripcion="Inténtalo nuevamente."
+        onReintentar={refetch}
+      />
     );
   }
 
   // El backend ordena por fechaCreacion ascendente (CA-9 de HU-182): la última es la vigente.
-  const evaluacionMostrar = evaluaciones && evaluaciones.length > 0
-    ? evaluaciones[evaluaciones.length - 1]
-    : null;
+  const vigente = evaluaciones?.[evaluaciones.length - 1];
 
-  if (evaluacionMostrar) {
+  if (!vigente) {
     return (
-      <div className="space-y-4 animate-fade-up">
-        <div
-          className="rounded-xl border border-border bg-surface p-4 space-y-3"
-          aria-live="polite"
-        >
-          <div className="flex items-center gap-3">
-            <ClipboardCheck size={20} className="shrink-0 text-primary" aria-hidden />
-            <p className="text-sm font-semibold text-on-surface">Evaluación registrada</p>
-            <span className="ml-auto inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-              {evaluacionMostrar.estadoEvaluacionNombre ?? 'Sin estado'}
-            </span>
-          </div>
-          <div className="space-y-1 pl-8">
-            <p className="text-xs text-on-surface-secondary break-all">
-              <span className="font-medium">ID:</span> {evaluacionMostrar.id}
-            </p>
-            <p className="text-xs text-on-surface-secondary">
-              <span className="font-medium">Fecha de creación:</span> {evaluacionMostrar.fechaCreacion}
-            </p>
-          </div>
-        </div>
-        <AgregarEstadoEvaluacionPanel
-          evaluacionId={evaluacionMostrar.id}
-          fichaPerfilId={fichaPerfilId}
+      <div className="flex flex-col gap-4">
+        <EmptyState
+          icono={ClipboardCheck}
+          titulo="Aún no se ha iniciado la evaluación"
+          descripcion="Inicia la evaluación para registrar su estado y sus observaciones."
+          accion={<IniciarEvaluacionBoton fichaPerfilId={fichaPerfilId} />}
         />
         <EstadosEvaluacionPanel />
       </div>
@@ -93,46 +52,28 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
   }
 
   return (
-    <>
-      <div className="space-y-4">
-        <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center space-y-4">
-          <ClipboardCheck size={32} className="mx-auto text-on-surface-secondary" aria-hidden />
-          <p className="text-sm text-on-surface-secondary">
-            Aún no se ha iniciado la evaluación para esta ficha.
-          </p>
-
-          {isErrorMutacion && (
-            <p className="text-sm text-danger" role="alert">
-              {getApiErrorMessage(error, 'Ocurrió un error al registrar la evaluación. Intenta nuevamente.')}
-            </p>
-          )}
-
-          <button
-            type="button"
-            onClick={handleIniciar}
-            disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover disabled:opacity-60"
+    <div className="flex flex-col gap-4 animate-fade-up">
+      <div className={TARJETA}>
+        <div className={CABECERA}>
+          <ClipboardCheck size={20} className="shrink-0 text-primary" aria-hidden />
+          <p className="text-sm font-semibold text-on-surface">Evaluación registrada</p>
+          <Badge
+            variante={
+              vigente.estadoEvaluacionId
+                ? varianteEstadoEvaluacion(vigente.estadoEvaluacionId)
+                : 'neutro'
+            }
           >
-            <ClipboardCheck size={16} aria-hidden />
-            Iniciar evaluación
-          </button>
+            {vigente.estadoEvaluacionNombre ?? 'Sin estado'}
+          </Badge>
         </div>
-
-        <EstadosEvaluacionPanel />
+        <p className={DATO}>
+          Creada el <FechaDeEstado iso={vigente.fechaCreacion} />
+        </p>
       </div>
-
-      {confirmarAbierto && (
-        <ConfirmDialog
-          titulo="¿Iniciar evaluación?"
-          descripcion="Se registrará una nueva evaluación para esta ficha de perfil. Esta acción no se puede deshacer."
-          labelConfirmar="Iniciar evaluación"
-          labelCancelar="Cancelar"
-          variante="advertencia"
-          cargando={isPending}
-          onConfirmar={handleConfirmar}
-          onCancelar={() => setConfirmarAbierto(false)}
-        />
-      )}
-    </>
+      <AgregarEstadoEvaluacionPanel evaluacionId={vigente.id} fichaPerfilId={fichaPerfilId} />
+      <AgregarObservacionEvaluacionPanel evaluacionId={vigente.id} />
+      <EstadosEvaluacionPanel />
+    </div>
   );
 }

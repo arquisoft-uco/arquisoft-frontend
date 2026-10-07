@@ -1,143 +1,232 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../test-utils/render';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { render, screen, waitFor, within } from '../../../test-utils/render';
+import {
+  avanzar,
+  restaurarTemporizadores,
+  usarTemporizadoresFalsos,
+} from '../../../test-utils/temporizadores';
 import AdministradorView from './AdministradorView';
-import { useRegistrarUsuario } from '../hooks/useRegistrarUsuario';
-import { useCoordinadores } from '../hooks/useCoordinadores';
-import { useEstudiantes } from '../hooks/useEstudiantes';
+import { usuariosService } from '../services/usuariosService';
+import type { Page } from '../../../shared/models/api-response';
+import type { Usuario } from '../models/Usuario';
 
-vi.mock('../hooks/useRegistrarUsuario', () => ({
-  useRegistrarUsuario: vi.fn(),
+vi.mock('../services/usuariosService', () => ({
+  usuariosService: {
+    registrarUsuario: vi.fn(),
+    consultarUsuariosAdministrador: vi.fn(),
+    getEstadosUsuario: vi.fn(),
+  },
+}));
+vi.mock('../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), dismiss: vi.fn() },
 }));
 
-vi.mock('../hooks/useCoordinadores', () => ({
-  useCoordinadores: vi.fn(),
-}));
+const USUARIO: Usuario = {
+  id: 'u-1',
+  identificador: '2001',
+  nombre: 'Marta Ríos',
+  email: 'marta@uco.edu.co',
+  contacto: '3001234567',
+  estado: 'ACTIVO',
+  vigente: true,
+  esEstudiante: true,
+  esAsesor: false,
+  esAsesorFicha: false,
+  esCoordinador: false,
+  esRepresentanteComite: false,
+  esAdministrador: false,
+  esBibliotecario: false,
+};
 
-vi.mock('../hooks/useEstudiantes', () => ({
-  useEstudiantes: vi.fn(),
-}));
+const USUARIO_NUEVO: Usuario = {
+  ...USUARIO,
+  id: 'u-2',
+  identificador: '1234567890',
+  nombre: 'Juan Camilo Pérez Gómez',
+  email: 'juan.perez@uco.edu.co',
+  esEstudiante: false,
+};
 
-function crearCoordinadoresMock(
-  parcial: Partial<ReturnType<typeof useCoordinadores>> = {},
-): ReturnType<typeof useCoordinadores> {
+function crearPagina(
+  content: Usuario[],
+  { totalPages = content.length === 0 ? 0 : 1, totalElements = content.length } = {},
+): Page<Usuario> {
   return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
+    content,
     page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useCoordinadores>;
+    size: 10,
+    totalElements,
+    totalPages,
+    first: true,
+    last: totalPages <= 1,
+    empty: content.length === 0,
+  };
 }
 
-function crearEstudiantesMock(
-  parcial: Partial<ReturnType<typeof useEstudiantes>> = {},
-): ReturnType<typeof useEstudiantes> {
-  return {
-    data: {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    },
-    error: null,
-    isLoading: false,
-    isError: false,
-    page: 0,
-    pageSize: 10,
-    goToPage: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useEstudiantes>;
+// La tabla y la lista de tarjetas están las dos en el DOM (jsdom no aplica CSS): se acota a la tabla.
+function tabla() {
+  return within(screen.getByRole('table', { name: 'Usuarios' }));
 }
 
-function crearMutacionMock(
-  mutate: ReturnType<typeof vi.fn>,
-): ReturnType<typeof useRegistrarUsuario> {
-  return {
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: 'idle',
-    isError: false,
-    isIdle: true,
-    isPending: false,
-    isSuccess: false,
-    mutate,
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-  } as ReturnType<typeof useRegistrarUsuario>;
+async function abrirMenuDeFila(user: UserEvent) {
+  await user.click(tabla().getByRole('button', { name: `Acciones de ${USUARIO.nombre}` }));
 }
 
 describe('AdministradorView', () => {
   beforeEach(() => {
-    vi.mocked(useCoordinadores).mockReturnValue(crearCoordinadoresMock());
-    vi.mocked(useEstudiantes).mockReturnValue(crearEstudiantesMock());
+    vi.mocked(usuariosService.consultarUsuariosAdministrador)
+      .mockReset()
+      .mockResolvedValue(crearPagina([USUARIO]));
+    vi.mocked(usuariosService.registrarUsuario).mockReset();
+    vi.mocked(usuariosService.getEstadosUsuario)
+      .mockReset()
+      .mockResolvedValue([{ id: 'ACTIVO', nombre: 'Activo', descripcion: 'Puede operar' }]);
   });
 
-  it('muestra el botón "Registrar usuario" por defecto y alterna con el formulario al abrir y cerrar', async () => {
-    vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
-    const user = userEvent.setup();
-    render(<AdministradorView />);
-
-    expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^registrar$/i })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /registrar usuario/i }));
-
-    expect(screen.queryByRole('button', { name: /registrar usuario/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^registrar$/i })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /cancelar/i }));
-
-    expect(screen.getByRole('button', { name: /registrar usuario/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^registrar$/i })).not.toBeInTheDocument();
+  afterEach(() => {
+    restaurarTemporizadores();
   });
 
-  it('mantiene el listado de coordinadores montado mientras el formulario está abierto', async () => {
-    vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
-    const user = userEvent.setup();
+  it('monta el listado único con una sola consulta ordenada por nombre y sin pestañas', async () => {
+    // Act
     render(<AdministradorView />);
+    await screen.findByRole('table', { name: 'Usuarios' });
 
-    await user.click(screen.getByRole('button', { name: /registrar usuario/i }));
-
-    expect(screen.getByRole('button', { name: /^registrar$/i })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Coordinadores' })).toBeInTheDocument();
-    expect(screen.getByRole('table', { name: 'Coordinadores' })).toBeInTheDocument();
+    // Assert
+    expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledTimes(1);
+    expect(usuariosService.consultarUsuariosAdministrador).toHaveBeenCalledWith({
+      pagina: 0,
+      tamanio: 10,
+      ordenamiento: ['nombre:ASC'],
+      filtros: undefined,
+    });
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('heading', { level: 1, name: 'Usuarios' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 
-  it('muestra las secciones de coordinadores y estudiantes y las mantiene con el formulario abierto', async () => {
-    vi.mocked(useRegistrarUsuario).mockReturnValue(crearMutacionMock(vi.fn()));
+  it('"Registrar usuario" abre el panel con el listado detrás y el botón de la cabecera sigue visible', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { container } = render(<AdministradorView />);
+    await screen.findByRole('table', { name: 'Usuarios' });
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Registrar usuario' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Registrar usuario' })).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Usuarios' })).toBeInTheDocument();
+    expect(
+      within(container).getByRole('button', { name: 'Registrar usuario' }),
+    ).toBeInTheDocument();
+  });
+
+  it('el vacío "Aún no hay usuarios" ofrece "Registrar usuario" y abre el panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.consultarUsuariosAdministrador).mockResolvedValue(crearPagina([]));
+    render(<AdministradorView />);
+    await screen.findByText('Aún no hay usuarios');
+    const botones = screen.getAllByRole('button', { name: 'Registrar usuario' });
+    expect(botones).toHaveLength(2);
+
+    // Act
+    await user.click(botones[1]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Registrar usuario' })).toBeInTheDocument();
+  });
+
+  it('"Editar" abre el panel de edición en Datos y "Cambiar roles" lo abre en Roles', async () => {
+    // Arrange
     const user = userEvent.setup();
     render(<AdministradorView />);
+    await screen.findByRole('table', { name: 'Usuarios' });
 
-    expect(screen.getByRole('heading', { name: 'Coordinadores' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Estudiantes' })).toBeInTheDocument();
+    // Act
+    await abrirMenuDeFila(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Editar' }));
 
-    await user.click(screen.getByRole('button', { name: /registrar usuario/i }));
+    // Assert
+    expect(screen.getByRole('dialog', { name: USUARIO.nombre })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { selected: true })).toHaveAccessibleName('Datos');
 
-    expect(screen.getByRole('button', { name: /^registrar$/i })).toBeInTheDocument();
-    expect(screen.getByRole('table', { name: 'Coordinadores' })).toBeInTheDocument();
-    expect(screen.getByRole('table', { name: 'Estudiantes' })).toBeInTheDocument();
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+    await abrirMenuDeFila(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar roles' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: USUARIO.nombre })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { selected: true })).toHaveAccessibleName('Roles');
+  });
+
+  it('cerrar el panel devuelve el foco a su disparador y el listado conserva su filtro y su página', async () => {
+    // Arrange
+    const user = usarTemporizadoresFalsos();
+    const consultar = vi.mocked(usuariosService.consultarUsuariosAdministrador);
+    consultar.mockResolvedValue(crearPagina([USUARIO], { totalPages: 3, totalElements: 21 }));
+    render(<AdministradorView />);
+    await screen.findByRole('table', { name: 'Usuarios' });
+    await user.type(screen.getByLabelText('Buscar usuarios'), 'mar');
+    avanzar(300);
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({ pagina: 0, filtros: expect.anything() }),
+      ),
+    );
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 1 })),
+    );
+    const consultasAntes = consultar.mock.calls.length;
+
+    // Act
+    await abrirMenuDeFila(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Editar' }));
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(tabla().getByRole('button', { name: `Acciones de ${USUARIO.nombre}` })).toHaveFocus();
+    expect(screen.getByLabelText('Buscar usuarios')).toHaveValue('mar');
+    expect(screen.getByRole('button', { name: 'Página 2' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(consultar).toHaveBeenCalledTimes(consultasAntes);
+  });
+
+  it('un registro exitoso cierra el panel y refresca el listado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const consultar = vi.mocked(usuariosService.consultarUsuariosAdministrador);
+    consultar
+      .mockResolvedValueOnce(crearPagina([USUARIO]))
+      .mockResolvedValue(crearPagina([USUARIO, USUARIO_NUEVO]));
+    vi.mocked(usuariosService.registrarUsuario).mockResolvedValue({ id: USUARIO_NUEVO.id });
+    render(<AdministradorView />);
+    await screen.findByRole('table', { name: 'Usuarios' });
+    await user.click(screen.getByRole('button', { name: 'Registrar usuario' }));
+    const panel = within(screen.getByRole('dialog', { name: 'Registrar usuario' }));
+    await user.type(panel.getByLabelText('Identificador'), USUARIO_NUEVO.identificador);
+    await user.type(panel.getByLabelText('Nombres'), 'Juan Camilo');
+    await user.type(panel.getByLabelText('Apellidos'), 'Pérez Gómez');
+    await user.type(panel.getByLabelText('Correo electrónico'), USUARIO_NUEVO.email);
+    await user.type(panel.getByLabelText('Contacto'), USUARIO_NUEVO.contacto);
+
+    // Act
+    await user.click(panel.getByRole('button', { name: 'Registrar usuario' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Registrar usuario' })).not.toBeInTheDocument(),
+    );
+    expect(
+      await tabla().findByRole('button', { name: `Editar ${USUARIO_NUEVO.nombre}` }),
+    ).toBeInTheDocument();
+    expect(consultar).toHaveBeenCalledTimes(2);
   });
 });
