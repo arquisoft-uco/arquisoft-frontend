@@ -2,26 +2,24 @@ import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useRespuestasNovedadCoordinadorEnviadas } from '../../hooks/useRespuestasNovedadCoordinadorEnviadas';
+import ResumenListado from '../ResumenListado';
 import RespuestasEnviadasTable from './RespuestasEnviadasTable';
 
 const RAIZ = 'flex flex-col gap-4';
-const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total?: number): string {
-  if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'respuesta' : 'respuestas'}`;
+interface Props {
+  page: number;
+  onPageChange: (page: number) => void;
 }
 
-export default function RespuestasEnviadasPanel() {
-  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, ...paginacion } =
-    useRespuestasNovedadCoordinadorEnviadas();
+export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
+  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, pageSize } =
+    useRespuestasNovedadCoordinadorEnviadas(page);
   const respuestas = data?.content ?? [];
 
   return (
     <div className={RAIZ}>
-      <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
-      </p>
+      <ResumenListado total={data?.totalElements} singular="respuesta" plural="respuestas" />
 
       <div aria-busy={isFetching}>
         {isError ? (
@@ -40,13 +38,13 @@ export default function RespuestasEnviadasPanel() {
 
       {!isError && (
         <PaginadorListado
-          page={paginacion.page}
-          pageSize={paginacion.pageSize}
+          page={page}
+          pageSize={pageSize}
           totalPages={data?.totalPages ?? 0}
           totalElements={data?.totalElements ?? 0}
           cantidadEnPagina={respuestas.length}
           etiquetaPlural="respuestas"
-          onPageChange={paginacion.goToPage}
+          onPageChange={onPageChange}
         />
       )}
     </div>

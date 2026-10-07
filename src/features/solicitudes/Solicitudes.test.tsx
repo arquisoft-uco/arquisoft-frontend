@@ -132,9 +132,7 @@ describe('Solicitudes', () => {
       isFetching: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-      page: 0,
       pageSize: 10,
-      goToPage: vi.fn(),
     };
     const hookRespuestas: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>> = {
       data: pagina,
@@ -144,9 +142,7 @@ describe('Solicitudes', () => {
       isFetching: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-      page: 0,
       pageSize: 10,
-      goToPage: vi.fn(),
     };
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
       hookRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,

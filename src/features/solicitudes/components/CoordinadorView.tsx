@@ -11,13 +11,28 @@ const PESTANAS: { id: Pestana; etiqueta: string }[] = [
   { id: 'respuestas-enviadas', etiqueta: 'Respuestas enviadas' },
 ];
 
-const PANEL_POR_PESTANA: Record<Pestana, React.ReactNode> = {
-  recibidas: <SolicitudesRecibidasPanel />,
-  'respuestas-enviadas': <RespuestasEnviadasPanel />,
-};
-
 export default function CoordinadorView() {
   const [pestana, setPestana] = useState<Pestana>('recibidas');
+  const [paginas, setPaginas] = useState<Record<Pestana, number>>({
+    recibidas: 0,
+    'respuestas-enviadas': 0,
+  });
+
+  function irAPagina(destino: Pestana) {
+    return (pagina: number) => setPaginas((actuales) => ({ ...actuales, [destino]: pagina }));
+  }
+
+  const panelPorPestana: Record<Pestana, React.ReactNode> = {
+    recibidas: (
+      <SolicitudesRecibidasPanel page={paginas.recibidas} onPageChange={irAPagina('recibidas')} />
+    ),
+    'respuestas-enviadas': (
+      <RespuestasEnviadasPanel
+        page={paginas['respuestas-enviadas']}
+        onPageChange={irAPagina('respuestas-enviadas')}
+      />
+    ),
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,7 +48,7 @@ export default function CoordinadorView() {
         etiqueta="Secciones de solicitudes"
         idBase="solicitudes"
       >
-        {PANEL_POR_PESTANA[pestana]}
+        {panelPorPestana[pestana]}
       </Tabs>
     </div>
   );

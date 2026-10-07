@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { solicitudesService } from '../services/solicitudesService';
 
@@ -11,9 +10,7 @@ export const RESPUESTAS_ENVIADAS_QUERY_KEY = [
   'enviadas',
 ] as const;
 
-export function useRespuestasNovedadCoordinadorEnviadas() {
-  const [page, setPage] = useState(0);
-
+export function useRespuestasNovedadCoordinadorEnviadas(page: number) {
   const query = useQuery({
     queryKey: [...RESPUESTAS_ENVIADAS_QUERY_KEY, page],
     queryFn: () =>
@@ -21,10 +18,5 @@ export function useRespuestasNovedadCoordinadorEnviadas() {
     placeholderData: keepPreviousData,
   });
 
-  return {
-    ...query,
-    page,
-    pageSize: PAGE_SIZE,
-    goToPage: setPage,
-  };
+  return { ...query, pageSize: PAGE_SIZE };
 }

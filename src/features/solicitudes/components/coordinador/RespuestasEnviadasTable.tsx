@@ -6,10 +6,10 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { varianteEstadoRespuesta } from '../../../../shared/utils/estado-variante';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import FechaSolicitud from '../FechaSolicitud';
+import FechaTarjeta from '../FechaTarjeta';
 import ParticipanteCelda from '../ParticipanteCelda';
 
 const TEXTO = 'max-w-md break-words text-on-surface-secondary';
-const FECHA_TARJETA = 'text-[13px] text-on-surface-secondary';
 
 function Estudiante({ respuesta }: { respuesta: RespuestaSolicitud }) {
   const { nombre, identificador, email } = respuesta.solicitud.remitente;
@@ -80,9 +80,7 @@ export default function RespuestasEnviadasTable({ respuestas, cargando }: Props)
           </p>
           <p className="break-words">{respuesta.contenido}</p>
           <EstadoRespuesta respuesta={respuesta} />
-          <p className={FECHA_TARJETA}>
-            <FechaSolicitud iso={respuesta.fechaRespuesta} />
-          </p>
+          <FechaTarjeta iso={respuesta.fechaRespuesta} />
         </>
       )}
     />

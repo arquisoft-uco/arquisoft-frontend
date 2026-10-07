@@ -61,9 +61,7 @@ function mockearHook(parcial: Partial<HookRespuestas> = {}) {
     isFetching: false,
     isPlaceholderData: false,
     refetch: vi.fn(),
-    page: 0,
     pageSize: 10,
-    goToPage: vi.fn(),
     ...parcial,
   } as HookRespuestas);
 }
@@ -78,7 +76,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ isLoading: true });
 
     // Act
-    render(<RespuestasEnviadasPanel />);
+    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
@@ -92,7 +90,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ isError: true, error: new Error('fallo de red'), refetch });
 
     // Act
-    render(<RespuestasEnviadasPanel />);
+    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las respuestas');
@@ -110,7 +108,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ data: crearPagina([]) });
 
     // Act
-    render(<RespuestasEnviadasPanel />);
+    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
@@ -122,7 +120,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ data: crearPagina([RESPUESTA]) });
 
     // Act
-    render(<RespuestasEnviadasPanel />);
+    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('1 respuesta')).toBeInTheDocument();
@@ -130,20 +128,19 @@ describe('RespuestasEnviadasPanel', () => {
     expect(within(tabla).getByText('Programemos una reunión.')).toBeInTheDocument();
   });
 
-  it('con varias páginas el paginador llama a goToPage con la siguiente', async () => {
+  it('con varias páginas el paginador llama a onPageChange con la siguiente', async () => {
     // Arrange
     const user = userEvent.setup();
-    const goToPage = vi.fn();
+    const onPageChange = vi.fn();
     mockearHook({
       data: { ...crearPagina([RESPUESTA]), totalElements: 25, totalPages: 3 },
-      goToPage,
     });
 
     // Act
-    render(<RespuestasEnviadasPanel />);
+    render(<RespuestasEnviadasPanel page={0} onPageChange={onPageChange} />);
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
     // Assert
-    expect(goToPage).toHaveBeenCalledWith(1);
+    expect(onPageChange).toHaveBeenCalledWith(1);
   });
 });
