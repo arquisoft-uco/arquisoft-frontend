@@ -45,6 +45,8 @@ export default function SolicitudesRecibidasTable({ solicitudes, cargando, onRes
       <IconButton
         etiqueta={`Responder la solicitud de ${solicitud.remitente.nombre}`}
         icono={Reply}
+        tono="primario"
+        rotulo="Responder"
         onClick={() => onResponder(solicitud)}
       />
     );
@@ -57,6 +59,7 @@ export default function SolicitudesRecibidasTable({ solicitudes, cargando, onRes
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
       acciones={acciones}
+      encabezadoAcciones="Acciones"
       cargando={cargando}
       vacio={
         <EmptyState

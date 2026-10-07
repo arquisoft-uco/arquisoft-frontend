@@ -96,9 +96,12 @@ export default function ResponderSolicitudForm({ solicitud, onCerrar }: Props) {
         onSubmit={formulario.handleSubmit(enviar, () => setResumenVisible(true))}
         className="flex flex-col gap-5"
       >
-        <div className={CONTEXTO}>
+        <section aria-labelledby="mensaje-original" className={CONTEXTO}>
+          <h3 id="mensaje-original" className="field-label">
+            Mensaje original
+          </h3>
           <p className="break-words text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
-        </div>
+        </section>
 
         <Field
           etiqueta="Respuesta"

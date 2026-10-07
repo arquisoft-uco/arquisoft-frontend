@@ -100,7 +100,7 @@ Button.spinner | size-4 animate-spin rounded-full border-2 border-current border
 ### IconButton
 
 - **Reemplaza:** los botones de icono de 22 px (`p-1`) y los `h-11 w-11 sm:h-9 sm:w-9` copiados.
-- **API:** `etiqueta: string` (obligatoria, va a `aria-label`), `icono: LucideIcon`, `tono?: 'neutro' | 'peligro'`.
+- **API:** `etiqueta: string` (obligatoria, va a `aria-label`), `icono: LucideIcon`, `tono?: 'neutro' | 'primario' | 'peligro'`, `rotulo?: string` (etiqueta visible al pasar el cursor o enfocar, a la izquierda del botón; solo para botones que viven en el borde derecho de una fila; el nombre accesible sigue siendo `etiqueta`).
 - **Regla:** 44 px de área en celular y 36 px desde `sm`.
 - **Composición:** `base` + **un** tono. Cada tono trae su color de texto y su hover: con el hover de `neutro` en
   la base, `peligro` no cambiaría de color al pasar el cursor.
@@ -108,6 +108,8 @@ Button.spinner | size-4 animate-spin rounded-full border-2 border-current border
 ```clases
 IconButton.base | inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-9
 IconButton.neutro | text-on-surface-secondary hover:bg-muted hover:text-on-surface
+IconButton.primario | text-on-surface-secondary hover:bg-primary-muted hover:text-primary-muted-foreground focus-visible:bg-primary-muted focus-visible:text-primary-muted-foreground
+IconButton.rotulo | pointer-events-none absolute right-full top-1/2 z-10 mr-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-border bg-surface-elevated px-2 py-1 text-xs font-medium text-on-surface opacity-0 shadow-dropdown transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 (el botón suma `group relative` solo con `rotulo`)
 IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-danger-muted-foreground
 ```
 

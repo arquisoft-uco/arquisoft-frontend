@@ -82,7 +82,7 @@ describe('ResponderSolicitudForm', () => {
     render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={vi.fn()} />);
 
     // Assert
-    expect(screen.getByRole('dialog', { name: 'Responder solicitud' })).toHaveTextContent(
+    expect(screen.getByRole('region', { name: 'Mensaje original' })).toHaveTextContent(
       'No he podido contactar a mi asesor.',
     );
     expect(screen.getByRole('textbox', { name: /Respuesta/ })).toHaveAttribute(
