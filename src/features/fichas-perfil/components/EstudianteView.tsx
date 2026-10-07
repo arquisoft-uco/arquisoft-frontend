@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import { Edit3, FileText } from 'lucide-react';
 import { useItemsMiFicha } from '../hooks/useItemsMiFicha';
 import { useMiFichaPerfil } from '../hooks/useMiFichaPerfil';
@@ -15,13 +15,20 @@ import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
 import ResumenFichaPanel from './ResumenFichaPanel';
 import CompanerosFichaPanel from './estudiante/CompanerosFichaPanel';
 import EditarTituloForm from './estudiante/EditarTituloForm';
+import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
 import HistorialEstadosFichaPanel from './estudiante/HistorialEstadosFichaPanel';
 import ItemsMiFichaPanel from './estudiante/ItemsMiFichaPanel';
 import SelectorFichaEstudiante from './estudiante/SelectorFichaEstudiante';
 
-type Pestana = 'items' | 'estados';
+type Pestana = 'items' | 'estados' | 'evaluaciones';
 
 const RAIZ = 'flex flex-col gap-6';
+
+const PANEL_POR_PESTANA: Record<Pestana, ComponentType> = {
+  items: ItemsMiFichaPanel,
+  estados: HistorialEstadosFichaPanel,
+  evaluaciones: EvaluacionesMiFichaPanel,
+};
 
 function aResumen(ficha: MiFichaPerfilResponse): ResumenFicha {
   return {
@@ -67,7 +74,9 @@ export default function EstudianteView() {
   const pestanas = [
     { id: 'items' as const, etiqueta: 'Ítems', contador: itemsCargados ? items.length : undefined },
     { id: 'estados' as const, etiqueta: 'Historial de estados' },
+    { id: 'evaluaciones' as const, etiqueta: 'Evaluaciones' },
   ];
+  const Panel = PANEL_POR_PESTANA[pestana];
 
   return (
     <div className={RAIZ}>
@@ -106,11 +115,7 @@ export default function EstudianteView() {
             onCambiar={setPestana}
             etiqueta="Secciones de mi ficha"
           >
-            {pestana === 'items' ? (
-              <ItemsMiFichaPanel key={ficha.id} />
-            ) : (
-              <HistorialEstadosFichaPanel key={ficha.id} />
-            )}
+            <Panel key={ficha.id} />
           </Tabs>
         </div>
         <div className={DISPOSICION.lateral}>
