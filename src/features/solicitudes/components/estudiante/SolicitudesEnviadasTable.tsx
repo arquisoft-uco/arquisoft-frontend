@@ -5,10 +5,10 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import IconButton from '../../../../shared/components/ui/IconButton';
 import type { Solicitud } from '../../models/Solicitud';
 import FechaSolicitud from '../FechaSolicitud';
+import FechaTarjeta from '../FechaTarjeta';
 import ParticipanteCelda from '../ParticipanteCelda';
 
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
-const FECHA_TARJETA = 'text-[13px] text-on-surface-secondary';
 
 const COLUMNAS: ColumnaTabla<Solicitud>[] = [
   {
@@ -81,9 +81,7 @@ export default function SolicitudesEnviadasTable({
             detalle={solicitud.destinatario.email}
           />
           <p className="break-words text-on-surface-secondary">{solicitud.mensajeSolicitud}</p>
-          <p className={FECHA_TARJETA}>
-            <FechaSolicitud iso={solicitud.fechaCreacion} />
-          </p>
+          <FechaTarjeta iso={solicitud.fechaCreacion} />
         </>
       )}
     />

@@ -116,6 +116,36 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarRespuestasNovedadCoordinadorEnviadas', () => {
+    it('llama POST /solicitudes/novedad-coordinador/respuestas/enviadas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 1,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: false,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await solicitudesService.consultarRespuestasNovedadCoordinadorEnviadas(
+        1,
+        10,
+      );
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/respuestas/enviadas', {
+        pagina: 1,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('eliminarSolicitudNovedadCoordinador', () => {
     it('llama DELETE /solicitudes/novedad-coordinador/{id} sin body y resuelve undefined', async () => {
       // Arrange

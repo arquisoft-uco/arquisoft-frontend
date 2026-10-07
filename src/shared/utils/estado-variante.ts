@@ -24,6 +24,12 @@ const VARIANTE_USUARIO: TablaDeVariantes = {
   INACTIVO: 'neutro',
 };
 
+const VARIANTE_RESPUESTA: TablaDeVariantes = {
+  APROBADA: 'exito',
+  NO_APROBADA: 'peligro',
+  EN_REVISION: 'info',
+};
+
 function buscarVariante(tabla: TablaDeVariantes, id: string): VarianteBadge {
   return Object.prototype.hasOwnProperty.call(tabla, id) ? tabla[id] : 'neutro';
 }
@@ -39,4 +45,8 @@ export function varianteEstadoEvaluacion(id: string): VarianteBadge {
 export function varianteEstadoUsuario(estadoId: string, vigente: boolean): VarianteBadge {
   if (!vigente) return 'peligro';
   return buscarVariante(VARIANTE_USUARIO, estadoId);
+}
+
+export function varianteEstadoRespuesta(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_RESPUESTA, id);
 }
