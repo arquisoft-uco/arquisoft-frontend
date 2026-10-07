@@ -2,12 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
+import { useResponderSolicitudNovedadCoordinador } from '../../hooks/useResponderSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadCoordinadorRecibidas } from '../../hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesRecibidasPanel from './SolicitudesRecibidasPanel';
 
 vi.mock('../../hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
   useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
+}));
+
+vi.mock('../../hooks/useResponderSolicitudNovedadCoordinador', () => ({
+  useResponderSolicitudNovedadCoordinador: vi.fn(),
 }));
 
 type HookRecibidas = ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>;
@@ -59,6 +64,24 @@ function mockearHook(parcial: Partial<HookRecibidas> = {}) {
 describe('SolicitudesRecibidasPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue({
+      data: undefined,
+      error: null,
+      variables: undefined,
+      context: undefined,
+      failureCount: 0,
+      failureReason: null,
+      isPaused: false,
+      submittedAt: 0,
+      status: 'idle',
+      isError: false,
+      isIdle: true,
+      isPending: false,
+      isSuccess: false,
+      mutate: vi.fn(),
+      mutateAsync: vi.fn(),
+      reset: vi.fn(),
+    } as ReturnType<typeof useResponderSolicitudNovedadCoordinador>);
   });
 
   it('muestra el esqueleto de carga y no la tabla', () => {
@@ -135,5 +158,28 @@ describe('SolicitudesRecibidasPanel', () => {
 
     // Assert
     expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('Responder abre el panel con el mensaje de esa solicitud y Cerrar lo cierra dejando la tabla', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({ data: crearPagina([SOLICITUD]) });
+    render(<SolicitudesRecibidasPanel />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Responder la solicitud de Luis Gómez',
+      }),
+    );
+
+    // Assert
+    const dialogo = screen.getByRole('dialog', { name: 'Responder solicitud' });
+    expect(within(dialogo).getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
+
+    await user.click(within(dialogo).getByRole('button', { name: 'Cerrar' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('table')).toBeInTheDocument();
   });
 });

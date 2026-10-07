@@ -20,6 +20,7 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.ESTADO_EVALUACION_ID_MAX).toBe(50);
     expect(LIMITES.ESTUDIANTES_MAX).toBe(3);
     expect(LIMITES.MENSAJE_SOLICITUD_MAX).toBe(100);
+    expect(LIMITES.RESPUESTA_CONTENIDO_MAX).toBe(100);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MIN).toBe(4);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MAX).toBe(30);
     expect(LIMITES.USUARIO_NOMBRE_MIN).toBe(2);
@@ -117,7 +118,10 @@ describe('emailValido', () => {
 });
 
 describe('textoEntre', () => {
-  const validador = textoEntre(LIMITES.USUARIO_IDENTIFICADOR_MIN, LIMITES.USUARIO_IDENTIFICADOR_MAX);
+  const validador = textoEntre(
+    LIMITES.USUARIO_IDENTIFICADOR_MIN,
+    LIMITES.USUARIO_IDENTIFICADOR_MAX,
+  );
 
   it('rechaza vacío con el mensaje de requerido, corto y largo con el de longitud, y acepta en rango', () => {
     const vacio = validador.safeParse('');
@@ -173,7 +177,10 @@ describe('soloDigitosEntre', () => {
     expect(corto.success).toBe(false);
     if (!corto.success) {
       expect(corto.error.issues[0].message).toBe(
-        MENSAJES_VALIDACION.longitudEntre(LIMITES.USUARIO_CONTACTO_MIN, LIMITES.USUARIO_CONTACTO_MAX),
+        MENSAJES_VALIDACION.longitudEntre(
+          LIMITES.USUARIO_CONTACTO_MIN,
+          LIMITES.USUARIO_CONTACTO_MAX,
+        ),
       );
     }
 

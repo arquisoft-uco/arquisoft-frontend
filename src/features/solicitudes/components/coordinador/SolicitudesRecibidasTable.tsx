@@ -1,7 +1,8 @@
-import { Inbox } from 'lucide-react';
+import { Inbox, Reply } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import type { Solicitud } from '../../models/Solicitud';
 import FechaSolicitud from '../FechaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
@@ -35,15 +36,30 @@ const COLUMNAS: ColumnaTabla<Solicitud>[] = [
 interface Props {
   solicitudes: Solicitud[];
   cargando: boolean;
+  onResponder: (solicitud: Solicitud) => void;
 }
 
-export default function SolicitudesRecibidasTable({ solicitudes, cargando }: Props) {
+export default function SolicitudesRecibidasTable({ solicitudes, cargando, onResponder }: Props) {
+  function acciones(solicitud: Solicitud) {
+    return (
+      <IconButton
+        etiqueta={`Responder la solicitud de ${solicitud.remitente.nombre}`}
+        icono={Reply}
+        tono="primario"
+        rotulo="Responder"
+        onClick={() => onResponder(solicitud)}
+      />
+    );
+  }
+
   return (
     <DataTable
       etiqueta="Solicitudes de novedad recibidas"
       columnas={COLUMNAS}
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
+      acciones={acciones}
+      encabezadoAcciones="Acciones"
       cargando={cargando}
       vacio={
         <EmptyState

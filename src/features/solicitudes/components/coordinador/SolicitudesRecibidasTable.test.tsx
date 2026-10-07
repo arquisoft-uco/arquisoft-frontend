@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
@@ -47,7 +48,14 @@ const SOLICITUDES: Solicitud[] = [
 ];
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesRecibidasTable>> = {}) {
-  render(<SolicitudesRecibidasTable solicitudes={SOLICITUDES} cargando={false} {...parcial} />);
+  const props = {
+    solicitudes: SOLICITUDES,
+    cargando: false,
+    onResponder: vi.fn(),
+    ...parcial,
+  };
+  render(<SolicitudesRecibidasTable {...props} />);
+  return props;
 }
 
 describe('SolicitudesRecibidasTable', () => {
@@ -82,5 +90,21 @@ describe('SolicitudesRecibidasTable', () => {
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('el botón de cada fila llama a onResponder con la solicitud de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onResponder } = renderizar();
+    const tabla = screen.getByRole('table', { name: 'Solicitudes de novedad recibidas' });
+
+    // Act
+    await user.click(
+      within(tabla).getByRole('button', { name: 'Responder la solicitud de María Torres' }),
+    );
+
+    // Assert
+    expect(onResponder).toHaveBeenCalledTimes(1);
+    expect(onResponder).toHaveBeenCalledWith(SOLICITUDES[1]);
   });
 });

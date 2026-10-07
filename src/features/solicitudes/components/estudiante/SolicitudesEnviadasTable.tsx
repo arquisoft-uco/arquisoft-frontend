@@ -65,6 +65,7 @@ export default function SolicitudesEnviadasTable({
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
       acciones={acciones}
+      encabezadoAcciones="Acciones"
       cargando={cargando}
       vacio={
         <EmptyState

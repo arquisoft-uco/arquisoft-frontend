@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useSolicitudesNovedadCoordinadorRecibidas } from '../../hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import type { Solicitud } from '../../models/Solicitud';
+import ResponderSolicitudForm from './ResponderSolicitudForm';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -16,6 +19,7 @@ export default function SolicitudesRecibidasPanel() {
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, ...paginacion } =
     useSolicitudesNovedadCoordinadorRecibidas();
   const solicitudes = data?.content ?? [];
+  const [solicitudAResponder, setSolicitudAResponder] = useState<Solicitud | null>(null);
 
   return (
     <div className={RAIZ}>
@@ -34,6 +38,7 @@ export default function SolicitudesRecibidasPanel() {
           <SolicitudesRecibidasTable
             solicitudes={solicitudes}
             cargando={isLoading || (isPlaceholderData && solicitudes.length === 0)}
+            onResponder={setSolicitudAResponder}
           />
         )}
       </div>
@@ -47,6 +52,13 @@ export default function SolicitudesRecibidasPanel() {
           cantidadEnPagina={solicitudes.length}
           etiquetaPlural="solicitudes"
           onPageChange={paginacion.goToPage}
+        />
+      )}
+
+      {solicitudAResponder && (
+        <ResponderSolicitudForm
+          solicitud={solicitudAResponder}
+          onCerrar={() => setSolicitudAResponder(null)}
         />
       )}
     </div>
