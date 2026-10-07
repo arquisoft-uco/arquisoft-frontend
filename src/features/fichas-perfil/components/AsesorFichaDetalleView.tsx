@@ -1,12 +1,12 @@
 import { Navigate, useNavigate, useParams } from 'react-router';
 import Button from '../../../shared/components/ui/Button';
-import { useResumenFicha } from '../hooks/useResumenFicha';
+import { useResumenFichaAsesor } from '../hooks/useResumenFichaAsesor';
 import DetalleFichaEstructura from './DetalleFichaEstructura';
 
 export default function AsesorFichaDetalleView() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
-  const { resumen, search } = useResumenFicha(id);
+  const { resumen, search } = useResumenFichaAsesor(id);
 
   if (!id) return <Navigate to="/fichas-perfil" replace />;
 

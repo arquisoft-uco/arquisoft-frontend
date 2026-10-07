@@ -41,7 +41,9 @@ export default function EstadosFichaAsesorPanel({ fichaPerfilId }: Props) {
         <h2 className="text-base font-semibold text-on-surface">Historial de estados</h2>
         {historial()}
       </section>
-      <EstadosFichaPanel fichaPerfilId={fichaPerfilId} />
+      {data && data.length > 0 && (
+        <EstadosFichaPanel fichaPerfilId={fichaPerfilId} estadoActual={data[0]} />
+      )}
     </div>
   );
 }

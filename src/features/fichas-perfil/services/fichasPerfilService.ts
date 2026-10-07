@@ -11,10 +11,8 @@ import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaRespo
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
-import type {
-  EstadoFichaPerfil,
-  AgregarEstadoFichaPerfilRequest,
-} from '../models/EstadoFichaPerfil';
+import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
+import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
@@ -348,9 +346,13 @@ export const fichasPerfilService = {
       }));
   },
 
-  // ─── Pendientes: el backend aún no expone estos endpoints ───
-
-  // Pendiente: sin endpoint en el backend.
-  agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
-    apiClient.post<EstadoFichaPerfil>('/fichas-perfil/estados', req).then((r) => r.data),
+  agregarEstadoFichaPerfil: (
+    fichaPerfilId: string,
+    req: AgregarEstadoFichaPerfilRequest,
+  ): Promise<AgregarEstadoFichaPerfilResponse> =>
+    apiClient
+      .post<AgregarEstadoFichaPerfilResponse>(`/fichas-perfil/${fichaPerfilId}/estados-ficha`, {
+        estadoFicha: req.estadoFichaId,
+      })
+      .then((r) => r.data),
 };

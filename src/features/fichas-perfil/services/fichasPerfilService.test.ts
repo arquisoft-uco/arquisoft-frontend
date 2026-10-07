@@ -72,6 +72,24 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('agregarEstadoFichaPerfil', () => {
+    it('traduce la solicitud a POST /fichas-perfil/{id}/estados-ficha con { estadoFicha } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'ef-1' } });
+
+      // Act
+      const resultado = await fichasPerfilService.agregarEstadoFichaPerfil('f-1', {
+        estadoFichaId: 'DESCARTADA',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/f-1/estados-ficha', {
+        estadoFicha: 'DESCARTADA',
+      });
+      expect(resultado).toEqual({ id: 'ef-1' });
+    });
+  });
+
   describe('cambiarAsesor', () => {
     it('traduce la solicitud a PATCH /fichas-perfil/{id}/asesor-ficha con { asesorFicha } y resuelve sin cuerpo', async () => {
       // Arrange
