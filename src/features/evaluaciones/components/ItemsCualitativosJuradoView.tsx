@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { ListChecks, Plus } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
@@ -9,13 +9,17 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useHasRole } from '../../../hooks/useHasRole';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
+import CriteriosItemCualitativoJuradoPanel from './CriteriosItemCualitativoJuradoPanel';
 import ItemsCualitativosJuradoTable from './ItemsCualitativosJuradoTable';
 import ModificarItemCualitativoJuradoPanel from './ModificarItemCualitativoJuradoPanel';
 import RegistrarItemCualitativoJuradoPanel from './RegistrarItemCualitativoJuradoPanel';
 
 const ROLES_ADMINISTRAN = [Rol.Administrador];
 
-type PanelItems = { tipo: 'registrar' } | { tipo: 'modificar'; item: ItemCualitativoJurado };
+type PanelItems =
+  | { tipo: 'registrar' }
+  | { tipo: 'criterios' }
+  | { tipo: 'modificar'; item: ItemCualitativoJurado };
 
 export default function ItemsCualitativosJuradoView() {
   const { data, isLoading, isError, error, refetch } = useItemsCualitativosJurado();
@@ -32,11 +36,22 @@ export default function ItemsCualitativosJuradoView() {
         titulo="Ítems cualitativos del jurado"
         descripcion="Criterios con los que el jurado valora cada proyecto."
         acciones={
-          esAdministrador && (
-            <Button icono={Plus} onClick={() => setPanel({ tipo: 'registrar' })}>
-              Registrar ítem
+          <>
+            <Button
+              variante="fantasma"
+              tamano="sm"
+              icono={ListChecks}
+              aria-haspopup="dialog"
+              onClick={() => setPanel({ tipo: 'criterios' })}
+            >
+              Ver criterios
             </Button>
-          )
+            {esAdministrador && (
+              <Button icono={Plus} onClick={() => setPanel({ tipo: 'registrar' })}>
+                Registrar ítem
+              </Button>
+            )}
+          </>
         }
       />
 
@@ -59,6 +74,9 @@ export default function ItemsCualitativosJuradoView() {
 
       {panel?.tipo === 'registrar' && (
         <RegistrarItemCualitativoJuradoPanel onCerrar={cerrarPanel} />
+      )}
+      {panel?.tipo === 'criterios' && (
+        <CriteriosItemCualitativoJuradoPanel onCerrar={cerrarPanel} />
       )}
       {panel?.tipo === 'modificar' && (
         <ModificarItemCualitativoJuradoPanel
