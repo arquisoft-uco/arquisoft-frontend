@@ -16,21 +16,13 @@ const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
 
 export default function EstudianteView() {
   const [pestana, setPestana] = useState<Pestana>('nueva');
-  const [paginas, setPaginas] = useState<Record<Pestana, number>>({
-    nueva: 0,
-    enviadas: 0,
-    respuestas: 0,
-  });
-
-  function irAPagina(destino: Pestana) {
-    return (pagina: number) => setPaginas((actuales) => ({ ...actuales, [destino]: pagina }));
-  }
+  const [paginaRespuestas, setPaginaRespuestas] = useState(0);
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     nueva: <NuevaSolicitudPanel />,
     enviadas: <SolicitudesEnviadasPanel />,
     respuestas: (
-      <RespuestasRecibidasPanel page={paginas.respuestas} onPageChange={irAPagina('respuestas')} />
+      <RespuestasRecibidasPanel page={paginaRespuestas} onPageChange={setPaginaRespuestas} />
     ),
   };
 

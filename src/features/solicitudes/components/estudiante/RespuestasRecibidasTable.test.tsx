@@ -1,41 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, within } from '../../../../test-utils/render';
-import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
+import { RESPUESTA } from '../../test-utils/respuestas';
 import RespuestasRecibidasTable from './RespuestasRecibidasTable';
-
-const RESPUESTAS: RespuestaSolicitud[] = [
-  {
-    id: 'r-1',
-    contenido: 'Programemos una reunión.',
-    fechaRespuesta: '2026-09-02T10:00:00Z',
-    estadoRespuestaId: 'APROBADA',
-    estadoRespuestaNombre: 'Aprobada',
-    solicitud: {
-      id: 's-1',
-      mensajeSolicitud: 'No he podido contactar a mi asesor.',
-      fechaCreacion: '2026-09-01T15:30:00Z',
-      tipoSolicitudId: 't-1',
-      tipoSolicitudNombre: 'NOVEDAD_PARA_EL_COORDINADOR',
-      remitente: {
-        usuarioId: 'u-1',
-        identificador: '2001',
-        nombre: 'Luis Gómez',
-        email: 'luis@uco.edu.co',
-      },
-      destinatario: {
-        usuarioId: 'u-9',
-        identificador: '1001',
-        nombre: 'Ana Coordinadora',
-        email: 'ana@uco.edu.co',
-      },
-    },
-  },
-];
 
 describe('RespuestasRecibidasTable', () => {
   it('muestra coordinador, mensaje, respuesta y estado de cada fila, sin acciones', () => {
     // Act
-    render(<RespuestasRecibidasTable respuestas={RESPUESTAS} cargando={false} />);
+    render(<RespuestasRecibidasTable respuestas={[RESPUESTA]} cargando={false} />);
 
     // Assert
     const tabla = screen.getByRole('table', { name: 'Respuestas de novedades recibidas' });

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../test-utils/render';
+import { render, screen, within } from '../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
+import { RESPUESTA } from './test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
@@ -177,14 +178,14 @@ describe('Solicitudes', () => {
     const hook = vi.mocked(useRespuestasNovedadCoordinadorRecibidas);
     const hookRespuestas: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>> = {
       data: {
-        content: [],
+        content: [RESPUESTA],
         page: 0,
         size: 10,
         totalElements: 25,
         totalPages: 3,
         first: true,
         last: false,
-        empty: true,
+        empty: false,
       },
       error: null,
       isLoading: false,
@@ -201,7 +202,8 @@ describe('Solicitudes', () => {
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
-    expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
+    const tabla = screen.getByRole('table', { name: 'Respuestas de novedades recibidas' });
+    expect(within(tabla).getByText('Programemos una reunión.')).toBeInTheDocument();
     expect(screen.queryByText(/próximamente/i)).not.toBeInTheDocument();
     expect(hook).toHaveBeenLastCalledWith(0);
 
