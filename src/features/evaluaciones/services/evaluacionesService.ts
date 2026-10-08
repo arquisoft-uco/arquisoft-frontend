@@ -1,4 +1,5 @@
 import apiClient from '../../../api/axiosInstance';
+import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
@@ -8,6 +9,11 @@ export const evaluacionesService = {
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
     apiClient
       .get<ItemCualitativoJurado[]>('/evaluaciones/items-cualitativos-jurado')
+      .then((r) => r.data),
+
+  getCriteriosItemCualitativoJurado: (): Promise<CriterioItemCualitativoJurado[]> =>
+    apiClient
+      .get<CriterioItemCualitativoJurado[]>('/evaluaciones/criterios-item-cualitativo-jurado')
       .then((r) => r.data),
 
   registrarItemCualitativoJurado: (
