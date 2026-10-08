@@ -384,6 +384,15 @@ export const fichasPerfilService = {
       .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
       .then((r) => r.data),
 
+  getEstadosFichaPerfilRepresentante: (
+    fichaPerfilId: string,
+  ): Promise<HistorialEstadoFichaPerfil[]> =>
+    apiClient
+      .get<
+        HistorialEstadoFichaPerfil[]
+      >(`/fichas-perfil/${fichaPerfilId}/estados-ficha/representante`)
+      .then((r) => r.data),
+
   getEstadosFichasAsesor: (req: ConsultaCriteriaRequest): Promise<Page<EstadoFichaPerfilAsesor>> =>
     apiClient
       .post<Page<EstadoFichaPerfilAsesorResponseDTO>>('/fichas-perfil/estados-ficha/asesor', req)
