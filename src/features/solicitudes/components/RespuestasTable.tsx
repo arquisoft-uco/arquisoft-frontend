@@ -26,6 +26,7 @@ interface Props {
   participante: { encabezado: string; celda: (respuesta: RespuestaSolicitud) => ReactNode };
   encabezadoFecha: string;
   vacio: { titulo: string; descripcion: string };
+  acciones?: (respuesta: RespuestaSolicitud) => ReactNode;
 }
 
 export default function RespuestasTable({
@@ -35,6 +36,7 @@ export default function RespuestasTable({
   participante,
   encabezadoFecha,
   vacio,
+  acciones,
 }: Props) {
   const columnas: ColumnaTabla<RespuestaSolicitud>[] = [
     { id: 'participante', encabezado: participante.encabezado, celda: participante.celda },
@@ -65,6 +67,8 @@ export default function RespuestasTable({
       etiqueta={etiqueta}
       columnas={columnas}
       filas={respuestas}
+      acciones={acciones}
+      encabezadoAcciones={acciones ? 'Acciones' : undefined}
       idDeFila={(respuesta) => respuesta.id}
       cargando={cargando}
       vacio={<EmptyState icono={Reply} titulo={vacio.titulo} descripcion={vacio.descripcion} />}
