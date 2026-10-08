@@ -1,5 +1,4 @@
 import type { ComponentType } from 'react';
-import type { UseQueryResult } from '@tanstack/react-query';
 import PaginadorListado from '../../../shared/components/PaginadorListado';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import type { Page } from '../../../shared/models/api-response';
@@ -9,10 +8,16 @@ import ResumenListado from './ResumenListado';
 
 const RAIZ = 'flex flex-col gap-4';
 
-type Consulta = Pick<
-  UseQueryResult<Page<RespuestaSolicitud>>,
-  'data' | 'isLoading' | 'isError' | 'error' | 'isFetching' | 'isPlaceholderData' | 'refetch'
-> & { pageSize: number };
+interface Consulta {
+  data?: Page<RespuestaSolicitud>;
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  isFetching: boolean;
+  isPlaceholderData: boolean;
+  refetch: () => unknown;
+  pageSize: number;
+}
 
 interface Props {
   consulta: Consulta;
