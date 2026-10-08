@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useFichasPerfilCoordinador } from '../../hooks/useFichasPerfilCoordinador';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 import CambiarAsesorPanel from './CambiarAsesorPanel';
+import DecidirAprobacionDialog from './DecidirAprobacionDialog';
 import EstudiantesVinculadosPanel from './EstudiantesVinculadosPanel';
 import FichasPerfilTable from './FichasPerfilTable';
 
@@ -13,7 +14,7 @@ const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
 interface PanelFicha {
-  tipo: 'estudiantes' | 'asesor';
+  tipo: 'estudiantes' | 'asesor' | 'aprobar' | 'no-aprobar';
   ficha: FichaPerfil;
 }
 
@@ -68,6 +69,8 @@ export default function ConsultarFichasPerfilCoordinador() {
             onOrdenar={listado.setOrden}
             onVerEstudiantes={(ficha) => setPanel({ tipo: 'estudiantes', ficha })}
             onCambiarAsesor={(ficha) => setPanel({ tipo: 'asesor', ficha })}
+            onAprobar={(ficha) => setPanel({ tipo: 'aprobar', ficha })}
+            onNoAprobar={(ficha) => setPanel({ tipo: 'no-aprobar', ficha })}
             onLimpiarFiltros={listado.limpiarFiltros}
           />
         )}
@@ -90,6 +93,13 @@ export default function ConsultarFichasPerfilCoordinador() {
       )}
       {panel?.tipo === 'asesor' && (
         <CambiarAsesorPanel ficha={panel.ficha} onCerrar={cerrarPanel} />
+      )}
+      {(panel?.tipo === 'aprobar' || panel?.tipo === 'no-aprobar') && (
+        <DecidirAprobacionDialog
+          ficha={panel.ficha}
+          acepta={panel.tipo === 'aprobar'}
+          onCerrar={cerrarPanel}
+        />
       )}
     </div>
   );

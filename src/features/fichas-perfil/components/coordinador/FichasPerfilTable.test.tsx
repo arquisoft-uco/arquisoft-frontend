@@ -26,6 +26,8 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof FichasPerfilTab
     onOrdenar: vi.fn(),
     onVerEstudiantes: vi.fn(),
     onCambiarAsesor: vi.fn(),
+    onAprobar: vi.fn(),
+    onNoAprobar: vi.fn(),
     onLimpiarFiltros: vi.fn(),
     ...parcial,
   };
@@ -109,6 +111,36 @@ describe('FichasPerfilTable', () => {
     // Assert
     expect(onVerEstudiantes).toHaveBeenCalledWith(FICHA_2);
     expect(onCambiarAsesor).toHaveBeenCalledWith(FICHA_1);
+  });
+
+  it('en una ficha disponible para evaluación el menú ofrece aprobar y no aprobar sobre esa fila; en otro estado no', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const disponible: FichaPerfil = {
+      ...FICHA_2,
+      estado: { ...FICHA_2.estado, id: 'DISPONIBLE_PARA_EVALUACION' },
+    };
+    const { onAprobar, onNoAprobar } = renderizar({ fichas: [FICHA_1, disponible] });
+    const menuDe = (titulo: string) =>
+      tabla().getByRole('button', { name: `Acciones de la ficha ${titulo}` });
+
+    // Act
+    await user.click(menuDe('Sistema de monitoreo'));
+
+    // Assert
+    expect(screen.queryByRole('menuitem', { name: 'Aprobar ficha' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'No aprobar ficha' })).not.toBeInTheDocument();
+
+    // Act
+    await user.keyboard('{Escape}');
+    await user.click(menuDe('Plataforma de riego'));
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar ficha' }));
+    await user.click(menuDe('Plataforma de riego'));
+    await user.click(screen.getByRole('menuitem', { name: 'No aprobar ficha' }));
+
+    // Assert
+    expect(onAprobar).toHaveBeenCalledWith(disponible);
+    expect(onNoAprobar).toHaveBeenCalledWith(disponible);
   });
 
   it('ordenar desde la cabecera Ficha invierte la dirección y desde Asesor ordena por asesor', async () => {

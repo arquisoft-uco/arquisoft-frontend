@@ -22,6 +22,26 @@ vi.mock('./EstudiantesVinculadosPanel', () => ({
     </div>
   ),
 }));
+vi.mock('./DecidirAprobacionDialog', () => ({
+  default: ({
+    ficha,
+    acepta,
+    onCerrar,
+  }: {
+    ficha: FichaPerfil;
+    acepta: boolean;
+    onCerrar: () => void;
+  }) => (
+    <div role="dialog" aria-label="Diálogo de aprobación">
+      <p>
+        {acepta ? 'Aprobar' : 'No aprobar'} {ficha.tituloProyecto}
+      </p>
+      <button type="button" onClick={onCerrar}>
+        Cerrar aprobación
+      </button>
+    </div>
+  ),
+}));
 vi.mock('./CambiarAsesorPanel', () => ({
   default: ({ ficha }: { ficha: FichaPerfil }) => (
     <div role="dialog" aria-label="Panel de asesor">
@@ -210,6 +230,43 @@ describe('ConsultarFichasPerfilCoordinador', () => {
 
     // Assert
     expect(screen.getByText('Asesor de Sistema de monitoreo')).toBeInTheDocument();
+  });
+
+  it('"Aprobar ficha" y "No aprobar ficha" abren el diálogo de esa ficha y se pueden cerrar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const disponible: FichaPerfil = {
+      ...FICHA,
+      estado: { ...FICHA.estado, id: 'DISPONIBLE_PARA_EVALUACION' },
+    };
+    mockHook({ data: crearPagina([disponible]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+    const abrirMenu = () =>
+      user.click(
+        tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
+      );
+
+    // Act
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar ficha' }));
+
+    // Assert
+    expect(screen.getByText('Aprobar Sistema de monitoreo')).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Fichas de perfil' })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar aprobación' }));
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'No aprobar ficha' }));
+
+    // Assert
+    expect(screen.getByText('No aprobar Sistema de monitoreo')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar aprobación' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Diálogo de aprobación' })).not.toBeInTheDocument();
   });
 
   it('el paginador navega a la página siguiente y a la última', async () => {
