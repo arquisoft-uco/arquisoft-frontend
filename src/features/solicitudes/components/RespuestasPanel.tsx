@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import PaginadorListado from '../../../shared/components/PaginadorListado';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import type { Page } from '../../../shared/models/api-response';
@@ -19,14 +19,21 @@ interface Consulta {
   pageSize: number;
 }
 
+export interface TablaRespuestasProps {
+  respuestas: RespuestaSolicitud[];
+  cargando: boolean;
+  acciones?: (respuesta: RespuestaSolicitud) => ReactNode;
+}
+
 interface Props {
   consulta: Consulta;
   page: number;
   onPageChange: (page: number) => void;
-  Tabla: ComponentType<{ respuestas: RespuestaSolicitud[]; cargando: boolean }>;
+  Tabla: ComponentType<TablaRespuestasProps>;
+  acciones?: (respuesta: RespuestaSolicitud) => ReactNode;
 }
 
-export default function RespuestasPanel({ consulta, page, onPageChange, Tabla }: Props) {
+export default function RespuestasPanel({ consulta, page, onPageChange, Tabla, acciones }: Props) {
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, pageSize } =
     consulta;
   const respuestas = data?.content ?? [];
@@ -44,6 +51,7 @@ export default function RespuestasPanel({ consulta, page, onPageChange, Tabla }:
           />
         ) : (
           <Tabla
+            acciones={acciones}
             respuestas={respuestas}
             cargando={isLoading || (isPlaceholderData && respuestas.length === 0)}
           />

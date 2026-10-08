@@ -3,11 +3,12 @@ import apiClient from '../../../api/axiosInstance';
 import { solicitudesService } from './solicitudesService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { post: vi.fn(), delete: vi.fn() },
+  default: { post: vi.fn(), delete: vi.fn(), patch: vi.fn() },
 }));
 
 const post = vi.mocked(apiClient.post);
 const eliminar = vi.mocked(apiClient.delete);
+const patch = vi.mocked(apiClient.patch);
 
 describe('solicitudesService', () => {
   beforeEach(() => {
@@ -190,6 +191,20 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('eliminarRespuestaNovedadCoordinador', () => {
+    it('llama DELETE /solicitudes/novedad-coordinador/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarRespuestaNovedadCoordinador('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/s-1/respuesta');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('responderSolicitudNovedadCoordinador', () => {
     it('llama POST /solicitudes/novedad-coordinador/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
       // Arrange
@@ -206,6 +221,25 @@ describe('solicitudesService', () => {
         contenido: 'Programemos una reunión.',
       });
       expect(resultado).toEqual({ id: 'r-1' });
+    });
+  });
+
+  describe('modificarEstadoRespuestaNovedadCoordinador', () => {
+    it('llama PATCH /solicitudes/novedad-coordinador/{solicitudId}/respuesta/estado con solo { nuevoEstado } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.modificarEstadoRespuestaNovedadCoordinador({
+        solicitudId: 'abc',
+        nuevoEstado: 'APROBADA',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/abc/respuesta/estado', {
+        nuevoEstado: 'APROBADA',
+      });
+      expect(resultado).toBeUndefined();
     });
   });
 });

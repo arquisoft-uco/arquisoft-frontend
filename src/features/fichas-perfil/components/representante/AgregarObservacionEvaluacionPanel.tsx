@@ -24,9 +24,10 @@ const TITULO = 'flex items-center gap-2 text-sm font-semibold text-on-surface';
 
 interface Props {
   evaluacionId: string;
+  fichaPerfilId: string;
 }
 
-export default function AgregarObservacionEvaluacionPanel({ evaluacionId }: Props) {
+export default function AgregarObservacionEvaluacionPanel({ evaluacionId, fichaPerfilId }: Props) {
   const {
     register,
     handleSubmit,
@@ -41,7 +42,11 @@ export default function AgregarObservacionEvaluacionPanel({ evaluacionId }: Prop
     mode: 'onTouched',
   });
 
-  const { mutate, reset: resetMutacion, isPending } = useAgregarObservacionEvaluacion();
+  const {
+    mutate,
+    reset: resetMutacion,
+    isPending,
+  } = useAgregarObservacionEvaluacion(fichaPerfilId);
 
   const longitud = watch('observacion').length;
 

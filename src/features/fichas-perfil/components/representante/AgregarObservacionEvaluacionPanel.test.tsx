@@ -52,7 +52,7 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     const mutate = vi.fn();
     mockMutacion({ mutate });
     const user = userEvent.setup();
-    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
     const boton = screen.getByRole('button', { name: 'Agregar observación' });
 
     // Assert
@@ -81,7 +81,7 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     const mutate = vi.fn();
     mockMutacion({ mutate });
     const user = userEvent.setup();
-    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
     const campo = screen.getByLabelText('Observación');
     const textoLargo = 'a'.repeat(LIMITES.OBSERVACION_EVALUACION_MAX + 1);
 
@@ -109,13 +109,14 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     const mutate = vi.fn();
     mockMutacion({ mutate });
     const user = userEvent.setup();
-    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
 
     // Act
     await user.type(screen.getByLabelText('Observación'), '  Buen avance  ');
     await user.click(screen.getByRole('button', { name: 'Agregar observación' }));
 
     // Assert
+    expect(useAgregarObservacionEvaluacion).toHaveBeenCalledWith('f-1');
     expect(mutate).toHaveBeenCalledWith(
       { evaluacionFichaPerfilId: 'ev-1', observacion: 'Buen avance' },
       expect.any(Object),
@@ -128,7 +129,7 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     const reset = vi.fn();
     mockMutacion({ mutate, reset });
     const user = userEvent.setup();
-    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
 
     // Act
     await user.type(screen.getByLabelText('Observación'), 'Buen avance');
@@ -154,7 +155,7 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     );
     mockMutacion({ mutate });
     const user = userEvent.setup();
-    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
 
     // Act
     await user.type(screen.getByLabelText('Observación'), 'Buen avance');
@@ -176,7 +177,7 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     );
     mockMutacion({ mutate });
     const user = userEvent.setup();
-    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
 
     // Act
     await user.type(screen.getByLabelText('Observación'), 'Buen avance');
@@ -195,7 +196,7 @@ describe('AgregarObservacionEvaluacionPanel', () => {
     // Arrange
     mockMutacion({ isPending: true });
     const user = userEvent.setup();
-    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" />);
+    render(<AgregarObservacionEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
 
     // Act
     await user.type(screen.getByLabelText('Observación'), 'Buen avance');
