@@ -286,6 +286,11 @@ export const fichasPerfilService = {
       })
       .then(() => undefined),
 
+  removerObservacionEvaluacion: (observacionEvaluacionId: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/observaciones-evaluacion/${observacionEvaluacionId}`)
+      .then(() => undefined),
+
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
     apiClient.get<EstadoFicha[]>('/fichas-perfil/estados-ficha').then((r) => r.data),
 

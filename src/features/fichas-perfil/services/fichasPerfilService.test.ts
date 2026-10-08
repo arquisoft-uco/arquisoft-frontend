@@ -71,6 +71,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('removerObservacionEvaluacion', () => {
+    it('hace DELETE /fichas-perfil/observaciones-evaluacion/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await fichasPerfilService.removerObservacionEvaluacion('o-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/fichas-perfil/observaciones-evaluacion/o-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('agregarEstadoEvaluacion', () => {
     it('traduce la solicitud a POST /fichas-perfil/estado-evaluacion-ficha con { evaluacionFichaPerfil, estadoEvaluacion } y resuelve { id }', async () => {
       // Arrange
