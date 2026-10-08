@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObservacionEvaluacionRequest';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { ObservacionEvaluacion } from '../models/ObservacionEvaluacion';
 import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
 import type { EvaluacionFichaPerfilEstudiante } from '../models/EvaluacionFichaPerfilEstudiante';
@@ -104,6 +105,21 @@ function aEvaluacionEstudiante(
     estadoEvaluacionId: dto.estadoEvaluacion,
     estadoEvaluacionNombre: dto.estadoEvaluacionNombre,
     representante: { id: dto.representanteComite.id, nombre: dto.representanteComite.nombre },
+  };
+}
+
+// Forma cruda de ObservacionEvaluacionResponseDTO (GET .../observaciones/estudiante).
+interface ObservacionEvaluacionResponseDTO {
+  id: string;
+  evaluacionFichaPerfil: string;
+  observacion: string;
+}
+
+function aObservacionEvaluacion(dto: ObservacionEvaluacionResponseDTO): ObservacionEvaluacion {
+  return {
+    id: dto.id,
+    evaluacionFichaPerfilId: dto.evaluacionFichaPerfil,
+    observacion: dto.observacion,
   };
 }
 
@@ -323,6 +339,15 @@ export const fichasPerfilService = {
         EvaluacionFichaPerfilEstudianteResponseDTO[]
       >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/estudiante`)
       .then((r) => r.data.map(aEvaluacionEstudiante)),
+
+  consultarObservacionesEvaluacionMiFicha: (
+    evaluacionId: string,
+  ): Promise<ObservacionEvaluacion[]> =>
+    apiClient
+      .get<
+        ObservacionEvaluacionResponseDTO[]
+      >(`/fichas-perfil/evaluaciones/${evaluacionId}/observaciones/estudiante`)
+      .then((r) => r.data.map(aObservacionEvaluacion)),
 
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>
     apiClient
