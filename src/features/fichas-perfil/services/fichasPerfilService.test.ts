@@ -269,6 +269,25 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarObservacionesEvaluacionMiFicha', () => {
+    it('consulta GET /fichas-perfil/evaluaciones/{id}/observaciones/estudiante y traduce evaluacionFichaPerfil a evaluacionFichaPerfilId', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [{ id: 'o-1', evaluacionFichaPerfil: 'ev-1', observacion: 'Ajustar el alcance' }],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarObservacionesEvaluacionMiFicha('ev-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/evaluaciones/ev-1/observaciones/estudiante');
+      expect(resultado).toEqual([
+        { id: 'o-1', evaluacionFichaPerfilId: 'ev-1', observacion: 'Ajustar el alcance' },
+      ]);
+    });
+  });
+
   describe('getEstadosFichasAsesor', () => {
     it('hace POST /fichas-perfil/estados-ficha/asesor con el body recibido y traduce fichaPerfil a fichaPerfilId conservando la paginación', async () => {
       // Arrange

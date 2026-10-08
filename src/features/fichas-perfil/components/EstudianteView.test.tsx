@@ -14,6 +14,9 @@ vi.mock('../hooks/useEstadosFichaPerfilEstudiante', () => ({
   useEstadosFichaPerfilEstudiante: vi.fn(),
 }));
 vi.mock('../hooks/useEvaluacionesMiFicha', () => ({ useEvaluacionesMiFicha: vi.fn() }));
+vi.mock('../hooks/useObservacionesEvaluacionMiFicha', () => ({
+  useObservacionesEvaluacionMiFicha: vi.fn(),
+}));
 vi.mock('./TiposItemPanel', () => ({ default: () => <div>Catálogo de tipos</div> }));
 
 type Mi = ReturnType<typeof useMiFichaPerfil>;
