@@ -1,5 +1,8 @@
-import { ClipboardCheck } from 'lucide-react';
+import { useState } from 'react';
+import { ClipboardCheck, MessageSquare } from 'lucide-react';
+import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import Badge from '../../../../shared/components/ui/Badge';
+import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
@@ -9,7 +12,9 @@ import { FechaDeEstado } from '../FichaCeldas';
 import AgregarEstadoEvaluacionPanel from './AgregarEstadoEvaluacionPanel';
 import AgregarObservacionEvaluacionPanel from './AgregarObservacionEvaluacionPanel';
 import EstadosEvaluacionPanel from './EstadosEvaluacionPanel';
+import EvaluacionesAnterioresPanel from './EvaluacionesAnterioresPanel';
 import IniciarEvaluacionBoton from './IniciarEvaluacionBoton';
+import ObservacionesEvaluacionRepresentantePanel from './ObservacionesEvaluacionRepresentantePanel';
 
 const TARJETA = 'flex flex-col gap-2 rounded-xl border border-border bg-surface p-4 shadow-card';
 const CABECERA = 'flex flex-wrap items-center gap-3';
@@ -21,6 +26,7 @@ interface Props {
 
 export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
   const { data: evaluaciones, isLoading, isError, refetch } = useEvaluacionFicha(fichaPerfilId);
+  const [abierta, setAbierta] = useState<EvaluacionFichaPerfil | null>(null);
 
   if (isLoading) return <Skeleton variante="tarjetas" etiqueta="Cargando evaluación…" />;
 
@@ -36,6 +42,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
 
   // El backend ordena por fechaCreacion ascendente (CA-9 de HU-182): la última es la vigente.
   const vigente = evaluaciones?.[evaluaciones.length - 1];
+  const anteriores = (evaluaciones ?? []).slice(0, -1).reverse();
 
   if (!vigente) {
     return (
@@ -70,10 +77,27 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
         <p className={DATO}>
           Creada el <FechaDeEstado iso={vigente.fechaCreacion} />
         </p>
+        <div>
+          <Button
+            variante="secundario"
+            tamano="sm"
+            icono={MessageSquare}
+            onClick={() => setAbierta(vigente)}
+          >
+            Ver observaciones
+          </Button>
+        </div>
       </div>
       <AgregarEstadoEvaluacionPanel evaluacionId={vigente.id} fichaPerfilId={fichaPerfilId} />
-      <AgregarObservacionEvaluacionPanel evaluacionId={vigente.id} />
+      <AgregarObservacionEvaluacionPanel evaluacionId={vigente.id} fichaPerfilId={fichaPerfilId} />
+      <EvaluacionesAnterioresPanel evaluaciones={anteriores} onVerObservaciones={setAbierta} />
       <EstadosEvaluacionPanel />
+      {abierta && (
+        <ObservacionesEvaluacionRepresentantePanel
+          evaluacion={abierta}
+          onCerrar={() => setAbierta(null)}
+        />
+      )}
     </div>
   );
 }
