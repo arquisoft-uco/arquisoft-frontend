@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, within } from '../../../../test-utils/render';
-import { RESPUESTA } from '../../test-utils/respuestas';
+import { RESPUESTA } from '../../../../test-utils/respuestas';
 import RespuestasRecibidasTable from './RespuestasRecibidasTable';
 
 describe('RespuestasRecibidasTable', () => {

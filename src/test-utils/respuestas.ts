@@ -1,4 +1,4 @@
-import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
+import type { RespuestaSolicitud } from '../features/solicitudes/models/RespuestaSolicitud';
 
 export const RESPUESTA: RespuestaSolicitud = {
   id: 'r-1',

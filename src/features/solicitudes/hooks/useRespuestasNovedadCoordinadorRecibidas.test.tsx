@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
-import { RESPUESTA } from '../test-utils/respuestas';
+import { RESPUESTA } from '../../../test-utils/respuestas';
 import { solicitudesService } from '../services/solicitudesService';
 import { useRespuestasNovedadCoordinadorRecibidas } from './useRespuestasNovedadCoordinadorRecibidas';
 

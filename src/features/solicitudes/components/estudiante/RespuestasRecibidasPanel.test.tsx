@@ -4,7 +4,7 @@ import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import { useRespuestasNovedadCoordinadorRecibidas } from '../../hooks/useRespuestasNovedadCoordinadorRecibidas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
-import { RESPUESTA } from '../../test-utils/respuestas';
+import { RESPUESTA } from '../../../../test-utils/respuestas';
 import RespuestasRecibidasPanel from './RespuestasRecibidasPanel';
 
 vi.mock('../../hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({

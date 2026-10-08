@@ -4,7 +4,7 @@ import { render, screen, within } from '../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
-import { RESPUESTA } from './test-utils/respuestas';
+import { RESPUESTA } from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
