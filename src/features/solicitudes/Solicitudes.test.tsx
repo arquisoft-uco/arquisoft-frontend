@@ -6,6 +6,8 @@ import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
+import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -21,6 +23,18 @@ vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
 
 vi.mock('./hooks/useEliminarSolicitudNovedadCoordinador', () => ({
   useEliminarSolicitudNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
+  useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
+  useRespuestasNovedadCoordinadorEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
+  useResponderSolicitudNovedadCoordinador: vi.fn(),
 }));
 
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
@@ -96,6 +110,61 @@ describe('Solicitudes', () => {
       screen.getByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
+  });
+
+  it('renderiza CoordinadorView con dos pestañas, arranca en Recibidas y abre Respuestas enviadas', async () => {
+    autenticarCon(Rol.Coordinador);
+    const pagina = {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    };
+    const hookRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
+      data: pagina,
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      pageSize: 10,
+    };
+    const hookRespuestas: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>> = {
+      data: pagina,
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      pageSize: 10,
+    };
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      hookRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
+      hookRespuestas as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Recibidas',
+      'Respuestas enviadas',
+    ]);
+    expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+
+    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
+    expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
   });
 
   it('muestra el aviso de próximamente al abrir Respuestas', async () => {

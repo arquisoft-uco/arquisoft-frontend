@@ -18,8 +18,10 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.TITULO_PROYECTO_MAX).toBe(100);
     expect(LIMITES.ITEM_CONTENIDO_MAX).toBe(7000);
     expect(LIMITES.ESTADO_EVALUACION_ID_MAX).toBe(50);
+    expect(LIMITES.ESTADO_FICHA_ID_MAX).toBe(50);
     expect(LIMITES.ESTUDIANTES_MAX).toBe(3);
     expect(LIMITES.MENSAJE_SOLICITUD_MAX).toBe(100);
+    expect(LIMITES.RESPUESTA_CONTENIDO_MAX).toBe(100);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MIN).toBe(4);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MAX).toBe(30);
     expect(LIMITES.USUARIO_NOMBRE_MIN).toBe(2);

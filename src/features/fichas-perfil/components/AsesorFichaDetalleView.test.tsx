@@ -8,9 +8,13 @@ import {
   setAuthenticatedUser,
 } from '../../../test-utils/store.utils';
 import { Rol } from '../../../shared/models/rol';
+import { useHistorialEstadosFichaAsesor } from '../hooks/useHistorialEstadosFichaAsesor';
 import AsesorFichaDetalleView from './AsesorFichaDetalleView';
 
 vi.mock('../hooks/useEstudiantesVinculados', () => ({ useEstudiantesVinculados: vi.fn() }));
+vi.mock('../hooks/useHistorialEstadosFichaAsesor', () => ({
+  useHistorialEstadosFichaAsesor: vi.fn(),
+}));
 vi.mock('./asesor-ficha/ItemsFichaAsesorPanel', () => ({ default: () => <div>Panel ítems</div> }));
 
 function entrarComo(...roles: Rol[]) {
@@ -51,6 +55,9 @@ describe('AsesorFichaDetalleView', () => {
     vi.clearAllMocks();
     resetAllStores();
     entrarComo(Rol.AsesorFicha);
+    vi.mocked(useHistorialEstadosFichaAsesor).mockReturnValue({
+      data: undefined,
+    } as ReturnType<typeof useHistorialEstadosFichaAsesor>);
   });
 
   it('ofrece solo las pestañas Ítems y Estados', () => {
@@ -79,6 +86,22 @@ describe('AsesorFichaDetalleView', () => {
     expect(screen.getByText('Panel estados')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'Ficha del asesor' })).toBeInTheDocument();
     expect(screen.getAllByText('En Construccion').length).toBeGreaterThan(0);
+  });
+
+  it('el encabezado refleja el estado actual del historial por encima del que trajo el state', async () => {
+    // Arrange
+    vi.mocked(useHistorialEstadosFichaAsesor).mockReturnValue({
+      data: [{ id: 'e-9', nombre: 'Descartada', fechaActualizacion: '2026-10-01T10:00:00' }],
+    } as ReturnType<typeof useHistorialEstadosFichaAsesor>);
+    const user = userEvent.setup();
+    renderizar('/origen');
+
+    // Act
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+
+    // Assert
+    expect(screen.getAllByText('Descartada').length).toBeGreaterThan(0);
+    expect(screen.queryByText('En Construccion')).not.toBeInTheDocument();
   });
 
   it('«Cambiar estado» del panel lateral lleva a la pestaña Estados', async () => {

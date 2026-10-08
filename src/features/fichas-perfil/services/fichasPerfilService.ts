@@ -3,18 +3,18 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObservacionEvaluacionRequest';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { ObservacionEvaluacion } from '../models/ObservacionEvaluacion';
 import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
+import type { EvaluacionFichaPerfilEstudiante } from '../models/EvaluacionFichaPerfilEstudiante';
 import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
-import type {
-  EstadoFichaPerfil,
-  AgregarEstadoFichaPerfilRequest,
-} from '../models/EstadoFichaPerfil';
+import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
+import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
@@ -82,6 +82,45 @@ interface EvaluacionFichaPerfilResponseDTO {
   fechaCreacion: string;
   estadoEvaluacion: string | null;
   estadoEvaluacionNombre: string | null;
+}
+
+// Forma cruda de EvaluacionFichaPerfilEstudianteResponseDTO (GET .../evaluaciones/estudiante):
+// difiere del hermano /representante, se traduce con aEvaluacionEstudiante.
+interface EvaluacionFichaPerfilEstudianteResponseDTO {
+  id: string;
+  fichaPerfil: string;
+  fechaCreacion: string;
+  estadoEvaluacion: string | null;
+  estadoEvaluacionNombre: string | null;
+  representanteComite: { id: string; nombre: string };
+}
+
+function aEvaluacionEstudiante(
+  dto: EvaluacionFichaPerfilEstudianteResponseDTO,
+): EvaluacionFichaPerfilEstudiante {
+  return {
+    id: dto.id,
+    fichaPerfilId: dto.fichaPerfil,
+    fechaCreacion: dto.fechaCreacion,
+    estadoEvaluacionId: dto.estadoEvaluacion,
+    estadoEvaluacionNombre: dto.estadoEvaluacionNombre,
+    representante: { id: dto.representanteComite.id, nombre: dto.representanteComite.nombre },
+  };
+}
+
+// Forma cruda de ObservacionEvaluacionResponseDTO (GET .../observaciones/estudiante).
+interface ObservacionEvaluacionResponseDTO {
+  id: string;
+  evaluacionFichaPerfil: string;
+  observacion: string;
+}
+
+function aObservacionEvaluacion(dto: ObservacionEvaluacionResponseDTO): ObservacionEvaluacion {
+  return {
+    id: dto.id,
+    evaluacionFichaPerfilId: dto.evaluacionFichaPerfil,
+    observacion: dto.observacion,
+  };
 }
 
 // Forma cruda de FichaPerfilEstudianteResponseDTO (GET /fichas-perfil/estudiante, lista);
@@ -292,6 +331,24 @@ export const fichasPerfilService = {
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/estudiante`)
       .then((r) => r.data.map(toItem)),
 
+  consultarEvaluacionesMiFichaPerfil: (
+    fichaPerfilId: string,
+  ): Promise<EvaluacionFichaPerfilEstudiante[]> =>
+    apiClient
+      .get<
+        EvaluacionFichaPerfilEstudianteResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/estudiante`)
+      .then((r) => r.data.map(aEvaluacionEstudiante)),
+
+  consultarObservacionesEvaluacionMiFicha: (
+    evaluacionId: string,
+  ): Promise<ObservacionEvaluacion[]> =>
+    apiClient
+      .get<
+        ObservacionEvaluacionResponseDTO[]
+      >(`/fichas-perfil/evaluaciones/${evaluacionId}/observaciones/estudiante`)
+      .then((r) => r.data.map(aObservacionEvaluacion)),
+
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>
     apiClient
       .get<
@@ -348,9 +405,13 @@ export const fichasPerfilService = {
       }));
   },
 
-  // ─── Pendientes: el backend aún no expone estos endpoints ───
-
-  // Pendiente: sin endpoint en el backend.
-  agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
-    apiClient.post<EstadoFichaPerfil>('/fichas-perfil/estados', req).then((r) => r.data),
+  agregarEstadoFichaPerfil: (
+    fichaPerfilId: string,
+    req: AgregarEstadoFichaPerfilRequest,
+  ): Promise<AgregarEstadoFichaPerfilResponse> =>
+    apiClient
+      .post<AgregarEstadoFichaPerfilResponse>(`/fichas-perfil/${fichaPerfilId}/estados-ficha`, {
+        estadoFicha: req.estadoFichaId,
+      })
+      .then((r) => r.data),
 };
