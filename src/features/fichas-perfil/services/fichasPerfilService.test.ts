@@ -90,6 +90,24 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('agregarEstadoAprobacionFichaPerfil', () => {
+    it('traduce la solicitud a POST /fichas-perfil/{id}/estados-ficha/aprobacion con { acepta } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'ef-2' } });
+
+      // Act
+      const resultado = await fichasPerfilService.agregarEstadoAprobacionFichaPerfil('f-1', {
+        acepta: false,
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/f-1/estados-ficha/aprobacion', {
+        acepta: false,
+      });
+      expect(resultado).toEqual({ id: 'ef-2' });
+    });
+  });
+
   describe('cambiarAsesor', () => {
     it('traduce la solicitud a PATCH /fichas-perfil/{id}/asesor-ficha con { asesorFicha } y resuelve sin cuerpo', async () => {
       // Arrange

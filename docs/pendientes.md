@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-05.
+Última revisión: 2026-10-07.
 
 ## Bloqueados por el backend
 
@@ -14,6 +14,7 @@ Al resolver un pendiente, se borra de aquí.
 | B3 | **Client roles de Keycloak sin confirmar** | Pueden faltar en el realm desplegado (no se pudo verificar; el export de `arquisoft-infra` es del 2026-09-11 y está desactualizado). Si faltan, con login real se llega a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota. Ver lista abajo | Infra / backend |
 | B4 | Mejoras menores del backend | Consulta de fichas del estudiante con `INNER JOIN`: una ficha sin estado o sin asesor se omite. Falta `esJurado` en el listado unificado de usuarios (a la espera de HU-252). No hay endpoint para que el estudiante obtenga su coordinador (solicitudes). El endpoint de estados del asesor (HU-205) solo ordena por título: el detalle ordena por fecha en el cliente | Backend |
 | B5 | **Detalle de ficha para asesor y representante** | (a) No existe `GET /fichas-perfil/{id}` para estos roles: abrir el detalle por URL directa o recargar en otra pestaña muestra el título genérico «Ficha de perfil», sin estado ni asesor. (b) `FichaPerfilCriteria` no filtra por `id`, así que tampoco se puede recuperar la ficha por el listado. (c) `fichas:estudiante-ficha-perfil-coordinador:view` no la tienen `asesor-ficha` ni `representante-comite`, por eso el detalle omite la sección «Equipo». (d) El backend no lista las observaciones ni el historial de estados de una evaluación | Backend |
+| B6 | **Consulta de evaluaciones de una ficha para el coordinador** | El backend solo expone `GET /fichas-perfil/{id}/evaluaciones/estudiante` y `/representante`; sin un endpoint (o permiso) para el coordinador, HU-184 no puede comprobar de antemano la precondición «al menos una evaluación finalizada» y confía en el 422 `ESTADO_FICHA_PERFIL_SIN_EVALUACION_FINALIZADA` | Backend |
 
 Client roles a confirmar en el realm desplegado:
 

@@ -1,4 +1,4 @@
-import { SearchX, UserCog, Users } from 'lucide-react';
+import { CheckCircle2, SearchX, UserCog, Users, XCircle } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla, OrdenTabla } from '../../../../shared/components/ui/DataTable';
@@ -9,6 +9,8 @@ import type { FichaPerfil } from '../../models/FichaPerfil';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
 import { EstadoYFechaTarjeta, AsesorDeFicha, TituloFicha } from '../FichaCeldas';
 import { columnaAsesor, columnasEstado } from '../columnasFicha';
+
+const ESTADO_DISPONIBLE_PARA_EVALUACION = 'DISPONIBLE_PARA_EVALUACION';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoFicha {
   return clave === 'tituloProyecto' || clave === 'asesorNombre';
@@ -22,6 +24,8 @@ interface Props {
   onOrdenar: (campo: OrdenCampoFicha, direccion: OrdenDireccion) => void;
   onVerEstudiantes: (ficha: FichaPerfil) => void;
   onCambiarAsesor: (ficha: FichaPerfil) => void;
+  onAprobar: (ficha: FichaPerfil) => void;
+  onNoAprobar: (ficha: FichaPerfil) => void;
   onLimpiarFiltros: () => void;
 }
 
@@ -33,6 +37,8 @@ export default function FichasPerfilTable({
   onOrdenar,
   onVerEstudiantes,
   onCambiarAsesor,
+  onAprobar,
+  onNoAprobar,
   onLimpiarFiltros,
 }: Props) {
   const columnas: ColumnaTabla<FichaPerfil>[] = [
@@ -70,6 +76,20 @@ export default function FichasPerfilTable({
             icono: UserCog,
             onSeleccionar: () => onCambiarAsesor(ficha),
           },
+          ...(ficha.estado.id === ESTADO_DISPONIBLE_PARA_EVALUACION
+            ? [
+                {
+                  etiqueta: 'Aprobar ficha',
+                  icono: CheckCircle2,
+                  onSeleccionar: () => onAprobar(ficha),
+                },
+                {
+                  etiqueta: 'No aprobar ficha',
+                  icono: XCircle,
+                  onSeleccionar: () => onNoAprobar(ficha),
+                },
+              ]
+            : []),
         ]}
       />
     );
