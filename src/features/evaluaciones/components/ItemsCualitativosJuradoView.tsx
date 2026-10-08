@@ -8,15 +8,23 @@ import { Rol } from '../../../shared/models/rol';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useHasRole } from '../../../hooks/useHasRole';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
+import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import ItemsCualitativosJuradoTable from './ItemsCualitativosJuradoTable';
+import ModificarItemCualitativoJuradoPanel from './ModificarItemCualitativoJuradoPanel';
 import RegistrarItemCualitativoJuradoPanel from './RegistrarItemCualitativoJuradoPanel';
 
 const ROLES_ADMINISTRAN = [Rol.Administrador];
 
+type PanelItems = { tipo: 'registrar' } | { tipo: 'modificar'; item: ItemCualitativoJurado };
+
 export default function ItemsCualitativosJuradoView() {
   const { data, isLoading, isError, error, refetch } = useItemsCualitativosJurado();
   const esAdministrador = useHasRole(ROLES_ADMINISTRAN);
-  const [registrando, setRegistrando] = useState(false);
+  const [panel, setPanel] = useState<PanelItems | null>(null);
+
+  function cerrarPanel() {
+    setPanel(null);
+  }
 
   return (
     <div className="flex animate-fade-up flex-col gap-6">
@@ -25,7 +33,7 @@ export default function ItemsCualitativosJuradoView() {
         descripcion="Criterios con los que el jurado valora cada proyecto."
         acciones={
           esAdministrador && (
-            <Button icono={Plus} onClick={() => setRegistrando(true)}>
+            <Button icono={Plus} onClick={() => setPanel({ tipo: 'registrar' })}>
               Registrar ítem
             </Button>
           )
@@ -42,10 +50,22 @@ export default function ItemsCualitativosJuradoView() {
         />
       )}
 
-      {data && <ItemsCualitativosJuradoTable items={data} />}
+      {data && (
+        <ItemsCualitativosJuradoTable
+          items={data}
+          onEditar={esAdministrador ? (item) => setPanel({ tipo: 'modificar', item }) : undefined}
+        />
+      )}
 
-      {registrando && (
-        <RegistrarItemCualitativoJuradoPanel onCerrar={() => setRegistrando(false)} />
+      {panel?.tipo === 'registrar' && (
+        <RegistrarItemCualitativoJuradoPanel onCerrar={cerrarPanel} />
+      )}
+      {panel?.tipo === 'modificar' && (
+        <ModificarItemCualitativoJuradoPanel
+          key={panel.item.id}
+          item={panel.item}
+          onCerrar={cerrarPanel}
+        />
       )}
     </div>
   );

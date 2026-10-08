@@ -4,6 +4,7 @@ import Field from '../../../shared/components/ui/Field';
 import FormSection from '../../../shared/components/ui/FormSection';
 import { LIMITES } from '../../../shared/validation';
 import type { RegistrarItemCualitativoJuradoValues as Values } from '../utils/registrar-item-cualitativo-jurado-schema';
+import CampoDescripcionItemCualitativoJurado from './CampoDescripcionItemCualitativoJurado';
 
 export const ETIQUETAS_CAMPO = { nombre: 'Nombre', descripcion: 'Descripción' } as const;
 
@@ -44,21 +45,11 @@ export default function RegistrarItemCualitativoJuradoCampos({
           />
         )}
       </Field>
-      <Field
-        etiqueta={ETIQUETAS_CAMPO.descripcion}
+      <CampoDescripcionItemCualitativoJurado
+        registro={register('descripcion')}
+        longitud={longitudes.descripcion}
         error={errors.descripcion?.message}
-        contador={{ actual: longitudes.descripcion, max: LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX }}
-      >
-        {(control) => (
-          <textarea
-            {...control}
-            rows={4}
-            maxLength={LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX}
-            className="field-input"
-            {...register('descripcion')}
-          />
-        )}
-      </Field>
+      />
     </FormSection>
   );
 }
