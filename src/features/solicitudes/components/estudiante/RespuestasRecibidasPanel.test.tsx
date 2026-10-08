@@ -2,16 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
-import { useRespuestasNovedadCoordinadorEnviadas } from '../../hooks/useRespuestasNovedadCoordinadorEnviadas';
+import { useRespuestasNovedadCoordinadorRecibidas } from '../../hooks/useRespuestasNovedadCoordinadorRecibidas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA } from '../../../../test-utils/respuestas';
-import RespuestasEnviadasPanel from './RespuestasEnviadasPanel';
+import RespuestasRecibidasPanel from './RespuestasRecibidasPanel';
 
-vi.mock('../../hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
-  useRespuestasNovedadCoordinadorEnviadas: vi.fn(),
+vi.mock('../../hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
+  useRespuestasNovedadCoordinadorRecibidas: vi.fn(),
 }));
 
-type HookRespuestas = ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>;
+type HookRespuestas = ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>;
 
 function crearPagina(content: RespuestaSolicitud[]): Page<RespuestaSolicitud> {
   return {
@@ -27,7 +27,7 @@ function crearPagina(content: RespuestaSolicitud[]): Page<RespuestaSolicitud> {
 }
 
 function mockearHook(parcial: Partial<HookRespuestas> = {}) {
-  vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue({
+  vi.mocked(useRespuestasNovedadCoordinadorRecibidas).mockReturnValue({
     data: undefined,
     error: null,
     isLoading: false,
@@ -40,7 +40,7 @@ function mockearHook(parcial: Partial<HookRespuestas> = {}) {
   } as HookRespuestas);
 }
 
-describe('RespuestasEnviadasPanel', () => {
+describe('RespuestasRecibidasPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -50,25 +50,26 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ isLoading: true });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
-  it('ante un error muestra el alert y Reintentar vuelve a consultar', async () => {
+  it('ante un error muestra el alert sin paginador y Reintentar vuelve a consultar', async () => {
     // Arrange
     const user = userEvent.setup();
     const refetch = vi.fn();
     mockearHook({ isError: true, error: new Error('fallo de red'), refetch });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las respuestas');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument();
 
     // Act
     await user.click(screen.getByRole('button', { name: /reintentar/i }));
@@ -82,10 +83,10 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ data: crearPagina([]) });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
-    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
+    expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
@@ -94,11 +95,11 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ data: crearPagina([RESPUESTA]) });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('1 respuesta')).toBeInTheDocument();
-    const tabla = screen.getByRole('table', { name: 'Respuestas de novedades enviadas' });
+    const tabla = screen.getByRole('table', { name: 'Respuestas de novedades recibidas' });
     expect(within(tabla).getByText('Programemos una reunión.')).toBeInTheDocument();
   });
 
@@ -111,7 +112,7 @@ describe('RespuestasEnviadasPanel', () => {
     });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={onPageChange} />);
+    render(<RespuestasRecibidasPanel page={0} onPageChange={onPageChange} />);
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
     // Assert

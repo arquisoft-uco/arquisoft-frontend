@@ -58,6 +58,17 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  consultarRespuestasNovedadCoordinadorRecibidas: (
+    page = 0,
+    size = 10,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-coordinador/respuestas/recibidas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
   eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),
 

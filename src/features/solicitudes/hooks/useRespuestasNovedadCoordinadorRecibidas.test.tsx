@@ -6,15 +6,15 @@ import type { Page } from '../../../shared/models/api-response';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import { RESPUESTA } from '../../../test-utils/respuestas';
 import { solicitudesService } from '../services/solicitudesService';
-import { useRespuestasNovedadCoordinadorEnviadas } from './useRespuestasNovedadCoordinadorEnviadas';
+import { useRespuestasNovedadCoordinadorRecibidas } from './useRespuestasNovedadCoordinadorRecibidas';
 
 vi.mock('../services/solicitudesService', () => ({
   solicitudesService: {
-    consultarRespuestasNovedadCoordinadorEnviadas: vi.fn(),
+    consultarRespuestasNovedadCoordinadorRecibidas: vi.fn(),
   },
 }));
 
-const consultar = vi.mocked(solicitudesService.consultarRespuestasNovedadCoordinadorEnviadas);
+const consultar = vi.mocked(solicitudesService.consultarRespuestasNovedadCoordinadorRecibidas);
 
 function crearPagina(numero: number, content: RespuestaSolicitud[]): Page<RespuestaSolicitud> {
   return {
@@ -38,7 +38,7 @@ function crearWrapper() {
   };
 }
 
-describe('useRespuestasNovedadCoordinadorEnviadas', () => {
+describe('useRespuestasNovedadCoordinadorRecibidas', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockImplementation((pagina = 0) =>
@@ -48,7 +48,7 @@ describe('useRespuestasNovedadCoordinadorEnviadas', () => {
 
   it('consulta la página 0 con tamaño 10 y expone el contenido', async () => {
     // Act
-    const { result } = renderHook(() => useRespuestasNovedadCoordinadorEnviadas(0), {
+    const { result } = renderHook(() => useRespuestasNovedadCoordinadorRecibidas(0), {
       wrapper: crearWrapper(),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -59,14 +59,19 @@ describe('useRespuestasNovedadCoordinadorEnviadas', () => {
     expect(result.current.pageSize).toBe(10);
   });
 
-  it('vuelve a consultar con la página nueva cuando cambia la página recibida', async () => {
+  it('al cambiar de página consulta la nueva y conserva la anterior mientras carga', async () => {
     // Arrange
+    let resolverSegunda: (p: Page<RespuestaSolicitud>) => void = () => undefined;
+    consultar.mockImplementation((pagina = 0) =>
+      pagina === 0
+        ? Promise.resolve(crearPagina(0, [RESPUESTA]))
+        : new Promise((resolver) => {
+            resolverSegunda = resolver;
+          }),
+    );
     const { result, rerender } = renderHook(
-      ({ page }) => useRespuestasNovedadCoordinadorEnviadas(page),
-      {
-        wrapper: crearWrapper(),
-        initialProps: { page: 0 },
-      },
+      ({ page }) => useRespuestasNovedadCoordinadorRecibidas(page),
+      { wrapper: crearWrapper(), initialProps: { page: 0 } },
     );
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -75,6 +80,14 @@ describe('useRespuestasNovedadCoordinadorEnviadas', () => {
 
     // Assert
     await waitFor(() => expect(consultar).toHaveBeenLastCalledWith(1, 10));
+    expect(result.current.isPlaceholderData).toBe(true);
+    expect(result.current.data?.content).toEqual([RESPUESTA]);
+
+    // Act
+    resolverSegunda(crearPagina(1, []));
+
+    // Assert
     await waitFor(() => expect(result.current.data?.page).toBe(1));
+    expect(result.current.isPlaceholderData).toBe(false);
   });
 });
