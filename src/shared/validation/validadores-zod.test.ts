@@ -30,6 +30,8 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.USUARIO_EMAIL_MAX).toBe(50);
     expect(LIMITES.USUARIO_CONTACTO_MIN).toBe(10);
     expect(LIMITES.USUARIO_CONTACTO_MAX).toBe(15);
+    expect(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX).toBe(100);
+    expect(LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX).toBe(300);
     expect(LIMITES.OBSERVACION_EVALUACION_MAX).toBe(200);
   });
 });
