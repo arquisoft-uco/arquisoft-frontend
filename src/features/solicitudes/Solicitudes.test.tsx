@@ -10,6 +10,7 @@ import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNoved
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
+import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -39,6 +40,10 @@ vi.mock('./hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
   useRespuestasNovedadCoordinadorRecibidas: vi.fn(),
 }));
 
+vi.mock('./hooks/useEliminarRespuestaNovedadCoordinador', () => ({
+  useEliminarRespuestaNovedadCoordinador: vi.fn(),
+}));
+
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
   useResponderSolicitudNovedadCoordinador: vi.fn(),
 }));
@@ -66,6 +71,29 @@ function crearMutacionMock(): MutacionEnviarSolicitud {
   } as MutacionEnviarSolicitud;
 }
 
+type MutacionEliminarRespuesta = ReturnType<typeof useEliminarRespuestaNovedadCoordinador>;
+
+function crearMutacionEliminarMock(): MutacionEliminarRespuesta {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as MutacionEliminarRespuesta;
+}
+
 function autenticarCon(rol: Rol) {
   setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
   setActiveRole(rol);
@@ -76,6 +104,7 @@ describe('Solicitudes', () => {
     resetAllStores();
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {

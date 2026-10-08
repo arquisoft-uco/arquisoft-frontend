@@ -1,3 +1,4 @@
+import type { TablaRespuestasProps } from '../RespuestasPanel';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
 import RespuestasTable from '../RespuestasTable';
@@ -12,12 +13,11 @@ function celdaEstudiante(respuesta: RespuestaSolicitud) {
   return <ParticipanteCelda nombre={nombre} detalle={`${identificador} · ${email}`} />;
 }
 
-interface Props {
-  respuestas: RespuestaSolicitud[];
-  cargando: boolean;
-}
-
-export default function RespuestasEnviadasTable({ respuestas, cargando }: Props) {
+export default function RespuestasEnviadasTable({
+  respuestas,
+  cargando,
+  acciones,
+}: TablaRespuestasProps) {
   return (
     <RespuestasTable
       respuestas={respuestas}
@@ -26,6 +26,7 @@ export default function RespuestasEnviadasTable({ respuestas, cargando }: Props)
       participante={{ encabezado: 'Estudiante', celda: celdaEstudiante }}
       encabezadoFecha="Respondida"
       vacio={VACIO}
+      acciones={acciones}
     />
   );
 }

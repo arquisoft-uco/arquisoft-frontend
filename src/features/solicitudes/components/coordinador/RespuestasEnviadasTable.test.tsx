@@ -18,6 +18,22 @@ describe('RespuestasEnviadasTable', () => {
     expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
   });
 
+  it('con acciones las renderiza por fila bajo la columna Acciones', () => {
+    // Act
+    render(
+      <RespuestasEnviadasTable
+        respuestas={[RESPUESTA]}
+        cargando={false}
+        acciones={(respuesta) => <button type="button">Acción {respuesta.id}</button>}
+      />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Respuestas de novedades enviadas' });
+    expect(within(tabla).getByRole('columnheader', { name: 'Acciones' })).toBeInTheDocument();
+    expect(within(tabla).getByRole('button', { name: 'Acción r-1' })).toBeInTheDocument();
+  });
+
   it('sin respuestas muestra el estado vacío', () => {
     // Act
     render(<RespuestasEnviadasTable respuestas={[]} cargando={false} />);
