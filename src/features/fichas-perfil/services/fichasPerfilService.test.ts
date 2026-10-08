@@ -234,6 +234,60 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarEvaluacionesMiFichaPerfil', () => {
+    it('consulta GET /fichas-perfil/{id}/evaluaciones/estudiante y traduce los nombres del backend al modelo', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'ev-1',
+            fichaPerfil: 'f-1',
+            fechaCreacion: '2026-09-01T10:00:00Z',
+            estadoEvaluacion: 'DESCARTADA',
+            estadoEvaluacionNombre: 'Descartada',
+            representanteComite: { id: 'r-1', nombre: 'Rosa Gil' },
+          },
+        ],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarEvaluacionesMiFichaPerfil('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/evaluaciones/estudiante');
+      expect(resultado).toEqual([
+        {
+          id: 'ev-1',
+          fichaPerfilId: 'f-1',
+          fechaCreacion: '2026-09-01T10:00:00Z',
+          estadoEvaluacionId: 'DESCARTADA',
+          estadoEvaluacionNombre: 'Descartada',
+          representante: { id: 'r-1', nombre: 'Rosa Gil' },
+        },
+      ]);
+    });
+  });
+
+  describe('consultarObservacionesEvaluacionMiFicha', () => {
+    it('consulta GET /fichas-perfil/evaluaciones/{id}/observaciones/estudiante y traduce evaluacionFichaPerfil a evaluacionFichaPerfilId', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [{ id: 'o-1', evaluacionFichaPerfil: 'ev-1', observacion: 'Ajustar el alcance' }],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarObservacionesEvaluacionMiFicha('ev-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/evaluaciones/ev-1/observaciones/estudiante');
+      expect(resultado).toEqual([
+        { id: 'o-1', evaluacionFichaPerfilId: 'ev-1', observacion: 'Ajustar el alcance' },
+      ]);
+    });
+  });
+
   describe('getEstadosFichasAsesor', () => {
     it('hace POST /fichas-perfil/estados-ficha/asesor con el body recibido y traduce fichaPerfil a fichaPerfilId conservando la paginación', async () => {
       // Arrange
