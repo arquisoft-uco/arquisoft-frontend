@@ -85,6 +85,97 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarSolicitudesNovedadCoordinadorRecibidas', () => {
+    const pagina = {
+      content: [],
+      page: 1,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: false,
+      last: true,
+      empty: true,
+    };
+
+    it('llama POST /solicitudes/novedad-coordinador/recibidas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await solicitudesService.consultarSolicitudesNovedadCoordinadorRecibidas(
+        1,
+        10,
+      );
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/recibidas', {
+        pagina: 1,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('consultarRespuestasNovedadCoordinadorEnviadas', () => {
+    it('llama POST /solicitudes/novedad-coordinador/respuestas/enviadas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 1,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: false,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await solicitudesService.consultarRespuestasNovedadCoordinadorEnviadas(
+        1,
+        10,
+      );
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/respuestas/enviadas', {
+        pagina: 1,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('consultarRespuestasNovedadCoordinadorRecibidas', () => {
+    it('llama POST /solicitudes/novedad-coordinador/respuestas/recibidas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 1,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: false,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await solicitudesService.consultarRespuestasNovedadCoordinadorRecibidas(
+        1,
+        10,
+      );
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/respuestas/recibidas', {
+        pagina: 1,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('eliminarSolicitudNovedadCoordinador', () => {
     it('llama DELETE /solicitudes/novedad-coordinador/{id} sin body y resuelve undefined', async () => {
       // Arrange
@@ -96,6 +187,39 @@ describe('solicitudesService', () => {
       // Assert
       expect(eliminar).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/s-1');
       expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarRespuestaNovedadCoordinador', () => {
+    it('llama DELETE /solicitudes/novedad-coordinador/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarRespuestaNovedadCoordinador('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/s-1/respuesta');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('responderSolicitudNovedadCoordinador', () => {
+    it('llama POST /solicitudes/novedad-coordinador/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-1' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudNovedadCoordinador({
+        solicitudId: 's-1',
+        contenido: 'Programemos una reunión.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/s-1/respuesta', {
+        contenido: 'Programemos una reunión.',
+      });
+      expect(resultado).toEqual({ id: 'r-1' });
     });
   });
 });

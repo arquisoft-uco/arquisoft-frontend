@@ -40,7 +40,12 @@ function main() {
   if (!hayCambiosEnSrc(cwd)) return;
 
   for (const { nombre, comando, argumentos } of VERIFICACIONES) {
-    const resultado = spawnSync(comando, argumentos, { cwd, encoding: 'utf8', timeout: 120000 });
+    const resultado = spawnSync(comando, argumentos, {
+      cwd,
+      encoding: 'utf8',
+      timeout: 120000,
+      shell: process.platform === 'win32',
+    });
     if (resultado.status === 0) continue;
 
     const salida = `${resultado.stdout ?? ''}${resultado.stderr ?? ''}`.trim().split('\n');

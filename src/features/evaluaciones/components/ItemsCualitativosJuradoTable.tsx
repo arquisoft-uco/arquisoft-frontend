@@ -36,6 +36,7 @@ export default function ItemsCualitativosJuradoTable({ items, onEditar }: Props)
           <IconButton
             etiqueta={`Editar ítem ${item.nombre}`}
             icono={Pencil}
+            rotulo="Editar"
             onClick={() => onEditar(item)}
           />
         ))

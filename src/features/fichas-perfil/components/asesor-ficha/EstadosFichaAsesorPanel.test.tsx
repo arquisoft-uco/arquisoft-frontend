@@ -8,7 +8,9 @@ vi.mock('../../hooks/useHistorialEstadosFichaAsesor', () => ({
   useHistorialEstadosFichaAsesor: vi.fn(),
 }));
 vi.mock('../EstadosFichaPanel', () => ({
-  default: () => <div>Panel cambiar estado</div>,
+  default: ({ estadoActual }: { estadoActual: { id: string } }) => (
+    <div>Panel cambiar estado desde {estadoActual.id}</div>
+  ),
 }));
 
 const useHistorial = vi.mocked(useHistorialEstadosFichaAsesor);
@@ -74,6 +76,27 @@ describe('EstadosFichaAsesorPanel', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
+  it('sin historial o con error no monta el panel de cambio de estado', () => {
+    // Arrange
+    simular({ data: [] });
+
+    // Act
+    const { unmount } = render(<EstadosFichaAsesorPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.queryByText(/Panel cambiar estado/)).not.toBeInTheDocument();
+    unmount();
+
+    // Arrange
+    simular({ isError: true, error: new Error('falla') });
+
+    // Act
+    render(<EstadosFichaAsesorPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.queryByText(/Panel cambiar estado/)).not.toBeInTheDocument();
+  });
+
   it('con datos lista los estados en orden, con un solo «Actual» en el primero, y «Cambiar estado» después', () => {
     // Arrange
     simular({
@@ -94,7 +117,7 @@ describe('EstadosFichaAsesorPanel', () => {
     expect(within(pasos[0]).getByText('Actual')).toBeInTheDocument();
     expect(within(pasos[1]).getByText('Creada')).toBeInTheDocument();
     expect(screen.getAllByText('Actual')).toHaveLength(1);
-    const panel = screen.getByText('Panel cambiar estado');
+    const panel = screen.getByText('Panel cambiar estado desde e-3');
     expect(lista.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

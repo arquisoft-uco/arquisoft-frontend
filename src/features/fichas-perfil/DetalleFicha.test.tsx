@@ -9,6 +9,9 @@ import DetalleFicha from './DetalleFicha';
 import PestanaFicha from './components/PestanaFicha';
 
 vi.mock('./hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
+vi.mock('./hooks/useHistorialEstadosFichaAsesor', () => ({
+  useHistorialEstadosFichaAsesor: vi.fn(() => ({ data: undefined })),
+}));
 vi.mock('./hooks/useRegistrarEvaluacion', () => ({
   useRegistrarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));

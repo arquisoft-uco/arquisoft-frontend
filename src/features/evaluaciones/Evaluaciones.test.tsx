@@ -19,36 +19,40 @@ describe('Evaluaciones', () => {
     resetAllStores();
   });
 
-  it('con rol administrador o jurado, renderiza la vista de ítems cualitativos', () => {
-    for (const rol of [Rol.Administrador, Rol.Jurado]) {
+  it.each([Rol.Administrador, Rol.Jurado])(
+    'con el rol %s, renderiza la vista de ítems cualitativos',
+    (rol) => {
       // Arrange
       autenticarCon(rol);
 
       // Act
-      const { unmount } = render(<Evaluaciones />, { initialPath: '/evaluaciones' });
+      render(<Evaluaciones />, { initialPath: '/evaluaciones' });
 
       // Assert
       expect(screen.getByText('Vista de ítems cualitativos')).toBeInTheDocument();
-      expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
-      unmount();
-    }
-  });
+    },
+  );
 
-  it('con rol asesor, estudiante o coordinador, muestra ComingSoon y no la vista', () => {
-    for (const rol of [Rol.Asesor, Rol.Estudiante, Rol.Coordinador]) {
+  it.each([Rol.Asesor, Rol.Estudiante, Rol.Coordinador])(
+    'con el rol %s, redirige a /forbidden',
+    (rol) => {
       // Arrange
       autenticarCon(rol);
 
       // Act
-      const { unmount } = render(<Evaluaciones />, { initialPath: '/evaluaciones' });
+      render(
+        <Routes>
+          <Route path="/evaluaciones" element={<Evaluaciones />} />
+          <Route path="/forbidden" element={<p>Pantalla de acceso denegado</p>} />
+        </Routes>,
+        { initialPath: '/evaluaciones' },
+      );
 
       // Assert
-      expect(screen.getByRole('heading', { name: 'Evaluaciones' })).toBeInTheDocument();
-      expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
+      expect(screen.getByText('Pantalla de acceso denegado')).toBeInTheDocument();
       expect(screen.queryByText('Vista de ítems cualitativos')).not.toBeInTheDocument();
-      unmount();
-    }
-  });
+    },
+  );
 
   it('sin rol activo, redirige a seleccionar-rol', () => {
     // Act

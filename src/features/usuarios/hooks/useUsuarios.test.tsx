@@ -93,6 +93,28 @@ describe('construirFiltro', () => {
     });
   });
 
+  it('mapea el bibliotecario a esBibliotecario, solo o combinado en OR con otro rol', () => {
+    // Act
+    const solo = construirFiltro([Rol.Bibliotecario], undefined, undefined);
+    const combinado = construirFiltro([Rol.Bibliotecario, Rol.Asesor], undefined, undefined);
+
+    // Assert
+    expect(solo).toEqual({
+      tipo: 'PREDICADO',
+      campo: 'esBibliotecario',
+      operador: 'ES',
+      valor: 'true',
+    });
+    expect(combinado).toEqual({
+      tipo: 'GRUPO',
+      conector: 'OR',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'esBibliotecario', operador: 'ES', valor: 'true' },
+        { tipo: 'PREDICADO', campo: 'esAsesor', operador: 'ES', valor: 'true' },
+      ],
+    });
+  });
+
   it('con roles múltiples más estado y vigencia anida el GRUPO OR en un GRUPO AND', () => {
     // Act
     const filtro = construirFiltro([Rol.Estudiante, Rol.Asesor], 'ACTIVO', true);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch, type Control, type UseFormRegisterReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import ErrorSummary, { resumirErrores } from '../../../shared/components/ui/ErrorSummary';
@@ -16,6 +16,7 @@ import {
 import CampoDescripcionItemCualitativoJurado from './CampoDescripcionItemCualitativoJurado';
 import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
+import { ITEM_CUALITATIVO_JURADO_NO_ENCONTRADO } from '../utils/codigos-error-evaluaciones';
 import { descripcionItemCualitativoJurado } from '../utils/item-cualitativo-jurado-schema';
 
 const ID_FORMULARIO = 'modificar-item-cualitativo-jurado';
@@ -30,6 +31,18 @@ interface Props {
   onCerrar: () => void;
 }
 
+interface DescripcionConContadorProps {
+  control: Control<FormValues>;
+  registro: UseFormRegisterReturn;
+  error?: string;
+}
+
+function DescripcionConContador({ control, ...campo }: DescripcionConContadorProps) {
+  const descripcion = useWatch({ control, name: 'descripcion' });
+
+  return <CampoDescripcionItemCualitativoJurado {...campo} longitud={descripcion.length} />;
+}
+
 export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: Props) {
   const [resumenVisible, setResumenVisible] = useState(false);
   const {
@@ -38,7 +51,7 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
     reset,
     setError,
     setFocus,
-    watch,
+    control,
     formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -71,7 +84,7 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
           const mensaje = getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
           toast.error('No se pudo modificar el ítem', mensaje);
 
-          if (hasApiErrorCode(err, 'ITEM_CUALITATIVO_JURADO_NO_ENCONTRADO')) {
+          if (hasApiErrorCode(err, ITEM_CUALITATIVO_JURADO_NO_ENCONTRADO)) {
             cerrar();
             return;
           }
@@ -123,9 +136,9 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
               />
             )}
           </Field>
-          <CampoDescripcionItemCualitativoJurado
+          <DescripcionConContador
+            control={control}
             registro={register('descripcion')}
-            longitud={(watch('descripcion') ?? '').length}
             error={errors.descripcion?.message}
           />
         </FormSection>

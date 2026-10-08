@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../test-utils/render';
+import { AxiosError, AxiosHeaders } from 'axios';
+import { render, screen, waitFor, within } from '../../../test-utils/render';
 import EstadosFichaPanel from './EstadosFichaPanel';
 import { useEstadosFicha } from '../hooks/useEstadosFicha';
 import { useAgregarEstadoFichaPerfil } from '../hooks/useAgregarEstadoFichaPerfil';
+import { toast } from '../../../shared/hooks/useToast';
+import type { ApiError } from '../../../shared/models/api-response';
 import type { EstadoFicha } from '../models/fichas-perfil';
 
 vi.mock('../hooks/useEstadosFicha', () => ({
@@ -14,25 +17,38 @@ vi.mock('../hooks/useAgregarEstadoFichaPerfil', () => ({
   useAgregarEstadoFichaPerfil: vi.fn(),
 }));
 
-function crearEstadosMock(
-  parcial: Partial<ReturnType<typeof useEstadosFicha>> = {},
-): ReturnType<typeof useEstadosFicha> {
-  return {
+vi.mock('../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+}));
+
+type Mutacion = ReturnType<typeof useAgregarEstadoFichaPerfil>;
+type OpcionesMutate = { onSuccess?: () => void; onError?: (err: unknown) => void };
+
+function simularEstados(parcial: Partial<ReturnType<typeof useEstadosFicha>> = {}) {
+  vi.mocked(useEstadosFicha).mockReturnValue({
     data: undefined,
     isLoading: false,
     isError: false,
     ...parcial,
-  } as ReturnType<typeof useEstadosFicha>;
+  } as ReturnType<typeof useEstadosFicha>);
 }
 
-function crearMutacionMock(
-  parcial: Partial<ReturnType<typeof useAgregarEstadoFichaPerfil>> = {},
-): ReturnType<typeof useAgregarEstadoFichaPerfil> {
-  return {
-    mutate: vi.fn(),
+function simularMutacion(mutate: (id: string, opciones: OpcionesMutate) => void = vi.fn()) {
+  vi.mocked(useAgregarEstadoFichaPerfil).mockReturnValue({
+    mutate,
     isPending: false,
-    ...parcial,
-  } as ReturnType<typeof useAgregarEstadoFichaPerfil>;
+  } as Mutacion);
+  return mutate;
+}
+
+function crearErrorApi(cuerpo: ApiError) {
+  return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+    data: cuerpo,
+    status: cuerpo.status,
+    statusText: 'Unprocessable Entity',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
 }
 
 const ESTADOS: EstadoFicha[] = [
@@ -41,114 +57,150 @@ const ESTADOS: EstadoFicha[] = [
   { id: 'DESCARTADA', nombre: 'Descartada', descripcion: 'desc' },
 ];
 
+const EN_CONSTRUCCION = { id: 'EN_CONSTRUCCION', nombre: 'En Construccion' };
+
+function renderizar(estadoActual = EN_CONSTRUCCION) {
+  return render(<EstadosFichaPanel fichaPerfilId="f-1" estadoActual={estadoActual} />);
+}
+
+async function elegirYEnviar(user: ReturnType<typeof userEvent.setup>, estadoId: string) {
+  await user.selectOptions(screen.getByLabelText('Nuevo estado'), estadoId);
+  await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+}
+
 describe('EstadosFichaPanel', () => {
   beforeEach(() => {
-    vi.mocked(useEstadosFicha).mockReset();
-    vi.mocked(useAgregarEstadoFichaPerfil).mockReset();
-    vi.mocked(useAgregarEstadoFichaPerfil).mockReturnValue(crearMutacionMock());
+    vi.clearAllMocks();
+    simularEstados({ data: ESTADOS });
+    simularMutacion();
   });
 
-  it('muestra el spinner accesible mientras carga el catálogo', () => {
+  it('mientras carga el catálogo muestra el estado de carga accesible y el estado actual', () => {
     // Arrange
-    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ isLoading: true }));
+    simularEstados({ isLoading: true });
 
     // Act
-    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+    renderizar();
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Cargando estados…');
+    expect(screen.getByText('Estado actual:')).toBeInTheDocument();
   });
 
-  it('deriva el <select> con todos los estados que retorna el endpoint, sin filtrar en el cliente', () => {
+  it('si el catálogo falla muestra el aviso y no ofrece el formulario', () => {
     // Arrange
-    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: ESTADOS }));
+    simularEstados({ isError: true });
 
     // Act
-    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+    renderizar();
 
     // Assert
-    const select = screen.getByLabelText('Nuevo estado');
-    const opciones = screen.getAllByRole('option').map((o) => o.textContent);
-    expect(select).toBeInTheDocument();
-    expect(opciones).toEqual([
-      'Seleccionar estado...',
-      'En Construccion',
-      'Disponible Para Evaluacion',
-      'Descartada',
-    ]);
+    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los estados');
+    expect(screen.queryByLabelText('Nuevo estado')).not.toBeInTheDocument();
   });
 
-  it('renderiza completo un catálogo distinto (coordinador) sin depender de una lista local', () => {
-    // Arrange
-    const estadosCoordinador: EstadoFicha[] = [
-      { id: 'APROBADA', nombre: 'Aprobada', descripcion: 'desc' },
-      {
-        id: 'APROBADA_CON_OBSERVACIONES',
-        nombre: 'Aprobada Con Observaciones',
-        descripcion: 'desc',
-      },
-      { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: 'desc' },
-    ];
-    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: estadosCoordinador }));
-
+  it('ofrece solo los destinos permitidos desde el estado actual', () => {
     // Act
-    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+    renderizar({ id: 'DESCARTADA', nombre: 'Descartada' });
 
     // Assert
     expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual([
-      'Seleccionar estado...',
-      'Aprobada',
-      'Aprobada Con Observaciones',
-      'No Aprobada',
+      'Selecciona un estado...',
+      'En Construccion',
     ]);
   });
 
-  it('pinta el badge de estado actual solo cuando la prop está definida', () => {
-    // Arrange
-    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: [] }));
-
-    // Act — con estadoActual
-    const { unmount } = render(<EstadosFichaPanel fichaPerfilId="f-1" estadoActual="Aprobada" />);
-
-    // Assert
-    expect(screen.getByText('Estado actual:')).toBeInTheDocument();
-    expect(screen.getByText('Aprobada')).toBeInTheDocument();
-    unmount();
-
-    // Act — sin estadoActual
-    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
-
-    // Assert
-    expect(screen.queryByText('Estado actual:')).not.toBeInTheDocument();
-  });
-
-  it('con el catálogo vacío (o la consulta fallida), el <select> solo ofrece la opción por defecto', () => {
-    // Arrange
-    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: [] }));
-
+  it('en un estado final avisa y no muestra el formulario', () => {
     // Act
-    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+    renderizar({ id: 'APROBADA', nombre: 'Aprobada' });
 
     // Assert
-    expect(screen.getAllByRole('option')).toHaveLength(1);
-    expect(screen.getByRole('option', { name: 'Seleccionar estado...' })).toBeInTheDocument();
+    expect(screen.getByText(/estado final/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Nuevo estado')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
   });
 
-  it('avisa que cambiar el estado aún no está disponible y deja el envío deshabilitado aunque se elija un estado', async () => {
+  it('sin elegir estado no abre la confirmación, no envía y pinta el error del campo', async () => {
     // Arrange
     const user = userEvent.setup();
-    const mutate = vi.fn();
-    vi.mocked(useAgregarEstadoFichaPerfil).mockReturnValue(crearMutacionMock({ mutate }));
-    vi.mocked(useEstadosFicha).mockReturnValue(crearEstadosMock({ data: ESTADOS }));
-    render(<EstadosFichaPanel fichaPerfilId="f-1" />);
+    const mutate = simularMutacion();
+    renderizar();
 
     // Act
-    await user.selectOptions(screen.getByLabelText('Nuevo estado'), 'DESCARTADA');
     await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
 
     // Assert
-    expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cambiar estado' })).toBeDisabled();
+    expect(await screen.findAllByRole('alert')).not.toHaveLength(0);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('al confirmar envía el estado elegido y avisa con un toast de éxito', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = simularMutacion(
+      vi.fn((_id, opciones: OpcionesMutate) => opciones.onSuccess?.()),
+    );
+    renderizar();
+
+    // Act
+    await elegirYEnviar(user, 'DESCARTADA');
+    const dialogo = await screen.findByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    await waitFor(() => expect(mutate).toHaveBeenCalledWith('DESCARTADA', expect.any(Object)));
+    expect(toast.success).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('ante un 422 muestra el mensaje del backend en un toast, conserva la selección y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const error = crearErrorApi({
+      error: 'Unprocessable Entity',
+      errorCode: 'ESTADO_FICHA_PERFIL_EVALUACION_EN_CURSO',
+      message: 'Hay evaluaciones en curso',
+      status: 422,
+    });
+    simularMutacion((_id, opciones) => opciones.onError?.(error));
+    renderizar();
+
+    // Act
+    await elegirYEnviar(user, 'DESCARTADA');
+    const dialogo = await screen.findByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudo cambiar el estado',
+        'Hay evaluaciones en curso',
+      ),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Nuevo estado')).toHaveValue('DESCARTADA');
+  });
+
+  it('un 422 de campo estadoFicha se pinta en el campo además del toast', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const error = crearErrorApi({
+      error: 'Unprocessable Entity',
+      message: 'Estado no asignable',
+      status: 422,
+      fieldErrors: [{ field: 'estadoFicha', message: 'El asesor no puede asignar este estado' }],
+    });
+    simularMutacion((_id, opciones) => opciones.onError?.(error));
+    renderizar();
+
+    // Act
+    await elegirYEnviar(user, 'DESCARTADA');
+    const dialogo = await screen.findByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(await screen.findByText('El asesor no puede asignar este estado')).toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledTimes(1);
   });
 });
