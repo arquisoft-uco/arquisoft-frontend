@@ -129,13 +129,13 @@ Layout       principal                                  | lateral (resumen)
   solo lo que depende del id, sin inventar datos.
 - **Panel lateral de resumen:** estado actual con su `Badge`, asesor, equipo (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante lo toma de `integrantes` de «mi ficha» porque su rol no tiene el permiso del endpoint de compañeros, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
   (asesor: «Cambiar estado»; representante: «Iniciar evaluación»; estudiante: ninguna).
-- **Pestañas solo de lo que existe.** Revisiones y Evaluaciones reaparecen cuando exista su historia. El
+- **Pestañas solo de lo que existe.** Solo las pestañas Revisiones y Evaluaciones del asesor esperan su historia. El
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el
   formulario de ítem, los tipos que aún no se usan como atajos.
 - **Ítems:** tarjetas con el tipo (`Badge neutro`), el contenido y `IconButton` de editar y eliminar (44 px);
   «Agregar ítem» abre un `SidePanel` (formulario corto). Eliminar pide confirmación («No se puede deshacer»).
-- **El estudiante** ve su ficha en la raíz del módulo (`EstudianteView`, sin ruta propia: las pestañas «Ítems» e
-  «Historial de estados» son estado de React). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
+- **El estudiante** ve su ficha en la raíz del módulo (`EstudianteView`, sin ruta propia: las pestañas «Ítems», «Revisiones»,
+  «Historial de estados» y «Evaluaciones» son estado de React). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
   una línea de tiempo (`LineaTiempoEstados`, un `<ol>`) con «Actual» en el estado más reciente. En el diagrama, la
   pestaña se llama «Historial de estados» solo para el estudiante.

@@ -128,6 +128,7 @@ IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-
 |---|---|
 | Ficha | `EN_CONSTRUCCION` → neutro · `DISPONIBLE_PARA_EVALUACION` → advertencia · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
 | Evaluación | `EN_EVALUACION` → info · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
+| Revisión de ítem | `NUEVA` → info · `VISUALIZADA` → neutro · `EN_PROGRESO` → advertencia · `CORRECCION_DISPONIBLE` → advertencia · `CERRADA` → exito |
 | Usuario | `ACTIVO` → exito · `INACTIVO` → neutro · `vigente === false` → peligro, con el texto «Dado de baja» (una sola insignia combina estado y vigencia) |
 
 ```clases
