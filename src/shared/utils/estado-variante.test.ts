@@ -3,6 +3,7 @@ import {
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
   varianteEstadoRespuesta,
+  varianteEstadoRevision,
   varianteEstadoUsuario,
 } from './estado-variante';
 
@@ -71,5 +72,17 @@ describe('varianteEstadoRespuesta', () => {
     expect(varianteEstadoRespuesta('NO_APROBADA')).toBe('peligro');
     expect(varianteEstadoRespuesta('EN_REVISION')).toBe('info');
     expect(varianteEstadoRespuesta('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoRevision', () => {
+  it('mapea cada estado de revisión a su variante y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoRevision('NUEVA')).toBe('info');
+    expect(varianteEstadoRevision('VISUALIZADA')).toBe('neutro');
+    expect(varianteEstadoRevision('EN_PROGRESO')).toBe('advertencia');
+    expect(varianteEstadoRevision('CORRECCION_DISPONIBLE')).toBe('advertencia');
+    expect(varianteEstadoRevision('CERRADA')).toBe('exito');
+    expect(varianteEstadoRevision('ESTADO_INEXISTENTE')).toBe('neutro');
   });
 });
