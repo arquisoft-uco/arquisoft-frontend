@@ -700,4 +700,22 @@ describe('fichasPerfilService', () => {
       expect(resultado).toEqual(estados);
     });
   });
+
+  describe('getEstadosFichaPerfilRepresentante', () => {
+    it('hace GET /fichas-perfil/{id}/estados-ficha/representante y resuelve el arreglo', async () => {
+      // Arrange
+      const historial = [
+        { id: 'e-1', nombre: 'Creada', fechaActualizacion: '2026-01-01T10:00:00' },
+        { id: 'e-2', nombre: 'En revisión', fechaActualizacion: '2026-02-01T10:00:00' },
+      ];
+      get.mockResolvedValue({ status: 200, data: historial });
+
+      // Act
+      const resultado = await fichasPerfilService.getEstadosFichaPerfilRepresentante('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/estados-ficha/representante');
+      expect(resultado).toEqual(historial);
+    });
+  });
 });
