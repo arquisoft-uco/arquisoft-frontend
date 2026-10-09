@@ -15,6 +15,7 @@ import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentant
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
 import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
 import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
+import type { RevisionItem } from '../models/RevisionItem';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
@@ -179,6 +180,26 @@ function aEstadoFichaPerfilAsesor(
     estadoId: dto.estadoId,
     estadoNombre: dto.estadoNombre,
     fechaActualizacion: dto.fechaActualizacion,
+  };
+}
+
+// Forma cruda de RevisionItemResponseDTO (POST /fichas-perfil/revisiones-item/estudiante);
+// item, estadoRevision y estadoRevisionNombre se traducen a itemId, estadoId y estadoNombre.
+interface RevisionItemResponseDTO {
+  id: string;
+  item: string;
+  estadoRevision: string;
+  estadoRevisionNombre: string;
+  fechaCreacion: string;
+}
+
+function aRevisionItem(dto: RevisionItemResponseDTO): RevisionItem {
+  return {
+    id: dto.id,
+    itemId: dto.item,
+    estadoId: dto.estadoRevision,
+    estadoNombre: dto.estadoRevisionNombre,
+    fechaCreacion: dto.fechaCreacion,
   };
 }
 
@@ -392,10 +413,24 @@ export const fichasPerfilService = {
       .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
       .then((r) => r.data),
 
+  getEstadosFichaPerfilRepresentante: (
+    fichaPerfilId: string,
+  ): Promise<HistorialEstadoFichaPerfil[]> =>
+    apiClient
+      .get<
+        HistorialEstadoFichaPerfil[]
+      >(`/fichas-perfil/${fichaPerfilId}/estados-ficha/representante`)
+      .then((r) => r.data),
+
   getEstadosFichasAsesor: (req: ConsultaCriteriaRequest): Promise<Page<EstadoFichaPerfilAsesor>> =>
     apiClient
       .post<Page<EstadoFichaPerfilAsesorResponseDTO>>('/fichas-perfil/estados-ficha/asesor', req)
       .then(({ data }) => ({ ...data, content: data.content.map(aEstadoFichaPerfilAsesor) })),
+
+  consultarRevisionesItemEstudiante: (req: ConsultaCriteriaRequest): Promise<Page<RevisionItem>> =>
+    apiClient
+      .post<Page<RevisionItemResponseDTO>>('/fichas-perfil/revisiones-item/estudiante', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aRevisionItem) })),
 
   getFichasRepresentante: (
     page: number,

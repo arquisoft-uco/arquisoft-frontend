@@ -6,6 +6,7 @@ import { useMiFichaPerfil } from '../hooks/useMiFichaPerfil';
 import { useItemsMiFicha } from '../hooks/useItemsMiFicha';
 import { useEstadosFichaPerfilEstudiante } from '../hooks/useEstadosFichaPerfilEstudiante';
 import { useEvaluacionesMiFicha } from '../hooks/useEvaluacionesMiFicha';
+import { useRevisionesMiFicha } from '../hooks/useRevisionesMiFicha';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 
 vi.mock('../hooks/useMiFichaPerfil', () => ({ useMiFichaPerfil: vi.fn() }));
@@ -14,6 +15,7 @@ vi.mock('../hooks/useEstadosFichaPerfilEstudiante', () => ({
   useEstadosFichaPerfilEstudiante: vi.fn(),
 }));
 vi.mock('../hooks/useEvaluacionesMiFicha', () => ({ useEvaluacionesMiFicha: vi.fn() }));
+vi.mock('../hooks/useRevisionesMiFicha', () => ({ useRevisionesMiFicha: vi.fn() }));
 vi.mock('../hooks/useObservacionesEvaluacionMiFicha', () => ({
   useObservacionesEvaluacionMiFicha: vi.fn(),
 }));
@@ -88,6 +90,21 @@ describe('EstudianteView', () => {
       refetch: vi.fn(),
       fichaPerfilIdDisponible: true,
     });
+    vi.mocked(useRevisionesMiFicha).mockReturnValue({
+      filas: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      pageSize: 10,
+      goToPage: vi.fn(),
+      direccion: undefined,
+      ordenar: vi.fn(),
+      sinItems: false,
+      isLoading: false,
+      isError: false,
+      error: null,
+      reintentar: vi.fn(),
+    });
     vi.mocked(useEvaluacionesMiFicha).mockReturnValue({
       evaluaciones: [],
       isLoading: false,
@@ -161,7 +178,7 @@ describe('EstudianteView', () => {
     );
   });
 
-  it('solo hay tres pestañas, con contador de ítems una vez cargados, y se cambia con el teclado', async () => {
+  it('solo hay cuatro pestañas, con contador de ítems una vez cargados, y se cambia con el teclado', async () => {
     // Arrange
     const user = userEvent.setup();
     conFicha();
@@ -171,14 +188,20 @@ describe('EstudianteView', () => {
     const pestanas = screen.getAllByRole('tab');
     expect(pestanas.map((p) => p.textContent)).toEqual([
       'Ítems1',
+      'Revisiones',
       'Historial de estados',
       'Evaluaciones',
     ]);
-    expect(screen.queryByRole('tab', { name: /Revisiones|Tipos de ítem/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /Tipos de ítem/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Cambiar estado/)).not.toBeInTheDocument();
 
     // Act
     pestanas[0].focus();
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('tab', { name: 'Revisiones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
     await user.keyboard('{ArrowRight}');
 
     // Assert
@@ -187,6 +210,23 @@ describe('EstudianteView', () => {
       'true',
     );
     expect(screen.getByText('Tu ficha aún no tiene estados registrados')).toBeInTheDocument();
+  });
+
+  it('la pestaña «Revisiones» monta el panel de revisiones de la ficha', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFicha();
+    render(<EstudianteView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Revisiones' }));
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Revisiones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('Tu ficha aún no tiene revisiones')).toBeInTheDocument();
   });
 
   it('la pestaña «Evaluaciones» monta el panel de evaluaciones de la ficha', async () => {
@@ -217,6 +257,7 @@ describe('EstudianteView', () => {
     // Assert
     expect(screen.getAllByRole('tab').map((p) => p.textContent)).toEqual([
       'Ítems',
+      'Revisiones',
       'Historial de estados',
       'Evaluaciones',
     ]);
