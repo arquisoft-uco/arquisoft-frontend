@@ -52,6 +52,25 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('modificarObservacionEvaluacion', () => {
+    it('hace PATCH /fichas-perfil/observaciones-evaluacion/{id} con solo { observacion } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await fichasPerfilService.modificarObservacionEvaluacion({
+        observacionEvaluacionId: 'o-1',
+        observacion: 'Texto nuevo',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/fichas-perfil/observaciones-evaluacion/o-1', {
+        observacion: 'Texto nuevo',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('agregarEstadoEvaluacion', () => {
     it('traduce la solicitud a POST /fichas-perfil/estado-evaluacion-ficha con { evaluacionFichaPerfil, estadoEvaluacion } y resuelve { id }', async () => {
       // Arrange

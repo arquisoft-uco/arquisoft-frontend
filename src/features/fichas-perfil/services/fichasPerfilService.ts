@@ -20,6 +20,7 @@ import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfil
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
+import type { ModificarObservacionEvaluacionRequest } from '../models/ModificarObservacionEvaluacionRequest';
 import type {
   Item,
   TipoItem,
@@ -298,6 +299,13 @@ export const fichasPerfilService = {
         { observacion: req.observacion },
       )
       .then((r) => r.data),
+
+  modificarObservacionEvaluacion: (req: ModificarObservacionEvaluacionRequest): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-evaluacion/${req.observacionEvaluacionId}`, {
+        observacion: req.observacion,
+      })
+      .then(() => undefined),
 
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
     apiClient.get<EstadoFicha[]>('/fichas-perfil/estados-ficha').then((r) => r.data),

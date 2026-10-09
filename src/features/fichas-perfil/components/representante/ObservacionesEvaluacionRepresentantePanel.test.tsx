@@ -1,12 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import { useObservacionesEvaluacionRepresentante } from '../../hooks/useObservacionesEvaluacionRepresentante';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import ObservacionesEvaluacionRepresentantePanel from './ObservacionesEvaluacionRepresentantePanel';
 
 vi.mock('../../hooks/useObservacionesEvaluacionRepresentante', () => ({
   useObservacionesEvaluacionRepresentante: vi.fn(),
+}));
+vi.mock('../../hooks/useModificarObservacionEvaluacion', () => ({
+  useModificarObservacionEvaluacion: vi.fn(() => ({
+    mutate: vi.fn(),
+    reset: vi.fn(),
+    isPending: false,
+  })),
 }));
 
 const EVALUACION: EvaluacionFichaPerfil = {
@@ -105,5 +112,40 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
     expect(screen.getByText('Precisar la metodología')).toBeInTheDocument();
     expect(screen.getByText('Descartada')).toBeInTheDocument();
     expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('«Editar observación» abre el formulario con el texto de esa fila y al cerrarlo el panel sigue abierto', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conObservaciones({
+      observaciones: [
+        { id: 'o-1', evaluacionFichaPerfilId: 'ev-1', observacion: 'Ajustar el alcance' },
+        { id: 'o-2', evaluacionFichaPerfilId: 'ev-1', observacion: 'Precisar la metodología' },
+      ],
+    });
+    render(
+      <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
+    );
+
+    // Act
+    const botones = screen.getAllByRole('button', { name: 'Editar observación' });
+    await user.click(botones[1]);
+
+    // Assert
+    expect(botones).toHaveLength(2);
+    expect(screen.getByRole('textbox', { name: 'Observación' })).toHaveValue(
+      'Precisar la metodología',
+    );
+
+    // Act
+    await user.click(
+      within(screen.getByRole('dialog', { name: 'Editar observación' })).getByRole('button', {
+        name: 'Cerrar',
+      }),
+    );
+
+    // Assert
+    expect(screen.queryByRole('textbox', { name: 'Observación' })).not.toBeInTheDocument();
+    expect(screen.getByText('Ajustar el alcance')).toBeInTheDocument();
   });
 });
