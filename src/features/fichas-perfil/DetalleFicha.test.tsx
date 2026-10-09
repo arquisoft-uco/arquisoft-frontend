@@ -31,6 +31,9 @@ vi.mock('./components/asesor-ficha/EstadosFichaAsesorPanel', () => ({
 vi.mock('./components/asesor-ficha/RevisionesFichaAsesorPanel', () => ({
   default: () => <div>Panel revisiones</div>,
 }));
+vi.mock('./components/representante/EstadosFichaRepresentantePanel', () => ({
+  default: () => <div>Panel estados representante</div>,
+}));
 vi.mock('./components/representante/RegistrarEvaluacionPanel', () => ({
   default: () => <div>Panel evaluaciones</div>,
 }));
@@ -107,7 +110,7 @@ describe('DetalleFicha', () => {
     expect(screen.getByText('Ítems representante f-1')).toBeInTheDocument();
   });
 
-  it('una pestaña ajena al rol redirige a Ítems', () => {
+  it('el representante ve su panel en Estados y una pestaña ajena al rol redirige a Ítems', () => {
     // Arrange
     entrarComo(Rol.RepresentanteComiteCurriculum);
 
@@ -115,8 +118,8 @@ describe('DetalleFicha', () => {
     const representante = renderizar('/fichas-perfil/f-1/estados');
 
     // Assert
-    expect(screen.getByText('Ítems representante f-1')).toBeInTheDocument();
-    expect(screen.queryByText('Panel estados')).not.toBeInTheDocument();
+    expect(screen.getByText('Panel estados representante')).toBeInTheDocument();
+    expect(screen.queryByText('Ítems representante f-1')).not.toBeInTheDocument();
     representante.unmount();
 
     // Arrange

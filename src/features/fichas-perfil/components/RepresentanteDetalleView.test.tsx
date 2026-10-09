@@ -64,7 +64,7 @@ describe('RepresentanteDetalleView', () => {
     mockEvaluaciones({ data: [], isSuccess: true });
   });
 
-  it('ofrece solo las pestañas Ítems y Evaluaciones y consulta las evaluaciones de la ficha', () => {
+  it('ofrece las pestañas Ítems, Estados y Evaluaciones y consulta las evaluaciones de la ficha', () => {
     // Act
     renderizar('/fichas-perfil/f-1/items');
 
@@ -74,7 +74,7 @@ describe('RepresentanteDetalleView', () => {
       within(pestanas)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Ítems', 'Evaluaciones']);
+    ).toEqual(['Ítems', 'Estados', 'Evaluaciones']);
     expect(useEvaluacionFicha).toHaveBeenCalledWith('f-1');
   });
 

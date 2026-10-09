@@ -20,6 +20,7 @@ import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfil
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
+import type { ModificarObservacionEvaluacionRequest } from '../models/ModificarObservacionEvaluacionRequest';
 import type {
   Item,
   TipoItem,
@@ -299,6 +300,18 @@ export const fichasPerfilService = {
       )
       .then((r) => r.data),
 
+  modificarObservacionEvaluacion: (req: ModificarObservacionEvaluacionRequest): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-evaluacion/${req.observacionEvaluacionId}`, {
+        observacion: req.observacion,
+      })
+      .then(() => undefined),
+
+  removerObservacionEvaluacion: (observacionEvaluacionId: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/observaciones-evaluacion/${observacionEvaluacionId}`)
+      .then(() => undefined),
+
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
     apiClient.get<EstadoFicha[]>('/fichas-perfil/estados-ficha').then((r) => r.data),
 
@@ -403,6 +416,15 @@ export const fichasPerfilService = {
   getEstadosFichaPerfilEstudiante: (fichaPerfilId: string): Promise<HistorialEstadoFichaPerfil[]> =>
     apiClient
       .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
+      .then((r) => r.data),
+
+  getEstadosFichaPerfilRepresentante: (
+    fichaPerfilId: string,
+  ): Promise<HistorialEstadoFichaPerfil[]> =>
+    apiClient
+      .get<
+        HistorialEstadoFichaPerfil[]
+      >(`/fichas-perfil/${fichaPerfilId}/estados-ficha/representante`)
       .then((r) => r.data),
 
   getEstadosFichasAsesor: (req: ConsultaCriteriaRequest): Promise<Page<EstadoFichaPerfilAsesor>> =>

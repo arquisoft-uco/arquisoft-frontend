@@ -52,6 +52,39 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('modificarObservacionEvaluacion', () => {
+    it('hace PATCH /fichas-perfil/observaciones-evaluacion/{id} con solo { observacion } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await fichasPerfilService.modificarObservacionEvaluacion({
+        observacionEvaluacionId: 'o-1',
+        observacion: 'Texto nuevo',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/fichas-perfil/observaciones-evaluacion/o-1', {
+        observacion: 'Texto nuevo',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('removerObservacionEvaluacion', () => {
+    it('hace DELETE /fichas-perfil/observaciones-evaluacion/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await fichasPerfilService.removerObservacionEvaluacion('o-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/fichas-perfil/observaciones-evaluacion/o-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('agregarEstadoEvaluacion', () => {
     it('traduce la solicitud a POST /fichas-perfil/estado-evaluacion-ficha con { evaluacionFichaPerfil, estadoEvaluacion } y resuelve { id }', async () => {
       // Arrange
@@ -754,6 +787,24 @@ describe('fichasPerfilService', () => {
       // Assert
       expect(get).toHaveBeenCalledWith('/fichas-perfil/estados-evaluacion');
       expect(resultado).toEqual(estados);
+    });
+  });
+
+  describe('getEstadosFichaPerfilRepresentante', () => {
+    it('hace GET /fichas-perfil/{id}/estados-ficha/representante y resuelve el arreglo', async () => {
+      // Arrange
+      const historial = [
+        { id: 'e-1', nombre: 'Creada', fechaActualizacion: '2026-01-01T10:00:00' },
+        { id: 'e-2', nombre: 'En revisión', fechaActualizacion: '2026-02-01T10:00:00' },
+      ];
+      get.mockResolvedValue({ status: 200, data: historial });
+
+      // Act
+      const resultado = await fichasPerfilService.getEstadosFichaPerfilRepresentante('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/estados-ficha/representante');
+      expect(resultado).toEqual(historial);
     });
   });
 });

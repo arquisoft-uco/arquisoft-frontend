@@ -1,9 +1,10 @@
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import type { ObservacionEvaluacion } from '../models/ObservacionEvaluacion';
 import Badge from '../../../shared/components/ui/Badge';
 import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
+import IconButton from '../../../shared/components/ui/IconButton';
 import SidePanel from '../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
@@ -24,6 +25,8 @@ interface Props {
   onReintentar: () => void;
   descripcionVacia: string;
   onCerrar: () => void;
+  onEditar?: (observacion: ObservacionEvaluacion) => void;
+  onEliminar?: (observacion: ObservacionEvaluacion) => void;
 }
 
 export default function ObservacionesEvaluacionPanelBase({
@@ -38,6 +41,8 @@ export default function ObservacionesEvaluacionPanelBase({
   onReintentar,
   descripcionVacia,
   onCerrar,
+  onEditar,
+  onEliminar,
 }: Props) {
   return (
     <SidePanel
@@ -77,8 +82,36 @@ export default function ObservacionesEvaluacionPanelBase({
       ) : (
         <ul className="flex flex-col gap-3">
           {observaciones.map((observacion) => (
-            <li key={observacion.id} className={OBSERVACION}>
-              {observacion.observacion}
+            <li
+              key={observacion.id}
+              className={
+                onEditar || onEliminar ? `${OBSERVACION} flex items-start gap-3` : OBSERVACION
+              }
+            >
+              {onEditar || onEliminar ? (
+                <>
+                  <span className="min-w-0 flex-1">{observacion.observacion}</span>
+                  <div className="flex shrink-0 gap-1">
+                    {onEditar && (
+                      <IconButton
+                        icono={Pencil}
+                        etiqueta="Editar observación"
+                        onClick={() => onEditar(observacion)}
+                      />
+                    )}
+                    {onEliminar && (
+                      <IconButton
+                        icono={Trash2}
+                        tono="peligro"
+                        etiqueta="Eliminar observación"
+                        onClick={() => onEliminar(observacion)}
+                      />
+                    )}
+                  </div>
+                </>
+              ) : (
+                observacion.observacion
+              )}
             </li>
           ))}
         </ul>

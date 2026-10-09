@@ -3,13 +3,15 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import { fichasPerfilService } from '../services/fichasPerfilService';
-import { useRegistrarEvaluacion } from './useRegistrarEvaluacion';
+import { useRemoverObservacionEvaluacion } from './useRemoverObservacionEvaluacion';
 
 vi.mock('../services/fichasPerfilService', () => ({
-  fichasPerfilService: { registrarEvaluacion: vi.fn() },
+  fichasPerfilService: { removerObservacionEvaluacion: vi.fn() },
 }));
 
-const registrarEvaluacion = vi.mocked(fichasPerfilService.registrarEvaluacion);
+const remover = vi.mocked(fichasPerfilService.removerObservacionEvaluacion);
+
+const KEY_OBSERVACIONES = ['fichas-perfil', 'f-1', 'evaluacion', 'ev-1', 'observaciones'];
 
 function crearContexto() {
   const queryClient = new QueryClient({
@@ -22,40 +24,41 @@ function crearContexto() {
   return { Wrapper, invalidar };
 }
 
-describe('useRegistrarEvaluacion', () => {
+describe('useRemoverObservacionEvaluacion', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('llama al service con el fichaPerfilId e invalida la consulta de evaluación al terminar', async () => {
+  it('llama al service con el id e invalida las observaciones de esa evaluación', async () => {
     // Arrange
-    registrarEvaluacion.mockResolvedValue({ id: 'ev-1' });
+    remover.mockResolvedValue(undefined);
     const { Wrapper, invalidar } = crearContexto();
-    const { result } = renderHook(() => useRegistrarEvaluacion('f-1'), { wrapper: Wrapper });
+    const { result } = renderHook(() => useRemoverObservacionEvaluacion('f-1', 'ev-1'), {
+      wrapper: Wrapper,
+    });
 
     // Act
-    act(() => result.current.mutate());
+    act(() => result.current.mutate('o-1'));
 
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(registrarEvaluacion).toHaveBeenCalledWith({ fichaPerfilId: 'f-1' });
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'f-1', 'evaluacion'] });
-    expect(invalidar).toHaveBeenCalledWith({
-      queryKey: ['fichas-perfil', 'f-1', 'representante-estados'],
-    });
+    expect(remover.mock.calls[0][0]).toBe('o-1');
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY_OBSERVACIONES });
   });
 
-  it('expone el error y no invalida cuando el service rechaza', async () => {
+  it('también invalida la lista cuando el service rechaza', async () => {
     // Arrange
-    registrarEvaluacion.mockRejectedValue(new Error('400'));
+    remover.mockRejectedValue(new Error('422'));
     const { Wrapper, invalidar } = crearContexto();
-    const { result } = renderHook(() => useRegistrarEvaluacion('f-1'), { wrapper: Wrapper });
+    const { result } = renderHook(() => useRemoverObservacionEvaluacion('f-1', 'ev-1'), {
+      wrapper: Wrapper,
+    });
 
     // Act
-    act(() => result.current.mutate());
+    act(() => result.current.mutate('o-1'));
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(invalidar).not.toHaveBeenCalled();
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY_OBSERVACIONES });
   });
 });

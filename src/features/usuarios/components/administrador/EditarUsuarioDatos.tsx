@@ -1,12 +1,22 @@
+import type { UseQueryResult } from '@tanstack/react-query';
 import type { FormEventHandler } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import ErrorState from '../../../../shared/components/ui/ErrorState';
 import ErrorSummary, { type ErrorDeCampo } from '../../../../shared/components/ui/ErrorSummary';
 import Field from '../../../../shared/components/ui/Field';
+import Skeleton from '../../../../shared/components/ui/Skeleton';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import type { IdentidadUsuario } from '../../models/IdentidadUsuario';
 import type { EditarUsuarioValues } from '../../utils/editar-usuario-schema';
+import NombresApellidosCampos, {
+  ETIQUETA_APELLIDOS,
+  ETIQUETA_NOMBRES,
+} from './NombresApellidosCampos';
 
 export const ETIQUETAS_CAMPO = {
   identificador: 'Identificador',
-  nombre: 'Nombre completo',
+  nombres: ETIQUETA_NOMBRES,
+  apellidos: ETIQUETA_APELLIDOS,
   email: 'Correo electrónico',
   contacto: 'Contacto',
 } as const;
@@ -15,6 +25,7 @@ const FORMULARIO = 'flex flex-col gap-4';
 const FRASE = 'text-sm text-on-surface-secondary';
 
 interface Props {
+  consulta: UseQueryResult<IdentidadUsuario>;
   formId: string;
   register: UseFormRegister<EditarUsuarioValues>;
   errors: FieldErrors<EditarUsuarioValues>;
@@ -25,6 +36,7 @@ interface Props {
 }
 
 export default function EditarUsuarioDatos({
+  consulta,
   formId,
   register,
   errors,
@@ -33,6 +45,19 @@ export default function EditarUsuarioDatos({
   resumen,
   onIrAlCampo,
 }: Props) {
+  if (consulta.isPending) {
+    return <Skeleton variante="formulario" etiqueta="Cargando datos del usuario" />;
+  }
+  if (consulta.isError) {
+    return (
+      <ErrorState
+        titulo="No se pudieron cargar los datos del usuario"
+        detalle={getApiErrorMessage(consulta.error, 'Inténtalo nuevamente.')}
+        onReintentar={() => consulta.refetch()}
+      />
+    );
+  }
+
   return (
     <form
       id={formId}
@@ -46,9 +71,7 @@ export default function EditarUsuarioDatos({
       <Field etiqueta={ETIQUETAS_CAMPO.identificador} corto error={errors.identificador?.message}>
         {(control) => <input className="field-input" {...control} {...register('identificador')} />}
       </Field>
-      <Field etiqueta={ETIQUETAS_CAMPO.nombre} error={errors.nombre?.message}>
-        {(control) => <input className="field-input" {...control} {...register('nombre')} />}
-      </Field>
+      <NombresApellidosCampos register={register} errors={errors} />
       <Field etiqueta={ETIQUETAS_CAMPO.email} error={errors.email?.message}>
         {(control) => (
           <input className="field-input" type="email" {...control} {...register('email')} />

@@ -1,6 +1,7 @@
 export interface ModificarUsuarioRequest {
   identificador?: string;
-  nombre?: string;
+  nombres?: string;
+  apellidos?: string;
   email?: string;
   contacto?: string;
 }
