@@ -28,6 +28,9 @@ vi.mock('./components/representante/ItemsFichaRepresentantePanel', () => ({
 vi.mock('./components/asesor-ficha/EstadosFichaAsesorPanel', () => ({
   default: () => <div>Panel estados</div>,
 }));
+vi.mock('./components/asesor-ficha/RevisionesFichaAsesorPanel', () => ({
+  default: () => <div>Panel revisiones</div>,
+}));
 vi.mock('./components/representante/EstadosFichaRepresentantePanel', () => ({
   default: () => <div>Panel estados representante</div>,
 }));
@@ -64,6 +67,7 @@ function renderizar(rutaInicial: string) {
       <Route path="/fichas-perfil/:id" element={<DetalleFicha />}>
         <Route index element={<Navigate to="items" replace />} />
         <Route path="items" element={<PestanaFicha pestana="items" />} />
+        <Route path="revisiones" element={<PestanaFicha pestana="revisiones" />} />
         <Route path="estados" element={<PestanaFicha pestana="estados" />} />
         <Route path="evaluaciones" element={<PestanaFicha pestana="evaluaciones" />} />
       </Route>
@@ -117,6 +121,29 @@ describe('DetalleFicha', () => {
     expect(screen.getByText('Panel estados representante')).toBeInTheDocument();
     expect(screen.queryByText('Ítems representante f-1')).not.toBeInTheDocument();
     representante.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.RepresentanteComiteCurriculum);
+
+    // Act
+    const representanteEnRevisiones = renderizar('/fichas-perfil/f-1/revisiones');
+
+    // Assert
+    expect(screen.getByText('Ítems representante f-1')).toBeInTheDocument();
+    expect(screen.queryByText('Panel revisiones')).not.toBeInTheDocument();
+    representanteEnRevisiones.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.AsesorFicha);
+
+    // Act
+    const asesorEnRevisiones = renderizar('/fichas-perfil/f-1/revisiones');
+
+    // Assert
+    expect(screen.getByText('Panel revisiones')).toBeInTheDocument();
+    asesorEnRevisiones.unmount();
 
     // Arrange
     resetAllStores();
@@ -183,7 +210,7 @@ describe('DetalleFicha', () => {
       within(screen.getByRole('navigation', { name: 'Secciones de la ficha' }))
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Ítems', 'Estados']);
+    ).toEqual(['Ítems', 'Revisiones', 'Estados']);
     expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
       'href',
       '/fichas-perfil?q=grado&pagina=2',

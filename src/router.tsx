@@ -55,6 +55,7 @@ export const router = createBrowserRouter([
                 children: [
                   { index: true, element: <Navigate to="items" replace /> },
                   { path: 'items', element: <PestanaFicha pestana="items" /> },
+                  { path: 'revisiones', element: <PestanaFicha pestana="revisiones" /> },
                   { path: 'estados', element: <PestanaFicha pestana="estados" /> },
                   { path: 'evaluaciones', element: <PestanaFicha pestana="evaluaciones" /> },
                 ],

@@ -129,7 +129,7 @@ Layout       principal                                  | lateral (resumen)
   solo lo que depende del id, sin inventar datos.
 - **Panel lateral de resumen:** estado actual con su `Badge`, asesor, equipo (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante lo toma de `integrantes` de «mi ficha» porque su rol no tiene el permiso del endpoint de compañeros, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
   (asesor: «Cambiar estado»; representante: «Iniciar evaluación»; estudiante: ninguna).
-- **Pestañas solo de lo que existe.** Solo las pestañas Revisiones y Evaluaciones del asesor esperan su historia. El
+- **Pestañas solo de lo que existe.** Solo la pestaña Evaluaciones del asesor espera su historia. El
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el
   formulario de ítem, los tipos que aún no se usan como atajos.
 - **Ítems:** tarjetas con el tipo (`Badge neutro`), el contenido y `IconButton` de editar y eliminar (44 px);
@@ -139,7 +139,7 @@ Layout       principal                                  | lateral (resumen)
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
   una línea de tiempo (`LineaTiempoEstados`, un `<ol>`) con «Actual» en el estado más reciente. En el diagrama, la
   pestaña se llama «Historial de estados» solo para el estudiante.
-- **Asesor:** la pestaña «Estados» (subruta `/estados`) muestra el historial de esa ficha con la misma
+- **Asesor:** las pestañas son «Ítems», «Revisiones» (subruta `/revisiones`: la misma tabla de revisiones que ve el estudiante, de solo lectura, con orden por estado) y «Estados». La pestaña «Estados» (subruta `/estados`) muestra el historial de esa ficha con la misma
   `LineaTiempoEstados`, ordenado por fecha en el cliente (el backend solo ordena por título), y debajo «Cambiar
   estado» deshabilitado mientras no exista el endpoint.
 

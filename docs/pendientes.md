@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-05.
+Última revisión: 2026-10-09.
 
 ## Bloqueados por el backend
 
@@ -39,7 +39,7 @@ Client roles a confirmar en el realm desplegado:
 | # | Pendiente | Detalle |
 |---|---|---|
 | F3 | **HU que el backend ya entregó y no tienen frontend** | Revisado el 2026-10-03 contra `origin/develop` del backend (HU-281, consulta de observaciones del representante, entregada el 2026-10-08). **Revisiones y observaciones de ítem:** HU-195, 196, 198, 199, 200, 204 y HU-026 (consulta del estudiante). **Solicitudes:** HU-057, 062, 067, 082 a 084, 087, 091, 092, 097 y 101; HU-081 y HU-082 están mergeadas. **Evaluaciones (jurado):** HU-212, 215, 225, 226, 267 y 268 (HU-225 en el PR #50). **Usuarios sin cliente:** `POST /usuarios/coordinadores/vigentes`, `/asesores/vigentes` y `/representantes-comite/vigentes` |
-| F4 | **Pantallas en construcción** | Pestañas Revisiones y Evaluaciones ocultas para el asesor hasta que exista su historia (las pestañas Revisiones, HU-027, y Evaluaciones, HU-038, del estudiante ya existen); `AdministradorView` de fichas; `Solicitudes` para los roles distintos del estudiante, y los módulos con `disponible: false` en el menú |
+| F4 | **Pantallas en construcción** | Pestaña Evaluaciones oculta para el asesor hasta que exista su historia (su pestaña Revisiones, HU-194, ya existe, igual que las pestañas Revisiones, HU-027, y Evaluaciones, HU-038, del estudiante); `AdministradorView` de fichas; `Solicitudes` para los roles distintos del estudiante, y los módulos con `disponible: false` en el menú |
 | F5 | **Solicitudes** | `EnviarSolicitudNovedadForm` pide el UUID del coordinador a mano, con aviso y sin deshabilitar el envío |
 | F6 | **Revisar el PR #175 del backend** | "Filtro por estado actual en el listado de fichas de perfil", ya mergeado. Puede cambiar cómo filtra HU-160 por estado |
 | F7 | **Prueba funcional manual** | Checklist en `.workspace/pruebas/prueba-funcional-representante.md` (HU-036, 160, 182, 185, 186, 187, 190 y 191). Falta ejecutarla con un usuario que tenga el rol `representante-comite` |
