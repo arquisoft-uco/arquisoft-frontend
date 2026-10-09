@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { z } from 'zod';
 import { LIMITES } from './limites';
 import { MENSAJES_VALIDACION } from './mensajes-validacion';
 import { EMAIL_REGEX, UUID_REGEX } from './expresiones-regulares';
@@ -11,6 +12,7 @@ import {
   textoEntre,
   textoNoVacio,
   soloDigitosEntre,
+  validarParDeNombres,
 } from './validadores-zod';
 
 describe('límites alineados al backend', () => {
@@ -228,5 +230,34 @@ describe('expresiones regulares', () => {
   it('UUID_REGEX distingue UUID válidos e inválidos', () => {
     expect(UUID_REGEX.test('3f2504e0-4f89-41d3-9a0c-0305e82c3301')).toBe(true);
     expect(UUID_REGEX.test('no-es-uuid')).toBe(false);
+  });
+});
+
+describe('validarParDeNombres', () => {
+  const esquema = z
+    .object({ nombres: z.string(), apellidos: z.string() })
+    .superRefine((val, ctx) =>
+      validarParDeNombres(val, ctx, LIMITES.USUARIO_NOMBRE_MIN, LIMITES.USUARIO_NOMBRE_MAX),
+    );
+
+  function errores(nombres: string, apellidos: string) {
+    const resultado = esquema.safeParse({ nombres, apellidos });
+    if (resultado.success) return [];
+    return resultado.error.issues.map((i) => `${i.path.join('.')}:${i.message}`);
+  }
+
+  it('acepta un par válido', () => {
+    expect(esquema.safeParse({ nombres: 'Ana', apellidos: 'Gómez' }).success).toBe(true);
+  });
+
+  it('atribuye la longitud compuesta a ambos campos y el formato al campo culpable', () => {
+    const largo = 'a'.repeat(LIMITES.USUARIO_NOMBRE_MAX);
+    const longitud = MENSAJES_VALIDACION.longitudEntre(
+      LIMITES.USUARIO_NOMBRE_MIN,
+      LIMITES.USUARIO_NOMBRE_MAX,
+    );
+    expect(errores(largo, 'b')).toEqual([`nombres:${longitud}`, `apellidos:${longitud}`]);
+    expect(errores('Ana1', 'Gómez')).toEqual([`nombres:${MENSAJES_VALIDACION.formatoNombre}`]);
+    expect(errores('Ana', 'G0mez')).toEqual([`apellidos:${MENSAJES_VALIDACION.formatoNombre}`]);
   });
 });
