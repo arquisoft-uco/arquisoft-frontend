@@ -1,4 +1,4 @@
-import { MessageSquare, Pencil } from 'lucide-react';
+import { MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import type { ObservacionEvaluacion } from '../models/ObservacionEvaluacion';
 import Badge from '../../../shared/components/ui/Badge';
 import Button from '../../../shared/components/ui/Button';
@@ -26,6 +26,7 @@ interface Props {
   descripcionVacia: string;
   onCerrar: () => void;
   onEditar?: (observacion: ObservacionEvaluacion) => void;
+  onEliminar?: (observacion: ObservacionEvaluacion) => void;
 }
 
 export default function ObservacionesEvaluacionPanelBase({
@@ -41,6 +42,7 @@ export default function ObservacionesEvaluacionPanelBase({
   descripcionVacia,
   onCerrar,
   onEditar,
+  onEliminar,
 }: Props) {
   return (
     <SidePanel
@@ -82,16 +84,30 @@ export default function ObservacionesEvaluacionPanelBase({
           {observaciones.map((observacion) => (
             <li
               key={observacion.id}
-              className={onEditar ? `${OBSERVACION} flex items-start gap-3` : OBSERVACION}
+              className={
+                onEditar || onEliminar ? `${OBSERVACION} flex items-start gap-3` : OBSERVACION
+              }
             >
-              {onEditar ? (
+              {onEditar || onEliminar ? (
                 <>
                   <span className="min-w-0 flex-1">{observacion.observacion}</span>
-                  <IconButton
-                    icono={Pencil}
-                    etiqueta="Editar observación"
-                    onClick={() => onEditar(observacion)}
-                  />
+                  <div className="flex shrink-0 gap-1">
+                    {onEditar && (
+                      <IconButton
+                        icono={Pencil}
+                        etiqueta="Editar observación"
+                        onClick={() => onEditar(observacion)}
+                      />
+                    )}
+                    {onEliminar && (
+                      <IconButton
+                        icono={Trash2}
+                        tono="peligro"
+                        etiqueta="Eliminar observación"
+                        onClick={() => onEliminar(observacion)}
+                      />
+                    )}
+                  </div>
                 </>
               ) : (
                 observacion.observacion
