@@ -45,7 +45,7 @@ describe('CoordinadorDetalleView', () => {
     resetAllStores();
   });
 
-  it('con el state del listado muestra título, estado y asesor, dos pestañas y ninguna acción', async () => {
+  it('con el state del listado muestra título, estado y asesor, tres pestañas y ninguna acción', async () => {
     // Arrange
     const user = userEvent.setup();
     renderizar('/origen');
@@ -63,7 +63,7 @@ describe('CoordinadorDetalleView', () => {
       within(screen.getByRole('navigation', { name: 'Secciones de la ficha' }))
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Ítems', 'Evaluaciones']);
+    ).toEqual(['Ítems', 'Estados', 'Evaluaciones']);
     expect(screen.getByText('Panel evaluaciones')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(

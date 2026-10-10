@@ -39,6 +39,11 @@ vi.mock('./components/coordinador/EvaluacionesFichaPanel', () => ({
     <div>Evaluaciones coordinador {fichaPerfilId}</div>
   ),
 }));
+vi.mock('./components/coordinador/EstadosFichaCoordinadorPanel', () => ({
+  default: ({ fichaPerfilId }: { fichaPerfilId: string }) => (
+    <div>Estados coordinador {fichaPerfilId}</div>
+  ),
+}));
 vi.mock('./components/coordinador/ItemsFichaCoordinadorPanel', () => ({
   default: ({ fichaPerfilId }: { fichaPerfilId: string }) => (
     <div>Ítems coordinador {fichaPerfilId}</div>
@@ -195,7 +200,18 @@ describe('DetalleFicha', () => {
     entrarComo(Rol.Coordinador);
 
     // Act
-    renderizar('/fichas-perfil/f-1/estados');
+    const estados = renderizar('/fichas-perfil/f-1/estados');
+
+    // Assert
+    expect(screen.getByText('Estados coordinador f-1')).toBeInTheDocument();
+    estados.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.Coordinador);
+
+    // Act
+    renderizar('/fichas-perfil/f-1/revisiones');
 
     // Assert
     expect(screen.getByText('Evaluaciones coordinador f-1')).toBeInTheDocument();
