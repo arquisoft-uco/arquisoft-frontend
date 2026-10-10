@@ -14,6 +14,7 @@ export function resumenDeFicha(ficha: FichaPerfil): ResumenFicha {
 export function resumenConAsesor(ficha: FichaPerfil): ResumenFicha {
   return {
     ...resumenDeFicha(ficha),
+    asesorId: ficha.asesorFicha.id,
     asesorNombre: ficha.asesorFicha.nombre,
     asesorEmail: ficha.asesorFicha.email,
   };

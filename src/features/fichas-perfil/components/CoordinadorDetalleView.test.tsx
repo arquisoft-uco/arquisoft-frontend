@@ -3,10 +3,34 @@ import userEvent from '@testing-library/user-event';
 import { Link, Route, Routes } from 'react-router';
 import { render, screen, within } from '../../../test-utils/render';
 import { resetAllStores } from '../../../test-utils/store.utils';
+import { useHistorialEstadosFichaCoordinador } from '../hooks/useHistorialEstadosFichaCoordinador';
 import CoordinadorDetalleView from './CoordinadorDetalleView';
 
 vi.mock('../hooks/useEvaluacionesFichaCoordinador', () => ({
   useEvaluacionesFichaCoordinador: vi.fn(() => ({ data: [], isLoading: false })),
+}));
+vi.mock('../hooks/useHistorialEstadosFichaCoordinador', () => ({
+  useHistorialEstadosFichaCoordinador: vi.fn(),
+}));
+vi.mock('../hooks/useAgregarEstadoAprobacionFichaPerfil', () => ({
+  useAgregarEstadoAprobacionFichaPerfil: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
+vi.mock('./coordinador/EstudiantesVinculadosPanel', () => ({ default: () => null }));
+vi.mock('./coordinador/CambiarAsesorPanel', () => ({
+  default: ({
+    onAsesorCambiado,
+  }: {
+    onAsesorCambiado: (a: { id: string; nombre: string; email: string }) => void;
+  }) => (
+    <button
+      type="button"
+      onClick={() =>
+        onAsesorCambiado({ id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' })
+      }
+    >
+      Simular cambio de asesor
+    </button>
+  ),
 }));
 
 const RESUMEN = {
@@ -14,6 +38,7 @@ const RESUMEN = {
   titulo: 'Sistema de monitoreo',
   estadoId: 'e-1',
   estadoNombre: 'En revisión',
+  asesorId: 'a-1',
   asesorNombre: 'Ana Pérez',
   asesorEmail: 'ana@uco.edu.co',
 };
@@ -24,6 +49,10 @@ function Origen() {
       Abrir
     </Link>
   );
+}
+
+function simularHistorial(data: unknown) {
+  vi.mocked(useHistorialEstadosFichaCoordinador).mockReturnValue({ data } as never);
 }
 
 function renderizar(rutaInicial: string) {
@@ -43,9 +72,10 @@ describe('CoordinadorDetalleView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetAllStores();
+    simularHistorial(undefined);
   });
 
-  it('con el state del listado muestra título, estado y asesor, tres pestañas y ninguna acción', async () => {
+  it('con el state del listado muestra título, estado y asesor, tres pestañas y las acciones de la ficha', async () => {
     // Arrange
     const user = userEvent.setup();
     renderizar('/origen');
@@ -65,7 +95,9 @@ describe('CoordinadorDetalleView', () => {
         .map((l) => l.textContent),
     ).toEqual(['Ítems', 'Estados', 'Evaluaciones']);
     expect(screen.getByText('Panel evaluaciones')).toBeInTheDocument();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cambiar asesor' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Aprobar ficha' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
       'href',
       '/fichas-perfil?q=sis',
@@ -78,5 +110,41 @@ describe('CoordinadorDetalleView', () => {
 
     // Assert
     expect(screen.getByRole('heading', { level: 1, name: 'Ficha de perfil' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ver estudiantes' })).not.toBeInTheDocument();
+  });
+
+  it('ofrece la decisión cuando el historial indica que la ficha está disponible para evaluación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    simularHistorial([
+      {
+        id: 'DISPONIBLE_PARA_EVALUACION',
+        nombre: 'Disponible para evaluación',
+        fechaActualizacion: '2026-10-02T10:00:00',
+      },
+    ]);
+    renderizar('/origen');
+
+    // Act
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Aprobar ficha' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'No aprobar ficha' })).toBeInTheDocument();
+  });
+
+  it('tras cambiar el asesor el panel muestra al asesor nuevo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar('/origen');
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cambiar asesor' }));
+    await user.click(screen.getByRole('button', { name: 'Simular cambio de asesor' }));
+
+    // Assert
+    expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
+    expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument();
   });
 });

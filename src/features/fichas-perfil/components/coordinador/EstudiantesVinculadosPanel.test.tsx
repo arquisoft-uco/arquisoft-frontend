@@ -6,7 +6,6 @@ import { useEstudiantesVinculados } from '../../hooks/useEstudiantesVinculados';
 import { useRemoverEstudiante } from '../../hooks/useRemoverEstudiante';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
-import type { FichaPerfil } from '../../models/FichaPerfil';
 
 vi.mock('../../hooks/useEstudiantesVinculados', () => ({ useEstudiantesVinculados: vi.fn() }));
 vi.mock('../../hooks/useRemoverEstudiante', () => ({ useRemoverEstudiante: vi.fn() }));
@@ -17,12 +16,7 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
-const FICHA: FichaPerfil = {
-  id: 'f-1',
-  tituloProyecto: 'Sistema de monitoreo',
-  asesorFicha: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
-  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
-};
+const FICHA = { id: 'f-1', titulo: 'Sistema de monitoreo' };
 const CARLOS: EstudianteVinculado = {
   idVinculo: 'v-1',
   id: 'e-1',
@@ -75,7 +69,9 @@ describe('EstudiantesVinculadosPanel', () => {
 
   it('muestra el título de la ficha, los estudiantes vinculados y el formulario para asignar', () => {
     // Act
-    render(<EstudiantesVinculadosPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(
+      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+    );
 
     // Assert
     expect(screen.getByRole('dialog', { name: 'Estudiantes de la ficha' })).toBeInTheDocument();
@@ -91,7 +87,9 @@ describe('EstudiantesVinculadosPanel', () => {
     mockConsulta({ data: undefined, isLoading: true });
 
     // Act
-    render(<EstudiantesVinculadosPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(
+      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+    );
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Cargando estudiantes vinculados…');
@@ -102,7 +100,9 @@ describe('EstudiantesVinculadosPanel', () => {
     const user = userEvent.setup();
     const refetch = vi.fn();
     mockConsulta({ data: undefined, isError: true, refetch });
-    render(<EstudiantesVinculadosPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(
+      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+    );
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
@@ -117,7 +117,9 @@ describe('EstudiantesVinculadosPanel', () => {
     mockConsulta({ data: [] });
 
     // Act
-    render(<EstudiantesVinculadosPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(
+      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+    );
 
     // Assert
     expect(screen.getByText('Aún no hay estudiantes vinculados')).toBeInTheDocument();
@@ -131,7 +133,9 @@ describe('EstudiantesVinculadosPanel', () => {
     const mutate = mockQuitar(
       vi.fn((_id: string, opciones?: { onSuccess?: () => void }) => opciones?.onSuccess?.()),
     );
-    render(<EstudiantesVinculadosPanel ficha={FICHA} onCerrar={onCerrar} />);
+    render(
+      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={onCerrar} />,
+    );
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Quitar a Carlos Ruiz de la ficha' }));
@@ -160,7 +164,9 @@ describe('EstudiantesVinculadosPanel', () => {
         opciones?.onError?.(new Error('fallo')),
       ),
     );
-    render(<EstudiantesVinculadosPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(
+      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+    );
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Quitar a Carlos Ruiz de la ficha' }));
@@ -180,7 +186,9 @@ describe('EstudiantesVinculadosPanel', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    render(<EstudiantesVinculadosPanel ficha={FICHA} onCerrar={onCerrar} />);
+    render(
+      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={onCerrar} />,
+    );
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));

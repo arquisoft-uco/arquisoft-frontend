@@ -31,6 +31,7 @@ function leerNavegacion(state: unknown, fichaId: string): NavegacionDetalleFicha
       estadoId: cadenaOpcional(bruto.estadoId),
       estadoNombre: cadenaOpcional(bruto.estadoNombre),
       fechaActualizacion: cadenaOpcional(bruto.fechaActualizacion),
+      asesorId: cadenaOpcional(bruto.asesorId),
       asesorNombre: cadenaOpcional(bruto.asesorNombre),
       asesorEmail: cadenaOpcional(bruto.asesorEmail),
     },
