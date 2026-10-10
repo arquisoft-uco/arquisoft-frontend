@@ -9,8 +9,6 @@ import { DISPOSICION } from '../disposicion';
 import DecisionFichaDialogo, { type Decision } from './DecisionFichaDialogo';
 import ResumenEvaluacionesDecision from './ResumenEvaluacionesDecision';
 
-const APOYO = 'text-sm text-on-surface-secondary';
-const ETIQUETA = 'text-[13px] font-medium text-on-surface-secondary';
 const GRUPO =
   'flex flex-col gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-primary';
 
@@ -21,7 +19,6 @@ interface Props {
 export default function DecisionFichaPanel({ fichaPerfilId }: Props) {
   const base = useId();
   const idTitulo = `${base}-titulo`;
-  const idGrupo = `${base}-grupo`;
   const idError = `${base}-error`;
   const grupo = useRef<HTMLDivElement>(null);
   const [elegida, setElegida] = useState<Decision | null>(null);
@@ -62,9 +59,6 @@ export default function DecisionFichaPanel({ fichaPerfilId }: Props) {
       <h2 id={idTitulo} className={DISPOSICION.tituloLateral}>
         Decisión sobre la ficha
       </h2>
-      <p className={APOYO}>
-        Revisa las evaluaciones y decide si la ficha avanza. No se puede deshacer.
-      </p>
 
       {isLoading ? (
         <Skeleton variante="lineas" etiqueta="Cargando evaluaciones…" />
@@ -72,13 +66,10 @@ export default function DecisionFichaPanel({ fichaPerfilId }: Props) {
         <ResumenEvaluacionesDecision evaluaciones={data ?? []} />
       )}
 
-      <span id={idGrupo} className={ETIQUETA}>
-        Tu decisión
-      </span>
       <div
         ref={grupo}
         role="radiogroup"
-        aria-labelledby={idGrupo}
+        aria-labelledby={idTitulo}
         aria-describedby={sinElegir ? idError : undefined}
         tabIndex={-1}
         className={GRUPO}
