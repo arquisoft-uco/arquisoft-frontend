@@ -20,7 +20,41 @@ const BASE = {
   descripcionVacia: 'Descripción de vacío de prueba.',
 };
 
+const FILA = {
+  revision: {
+    id: 'r-1',
+    itemId: 'i-1',
+    estadoId: 'NUEVA',
+    estadoNombre: 'Nueva',
+    fechaCreacion: '2026-09-01T10:00:00Z',
+  },
+  item: {
+    id: 'i-1',
+    fichaPerfilId: 'f-1',
+    tipoItem: { id: 't-1', nombre: 'Objetivo general' },
+    contenido: 'Medir el impacto',
+  },
+};
+
 describe('RevisionesFichaTabla', () => {
+  it('con la prop acciones pinta lo que devuelve por cada fila y sin ella no pinta botones', () => {
+    // Arrange
+    const acciones = vi.fn(() => <button type="button">Acción de prueba</button>);
+    const props = { ...BASE, filas: [FILA], totalElements: 1, totalPages: 1 };
+    const { unmount } = render(<RevisionesFichaTabla {...props} acciones={acciones} />);
+
+    // Assert
+    expect(acciones).toHaveBeenCalledWith(FILA);
+    expect(screen.getAllByRole('button', { name: 'Acción de prueba' }).length).toBeGreaterThan(0);
+
+    // Act
+    unmount();
+    render(<RevisionesFichaTabla {...props} />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Acción de prueba' })).not.toBeInTheDocument();
+  });
+
   it('con la consulta vacía y ítems presentes muestra el título y la descripción recibidos', () => {
     // Act
     render(<RevisionesFichaTabla {...BASE} />);

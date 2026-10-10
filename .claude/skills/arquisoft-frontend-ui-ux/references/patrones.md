@@ -135,11 +135,11 @@ Layout       principal                                  | lateral (resumen)
 - **Ítems:** tarjetas con el tipo (`Badge neutro`), el contenido y `IconButton` de editar y eliminar (44 px);
   «Agregar ítem» abre un `SidePanel` (formulario corto). Eliminar pide confirmación («No se puede deshacer»). En el asesor, cada tarjeta lleva «Agregar revisión» (`IconButton`) o, si el ítem ya tiene revisión, la insignia con su estado.
 - **El estudiante** ve su ficha en la raíz del módulo (`EstudianteView`, sin ruta propia: las pestañas «Ítems», «Revisiones»,
-  «Historial de estados» y «Evaluaciones» son estado de React). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
+  «Historial de estados» y «Evaluaciones» son estado de React; en «Revisiones», cada fila en estado «Nueva» lleva «Marcar como visualizada» (`IconButton`) y las demás solo muestran su estado). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
   una línea de tiempo (`LineaTiempoEstados`, un `<ol>`) con «Actual» en el estado más reciente. En el diagrama, la
   pestaña se llama «Historial de estados» solo para el estudiante.
-- **Asesor:** las pestañas son «Ítems», «Revisiones» (subruta `/revisiones`: la misma tabla de revisiones que ve el estudiante, de solo lectura, con orden por estado) y «Estados». La pestaña «Estados» (subruta `/estados`) muestra el historial de esa ficha con la misma
+- **Asesor:** las pestañas son «Ítems», «Revisiones» (subruta `/revisiones`: la misma tabla de revisiones que ve el estudiante, de solo lectura para el asesor, con orden por estado) y «Estados». La pestaña «Estados» (subruta `/estados`) muestra el historial de esa ficha con la misma
   `LineaTiempoEstados`, ordenado por fecha en el cliente (el backend solo ordena por título), y debajo «Cambiar
   estado» deshabilitado mientras no exista el endpoint.
 
