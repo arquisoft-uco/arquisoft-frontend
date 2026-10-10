@@ -31,6 +31,7 @@ function renderizar(rutaInicial: string) {
     <Routes>
       <Route path="/origen" element={<Origen />} />
       <Route path="/fichas-perfil/:id" element={<CoordinadorDetalleView />}>
+        <Route path="items" element={<div>Panel ítems</div>} />
         <Route path="evaluaciones" element={<div>Panel evaluaciones</div>} />
       </Route>
     </Routes>,
@@ -44,7 +45,7 @@ describe('CoordinadorDetalleView', () => {
     resetAllStores();
   });
 
-  it('con el state del listado muestra título, estado y asesor, una sola pestaña y ninguna acción', async () => {
+  it('con el state del listado muestra título, estado y asesor, dos pestañas y ninguna acción', async () => {
     // Arrange
     const user = userEvent.setup();
     renderizar('/origen');
@@ -62,7 +63,7 @@ describe('CoordinadorDetalleView', () => {
       within(screen.getByRole('navigation', { name: 'Secciones de la ficha' }))
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Evaluaciones']);
+    ).toEqual(['Ítems', 'Evaluaciones']);
     expect(screen.getByText('Panel evaluaciones')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
