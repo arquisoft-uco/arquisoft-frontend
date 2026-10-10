@@ -2,6 +2,7 @@ import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEstadosFicha } from '../../hooks/useEstadosFicha';
 import { useFichasPerfilCoordinador } from '../../hooks/useFichasPerfilCoordinador';
 import FichasPerfilTable from './FichasPerfilTable';
 
@@ -15,10 +16,11 @@ function textoResumen(total?: number): string {
 
 export default function ConsultarFichasPerfilCoordinador() {
   const listado = useFichasPerfilCoordinador();
+  const estados = useEstadosFicha();
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const fichas = data?.content ?? [];
-  const hayFiltros = listado.texto.trim() !== '';
+  const hayFiltros = listado.texto.trim() !== '' || listado.estadoIds.length > 0;
   const recargandoSinFilas = isPlaceholderData && fichas.length === 0 && !hayFiltros;
 
   return (
@@ -30,6 +32,17 @@ export default function ConsultarFichasPerfilCoordinador() {
           etiqueta: 'Buscar fichas',
           placeholder: 'Buscar por título del proyecto',
         }}
+        chips={
+          estados.data
+            ? {
+                etiqueta: 'Estado',
+                opciones: estados.data.map(({ id, nombre }) => ({ id, etiqueta: nombre })),
+                seleccionados: listado.estadoIds,
+                onAlternar: listado.toggleEstado,
+                onTodos: listado.limpiarEstados,
+              }
+            : undefined
+        }
         aplicados={[]}
         onLimpiar={listado.limpiarFiltros}
       />

@@ -7,11 +7,18 @@ import {
   usarTemporizadoresFalsos,
 } from '../../../../test-utils/temporizadores';
 import ConsultarFichasPerfilCoordinador from './ConsultarFichasPerfilCoordinador';
+import { useEstadosFicha } from '../../hooks/useEstadosFicha';
 import { useFichasPerfilCoordinador } from '../../hooks/useFichasPerfilCoordinador';
 import type { Page } from '../../../../shared/models/api-response';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 
 vi.mock('../../hooks/useFichasPerfilCoordinador', () => ({ useFichasPerfilCoordinador: vi.fn() }));
+vi.mock('../../hooks/useEstadosFicha', () => ({ useEstadosFicha: vi.fn() }));
+
+const ESTADOS = [
+  { id: 'DISPONIBLE_PARA_EVALUACION', nombre: 'Disponible para evaluación', descripcion: '' },
+  { id: 'APROBADA', nombre: 'Aprobada', descripcion: '' },
+];
 
 const FICHA: FichaPerfil = {
   id: 'f-1',
@@ -50,6 +57,9 @@ function crearHookMock(parcial: Partial<ReturnType<typeof useFichasPerfilCoordin
     goToPage: vi.fn(),
     texto: '',
     setTexto: vi.fn(),
+    estadoIds: [],
+    toggleEstado: vi.fn(),
+    limpiarEstados: vi.fn(),
     ordenCampo: 'tituloProyecto',
     ordenDireccion: 'ASC',
     setOrden: vi.fn(),
@@ -71,6 +81,7 @@ function tabla() {
 describe('ConsultarFichasPerfilCoordinador', () => {
   beforeEach(() => {
     vi.mocked(useFichasPerfilCoordinador).mockReset();
+    vi.mocked(useEstadosFicha).mockReturnValue({ data: ESTADOS } as never);
   });
 
   afterEach(() => {
@@ -185,5 +196,46 @@ describe('ConsultarFichasPerfilCoordinador', () => {
 
     // Assert
     expect(hook.setOrden).toHaveBeenCalledWith('asesorNombre', 'ASC');
+  });
+
+  it('muestra los estados del catálogo como chips y alterna el elegido', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([FICHA]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Disponible para evaluación' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Aprobada' })).toBeInTheDocument();
+    expect(hook.toggleEstado).toHaveBeenCalledWith('DISPONIBLE_PARA_EVALUACION');
+  });
+
+  it('sin coincidencias con un estado elegido "Limpiar filtros" los quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([]), estadoIds: ['APROBADA'] });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(hook.limpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('si el catálogo de estados no carga no hay chips y el listado se ve', () => {
+    // Arrange
+    vi.mocked(useEstadosFicha).mockReturnValue({ data: undefined, isError: true } as never);
+    mockHook({ data: crearPagina([FICHA]) });
+
+    // Act
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Aprobada' })).not.toBeInTheDocument();
+    expect(tabla().getByText('Sistema de monitoreo')).toBeInTheDocument();
   });
 });

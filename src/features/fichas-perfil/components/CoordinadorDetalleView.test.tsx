@@ -6,14 +6,11 @@ import { resetAllStores } from '../../../test-utils/store.utils';
 import { useHistorialEstadosFichaCoordinador } from '../hooks/useHistorialEstadosFichaCoordinador';
 import CoordinadorDetalleView from './CoordinadorDetalleView';
 
-vi.mock('../hooks/useEvaluacionesFichaCoordinador', () => ({
-  useEvaluacionesFichaCoordinador: vi.fn(() => ({ data: [], isLoading: false })),
-}));
 vi.mock('../hooks/useHistorialEstadosFichaCoordinador', () => ({
   useHistorialEstadosFichaCoordinador: vi.fn(),
 }));
-vi.mock('../hooks/useAgregarEstadoAprobacionFichaPerfil', () => ({
-  useAgregarEstadoAprobacionFichaPerfil: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+vi.mock('./coordinador/DecisionFichaPanel', () => ({
+  default: () => <section aria-label="Decisión sobre la ficha" />,
 }));
 vi.mock('./coordinador/EstudiantesVinculadosPanel', () => ({ default: () => null }));
 vi.mock('./coordinador/CambiarAsesorPanel', () => ({
@@ -97,7 +94,9 @@ describe('CoordinadorDetalleView', () => {
     expect(screen.getByText('Panel evaluaciones')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cambiar asesor' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Aprobar ficha' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Decisión sobre la ficha' }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
       'href',
       '/fichas-perfil?q=sis',
@@ -113,7 +112,7 @@ describe('CoordinadorDetalleView', () => {
     expect(screen.queryByRole('button', { name: 'Ver estudiantes' })).not.toBeInTheDocument();
   });
 
-  it('ofrece la decisión cuando el historial indica que la ficha está disponible para evaluación', async () => {
+  it('muestra la tarjeta de decisión aparte de las acciones cuando el historial indica que la ficha está disponible para evaluación', async () => {
     // Arrange
     const user = userEvent.setup();
     simularHistorial([
@@ -129,8 +128,9 @@ describe('CoordinadorDetalleView', () => {
     await user.click(screen.getByRole('link', { name: 'Abrir' }));
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Aprobar ficha' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'No aprobar ficha' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Decisión sobre la ficha' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cambiar asesor' })).toBeInTheDocument();
   });
 
   it('tras cambiar el asesor el panel muestra al asesor nuevo', async () => {

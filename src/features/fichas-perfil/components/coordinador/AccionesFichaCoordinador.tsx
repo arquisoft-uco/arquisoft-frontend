@@ -3,9 +3,7 @@ import { UserCog, Users } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import type { Asesor } from '../../../../shared/models/Asesor';
 import type { ResumenFicha } from '../../models/ResumenFicha';
-import { admiteDecision } from '../../utils/decision-ficha';
 import CambiarAsesorPanel from './CambiarAsesorPanel';
-import DecidirFichaAcciones from './DecidirFichaAcciones';
 import EstudiantesVinculadosPanel from './EstudiantesVinculadosPanel';
 
 interface Props {
@@ -22,7 +20,6 @@ export default function AccionesFichaCoordinador({ resumen, onAsesorCambiado }: 
 
   return (
     <>
-      {admiteDecision(resumen.estadoId) && <DecidirFichaAcciones fichaPerfilId={resumen.id} />}
       <Button variante="secundario" icono={Users} onClick={() => setPanel('estudiantes')}>
         Ver estudiantes
       </Button>

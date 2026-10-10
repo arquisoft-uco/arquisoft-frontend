@@ -1,6 +1,8 @@
 import { Navigate, useParams } from 'react-router';
 import { useResumenFichaCoordinador } from '../hooks/useResumenFichaCoordinador';
+import { admiteDecision } from '../utils/decision-ficha';
 import AccionesFichaCoordinador from './coordinador/AccionesFichaCoordinador';
+import DecisionFichaPanel from './coordinador/DecisionFichaPanel';
 import DetalleFichaEstructura from './DetalleFichaEstructura';
 
 export default function CoordinadorDetalleView() {
@@ -20,6 +22,11 @@ export default function CoordinadorDetalleView() {
       resumen={resumen}
       search={search}
       pestanas={pestanas}
+      decision={
+        resumen && admiteDecision(resumen.estadoId) ? (
+          <DecisionFichaPanel fichaPerfilId={resumen.id} />
+        ) : undefined
+      }
       accion={
         resumen ? (
           <AccionesFichaCoordinador resumen={resumen} onAsesorCambiado={registrarAsesorNuevo} />

@@ -5,7 +5,6 @@ import type { Asesor } from '../../../../shared/models/Asesor';
 import type { ResumenFicha } from '../../models/ResumenFicha';
 import AccionesFichaCoordinador from './AccionesFichaCoordinador';
 
-vi.mock('./DecidirFichaAcciones', () => ({ default: () => <p>Bloque de decisión</p> }));
 vi.mock('./EstudiantesVinculadosPanel', () => ({
   default: ({ fichaId, onCerrar }: { fichaId: string; onCerrar: () => void }) => (
     <div role="dialog" aria-label="Panel de estudiantes">
@@ -46,29 +45,6 @@ const RESUMEN: ResumenFicha = {
 };
 
 describe('AccionesFichaCoordinador', () => {
-  it('incluye la decisión solo cuando la ficha está disponible para evaluación', () => {
-    // Arrange
-    const { rerender } = render(
-      <AccionesFichaCoordinador resumen={RESUMEN} onAsesorCambiado={vi.fn()} />,
-    );
-
-    // Assert
-    expect(screen.getByText('Bloque de decisión')).toBeInTheDocument();
-
-    // Act
-    rerender(
-      <AccionesFichaCoordinador
-        resumen={{ ...RESUMEN, estadoId: 'APROBADA' }}
-        onAsesorCambiado={vi.fn()}
-      />,
-    );
-
-    // Assert
-    expect(screen.queryByText('Bloque de decisión')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cambiar asesor' })).toBeInTheDocument();
-  });
-
   it('"Ver estudiantes" abre el panel de esa ficha y se puede cerrar', async () => {
     // Arrange
     const user = userEvent.setup();

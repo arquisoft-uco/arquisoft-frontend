@@ -7,7 +7,7 @@ import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import { fichasPerfilService } from '../services/fichasPerfilService';
-import { construirFiltroTitulo, useFichasPerfilCoordinador } from './useFichasPerfilCoordinador';
+import { construirFiltros, useFichasPerfilCoordinador } from './useFichasPerfilCoordinador';
 
 vi.mock('../services/fichasPerfilService', () => ({
   fichasPerfilService: {
@@ -56,15 +56,30 @@ async function montar() {
   return result;
 }
 
-describe('construirFiltroTitulo', () => {
-  it('devuelve undefined con texto vacío y un predicado CONTIENE recortado con texto', () => {
-    // Act / Assert
-    expect(construirFiltroTitulo('   ')).toBeUndefined();
-    expect(construirFiltroTitulo('  monitoreo ')).toEqual({
+describe('construirFiltros', () => {
+  it('combina el título y los estados según lo que haya', () => {
+    // Arrange
+    const titulo = {
       tipo: 'PREDICADO',
       campo: 'tituloProyecto',
       operador: 'CONTIENE',
       valor: 'monitoreo',
+    };
+    const estados = {
+      tipo: 'PREDICADO_MULTIVALOR',
+      campo: 'estadoFicha',
+      operador: 'IN',
+      valores: ['st-1', 'st-2'],
+    };
+
+    // Act / Assert
+    expect(construirFiltros('   ', [])).toBeUndefined();
+    expect(construirFiltros('  monitoreo ', [])).toEqual(titulo);
+    expect(construirFiltros('', ['st-1', 'st-2'])).toEqual(estados);
+    expect(construirFiltros('monitoreo', ['st-1', 'st-2'])).toEqual({
+      tipo: 'GRUPO',
+      conector: 'AND',
+      nodos: [titulo, estados],
     });
   });
 });
@@ -173,6 +188,44 @@ describe('useFichasPerfilCoordinador', () => {
     expect(result.current.texto).toBe('');
   });
 
+  it('alternar un estado envía el filtro estadoFicha IN en la página 0 y limpiarFiltros lo quita junto al texto', async () => {
+    // Arrange
+    const result = await montar();
+    act(() => result.current.goToPage(1));
+    await waitFor(() => expect(result.current.page).toBe(1));
+
+    // Act
+    act(() => result.current.toggleEstado('st-1'));
+    act(() => result.current.toggleEstado('st-2'));
+
+    // Assert
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith({
+        pagina: 0,
+        tamanio: 10,
+        ordenamiento: ['tituloProyecto:ASC'],
+        filtros: {
+          tipo: 'PREDICADO_MULTIVALOR',
+          campo: 'estadoFicha',
+          operador: 'IN',
+          valores: ['st-1', 'st-2'],
+        },
+      }),
+    );
+    expect(result.current.estadoIds).toEqual(['st-1', 'st-2']);
+
+    // Act
+    act(() => result.current.setTexto('monitoreo'));
+    act(() => result.current.limpiarFiltros());
+
+    // Assert
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined })),
+    );
+    expect(result.current.estadoIds).toEqual([]);
+    expect(result.current.texto).toBe('');
+  });
+
   it('expone el error cuando el service falla', async () => {
     // Arrange
     consultar.mockRejectedValue(new Error('fallo de red'));
@@ -200,7 +253,7 @@ describe('useFichasPerfilCoordinador con la URL como estado', () => {
 
   it('traduce la URL a lo que recibe el service: búsqueda, orden y página 1-based', async () => {
     // Act
-    const { result } = montarEn('/?q=monitoreo&orden=asesorNombre:DESC&pagina=2');
+    const { result } = montarEn('/?q=monitoreo&estado=st-1&orden=asesorNombre:DESC&pagina=2');
     await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
 
     // Assert
@@ -208,8 +261,9 @@ describe('useFichasPerfilCoordinador con la URL como estado', () => {
       pagina: 1,
       tamanio: 10,
       ordenamiento: ['asesorNombre:DESC'],
-      filtros: expect.objectContaining({ valor: 'monitoreo' }),
+      filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'AND' }),
     });
+    expect(result.current.hook.estadoIds).toEqual(['st-1']);
     expect(result.current.hook.page).toBe(1);
   });
 
