@@ -12,6 +12,7 @@ const TARJETA =
 const CONTENIDO = 'w-full min-w-0 text-sm break-words text-on-surface';
 const CON_ACCIONES = 'flex w-full items-start justify-between gap-2';
 const TEXTOS = 'flex min-w-0 flex-1 flex-col items-start gap-2';
+const INSIGNIAS = 'flex flex-wrap items-center gap-2';
 const ACCIONES = 'flex shrink-0 gap-1';
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
   error: boolean;
   onReintentar: () => void;
   acciones?: (item: Item) => ReactNode;
+  insignias?: (item: Item) => ReactNode;
   vacio?: ReactNode;
 }
 
@@ -29,6 +31,7 @@ export default function ItemsFichaLista({
   error,
   onReintentar,
   acciones,
+  insignias,
   vacio,
 }: Props) {
   if (error) {
@@ -49,24 +52,30 @@ export default function ItemsFichaLista({
 
   return (
     <ul aria-label="Ítems de la ficha" className={LISTA}>
-      {items.map((item) => (
-        <li key={item.id} className={TARJETA}>
-          {acciones ? (
-            <div className={CON_ACCIONES}>
-              <div className={TEXTOS}>
-                <Badge variante="neutro">{item.tipoItem.nombre}</Badge>
-                <p className={CONTENIDO}>{item.contenido}</p>
-              </div>
-              <div className={ACCIONES}>{acciones(item)}</div>
-            </div>
-          ) : (
-            <>
+      {items.map((item) => {
+        const extras = insignias?.(item);
+        const textos = (
+          <>
+            <div className={INSIGNIAS}>
               <Badge variante="neutro">{item.tipoItem.nombre}</Badge>
-              <p className={CONTENIDO}>{item.contenido}</p>
-            </>
-          )}
-        </li>
-      ))}
+              {extras}
+            </div>
+            <p className={CONTENIDO}>{item.contenido}</p>
+          </>
+        );
+        return (
+          <li key={item.id} className={TARJETA}>
+            {acciones ? (
+              <div className={CON_ACCIONES}>
+                <div className={TEXTOS}>{textos}</div>
+                <div className={ACCIONES}>{acciones(item)}</div>
+              </div>
+            ) : (
+              textos
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
