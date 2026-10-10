@@ -8,7 +8,6 @@ import { useAsesoresFichaVigentes } from '../../../../shared/hooks/useAsesoresFi
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Asesor } from '../../../../shared/models/Asesor';
 import type { ApiError } from '../../../../shared/models/api-response';
-import type { FichaPerfil } from '../../models/FichaPerfil';
 
 vi.mock('../../services/fichasPerfilService', () => ({
   fichasPerfilService: { cambiarAsesor: vi.fn() },
@@ -25,12 +24,7 @@ const useAsesoresMock = vi.mocked(useAsesoresFichaVigentes);
 
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
 const LUIS: Asesor = { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' };
-const FICHA: FichaPerfil = {
-  id: 'f-1',
-  tituloProyecto: 'Sistema de monitoreo',
-  asesorFicha: ANA,
-  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
-};
+const FICHA = { id: 'f-1', titulo: 'Sistema de monitoreo' };
 
 type ResultadoAsesores = ReturnType<typeof useAsesoresFichaVigentes>;
 
@@ -53,9 +47,17 @@ function crearErrorApi(cuerpo: ApiError) {
   });
 }
 
-function renderizar(onCerrar = vi.fn()) {
-  render(<CambiarAsesorPanel ficha={FICHA} onCerrar={onCerrar} />);
-  return { onCerrar };
+function renderizar(onCerrar = vi.fn(), onAsesorCambiado = vi.fn()) {
+  render(
+    <CambiarAsesorPanel
+      fichaId={FICHA.id}
+      titulo={FICHA.titulo}
+      asesorActual={ANA}
+      onCerrar={onCerrar}
+      onAsesorCambiado={onAsesorCambiado}
+    />,
+  );
+  return { onCerrar, onAsesorCambiado };
 }
 
 async function elegirALuis(user: ReturnType<typeof userEvent.setup>) {
@@ -108,7 +110,7 @@ describe('CambiarAsesorPanel', () => {
   it('al confirmar envía el cambio, notifica el éxito y cierra el panel', async () => {
     // Arrange
     const user = userEvent.setup();
-    const { onCerrar } = renderizar();
+    const { onCerrar, onAsesorCambiado } = renderizar();
     await elegirALuis(user);
     await user.click(screen.getByRole('button', { name: 'Cambiar asesor' }));
 
@@ -118,6 +120,7 @@ describe('CambiarAsesorPanel', () => {
     // Assert
     await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
     expect(cambiarAsesor).toHaveBeenCalledWith({ idFicha: 'f-1', idAsesorFicha: 'a-2' });
+    expect(onAsesorCambiado).toHaveBeenCalledWith(LUIS);
     expect(toast.success).toHaveBeenCalledWith('Asesor actualizado', expect.any(String));
   });
 

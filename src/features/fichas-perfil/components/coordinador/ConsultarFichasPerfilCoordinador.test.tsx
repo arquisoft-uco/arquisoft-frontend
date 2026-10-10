@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { Route, Routes, useLocation } from 'react-router';
 import { render, screen, within } from '../../../../test-utils/render';
 import {
   avanzar,
@@ -8,28 +7,18 @@ import {
   usarTemporizadoresFalsos,
 } from '../../../../test-utils/temporizadores';
 import ConsultarFichasPerfilCoordinador from './ConsultarFichasPerfilCoordinador';
+import { useEstadosFicha } from '../../hooks/useEstadosFicha';
 import { useFichasPerfilCoordinador } from '../../hooks/useFichasPerfilCoordinador';
 import type { Page } from '../../../../shared/models/api-response';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 
 vi.mock('../../hooks/useFichasPerfilCoordinador', () => ({ useFichasPerfilCoordinador: vi.fn() }));
-vi.mock('./EstudiantesVinculadosPanel', () => ({
-  default: ({ ficha, onCerrar }: { ficha: FichaPerfil; onCerrar: () => void }) => (
-    <div role="dialog" aria-label="Panel de estudiantes">
-      <p>Estudiantes de {ficha.tituloProyecto}</p>
-      <button type="button" onClick={onCerrar}>
-        Cerrar estudiantes
-      </button>
-    </div>
-  ),
-}));
-vi.mock('./CambiarAsesorPanel', () => ({
-  default: ({ ficha }: { ficha: FichaPerfil }) => (
-    <div role="dialog" aria-label="Panel de asesor">
-      <p>Asesor de {ficha.tituloProyecto}</p>
-    </div>
-  ),
-}));
+vi.mock('../../hooks/useEstadosFicha', () => ({ useEstadosFicha: vi.fn() }));
+
+const ESTADOS = [
+  { id: 'DISPONIBLE_PARA_EVALUACION', nombre: 'Disponible para evaluación', descripcion: '' },
+  { id: 'APROBADA', nombre: 'Aprobada', descripcion: '' },
+];
 
 const FICHA: FichaPerfil = {
   id: 'f-1',
@@ -68,6 +57,9 @@ function crearHookMock(parcial: Partial<ReturnType<typeof useFichasPerfilCoordin
     goToPage: vi.fn(),
     texto: '',
     setTexto: vi.fn(),
+    estadoIds: [],
+    toggleEstado: vi.fn(),
+    limpiarEstados: vi.fn(),
     ordenCampo: 'tituloProyecto',
     ordenDireccion: 'ASC',
     setOrden: vi.fn(),
@@ -82,16 +74,6 @@ function mockHook(parcial: Partial<ReturnType<typeof useFichasPerfilCoordinador>
   return hook;
 }
 
-function DestinoDetalle() {
-  const { pathname, state } = useLocation();
-  return (
-    <>
-      <p>{pathname}</p>
-      <output aria-label="Estado de navegación">{JSON.stringify(state)}</output>
-    </>
-  );
-}
-
 function tabla() {
   return within(screen.getByRole('table', { name: 'Fichas de perfil' }));
 }
@@ -99,6 +81,7 @@ function tabla() {
 describe('ConsultarFichasPerfilCoordinador', () => {
   beforeEach(() => {
     vi.mocked(useFichasPerfilCoordinador).mockReset();
+    vi.mocked(useEstadosFicha).mockReturnValue({ data: ESTADOS } as never);
   });
 
   afterEach(() => {
@@ -184,81 +167,6 @@ describe('ConsultarFichasPerfilCoordinador', () => {
     expect(hook.limpiarFiltros).toHaveBeenCalledTimes(1);
   });
 
-  it('"Ver estudiantes" abre el panel de esa ficha sobre la lista y se puede cerrar', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasPerfilCoordinador />);
-
-    // Act
-    await user.click(
-      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Ver estudiantes' }));
-
-    // Assert
-    expect(screen.getByText('Estudiantes de Sistema de monitoreo')).toBeInTheDocument();
-    expect(screen.getByRole('table', { name: 'Fichas de perfil' })).toBeInTheDocument();
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Cerrar estudiantes' }));
-
-    // Assert
-    expect(screen.queryByRole('dialog', { name: 'Panel de estudiantes' })).not.toBeInTheDocument();
-  });
-
-  it('"Ver evaluaciones" navega al detalle de esa ficha con su resumen y la búsqueda del listado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    mockHook({ data: crearPagina([FICHA]) });
-    render(
-      <Routes>
-        <Route path="/fichas-perfil" element={<ConsultarFichasPerfilCoordinador />} />
-        <Route path="/fichas-perfil/:id/evaluaciones" element={<DestinoDetalle />} />
-      </Routes>,
-      { initialPath: '/fichas-perfil?q=sis' },
-    );
-
-    // Act
-    await user.click(
-      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Ver evaluaciones' }));
-
-    // Assert
-    expect(screen.getByText('/fichas-perfil/f-1/evaluaciones')).toBeInTheDocument();
-    expect(
-      JSON.parse(screen.getByRole('status', { name: 'Estado de navegación' }).textContent ?? ''),
-    ).toEqual({
-      resumen: {
-        id: 'f-1',
-        titulo: 'Sistema de monitoreo',
-        estadoId: 'e-1',
-        estadoNombre: 'En revisión',
-        fechaActualizacion: '2026-10-01T15:30:00',
-        asesorNombre: 'Ana Pérez',
-        asesorEmail: 'ana@uco.edu.co',
-      },
-      search: '?q=sis',
-    });
-  });
-
-  it('"Cambiar asesor" abre el panel del asesor de esa ficha', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasPerfilCoordinador />);
-
-    // Act
-    await user.click(
-      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Cambiar asesor' }));
-
-    // Assert
-    expect(screen.getByText('Asesor de Sistema de monitoreo')).toBeInTheDocument();
-  });
-
   it('el paginador navega a la página siguiente y a la última', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -288,5 +196,46 @@ describe('ConsultarFichasPerfilCoordinador', () => {
 
     // Assert
     expect(hook.setOrden).toHaveBeenCalledWith('asesorNombre', 'ASC');
+  });
+
+  it('muestra los estados del catálogo como chips y alterna el elegido', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([FICHA]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Disponible para evaluación' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Aprobada' })).toBeInTheDocument();
+    expect(hook.toggleEstado).toHaveBeenCalledWith('DISPONIBLE_PARA_EVALUACION');
+  });
+
+  it('sin coincidencias con un estado elegido "Limpiar filtros" los quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([]), estadoIds: ['APROBADA'] });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(hook.limpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('si el catálogo de estados no carga no hay chips y el listado se ve', () => {
+    // Arrange
+    vi.mocked(useEstadosFicha).mockReturnValue({ data: undefined, isError: true } as never);
+    mockHook({ data: crearPagina([FICHA]) });
+
+    // Act
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Aprobada' })).not.toBeInTheDocument();
+    expect(tabla().getByText('Sistema de monitoreo')).toBeInTheDocument();
   });
 });

@@ -1,24 +1,13 @@
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEstadosFicha } from '../../hooks/useEstadosFicha';
 import { useFichasPerfilCoordinador } from '../../hooks/useFichasPerfilCoordinador';
-import type { FichaPerfil } from '../../models/FichaPerfil';
-import type { NavegacionDetalleFicha } from '../../models/ResumenFicha';
-import { resumenConAsesor } from '../../utils/resumen-ficha';
-import CambiarAsesorPanel from './CambiarAsesorPanel';
-import EstudiantesVinculadosPanel from './EstudiantesVinculadosPanel';
 import FichasPerfilTable from './FichasPerfilTable';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
-
-interface PanelFicha {
-  tipo: 'estudiantes' | 'asesor';
-  ficha: FichaPerfil;
-}
 
 function textoResumen(total?: number): string {
   if (total === undefined) return '';
@@ -26,24 +15,13 @@ function textoResumen(total?: number): string {
 }
 
 export default function ConsultarFichasPerfilCoordinador() {
-  const [panel, setPanel] = useState<PanelFicha | null>(null);
-  const navigate = useNavigate();
-  const { search } = useLocation();
   const listado = useFichasPerfilCoordinador();
+  const estados = useEstadosFicha();
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const fichas = data?.content ?? [];
-  const hayFiltros = listado.texto.trim() !== '';
+  const hayFiltros = listado.texto.trim() !== '' || listado.estadoIds.length > 0;
   const recargandoSinFilas = isPlaceholderData && fichas.length === 0 && !hayFiltros;
-
-  function verEvaluaciones(ficha: FichaPerfil) {
-    const state: NavegacionDetalleFicha = { resumen: resumenConAsesor(ficha), search };
-    navigate(`/fichas-perfil/${ficha.id}/evaluaciones`, { state });
-  }
-
-  function cerrarPanel() {
-    setPanel(null);
-  }
 
   return (
     <div className={RAIZ}>
@@ -54,6 +32,17 @@ export default function ConsultarFichasPerfilCoordinador() {
           etiqueta: 'Buscar fichas',
           placeholder: 'Buscar por título del proyecto',
         }}
+        chips={
+          estados.data
+            ? {
+                etiqueta: 'Estado',
+                opciones: estados.data.map(({ id, nombre }) => ({ id, etiqueta: nombre })),
+                seleccionados: listado.estadoIds,
+                onAlternar: listado.toggleEstado,
+                onTodos: listado.limpiarEstados,
+              }
+            : undefined
+        }
         aplicados={[]}
         onLimpiar={listado.limpiarFiltros}
       />
@@ -76,9 +65,6 @@ export default function ConsultarFichasPerfilCoordinador() {
             hayFiltros={hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
-            onVerEstudiantes={(ficha) => setPanel({ tipo: 'estudiantes', ficha })}
-            onVerEvaluaciones={verEvaluaciones}
-            onCambiarAsesor={(ficha) => setPanel({ tipo: 'asesor', ficha })}
             onLimpiarFiltros={listado.limpiarFiltros}
           />
         )}
@@ -94,13 +80,6 @@ export default function ConsultarFichasPerfilCoordinador() {
           etiquetaPlural="fichas"
           onPageChange={listado.goToPage}
         />
-      )}
-
-      {panel?.tipo === 'estudiantes' && (
-        <EstudiantesVinculadosPanel ficha={panel.ficha} onCerrar={cerrarPanel} />
-      )}
-      {panel?.tipo === 'asesor' && (
-        <CambiarAsesorPanel ficha={panel.ficha} onCerrar={cerrarPanel} />
       )}
     </div>
   );
