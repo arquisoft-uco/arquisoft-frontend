@@ -520,6 +520,26 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarObservacionesEvaluacionesFichaCoordinador', () => {
+    it('consulta GET /fichas-perfil/{id}/observaciones-evaluacion/coordinador y traduce evaluacionFichaPerfil a evaluacionFichaPerfilId', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [{ id: 'o-1', evaluacionFichaPerfil: 'ev-1', observacion: 'Ajustar el alcance' }],
+      });
+
+      // Act
+      const resultado =
+        await fichasPerfilService.consultarObservacionesEvaluacionesFichaCoordinador('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/observaciones-evaluacion/coordinador');
+      expect(resultado).toEqual([
+        { id: 'o-1', evaluacionFichaPerfilId: 'ev-1', observacion: 'Ajustar el alcance' },
+      ]);
+    });
+  });
+
   describe('getEstadosFichasAsesor', () => {
     it('hace POST /fichas-perfil/estados-ficha/asesor con el body recibido y traduce fichaPerfil a fichaPerfilId conservando la paginación', async () => {
       // Arrange
