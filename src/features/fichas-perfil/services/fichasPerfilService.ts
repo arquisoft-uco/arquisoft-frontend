@@ -466,6 +466,11 @@ export const fichasPerfilService = {
       .post<RevisionItemCreadaResponse>(`/fichas-perfil/items/${itemId}/revisiones`)
       .then((r) => r.data),
 
+  marcarRevisionItemVisualizada: (revisionItemId: string): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/revisiones/${revisionItemId}/visualizada`)
+      .then(() => undefined),
+
   getFichasRepresentante: (
     page: number,
     size: number,

@@ -15,6 +15,13 @@ vi.mock('../hooks/useEstadosFichaPerfilEstudiante', () => ({
   useEstadosFichaPerfilEstudiante: vi.fn(),
 }));
 vi.mock('../hooks/useEvaluacionesMiFicha', () => ({ useEvaluacionesMiFicha: vi.fn() }));
+vi.mock('../hooks/useMarcarRevisionItemVisualizada', () => ({
+  useMarcarRevisionItemVisualizada: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    variables: undefined,
+  }),
+}));
 vi.mock('../hooks/useRevisionesMiFicha', () => ({ useRevisionesMiFicha: vi.fn() }));
 vi.mock('../hooks/useObservacionesEvaluacionMiFicha', () => ({
   useObservacionesEvaluacionMiFicha: vi.fn(),

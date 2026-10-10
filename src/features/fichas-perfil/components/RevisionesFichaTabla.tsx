@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ClipboardList } from 'lucide-react';
 import type { DireccionOrden } from '../hooks/useRevisionesPaginadas';
 import type { RevisionItemFila } from '../models/RevisionItem';
@@ -65,6 +66,7 @@ interface Props {
   reintentar: () => void;
   tituloVacio: string;
   descripcionVacia: string;
+  acciones?: (fila: RevisionItemFila) => ReactNode;
 }
 
 export default function RevisionesFichaTabla({
@@ -83,6 +85,7 @@ export default function RevisionesFichaTabla({
   reintentar,
   tituloVacio,
   descripcionVacia,
+  acciones,
 }: Props) {
   if (isError) {
     return (
@@ -108,6 +111,7 @@ export default function RevisionesFichaTabla({
         columnas={COLUMNAS}
         filas={filas}
         idDeFila={(fila) => fila.revision.id}
+        acciones={acciones}
         orden={direccion ? { clave: CLAVE_ESTADO, direccion } : undefined}
         onOrdenar={(clave, nuevaDireccion) => {
           if (clave === CLAVE_ESTADO) ordenar(nuevaDireccion);
