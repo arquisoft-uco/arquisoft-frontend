@@ -12,6 +12,11 @@ vi.mock('./hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
 vi.mock('./hooks/useHistorialEstadosFichaAsesor', () => ({
   useHistorialEstadosFichaAsesor: vi.fn(() => ({ data: undefined })),
 }));
+vi.mock('./hooks/useHistorialEstadosFichaCoordinador', () => ({
+  useHistorialEstadosFichaCoordinador: vi.fn(() => ({ data: undefined })),
+}));
+vi.mock('./components/coordinador/AccionesFichaCoordinador', () => ({ default: () => null }));
+vi.mock('./components/coordinador/DecisionFichaPanel', () => ({ default: () => null }));
 vi.mock('./hooks/useRegistrarEvaluacion', () => ({
   useRegistrarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));

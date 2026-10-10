@@ -21,9 +21,16 @@ interface Props {
   search: string;
   pestanas: PestanaDetalle[];
   accion?: ReactNode;
+  decision?: ReactNode;
 }
 
-export default function DetalleFichaEstructura({ resumen, search, pestanas, accion }: Props) {
+export default function DetalleFichaEstructura({
+  resumen,
+  search,
+  pestanas,
+  accion,
+  decision,
+}: Props) {
   const { pathname } = useLocation();
   const titulo = resumen?.titulo ?? TITULO_GENERICO;
   const activa = pestanas.find((p) => pathname.startsWith(p.to)) ?? pestanas[0];
@@ -52,6 +59,7 @@ export default function DetalleFichaEstructura({ resumen, search, pestanas, acci
         </div>
         <div className={DISPOSICION.lateral}>
           <ResumenFichaPanel resumen={resumen} accion={accion} />
+          {decision}
         </div>
       </div>
     </div>

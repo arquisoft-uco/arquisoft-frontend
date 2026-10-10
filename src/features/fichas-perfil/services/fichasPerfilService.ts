@@ -15,6 +15,8 @@ import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentant
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
 import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
 import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
+import type { AgregarEstadoAprobacionFichaPerfilRequest } from '../models/AgregarEstadoAprobacionFichaPerfilRequest';
+import type { AgregarEstadoAprobacionFichaPerfilResponse } from '../models/AgregarEstadoAprobacionFichaPerfilResponse';
 import type { RevisionItem } from '../models/RevisionItem';
 import type { RevisionItemCreadaResponse } from '../models/RevisionItemCreadaResponse';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
@@ -519,5 +521,16 @@ export const fichasPerfilService = {
       .post<AgregarEstadoFichaPerfilResponse>(`/fichas-perfil/${fichaPerfilId}/estados-ficha`, {
         estadoFicha: req.estadoFichaId,
       })
+      .then((r) => r.data),
+
+  agregarEstadoAprobacionFichaPerfil: (
+    fichaPerfilId: string,
+    req: AgregarEstadoAprobacionFichaPerfilRequest,
+  ): Promise<AgregarEstadoAprobacionFichaPerfilResponse> =>
+    apiClient
+      .post<AgregarEstadoAprobacionFichaPerfilResponse>(
+        `/fichas-perfil/${fichaPerfilId}/estados-ficha/aprobacion`,
+        { acepta: req.acepta },
+      )
       .then((r) => r.data),
 };

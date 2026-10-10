@@ -27,6 +27,8 @@ Client roles a confirmar en el realm desplegado:
 - `fichas:revision-item:create` para el asesor de ficha (agregar una revisión a un ítem, HU-195), sin verificar en el realm desplegado. Si falta, con login real el botón «Agregar revisión» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:item-ficha-perfil-coordinador:view` para el coordinador (ítems de una ficha, HU-284), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:estado-ficha-perfil-coordinador:view` para el coordinador (historial de estados de una ficha, HU-287), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `fichas:estado-ficha-perfil-aprobacion:create` para el coordinador (decisión de aprobación de una ficha, HU-184), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `fichas:evaluacion-ficha-perfil-coordinador:view` para el coordinador (evaluaciones de una ficha), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `usuarios:usuario-administrador:view`, `usuarios:*-vigente:view`, `usuarios:estado-usuario:view`, `usuarios:usuario-estado:update`, `usuarios:usuario:update` y `usuarios:*:delete` para el administrador.
 - `solicitudes:solicitud:create` para el estudiante.
 - `solicitudes:solicitud-novedad-coordinador-enviada:view` para el estudiante (pestaña «Enviadas», HU-096). Si falta, con login real la pestaña lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
