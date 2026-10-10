@@ -110,8 +110,8 @@ function aEvaluacionEstudiante(
   };
 }
 
-// Forma cruda de ObservacionEvaluacionResponseDTO (GET .../observaciones/estudiante y
-// .../observaciones/representante).
+// Forma cruda de ObservacionEvaluacionResponseDTO (GET .../observaciones/estudiante,
+// .../observaciones/representante y .../observaciones-evaluacion/coordinador).
 interface ObservacionEvaluacionResponseDTO {
   id: string;
   evaluacionFichaPerfil: string;
@@ -400,6 +400,15 @@ export const fichasPerfilService = {
       .get<
         ObservacionEvaluacionResponseDTO[]
       >(`/fichas-perfil/evaluaciones/${evaluacionId}/observaciones/representante`)
+      .then((r) => r.data.map(aObservacionEvaluacion)),
+
+  consultarObservacionesEvaluacionesFichaCoordinador: (
+    fichaPerfilId: string,
+  ): Promise<ObservacionEvaluacion[]> =>
+    apiClient
+      .get<
+        ObservacionEvaluacionResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/observaciones-evaluacion/coordinador`)
       .then((r) => r.data.map(aObservacionEvaluacion)),
 
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>

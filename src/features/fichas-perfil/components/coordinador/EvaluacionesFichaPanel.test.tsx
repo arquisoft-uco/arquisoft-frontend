@@ -9,6 +9,12 @@ vi.mock('../../hooks/useEvaluacionesFichaCoordinador', () => ({
   useEvaluacionesFichaCoordinador: vi.fn(),
 }));
 
+vi.mock('./ObservacionesEvaluacionCoordinadorPanel', () => ({
+  default: ({ evaluacion }: { evaluacion: { id: string } }) => (
+    <div role="dialog" aria-label={`Observaciones de ${evaluacion.id}`} />
+  ),
+}));
+
 const APROBADA: EvaluacionFichaPerfilEstudiante = {
   id: 'ev-1',
   fichaPerfilId: 'f-1',
@@ -104,5 +110,19 @@ describe('EvaluacionesFichaPanel', () => {
     // Assert
     expect(screen.getByText('Esta ficha aún no tiene evaluaciones')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('cada tarjeta tiene «Ver observaciones» y al pulsarlo abre el panel de esa evaluación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<EvaluacionesFichaPanel fichaPerfilId="f-1" />);
+    const botones = screen.getAllByRole('button', { name: 'Ver observaciones' });
+
+    // Act
+    await user.click(botones[1]);
+
+    // Assert
+    expect(botones).toHaveLength(2);
+    expect(screen.getByRole('dialog', { name: 'Observaciones de ev-2' })).toBeInTheDocument();
   });
 });
