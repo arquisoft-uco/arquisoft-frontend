@@ -8,6 +8,7 @@ import type { OrdenDireccion } from '../../hooks/useFichasPerfilCoordinador';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
 import { EstadoYFechaTarjeta, AsesorDeFicha, TituloFicha } from '../FichaCeldas';
+import { resumenConAsesor } from '../../utils/resumen-ficha';
 import { columnaAsesor, columnasEstado } from '../columnasFicha';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoFicha {
@@ -43,7 +44,13 @@ export default function FichasPerfilTable({
       encabezado: 'Ficha',
       clave: 'tituloProyecto',
       ordenable: true,
-      celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} />,
+      celda: (ficha) => (
+        <TituloFicha
+          titulo={ficha.tituloProyecto}
+          abrir={resumenConAsesor(ficha)}
+          pestana="evaluaciones"
+        />
+      ),
     },
     columnaAsesor<FichaPerfil>((ficha) => ficha.asesorFicha),
     ...columnasEstado<FichaPerfil>((ficha) => ({
@@ -114,7 +121,11 @@ export default function FichasPerfilTable({
       vacio={vacio}
       tarjeta={(ficha) => (
         <>
-          <TituloFicha titulo={ficha.tituloProyecto} />
+          <TituloFicha
+            titulo={ficha.tituloProyecto}
+            abrir={resumenConAsesor(ficha)}
+            pestana="evaluaciones"
+          />
           <AsesorDeFicha nombre={ficha.asesorFicha.nombre} email={ficha.asesorFicha.email} />
           <EstadoYFechaTarjeta
             estadoId={ficha.estado.id}

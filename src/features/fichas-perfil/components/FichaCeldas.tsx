@@ -18,9 +18,10 @@ const SUBTEXTO = 'block truncate text-[13px] text-on-surface-secondary';
 interface PropsTitulo {
   titulo: string;
   abrir?: ResumenFicha;
+  pestana?: string;
 }
 
-export function TituloFicha({ titulo, abrir }: PropsTitulo) {
+export function TituloFicha({ titulo, abrir, pestana = 'items' }: PropsTitulo) {
   const { search } = useLocation();
 
   if (!abrir) {
@@ -35,7 +36,7 @@ export function TituloFicha({ titulo, abrir }: PropsTitulo) {
 
   return (
     <Link
-      to={`/fichas-perfil/${abrir.id}/items`}
+      to={`/fichas-perfil/${abrir.id}/${pestana}`}
       state={navegacion}
       aria-label={`Abrir la ficha ${titulo}`}
       title={titulo}

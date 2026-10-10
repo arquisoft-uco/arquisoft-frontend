@@ -5,6 +5,7 @@ import { useRolActivo } from '../../../hooks/useAuth';
 import EstadosFichaAsesorPanel from './asesor-ficha/EstadosFichaAsesorPanel';
 import ItemsFichaAsesorPanel from './asesor-ficha/ItemsFichaAsesorPanel';
 import RevisionesFichaAsesorPanel from './asesor-ficha/RevisionesFichaAsesorPanel';
+import EvaluacionesFichaPanel from './coordinador/EvaluacionesFichaPanel';
 import EstadosFichaRepresentantePanel from './representante/EstadosFichaRepresentantePanel';
 import ItemsFichaRepresentantePanel from './representante/ItemsFichaRepresentantePanel';
 import RegistrarEvaluacionPanel from './representante/RegistrarEvaluacionPanel';
@@ -23,7 +24,14 @@ const PANEL_POR_PESTANA: Record<Pestana, Record<string, PanelDeFicha>> = {
     [Rol.AsesorFicha]: EstadosFichaAsesorPanel,
     [Rol.RepresentanteComiteCurriculum]: EstadosFichaRepresentantePanel,
   },
-  evaluaciones: { [Rol.RepresentanteComiteCurriculum]: RegistrarEvaluacionPanel },
+  evaluaciones: {
+    [Rol.RepresentanteComiteCurriculum]: RegistrarEvaluacionPanel,
+    [Rol.Coordinador]: EvaluacionesFichaPanel,
+  },
+};
+
+const PESTANA_INICIAL_POR_ROL: Record<string, Pestana> = {
+  [Rol.Coordinador]: 'evaluaciones',
 };
 
 interface Props {
@@ -35,7 +43,10 @@ export default function PestanaFicha({ pestana }: Props) {
   const rol = useRolActivo();
   const Panel = rol ? PANEL_POR_PESTANA[pestana][rol] : undefined;
 
-  if (!Panel || !id) return <Navigate to="../items" replace />;
+  if (!Panel || !id) {
+    const inicial = (rol && PESTANA_INICIAL_POR_ROL[rol]) ?? 'items';
+    return <Navigate to={`../${inicial}`} replace />;
+  }
 
   return <Panel fichaPerfilId={id} />;
 }

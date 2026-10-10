@@ -7,7 +7,7 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useFichasAsesor } from '../../hooks/useFichasAsesor';
 import type { FichaPerfil } from '../../models/FichaPerfil';
-import type { ResumenFicha } from '../../models/ResumenFicha';
+import { resumenDeFicha } from '../../utils/resumen-ficha';
 import { EstadoYFechaTarjeta, TituloFicha } from '../FichaCeldas';
 import { columnasEstado } from '../columnasFicha';
 
@@ -19,16 +19,6 @@ function textoResumen(total?: number): string {
   return `${total} ${total === 1 ? 'ficha' : 'fichas'}`;
 }
 
-function resumenDe(ficha: FichaPerfil): ResumenFicha {
-  return {
-    id: ficha.id,
-    titulo: ficha.tituloProyecto,
-    estadoId: ficha.estado.id,
-    estadoNombre: ficha.estado.nombre,
-    fechaActualizacion: ficha.estado.fechaActualizacion,
-  };
-}
-
 export default function ConsultarFichasAsesor() {
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, ...paginacion } =
     useFichasAsesor();
@@ -38,7 +28,7 @@ export default function ConsultarFichasAsesor() {
     {
       id: 'ficha',
       encabezado: 'Ficha',
-      celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDe(ficha)} />,
+      celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDeFicha(ficha)} />,
     },
     ...columnasEstado<FichaPerfil>((ficha) => ({
       estadoId: ficha.estado.id,
@@ -76,7 +66,7 @@ export default function ConsultarFichasAsesor() {
             }
             tarjeta={(ficha) => (
               <>
-                <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDe(ficha)} />
+                <TituloFicha titulo={ficha.tituloProyecto} abrir={resumenDeFicha(ficha)} />
                 <EstadoYFechaTarjeta
                   estadoId={ficha.estado.id}
                   nombre={ficha.estado.nombre}

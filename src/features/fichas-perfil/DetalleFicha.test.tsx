@@ -34,6 +34,11 @@ vi.mock('./components/asesor-ficha/RevisionesFichaAsesorPanel', () => ({
 vi.mock('./components/representante/EstadosFichaRepresentantePanel', () => ({
   default: () => <div>Panel estados representante</div>,
 }));
+vi.mock('./components/coordinador/EvaluacionesFichaPanel', () => ({
+  default: ({ fichaPerfilId }: { fichaPerfilId: string }) => (
+    <div>Evaluaciones coordinador {fichaPerfilId}</div>
+  ),
+}));
 vi.mock('./components/representante/RegistrarEvaluacionPanel', () => ({
   default: () => <div>Panel evaluaciones</div>,
 }));
@@ -157,16 +162,39 @@ describe('DetalleFicha', () => {
     expect(screen.queryByText('Panel evaluaciones')).not.toBeInTheDocument();
   });
 
-  it('un rol sin vista va a /forbidden y sin rol a /seleccionar-rol', () => {
+  it('el coordinador aterriza en Evaluaciones desde la ficha y desde una pestaña ajena, sin bucle', () => {
     // Arrange
     entrarComo(Rol.Coordinador);
 
     // Act
-    const coordinador = renderizar('/fichas-perfil/f-1/items');
+    const raiz = renderizar('/fichas-perfil/f-1');
+
+    // Assert
+    expect(screen.getByText('Evaluaciones coordinador f-1')).toBeInTheDocument();
+    raiz.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.Coordinador);
+
+    // Act
+    renderizar('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByText('Evaluaciones coordinador f-1')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toBeInTheDocument();
+  });
+
+  it('un rol sin vista va a /forbidden y sin rol a /seleccionar-rol', () => {
+    // Arrange
+    entrarComo(Rol.Administrador);
+
+    // Act
+    const administrador = renderizar('/fichas-perfil/f-1/items');
 
     // Assert
     expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
-    coordinador.unmount();
+    administrador.unmount();
 
     // Arrange
     resetAllStores();

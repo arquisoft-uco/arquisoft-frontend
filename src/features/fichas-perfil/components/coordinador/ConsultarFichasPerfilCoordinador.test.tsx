@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { Route, Routes, useLocation } from 'react-router';
 import { render, screen, within } from '../../../../test-utils/render';
 import {
   avanzar,
@@ -19,14 +20,6 @@ vi.mock('./EstudiantesVinculadosPanel', () => ({
       <button type="button" onClick={onCerrar}>
         Cerrar estudiantes
       </button>
-    </div>
-  ),
-}));
-vi.mock('./EvaluacionesFichaPanel', () => ({
-  default: ({ ficha }: { ficha: FichaPerfil }) => (
-    <div role="dialog" aria-label="Panel de evaluaciones">
-      {' '}
-      <p>Evaluaciones de {ficha.tituloProyecto}</p>{' '}
     </div>
   ),
 }));
@@ -87,6 +80,16 @@ function mockHook(parcial: Partial<ReturnType<typeof useFichasPerfilCoordinador>
   const hook = crearHookMock(parcial);
   vi.mocked(useFichasPerfilCoordinador).mockReturnValue(hook);
   return hook;
+}
+
+function DestinoDetalle() {
+  const { pathname, state } = useLocation();
+  return (
+    <>
+      <p>{pathname}</p>
+      <output aria-label="Estado de navegación">{JSON.stringify(state)}</output>
+    </>
+  );
 }
 
 function tabla() {
@@ -204,11 +207,17 @@ describe('ConsultarFichasPerfilCoordinador', () => {
     expect(screen.queryByRole('dialog', { name: 'Panel de estudiantes' })).not.toBeInTheDocument();
   });
 
-  it('"Ver evaluaciones" abre el panel de evaluaciones de esa ficha', async () => {
+  it('"Ver evaluaciones" navega al detalle de esa ficha con su resumen y la búsqueda del listado', async () => {
     // Arrange
     const user = userEvent.setup();
     mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasPerfilCoordinador />);
+    render(
+      <Routes>
+        <Route path="/fichas-perfil" element={<ConsultarFichasPerfilCoordinador />} />
+        <Route path="/fichas-perfil/:id/evaluaciones" element={<DestinoDetalle />} />
+      </Routes>,
+      { initialPath: '/fichas-perfil?q=sis' },
+    );
 
     // Act
     await user.click(
@@ -217,7 +226,21 @@ describe('ConsultarFichasPerfilCoordinador', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Ver evaluaciones' }));
 
     // Assert
-    expect(screen.getByText('Evaluaciones de Sistema de monitoreo')).toBeInTheDocument();
+    expect(screen.getByText('/fichas-perfil/f-1/evaluaciones')).toBeInTheDocument();
+    expect(
+      JSON.parse(screen.getByRole('status', { name: 'Estado de navegación' }).textContent ?? ''),
+    ).toEqual({
+      resumen: {
+        id: 'f-1',
+        titulo: 'Sistema de monitoreo',
+        estadoId: 'e-1',
+        estadoNombre: 'En revisión',
+        fechaActualizacion: '2026-10-01T15:30:00',
+        asesorNombre: 'Ana Pérez',
+        asesorEmail: 'ana@uco.edu.co',
+      },
+      search: '?q=sis',
+    });
   });
 
   it('"Cambiar asesor" abre el panel del asesor de esa ficha', async () => {

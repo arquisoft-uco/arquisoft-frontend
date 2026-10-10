@@ -4,18 +4,10 @@ import { render, screen } from '../../../../test-utils/render';
 import EvaluacionesFichaPanel from './EvaluacionesFichaPanel';
 import { useEvaluacionesFichaCoordinador } from '../../hooks/useEvaluacionesFichaCoordinador';
 import type { EvaluacionFichaPerfilEstudiante } from '../../models/EvaluacionFichaPerfilEstudiante';
-import type { FichaPerfil } from '../../models/FichaPerfil';
 
 vi.mock('../../hooks/useEvaluacionesFichaCoordinador', () => ({
   useEvaluacionesFichaCoordinador: vi.fn(),
 }));
-
-const FICHA: FichaPerfil = {
-  id: 'f-1',
-  tituloProyecto: 'Sistema de monitoreo',
-  asesorFicha: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
-  estado: { id: 'e-1', nombre: 'En revisión', fechaActualizacion: '2026-10-01T15:30:00' },
-};
 
 const APROBADA: EvaluacionFichaPerfilEstudiante = {
   id: 'ev-1',
@@ -53,13 +45,11 @@ describe('EvaluacionesFichaPanel', () => {
     mockConsulta();
   });
 
-  it('muestra el título de la ficha, el total y cada evaluación con su estado y representante', () => {
+  it('muestra el total y cada evaluación con su estado y representante', () => {
     // Act
-    render(<EvaluacionesFichaPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(<EvaluacionesFichaPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getByRole('dialog', { name: 'Evaluaciones de la ficha' })).toBeInTheDocument();
-    expect(screen.getByText('Sistema de monitoreo')).toBeInTheDocument();
     expect(screen.getByText('2 evaluaciones')).toBeInTheDocument();
     expect(screen.getByText('Aprobada')).toBeInTheDocument();
     expect(screen.getByText('Sin estado')).toBeInTheDocument();
@@ -72,7 +62,7 @@ describe('EvaluacionesFichaPanel', () => {
     mockConsulta({ data: [APROBADA] });
 
     // Act
-    render(<EvaluacionesFichaPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(<EvaluacionesFichaPanel fichaPerfilId="f-1" />);
 
     // Assert
     expect(screen.getByText('1 evaluación')).toBeInTheDocument();
@@ -83,7 +73,7 @@ describe('EvaluacionesFichaPanel', () => {
     mockConsulta({ data: undefined, isLoading: true });
 
     // Act
-    render(<EvaluacionesFichaPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(<EvaluacionesFichaPanel fichaPerfilId="f-1" />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent('Cargando evaluaciones…');
@@ -94,7 +84,7 @@ describe('EvaluacionesFichaPanel', () => {
     const user = userEvent.setup();
     const refetch = vi.fn();
     mockConsulta({ data: undefined, isError: true, refetch });
-    render(<EvaluacionesFichaPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(<EvaluacionesFichaPanel fichaPerfilId="f-1" />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
@@ -109,23 +99,10 @@ describe('EvaluacionesFichaPanel', () => {
     mockConsulta({ data: [] });
 
     // Act
-    render(<EvaluacionesFichaPanel ficha={FICHA} onCerrar={vi.fn()} />);
+    render(<EvaluacionesFichaPanel fichaPerfilId="f-1" />);
 
     // Assert
     expect(screen.getByText('Esta ficha aún no tiene evaluaciones')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('"Cerrar" cierra el panel', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onCerrar = vi.fn();
-    render(<EvaluacionesFichaPanel ficha={FICHA} onCerrar={onCerrar} />);
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
-
-    // Assert
-    expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 });

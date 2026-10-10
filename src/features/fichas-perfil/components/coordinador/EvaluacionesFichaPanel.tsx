@@ -1,28 +1,25 @@
 import { ClipboardCheck } from 'lucide-react';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
-import FormActions from '../../../../shared/components/ui/FormActions';
-import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEvaluacionesFichaCoordinador } from '../../hooks/useEvaluacionesFichaCoordinador';
-import type { FichaPerfil } from '../../models/FichaPerfil';
 import TarjetaEvaluacionFicha from '../TarjetaEvaluacionFicha';
 
 const CONTENIDO = 'flex flex-col gap-4';
 const TOTAL = 'text-sm text-on-surface-secondary';
 
 interface Props {
-  ficha: FichaPerfil;
-  onCerrar: () => void;
+  fichaPerfilId: string;
 }
 
 function textoTotal(total: number): string {
   return `${total} ${total === 1 ? 'evaluación' : 'evaluaciones'}`;
 }
 
-export default function EvaluacionesFichaPanel({ ficha, onCerrar }: Props) {
-  const { data, isLoading, isError, error, refetch } = useEvaluacionesFichaCoordinador(ficha.id);
+export default function EvaluacionesFichaPanel({ fichaPerfilId }: Props) {
+  const { data, isLoading, isError, error, refetch } =
+    useEvaluacionesFichaCoordinador(fichaPerfilId);
 
   const evaluaciones = data ?? [];
 
@@ -51,9 +48,7 @@ export default function EvaluacionesFichaPanel({ ficha, onCerrar }: Props) {
 
     return (
       <>
-        <p aria-live="polite" className={TOTAL}>
-          {textoTotal(evaluaciones.length)}
-        </p>
+        <p className={TOTAL}>{textoTotal(evaluaciones.length)}</p>
         <ul className="flex flex-col gap-3">
           {evaluaciones.map((evaluacion) => (
             <TarjetaEvaluacionFicha key={evaluacion.id} evaluacion={evaluacion} />
@@ -63,14 +58,5 @@ export default function EvaluacionesFichaPanel({ ficha, onCerrar }: Props) {
     );
   }
 
-  return (
-    <SidePanel
-      titulo="Evaluaciones de la ficha"
-      descripcion={ficha.tituloProyecto}
-      onCerrar={onCerrar}
-      pie={(solicitarCierre) => <FormActions onCancelar={solicitarCierre} />}
-    >
-      <div className={CONTENIDO}>{contenido()}</div>
-    </SidePanel>
-  );
+  return <div className={CONTENIDO}>{contenido()}</div>;
 }

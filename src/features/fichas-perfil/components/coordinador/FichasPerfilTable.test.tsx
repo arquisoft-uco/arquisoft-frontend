@@ -112,6 +112,16 @@ describe('FichasPerfilTable', () => {
     expect(onCambiarAsesor).toHaveBeenCalledWith(FICHA_1);
   });
 
+  it('el título de la ficha es un enlace al detalle en Evaluaciones', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      tabla().getByRole('link', { name: 'Abrir la ficha Sistema de monitoreo' }),
+    ).toHaveAttribute('href', '/fichas-perfil/f-1/evaluaciones');
+  });
+
   it('"Ver evaluaciones" del menú actúa sobre la ficha de esa fila', async () => {
     // Arrange
     const user = userEvent.setup();
