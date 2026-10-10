@@ -362,6 +362,11 @@ export const fichasPerfilService = {
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/representante`)
       .then((r) => r.data.map(toItem)),
 
+  getItemsFichaCoordinador: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/coordinador`)
+      .then((r) => r.data.map(toItem)),
+
   consultarItemsMiFichaPerfil: (fichaPerfilId: string): Promise<Item[]> =>
     apiClient
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/estudiante`)

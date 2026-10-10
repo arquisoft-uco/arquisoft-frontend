@@ -9,6 +9,7 @@ export default function CoordinadorDetalleView() {
   if (!id) return <Navigate to="/fichas-perfil" replace />;
 
   const pestanas = [
+    { id: 'items', etiqueta: 'Ítems', to: `/fichas-perfil/${id}/items` },
     { id: 'evaluaciones', etiqueta: 'Evaluaciones', to: `/fichas-perfil/${id}/evaluaciones` },
   ];
 
