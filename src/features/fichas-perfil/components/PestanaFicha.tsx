@@ -5,6 +5,7 @@ import { useRolActivo } from '../../../hooks/useAuth';
 import EstadosFichaAsesorPanel from './asesor-ficha/EstadosFichaAsesorPanel';
 import ItemsFichaAsesorPanel from './asesor-ficha/ItemsFichaAsesorPanel';
 import RevisionesFichaAsesorPanel from './asesor-ficha/RevisionesFichaAsesorPanel';
+import EstadosFichaCoordinadorPanel from './coordinador/EstadosFichaCoordinadorPanel';
 import EvaluacionesFichaPanel from './coordinador/EvaluacionesFichaPanel';
 import ItemsFichaCoordinadorPanel from './coordinador/ItemsFichaCoordinadorPanel';
 import EstadosFichaRepresentantePanel from './representante/EstadosFichaRepresentantePanel';
@@ -25,6 +26,7 @@ const PANEL_POR_PESTANA: Record<Pestana, Record<string, PanelDeFicha>> = {
   estados: {
     [Rol.AsesorFicha]: EstadosFichaAsesorPanel,
     [Rol.RepresentanteComiteCurriculum]: EstadosFichaRepresentantePanel,
+    [Rol.Coordinador]: EstadosFichaCoordinadorPanel,
   },
   evaluaciones: {
     [Rol.RepresentanteComiteCurriculum]: RegistrarEvaluacionPanel,

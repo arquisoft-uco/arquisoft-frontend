@@ -10,6 +10,7 @@ export default function CoordinadorDetalleView() {
 
   const pestanas = [
     { id: 'items', etiqueta: 'Ítems', to: `/fichas-perfil/${id}/items` },
+    { id: 'estados', etiqueta: 'Estados', to: `/fichas-perfil/${id}/estados` },
     { id: 'evaluaciones', etiqueta: 'Evaluaciones', to: `/fichas-perfil/${id}/evaluaciones` },
   ];
 

@@ -938,4 +938,22 @@ describe('fichasPerfilService', () => {
       expect(resultado).toEqual(historial);
     });
   });
+
+  describe('getEstadosFichaPerfilCoordinador', () => {
+    it('hace GET /fichas-perfil/{id}/estados-ficha/coordinador y resuelve el arreglo', async () => {
+      // Arrange
+      const historial = [
+        { id: 'e-1', nombre: 'Creada', fechaActualizacion: '2026-01-01T10:00:00' },
+        { id: 'e-2', nombre: 'En revisión', fechaActualizacion: '2026-02-01T10:00:00' },
+      ];
+      get.mockResolvedValue({ status: 200, data: historial });
+
+      // Act
+      const resultado = await fichasPerfilService.getEstadosFichaPerfilCoordinador('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/estados-ficha/coordinador');
+      expect(resultado).toEqual(historial);
+    });
+  });
 });
