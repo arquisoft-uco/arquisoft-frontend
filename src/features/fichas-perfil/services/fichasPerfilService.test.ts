@@ -437,6 +437,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('removerRevisionItem', () => {
+    it('hace DELETE /fichas-perfil/revisiones/{id} y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await fichasPerfilService.removerRevisionItem('r-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/fichas-perfil/revisiones/r-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('consultarRevisionesItemAsesor', () => {
     it('envía el body tal cual a POST /fichas-perfil/revisiones-item/asesor, traduce el DTO y conserva la paginación', async () => {
       // Arrange
