@@ -133,7 +133,7 @@ Layout       principal                                  | lateral (resumen)
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el
   formulario de ítem, los tipos que aún no se usan como atajos.
 - **Ítems:** tarjetas con el tipo (`Badge neutro`), el contenido y `IconButton` de editar y eliminar (44 px);
-  «Agregar ítem» abre un `SidePanel` (formulario corto). Eliminar pide confirmación («No se puede deshacer»).
+  «Agregar ítem» abre un `SidePanel` (formulario corto). Eliminar pide confirmación («No se puede deshacer»). En el asesor, cada tarjeta lleva «Agregar revisión» (`IconButton`) o, si el ítem ya tiene revisión, la insignia con su estado.
 - **El estudiante** ve su ficha en la raíz del módulo (`EstudianteView`, sin ruta propia: las pestañas «Ítems», «Revisiones»,
   «Historial de estados» y «Evaluaciones» son estado de React). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
