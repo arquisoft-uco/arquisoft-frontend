@@ -25,6 +25,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof FichasPerfilTab
     orden: { clave: 'tituloProyecto', direccion: 'ASC' as const },
     onOrdenar: vi.fn(),
     onVerEstudiantes: vi.fn(),
+    onVerEvaluaciones: vi.fn(),
     onCambiarAsesor: vi.fn(),
     onLimpiarFiltros: vi.fn(),
     ...parcial,
@@ -109,6 +110,31 @@ describe('FichasPerfilTable', () => {
     // Assert
     expect(onVerEstudiantes).toHaveBeenCalledWith(FICHA_2);
     expect(onCambiarAsesor).toHaveBeenCalledWith(FICHA_1);
+  });
+
+  it('el título de la ficha es un enlace al detalle en Evaluaciones', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      tabla().getByRole('link', { name: 'Abrir la ficha Sistema de monitoreo' }),
+    ).toHaveAttribute('href', '/fichas-perfil/f-1/evaluaciones');
+  });
+
+  it('"Ver evaluaciones" del menú actúa sobre la ficha de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onVerEvaluaciones } = renderizar();
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la ficha Plataforma de riego' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver evaluaciones' }));
+
+    // Assert
+    expect(onVerEvaluaciones).toHaveBeenCalledWith(FICHA_2);
   });
 
   it('ordenar desde la cabecera Ficha invierte la dirección y desde Asesor ordena por asesor', async () => {
