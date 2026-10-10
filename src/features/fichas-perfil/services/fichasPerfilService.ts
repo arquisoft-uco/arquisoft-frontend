@@ -375,6 +375,15 @@ export const fichasPerfilService = {
       >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/estudiante`)
       .then((r) => r.data.map(aEvaluacionEstudiante)),
 
+  consultarEvaluacionesFichaCoordinador: (
+    fichaPerfilId: string,
+  ): Promise<EvaluacionFichaPerfilEstudiante[]> =>
+    apiClient
+      .get<
+        EvaluacionFichaPerfilEstudianteResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/coordinador`)
+      .then((r) => r.data.map(aEvaluacionEstudiante)),
+
   consultarObservacionesEvaluacionMiFicha: (
     evaluacionId: string,
   ): Promise<ObservacionEvaluacion[]> =>

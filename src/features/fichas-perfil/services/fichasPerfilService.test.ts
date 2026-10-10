@@ -302,6 +302,57 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarEvaluacionesFichaCoordinador', () => {
+    it('consulta GET /fichas-perfil/{id}/evaluaciones/coordinador y traduce los nombres, incluido el estado nulo', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'ev-1',
+            fichaPerfil: 'f-1',
+            fechaCreacion: '2026-09-01T10:00:00Z',
+            estadoEvaluacion: 'APROBADA',
+            estadoEvaluacionNombre: 'Aprobada',
+            representanteComite: { id: 'r-1', nombre: 'Rosa Gil' },
+          },
+          {
+            id: 'ev-2',
+            fichaPerfil: 'f-1',
+            fechaCreacion: '2026-09-02T10:00:00Z',
+            estadoEvaluacion: null,
+            estadoEvaluacionNombre: null,
+            representanteComite: { id: 'r-2', nombre: 'Luis Mora' },
+          },
+        ],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarEvaluacionesFichaCoordinador('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/evaluaciones/coordinador');
+      expect(resultado).toEqual([
+        {
+          id: 'ev-1',
+          fichaPerfilId: 'f-1',
+          fechaCreacion: '2026-09-01T10:00:00Z',
+          estadoEvaluacionId: 'APROBADA',
+          estadoEvaluacionNombre: 'Aprobada',
+          representante: { id: 'r-1', nombre: 'Rosa Gil' },
+        },
+        {
+          id: 'ev-2',
+          fichaPerfilId: 'f-1',
+          fechaCreacion: '2026-09-02T10:00:00Z',
+          estadoEvaluacionId: null,
+          estadoEvaluacionNombre: null,
+          representante: { id: 'r-2', nombre: 'Luis Mora' },
+        },
+      ]);
+    });
+  });
+
   describe('consultarRevisionesItemEstudiante', () => {
     it('envía el body tal cual a POST /fichas-perfil/revisiones-item/estudiante, traduce el DTO y conserva la paginación', async () => {
       // Arrange

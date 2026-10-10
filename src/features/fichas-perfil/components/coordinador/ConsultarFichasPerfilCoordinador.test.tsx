@@ -22,6 +22,14 @@ vi.mock('./EstudiantesVinculadosPanel', () => ({
     </div>
   ),
 }));
+vi.mock('./EvaluacionesFichaPanel', () => ({
+  default: ({ ficha }: { ficha: FichaPerfil }) => (
+    <div role="dialog" aria-label="Panel de evaluaciones">
+      {' '}
+      <p>Evaluaciones de {ficha.tituloProyecto}</p>{' '}
+    </div>
+  ),
+}));
 vi.mock('./CambiarAsesorPanel', () => ({
   default: ({ ficha }: { ficha: FichaPerfil }) => (
     <div role="dialog" aria-label="Panel de asesor">
@@ -194,6 +202,22 @@ describe('ConsultarFichasPerfilCoordinador', () => {
 
     // Assert
     expect(screen.queryByRole('dialog', { name: 'Panel de estudiantes' })).not.toBeInTheDocument();
+  });
+
+  it('"Ver evaluaciones" abre el panel de evaluaciones de esa ficha', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([FICHA]) });
+    render(<ConsultarFichasPerfilCoordinador />);
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver evaluaciones' }));
+
+    // Assert
+    expect(screen.getByText('Evaluaciones de Sistema de monitoreo')).toBeInTheDocument();
   });
 
   it('"Cambiar asesor" abre el panel del asesor de esa ficha', async () => {

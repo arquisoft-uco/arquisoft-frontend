@@ -1,4 +1,4 @@
-import { SearchX, UserCog, Users } from 'lucide-react';
+import { ClipboardCheck, SearchX, UserCog, Users } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla, OrdenTabla } from '../../../../shared/components/ui/DataTable';
@@ -21,6 +21,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoFicha, direccion: OrdenDireccion) => void;
   onVerEstudiantes: (ficha: FichaPerfil) => void;
+  onVerEvaluaciones: (ficha: FichaPerfil) => void;
   onCambiarAsesor: (ficha: FichaPerfil) => void;
   onLimpiarFiltros: () => void;
 }
@@ -32,6 +33,7 @@ export default function FichasPerfilTable({
   orden,
   onOrdenar,
   onVerEstudiantes,
+  onVerEvaluaciones,
   onCambiarAsesor,
   onLimpiarFiltros,
 }: Props) {
@@ -64,6 +66,11 @@ export default function FichasPerfilTable({
             etiqueta: 'Ver estudiantes',
             icono: Users,
             onSeleccionar: () => onVerEstudiantes(ficha),
+          },
+          {
+            etiqueta: 'Ver evaluaciones',
+            icono: ClipboardCheck,
+            onSeleccionar: () => onVerEvaluaciones(ficha),
           },
           {
             etiqueta: 'Cambiar asesor',

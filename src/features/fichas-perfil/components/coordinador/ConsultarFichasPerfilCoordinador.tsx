@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useFichasPerfilCoordinador } from '../../hooks/useFichasPerfilCoordinador';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 import CambiarAsesorPanel from './CambiarAsesorPanel';
+import EvaluacionesFichaPanel from './EvaluacionesFichaPanel';
 import EstudiantesVinculadosPanel from './EstudiantesVinculadosPanel';
 import FichasPerfilTable from './FichasPerfilTable';
 
@@ -13,7 +14,7 @@ const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
 interface PanelFicha {
-  tipo: 'estudiantes' | 'asesor';
+  tipo: 'estudiantes' | 'asesor' | 'evaluaciones';
   ficha: FichaPerfil;
 }
 
@@ -67,6 +68,7 @@ export default function ConsultarFichasPerfilCoordinador() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onVerEstudiantes={(ficha) => setPanel({ tipo: 'estudiantes', ficha })}
+            onVerEvaluaciones={(ficha) => setPanel({ tipo: 'evaluaciones', ficha })}
             onCambiarAsesor={(ficha) => setPanel({ tipo: 'asesor', ficha })}
             onLimpiarFiltros={listado.limpiarFiltros}
           />
@@ -87,6 +89,9 @@ export default function ConsultarFichasPerfilCoordinador() {
 
       {panel?.tipo === 'estudiantes' && (
         <EstudiantesVinculadosPanel ficha={panel.ficha} onCerrar={cerrarPanel} />
+      )}
+      {panel?.tipo === 'evaluaciones' && (
+        <EvaluacionesFichaPanel ficha={panel.ficha} onCerrar={cerrarPanel} />
       )}
       {panel?.tipo === 'asesor' && (
         <CambiarAsesorPanel ficha={panel.ficha} onCerrar={cerrarPanel} />
