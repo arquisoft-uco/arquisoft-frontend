@@ -16,6 +16,7 @@ import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresen
 import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
 import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
 import type { RevisionItem } from '../models/RevisionItem';
+import type { RevisionItemCreadaResponse } from '../models/RevisionItemCreadaResponse';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
@@ -441,6 +442,11 @@ export const fichasPerfilService = {
     apiClient
       .post<Page<RevisionItemResponseDTO>>('/fichas-perfil/revisiones-item/asesor', req)
       .then(({ data }) => ({ ...data, content: data.content.map(aRevisionItem) })),
+
+  agregarRevisionItem: (itemId: string): Promise<RevisionItemCreadaResponse> =>
+    apiClient
+      .post<RevisionItemCreadaResponse>(`/fichas-perfil/items/${itemId}/revisiones`)
+      .then((r) => r.data),
 
   getFichasRepresentante: (
     page: number,

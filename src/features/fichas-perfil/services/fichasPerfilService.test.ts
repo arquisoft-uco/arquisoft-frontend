@@ -358,6 +358,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('agregarRevisionItem', () => {
+    it('hace POST /fichas-perfil/items/{itemId}/revisiones sin cuerpo y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-1' } });
+
+      // Act
+      const resultado = await fichasPerfilService.agregarRevisionItem('i-1');
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/items/i-1/revisiones');
+      expect(resultado).toEqual({ id: 'r-1' });
+    });
+  });
+
   describe('consultarRevisionesItemAsesor', () => {
     it('envía el body tal cual a POST /fichas-perfil/revisiones-item/asesor, traduce el DTO y conserva la paginación', async () => {
       // Arrange

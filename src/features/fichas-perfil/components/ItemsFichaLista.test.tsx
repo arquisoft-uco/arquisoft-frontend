@@ -105,4 +105,27 @@ describe('ItemsFichaLista', () => {
     expect(screen.getByRole('button', { name: 'Acción i-1' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Acción i-2' })).toBeInTheDocument();
   });
+
+  it('pinta las insignias extra de cada ítem y sin la prop no aparece ninguna', () => {
+    // Act
+    const { rerender } = renderizar({
+      items: ITEMS,
+      insignias: (item) => (item.id === 'i-1' ? <span>Insignia i-1</span> : null),
+    });
+
+    // Assert
+    expect(screen.getByText('Insignia i-1')).toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.queryByText('Insignia i-2')).not.toBeInTheDocument();
+
+    // Act
+    rerender(
+      <ItemsFichaLista items={ITEMS} cargando={false} error={false} onReintentar={vi.fn()} />,
+    );
+
+    // Assert
+    expect(screen.queryByText('Insignia i-1')).not.toBeInTheDocument();
+    expect(screen.getByText('Objetivo General')).toBeInTheDocument();
+    expect(screen.getByText('Contenido uno')).toBeInTheDocument();
+  });
 });
