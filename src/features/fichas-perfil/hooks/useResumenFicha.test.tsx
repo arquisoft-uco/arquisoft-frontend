@@ -26,6 +26,7 @@ const RESUMEN = {
   estadoId: 'e-1',
   estadoNombre: 'Aprobada',
   fechaActualizacion: '2026-10-02T10:00:00Z',
+  asesorId: 'a-9',
   asesorNombre: 'Ana Gómez',
   asesorEmail: 'ana@uco.edu.co',
 };
@@ -79,6 +80,7 @@ describe('useResumenFicha', () => {
       estadoId: undefined,
       estadoNombre: undefined,
       fechaActualizacion: undefined,
+      asesorId: undefined,
       asesorNombre: undefined,
       asesorEmail: undefined,
     });

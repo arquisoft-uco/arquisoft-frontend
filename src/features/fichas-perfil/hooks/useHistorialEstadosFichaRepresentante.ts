@@ -1,19 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import { fichasPerfilService } from '../services/fichasPerfilService';
-
-function marcaDeTiempo(fecha: string): number {
-  const marca = Date.parse(fecha);
-  return Number.isNaN(marca) ? 0 : marca;
-}
-
-function ordenarMasRecientePrimero(
-  historial: HistorialEstadoFichaPerfil[],
-): HistorialEstadoFichaPerfil[] {
-  return [...historial].sort(
-    (a, b) => marcaDeTiempo(b.fechaActualizacion) - marcaDeTiempo(a.fechaActualizacion),
-  );
-}
+import { ordenarMasRecientePrimero } from '../utils/historial-estados';
 
 export function useHistorialEstadosFichaRepresentante(fichaPerfilId: string) {
   return useQuery({

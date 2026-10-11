@@ -123,6 +123,31 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('agregarEstadoAprobacionFichaPerfil', () => {
+    it('traduce la solicitud a POST /fichas-perfil/{id}/estados-ficha/aprobacion con { acepta } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'ef-2' } });
+
+      // Act
+      const aceptada = await fichasPerfilService.agregarEstadoAprobacionFichaPerfil('f-1', {
+        acepta: true,
+      });
+      const rechazada = await fichasPerfilService.agregarEstadoAprobacionFichaPerfil('f-1', {
+        acepta: false,
+      });
+
+      // Assert
+      expect(post).toHaveBeenNthCalledWith(1, '/fichas-perfil/f-1/estados-ficha/aprobacion', {
+        acepta: true,
+      });
+      expect(post).toHaveBeenNthCalledWith(2, '/fichas-perfil/f-1/estados-ficha/aprobacion', {
+        acepta: false,
+      });
+      expect(aceptada).toEqual({ id: 'ef-2' });
+      expect(rechazada).toEqual({ id: 'ef-2' });
+    });
+  });
+
   describe('cambiarAsesor', () => {
     it('traduce la solicitud a PATCH /fichas-perfil/{id}/asesor-ficha con { asesorFicha } y resuelve sin cuerpo', async () => {
       // Arrange
@@ -830,6 +855,38 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('getItemsFichaCoordinador', () => {
+    it('consulta GET /fichas-perfil/{id}/items/coordinador y traduce el DTO plano al modelo anidado', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'i-1',
+            fichaPerfilId: 'f-1',
+            tipoItem: 't-1',
+            tipoItemNombre: 'Objetivo',
+            contenido: 'Medir',
+          },
+        ],
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.getItemsFichaCoordinador('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/items/coordinador');
+      expect(resultado).toEqual([
+        {
+          id: 'i-1',
+          fichaPerfilId: 'f-1',
+          tipoItem: { id: 't-1', nombre: 'Objetivo' },
+          contenido: 'Medir',
+        },
+      ]);
+    });
+  });
+
   describe('getEvaluacionFicha', () => {
     it('consulta GET /fichas-perfil/{id}/evaluaciones/representante, traduce estadoEvaluacion a estadoEvaluacionId y conserva los null', async () => {
       // Arrange
@@ -917,6 +974,24 @@ describe('fichasPerfilService', () => {
 
       // Assert
       expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/estados-ficha/representante');
+      expect(resultado).toEqual(historial);
+    });
+  });
+
+  describe('getEstadosFichaPerfilCoordinador', () => {
+    it('hace GET /fichas-perfil/{id}/estados-ficha/coordinador y resuelve el arreglo', async () => {
+      // Arrange
+      const historial = [
+        { id: 'e-1', nombre: 'Creada', fechaActualizacion: '2026-01-01T10:00:00' },
+        { id: 'e-2', nombre: 'En revisión', fechaActualizacion: '2026-02-01T10:00:00' },
+      ];
+      get.mockResolvedValue({ status: 200, data: historial });
+
+      // Act
+      const resultado = await fichasPerfilService.getEstadosFichaPerfilCoordinador('f-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/fichas-perfil/f-1/estados-ficha/coordinador');
       expect(resultado).toEqual(historial);
     });
   });

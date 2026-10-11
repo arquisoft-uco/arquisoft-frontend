@@ -12,6 +12,11 @@ vi.mock('./hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
 vi.mock('./hooks/useHistorialEstadosFichaAsesor', () => ({
   useHistorialEstadosFichaAsesor: vi.fn(() => ({ data: undefined })),
 }));
+vi.mock('./hooks/useHistorialEstadosFichaCoordinador', () => ({
+  useHistorialEstadosFichaCoordinador: vi.fn(() => ({ data: undefined })),
+}));
+vi.mock('./components/coordinador/AccionesFichaCoordinador', () => ({ default: () => null }));
+vi.mock('./components/coordinador/DecisionFichaPanel', () => ({ default: () => null }));
 vi.mock('./hooks/useRegistrarEvaluacion', () => ({
   useRegistrarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
@@ -37,6 +42,16 @@ vi.mock('./components/representante/EstadosFichaRepresentantePanel', () => ({
 vi.mock('./components/coordinador/EvaluacionesFichaPanel', () => ({
   default: ({ fichaPerfilId }: { fichaPerfilId: string }) => (
     <div>Evaluaciones coordinador {fichaPerfilId}</div>
+  ),
+}));
+vi.mock('./components/coordinador/EstadosFichaCoordinadorPanel', () => ({
+  default: ({ fichaPerfilId }: { fichaPerfilId: string }) => (
+    <div>Estados coordinador {fichaPerfilId}</div>
+  ),
+}));
+vi.mock('./components/coordinador/ItemsFichaCoordinadorPanel', () => ({
+  default: ({ fichaPerfilId }: { fichaPerfilId: string }) => (
+    <div>Ítems coordinador {fichaPerfilId}</div>
   ),
 }));
 vi.mock('./components/representante/RegistrarEvaluacionPanel', () => ({
@@ -162,7 +177,7 @@ describe('DetalleFicha', () => {
     expect(screen.queryByText('Panel evaluaciones')).not.toBeInTheDocument();
   });
 
-  it('el coordinador aterriza en Evaluaciones desde la ficha y desde una pestaña ajena, sin bucle', () => {
+  it('el coordinador aterriza en Ítems desde la ficha y redirige a Evaluaciones desde una pestaña ajena, sin bucle', () => {
     // Arrange
     entrarComo(Rol.Coordinador);
 
@@ -170,7 +185,7 @@ describe('DetalleFicha', () => {
     const raiz = renderizar('/fichas-perfil/f-1');
 
     // Assert
-    expect(screen.getByText('Evaluaciones coordinador f-1')).toBeInTheDocument();
+    expect(screen.getByText('Ítems coordinador f-1')).toBeInTheDocument();
     raiz.unmount();
 
     // Arrange
@@ -178,11 +193,33 @@ describe('DetalleFicha', () => {
     entrarComo(Rol.Coordinador);
 
     // Act
-    renderizar('/fichas-perfil/f-1/items');
+    const items = renderizar('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByText('Ítems coordinador f-1')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toBeInTheDocument();
+    items.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.Coordinador);
+
+    // Act
+    const estados = renderizar('/fichas-perfil/f-1/estados');
+
+    // Assert
+    expect(screen.getByText('Estados coordinador f-1')).toBeInTheDocument();
+    estados.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.Coordinador);
+
+    // Act
+    renderizar('/fichas-perfil/f-1/revisiones');
 
     // Assert
     expect(screen.getByText('Evaluaciones coordinador f-1')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toBeInTheDocument();
   });
 
   it('un rol sin vista va a /forbidden y sin rol a /seleccionar-rol', () => {

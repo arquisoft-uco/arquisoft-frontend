@@ -25,6 +25,7 @@ describe('resumen-ficha', () => {
     });
     expect(conAsesor).toEqual({
       ...sinAsesor,
+      asesorId: 'a-1',
       asesorNombre: 'Ana Pérez',
       asesorEmail: 'ana@uco.edu.co',
     });

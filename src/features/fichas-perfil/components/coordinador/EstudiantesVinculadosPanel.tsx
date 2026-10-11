@@ -12,20 +12,20 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstudiantesVinculados } from '../../hooks/useEstudiantesVinculados';
 import { useRemoverEstudiante } from '../../hooks/useRemoverEstudiante';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
-import type { FichaPerfil } from '../../models/FichaPerfil';
 import AsignarEstudianteForm from './AsignarEstudianteForm';
 import EstudiantesVinculadosLista from './EstudiantesVinculadosLista';
 
 const CONTENIDO = 'flex flex-col gap-6';
 
 interface Props {
-  ficha: FichaPerfil;
+  fichaId: string;
+  titulo: string;
   onCerrar: () => void;
 }
 
-export default function EstudiantesVinculadosPanel({ ficha, onCerrar }: Props) {
-  const { data, isLoading, isError, error, refetch } = useEstudiantesVinculados(ficha.id);
-  const { mutate: remover, isPending: quitando } = useRemoverEstudiante(ficha.id);
+export default function EstudiantesVinculadosPanel({ fichaId, titulo, onCerrar }: Props) {
+  const { data, isLoading, isError, error, refetch } = useEstudiantesVinculados(fichaId);
+  const { mutate: remover, isPending: quitando } = useRemoverEstudiante(fichaId);
   const [pendiente, setPendiente] = useState<EstudianteVinculado | null>(null);
 
   const estudiantes = data ?? [];
@@ -78,7 +78,7 @@ export default function EstudiantesVinculadosPanel({ ficha, onCerrar }: Props) {
           />
         )}
         <FormSection titulo="Asignar estudiantes">
-          <AsignarEstudianteForm idFichaPerfil={ficha.id} vinculados={estudiantes} />
+          <AsignarEstudianteForm idFichaPerfil={fichaId} vinculados={estudiantes} />
         </FormSection>
       </>
     );
@@ -87,7 +87,7 @@ export default function EstudiantesVinculadosPanel({ ficha, onCerrar }: Props) {
   return (
     <SidePanel
       titulo="Estudiantes de la ficha"
-      descripcion={ficha.tituloProyecto}
+      descripcion={titulo}
       onCerrar={onCerrar}
       ocupado={quitando}
       pie={(solicitarCierre) => (
