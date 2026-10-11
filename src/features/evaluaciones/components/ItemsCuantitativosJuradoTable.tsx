@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { Calculator } from 'lucide-react';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
@@ -9,17 +10,30 @@ import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 interface Props {
   items: ItemCuantitativoJurado[];
   categorias: CategoriaItemCuantitativoJurado[] | undefined;
+  cargandoCategorias: boolean;
 }
 
 const CATEGORIA_NO_DISPONIBLE = 'No disponible';
 
-export default function ItemsCuantitativosJuradoTable({ items, categorias }: Props) {
+const CATEGORIA_CARGANDO = (
+  <>
+    <span aria-hidden="true">—</span>
+    <span className="sr-only">Cargando categoría</span>
+  </>
+);
+
+export default function ItemsCuantitativosJuradoTable({
+  items,
+  categorias,
+  cargandoCategorias,
+}: Props) {
   const nombrePorCategoria = useMemo(
     () => new Map((categorias ?? []).map((categoria) => [categoria.id, categoria.nombre])),
     [categorias],
   );
 
-  function nombreDeCategoria(item: ItemCuantitativoJurado) {
+  function nombreDeCategoria(item: ItemCuantitativoJurado): ReactNode {
+    if (cargandoCategorias) return CATEGORIA_CARGANDO;
     return nombrePorCategoria.get(item.categoriaId) ?? CATEGORIA_NO_DISPONIBLE;
   }
 

@@ -39,6 +39,7 @@ function mockItems(parcial: Partial<ReturnType<typeof useItemsCuantitativosJurad
 function mockCategorias(parcial: Partial<ReturnType<typeof useCategoriasItemCuantitativoJurado>>) {
   vi.mocked(useCategoriasItemCuantitativoJurado).mockReturnValue({
     data: undefined,
+    isLoading: false,
     isError: false,
     ...parcial,
   } as ReturnType<typeof useCategoriasItemCuantitativoJurado>);
@@ -125,5 +126,25 @@ describe('ItemsCuantitativosJuradoView', () => {
     const tabla = screen.getByRole('table', { name: 'Ítems cuantitativos del jurado' });
     expect(within(tabla).getAllByText('No disponible')).toHaveLength(2);
     expect(within(tabla).getByText('Rigor')).toBeInTheDocument();
+  });
+
+  it('mientras el catálogo de categorías carga, no dice No disponible', () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    mockCategorias({ data: undefined, isLoading: true });
+
+    // Act
+    render(<ItemsCuantitativosJuradoView />);
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Ítems cuantitativos del jurado' });
+    expect(within(tabla).getByText('Rigor')).toBeInTheDocument();
+    expect(within(tabla).getByText('Impacto')).toBeInTheDocument();
+    expect(screen.queryByText('No disponible')).not.toBeInTheDocument();
+    expect(screen.queryByText('Técnica')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('No se pudieron cargar los nombres de las categorías.'),
+    ).not.toBeInTheDocument();
+    expect(within(tabla).getAllByText('Cargando categoría')).toHaveLength(2);
   });
 });

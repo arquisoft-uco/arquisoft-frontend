@@ -6,7 +6,7 @@ import Evaluaciones from './Evaluaciones';
 import { Rol } from '../../shared/models/rol';
 
 vi.mock('./components/ItemsJuradoView', () => ({
-  default: () => <p>Vista de ítems cualitativos</p>,
+  default: () => <p>Vista de ítems del jurado</p>,
 }));
 
 function autenticarCon(rol: Rol) {
@@ -20,7 +20,7 @@ describe('Evaluaciones', () => {
   });
 
   it.each([Rol.Administrador, Rol.Jurado])(
-    'con el rol %s, renderiza la vista de ítems cualitativos',
+    'con el rol %s, renderiza la vista de ítems del jurado',
     (rol) => {
       // Arrange
       autenticarCon(rol);
@@ -29,7 +29,7 @@ describe('Evaluaciones', () => {
       render(<Evaluaciones />, { initialPath: '/evaluaciones' });
 
       // Assert
-      expect(screen.getByText('Vista de ítems cualitativos')).toBeInTheDocument();
+      expect(screen.getByText('Vista de ítems del jurado')).toBeInTheDocument();
     },
   );
 
@@ -50,7 +50,7 @@ describe('Evaluaciones', () => {
 
       // Assert
       expect(screen.getByText('Pantalla de acceso denegado')).toBeInTheDocument();
-      expect(screen.queryByText('Vista de ítems cualitativos')).not.toBeInTheDocument();
+      expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
     },
   );
 
@@ -66,6 +66,6 @@ describe('Evaluaciones', () => {
 
     // Assert
     expect(screen.getByText('Pantalla de selección de rol')).toBeInTheDocument();
-    expect(screen.queryByText('Vista de ítems cualitativos')).not.toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
   });
 });

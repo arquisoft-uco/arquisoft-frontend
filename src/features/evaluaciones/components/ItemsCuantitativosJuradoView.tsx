@@ -13,7 +13,7 @@ export default function ItemsCuantitativosJuradoView() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-on-surface-secondary">
-        Valores máximos con los que el jurado puntúa cada proyecto, agrupados por categoría.
+        Valores máximos con los que el jurado puntúa cada proyecto.
       </p>
 
       {isLoading && (
@@ -32,7 +32,13 @@ export default function ItemsCuantitativosJuradoView() {
         <Notice variante="advertencia">No se pudieron cargar los nombres de las categorías.</Notice>
       )}
 
-      {data && <ItemsCuantitativosJuradoTable items={data} categorias={categorias.data} />}
+      {data && (
+        <ItemsCuantitativosJuradoTable
+          items={data}
+          categorias={categorias.data}
+          cargandoCategorias={categorias.isLoading}
+        />
+      )}
     </div>
   );
 }
