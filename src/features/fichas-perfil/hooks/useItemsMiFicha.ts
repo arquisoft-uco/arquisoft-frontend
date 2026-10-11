@@ -52,6 +52,7 @@ export function useItemsMiFicha() {
     itemsCargados: itemsQuery.isSuccess,
     isLoading: itemsQuery.isLoading,
     isError: itemsQuery.isError,
+    error: itemsQuery.error,
     refetch: itemsQuery.refetch,
     cargandoTipos: tiposItemQuery.isLoading,
     errorTipos: tiposItemQuery.isError,

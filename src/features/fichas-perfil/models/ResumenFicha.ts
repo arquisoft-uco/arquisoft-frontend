@@ -4,6 +4,7 @@ export interface ResumenFicha {
   estadoId?: string;
   estadoNombre?: string;
   fechaActualizacion?: string;
+  asesorId?: string;
   asesorNombre?: string;
   asesorEmail?: string;
 }

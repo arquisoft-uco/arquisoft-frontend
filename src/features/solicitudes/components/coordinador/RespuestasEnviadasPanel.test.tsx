@@ -18,6 +18,13 @@ vi.mock('../../hooks/useEliminarRespuestaNovedadCoordinador', () => ({
   useEliminarRespuestaNovedadCoordinador: vi.fn(),
 }));
 
+vi.mock('../../hooks/useModificarEstadoRespuestaNovedadCoordinador', () => ({
+  useModificarEstadoRespuestaNovedadCoordinador: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
+}));
+
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
@@ -66,6 +73,13 @@ function mockearEliminar(mutate = vi.fn()) {
     reset: vi.fn(),
   } as HookEliminar);
   return mutate;
+}
+
+async function abrirMenuFila(user: ReturnType<typeof userEvent.setup>) {
+  const tabla = screen.getByRole('table', { name: 'Respuestas de novedades enviadas' });
+  await user.click(
+    within(tabla).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+  );
 }
 
 async function abrirDialogoEliminar(user: ReturnType<typeof userEvent.setup>) {
@@ -296,5 +310,43 @@ describe('RespuestasEnviadasPanel', () => {
 
     // Assert
     expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
+  it('la fila En revisión ofrece aprobar, marcar como no aprobada y eliminar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+
+    // Act
+    await abrirMenuFila(user);
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Aprobar respuesta' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Eliminar respuesta' })).toBeInTheDocument();
+  });
+
+  it('al elegir cada decisión abre el diálogo de confirmación correspondiente', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    const abrirMenu = () => abrirMenuFila(user);
+
+    // Act
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Aprobar respuesta?');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Marcar como no aprobada?');
   });
 });

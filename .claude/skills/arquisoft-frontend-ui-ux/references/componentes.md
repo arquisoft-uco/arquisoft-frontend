@@ -59,6 +59,7 @@ página. Lo que sigue es la receta para escribir lo que falte.
 | `DataTable`, `FilterBar`, `RowMenu`, `FormSection`, `FormActions`, `ErrorSummary` | `src/shared/components/ui/` | Usuarios y Fichas tienen listados y formularios |
 | `PaginadorListado` ampliado | se queda en `src/shared/components/` | Ya lo importan dos features |
 | `SidePanel` | `src/shared/components/ui/` | Excepción de la adopción a la regla de abajo: nació con Usuarios (HT-UX-03) y su segundo consumidor, `fichas-perfil` (paneles «Estudiantes de la ficha» y «Cambiar asesor» del coordinador), llegó en HT-UX-04 |
+| `OpcionRadio` | `src/shared/components/ui/` | Nació en `EstadoDeLaCuenta` (Usuarios); su segundo consumidor es «Decisión sobre la ficha» (Fichas) |
 | `Switch` | `features/usuarios/components/` | Solo Usuarios lo usa; sube a `ui/` con el segundo consumidor |
 | `Combobox` | `features/fichas-perfil/components/` | Solo Fichas lo usa; sube a `ui/` con el segundo consumidor. Su lógica, `useCombobox`, vive en `src/shared/hooks/` |
 | `ConfirmDialog`, `Toaster`, `PageSkeleton`, `AvisoNoDisponible`, `ComingSoon` | siguen en `src/shared/components/` | Se **actualizan en su sitio**; no se mueven |
@@ -128,6 +129,7 @@ IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-
 |---|---|
 | Ficha | `EN_CONSTRUCCION` → neutro · `DISPONIBLE_PARA_EVALUACION` → advertencia · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
 | Evaluación | `EN_EVALUACION` → info · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
+| Revisión de ítem | `NUEVA` → info · `VISUALIZADA` → neutro · `EN_PROGRESO` → advertencia · `CORRECCION_DISPONIBLE` → advertencia · `CERRADA` → exito |
 | Usuario | `ACTIVO` → exito · `INACTIVO` → neutro · `vigente === false` → peligro, con el texto «Dado de baja» (una sola insignia combina estado y vigencia) |
 
 ```clases
@@ -405,6 +407,27 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
   cuando está marcado. `pista` trae el atenuado de los dos estados (`disabled:` y `aria-disabled:`) porque `pendiente` usa
   `aria-disabled` y debe verse igual. El pulgar se desplaza con la propiedad CSS `translate` (en Tailwind 4, `translate-x-4.5`
   son 18 px), no con `transform`: se verifica con `getComputedStyle(...).translate`.
+
+### OpcionRadio
+
+- **Reemplazó:** el `label` con `input type="radio"` escrito a mano en `EstadoDeLaCuenta`. Lo usan ese panel (Usuarios) y
+  `DecisionFichaPanel` (Fichas, coordinador).
+- **Cuándo:** pocas opciones excluyentes (hasta 5) que necesitan su consecuencia a la vista; un `select` nativo no la muestra.
+- **API:** `nombre` (el `name` del grupo), `valor`, `titulo`, `descripcion`, `elegida: boolean`, `deshabilitada?` y
+  `onElegir: (valor: string) => void`. El `role="radiogroup"` con su `aria-labelledby` lo pone quien la usa.
+- **A11y:** el radio se nombra con el título (`aria-labelledby`) y se describe con la descripción (`aria-describedby`).
+
+```clases
+OpcionRadio.base | flex min-h-14 w-full items-center gap-3 rounded-xl border px-3.5 py-2.5
+OpcionRadio.habilitada | cursor-pointer
+OpcionRadio.deshabilitada | cursor-not-allowed opacity-60
+OpcionRadio.libre | border-border-strong
+OpcionRadio.elegida | border-primary bg-primary-muted
+OpcionRadio.radio | checkbox-control shrink-0 accent-primary
+```
+
+- **Composición:** `base` más una de `habilitada` o `deshabilitada`, más una de `libre` o `elegida`.
+- **Pruebas:** elegirla por nombre accesible, que la deshabilitada no dispare `onElegir` y su descripción accesible.
 
 ### Combobox
 

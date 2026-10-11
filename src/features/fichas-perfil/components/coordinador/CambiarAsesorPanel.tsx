@@ -9,17 +9,26 @@ import { useAsesoresFichaVigentes } from '../../../../shared/hooks/useAsesoresFi
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCambiarAsesor } from '../../hooks/useCambiarAsesor';
-import type { FichaPerfil } from '../../models/FichaPerfil';
+import type { Asesor } from '../../../../shared/models/Asesor';
 import Combobox from '../Combobox';
 
 const ID_FORMULARIO = 'cambiar-asesor-ficha';
 
 interface Props {
-  ficha: FichaPerfil;
+  fichaId: string;
+  titulo: string;
+  asesorActual: { id?: string; nombre?: string; email?: string };
   onCerrar: () => void;
+  onAsesorCambiado?: (asesor: Asesor) => void;
 }
 
-export default function CambiarAsesorPanel({ ficha, onCerrar }: Props) {
+export default function CambiarAsesorPanel({
+  fichaId,
+  titulo,
+  asesorActual,
+  onCerrar,
+  onAsesorCambiado,
+}: Props) {
   const [seleccion, setSeleccion] = useState('');
   const [confirmando, setConfirmando] = useState(false);
   const {
@@ -30,9 +39,13 @@ export default function CambiarAsesorPanel({ ficha, onCerrar }: Props) {
   const { mutate, isPending } = useCambiarAsesor();
 
   const opciones = asesores
-    .filter((asesor) => asesor.id !== ficha.asesorFicha.id)
+    .filter((asesor) => asesor.id !== asesorActual.id)
     .map((asesor) => ({ id: asesor.id, etiqueta: asesor.nombre, descripcion: asesor.email }));
   const asesorNuevo = asesores.find((asesor) => asesor.id === seleccion);
+  const ayudaAsesorActual =
+    asesorActual.nombre && asesorActual.email
+      ? `Asesor actual: ${asesorActual.nombre} (${asesorActual.email})`
+      : undefined;
 
   function solicitarConfirmacion(evento: SyntheticEvent) {
     evento.preventDefault();
@@ -42,11 +55,12 @@ export default function CambiarAsesorPanel({ ficha, onCerrar }: Props) {
   function confirmar() {
     if (!asesorNuevo) return;
     mutate(
-      { idFicha: ficha.id, idAsesorFicha: seleccion, asesorNuevo },
+      { idFicha: fichaId, idAsesorFicha: seleccion, asesorNuevo },
       {
         onSuccess: () => {
           toast.success('Asesor actualizado', 'El asesor de la ficha fue cambiado correctamente.');
           setConfirmando(false);
+          onAsesorCambiado?.(asesorNuevo);
           onCerrar();
         },
         onError: (err) => {
@@ -63,7 +77,7 @@ export default function CambiarAsesorPanel({ ficha, onCerrar }: Props) {
   return (
     <SidePanel
       titulo="Cambiar asesor"
-      descripcion={ficha.tituloProyecto}
+      descripcion={titulo}
       onCerrar={onCerrar}
       sucio={seleccion !== ''}
       ocupado={isPending}
@@ -83,10 +97,7 @@ export default function CambiarAsesorPanel({ ficha, onCerrar }: Props) {
         {asesoresCargando && <Skeleton variante="lineas" etiqueta="Cargando asesores…" />}
         {asesoresNoDisponibles && <AvisoNoDisponible recurso="asesores" />}
         {!asesoresCargando && !asesoresNoDisponibles && (
-          <Field
-            etiqueta="Nuevo asesor"
-            ayuda={`Asesor actual: ${ficha.asesorFicha.nombre} (${ficha.asesorFicha.email})`}
-          >
+          <Field etiqueta="Nuevo asesor" ayuda={ayudaAsesorActual}>
             {(control) => (
               <Combobox
                 {...control}

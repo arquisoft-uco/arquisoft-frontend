@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { DIGITOS_REGEX, EMAIL_REGEX, UUID_REGEX } from './expresiones-regulares';
+import {
+  DIGITOS_REGEX,
+  EMAIL_REGEX,
+  NOMBRE_COMPLETO_REGEX,
+  UUID_REGEX,
+} from './expresiones-regulares';
 import { MENSAJES_VALIDACION } from './mensajes-validacion';
 
 export function textoRequerido(max: number) {
@@ -24,7 +29,10 @@ export function textoEntre(min: number, max: number) {
       return;
     }
     if (valor.length < min || valor.length > max) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.longitudEntre(min, max) });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: MENSAJES_VALIDACION.longitudEntre(min, max),
+      });
     }
   });
 }
@@ -48,7 +56,10 @@ export function soloDigitosEntre(min: number, max: number) {
       return;
     }
     if (valor.length < min || valor.length > max) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.longitudEntre(min, max) });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: MENSAJES_VALIDACION.longitudEntre(min, max),
+      });
     }
   });
 }
@@ -67,7 +78,10 @@ export function emailValido(min?: number, max?: number) {
       return;
     }
     if (min !== undefined && max !== undefined && (valor.length < min || valor.length > max)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.longitudEntre(min, max) });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: MENSAJES_VALIDACION.longitudEntre(min, max),
+      });
     }
   });
 }
@@ -78,4 +92,37 @@ export function uuidValido() {
 
 export function listaConMaximo(max: number) {
   return z.array(z.string()).max(max, MENSAJES_VALIDACION.listaMaxima(max));
+}
+
+// Espejo de la regla compuesta del backend sobre `nombres + " " + apellidos`: longitud del conjunto
+// (error en ambos campos) y luego formato (error en el campo con el carácter inválido).
+export function validarParDeNombres(
+  valores: { nombres: string; apellidos: string },
+  ctx: z.RefinementCtx,
+  min: number,
+  max: number,
+) {
+  const nombres = valores.nombres.trim();
+  const apellidos = valores.apellidos.trim();
+
+  const longitud = `${nombres} ${apellidos}`.length;
+  if (longitud < min || longitud > max) {
+    const message = MENSAJES_VALIDACION.longitudEntre(min, max);
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nombres'], message });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['apellidos'], message });
+  }
+  if (!NOMBRE_COMPLETO_REGEX.test(nombres)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['nombres'],
+      message: MENSAJES_VALIDACION.formatoNombre,
+    });
+  }
+  if (!NOMBRE_COMPLETO_REGEX.test(apellidos)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['apellidos'],
+      message: MENSAJES_VALIDACION.formatoNombre,
+    });
+  }
 }

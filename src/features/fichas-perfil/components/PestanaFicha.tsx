@@ -4,10 +4,16 @@ import { Rol } from '../../../shared/models/rol';
 import { useRolActivo } from '../../../hooks/useAuth';
 import EstadosFichaAsesorPanel from './asesor-ficha/EstadosFichaAsesorPanel';
 import ItemsFichaAsesorPanel from './asesor-ficha/ItemsFichaAsesorPanel';
+import ObservacionesFichaAsesorPanel from './asesor-ficha/ObservacionesFichaAsesorPanel';
+import RevisionesFichaAsesorPanel from './asesor-ficha/RevisionesFichaAsesorPanel';
+import EstadosFichaCoordinadorPanel from './coordinador/EstadosFichaCoordinadorPanel';
+import EvaluacionesFichaPanel from './coordinador/EvaluacionesFichaPanel';
+import ItemsFichaCoordinadorPanel from './coordinador/ItemsFichaCoordinadorPanel';
+import EstadosFichaRepresentantePanel from './representante/EstadosFichaRepresentantePanel';
 import ItemsFichaRepresentantePanel from './representante/ItemsFichaRepresentantePanel';
 import RegistrarEvaluacionPanel from './representante/RegistrarEvaluacionPanel';
 
-export type Pestana = 'items' | 'estados' | 'evaluaciones';
+export type Pestana = 'items' | 'estados' | 'evaluaciones' | 'revisiones' | 'observaciones';
 
 type PanelDeFicha = ComponentType<{ fichaPerfilId: string }>;
 
@@ -15,9 +21,23 @@ const PANEL_POR_PESTANA: Record<Pestana, Record<string, PanelDeFicha>> = {
   items: {
     [Rol.AsesorFicha]: ItemsFichaAsesorPanel,
     [Rol.RepresentanteComiteCurriculum]: ItemsFichaRepresentantePanel,
+    [Rol.Coordinador]: ItemsFichaCoordinadorPanel,
   },
-  estados: { [Rol.AsesorFicha]: EstadosFichaAsesorPanel },
-  evaluaciones: { [Rol.RepresentanteComiteCurriculum]: RegistrarEvaluacionPanel },
+  revisiones: { [Rol.AsesorFicha]: RevisionesFichaAsesorPanel },
+  observaciones: { [Rol.AsesorFicha]: ObservacionesFichaAsesorPanel },
+  estados: {
+    [Rol.AsesorFicha]: EstadosFichaAsesorPanel,
+    [Rol.RepresentanteComiteCurriculum]: EstadosFichaRepresentantePanel,
+    [Rol.Coordinador]: EstadosFichaCoordinadorPanel,
+  },
+  evaluaciones: {
+    [Rol.RepresentanteComiteCurriculum]: RegistrarEvaluacionPanel,
+    [Rol.Coordinador]: EvaluacionesFichaPanel,
+  },
+};
+
+const PESTANA_INICIAL_POR_ROL: Record<string, Pestana> = {
+  [Rol.Coordinador]: 'evaluaciones',
 };
 
 interface Props {
@@ -29,7 +49,10 @@ export default function PestanaFicha({ pestana }: Props) {
   const rol = useRolActivo();
   const Panel = rol ? PANEL_POR_PESTANA[pestana][rol] : undefined;
 
-  if (!Panel || !id) return <Navigate to="../items" replace />;
+  if (!Panel || !id) {
+    const inicial = (rol && PESTANA_INICIAL_POR_ROL[rol]) ?? 'items';
+    return <Navigate to={`../${inicial}`} replace />;
+  }
 
   return <Panel fichaPerfilId={id} />;
 }

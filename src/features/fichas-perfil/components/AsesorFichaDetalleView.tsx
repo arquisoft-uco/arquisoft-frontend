@@ -13,6 +13,8 @@ export default function AsesorFichaDetalleView() {
   const base = `/fichas-perfil/${id}`;
   const pestanas = [
     { id: 'items', etiqueta: 'Ítems', to: `${base}/items` },
+    { id: 'revisiones', etiqueta: 'Revisiones', to: `${base}/revisiones` },
+    { id: 'observaciones', etiqueta: 'Observaciones', to: `${base}/observaciones` },
     { id: 'estados', etiqueta: 'Estados', to: `${base}/estados` },
   ];
 

@@ -18,14 +18,16 @@ import EditarTituloForm from './estudiante/EditarTituloForm';
 import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
 import HistorialEstadosFichaPanel from './estudiante/HistorialEstadosFichaPanel';
 import ItemsMiFichaPanel from './estudiante/ItemsMiFichaPanel';
+import RevisionesMiFichaPanel from './estudiante/RevisionesMiFichaPanel';
 import SelectorFichaEstudiante from './estudiante/SelectorFichaEstudiante';
 
-type Pestana = 'items' | 'estados' | 'evaluaciones';
+type Pestana = 'items' | 'revisiones' | 'estados' | 'evaluaciones';
 
 const RAIZ = 'flex flex-col gap-6';
 
 const PANEL_POR_PESTANA: Record<Pestana, ComponentType> = {
   items: ItemsMiFichaPanel,
+  revisiones: RevisionesMiFichaPanel,
   estados: HistorialEstadosFichaPanel,
   evaluaciones: EvaluacionesMiFichaPanel,
 };
@@ -73,6 +75,7 @@ export default function EstudianteView() {
 
   const pestanas = [
     { id: 'items' as const, etiqueta: 'Ítems', contador: itemsCargados ? items.length : undefined },
+    { id: 'revisiones' as const, etiqueta: 'Revisiones' },
     { id: 'estados' as const, etiqueta: 'Historial de estados' },
     { id: 'evaluaciones' as const, etiqueta: 'Evaluaciones' },
   ];

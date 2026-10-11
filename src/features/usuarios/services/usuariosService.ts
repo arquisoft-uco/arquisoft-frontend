@@ -5,6 +5,7 @@ import type { AgregarRolUsuarioRequest } from '../models/AgregarRolUsuarioReques
 import type { CambiarEstadoUsuarioRequest } from '../models/CambiarEstadoUsuarioRequest';
 import type { ConsultarUsuariosRequest } from '../models/ConsultarUsuariosRequest';
 import type { EstadoUsuario } from '../models/EstadoUsuario';
+import type { IdentidadUsuario } from '../models/IdentidadUsuario';
 import type { ModificarUsuarioRequest } from '../models/ModificarUsuarioRequest';
 import type { RegistrarUsuarioRequest } from '../models/RegistrarUsuarioRequest';
 import type { Usuario } from '../models/Usuario';
@@ -51,6 +52,9 @@ export const usuariosService = {
 
   consultarUsuariosAdministrador: (req: ConsultarUsuariosRequest): Promise<Page<Usuario>> =>
     apiClient.post<Page<Usuario>>('/usuarios/administrador', req).then((r) => r.data),
+
+  consultarIdentidadUsuario: (usuarioId: string): Promise<IdentidadUsuario> =>
+    apiClient.get<IdentidadUsuario>(`/usuarios/${usuarioId}`).then((r) => r.data),
 
   getEstadosUsuario: (): Promise<EstadoUsuario[]> =>
     apiClient.get<EstadoUsuario[]>('/usuarios/estados').then((r) => r.data),

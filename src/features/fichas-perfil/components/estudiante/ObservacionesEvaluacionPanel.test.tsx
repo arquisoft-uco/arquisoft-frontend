@@ -93,6 +93,8 @@ describe('ObservacionesEvaluacionPanel', () => {
     expect(screen.getByText('Precisar la metodología')).toBeInTheDocument();
     expect(screen.getByText('Evaluada por Rosa Gil')).toBeInTheDocument();
     expect(screen.getByText('Descartada')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Editar observación' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Eliminar observación' })).not.toBeInTheDocument();
   });
 
   it('«Cerrar» invoca onCerrar', async () => {
