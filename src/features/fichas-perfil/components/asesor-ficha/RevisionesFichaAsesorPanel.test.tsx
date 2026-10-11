@@ -41,6 +41,16 @@ function conRevisiones(parcial: Partial<ReturnType<typeof useRevisionesFichaAses
   });
 }
 
+vi.mock('./AgregarObservacionItemPanel', () => ({
+  default: ({ nombreItem }: { nombreItem: string }) => (
+    <div>Panel de observación: {nombreItem}</div>
+  ),
+}));
+
+async function abrirMenu(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getAllByRole('button', { name: /Acciones de la revisión de/ })[0]);
+}
+
 const FILA = {
   revision: {
     id: 'r-1',
@@ -103,7 +113,7 @@ describe('RevisionesFichaAsesorPanel', () => {
     expect(reintentar).toHaveBeenCalledTimes(1);
   });
 
-  it('ofrece remover la revisión no cerrada y no la cerrada', () => {
+  it('ofrece el menú de acciones en la revisión no cerrada y no en la cerrada', () => {
     // Arrange
     const cerrada = {
       ...FILA,
@@ -117,11 +127,25 @@ describe('RevisionesFichaAsesorPanel', () => {
 
     // Assert
     expect(
-      screen.getAllByRole('button', { name: /Remover la revisión de Objetivo general/ }).length,
+      screen.getAllByRole('button', { name: /Acciones de la revisión de Objetivo general/ }).length,
     ).toBeGreaterThan(0);
     expect(
-      screen.queryByRole('button', { name: /Remover la revisión de Alcance/ }),
+      screen.queryByRole('button', { name: /Acciones de la revisión de Alcance/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it('elegir «Agregar observación» abre el panel con el nombre del ítem', async () => {
+    // Arrange
+    conRevisiones({ filas: [FILA], totalElements: 1, totalPages: 1 });
+    const user = userEvent.setup();
+    render(<RevisionesFichaAsesorPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await abrirMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Agregar observación' }));
+
+    // Assert
+    expect(screen.getByText('Panel de observación: Objetivo general')).toBeInTheDocument();
   });
 
   it('pedir remover abre la confirmación con el aviso y Cancelar la cierra sin mutar', async () => {
@@ -131,7 +155,8 @@ describe('RevisionesFichaAsesorPanel', () => {
     render(<RevisionesFichaAsesorPanel fichaPerfilId="f-1" />);
 
     // Act
-    await user.click(screen.getAllByRole('button', { name: /Remover la revisión de/ })[0]);
+    await abrirMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Remover revisión' }));
 
     // Assert
     expect(screen.getByText('¿Remover esta revisión?')).toBeInTheDocument();
@@ -153,7 +178,8 @@ describe('RevisionesFichaAsesorPanel', () => {
     render(<RevisionesFichaAsesorPanel fichaPerfilId="f-1" />);
 
     // Act
-    await user.click(screen.getAllByRole('button', { name: /Remover la revisión de/ })[0]);
+    await abrirMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Remover revisión' }));
     await user.click(screen.getByRole('button', { name: 'Remover revisión' }));
 
     // Assert
@@ -171,7 +197,8 @@ describe('RevisionesFichaAsesorPanel', () => {
     render(<RevisionesFichaAsesorPanel fichaPerfilId="f-1" />);
 
     // Act
-    await user.click(screen.getAllByRole('button', { name: /Remover la revisión de/ })[0]);
+    await abrirMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Remover revisión' }));
     await user.click(screen.getByRole('button', { name: 'Remover revisión' }));
 
     // Assert
@@ -190,7 +217,8 @@ describe('RevisionesFichaAsesorPanel', () => {
     render(<RevisionesFichaAsesorPanel fichaPerfilId="f-1" />);
 
     // Act
-    await user.click(screen.getAllByRole('button', { name: /Remover la revisión de/ })[0]);
+    await abrirMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Remover revisión' }));
     await user.click(screen.getByRole('button', { name: 'Remover revisión' }));
 
     // Assert

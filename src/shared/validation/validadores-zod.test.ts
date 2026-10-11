@@ -35,6 +35,7 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX).toBe(100);
     expect(LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX).toBe(300);
     expect(LIMITES.OBSERVACION_EVALUACION_MAX).toBe(200);
+    expect(LIMITES.OBSERVACION_ITEM_MAX).toBe(200);
   });
 });
 

@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { MessageSquarePlus, Trash2 } from 'lucide-react';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import IconButton from '../../../../shared/components/ui/IconButton';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { useRemoverRevisionItem } from '../../hooks/useRemoverRevisionItem';
 import { useRevisionesFichaAsesor } from '../../hooks/useRevisionesFichaAsesor';
 import RevisionesFichaTabla from '../RevisionesFichaTabla';
+import AgregarObservacionItemPanel from './AgregarObservacionItemPanel';
 
 const ESTADO_REVISION_CERRADA = 'CERRADA';
 
@@ -27,6 +28,10 @@ export default function RevisionesFichaAsesorPanel({ fichaPerfilId }: Props) {
   const revisiones = useRevisionesFichaAsesor(fichaPerfilId);
   const remover = useRemoverRevisionItem(fichaPerfilId);
   const [revisionARemover, setRevisionARemover] = useState<string | null>(null);
+  const [observacionDe, setObservacionDe] = useState<{
+    revisionId: string;
+    nombreItem: string;
+  } | null>(null);
 
   function confirmarRemover() {
     if (!revisionARemover) return;
@@ -53,18 +58,37 @@ export default function RevisionesFichaAsesorPanel({ fichaPerfilId }: Props) {
         descripcionVacia="Cuando revises un ítem de esta ficha, lo verás aquí."
         acciones={(fila) => {
           if (fila.revision.estadoId === ESTADO_REVISION_CERRADA) return null;
+          const nombreItem = fila.item?.tipoItem.nombre ?? 'un ítem';
           return (
-            <IconButton
-              tono="peligro"
-              icono={Trash2}
-              etiqueta={`Remover la revisión de ${fila.item?.tipoItem.nombre ?? 'un ítem'}`}
-              rotulo="Remover revisión"
-              disabled={remover.isPending && remover.variables === fila.revision.id}
-              onClick={() => setRevisionARemover(fila.revision.id)}
+            <RowMenu
+              etiqueta={`Acciones de la revisión de ${nombreItem}`}
+              acciones={[
+                {
+                  etiqueta: 'Agregar observación',
+                  icono: MessageSquarePlus,
+                  onSeleccionar: () =>
+                    setObservacionDe({ revisionId: fila.revision.id, nombreItem }),
+                },
+                {
+                  etiqueta: 'Remover revisión',
+                  icono: Trash2,
+                  peligro: true,
+                  deshabilitada: remover.isPending && remover.variables === fila.revision.id,
+                  onSeleccionar: () => setRevisionARemover(fila.revision.id),
+                },
+              ]}
             />
           );
         }}
       />
+      {observacionDe && (
+        <AgregarObservacionItemPanel
+          revisionItemId={observacionDe.revisionId}
+          fichaPerfilId={fichaPerfilId}
+          nombreItem={observacionDe.nombreItem}
+          onCerrar={() => setObservacionDe(null)}
+        />
+      )}
       {revisionARemover && (
         <ConfirmDialog
           titulo="¿Remover esta revisión?"
