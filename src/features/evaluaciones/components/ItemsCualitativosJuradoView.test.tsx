@@ -9,12 +9,17 @@ import {
 import { Rol } from '../../../shared/models/rol';
 import ItemsCualitativosJuradoView from './ItemsCualitativosJuradoView';
 import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado';
+import { useCriteriosItemCualitativoJurado } from '../hooks/useCriteriosItemCualitativoJurado';
 import { useRegistrarItemCualitativoJurado } from '../hooks/useRegistrarItemCualitativoJurado';
 import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 
 vi.mock('../hooks/useItemsCualitativosJurado', () => ({
   useItemsCualitativosJurado: vi.fn(),
+}));
+
+vi.mock('../hooks/useCriteriosItemCualitativoJurado', () => ({
+  useCriteriosItemCualitativoJurado: vi.fn(),
 }));
 
 vi.mock('../hooks/useRegistrarItemCualitativoJurado', () => ({
@@ -182,6 +187,43 @@ describe('ItemsCualitativosJuradoView', () => {
 
     // Assert
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('el jurado y el administrador ven Ver criterios; al pulsarlo se abre el panel y se cierra sin alterar la tabla', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    vi.mocked(useCriteriosItemCualitativoJurado).mockReturnValue({
+      data: [{ id: 'c-1', nombre: 'Rigor', descripcion: 'Criterio de rigor.' }],
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as Partial<ReturnType<typeof useCriteriosItemCualitativoJurado>> as ReturnType<
+      typeof useCriteriosItemCualitativoJurado
+    >);
+    const user = userEvent.setup();
+
+    for (const rol of [Rol.Jurado, Rol.Administrador]) {
+      setActiveRole(rol);
+      const { unmount } = render(<ItemsCualitativosJuradoView />);
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Ver criterios' }));
+
+      // Assert
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Rigor')).toBeInTheDocument();
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+      // Assert
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('table', { name: 'Ítems cualitativos del jurado' }),
+      ).toBeInTheDocument();
+      unmount();
+    }
   });
 
   it('el jurado no ve el lápiz de edición', () => {
