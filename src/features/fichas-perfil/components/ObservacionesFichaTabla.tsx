@@ -47,6 +47,8 @@ interface Props {
   direccion: DireccionOrden | undefined;
   ordenar: (direccion: DireccionOrden) => void;
   sinObservables: boolean;
+  tituloVacio: string;
+  descripcionVacia: string;
   isLoading: boolean;
   isError: boolean;
   error: unknown;
@@ -63,6 +65,8 @@ export default function ObservacionesFichaTabla({
   direccion,
   ordenar,
   sinObservables,
+  tituloVacio,
+  descripcionVacia,
   isLoading,
   isError,
   error,
@@ -82,13 +86,7 @@ export default function ObservacionesFichaTabla({
   if (isLoading) return <Skeleton variante="tabla" etiqueta="Cargando observaciones…" />;
 
   if (sinObservables || filas.length === 0) {
-    return (
-      <EmptyState
-        icono={MessageSquare}
-        titulo="Esta ficha aún no tiene observaciones"
-        descripcion="Cuando agregues una observación a una revisión, la verás aquí."
-      />
-    );
+    return <EmptyState icono={MessageSquare} titulo={tituloVacio} descripcion={descripcionVacia} />;
   }
 
   return (

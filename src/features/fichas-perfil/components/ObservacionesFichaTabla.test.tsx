@@ -13,6 +13,8 @@ const BASE = {
   direccion: undefined,
   ordenar: vi.fn(),
   sinObservables: false,
+  tituloVacio: 'Sin observaciones por ahora',
+  descripcionVacia: 'Aquí aparecerán cuando existan.',
   isLoading: false,
   isError: false,
   error: null,
@@ -56,12 +58,13 @@ describe('ObservacionesFichaTabla', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('con sinObservables muestra el vacío informativo y no un error', () => {
+  it('con sinObservables muestra el vacío con los textos recibidos y no un error', () => {
     // Act
     render(<ObservacionesFichaTabla {...BASE} sinObservables />);
 
     // Assert
-    expect(screen.getByText('Esta ficha aún no tiene observaciones')).toBeInTheDocument();
+    expect(screen.getByText('Sin observaciones por ahora')).toBeInTheDocument();
+    expect(screen.getByText('Aquí aparecerán cuando existan.')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 

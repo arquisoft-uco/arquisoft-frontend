@@ -607,6 +607,61 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarObservacionesItemEstudiante', () => {
+    it('envía el body tal cual a POST /fichas-perfil/observaciones-item/estudiante, traduce el DTO y conserva la paginación', async () => {
+      // Arrange
+      const req = {
+        pagina: 0,
+        tamanio: 10,
+        filtros: {
+          tipo: 'PREDICADO_MULTIVALOR' as const,
+          campo: 'revisionItem',
+          operador: 'IN',
+          valores: ['r-1'],
+        },
+      };
+      post.mockResolvedValue({
+        status: 200,
+        data: {
+          content: [
+            {
+              id: 'o-1',
+              revisionItem: 'r-1',
+              observacion: 'Ajustar el alcance',
+              estadoObservacionRevision: 'EN_PROGRESO',
+              estadoObservacionRevisionNombre: 'En progreso',
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+          page: 0,
+          size: 10,
+        },
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarObservacionesItemEstudiante(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/observaciones-item/estudiante', req);
+      expect(resultado).toEqual({
+        content: [
+          {
+            id: 'o-1',
+            revisionItemId: 'r-1',
+            observacion: 'Ajustar el alcance',
+            estadoId: 'EN_PROGRESO',
+            estadoNombre: 'En progreso',
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+        page: 0,
+        size: 10,
+      });
+    });
+  });
+
   describe('consultarObservacionesEvaluacionMiFicha', () => {
     it('consulta GET /fichas-perfil/evaluaciones/{id}/observaciones/estudiante y traduce evaluacionFichaPerfil a evaluacionFichaPerfilId', async () => {
       // Arrange
