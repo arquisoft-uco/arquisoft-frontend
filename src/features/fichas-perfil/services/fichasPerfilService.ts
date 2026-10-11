@@ -1,6 +1,8 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
+import type { AgregarObservacionItemRequest } from '../models/AgregarObservacionItemRequest';
+import type { ObservacionItemCreadaResponse } from '../models/ObservacionItemCreadaResponse';
 import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObservacionEvaluacionRequest';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
 import type { ObservacionEvaluacion } from '../models/ObservacionEvaluacion';
@@ -489,6 +491,19 @@ export const fichasPerfilService = {
 
   removerRevisionItem: (revisionItemId: string): Promise<void> =>
     apiClient.delete(`/fichas-perfil/revisiones/${revisionItemId}`).then(() => undefined),
+
+  agregarObservacionItem: ({
+    revisionItemId,
+    observacion,
+  }: AgregarObservacionItemRequest): Promise<ObservacionItemCreadaResponse> =>
+    apiClient
+      .post<ObservacionItemCreadaResponse>(
+        `/fichas-perfil/revisiones/${revisionItemId}/observaciones`,
+        {
+          observacion,
+        },
+      )
+      .then((r) => r.data),
 
   getFichasRepresentante: (
     page: number,

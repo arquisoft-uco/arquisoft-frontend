@@ -139,7 +139,7 @@ Layout       principal                                  | lateral (resumen)
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
   una línea de tiempo (`LineaTiempoEstados`, un `<ol>`) con «Actual» en el estado más reciente. En el diagrama, la
   pestaña se llama «Historial de estados» solo para el estudiante.
-- **Asesor:** las pestañas son «Ítems», «Revisiones» (subruta `/revisiones`: la misma tabla de revisiones que ve el estudiante, de solo lectura para el asesor, con orden por estado) y «Estados». La pestaña «Estados» (subruta `/estados`) muestra el historial de esa ficha con la misma
+- **Asesor:** las pestañas son «Ítems», «Revisiones» (subruta `/revisiones`: la misma tabla de revisiones que ve el estudiante, con orden por estado; cada fila no cerrada lleva un `RowMenu` con «Agregar observación», que abre un `SidePanel`, y «Remover revisión», peligro con `ConfirmDialog`) y «Estados». La pestaña «Estados» (subruta `/estados`) muestra el historial de esa ficha con la misma
   `LineaTiempoEstados`, ordenado por fecha en el cliente (el backend solo ordena por título), y debajo «Cambiar
   estado» deshabilitado mientras no exista el endpoint.
 

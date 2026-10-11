@@ -476,6 +476,25 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('agregarObservacionItem', () => {
+    it('hace POST /fichas-perfil/revisiones/{id}/observaciones con solo la observación en el body', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'o-1' } });
+
+      // Act
+      const resultado = await fichasPerfilService.agregarObservacionItem({
+        revisionItemId: 'r-1',
+        observacion: 'Texto',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/revisiones/r-1/observaciones', {
+        observacion: 'Texto',
+      });
+      expect(resultado).toEqual({ id: 'o-1' });
+    });
+  });
+
   describe('consultarRevisionesItemAsesor', () => {
     it('envía el body tal cual a POST /fichas-perfil/revisiones-item/asesor, traduce el DTO y conserva la paginación', async () => {
       // Arrange
