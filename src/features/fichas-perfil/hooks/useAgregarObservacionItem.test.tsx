@@ -29,7 +29,7 @@ describe('useAgregarObservacionItem', () => {
     vi.clearAllMocks();
   });
 
-  it('llama al service con el request y no invalida nada al tener éxito', async () => {
+  it('llama al service con el request e invalida las observaciones al tener éxito', async () => {
     // Arrange
     agregar.mockResolvedValue({ id: 'o-1' });
     const { Wrapper, invalidar } = crearContexto();
@@ -41,7 +41,9 @@ describe('useAgregarObservacionItem', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(agregar.mock.calls[0][0]).toEqual(REQ);
-    expect(invalidar).not.toHaveBeenCalled();
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['fichas-perfil', 'f-1', 'asesor-observaciones'],
+    });
   });
 
   it('invalida las revisiones del asesor cuando el service rechaza', async () => {

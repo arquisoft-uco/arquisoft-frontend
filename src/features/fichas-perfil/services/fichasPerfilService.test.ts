@@ -551,6 +551,62 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarObservacionesItemAsesor', () => {
+    it('envía el body tal cual a POST /fichas-perfil/observaciones-item/asesor, traduce el DTO y conserva la paginación', async () => {
+      // Arrange
+      const req = {
+        pagina: 1,
+        tamanio: 10,
+        ordenamiento: ['estadoObservacionRevision:DESC'],
+        filtros: {
+          tipo: 'PREDICADO_MULTIVALOR' as const,
+          campo: 'revisionItem',
+          operador: 'IN',
+          valores: ['r-1'],
+        },
+      };
+      post.mockResolvedValue({
+        status: 200,
+        data: {
+          content: [
+            {
+              id: 'o-1',
+              revisionItem: 'r-1',
+              observacion: 'Ajustar el alcance',
+              estadoObservacionRevision: 'PENDIENTE',
+              estadoObservacionRevisionNombre: 'Pendiente',
+            },
+          ],
+          totalElements: 11,
+          totalPages: 2,
+          page: 1,
+          size: 10,
+        },
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarObservacionesItemAsesor(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/observaciones-item/asesor', req);
+      expect(resultado).toEqual({
+        content: [
+          {
+            id: 'o-1',
+            revisionItemId: 'r-1',
+            observacion: 'Ajustar el alcance',
+            estadoId: 'PENDIENTE',
+            estadoNombre: 'Pendiente',
+          },
+        ],
+        totalElements: 11,
+        totalPages: 2,
+        page: 1,
+        size: 10,
+      });
+    });
+  });
+
   describe('consultarObservacionesEvaluacionMiFicha', () => {
     it('consulta GET /fichas-perfil/evaluaciones/{id}/observaciones/estudiante y traduce evaluacionFichaPerfil a evaluacionFichaPerfilId', async () => {
       // Arrange

@@ -11,23 +11,12 @@ import Skeleton from '../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { varianteEstadoRevision } from '../../../shared/utils/estado-variante';
 import { FechaDeEstado } from './FichaCeldas';
+import ItemRevisado from './ItemRevisado';
 
 const RAIZ = 'flex flex-col gap-3';
-const IDENTIDAD = 'flex min-w-0 flex-col';
-const TITULO = 'font-semibold text-on-surface';
-const SUBTEXTO = 'line-clamp-2 text-[13px] text-on-surface-secondary';
 const TARJETA = 'flex flex-col gap-2';
 const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
 const CLAVE_ESTADO = 'estadoRevision';
-
-function ItemRevisado({ fila }: { fila: RevisionItemFila }) {
-  return (
-    <div className={IDENTIDAD}>
-      <span className={TITULO}>{fila.item?.tipoItem.nombre ?? 'Ítem no disponible'}</span>
-      {fila.item && <span className={SUBTEXTO}>{fila.item.contenido}</span>}
-    </div>
-  );
-}
 
 function EstadoRevision({ fila }: { fila: RevisionItemFila }) {
   const { estadoId, estadoNombre } = fila.revision;
@@ -35,7 +24,7 @@ function EstadoRevision({ fila }: { fila: RevisionItemFila }) {
 }
 
 const COLUMNAS: ColumnaTabla<RevisionItemFila>[] = [
-  { id: 'item', encabezado: 'Ítem', celda: (fila) => <ItemRevisado fila={fila} /> },
+  { id: 'item', encabezado: 'Ítem', celda: (fila) => <ItemRevisado item={fila.item} /> },
   {
     id: 'estado',
     encabezado: 'Estado',
@@ -118,7 +107,7 @@ export default function RevisionesFichaTabla({
         }}
         tarjeta={(fila) => (
           <div className={TARJETA}>
-            <ItemRevisado fila={fila} />
+            <ItemRevisado item={fila.item} />
             <div>
               <EstadoRevision fila={fila} />
             </div>

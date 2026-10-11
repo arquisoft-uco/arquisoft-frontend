@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
+  varianteEstadoObservacion,
   varianteEstadoRespuesta,
   varianteEstadoRevision,
   varianteEstadoUsuario,
@@ -84,5 +85,15 @@ describe('varianteEstadoRevision', () => {
     expect(varianteEstadoRevision('CORRECCION_DISPONIBLE')).toBe('advertencia');
     expect(varianteEstadoRevision('CERRADA')).toBe('exito');
     expect(varianteEstadoRevision('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoObservacion', () => {
+  it('mapea cada estado de observación a su variante y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoObservacion('PENDIENTE')).toBe('advertencia');
+    expect(varianteEstadoObservacion('EN_PROGRESO')).toBe('info');
+    expect(varianteEstadoObservacion('CERRADO')).toBe('exito');
+    expect(varianteEstadoObservacion('ESTADO_INEXISTENTE')).toBe('neutro');
   });
 });

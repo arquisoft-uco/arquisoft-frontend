@@ -4,6 +4,7 @@ import { Rol } from '../../../shared/models/rol';
 import { useRolActivo } from '../../../hooks/useAuth';
 import EstadosFichaAsesorPanel from './asesor-ficha/EstadosFichaAsesorPanel';
 import ItemsFichaAsesorPanel from './asesor-ficha/ItemsFichaAsesorPanel';
+import ObservacionesFichaAsesorPanel from './asesor-ficha/ObservacionesFichaAsesorPanel';
 import RevisionesFichaAsesorPanel from './asesor-ficha/RevisionesFichaAsesorPanel';
 import EstadosFichaCoordinadorPanel from './coordinador/EstadosFichaCoordinadorPanel';
 import EvaluacionesFichaPanel from './coordinador/EvaluacionesFichaPanel';
@@ -12,7 +13,7 @@ import EstadosFichaRepresentantePanel from './representante/EstadosFichaRepresen
 import ItemsFichaRepresentantePanel from './representante/ItemsFichaRepresentantePanel';
 import RegistrarEvaluacionPanel from './representante/RegistrarEvaluacionPanel';
 
-export type Pestana = 'items' | 'estados' | 'evaluaciones' | 'revisiones';
+export type Pestana = 'items' | 'estados' | 'evaluaciones' | 'revisiones' | 'observaciones';
 
 type PanelDeFicha = ComponentType<{ fichaPerfilId: string }>;
 
@@ -23,6 +24,7 @@ const PANEL_POR_PESTANA: Record<Pestana, Record<string, PanelDeFicha>> = {
     [Rol.Coordinador]: ItemsFichaCoordinadorPanel,
   },
   revisiones: { [Rol.AsesorFicha]: RevisionesFichaAsesorPanel },
+  observaciones: { [Rol.AsesorFicha]: ObservacionesFichaAsesorPanel },
   estados: {
     [Rol.AsesorFicha]: EstadosFichaAsesorPanel,
     [Rol.RepresentanteComiteCurriculum]: EstadosFichaRepresentantePanel,

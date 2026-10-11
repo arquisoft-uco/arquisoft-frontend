@@ -6,6 +6,10 @@ export function useAgregarObservacionItem(fichaPerfilId: string) {
 
   return useMutation({
     mutationFn: fichasPerfilService.agregarObservacionItem,
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ['fichas-perfil', fichaPerfilId, 'asesor-observaciones'],
+      }),
     onError: () =>
       queryClient.invalidateQueries({
         queryKey: ['fichas-perfil', fichaPerfilId, 'asesor-revisiones'],
