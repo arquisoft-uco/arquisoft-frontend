@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ListChecks, Plus } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import ErrorState from '../../../shared/components/ui/ErrorState';
-import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import { Rol } from '../../../shared/models/rol';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
@@ -31,29 +30,31 @@ export default function ItemsCualitativosJuradoView() {
   }
 
   return (
-    <div className="flex animate-fade-up flex-col gap-6">
-      <PageHeader
-        titulo="Ítems cualitativos del jurado"
-        descripcion="Criterios con los que el jurado valora cada proyecto."
-        acciones={
-          <>
-            <Button
-              variante="fantasma"
-              tamano="sm"
-              icono={ListChecks}
-              aria-haspopup="dialog"
-              onClick={() => setPanel({ tipo: 'criterios' })}
-            >
-              Ver criterios
-            </Button>
-            {esAdministrador && (
-              <Button icono={Plus} onClick={() => setPanel({ tipo: 'registrar' })}>
-                Registrar ítem
-              </Button>
-            )}
-          </>
-        }
-      />
+    <div className="flex flex-col gap-4">
+      <div className="section-header">
+        <p className="text-sm text-on-surface-secondary">
+          Criterios con los que el jurado valora cada proyecto.
+        </p>
+        <Button
+          variante="fantasma"
+          tamano="sm"
+          icono={ListChecks}
+          className="header-action"
+          aria-haspopup="dialog"
+          onClick={() => setPanel({ tipo: 'criterios' })}
+        >
+          Ver criterios
+        </Button>
+        {esAdministrador && (
+          <Button
+            icono={Plus}
+            className="header-action"
+            onClick={() => setPanel({ tipo: 'registrar' })}
+          >
+            Registrar ítem
+          </Button>
+        )}
+      </div>
 
       {isLoading && <Skeleton variante="tabla" etiqueta="Cargando ítems cualitativos del jurado" />}
 
