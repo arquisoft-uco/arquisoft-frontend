@@ -36,6 +36,8 @@ export function useRevisionesPorItemAsesor(fichaPerfilId: string) {
   return {
     revisionPorItem,
     isLoading: revisionesQuery.isLoading,
+    isSuccess: revisionesQuery.isSuccess,
     isError: revisionesQuery.isError,
+    refetch: revisionesQuery.refetch,
   };
 }

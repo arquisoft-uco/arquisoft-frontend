@@ -60,7 +60,7 @@ describe('AsesorFichaDetalleView', () => {
     } as ReturnType<typeof useHistorialEstadosFichaAsesor>);
   });
 
-  it('ofrece solo las pestañas Ítems, Revisiones y Estados', () => {
+  it('ofrece solo las pestañas Ítems, Revisiones, Observaciones y Estados', () => {
     // Act
     renderizar('/fichas-perfil/f-1/items');
 
@@ -70,7 +70,7 @@ describe('AsesorFichaDetalleView', () => {
       within(pestanas)
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Ítems', 'Revisiones', 'Estados']);
+    ).toEqual(['Ítems', 'Revisiones', 'Observaciones', 'Estados']);
   });
 
   it('cambiar de pestaña conserva el resumen aunque el state ya no viaje', async () => {

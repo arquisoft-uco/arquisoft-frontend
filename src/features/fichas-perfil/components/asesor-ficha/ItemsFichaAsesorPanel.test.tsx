@@ -37,7 +37,9 @@ function conRevisiones(revisiones: RevisionItem[] = [], isLoading = false) {
   vi.mocked(useRevisionesPorItemAsesor).mockReturnValue({
     revisionPorItem: new Map(revisiones.map((r) => [r.itemId, r])),
     isLoading,
+    isSuccess: !isLoading,
     isError: false,
+    refetch: vi.fn(),
   });
 }
 

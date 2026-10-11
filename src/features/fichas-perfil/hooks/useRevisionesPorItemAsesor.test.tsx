@@ -66,6 +66,8 @@ describe('useRevisionesPorItemAsesor', () => {
       },
     });
     expect(result.current.revisionPorItem.has('i-2')).toBe(false);
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.refetch).toEqual(expect.any(Function));
   });
 
   it('sin ítems no consulta y devuelve el mapa vacío', () => {

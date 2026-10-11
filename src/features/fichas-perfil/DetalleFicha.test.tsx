@@ -36,6 +36,9 @@ vi.mock('./components/asesor-ficha/EstadosFichaAsesorPanel', () => ({
 vi.mock('./components/asesor-ficha/RevisionesFichaAsesorPanel', () => ({
   default: () => <div>Panel revisiones</div>,
 }));
+vi.mock('./components/asesor-ficha/ObservacionesFichaAsesorPanel', () => ({
+  default: () => <div>Panel observaciones</div>,
+}));
 vi.mock('./components/representante/EstadosFichaRepresentantePanel', () => ({
   default: () => <div>Panel estados representante</div>,
 }));
@@ -88,6 +91,7 @@ function renderizar(rutaInicial: string) {
         <Route index element={<Navigate to="items" replace />} />
         <Route path="items" element={<PestanaFicha pestana="items" />} />
         <Route path="revisiones" element={<PestanaFicha pestana="revisiones" />} />
+        <Route path="observaciones" element={<PestanaFicha pestana="observaciones" />} />
         <Route path="estados" element={<PestanaFicha pestana="estados" />} />
         <Route path="evaluaciones" element={<PestanaFicha pestana="evaluaciones" />} />
       </Route>
@@ -175,6 +179,29 @@ describe('DetalleFicha', () => {
     // Assert
     expect(screen.getByText('Ítems asesor f-1')).toBeInTheDocument();
     expect(screen.queryByText('Panel evaluaciones')).not.toBeInTheDocument();
+  });
+
+  it('el asesor ve el panel en Observaciones y el representante es redirigido a Ítems', () => {
+    // Arrange
+    entrarComo(Rol.AsesorFicha);
+
+    // Act
+    const asesor = renderizar('/fichas-perfil/f-1/observaciones');
+
+    // Assert
+    expect(screen.getByText('Panel observaciones')).toBeInTheDocument();
+    asesor.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.RepresentanteComiteCurriculum);
+
+    // Act
+    renderizar('/fichas-perfil/f-1/observaciones');
+
+    // Assert
+    expect(screen.getByText('Ítems representante f-1')).toBeInTheDocument();
+    expect(screen.queryByText('Panel observaciones')).not.toBeInTheDocument();
   });
 
   it('el coordinador aterriza en Ítems desde la ficha y redirige a Evaluaciones desde una pestaña ajena, sin bucle', () => {
@@ -275,7 +302,7 @@ describe('DetalleFicha', () => {
       within(screen.getByRole('navigation', { name: 'Secciones de la ficha' }))
         .getAllByRole('link')
         .map((l) => l.textContent),
-    ).toEqual(['Ítems', 'Revisiones', 'Estados']);
+    ).toEqual(['Ítems', 'Revisiones', 'Observaciones', 'Estados']);
     expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
       'href',
       '/fichas-perfil?q=grado&pagina=2',

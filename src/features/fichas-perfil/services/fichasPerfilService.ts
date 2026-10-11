@@ -2,6 +2,7 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import type { AgregarObservacionItemRequest } from '../models/AgregarObservacionItemRequest';
+import type { ObservacionItem } from '../models/ObservacionItem';
 import type { ObservacionItemCreadaResponse } from '../models/ObservacionItemCreadaResponse';
 import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObservacionEvaluacionRequest';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
@@ -205,6 +206,27 @@ function aRevisionItem(dto: RevisionItemResponseDTO): RevisionItem {
     estadoId: dto.estadoRevision,
     estadoNombre: dto.estadoRevisionNombre,
     fechaCreacion: dto.fechaCreacion,
+  };
+}
+
+// Forma cruda de ObservacionItemResponseDTO (POST /fichas-perfil/observaciones-item/asesor);
+// revisionItem, estadoObservacionRevision y estadoObservacionRevisionNombre se traducen a
+// revisionItemId, estadoId y estadoNombre.
+interface ObservacionItemResponseDTO {
+  id: string;
+  revisionItem: string;
+  observacion: string;
+  estadoObservacionRevision: string;
+  estadoObservacionRevisionNombre: string;
+}
+
+function aObservacionItem(dto: ObservacionItemResponseDTO): ObservacionItem {
+  return {
+    id: dto.id,
+    revisionItemId: dto.revisionItem,
+    observacion: dto.observacion,
+    estadoId: dto.estadoObservacionRevision,
+    estadoNombre: dto.estadoObservacionRevisionNombre,
   };
 }
 
@@ -504,6 +526,13 @@ export const fichasPerfilService = {
         },
       )
       .then((r) => r.data),
+
+  consultarObservacionesItemAsesor: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItem>> =>
+    apiClient
+      .post<Page<ObservacionItemResponseDTO>>('/fichas-perfil/observaciones-item/asesor', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aObservacionItem) })),
 
   getFichasRepresentante: (
     page: number,
