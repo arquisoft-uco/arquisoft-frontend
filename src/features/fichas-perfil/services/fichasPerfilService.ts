@@ -209,7 +209,8 @@ function aRevisionItem(dto: RevisionItemResponseDTO): RevisionItem {
   };
 }
 
-// Forma cruda de ObservacionItemResponseDTO (POST /fichas-perfil/observaciones-item/asesor);
+// Forma cruda de ObservacionItemResponseDTO (POST /fichas-perfil/observaciones-item/asesor y
+// /fichas-perfil/observaciones-item/estudiante);
 // revisionItem, estadoObservacionRevision y estadoObservacionRevisionNombre se traducen a
 // revisionItemId, estadoId y estadoNombre.
 interface ObservacionItemResponseDTO {
@@ -532,6 +533,13 @@ export const fichasPerfilService = {
   ): Promise<Page<ObservacionItem>> =>
     apiClient
       .post<Page<ObservacionItemResponseDTO>>('/fichas-perfil/observaciones-item/asesor', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aObservacionItem) })),
+
+  consultarObservacionesItemEstudiante: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItem>> =>
+    apiClient
+      .post<Page<ObservacionItemResponseDTO>>('/fichas-perfil/observaciones-item/estudiante', req)
       .then(({ data }) => ({ ...data, content: data.content.map(aObservacionItem) })),
 
   getFichasRepresentante: (
