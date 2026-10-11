@@ -5,7 +5,7 @@ import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-
 import Evaluaciones from './Evaluaciones';
 import { Rol } from '../../shared/models/rol';
 
-vi.mock('./components/ItemsCualitativosJuradoView', () => ({
+vi.mock('./components/ItemsJuradoView', () => ({
   default: () => <p>Vista de ítems cualitativos</p>,
 }));
 

@@ -1,11 +1,11 @@
 import { Navigate } from 'react-router';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
-import ItemsCualitativosJuradoView from './components/ItemsCualitativosJuradoView';
+import ItemsJuradoView from './components/ItemsJuradoView';
 
 const VIEW_POR_ROL: Record<string, React.ComponentType> = {
-  [Rol.Administrador]: ItemsCualitativosJuradoView,
-  [Rol.Jurado]: ItemsCualitativosJuradoView,
+  [Rol.Administrador]: ItemsJuradoView,
+  [Rol.Jurado]: ItemsJuradoView,
 };
 
 export default function Evaluaciones() {
