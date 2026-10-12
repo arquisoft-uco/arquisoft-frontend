@@ -76,6 +76,23 @@ describe('proyectosGradoService', () => {
     });
   });
 
+  describe('asignarAsesor', () => {
+    it('hace POST /proyectos-grado/{id}/asesores traduciendo asesorId a { asesor } y resuelve undefined', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'ap-1' } });
+
+      // Act
+      const resultado = await proyectosGradoService.asignarAsesor({
+        proyectoGradoId: 'p-1',
+        asesorId: 'a-1',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/proyectos-grado/p-1/asesores', { asesor: 'a-1' });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('asignarEstudiantes', () => {
     it('hace POST /proyectos-grado/{id}/estudiantes traduciendo estudiantesIds a { estudiantes } y resuelve undefined', async () => {
       // Arrange
