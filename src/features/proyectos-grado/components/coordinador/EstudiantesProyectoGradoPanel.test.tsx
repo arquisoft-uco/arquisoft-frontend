@@ -7,8 +7,12 @@ import { toast } from '../../../../shared/hooks/useToast';
 import type { EstudianteVigente } from '../../../../shared/models/EstudianteVigente';
 import type { EstudianteProyectoGrado } from '../../models/EstudianteProyectoGrado';
 import { proyectosGradoService } from '../../services/proyectosGradoService';
+import { useDestitucionEstudiante } from '../../hooks/useDestitucionEstudiante';
 import EstudiantesProyectoGradoPanel from './EstudiantesProyectoGradoPanel';
 
+vi.mock('../../hooks/useDestitucionEstudiante', () => ({
+  useDestitucionEstudiante: vi.fn(),
+}));
 vi.mock('../../services/proyectosGradoService', () => ({
   proyectosGradoService: {
     getEstudiantesProyecto: vi.fn(),
@@ -26,6 +30,22 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
 const consultar = vi.mocked(proyectosGradoService.getEstudiantesProyecto);
 const asignar = vi.mocked(proyectosGradoService.asignarEstudiantes);
 const useVigentesMock = vi.mocked(useEstudiantesVigentes);
+const useDestitucionMock = vi.mocked(useDestitucionEstudiante);
+
+const solicitar = vi.fn();
+const confirmar = vi.fn();
+const cancelar = vi.fn();
+
+function mockDestitucion(parcial: Partial<ReturnType<typeof useDestitucionEstudiante>> = {}) {
+  useDestitucionMock.mockReturnValue({
+    pendiente: null,
+    destituyendo: false,
+    solicitar,
+    confirmar,
+    cancelar,
+    ...parcial,
+  });
+}
 
 const NUEVO: EstudianteVigente = { id: 'e-9', nombre: 'Pedro Díaz', email: 'pedro@uco.edu.co' };
 type ResultadoVigentes = ReturnType<typeof useEstudiantesVigentes>;
@@ -88,6 +108,7 @@ describe('EstudiantesProyectoGradoPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockVigentes();
+    mockDestitucion();
     asignar.mockResolvedValue(undefined);
   });
 
@@ -249,5 +270,51 @@ describe('EstudiantesProyectoGradoPanel', () => {
     // Assert
     expect(await screen.findByText(/no está disponible/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Asignar estudiantes' })).toBeDisabled();
+  });
+
+  it('«Destituir a X» solicita la destitución de esa fila, también la de «Dado de baja»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultar.mockResolvedValue([activo, baja]);
+    renderizar();
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Destituir a Marta Ruiz' }));
+
+    // Assert
+    expect(solicitar).toHaveBeenCalledWith(baja);
+    expect(screen.getByRole('button', { name: 'Destituir a Luis Gómez' })).toBeInTheDocument();
+  });
+
+  it('con un pendiente muestra las consecuencias y permite confirmar o cancelar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultar.mockResolvedValue([activo]);
+    mockDestitucion({ pendiente: activo });
+    renderizar();
+    expect(await screen.findByText(/Luis Gómez dejará de estar vinculado/)).toBeInTheDocument();
+    expect(
+      screen.getByText('La vinculación se elimina y no se puede deshacer.'),
+    ).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Destituir' }));
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(confirmar).toHaveBeenCalledTimes(1);
+    expect(cancelar).toHaveBeenCalled();
+  });
+
+  it('con el proyecto finalizado no ofrece destituir', async () => {
+    // Arrange
+    consultar.mockResolvedValue([activo]);
+
+    // Act
+    renderizar(vi.fn(), true);
+
+    // Assert
+    expect(await screen.findByText('Luis Gómez')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Destituir a/ })).not.toBeInTheDocument();
   });
 });
