@@ -1,8 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { Link, Route, Routes } from 'react-router';
-import { render, screen } from '../../../test-utils/render';
+import { render, screen, within } from '../../../test-utils/render';
 import CoordinadorDetalleView from './CoordinadorDetalleView';
+
+vi.mock('./coordinador/EstudiantesProyectoGradoPanel', () => ({ default: () => null }));
 
 const state = {
   search: '?q=monitoreo',
@@ -34,7 +36,7 @@ function renderizar(initialPath: string) {
 }
 
 describe('CoordinadorDetalleView', () => {
-  it('con el state del enlace muestra título, insignia y la miga que restaura la search', async () => {
+  it('con el state del enlace muestra título, el estado una sola vez dentro del resumen y la miga que restaura la search', async () => {
     // Arrange
     const user = userEvent.setup();
     renderizar('/proyectos-grado');
@@ -44,7 +46,12 @@ describe('CoordinadorDetalleView', () => {
 
     // Assert
     expect(screen.getByRole('heading', { name: 'Sistema de monitoreo' })).toBeInTheDocument();
-    expect(screen.getByText('En proceso')).toBeInTheDocument();
+    expect(screen.getAllByText('En proceso')).toHaveLength(1);
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' });
+    expect(within(resumen).getByText('En proceso')).toBeInTheDocument();
+    expect(
+      within(resumen).getByRole('button', { name: 'Asignar estudiantes' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Proyectos de grado' })).toHaveAttribute(
       'href',
       '/proyectos-grado?q=monitoreo',
@@ -53,13 +60,15 @@ describe('CoordinadorDetalleView', () => {
     expect(screen.getByText('Panel de asesores')).toBeInTheDocument();
   });
 
-  it('sin state muestra la cabecera genérica, sin insignia y con la miga sin search', () => {
+  it('sin state muestra la cabecera genérica, el aviso del resumen, el botón de acciones y la miga sin search', () => {
     // Act
     renderizar('/proyectos-grado/p-1/asesores');
 
     // Assert
     expect(screen.getByRole('heading', { name: 'Proyecto de grado' })).toBeInTheDocument();
     expect(screen.queryByText('En proceso')).not.toBeInTheDocument();
+    expect(screen.getByText(/No tenemos el resumen de este proyecto/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Asignar estudiantes' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Proyectos de grado' })).toHaveAttribute(
       'href',
       '/proyectos-grado',
