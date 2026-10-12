@@ -3,7 +3,7 @@ import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import type { OrdenCampoFicha } from '../models/OrdenCampoFicha';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 
-import { leerOrden, useParametrosListado } from './useParametrosListado';
+import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 
 const PAGE_SIZE = 10;
 

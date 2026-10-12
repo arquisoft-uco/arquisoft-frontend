@@ -3,7 +3,7 @@ import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
 import type { OrdenCampoFicha } from '../models/OrdenCampoFicha';
 
-import { leerOrden, useParametrosListado } from './useParametrosListado';
+import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 
 const PAGE_SIZE = 10;
 
