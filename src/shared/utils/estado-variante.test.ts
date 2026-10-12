@@ -3,6 +3,7 @@ import {
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
   varianteEstadoObservacion,
+  varianteEstadoProyectoGrado,
   varianteEstadoRespuesta,
   varianteEstadoRevision,
   varianteEstadoUsuario,
@@ -95,5 +96,16 @@ describe('varianteEstadoObservacion', () => {
     expect(varianteEstadoObservacion('EN_PROGRESO')).toBe('info');
     expect(varianteEstadoObservacion('CERRADO')).toBe('exito');
     expect(varianteEstadoObservacion('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoProyectoGrado', () => {
+  it('mapea cada estado de proyecto de grado a su variante y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoProyectoGrado('EN_PROCESO')).toBe('info');
+    expect(varianteEstadoProyectoGrado('LISTO_PARA_REVISION')).toBe('advertencia');
+    expect(varianteEstadoProyectoGrado('ATRASADO')).toBe('peligro');
+    expect(varianteEstadoProyectoGrado('FINALIZADO')).toBe('exito');
+    expect(varianteEstadoProyectoGrado('ESTADO_INEXISTENTE')).toBe('neutro');
   });
 });

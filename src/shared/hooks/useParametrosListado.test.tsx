@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
-import { act, renderHook } from '../../../test-utils/render';
+import { act, renderHook } from '../../test-utils/render';
 import { leerOrden, useParametrosListado } from './useParametrosListado';
 
 function montarEn(entrada: string) {
