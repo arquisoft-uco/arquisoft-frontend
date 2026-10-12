@@ -48,6 +48,21 @@ function Origen() {
   );
 }
 
+function OrigenProyectos() {
+  return (
+    <Link
+      to="/fichas-perfil/f-1/evaluaciones"
+      state={{
+        resumen: { id: 'f-1', titulo: 'Sistema de monitoreo' },
+        search: '?q=sis&pagina=2',
+        origen: { etiqueta: 'Proyectos de grado', to: '/proyectos-grado' },
+      }}
+    >
+      Abrir desde proyectos
+    </Link>
+  );
+}
+
 function simularHistorial(data: unknown) {
   vi.mocked(useHistorialEstadosFichaCoordinador).mockReturnValue({ data } as never);
 }
@@ -56,6 +71,7 @@ function renderizar(rutaInicial: string) {
   return render(
     <Routes>
       <Route path="/origen" element={<Origen />} />
+      <Route path="/origen-proyectos" element={<OrigenProyectos />} />
       <Route path="/fichas-perfil/:id" element={<CoordinadorDetalleView />}>
         <Route path="items" element={<div>Panel ítems</div>} />
         <Route path="evaluaciones" element={<div>Panel evaluaciones</div>} />
@@ -146,5 +162,28 @@ describe('CoordinadorDetalleView', () => {
     // Assert
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
     expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument();
+  });
+
+  it('abierta desde proyectos de grado la miga vuelve a proyectos con su search y el resumen sale del historial', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    simularHistorial([
+      { id: 'APROBADA', nombre: 'Aprobada', fechaActualizacion: '2026-10-02T10:00:00' },
+    ]);
+    renderizar('/origen-proyectos');
+
+    // Act
+    await user.click(screen.getByRole('link', { name: 'Abrir desde proyectos' }));
+
+    // Assert
+    expect(screen.getByRole('link', { name: 'Proyectos de grado' })).toHaveAttribute(
+      'href',
+      '/proyectos-grado?q=sis&pagina=2',
+    );
+    expect(screen.queryByRole('link', { name: 'Fichas de perfil' })).not.toBeInTheDocument();
+    expect(screen.getAllByText('Aprobada').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/No tenemos el resumen de esta ficha/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cambiar asesor' })).toBeInTheDocument();
   });
 });

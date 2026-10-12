@@ -85,4 +85,28 @@ describe('useResumenFicha', () => {
       asesorEmail: undefined,
     });
   });
+
+  it('lee el origen válido del state y ignora uno malformado sin perder resumen ni search', () => {
+    // Arrange
+    const origen = { etiqueta: 'Proyectos de grado', to: '/proyectos-grado' };
+
+    // Act
+    const valido = renderizar({ resumen: RESUMEN, search: '?q=a', origen });
+    const invalidos = [
+      { to: '/proyectos-grado' },
+      { etiqueta: '', to: '/proyectos-grado' },
+      { etiqueta: 'Externo', to: '//malo.com' },
+      { etiqueta: 'Externo', to: 'https://malo.com' },
+    ].map((origenInvalido) =>
+      renderizar({ resumen: RESUMEN, search: '?q=a', origen: origenInvalido }),
+    );
+
+    // Assert
+    expect(valido.result.current.detalle.origen).toEqual(origen);
+    for (const { result } of invalidos) {
+      expect(result.current.detalle.origen).toBeUndefined();
+      expect(result.current.detalle.resumen).toEqual(RESUMEN);
+      expect(result.current.detalle.search).toBe('?q=a');
+    }
+  });
 });

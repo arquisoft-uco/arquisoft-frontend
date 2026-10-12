@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { useLocation } from 'react-router';
 import { render, screen, within } from '../../../../test-utils/render';
 import ProyectosGradoTable from './ProyectosGradoTable';
 import type { ProyectoGrado } from '../../models/ProyectoGrado';
@@ -29,6 +30,11 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof ProyectosGradoT
   };
   render(<ProyectosGradoTable {...props} />);
   return props;
+}
+
+function SondaState() {
+  const { state } = useLocation();
+  return <output aria-label="state de navegación">{JSON.stringify(state)}</output>;
 }
 
 // La tabla y la lista de tarjetas están las dos en el DOM (jsdom no aplica CSS): se acota a la tabla.
@@ -82,5 +88,36 @@ describe('ProyectosGradoTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('el enlace a la ficha navega con el state que lee el detalle: search, resumen y origen', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <>
+        <ProyectosGradoTable
+          proyectos={[PROYECTO_1]}
+          cargando={false}
+          hayFiltros={false}
+          orden={{ clave: 'tituloProyecto', direccion: 'ASC' }}
+          onOrdenar={vi.fn()}
+          onLimpiarFiltros={vi.fn()}
+        />
+        <SondaState />
+      </>,
+      { initialPath: '/proyectos-grado?q=sis' },
+    );
+
+    // Act
+    await user.click(
+      tabla().getByRole('link', { name: 'Ver la ficha de perfil de Sistema de monitoreo' }),
+    );
+
+    // Assert
+    expect(JSON.parse(screen.getByLabelText('state de navegación').textContent ?? '')).toEqual({
+      search: '?q=sis',
+      resumen: { id: 'f-1', titulo: 'Sistema de monitoreo' },
+      origen: { etiqueta: 'Proyectos de grado', to: '/proyectos-grado' },
+    });
   });
 });

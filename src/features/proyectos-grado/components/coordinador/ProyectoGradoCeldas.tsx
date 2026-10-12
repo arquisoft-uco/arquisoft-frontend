@@ -1,7 +1,9 @@
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import Badge from '../../../../shared/components/ui/Badge';
+import type { OrigenNavegacion } from '../../../../shared/models/OrigenNavegacion';
 import { varianteEstadoProyecto } from '../../../../shared/utils/estado-variante';
 
+const ORIGEN: OrigenNavegacion = { etiqueta: 'Proyectos de grado', to: '/proyectos-grado' };
 const TITULO = 'block truncate font-semibold text-on-surface';
 const ENLACE =
   'font-medium text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
@@ -33,9 +35,11 @@ interface PropsEnlace {
 }
 
 export function EnlaceFichaPerfil({ fichaPerfilId, titulo }: PropsEnlace) {
+  const { search } = useLocation();
   return (
     <Link
       to={`/fichas-perfil/${fichaPerfilId}/evaluaciones`}
+      state={{ search, resumen: { id: fichaPerfilId, titulo }, origen: ORIGEN }}
       aria-label={`Ver la ficha de perfil de ${titulo}`}
       className={ENLACE}
     >
