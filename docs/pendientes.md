@@ -46,6 +46,7 @@ Client roles a confirmar en el realm desplegado:
 - `solicitudes:respuesta-novedad-coordinador:update` para el coordinador (aprobar o marcar como no aprobada una respuesta enviada, HU-076). Si falta, con login real las acciones «Aprobar respuesta» y «Marcar como no aprobada» responden 403 y llevan a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `solicitudes:respuesta-novedad-coordinador-enviada:view` para el coordinador (pestaña «Respuestas enviadas», HU-071). Si falta, con login real la pestaña lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `solicitudes:respuesta-novedad-coordinador-recibida:view` para el estudiante (pestaña «Respuestas», HU-066). Si falta, con login real la pestaña lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
+- `proyectos:asesor-proyecto-grado-coordinador:view` para el coordinador (asesores de un proyecto de grado, HU-167), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend
 

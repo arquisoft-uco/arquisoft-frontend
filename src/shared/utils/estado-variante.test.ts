@@ -3,6 +3,7 @@ import {
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
   varianteEstadoObservacion,
+  varianteEstadoAsesorProyecto,
   varianteEstadoProyecto,
   varianteEstadoRespuesta,
   varianteEstadoRevision,
@@ -107,5 +108,14 @@ describe('varianteEstadoProyecto', () => {
     expect(varianteEstadoProyecto('ATRASADO')).toBe('peligro');
     expect(varianteEstadoProyecto('FINALIZADO')).toBe('exito');
     expect(varianteEstadoProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoAsesorProyecto', () => {
+  it('mapea ASIGNADO a éxito, FINALIZADO a neutro y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoAsesorProyecto('ASIGNADO')).toBe('exito');
+    expect(varianteEstadoAsesorProyecto('FINALIZADO')).toBe('neutro');
+    expect(varianteEstadoAsesorProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
   });
 });

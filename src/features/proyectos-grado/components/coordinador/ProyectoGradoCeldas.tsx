@@ -2,21 +2,42 @@ import { Link, useLocation } from 'react-router';
 import Badge from '../../../../shared/components/ui/Badge';
 import type { OrigenNavegacion } from '../../../../shared/models/OrigenNavegacion';
 import { varianteEstadoProyecto } from '../../../../shared/utils/estado-variante';
+import type { ProyectoGrado } from '../../models/ProyectoGrado';
+import type { NavegacionDetalleProyecto } from '../../models/ResumenProyectoGrado';
 
 const ORIGEN: OrigenNavegacion = { etiqueta: 'Proyectos de grado', to: '/proyectos-grado' };
-const TITULO = 'block truncate font-semibold text-on-surface';
+const TITULO =
+  'block truncate text-left font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
 const ENLACE =
   'font-medium text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
 
 interface PropsTitulo {
-  titulo: string;
+  proyecto: ProyectoGrado;
 }
 
-export function TituloProyecto({ titulo }: PropsTitulo) {
+export function TituloProyecto({ proyecto }: PropsTitulo) {
+  const { search } = useLocation();
+  const titulo = proyecto.tituloProyecto;
+  const navegacion: NavegacionDetalleProyecto = {
+    search,
+    resumen: {
+      id: proyecto.id,
+      titulo,
+      estadoId: proyecto.estado.id,
+      estadoNombre: proyecto.estado.nombre,
+    },
+  };
+
   return (
-    <span title={titulo} className={TITULO}>
+    <Link
+      to={`/proyectos-grado/${proyecto.id}/asesores`}
+      state={navegacion}
+      aria-label={`Ver los asesores de ${titulo}`}
+      title={titulo}
+      className={TITULO}
+    >
       {titulo}
-    </span>
+    </Link>
   );
 }
 
