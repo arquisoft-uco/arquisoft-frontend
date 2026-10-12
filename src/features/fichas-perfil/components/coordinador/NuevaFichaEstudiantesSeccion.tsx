@@ -6,7 +6,7 @@ import Skeleton from '../../../../shared/components/ui/Skeleton';
 import type { EstudianteVigente } from '../../../../shared/models/EstudianteVigente';
 import { LIMITES } from '../../../../shared/validation';
 import type { NuevaFichaValues } from '../../hooks/useNuevaFichaForm';
-import Combobox from '../Combobox';
+import Combobox from '../../../../shared/components/ui/Combobox';
 
 interface Props {
   control: Control<NuevaFichaValues>;

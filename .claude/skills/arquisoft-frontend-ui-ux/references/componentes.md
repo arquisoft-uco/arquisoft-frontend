@@ -61,7 +61,7 @@ página. Lo que sigue es la receta para escribir lo que falte.
 | `SidePanel` | `src/shared/components/ui/` | Excepción de la adopción a la regla de abajo: nació con Usuarios (HT-UX-03) y su segundo consumidor, `fichas-perfil` (paneles «Estudiantes de la ficha» y «Cambiar asesor» del coordinador), llegó en HT-UX-04 |
 | `OpcionRadio` | `src/shared/components/ui/` | Nació en `EstadoDeLaCuenta` (Usuarios); su segundo consumidor es «Decisión sobre la ficha» (Fichas) |
 | `Switch` | `features/usuarios/components/` | Solo Usuarios lo usa; sube a `ui/` con el segundo consumidor |
-| `Combobox` | `features/fichas-perfil/components/` | Solo Fichas lo usa; sube a `ui/` con el segundo consumidor. Su lógica, `useCombobox`, vive en `src/shared/hooks/` |
+| `Combobox` | `shared/components/ui/` | Lo usan fichas-perfil y proyectos-grado. Su lógica, `useCombobox`, vive en `src/shared/hooks/` |
 | `ConfirmDialog`, `Toaster`, `PageSkeleton`, `AvisoNoDisponible`, `ComingSoon` | siguen en `src/shared/components/` | Se **actualizan en su sitio**; no se mueven |
 
 Una pieza «feature primero» sube a `shared/components/ui/` cuando una segunda feature la necesita: se mueve

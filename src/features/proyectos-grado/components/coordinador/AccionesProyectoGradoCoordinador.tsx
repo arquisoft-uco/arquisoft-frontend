@@ -6,20 +6,26 @@ import EstudiantesProyectoGradoPanel from './EstudiantesProyectoGradoPanel';
 interface Props {
   proyectoGradoId: string;
   titulo: string;
+  finalizado?: boolean;
 }
 
-export default function AccionesProyectoGradoCoordinador({ proyectoGradoId, titulo }: Props) {
+export default function AccionesProyectoGradoCoordinador({
+  proyectoGradoId,
+  titulo,
+  finalizado = false,
+}: Props) {
   const [abierto, setAbierto] = useState(false);
 
   return (
     <>
       <Button variante="secundario" icono={Users} onClick={() => setAbierto(true)}>
-        Asignar estudiantes
+        Ver estudiantes
       </Button>
       {abierto && (
         <EstudiantesProyectoGradoPanel
           proyectoGradoId={proyectoGradoId}
           titulo={titulo}
+          finalizado={finalizado}
           onCerrar={() => setAbierto(false)}
         />
       )}

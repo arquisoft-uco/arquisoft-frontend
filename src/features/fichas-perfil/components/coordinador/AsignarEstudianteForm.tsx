@@ -9,7 +9,7 @@ import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 import Button from '../../../../shared/components/ui/Button';
 import Field from '../../../../shared/components/ui/Field';
 import { LIMITES } from '../../../../shared/validation';
-import Combobox from '../Combobox';
+import Combobox from '../../../../shared/components/ui/Combobox';
 
 const TEXTO_APOYO = 'text-sm text-on-surface-secondary';
 

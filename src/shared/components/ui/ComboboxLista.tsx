@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import type { OpcionVisible } from '../../../shared/hooks/useCombobox';
+import type { OpcionVisible } from '../../hooks/useCombobox';
 
 const LISTA =
   'absolute inset-x-0 top-full z-30 mt-1.5 max-h-72 overflow-y-auto rounded-xl border border-border bg-surface p-1.5 shadow-dropdown';

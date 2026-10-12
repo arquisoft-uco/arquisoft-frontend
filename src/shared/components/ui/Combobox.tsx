@@ -1,9 +1,9 @@
 import { useEffect, useRef, type FocusEventHandler, type Ref } from 'react';
 import { Search } from 'lucide-react';
-import { useCombobox, type OpcionCombobox } from '../../../shared/hooks/useCombobox';
+import { useCombobox, type OpcionCombobox } from '../../hooks/useCombobox';
 import ComboboxElegidos, { TarjetaElegida } from './ComboboxElegidos';
 import ComboboxLista from './ComboboxLista';
-export type { OpcionCombobox } from '../../../shared/hooks/useCombobox';
+export type { OpcionCombobox } from '../../hooks/useCombobox';
 
 const ICONO =
   'pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary';

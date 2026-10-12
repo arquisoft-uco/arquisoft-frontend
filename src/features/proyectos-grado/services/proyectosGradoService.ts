@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
 import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoResponse';
+import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEstudiantesProyectoGradoRequest';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 
@@ -38,5 +39,13 @@ export const proyectosGradoService = {
     return apiClient
       .get<EstudianteProyectoGrado[]>(`/proyectos-grado/${proyectoGradoId}/estudiantes`)
       .then((r) => r.data);
+  },
+
+  asignarEstudiantes(req: AsignarEstudiantesProyectoGradoRequest): Promise<void> {
+    return apiClient
+      .post(`/proyectos-grado/${req.proyectoGradoId}/estudiantes`, {
+        estudiantes: req.estudiantesIds,
+      })
+      .then(() => undefined);
   },
 };

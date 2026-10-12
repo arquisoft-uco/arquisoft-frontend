@@ -5,6 +5,7 @@ export const LIMITES = {
   ESTADO_EVALUACION_ID_MAX: 50,
   // estado_ficha_perfil.estado_ficha_id VARCHAR(50), FichasLimits.ESTADO_MAX
   ESTADO_FICHA_ID_MAX: 50,
+  // ProyectosLimits.EstudianteProyectoGrado.MAX_ESTUDIANTES (proyectos-grado) tiene el mismo valor.
   ESTUDIANTES_MAX: 3,
   // FichasLimits.ObservacionEvaluacion.OBSERVACION_MAX
   OBSERVACION_EVALUACION_MAX: 200,

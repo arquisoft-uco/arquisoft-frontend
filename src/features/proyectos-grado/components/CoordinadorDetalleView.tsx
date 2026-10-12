@@ -3,6 +3,7 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useResumenProyectoGrado } from '../hooks/useResumenProyectoGrado';
 import AccionesProyectoGradoCoordinador from './coordinador/AccionesProyectoGradoCoordinador';
+import { ESTADO_FINALIZADO } from '../utils/estados-proyecto';
 import { DISPOSICION } from './disposicion';
 import ResumenProyectoGradoPanel from './ResumenProyectoGradoPanel';
 
@@ -36,7 +37,13 @@ export default function CoordinadorDetalleView() {
         <div className={DISPOSICION.lateral}>
           <ResumenProyectoGradoPanel
             resumen={resumen}
-            accion={<AccionesProyectoGradoCoordinador proyectoGradoId={id} titulo={titulo} />}
+            accion={
+              <AccionesProyectoGradoCoordinador
+                proyectoGradoId={id}
+                titulo={titulo}
+                finalizado={resumen?.estadoId === ESTADO_FINALIZADO}
+              />
+            }
           />
         </div>
       </div>
