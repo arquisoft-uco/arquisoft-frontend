@@ -19,7 +19,7 @@ export default function AccionesProyectoGradoCoordinador({
   return (
     <>
       <Button variante="secundario" icono={Users} onClick={() => setAbierto(true)}>
-        Asignar estudiantes
+        Ver estudiantes
       </Button>
       {abierto && (
         <EstudiantesProyectoGradoPanel

@@ -49,9 +49,7 @@ describe('CoordinadorDetalleView', () => {
     expect(screen.getAllByText('En proceso')).toHaveLength(1);
     const resumen = screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' });
     expect(within(resumen).getByText('En proceso')).toBeInTheDocument();
-    expect(
-      within(resumen).getByRole('button', { name: 'Asignar estudiantes' }),
-    ).toBeInTheDocument();
+    expect(within(resumen).getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Proyectos de grado' })).toHaveAttribute(
       'href',
       '/proyectos-grado?q=monitoreo',
@@ -68,7 +66,7 @@ describe('CoordinadorDetalleView', () => {
     expect(screen.getByRole('heading', { name: 'Proyecto de grado' })).toBeInTheDocument();
     expect(screen.queryByText('En proceso')).not.toBeInTheDocument();
     expect(screen.getByText(/No tenemos el resumen de este proyecto/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Asignar estudiantes' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Proyectos de grado' })).toHaveAttribute(
       'href',
       '/proyectos-grado',
