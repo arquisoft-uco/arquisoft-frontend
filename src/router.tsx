@@ -13,6 +13,8 @@ const FichasPerfil = lazy(() => import('./features/fichas-perfil/FichasPerfil'))
 const DetalleFicha = lazy(() => import('./features/fichas-perfil/DetalleFicha'));
 const PestanaFicha = lazy(() => import('./features/fichas-perfil/components/PestanaFicha'));
 const ProyectosGrado = lazy(() => import('./features/proyectos-grado/ProyectosGrado'));
+const DetalleProyectoGrado = lazy(() => import('./features/proyectos-grado/DetalleProyectoGrado'));
+const PestanaAsesores = lazy(() => import('./features/proyectos-grado/components/PestanaAsesores'));
 const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
 const Evaluaciones = lazy(() => import('./features/evaluaciones/Evaluaciones'));
@@ -63,7 +65,21 @@ export const router = createBrowserRouter([
               },
             ],
           },
-          { path: 'proyectos-grado', element: guarded('proyectos-grado', <ProyectosGrado />) },
+          {
+            path: 'proyectos-grado',
+            element: guarded('proyectos-grado', <Outlet />),
+            children: [
+              { index: true, element: <ProyectosGrado /> },
+              {
+                path: ':id',
+                element: <DetalleProyectoGrado />,
+                children: [
+                  { index: true, element: <Navigate to="asesores" replace /> },
+                  { path: 'asesores', element: <PestanaAsesores /> },
+                ],
+              },
+            ],
+          },
           { path: 'artefactos', element: guarded('artefactos', <Artefactos />) },
           { path: 'entregables', element: guarded('entregables', <Entregables />) },
           { path: 'evaluaciones', element: guarded('evaluaciones', <Evaluaciones />) },

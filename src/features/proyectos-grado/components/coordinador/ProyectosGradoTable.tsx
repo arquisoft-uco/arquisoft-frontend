@@ -32,7 +32,7 @@ const COLUMNAS: ColumnaTabla<ProyectoGrado>[] = [
     encabezado: 'Proyecto',
     clave: 'tituloProyecto',
     ordenable: true,
-    celda: (proyecto) => <TituloProyecto titulo={proyecto.tituloProyecto} />,
+    celda: (proyecto) => <TituloProyecto proyecto={proyecto} />,
   },
   {
     id: 'estado',
@@ -93,7 +93,7 @@ export default function ProyectosGradoTable({
       vacio={vacio}
       tarjeta={(proyecto) => (
         <>
-          <TituloProyecto titulo={proyecto.tituloProyecto} />
+          <TituloProyecto proyecto={proyecto} />
           <div className={TARJETA_ESTADO}>
             <InsigniaEstadoProyecto estadoId={proyecto.estado.id} nombre={proyecto.estado.nombre} />
           </div>

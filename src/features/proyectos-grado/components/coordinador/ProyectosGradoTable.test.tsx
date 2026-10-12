@@ -90,6 +90,41 @@ describe('ProyectosGradoTable', () => {
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
 
+  it('el título es un enlace al detalle de asesores que viaja con la search y el resumen', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <>
+        <ProyectosGradoTable
+          proyectos={[PROYECTO_1]}
+          cargando={false}
+          hayFiltros={false}
+          orden={{ clave: 'tituloProyecto', direccion: 'ASC' }}
+          onOrdenar={vi.fn()}
+          onLimpiarFiltros={vi.fn()}
+        />
+        <SondaState />
+      </>,
+      { initialPath: '/proyectos-grado?q=sis' },
+    );
+    const enlace = tabla().getByRole('link', { name: 'Ver los asesores de Sistema de monitoreo' });
+
+    // Act
+    await user.click(enlace);
+
+    // Assert
+    expect(enlace).toHaveAttribute('href', '/proyectos-grado/p-1/asesores');
+    expect(JSON.parse(screen.getByLabelText('state de navegación').textContent ?? '')).toEqual({
+      search: '?q=sis',
+      resumen: {
+        id: 'p-1',
+        titulo: 'Sistema de monitoreo',
+        estadoId: 'EN_PROCESO',
+        estadoNombre: 'En proceso',
+      },
+    });
+  });
+
   it('el enlace a la ficha navega con el state que lee el detalle: search, resumen y origen', async () => {
     // Arrange
     const user = userEvent.setup();

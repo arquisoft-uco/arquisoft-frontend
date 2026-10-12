@@ -51,6 +51,11 @@ const VARIANTE_PROYECTO: TablaDeVariantes = {
   FINALIZADO: 'exito',
 };
 
+const VARIANTE_ASESOR_PROYECTO: TablaDeVariantes = {
+  ASIGNADO: 'exito',
+  FINALIZADO: 'neutro',
+};
+
 function buscarVariante(tabla: TablaDeVariantes, id: string): VarianteBadge {
   return Object.prototype.hasOwnProperty.call(tabla, id) ? tabla[id] : 'neutro';
 }
@@ -82,4 +87,8 @@ export function varianteEstadoObservacion(id: string): VarianteBadge {
 
 export function varianteEstadoProyecto(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_PROYECTO, id);
+}
+
+export function varianteEstadoAsesorProyecto(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_ASESOR_PROYECTO, id);
 }
