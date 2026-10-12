@@ -21,9 +21,13 @@ export const evaluacionesService = {
       .get<ItemCuantitativoJurado[]>('/evaluaciones/items-cuantitativos-jurado')
       .then((r) => r.data),
 
-  getCategoriasItemCuantitativoJurado: (): Promise<CategoriaItemCuantitativoJurado[]> =>
+  getCategoriasItemCuantitativoJurado: (
+    nombre?: string,
+  ): Promise<CategoriaItemCuantitativoJurado[]> =>
     apiClient
-      .get<CategoriaItemCuantitativoJurado[]>('/evaluaciones/categorias-item-cuantitativo-jurado')
+      .get<
+        CategoriaItemCuantitativoJurado[]
+      >('/evaluaciones/categorias-item-cuantitativo-jurado', nombre ? { params: { nombre } } : undefined)
       .then((r) => r.data),
 
   getCriteriosItemCualitativoJurado: (): Promise<CriterioItemCualitativoJurado[]> =>
