@@ -28,4 +28,9 @@ export const LIMITES = {
   // Espejo de EvaluacionesLimits.ItemCualitativoJurado del backend.
   ITEM_CUALITATIVO_NOMBRE_MAX: 100,
   ITEM_CUALITATIVO_DESCRIPCION_MAX: 300,
+  // Espejo de EvaluacionesLimits.ItemCuantitativoJurado del backend.
+  ITEM_CUANTITATIVO_NOMBRE_MAX: 100,
+  ITEM_CUANTITATIVO_DESCRIPCION_MAX: 300,
+  ITEM_CUANTITATIVO_VALOR_MIN: 0,
+  ITEM_CUANTITATIVO_VALOR_MAX: 500,
 } as const;

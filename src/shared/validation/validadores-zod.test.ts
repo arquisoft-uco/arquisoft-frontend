@@ -12,6 +12,7 @@ import {
   textoEntre,
   textoNoVacio,
   soloDigitosEntre,
+  enteroEntre,
   validarParDeNombres,
 } from './validadores-zod';
 
@@ -34,6 +35,10 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.USUARIO_CONTACTO_MAX).toBe(15);
     expect(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX).toBe(100);
     expect(LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX).toBe(300);
+    expect(LIMITES.ITEM_CUANTITATIVO_NOMBRE_MAX).toBe(100);
+    expect(LIMITES.ITEM_CUANTITATIVO_DESCRIPCION_MAX).toBe(300);
+    expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MIN).toBe(0);
+    expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MAX).toBe(500);
     expect(LIMITES.OBSERVACION_EVALUACION_MAX).toBe(200);
     expect(LIMITES.OBSERVACION_ITEM_MAX).toBe(200);
   });
@@ -191,6 +196,28 @@ describe('soloDigitosEntre', () => {
     }
 
     expect(validador.safeParse('3001234567').success).toBe(true);
+  });
+});
+
+describe('enteroEntre', () => {
+  const { ITEM_CUANTITATIVO_VALOR_MIN: min, ITEM_CUANTITATIVO_VALOR_MAX: max } = LIMITES;
+  const validador = enteroEntre(min, max);
+
+  function mensaje(valor: string) {
+    const resultado = validador.safeParse(valor);
+    return resultado.success ? null : resultado.error.issues[0].message;
+  }
+
+  it('responde requerido, solo dígitos y rango en ese orden, e incluye los extremos', () => {
+    expect(mensaje('')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('   ')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('abc')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje('1.5')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje('-1')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje(String(max + 1))).toBe(MENSAJES_VALIDACION.valorEntre(min, max));
+    expect(validador.safeParse(String(min)).success).toBe(true);
+    expect(validador.safeParse(String(max)).success).toBe(true);
+    expect(validador.safeParse(' 42 ').success).toBe(true);
   });
 });
 
