@@ -3,13 +3,13 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useProyectosGradoCoordinador } from '../../hooks/useProyectosGradoCoordinador';
-import { ESTADOS_PROYECTO_GRADO } from '../../utils/estados-proyecto-grado';
+import { ESTADOS_PROYECTO } from '../../utils/estados-proyecto';
 import ProyectosGradoTable from './ProyectosGradoTable';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-const OPCIONES_ESTADO = ESTADOS_PROYECTO_GRADO.map(({ id, nombre }) => ({ id, etiqueta: nombre }));
+const OPCIONES_ESTADO = ESTADOS_PROYECTO.map(({ id, nombre }) => ({ id, etiqueta: nombre }));
 
 function textoResumen(total?: number): string {
   if (total === undefined) return '';

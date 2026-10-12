@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import Badge from '../../../../shared/components/ui/Badge';
-import { varianteEstadoProyectoGrado } from '../../../../shared/utils/estado-variante';
+import { varianteEstadoProyecto } from '../../../../shared/utils/estado-variante';
 
 const TITULO = 'block truncate font-semibold text-on-surface';
 const ENLACE =
@@ -24,7 +24,7 @@ interface PropsInsignia {
 }
 
 export function InsigniaEstadoProyecto({ estadoId, nombre }: PropsInsignia) {
-  return <Badge variante={varianteEstadoProyectoGrado(estadoId)}>{nombre}</Badge>;
+  return <Badge variante={varianteEstadoProyecto(estadoId)}>{nombre}</Badge>;
 }
 
 interface PropsEnlace {

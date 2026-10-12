@@ -44,7 +44,7 @@ const VARIANTE_OBSERVACION: TablaDeVariantes = {
   CERRADO: 'exito',
 };
 
-const VARIANTE_PROYECTO_GRADO: TablaDeVariantes = {
+const VARIANTE_PROYECTO: TablaDeVariantes = {
   EN_PROCESO: 'info',
   LISTO_PARA_REVISION: 'advertencia',
   ATRASADO: 'peligro',
@@ -80,6 +80,6 @@ export function varianteEstadoObservacion(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_OBSERVACION, id);
 }
 
-export function varianteEstadoProyectoGrado(id: string): VarianteBadge {
-  return buscarVariante(VARIANTE_PROYECTO_GRADO, id);
+export function varianteEstadoProyecto(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_PROYECTO, id);
 }
