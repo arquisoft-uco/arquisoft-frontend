@@ -9,16 +9,24 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useHasRole } from '../../../hooks/useHasRole';
 import { useCategoriasItemCuantitativoJurado } from '../hooks/useCategoriasItemCuantitativoJurado';
 import { useItemsCuantitativosJurado } from '../hooks/useItemsCuantitativosJurado';
+import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import ItemsCuantitativosJuradoTable from './ItemsCuantitativosJuradoTable';
+import ModificarItemCuantitativoJuradoPanel from './ModificarItemCuantitativoJuradoPanel';
 import RegistrarItemCuantitativoJuradoPanel from './RegistrarItemCuantitativoJuradoPanel';
 
 const ROLES_ADMINISTRAN = [Rol.Administrador];
+
+type PanelItems = { tipo: 'registrar' } | { tipo: 'modificar'; item: ItemCuantitativoJurado };
 
 export default function ItemsCuantitativosJuradoView() {
   const { data, isLoading, isError, error, refetch } = useItemsCuantitativosJurado();
   const categorias = useCategoriasItemCuantitativoJurado();
   const esAdministrador = useHasRole(ROLES_ADMINISTRAN);
-  const [registrando, setRegistrando] = useState(false);
+  const [panel, setPanel] = useState<PanelItems | null>(null);
+
+  function cerrarPanel() {
+    setPanel(null);
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -27,7 +35,11 @@ export default function ItemsCuantitativosJuradoView() {
           Valores máximos con los que el jurado puntúa cada proyecto.
         </p>
         {esAdministrador && (
-          <Button icono={Plus} className="header-action" onClick={() => setRegistrando(true)}>
+          <Button
+            icono={Plus}
+            className="header-action"
+            onClick={() => setPanel({ tipo: 'registrar' })}
+          >
             Registrar ítem
           </Button>
         )}
@@ -54,11 +66,19 @@ export default function ItemsCuantitativosJuradoView() {
           items={data}
           categorias={categorias.data}
           cargandoCategorias={categorias.isLoading}
+          onEditar={esAdministrador ? (item) => setPanel({ tipo: 'modificar', item }) : undefined}
         />
       )}
 
-      {registrando && (
-        <RegistrarItemCuantitativoJuradoPanel onCerrar={() => setRegistrando(false)} />
+      {panel?.tipo === 'registrar' && (
+        <RegistrarItemCuantitativoJuradoPanel onCerrar={cerrarPanel} />
+      )}
+      {panel?.tipo === 'modificar' && (
+        <ModificarItemCuantitativoJuradoPanel
+          key={panel.item.id}
+          item={panel.item}
+          onCerrar={cerrarPanel}
+        />
       )}
     </div>
   );
