@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Users } from 'lucide-react';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FormActions from '../../../../shared/components/ui/FormActions';
@@ -9,6 +10,7 @@ import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useAsignarEstudiantesProyectoGrado } from '../../hooks/useAsignarEstudiantesProyectoGrado';
+import { useDestitucionEstudiante } from '../../hooks/useDestitucionEstudiante';
 import { useEstudiantesProyectoGrado } from '../../hooks/useEstudiantesProyectoGrado';
 import { mensajeErrorAsignacion } from '../../utils/errores-asignacion';
 import AsignarEstudiantesProyectoGradoSeccion from './AsignarEstudiantesProyectoGradoSeccion';
@@ -32,6 +34,8 @@ export default function EstudiantesProyectoGradoPanel({
   const [seleccion, setSeleccion] = useState<string[]>([]);
   const { data, isLoading, isError, error, refetch } = useEstudiantesProyectoGrado(proyectoGradoId);
   const { mutate, isPending } = useAsignarEstudiantesProyectoGrado(proyectoGradoId);
+  const { pendiente, destituyendo, solicitar, confirmar, cancelar } =
+    useDestitucionEstudiante(proyectoGradoId);
   const estudiantes = data ?? [];
   const listaCargada = !isLoading && !isError;
 
@@ -73,7 +77,13 @@ export default function EstudiantesProyectoGradoPanel({
         />
       );
     }
-    return <EstudiantesProyectoGradoLista estudiantes={estudiantes} />;
+    return (
+      <EstudiantesProyectoGradoLista
+        estudiantes={estudiantes}
+        onDestituir={finalizado ? undefined : solicitar}
+        destituyendo={destituyendo}
+      />
+    );
   }
 
   return (
@@ -82,7 +92,7 @@ export default function EstudiantesProyectoGradoPanel({
       descripcion={titulo}
       onCerrar={onCerrar}
       sucio={seleccion.length > 0}
-      ocupado={isPending}
+      ocupado={isPending || destituyendo}
       pie={(solicitarCierre) => (
         <FormActions
           accion="Asignar estudiantes"
@@ -108,6 +118,21 @@ export default function EstudiantesProyectoGradoPanel({
           />
         )}
       </div>
+      {pendiente && (
+        <ConfirmDialog
+          titulo="Destituir estudiante"
+          descripcion={`${pendiente.nombre} dejará de estar vinculado a este proyecto de grado.`}
+          consecuencias={[
+            'La vinculación se elimina y no se puede deshacer.',
+            'Se libera un cupo: podrás asignar a otro estudiante.',
+          ]}
+          labelConfirmar="Destituir"
+          variante="peligro"
+          cargando={destituyendo}
+          onConfirmar={confirmar}
+          onCancelar={cancelar}
+        />
+      )}
     </SidePanel>
   );
 }

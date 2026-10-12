@@ -4,6 +4,7 @@ import type { ConsultaCriteriaRequest } from '../../../shared/models/query-crite
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
 import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoResponse';
 import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEstudiantesProyectoGradoRequest';
+import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 
@@ -46,6 +47,12 @@ export const proyectosGradoService = {
       .post(`/proyectos-grado/${req.proyectoGradoId}/estudiantes`, {
         estudiantes: req.estudiantesIds,
       })
+      .then(() => undefined);
+  },
+
+  destituirEstudiante(req: DestituirEstudianteProyectoGradoRequest): Promise<void> {
+    return apiClient
+      .delete(`/proyectos-grado/${req.proyectoGradoId}/estudiantes/${req.estudianteId}`)
       .then(() => undefined);
   },
 };

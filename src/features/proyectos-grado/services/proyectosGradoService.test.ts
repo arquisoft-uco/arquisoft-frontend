@@ -4,11 +4,12 @@ import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoR
 import { proyectosGradoService } from './proyectosGradoService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), post: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
+const eliminar = vi.mocked(apiClient.delete);
 
 function crearRespuesta(
   sobrescribe: Partial<AsesorProyectoGradoResponse>,
@@ -90,6 +91,23 @@ describe('proyectosGradoService', () => {
       expect(post).toHaveBeenCalledWith('/proyectos-grado/p-1/estudiantes', {
         estudiantes: ['e-1', 'e-2'],
       });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('destituirEstudiante', () => {
+    it('hace DELETE /proyectos-grado/{p}/estudiantes/{estudianteId} y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await proyectosGradoService.destituirEstudiante({
+        proyectoGradoId: 'p-1',
+        estudianteId: 'e-1',
+      });
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/proyectos-grado/p-1/estudiantes/e-1');
       expect(resultado).toBeUndefined();
     });
   });

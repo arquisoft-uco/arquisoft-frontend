@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react';
+import { UserMinus } from 'lucide-react';
 import Avatar from '../../../../shared/components/ui/Avatar';
 import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EstudianteVinculado } from '../../models/EstudianteVinculado';
@@ -27,7 +27,7 @@ export default function EstudiantesVinculadosLista({ estudiantes, quitando, onQu
           </div>
           <IconButton
             etiqueta={`Quitar a ${estudiante.nombre} de la ficha`}
-            icono={Trash2}
+            icono={UserMinus}
             tono="peligro"
             disabled={quitando}
             onClick={() => onQuitar(estudiante)}
