@@ -10,6 +10,7 @@ import { useHasRole } from '../../../hooks/useHasRole';
 import { useCategoriasItemCuantitativoJurado } from '../hooks/useCategoriasItemCuantitativoJurado';
 import { useItemsCuantitativosJurado } from '../hooks/useItemsCuantitativosJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
+import CategoriasItemCuantitativoJuradoPanel from './CategoriasItemCuantitativoJuradoPanel';
 import ItemsCuantitativosJuradoTable from './ItemsCuantitativosJuradoTable';
 import ModificarItemCuantitativoJuradoPanel from './ModificarItemCuantitativoJuradoPanel';
 import RegistrarItemCuantitativoJuradoPanel from './RegistrarItemCuantitativoJuradoPanel';
@@ -69,6 +70,8 @@ export default function ItemsCuantitativosJuradoView() {
           onEditar={esAdministrador ? (item) => setPanel({ tipo: 'modificar', item }) : undefined}
         />
       )}
+
+      <CategoriasItemCuantitativoJuradoPanel />
 
       {panel?.tipo === 'registrar' && (
         <RegistrarItemCuantitativoJuradoPanel onCerrar={cerrarPanel} />

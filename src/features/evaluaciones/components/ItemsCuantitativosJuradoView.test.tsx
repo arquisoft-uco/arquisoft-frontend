@@ -21,6 +21,10 @@ vi.mock('../hooks/useCategoriasItemCuantitativoJurado', () => ({
   useCategoriasItemCuantitativoJurado: vi.fn(),
 }));
 
+vi.mock('./CategoriasItemCuantitativoJuradoPanel', () => ({
+  default: () => <section aria-label="Panel de categorías" />,
+}));
+
 vi.mock('./RegistrarItemCuantitativoJuradoPanel', () => ({
   default: ({ onCerrar }: { onCerrar: () => void }) => (
     <div role="dialog" aria-label="Panel de registro">
@@ -102,6 +106,17 @@ describe('ItemsCuantitativosJuradoView', () => {
     expect(within(filas[1]).getByText('Impacto')).toBeInTheDocument();
     expect(within(filas[1]).getByText('Social')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('muestra la sección de categorías aunque la consulta de ítems falle', () => {
+    // Arrange
+    mockItems({ isError: true });
+
+    // Act
+    render(<ItemsCuantitativosJuradoView />);
+
+    // Assert
+    expect(screen.getByRole('region', { name: 'Panel de categorías' })).toBeInTheDocument();
   });
 
   it('sin ítems, muestra el estado vacío', () => {

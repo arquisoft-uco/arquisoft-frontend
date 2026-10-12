@@ -3,11 +3,12 @@ import apiClient from '../../../api/axiosInstance';
 import { evaluacionesService } from './evaluacionesService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { patch: vi.fn(), post: vi.fn() },
+  default: { get: vi.fn(), patch: vi.fn(), post: vi.fn() },
 }));
 
 const patch = vi.mocked(apiClient.patch);
 const post = vi.mocked(apiClient.post);
+const get = vi.mocked(apiClient.get);
 
 describe('evaluacionesService', () => {
   beforeEach(() => {
@@ -54,6 +55,27 @@ describe('evaluacionesService', () => {
         valor: 30,
       });
       expect(resultado).toEqual({ id: 'i-1' });
+    });
+  });
+
+  describe('getCategoriasItemCuantitativoJurado', () => {
+    it('no envía params sin nombre y envía params: { nombre } con filtro', async () => {
+      // Arrange
+      get.mockResolvedValue({ status: 200, data: [] });
+
+      // Act
+      await evaluacionesService.getCategoriasItemCuantitativoJurado();
+      await evaluacionesService.getCategoriasItemCuantitativoJurado('téc');
+
+      // Assert
+      expect(get).toHaveBeenNthCalledWith(
+        1,
+        '/evaluaciones/categorias-item-cuantitativo-jurado',
+        undefined,
+      );
+      expect(get).toHaveBeenNthCalledWith(2, '/evaluaciones/categorias-item-cuantitativo-jurado', {
+        params: { nombre: 'téc' },
+      });
     });
   });
 });
