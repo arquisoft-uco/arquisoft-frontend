@@ -76,6 +76,28 @@ describe('AsesoresProyectoGradoPanel', () => {
     expect(within(filas[1]).queryByText('Actual')).not.toBeInTheDocument();
   });
 
+  it('con el caso de la captura muestra una sola «Actual», en la primera fila', async () => {
+    // Arrange
+    const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
+    consultar.mockResolvedValue([
+      { ...vigente, id: 'ap-4' },
+      { ...vigente, id: 'ap-3', estado: finalizado, actual: false },
+      { ...vigente, id: 'ap-2', actual: false },
+      { ...vigente, id: 'ap-1', asesorId: 'a-2', nombre: 'asesor asesor', estado: finalizado },
+    ]);
+
+    // Act
+    render(<AsesoresProyectoGradoPanel proyectoGradoId="p-1" />);
+    const tabla = within(await tablaDeAsesores());
+
+    // Assert
+    expect(tabla.getAllByText('Actual')).toHaveLength(1);
+    const filas = tabla.getAllByRole('row').slice(1);
+    expect(filas).toHaveLength(4);
+    expect(within(filas[0]).getByText('Actual')).toBeInTheDocument();
+    expect(within(filas[3]).queryByText('Actual')).not.toBeInTheDocument();
+  });
+
   it('marca «Dado de baja» solo en el asesor con vigente = false', async () => {
     // Arrange
     consultar.mockResolvedValue([vigente, { ...anterior, vigente: false }]);

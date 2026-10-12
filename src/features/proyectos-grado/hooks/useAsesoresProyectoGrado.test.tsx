@@ -66,6 +66,25 @@ describe('useAsesoresProyectoGrado', () => {
     ]);
   });
 
+  it('entrega la lista con «actual» solo en la primera fila ASIGNADO', async () => {
+    // Arrange
+    const finalizadoActual: AsesorProyectoGrado = {
+      ...asesor,
+      id: 'ap-0',
+      estado: { id: 'FINALIZADO', nombre: 'Finalizado' },
+    };
+    consultar.mockResolvedValue([asesor, finalizadoActual]);
+
+    // Act
+    const { result } = renderHook(() => useAsesoresProyectoGrado('p-1'), {
+      wrapper: crearWrapper(queryClient),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.data?.map((a) => a.actual)).toEqual([true, false]);
+  });
+
   it('sin id no consulta al service', () => {
     // Act
     const { result } = renderHook(() => useAsesoresProyectoGrado(null), {
