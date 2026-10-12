@@ -6,6 +6,8 @@ import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoResponse } from '../models/RegistrarItemCualitativoJuradoResponse';
+import type { RegistrarItemCuantitativoJuradoRequest } from '../models/RegistrarItemCuantitativoJuradoRequest';
+import type { RegistrarItemCuantitativoJuradoResponse } from '../models/RegistrarItemCuantitativoJuradoResponse';
 
 export const evaluacionesService = {
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
@@ -33,6 +35,21 @@ export const evaluacionesService = {
   ): Promise<RegistrarItemCualitativoJuradoResponse> =>
     apiClient
       .post<RegistrarItemCualitativoJuradoResponse>('/evaluaciones/items-cualitativos-jurado', req)
+      .then((r) => r.data),
+
+  registrarItemCuantitativoJurado: ({
+    nombre,
+    descripcion,
+    categoriaId,
+    valor,
+  }: RegistrarItemCuantitativoJuradoRequest): Promise<RegistrarItemCuantitativoJuradoResponse> =>
+    apiClient
+      .post<RegistrarItemCuantitativoJuradoResponse>('/evaluaciones/items-cuantitativos-jurado', {
+        nombre,
+        descripcion,
+        categoria: categoriaId,
+        valor,
+      })
       .then((r) => r.data),
 
   modificarItemCualitativoJurado: ({

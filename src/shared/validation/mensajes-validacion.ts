@@ -9,4 +9,5 @@ export const MENSAJES_VALIDACION = {
   listaMaxima: (max: number) => `Máximo ${max} elementos`,
   soloDigitos: 'Solo se permiten dígitos',
   formatoNombre: 'Solo letras y espacios',
+  valorEntre: (min: number, max: number) => `Debe estar entre ${min} y ${max}`,
 } as const;

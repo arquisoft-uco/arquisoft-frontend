@@ -6,6 +6,12 @@ import { useItemsCuantitativosJurado } from '../hooks/useItemsCuantitativosJurad
 import { useCategoriasItemCuantitativoJurado } from '../hooks/useCategoriasItemCuantitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
+import { Rol } from '../../../shared/models/rol';
+import {
+  resetAllStores,
+  setActiveRole,
+  setAuthenticatedUser,
+} from '../../../test-utils/store.utils';
 
 vi.mock('../hooks/useItemsCuantitativosJurado', () => ({
   useItemsCuantitativosJurado: vi.fn(),
@@ -13,6 +19,16 @@ vi.mock('../hooks/useItemsCuantitativosJurado', () => ({
 
 vi.mock('../hooks/useCategoriasItemCuantitativoJurado', () => ({
   useCategoriasItemCuantitativoJurado: vi.fn(),
+}));
+
+vi.mock('./RegistrarItemCuantitativoJuradoPanel', () => ({
+  default: ({ onCerrar }: { onCerrar: () => void }) => (
+    <div role="dialog" aria-label="Panel de registro">
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
 }));
 
 const ITEMS: ItemCuantitativoJurado[] = [
@@ -24,6 +40,11 @@ const CATEGORIAS: CategoriaItemCuantitativoJurado[] = [
   { id: 'c-1', nombre: 'Técnica', descripcion: 'Aspectos técnicos.' },
   { id: 'c-2', nombre: 'Social', descripcion: 'Aspectos sociales.' },
 ];
+
+function entrarComo(rol: Rol) {
+  setAuthenticatedUser({ tokenParsed: { sub: 'u', realm_access: { roles: [rol] } } });
+  setActiveRole(rol);
+}
 
 function mockItems(parcial: Partial<ReturnType<typeof useItemsCuantitativosJurado>>) {
   vi.mocked(useItemsCuantitativosJurado).mockReturnValue({
@@ -47,6 +68,7 @@ function mockCategorias(parcial: Partial<ReturnType<typeof useCategoriasItemCuan
 
 describe('ItemsCuantitativosJuradoView', () => {
   beforeEach(() => {
+    resetAllStores();
     vi.mocked(useItemsCuantitativosJurado).mockReset();
     vi.mocked(useCategoriasItemCuantitativoJurado).mockReset();
     mockCategorias({ data: CATEGORIAS });
@@ -146,5 +168,37 @@ describe('ItemsCuantitativosJuradoView', () => {
       screen.queryByText('No se pudieron cargar los nombres de las categorías.'),
     ).not.toBeInTheDocument();
     expect(within(tabla).getAllByText('Cargando categoría')).toHaveLength(2);
+  });
+
+  it('el administrador ve «Registrar ítem», abre el panel y puede cerrarlo', async () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    entrarComo(Rol.Administrador);
+    const user = userEvent.setup();
+
+    // Act
+    render(<ItemsCuantitativosJuradoView />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Registrar ítem' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de registro' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('el jurado ve la lista sin el botón «Registrar ítem»', () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    entrarComo(Rol.Jurado);
+
+    // Act
+    render(<ItemsCuantitativosJuradoView />);
+
+    // Assert
+    expect(
+      screen.getByRole('table', { name: 'Ítems cuantitativos del jurado' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Registrar ítem' })).not.toBeInTheDocument();
   });
 });
