@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
-import Button from '../../../shared/components/ui/Button';
-import IconButton from '../../../shared/components/ui/IconButton';
-import type { OpcionCombobox } from '../../../shared/hooks/useCombobox';
+import Button from './Button';
+import IconButton from './IconButton';
+import type { OpcionCombobox } from '../../hooks/useCombobox';
 
 const FILA =
   'flex items-center gap-3 rounded-lg border border-border-input bg-surface py-2 pl-3 pr-2';

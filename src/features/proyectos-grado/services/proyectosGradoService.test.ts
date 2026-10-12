@@ -8,6 +8,7 @@ vi.mock('../../../api/axiosInstance', () => ({
 }));
 
 const get = vi.mocked(apiClient.get);
+const post = vi.mocked(apiClient.post);
 
 function crearRespuesta(
   sobrescribe: Partial<AsesorProyectoGradoResponse>,
@@ -71,6 +72,25 @@ describe('proyectosGradoService', () => {
       expect(asesores[1].estado).toEqual({ id: 'FINALIZADO', nombre: 'Finalizado' });
       expect(asesores[1].vigente).toBe(false);
       expect(asesores[1].actual).toBe(false);
+    });
+  });
+
+  describe('asignarEstudiantes', () => {
+    it('hace POST /proyectos-grado/{id}/estudiantes traduciendo estudiantesIds a { estudiantes } y resuelve undefined', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await proyectosGradoService.asignarEstudiantes({
+        proyectoGradoId: 'p-1',
+        estudiantesIds: ['e-1', 'e-2'],
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/proyectos-grado/p-1/estudiantes', {
+        estudiantes: ['e-1', 'e-2'],
+      });
+      expect(resultado).toBeUndefined();
     });
   });
 });

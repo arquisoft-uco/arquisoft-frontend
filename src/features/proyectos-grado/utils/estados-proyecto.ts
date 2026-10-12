@@ -7,3 +7,5 @@ export const ESTADOS_PROYECTO: readonly EstadoProyecto[] = [
   { id: 'ATRASADO', nombre: 'Atrasado' },
   { id: 'FINALIZADO', nombre: 'Finalizado' },
 ];
+
+export const ESTADO_FINALIZADO = 'FINALIZADO';

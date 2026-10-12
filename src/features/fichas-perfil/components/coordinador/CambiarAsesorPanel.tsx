@@ -10,7 +10,7 @@ import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCambiarAsesor } from '../../hooks/useCambiarAsesor';
 import type { Asesor } from '../../../../shared/models/Asesor';
-import Combobox from '../Combobox';
+import Combobox from '../../../../shared/components/ui/Combobox';
 
 const ID_FORMULARIO = 'cambiar-asesor-ficha';
 
