@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { Calculator } from 'lucide-react';
+import { Calculator, Pencil } from 'lucide-react';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
+import IconButton from '../../../shared/components/ui/IconButton';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 
@@ -11,6 +12,7 @@ interface Props {
   items: ItemCuantitativoJurado[];
   categorias: CategoriaItemCuantitativoJurado[] | undefined;
   cargandoCategorias: boolean;
+  onEditar?: (item: ItemCuantitativoJurado) => void;
 }
 
 const CATEGORIA_NO_DISPONIBLE = 'No disponible';
@@ -26,6 +28,7 @@ export default function ItemsCuantitativosJuradoTable({
   items,
   categorias,
   cargandoCategorias,
+  onEditar,
 }: Props) {
   const nombrePorCategoria = useMemo(
     () => new Map((categorias ?? []).map((categoria) => [categoria.id, categoria.nombre])),
@@ -66,6 +69,17 @@ export default function ItemsCuantitativosJuradoTable({
       columnas={columnas}
       filas={items}
       idDeFila={(item) => item.id}
+      acciones={
+        onEditar &&
+        ((item) => (
+          <IconButton
+            etiqueta={`Editar ítem ${item.nombre}`}
+            icono={Pencil}
+            rotulo="Editar"
+            onClick={() => onEditar(item)}
+          />
+        ))
+      }
       tarjeta={(item) => (
         <>
           <p className="font-medium text-on-surface">{item.nombre}</p>

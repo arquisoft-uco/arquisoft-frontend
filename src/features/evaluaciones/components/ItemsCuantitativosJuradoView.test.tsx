@@ -31,6 +31,16 @@ vi.mock('./RegistrarItemCuantitativoJuradoPanel', () => ({
   ),
 }));
 
+vi.mock('./ModificarItemCuantitativoJuradoPanel', () => ({
+  default: ({ onCerrar }: { onCerrar: () => void }) => (
+    <div role="dialog" aria-label="Panel de modificación">
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
 const ITEMS: ItemCuantitativoJurado[] = [
   { id: 'i-2', nombre: 'Rigor', descripcion: 'Calidad del método.', categoriaId: 'c-1', valor: 30 },
   { id: 'i-1', nombre: 'Impacto', descripcion: 'Alcance esperado.', categoriaId: 'c-2', valor: 20 },
@@ -185,6 +195,36 @@ describe('ItemsCuantitativosJuradoView', () => {
     expect(screen.getByRole('dialog', { name: 'Panel de registro' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('el administrador ve «Editar» por fila y al pulsarlo abre el panel de modificación', async () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    entrarComo(Rol.Administrador);
+    const user = userEvent.setup();
+
+    // Act
+    render(<ItemsCuantitativosJuradoView />);
+    const tabla = screen.getByRole('table', { name: 'Ítems cuantitativos del jurado' });
+    expect(within(tabla).getAllByRole('button', { name: /^Editar ítem/ })).toHaveLength(2);
+    await user.click(within(tabla).getByRole('button', { name: 'Editar ítem Rigor' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de modificación' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('el jurado no ve «Editar» en la lista', () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    entrarComo(Rol.Jurado);
+
+    // Act
+    render(<ItemsCuantitativosJuradoView />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /^Editar ítem/ })).not.toBeInTheDocument();
   });
 
   it('el jurado ve la lista sin el botón «Registrar ítem»', () => {
