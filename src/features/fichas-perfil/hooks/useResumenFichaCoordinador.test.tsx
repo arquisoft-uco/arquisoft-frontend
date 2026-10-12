@@ -91,4 +91,29 @@ describe('useResumenFichaCoordinador', () => {
     expect(conResumen.result.current.resumen).toEqual(RESUMEN);
     expect(sinResumen.result.current.resumen).toBeNull();
   });
+
+  it('con el state de proyectos de grado completa el estado desde el historial, sin asesor, y devuelve el origen', () => {
+    // Arrange
+    const origen = { etiqueta: 'Proyectos de grado', to: '/proyectos-grado' };
+    simularHistorial([
+      { id: 'APROBADA', nombre: 'Aprobada', fechaActualizacion: '2026-02-01T10:00:00' },
+    ]);
+
+    // Act
+    const { result } = renderizar({
+      resumen: { id: 'f-1', titulo: 'Ficha de prueba' },
+      search: '?q=sis',
+      origen,
+    });
+
+    // Assert
+    expect(result.current.resumen).toMatchObject({
+      titulo: 'Ficha de prueba',
+      estadoId: 'APROBADA',
+      estadoNombre: 'Aprobada',
+      fechaActualizacion: '2026-02-01T10:00:00',
+    });
+    expect(result.current.resumen?.asesorNombre).toBeUndefined();
+    expect(result.current.origen).toEqual(origen);
+  });
 });

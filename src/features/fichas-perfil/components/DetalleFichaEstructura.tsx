@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router';
+import type { OrigenNavegacion } from '../../../shared/models/OrigenNavegacion';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import type { ResumenFicha } from '../models/ResumenFicha';
@@ -7,6 +8,7 @@ import { DISPOSICION } from './disposicion';
 import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
 import ResumenFichaPanel from './ResumenFichaPanel';
 
+const ETIQUETA_LISTADO = 'Fichas de perfil';
 const RUTA_LISTADO = '/fichas-perfil';
 const TITULO_GENERICO = 'Ficha de perfil';
 
@@ -19,6 +21,7 @@ export interface PestanaDetalle {
 interface Props {
   resumen: ResumenFicha | null;
   search: string;
+  origen?: OrigenNavegacion;
   pestanas: PestanaDetalle[];
   accion?: ReactNode;
   decision?: ReactNode;
@@ -27,6 +30,7 @@ interface Props {
 export default function DetalleFichaEstructura({
   resumen,
   search,
+  origen,
   pestanas,
   accion,
   decision,
@@ -50,7 +54,13 @@ export default function DetalleFichaEstructura({
         titulo={titulo}
         insignia={insignia}
         meta={meta}
-        migas={[{ etiqueta: 'Fichas de perfil', to: RUTA_LISTADO + search }, { etiqueta: titulo }]}
+        migas={[
+          {
+            etiqueta: origen?.etiqueta ?? ETIQUETA_LISTADO,
+            to: (origen?.to ?? RUTA_LISTADO) + search,
+          },
+          { etiqueta: titulo },
+        ]}
       />
       <div className={DISPOSICION.contenedor}>
         <div className={DISPOSICION.principal}>

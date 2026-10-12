@@ -1,3 +1,5 @@
+import type { OrigenNavegacion } from '../../../shared/models/OrigenNavegacion';
+
 export interface ResumenFicha {
   id: string;
   titulo: string;
@@ -12,4 +14,5 @@ export interface ResumenFicha {
 export interface NavegacionDetalleFicha {
   resumen: ResumenFicha;
   search: string;
+  origen?: OrigenNavegacion;
 }

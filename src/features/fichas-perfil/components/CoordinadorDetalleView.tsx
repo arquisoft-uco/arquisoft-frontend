@@ -7,7 +7,7 @@ import DetalleFichaEstructura from './DetalleFichaEstructura';
 
 export default function CoordinadorDetalleView() {
   const { id = '' } = useParams();
-  const { resumen, search, registrarAsesorNuevo } = useResumenFichaCoordinador(id);
+  const { resumen, search, origen, registrarAsesorNuevo } = useResumenFichaCoordinador(id);
 
   if (!id) return <Navigate to="/fichas-perfil" replace />;
 
@@ -21,6 +21,7 @@ export default function CoordinadorDetalleView() {
     <DetalleFichaEstructura
       resumen={resumen}
       search={search}
+      origen={origen}
       pestanas={pestanas}
       decision={
         resumen && admiteDecision(resumen.estadoId) ? (
