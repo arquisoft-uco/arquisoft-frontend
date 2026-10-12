@@ -1,13 +1,13 @@
-import { SearchX, UserCog, Users } from 'lucide-react';
+import { SearchX, Users } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla, OrdenTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { OrdenDireccion } from '../../hooks/useFichasPerfilCoordinador';
 import type { FichaPerfil } from '../../models/FichaPerfil';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
 import { EstadoYFechaTarjeta, AsesorDeFicha, TituloFicha } from '../FichaCeldas';
+import { resumenConAsesor } from '../../utils/resumen-ficha';
 import { columnaAsesor, columnasEstado } from '../columnasFicha';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoFicha {
@@ -20,8 +20,6 @@ interface Props {
   hayFiltros: boolean;
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoFicha, direccion: OrdenDireccion) => void;
-  onVerEstudiantes: (ficha: FichaPerfil) => void;
-  onCambiarAsesor: (ficha: FichaPerfil) => void;
   onLimpiarFiltros: () => void;
 }
 
@@ -31,8 +29,6 @@ export default function FichasPerfilTable({
   hayFiltros,
   orden,
   onOrdenar,
-  onVerEstudiantes,
-  onCambiarAsesor,
   onLimpiarFiltros,
 }: Props) {
   const columnas: ColumnaTabla<FichaPerfil>[] = [
@@ -41,7 +37,13 @@ export default function FichasPerfilTable({
       encabezado: 'Ficha',
       clave: 'tituloProyecto',
       ordenable: true,
-      celda: (ficha) => <TituloFicha titulo={ficha.tituloProyecto} />,
+      celda: (ficha) => (
+        <TituloFicha
+          titulo={ficha.tituloProyecto}
+          abrir={resumenConAsesor(ficha)}
+          pestana="evaluaciones"
+        />
+      ),
     },
     columnaAsesor<FichaPerfil>((ficha) => ficha.asesorFicha),
     ...columnasEstado<FichaPerfil>((ficha) => ({
@@ -53,26 +55,6 @@ export default function FichasPerfilTable({
 
   function ordenar(clave: string, direccion: OrdenDireccion) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
-  }
-
-  function acciones(ficha: FichaPerfil) {
-    return (
-      <RowMenu
-        etiqueta={`Acciones de la ficha ${ficha.tituloProyecto}`}
-        acciones={[
-          {
-            etiqueta: 'Ver estudiantes',
-            icono: Users,
-            onSeleccionar: () => onVerEstudiantes(ficha),
-          },
-          {
-            etiqueta: 'Cambiar asesor',
-            icono: UserCog,
-            onSeleccionar: () => onCambiarAsesor(ficha),
-          },
-        ]}
-      />
-    );
   }
 
   const vacio = hayFiltros ? (
@@ -102,12 +84,15 @@ export default function FichasPerfilTable({
       idDeFila={(ficha) => ficha.id}
       orden={orden}
       onOrdenar={ordenar}
-      acciones={acciones}
       cargando={cargando}
       vacio={vacio}
       tarjeta={(ficha) => (
         <>
-          <TituloFicha titulo={ficha.tituloProyecto} />
+          <TituloFicha
+            titulo={ficha.tituloProyecto}
+            abrir={resumenConAsesor(ficha)}
+            pestana="evaluaciones"
+          />
           <AsesorDeFicha nombre={ficha.asesorFicha.nombre} email={ficha.asesorFicha.email} />
           <EstadoYFechaTarjeta
             estadoId={ficha.estado.id}

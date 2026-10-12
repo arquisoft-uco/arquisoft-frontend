@@ -22,6 +22,7 @@ interface Props<T> {
   orden?: OrdenTabla;
   onOrdenar?: (clave: string, direccion: DireccionOrden) => void;
   acciones?: (fila: T) => ReactNode;
+  encabezadoAcciones?: string;
   tarjeta: (fila: T) => ReactNode;
   cargando?: boolean;
   vacio?: ReactNode;
@@ -35,6 +36,7 @@ export default function DataTable<T>({
   orden,
   onOrdenar,
   acciones,
+  encabezadoAcciones,
   tarjeta,
   cargando = false,
   vacio,
@@ -53,6 +55,7 @@ export default function DataTable<T>({
             orden={orden}
             onOrdenar={onOrdenar}
             conAcciones={acciones !== undefined}
+            encabezadoAcciones={encabezadoAcciones}
           />
           <tbody>
             {filas.map((fila) => (

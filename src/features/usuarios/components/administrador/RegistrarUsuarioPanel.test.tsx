@@ -280,6 +280,31 @@ describe('RegistrarUsuarioPanel', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('registra al usuario con solo el rol Bibliotecario', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    vi.mocked(usuariosService.registrarUsuario).mockResolvedValue(REGISTRADO);
+    render(<RegistrarUsuarioPanel onCerrar={onCerrar} />);
+    await llenarFormulario(user);
+
+    // Act
+    await user.click(chipDeRol(Rol.Bibliotecario));
+    await user.click(botonRegistrar());
+
+    // Assert
+    await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
+    expect(usuariosService.registrarUsuario).toHaveBeenCalledWith({
+      ...DATOS,
+      roles: [Rol.Bibliotecario],
+    });
+    expect(toast.success).toHaveBeenCalledWith(
+      'Usuario registrado',
+      `${DATOS.nombres} ${DATOS.apellidos} fue registrado correctamente.`,
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
   describe('cuando el backend rechaza el registro', () => {
     it('un duplicado se pinta junto a su campo, lo enfoca y avisa con toast.error', async () => {
       // Act

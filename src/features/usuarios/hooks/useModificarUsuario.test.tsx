@@ -17,7 +17,8 @@ const modificar = vi.mocked(usuariosService.modificarUsuario);
 const usuarioId = 'u-1';
 const request: ModificarUsuarioRequest = {
   identificador: '2001',
-  nombre: 'Marta Ríos',
+  nombres: 'Marta',
+  apellidos: 'Ríos',
   email: 'marta@uco.edu.co',
   contacto: '3001234567',
 };

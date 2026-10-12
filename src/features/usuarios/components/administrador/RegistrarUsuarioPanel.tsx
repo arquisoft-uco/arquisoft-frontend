@@ -1,4 +1,4 @@
-import { useForm, type UseFormRegister } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
 import FormActions from '../../../../shared/components/ui/FormActions';
@@ -6,6 +6,7 @@ import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { Rol } from '../../../../shared/models/rol';
 import { useEnvioFormularioUsuario } from '../../hooks/useEnvioFormularioUsuario';
+import { useParDeNombres } from '../../hooks/useParDeNombres';
 import { useRegistrarUsuario } from '../../hooks/useRegistrarUsuario';
 import { registrarUsuarioSchema } from '../../utils/registrar-usuario-schema';
 import type { RegistrarUsuarioValues } from '../../utils/registrar-usuario-schema';
@@ -24,10 +25,6 @@ const VALORES_INICIALES: RegistrarUsuarioValues = {
   email: '',
   contacto: '',
   roles: [],
-};
-const PAR_DE_NOMBRES: Record<string, 'nombres' | 'apellidos' | undefined> = {
-  nombres: 'apellidos',
-  apellidos: 'nombres',
 };
 const FORMULARIO = 'flex flex-col gap-6';
 const FRASE = 'text-sm text-on-surface-secondary';
@@ -57,19 +54,7 @@ export default function RegistrarUsuarioPanel({ onCerrar }: Props) {
   const roles = formulario.watch('roles') ?? [];
   const errores = resumenVisible ? resumirErrores(errors, ETIQUETAS_CAMPO) : [];
 
-  // El otro campo se revalida solo si ya se tocó, para no pintar error en uno aún sin visitar.
-  const registrar: UseFormRegister<RegistrarUsuarioValues> = (nombre, opciones) => {
-    const par = PAR_DE_NOMBRES[nombre];
-    if (!par) return formulario.register(nombre, opciones);
-    const revalidarPar = () => {
-      if (formulario.getFieldState(par).isTouched) formulario.trigger(par);
-    };
-    return formulario.register(nombre, {
-      ...opciones,
-      onChange: revalidarPar,
-      onBlur: revalidarPar,
-    });
-  };
+  const registrar = useParDeNombres(formulario);
 
   function alternarRol(rol: Rol) {
     const siguientes = roles.includes(rol) ? roles.filter((r) => r !== rol) : [...roles, rol];

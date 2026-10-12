@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { z } from 'zod';
 import { LIMITES } from './limites';
 import { MENSAJES_VALIDACION } from './mensajes-validacion';
 import { EMAIL_REGEX, UUID_REGEX } from './expresiones-regulares';
@@ -11,6 +12,8 @@ import {
   textoEntre,
   textoNoVacio,
   soloDigitosEntre,
+  enteroEntre,
+  validarParDeNombres,
 } from './validadores-zod';
 
 describe('límites alineados al backend', () => {
@@ -18,8 +21,10 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.TITULO_PROYECTO_MAX).toBe(100);
     expect(LIMITES.ITEM_CONTENIDO_MAX).toBe(7000);
     expect(LIMITES.ESTADO_EVALUACION_ID_MAX).toBe(50);
+    expect(LIMITES.ESTADO_FICHA_ID_MAX).toBe(50);
     expect(LIMITES.ESTUDIANTES_MAX).toBe(3);
     expect(LIMITES.MENSAJE_SOLICITUD_MAX).toBe(100);
+    expect(LIMITES.RESPUESTA_CONTENIDO_MAX).toBe(100);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MIN).toBe(4);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MAX).toBe(30);
     expect(LIMITES.USUARIO_NOMBRE_MIN).toBe(2);
@@ -28,7 +33,15 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.USUARIO_EMAIL_MAX).toBe(50);
     expect(LIMITES.USUARIO_CONTACTO_MIN).toBe(10);
     expect(LIMITES.USUARIO_CONTACTO_MAX).toBe(15);
+    expect(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX).toBe(100);
+    expect(LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX).toBe(300);
+    expect(LIMITES.ITEM_CUANTITATIVO_NOMBRE_MAX).toBe(100);
+    expect(LIMITES.ITEM_CUANTITATIVO_DESCRIPCION_MAX).toBe(300);
+    expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MIN).toBe(0);
+    expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MAX).toBe(500);
+    expect(LIMITES.CATEGORIA_ITEM_CUANTITATIVO_NOMBRE_FILTRO_MAX).toBe(100);
     expect(LIMITES.OBSERVACION_EVALUACION_MAX).toBe(200);
+    expect(LIMITES.OBSERVACION_ITEM_MAX).toBe(200);
   });
 });
 
@@ -117,7 +130,10 @@ describe('emailValido', () => {
 });
 
 describe('textoEntre', () => {
-  const validador = textoEntre(LIMITES.USUARIO_IDENTIFICADOR_MIN, LIMITES.USUARIO_IDENTIFICADOR_MAX);
+  const validador = textoEntre(
+    LIMITES.USUARIO_IDENTIFICADOR_MIN,
+    LIMITES.USUARIO_IDENTIFICADOR_MAX,
+  );
 
   it('rechaza vacío con el mensaje de requerido, corto y largo con el de longitud, y acepta en rango', () => {
     const vacio = validador.safeParse('');
@@ -173,11 +189,36 @@ describe('soloDigitosEntre', () => {
     expect(corto.success).toBe(false);
     if (!corto.success) {
       expect(corto.error.issues[0].message).toBe(
-        MENSAJES_VALIDACION.longitudEntre(LIMITES.USUARIO_CONTACTO_MIN, LIMITES.USUARIO_CONTACTO_MAX),
+        MENSAJES_VALIDACION.longitudEntre(
+          LIMITES.USUARIO_CONTACTO_MIN,
+          LIMITES.USUARIO_CONTACTO_MAX,
+        ),
       );
     }
 
     expect(validador.safeParse('3001234567').success).toBe(true);
+  });
+});
+
+describe('enteroEntre', () => {
+  const { ITEM_CUANTITATIVO_VALOR_MIN: min, ITEM_CUANTITATIVO_VALOR_MAX: max } = LIMITES;
+  const validador = enteroEntre(min, max);
+
+  function mensaje(valor: string) {
+    const resultado = validador.safeParse(valor);
+    return resultado.success ? null : resultado.error.issues[0].message;
+  }
+
+  it('responde requerido, solo dígitos y rango en ese orden, e incluye los extremos', () => {
+    expect(mensaje('')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('   ')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('abc')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje('1.5')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje('-1')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje(String(max + 1))).toBe(MENSAJES_VALIDACION.valorEntre(min, max));
+    expect(validador.safeParse(String(min)).success).toBe(true);
+    expect(validador.safeParse(String(max)).success).toBe(true);
+    expect(validador.safeParse(' 42 ').success).toBe(true);
   });
 });
 
@@ -218,5 +259,34 @@ describe('expresiones regulares', () => {
   it('UUID_REGEX distingue UUID válidos e inválidos', () => {
     expect(UUID_REGEX.test('3f2504e0-4f89-41d3-9a0c-0305e82c3301')).toBe(true);
     expect(UUID_REGEX.test('no-es-uuid')).toBe(false);
+  });
+});
+
+describe('validarParDeNombres', () => {
+  const esquema = z
+    .object({ nombres: z.string(), apellidos: z.string() })
+    .superRefine((val, ctx) =>
+      validarParDeNombres(val, ctx, LIMITES.USUARIO_NOMBRE_MIN, LIMITES.USUARIO_NOMBRE_MAX),
+    );
+
+  function errores(nombres: string, apellidos: string) {
+    const resultado = esquema.safeParse({ nombres, apellidos });
+    if (resultado.success) return [];
+    return resultado.error.issues.map((i) => `${i.path.join('.')}:${i.message}`);
+  }
+
+  it('acepta un par válido', () => {
+    expect(esquema.safeParse({ nombres: 'Ana', apellidos: 'Gómez' }).success).toBe(true);
+  });
+
+  it('atribuye la longitud compuesta a ambos campos y el formato al campo culpable', () => {
+    const largo = 'a'.repeat(LIMITES.USUARIO_NOMBRE_MAX);
+    const longitud = MENSAJES_VALIDACION.longitudEntre(
+      LIMITES.USUARIO_NOMBRE_MIN,
+      LIMITES.USUARIO_NOMBRE_MAX,
+    );
+    expect(errores(largo, 'b')).toEqual([`nombres:${longitud}`, `apellidos:${longitud}`]);
+    expect(errores('Ana1', 'Gómez')).toEqual([`nombres:${MENSAJES_VALIDACION.formatoNombre}`]);
+    expect(errores('Ana', 'G0mez')).toEqual([`apellidos:${MENSAJES_VALIDACION.formatoNombre}`]);
   });
 });

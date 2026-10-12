@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
-import { useParametrosListado } from './useParametrosListado';
+import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 
 const PAGE_SIZE = 10;
 

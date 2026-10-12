@@ -59,8 +59,9 @@ página. Lo que sigue es la receta para escribir lo que falte.
 | `DataTable`, `FilterBar`, `RowMenu`, `FormSection`, `FormActions`, `ErrorSummary` | `src/shared/components/ui/` | Usuarios y Fichas tienen listados y formularios |
 | `PaginadorListado` ampliado | se queda en `src/shared/components/` | Ya lo importan dos features |
 | `SidePanel` | `src/shared/components/ui/` | Excepción de la adopción a la regla de abajo: nació con Usuarios (HT-UX-03) y su segundo consumidor, `fichas-perfil` (paneles «Estudiantes de la ficha» y «Cambiar asesor» del coordinador), llegó en HT-UX-04 |
+| `OpcionRadio` | `src/shared/components/ui/` | Nació en `EstadoDeLaCuenta` (Usuarios); su segundo consumidor es «Decisión sobre la ficha» (Fichas) |
 | `Switch` | `features/usuarios/components/` | Solo Usuarios lo usa; sube a `ui/` con el segundo consumidor |
-| `Combobox` | `features/fichas-perfil/components/` | Solo Fichas lo usa; sube a `ui/` con el segundo consumidor. Su lógica, `useCombobox`, vive en `src/shared/hooks/` |
+| `Combobox` | `shared/components/ui/` | Lo usan fichas-perfil y proyectos-grado. Su lógica, `useCombobox`, vive en `src/shared/hooks/` |
 | `ConfirmDialog`, `Toaster`, `PageSkeleton`, `AvisoNoDisponible`, `ComingSoon` | siguen en `src/shared/components/` | Se **actualizan en su sitio**; no se mueven |
 
 Una pieza «feature primero» sube a `shared/components/ui/` cuando una segunda feature la necesita: se mueve
@@ -100,7 +101,7 @@ Button.spinner | size-4 animate-spin rounded-full border-2 border-current border
 ### IconButton
 
 - **Reemplaza:** los botones de icono de 22 px (`p-1`) y los `h-11 w-11 sm:h-9 sm:w-9` copiados.
-- **API:** `etiqueta: string` (obligatoria, va a `aria-label`), `icono: LucideIcon`, `tono?: 'neutro' | 'peligro'`.
+- **API:** `etiqueta: string` (obligatoria, va a `aria-label`), `icono: LucideIcon`, `tono?: 'neutro' | 'primario' | 'peligro'`, `rotulo?: string` (etiqueta visible al pasar el cursor o enfocar, a la izquierda del botón; solo para botones que viven en el borde derecho de una fila; el nombre accesible sigue siendo `etiqueta`).
 - **Regla:** 44 px de área en celular y 36 px desde `sm`.
 - **Composición:** `base` + **un** tono. Cada tono trae su color de texto y su hover: con el hover de `neutro` en
   la base, `peligro` no cambiaría de color al pasar el cursor.
@@ -108,6 +109,8 @@ Button.spinner | size-4 animate-spin rounded-full border-2 border-current border
 ```clases
 IconButton.base | inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:h-9 sm:w-9
 IconButton.neutro | text-on-surface-secondary hover:bg-muted hover:text-on-surface
+IconButton.primario | text-on-surface-secondary hover:bg-primary-muted hover:text-primary-muted-foreground focus-visible:bg-primary-muted focus-visible:text-primary-muted-foreground
+IconButton.rotulo | pointer-events-none absolute right-full top-1/2 z-10 mr-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-border bg-surface-elevated px-2 py-1 text-xs font-medium text-on-surface opacity-0 shadow-dropdown transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 (el botón suma `group relative` solo con `rotulo`)
 IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-danger-muted-foreground
 ```
 
@@ -126,6 +129,7 @@ IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-
 |---|---|
 | Ficha | `EN_CONSTRUCCION` → neutro · `DISPONIBLE_PARA_EVALUACION` → advertencia · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
 | Evaluación | `EN_EVALUACION` → info · `APROBADA` → exito · `APROBADA_CON_OBSERVACIONES` → advertencia · `NO_APROBADA` → peligro · `DESCARTADA` → neutro |
+| Revisión de ítem | `NUEVA` → info · `VISUALIZADA` → neutro · `EN_PROGRESO` → advertencia · `CORRECCION_DISPONIBLE` → advertencia · `CERRADA` → exito |
 | Usuario | `ACTIVO` → exito · `INACTIVO` → neutro · `vigente === false` → peligro, con el texto «Dado de baja» (una sola insignia combina estado y vigencia) |
 
 ```clases
@@ -197,6 +201,32 @@ desaparecería y el icono pisaría el texto. Medido con `getComputedStyle`: el c
 
 .field-input--accion {
   padding-right: 2.5rem;
+}
+```
+
+**`select` en un `Field`.** El `select` usa la clase global `select.field-input` (`index.css`, tras `.field-input--accion`,
+por el mismo motivo que `--icono` y `--accion`: va después del bloque de 640 px): quita la flecha nativa
+(`appearance: none`), dibuja una propia con dos `linear-gradient` del color `on-surface-secondary` y reserva 2.5 rem a la
+derecha. La regla vive solo en `index.css`: un `select` no repite flecha ni `padding-right`. Con un icono a la izquierda
+suma `field-input--icono` y el icono sigue `Combobox.icono` (16 px, `text-on-surface-secondary`, dentro de un contenedor
+`relative`); el ancho por contenido (`w-fit max-w-full`) se resuelve en ese contenedor, no con `corto`. Referencia:
+`NuevaSolicitudPanel`. Sin medir: la flecha en modo de contraste forzado del sistema (los degradados no se pintan).
+
+```css
+/* Va después del bloque de 640 px, igual que --icono y --accion. */
+select.field-input {
+  padding-right: 2.5rem;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-on-surface-secondary) 50%),
+    linear-gradient(135deg, var(--color-on-surface-secondary) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.25rem) 50%,
+    calc(100% - 0.9rem) 50%;
+  background-size:
+    0.35rem 0.35rem,
+    0.35rem 0.35rem;
+  background-repeat: no-repeat;
 }
 ```
 
@@ -293,7 +323,7 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
 
 - **Reemplazan:** las cinco pestañas copiadas (una con subrayado en `AdministradorView`, cuatro segmentadas
   cuya pista `bg-muted/50` no se pintaba).
-- **`Tabs`** (subrayado): genérico, `Tabs<T extends string>`: `items: { id: T; etiqueta; contador?; to? }[]`,
+- **`Tabs`** (subrayado): genérico, `Tabs<T extends string>`: `items: { id: T; etiqueta; contador?; icono?; to? }[]`,
   `valor: T`, `etiqueta` (va a `aria-label`), `onCambiar?: (id: T) => void`, `children?` y `className?`.
   Si **todos** los ítems traen `to` (subrutas) renderiza `<nav aria-label>` con un `Link` por ítem y
   `aria-current="page"` solo en el de `valor` (no `NavLink`: así `valor` es la única fuente de la pestaña
@@ -303,6 +333,11 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
   Los `children` se envuelven en `<div role="tabpanel" aria-labelledby>` ligado a la pestaña activa, y la activa
   lleva `aria-controls` hacia él (solo si hay `children`): sin el panel, `aria-controls` apuntaría a nada y cada
   consumidor repetiría los ids.
+- **`icono` (opcional):** un `LucideIcon` que va **antes** de la etiqueta, a 16 px y con `aria-hidden`, en los dos
+  modos (`tablist` y `to`): el nombre accesible de la pestaña sigue siendo solo la etiqueta. `ContenidoPestana`
+  (`shared/components/ui/ContenidoPestana.tsx`) dibuja ese contenido común (icono, etiqueta y contador) y `Tabs` lo usa
+  dentro del `<button>` y del `Link`. Es opcional y no lleva clase propia: `Tabs.pestana` ya trae `gap-2`. Una sola
+  pestaña con icono (el «+» de «Nueva solicitud») es aceptable si las demás no lo llevan.
 - **Modo `to` y `state`:** `to` es una cadena, así que el `state` de la navegación (por ejemplo, el resumen que viaja
   desde el listado) **no** pasa de una pestaña a otra. Quien lo necesite lo lee una vez y lo guarda en un contenedor
   que siga montado (`useResumenFicha`). En este modo el contenido va en un `<Outlet />` hermano, no en `children`.
@@ -336,7 +371,8 @@ Segmented.inactiva | text-muted-foreground
 Segmented.activa | bg-surface text-on-surface shadow-card
 ```
 
-- **Pruebas:** `Tabs` en modo `tablist` (flechas mueven el foco y la selección; solo la activa es tabulable).
+- **Pruebas:** `Tabs` en modo `tablist` (flechas mueven el foco y la selección; solo la activa es tabulable) y el
+  `icono` decorativo (no cambia el nombre accesible y queda fuera del árbol de accesibilidad).
 
 ### Switch
 
@@ -371,6 +407,27 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
   cuando está marcado. `pista` trae el atenuado de los dos estados (`disabled:` y `aria-disabled:`) porque `pendiente` usa
   `aria-disabled` y debe verse igual. El pulgar se desplaza con la propiedad CSS `translate` (en Tailwind 4, `translate-x-4.5`
   son 18 px), no con `transform`: se verifica con `getComputedStyle(...).translate`.
+
+### OpcionRadio
+
+- **Reemplazó:** el `label` con `input type="radio"` escrito a mano en `EstadoDeLaCuenta`. Lo usan ese panel (Usuarios) y
+  `DecisionFichaPanel` (Fichas, coordinador).
+- **Cuándo:** pocas opciones excluyentes (hasta 5) que necesitan su consecuencia a la vista; un `select` nativo no la muestra.
+- **API:** `nombre` (el `name` del grupo), `valor`, `titulo`, `descripcion`, `elegida: boolean`, `deshabilitada?` y
+  `onElegir: (valor: string) => void`. El `role="radiogroup"` con su `aria-labelledby` lo pone quien la usa.
+- **A11y:** el radio se nombra con el título (`aria-labelledby`) y se describe con la descripción (`aria-describedby`).
+
+```clases
+OpcionRadio.base | flex min-h-14 w-full items-center gap-3 rounded-xl border px-3.5 py-2.5
+OpcionRadio.habilitada | cursor-pointer
+OpcionRadio.deshabilitada | cursor-not-allowed opacity-60
+OpcionRadio.libre | border-border-strong
+OpcionRadio.elegida | border-primary bg-primary-muted
+OpcionRadio.radio | checkbox-control shrink-0 accent-primary
+```
+
+- **Composición:** `base` más una de `habilitada` o `deshabilitada`, más una de `libre` o `elegida`.
+- **Pruebas:** elegirla por nombre accesible, que la deshabilitada no dispare `onElegir` y su descripción accesible.
 
 ### Combobox
 

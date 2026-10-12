@@ -40,6 +40,9 @@ describe('useRegistrarEvaluacion', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(registrarEvaluacion).toHaveBeenCalledWith({ fichaPerfilId: 'f-1' });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'f-1', 'evaluacion'] });
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['fichas-perfil', 'f-1', 'representante-estados'],
+    });
   });
 
   it('expone el error y no invalida cuando el service rechaza', async () => {

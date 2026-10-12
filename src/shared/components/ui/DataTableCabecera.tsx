@@ -18,6 +18,7 @@ export interface ColumnaTabla<T> {
 
 const CABECERA = 'bg-surface-secondary text-xs font-semibold text-on-surface-secondary';
 const TH = 'px-4 py-3 font-semibold';
+const TH_ACCIONES = 'px-4 py-3 text-right font-semibold';
 const ORDEN =
   '-ml-2 inline-flex h-8 items-center gap-1.5 rounded-lg px-2 font-semibold hover:bg-muted hover:text-on-surface';
 const ICONO_SIN_ORDEN = 'opacity-30';
@@ -38,6 +39,7 @@ interface Props<T> {
   orden?: OrdenTabla;
   onOrdenar?: (clave: string, direccion: DireccionOrden) => void;
   conAcciones: boolean;
+  encabezadoAcciones?: string;
 }
 
 export default function DataTableCabecera<T>({
@@ -45,6 +47,7 @@ export default function DataTableCabecera<T>({
   orden,
   onOrdenar,
   conAcciones,
+  encabezadoAcciones,
 }: Props<T>) {
   return (
     <thead className={CABECERA}>
@@ -70,8 +73,8 @@ export default function DataTableCabecera<T>({
           );
         })}
         {conAcciones && (
-          <th scope="col" className={TH}>
-            <span className="sr-only">Acciones</span>
+          <th scope="col" className={encabezadoAcciones ? TH_ACCIONES : TH}>
+            {encabezadoAcciones ?? <span className="sr-only">Acciones</span>}
           </th>
         )}
       </tr>

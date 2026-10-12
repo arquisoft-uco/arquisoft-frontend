@@ -14,6 +14,7 @@ export default function RepresentanteDetalleView() {
   const base = `/fichas-perfil/${id}`;
   const pestanas = [
     { id: 'items', etiqueta: 'Ítems', to: `${base}/items` },
+    { id: 'estados', etiqueta: 'Estados', to: `${base}/estados` },
     { id: 'evaluaciones', etiqueta: 'Evaluaciones', to: `${base}/evaluaciones` },
   ];
   const sinEvaluacion = isSuccess && evaluaciones.length === 0;

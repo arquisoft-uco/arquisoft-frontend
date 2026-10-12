@@ -1,24 +1,32 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
+import type { AgregarObservacionItemRequest } from '../models/AgregarObservacionItemRequest';
+import type { ObservacionItem } from '../models/ObservacionItem';
+import type { ObservacionItemCreadaResponse } from '../models/ObservacionItemCreadaResponse';
 import type { AgregarObservacionEvaluacionRequest } from '../models/AgregarObservacionEvaluacionRequest';
 import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteRequest';
+import type { ObservacionEvaluacion } from '../models/ObservacionEvaluacion';
 import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
+import type { EvaluacionFichaPerfilEstudiante } from '../models/EvaluacionFichaPerfilEstudiante';
 import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
 import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
-import type {
-  EstadoFichaPerfil,
-  AgregarEstadoFichaPerfilRequest,
-} from '../models/EstadoFichaPerfil';
+import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
+import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
+import type { AgregarEstadoAprobacionFichaPerfilRequest } from '../models/AgregarEstadoAprobacionFichaPerfilRequest';
+import type { AgregarEstadoAprobacionFichaPerfilResponse } from '../models/AgregarEstadoAprobacionFichaPerfilResponse';
+import type { RevisionItem } from '../models/RevisionItem';
+import type { RevisionItemCreadaResponse } from '../models/RevisionItemCreadaResponse';
 import type { RegistrarFichaPerfilRequest } from '../models/RegistrarFichaPerfilRequest';
 import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
+import type { ModificarObservacionEvaluacionRequest } from '../models/ModificarObservacionEvaluacionRequest';
 import type {
   Item,
   TipoItem,
@@ -84,6 +92,46 @@ interface EvaluacionFichaPerfilResponseDTO {
   estadoEvaluacionNombre: string | null;
 }
 
+// Forma cruda de EvaluacionFichaPerfilEstudianteResponseDTO (GET .../evaluaciones/estudiante):
+// difiere del hermano /representante, se traduce con aEvaluacionEstudiante.
+interface EvaluacionFichaPerfilEstudianteResponseDTO {
+  id: string;
+  fichaPerfil: string;
+  fechaCreacion: string;
+  estadoEvaluacion: string | null;
+  estadoEvaluacionNombre: string | null;
+  representanteComite: { id: string; nombre: string };
+}
+
+function aEvaluacionEstudiante(
+  dto: EvaluacionFichaPerfilEstudianteResponseDTO,
+): EvaluacionFichaPerfilEstudiante {
+  return {
+    id: dto.id,
+    fichaPerfilId: dto.fichaPerfil,
+    fechaCreacion: dto.fechaCreacion,
+    estadoEvaluacionId: dto.estadoEvaluacion,
+    estadoEvaluacionNombre: dto.estadoEvaluacionNombre,
+    representante: { id: dto.representanteComite.id, nombre: dto.representanteComite.nombre },
+  };
+}
+
+// Forma cruda de ObservacionEvaluacionResponseDTO (GET .../observaciones/estudiante,
+// .../observaciones/representante y .../observaciones-evaluacion/coordinador).
+interface ObservacionEvaluacionResponseDTO {
+  id: string;
+  evaluacionFichaPerfil: string;
+  observacion: string;
+}
+
+function aObservacionEvaluacion(dto: ObservacionEvaluacionResponseDTO): ObservacionEvaluacion {
+  return {
+    id: dto.id,
+    evaluacionFichaPerfilId: dto.evaluacionFichaPerfil,
+    observacion: dto.observacion,
+  };
+}
+
 // Forma cruda de FichaPerfilEstudianteResponseDTO (GET /fichas-perfil/estudiante, lista);
 // se traduce a MiFichaPerfilResponse con aFicha.
 interface FichaPerfilEstudianteResponseDTO {
@@ -138,6 +186,48 @@ function aEstadoFichaPerfilAsesor(
     estadoId: dto.estadoId,
     estadoNombre: dto.estadoNombre,
     fechaActualizacion: dto.fechaActualizacion,
+  };
+}
+
+// Forma cruda de RevisionItemResponseDTO (POST /fichas-perfil/revisiones-item/estudiante y /asesor);
+// item, estadoRevision y estadoRevisionNombre se traducen a itemId, estadoId y estadoNombre.
+interface RevisionItemResponseDTO {
+  id: string;
+  item: string;
+  estadoRevision: string;
+  estadoRevisionNombre: string;
+  fechaCreacion: string;
+}
+
+function aRevisionItem(dto: RevisionItemResponseDTO): RevisionItem {
+  return {
+    id: dto.id,
+    itemId: dto.item,
+    estadoId: dto.estadoRevision,
+    estadoNombre: dto.estadoRevisionNombre,
+    fechaCreacion: dto.fechaCreacion,
+  };
+}
+
+// Forma cruda de ObservacionItemResponseDTO (POST /fichas-perfil/observaciones-item/asesor y
+// /fichas-perfil/observaciones-item/estudiante);
+// revisionItem, estadoObservacionRevision y estadoObservacionRevisionNombre se traducen a
+// revisionItemId, estadoId y estadoNombre.
+interface ObservacionItemResponseDTO {
+  id: string;
+  revisionItem: string;
+  observacion: string;
+  estadoObservacionRevision: string;
+  estadoObservacionRevisionNombre: string;
+}
+
+function aObservacionItem(dto: ObservacionItemResponseDTO): ObservacionItem {
+  return {
+    id: dto.id,
+    revisionItemId: dto.revisionItem,
+    observacion: dto.observacion,
+    estadoId: dto.estadoObservacionRevision,
+    estadoNombre: dto.estadoObservacionRevisionNombre,
   };
 }
 
@@ -238,6 +328,18 @@ export const fichasPerfilService = {
       )
       .then((r) => r.data),
 
+  modificarObservacionEvaluacion: (req: ModificarObservacionEvaluacionRequest): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-evaluacion/${req.observacionEvaluacionId}`, {
+        observacion: req.observacion,
+      })
+      .then(() => undefined),
+
+  removerObservacionEvaluacion: (observacionEvaluacionId: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/observaciones-evaluacion/${observacionEvaluacionId}`)
+      .then(() => undefined),
+
   getEstadosFicha: (): Promise<EstadoFicha[]> =>
     apiClient.get<EstadoFicha[]>('/fichas-perfil/estados-ficha').then((r) => r.data),
 
@@ -287,10 +389,60 @@ export const fichasPerfilService = {
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/representante`)
       .then((r) => r.data.map(toItem)),
 
+  getItemsFichaCoordinador: (fichaPerfilId: string): Promise<Item[]> =>
+    apiClient
+      .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/coordinador`)
+      .then((r) => r.data.map(toItem)),
+
   consultarItemsMiFichaPerfil: (fichaPerfilId: string): Promise<Item[]> =>
     apiClient
       .get<ItemFichaPerfilResponseDTO[]>(`/fichas-perfil/${fichaPerfilId}/items/estudiante`)
       .then((r) => r.data.map(toItem)),
+
+  consultarEvaluacionesMiFichaPerfil: (
+    fichaPerfilId: string,
+  ): Promise<EvaluacionFichaPerfilEstudiante[]> =>
+    apiClient
+      .get<
+        EvaluacionFichaPerfilEstudianteResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/estudiante`)
+      .then((r) => r.data.map(aEvaluacionEstudiante)),
+
+  consultarEvaluacionesFichaCoordinador: (
+    fichaPerfilId: string,
+  ): Promise<EvaluacionFichaPerfilEstudiante[]> =>
+    apiClient
+      .get<
+        EvaluacionFichaPerfilEstudianteResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/evaluaciones/coordinador`)
+      .then((r) => r.data.map(aEvaluacionEstudiante)),
+
+  consultarObservacionesEvaluacionMiFicha: (
+    evaluacionId: string,
+  ): Promise<ObservacionEvaluacion[]> =>
+    apiClient
+      .get<
+        ObservacionEvaluacionResponseDTO[]
+      >(`/fichas-perfil/evaluaciones/${evaluacionId}/observaciones/estudiante`)
+      .then((r) => r.data.map(aObservacionEvaluacion)),
+
+  consultarObservacionesEvaluacionRepresentante: (
+    evaluacionId: string,
+  ): Promise<ObservacionEvaluacion[]> =>
+    apiClient
+      .get<
+        ObservacionEvaluacionResponseDTO[]
+      >(`/fichas-perfil/evaluaciones/${evaluacionId}/observaciones/representante`)
+      .then((r) => r.data.map(aObservacionEvaluacion)),
+
+  consultarObservacionesEvaluacionesFichaCoordinador: (
+    fichaPerfilId: string,
+  ): Promise<ObservacionEvaluacion[]> =>
+    apiClient
+      .get<
+        ObservacionEvaluacionResponseDTO[]
+      >(`/fichas-perfil/${fichaPerfilId}/observaciones-evaluacion/coordinador`)
+      .then((r) => r.data.map(aObservacionEvaluacion)),
 
   getEvaluacionFicha: (fichaPerfilId: string): Promise<EvaluacionFichaPerfil[]> =>
     apiClient
@@ -317,10 +469,78 @@ export const fichasPerfilService = {
       .get<HistorialEstadoFichaPerfil[]>(`/fichas-perfil/${fichaPerfilId}/estados-ficha/estudiante`)
       .then((r) => r.data),
 
+  getEstadosFichaPerfilRepresentante: (
+    fichaPerfilId: string,
+  ): Promise<HistorialEstadoFichaPerfil[]> =>
+    apiClient
+      .get<
+        HistorialEstadoFichaPerfil[]
+      >(`/fichas-perfil/${fichaPerfilId}/estados-ficha/representante`)
+      .then((r) => r.data),
+
+  getEstadosFichaPerfilCoordinador: (
+    fichaPerfilId: string,
+  ): Promise<HistorialEstadoFichaPerfil[]> =>
+    apiClient
+      .get<
+        HistorialEstadoFichaPerfil[]
+      >(`/fichas-perfil/${fichaPerfilId}/estados-ficha/coordinador`)
+      .then((r) => r.data),
+
   getEstadosFichasAsesor: (req: ConsultaCriteriaRequest): Promise<Page<EstadoFichaPerfilAsesor>> =>
     apiClient
       .post<Page<EstadoFichaPerfilAsesorResponseDTO>>('/fichas-perfil/estados-ficha/asesor', req)
       .then(({ data }) => ({ ...data, content: data.content.map(aEstadoFichaPerfilAsesor) })),
+
+  consultarRevisionesItemEstudiante: (req: ConsultaCriteriaRequest): Promise<Page<RevisionItem>> =>
+    apiClient
+      .post<Page<RevisionItemResponseDTO>>('/fichas-perfil/revisiones-item/estudiante', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aRevisionItem) })),
+
+  consultarRevisionesItemAsesor: (req: ConsultaCriteriaRequest): Promise<Page<RevisionItem>> =>
+    apiClient
+      .post<Page<RevisionItemResponseDTO>>('/fichas-perfil/revisiones-item/asesor', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aRevisionItem) })),
+
+  agregarRevisionItem: (itemId: string): Promise<RevisionItemCreadaResponse> =>
+    apiClient
+      .post<RevisionItemCreadaResponse>(`/fichas-perfil/items/${itemId}/revisiones`)
+      .then((r) => r.data),
+
+  marcarRevisionItemVisualizada: (revisionItemId: string): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/revisiones/${revisionItemId}/visualizada`)
+      .then(() => undefined),
+
+  removerRevisionItem: (revisionItemId: string): Promise<void> =>
+    apiClient.delete(`/fichas-perfil/revisiones/${revisionItemId}`).then(() => undefined),
+
+  agregarObservacionItem: ({
+    revisionItemId,
+    observacion,
+  }: AgregarObservacionItemRequest): Promise<ObservacionItemCreadaResponse> =>
+    apiClient
+      .post<ObservacionItemCreadaResponse>(
+        `/fichas-perfil/revisiones/${revisionItemId}/observaciones`,
+        {
+          observacion,
+        },
+      )
+      .then((r) => r.data),
+
+  consultarObservacionesItemAsesor: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItem>> =>
+    apiClient
+      .post<Page<ObservacionItemResponseDTO>>('/fichas-perfil/observaciones-item/asesor', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aObservacionItem) })),
+
+  consultarObservacionesItemEstudiante: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItem>> =>
+    apiClient
+      .post<Page<ObservacionItemResponseDTO>>('/fichas-perfil/observaciones-item/estudiante', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aObservacionItem) })),
 
   getFichasRepresentante: (
     page: number,
@@ -348,9 +568,24 @@ export const fichasPerfilService = {
       }));
   },
 
-  // ─── Pendientes: el backend aún no expone estos endpoints ───
+  agregarEstadoFichaPerfil: (
+    fichaPerfilId: string,
+    req: AgregarEstadoFichaPerfilRequest,
+  ): Promise<AgregarEstadoFichaPerfilResponse> =>
+    apiClient
+      .post<AgregarEstadoFichaPerfilResponse>(`/fichas-perfil/${fichaPerfilId}/estados-ficha`, {
+        estadoFicha: req.estadoFichaId,
+      })
+      .then((r) => r.data),
 
-  // Pendiente: sin endpoint en el backend.
-  agregarEstadoFichaPerfil: (req: AgregarEstadoFichaPerfilRequest): Promise<EstadoFichaPerfil> =>
-    apiClient.post<EstadoFichaPerfil>('/fichas-perfil/estados', req).then((r) => r.data),
+  agregarEstadoAprobacionFichaPerfil: (
+    fichaPerfilId: string,
+    req: AgregarEstadoAprobacionFichaPerfilRequest,
+  ): Promise<AgregarEstadoAprobacionFichaPerfilResponse> =>
+    apiClient
+      .post<AgregarEstadoAprobacionFichaPerfilResponse>(
+        `/fichas-perfil/${fichaPerfilId}/estados-ficha/aprobacion`,
+        { acepta: req.acepta },
+      )
+      .then((r) => r.data),
 };

@@ -26,7 +26,7 @@ describe('BasicaView', () => {
     render(<BasicaView />);
 
     const enlaces = screen.getAllByRole('link').map((a) => a.getAttribute('href'));
-    expect(enlaces).toEqual(['/fichas-perfil', '/solicitudes']);
+    expect(enlaces).toEqual(['/fichas-perfil', '/proyectos-grado', '/solicitudes']);
     expect(screen.queryByRole('link', { name: /Inicio/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Artefactos/ })).not.toBeInTheDocument();
   });

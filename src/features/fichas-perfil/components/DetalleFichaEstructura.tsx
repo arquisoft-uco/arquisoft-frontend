@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router';
+import type { OrigenNavegacion } from '../../../shared/models/OrigenNavegacion';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import type { ResumenFicha } from '../models/ResumenFicha';
@@ -7,6 +8,7 @@ import { DISPOSICION } from './disposicion';
 import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
 import ResumenFichaPanel from './ResumenFichaPanel';
 
+const ETIQUETA_LISTADO = 'Fichas de perfil';
 const RUTA_LISTADO = '/fichas-perfil';
 const TITULO_GENERICO = 'Ficha de perfil';
 
@@ -19,11 +21,20 @@ export interface PestanaDetalle {
 interface Props {
   resumen: ResumenFicha | null;
   search: string;
+  origen?: OrigenNavegacion;
   pestanas: PestanaDetalle[];
   accion?: ReactNode;
+  decision?: ReactNode;
 }
 
-export default function DetalleFichaEstructura({ resumen, search, pestanas, accion }: Props) {
+export default function DetalleFichaEstructura({
+  resumen,
+  search,
+  origen,
+  pestanas,
+  accion,
+  decision,
+}: Props) {
   const { pathname } = useLocation();
   const titulo = resumen?.titulo ?? TITULO_GENERICO;
   const activa = pestanas.find((p) => pathname.startsWith(p.to)) ?? pestanas[0];
@@ -43,7 +54,13 @@ export default function DetalleFichaEstructura({ resumen, search, pestanas, acci
         titulo={titulo}
         insignia={insignia}
         meta={meta}
-        migas={[{ etiqueta: 'Fichas de perfil', to: RUTA_LISTADO + search }, { etiqueta: titulo }]}
+        migas={[
+          {
+            etiqueta: origen?.etiqueta ?? ETIQUETA_LISTADO,
+            to: (origen?.to ?? RUTA_LISTADO) + search,
+          },
+          { etiqueta: titulo },
+        ]}
       />
       <div className={DISPOSICION.contenedor}>
         <div className={DISPOSICION.principal}>
@@ -52,6 +69,7 @@ export default function DetalleFichaEstructura({ resumen, search, pestanas, acci
         </div>
         <div className={DISPOSICION.lateral}>
           <ResumenFichaPanel resumen={resumen} accion={accion} />
+          {decision}
         </div>
       </div>
     </div>

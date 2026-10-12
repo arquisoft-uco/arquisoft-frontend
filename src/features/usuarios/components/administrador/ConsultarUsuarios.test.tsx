@@ -366,7 +366,7 @@ describe('ConsultarUsuarios', () => {
       expect(setTexto).toHaveBeenCalledWith('ana');
     });
 
-    it('los chips son "Todos" y los seis roles, reflejan la selección y llaman a toggleRol y limpiarRoles', async () => {
+    it('los chips son "Todos" y los siete roles, reflejan la selección y llaman a toggleRol y limpiarRoles', async () => {
       // Arrange
       const user = userEvent.setup();
       const toggleRol = vi.fn();
@@ -391,6 +391,7 @@ describe('ConsultarUsuarios', () => {
         'Coordinadores',
         'Comité',
         'Administradores',
+        'Bibliotecarios',
       ]);
       expect(roles.getByRole('button', { name: 'Estudiantes' })).toHaveAttribute(
         'aria-pressed',
@@ -400,11 +401,13 @@ describe('ConsultarUsuarios', () => {
 
       // Act
       await user.click(roles.getByRole('button', { name: 'Asesores de ficha' }));
+      await user.click(roles.getByRole('button', { name: 'Bibliotecarios' }));
       await user.click(roles.getByRole('button', { name: 'Todos' }));
 
       // Assert
-      expect(toggleRol).toHaveBeenCalledTimes(1);
+      expect(toggleRol).toHaveBeenCalledTimes(2);
       expect(toggleRol).toHaveBeenCalledWith(Rol.AsesorFicha);
+      expect(toggleRol).toHaveBeenCalledWith(Rol.Bibliotecario);
       expect(limpiarRoles).toHaveBeenCalledTimes(1);
     });
 

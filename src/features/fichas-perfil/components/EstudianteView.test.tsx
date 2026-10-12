@@ -5,12 +5,28 @@ import EstudianteView from './EstudianteView';
 import { useMiFichaPerfil } from '../hooks/useMiFichaPerfil';
 import { useItemsMiFicha } from '../hooks/useItemsMiFicha';
 import { useEstadosFichaPerfilEstudiante } from '../hooks/useEstadosFichaPerfilEstudiante';
+import { useEvaluacionesMiFicha } from '../hooks/useEvaluacionesMiFicha';
+import { useRevisionesMiFicha } from '../hooks/useRevisionesMiFicha';
+import { useObservacionesMiFicha } from '../hooks/useObservacionesMiFicha';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 
 vi.mock('../hooks/useMiFichaPerfil', () => ({ useMiFichaPerfil: vi.fn() }));
 vi.mock('../hooks/useItemsMiFicha', () => ({ useItemsMiFicha: vi.fn() }));
 vi.mock('../hooks/useEstadosFichaPerfilEstudiante', () => ({
   useEstadosFichaPerfilEstudiante: vi.fn(),
+}));
+vi.mock('../hooks/useEvaluacionesMiFicha', () => ({ useEvaluacionesMiFicha: vi.fn() }));
+vi.mock('../hooks/useMarcarRevisionItemVisualizada', () => ({
+  useMarcarRevisionItemVisualizada: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    variables: undefined,
+  }),
+}));
+vi.mock('../hooks/useRevisionesMiFicha', () => ({ useRevisionesMiFicha: vi.fn() }));
+vi.mock('../hooks/useObservacionesMiFicha', () => ({ useObservacionesMiFicha: vi.fn() }));
+vi.mock('../hooks/useObservacionesEvaluacionMiFicha', () => ({
+  useObservacionesEvaluacionMiFicha: vi.fn(),
 }));
 vi.mock('./TiposItemPanel', () => ({ default: () => <div>Catálogo de tipos</div> }));
 
@@ -83,6 +99,45 @@ describe('EstudianteView', () => {
       refetch: vi.fn(),
       fichaPerfilIdDisponible: true,
     });
+    vi.mocked(useRevisionesMiFicha).mockReturnValue({
+      filas: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      pageSize: 10,
+      goToPage: vi.fn(),
+      direccion: undefined,
+      ordenar: vi.fn(),
+      sinItems: false,
+      isLoading: false,
+      isError: false,
+      error: null,
+      reintentar: vi.fn(),
+    });
+    vi.mocked(useObservacionesMiFicha).mockReturnValue({
+      filas: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      pageSize: 10,
+      goToPage: vi.fn(),
+      direccion: undefined,
+      ordenar: vi.fn(),
+      sinObservables: true,
+      isLoading: false,
+      isError: false,
+      error: null,
+      reintentar: vi.fn(),
+    });
+    vi.mocked(useEvaluacionesMiFicha).mockReturnValue({
+      evaluaciones: [],
+      isLoading: false,
+      cargado: true,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+      fichaPerfilIdDisponible: true,
+    });
   });
 
   it('con la consulta pausada (sin datos ni error) muestra la carga y nunca «Aún no tienes una ficha»', () => {
@@ -147,7 +202,7 @@ describe('EstudianteView', () => {
     );
   });
 
-  it('solo hay dos pestañas, con contador de ítems una vez cargados, y se cambia con el teclado', async () => {
+  it('hay cinco pestañas, con contador de ítems una vez cargados, y se cambia con el teclado', async () => {
     // Arrange
     const user = userEvent.setup();
     conFicha();
@@ -155,14 +210,24 @@ describe('EstudianteView', () => {
 
     // Assert
     const pestanas = screen.getAllByRole('tab');
-    expect(pestanas.map((p) => p.textContent)).toEqual(['Ítems1', 'Historial de estados']);
-    expect(
-      screen.queryByRole('tab', { name: /Revisiones|Evaluaciones|Tipos de ítem/ }),
-    ).not.toBeInTheDocument();
+    expect(pestanas.map((p) => p.textContent)).toEqual([
+      'Ítems1',
+      'Revisiones',
+      'Observaciones',
+      'Historial de estados',
+      'Evaluaciones',
+    ]);
+    expect(screen.queryByRole('tab', { name: /Tipos de ítem/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Cambiar estado/)).not.toBeInTheDocument();
 
     // Act
     pestanas[0].focus();
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('tab', { name: 'Revisiones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await user.keyboard('{ArrowRight}');
     await user.keyboard('{ArrowRight}');
 
     // Assert
@@ -171,6 +236,57 @@ describe('EstudianteView', () => {
       'true',
     );
     expect(screen.getByText('Tu ficha aún no tiene estados registrados')).toBeInTheDocument();
+  });
+
+  it('la pestaña «Revisiones» monta el panel de revisiones de la ficha', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFicha();
+    render(<EstudianteView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Revisiones' }));
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Revisiones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('Tu ficha aún no tiene revisiones')).toBeInTheDocument();
+  });
+
+  it('la pestaña «Observaciones» monta el panel de observaciones de la ficha', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFicha();
+    render(<EstudianteView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Observaciones' }));
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Observaciones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('Tu ficha aún no tiene observaciones')).toBeInTheDocument();
+  });
+
+  it('la pestaña «Evaluaciones» monta el panel de evaluaciones de la ficha', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFicha();
+    render(<EstudianteView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Evaluaciones' }));
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Evaluaciones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('Tu ficha aún no tiene evaluaciones')).toBeInTheDocument();
   });
 
   it('el contador de ítems no aparece mientras la lista no ha cargado', () => {
@@ -184,7 +300,10 @@ describe('EstudianteView', () => {
     // Assert
     expect(screen.getAllByRole('tab').map((p) => p.textContent)).toEqual([
       'Ítems',
+      'Revisiones',
+      'Observaciones',
       'Historial de estados',
+      'Evaluaciones',
     ]);
   });
 

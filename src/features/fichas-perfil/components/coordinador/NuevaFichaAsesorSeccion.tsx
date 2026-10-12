@@ -5,7 +5,7 @@ import FormSection from '../../../../shared/components/ui/FormSection';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import type { Asesor } from '../../../../shared/models/Asesor';
 import type { NuevaFichaValues } from '../../hooks/useNuevaFichaForm';
-import Combobox from '../Combobox';
+import Combobox from '../../../../shared/components/ui/Combobox';
 
 interface Props {
   control: Control<NuevaFichaValues>;

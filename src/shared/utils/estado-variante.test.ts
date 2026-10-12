@@ -2,6 +2,11 @@ import { describe, it, expect } from 'vitest';
 import {
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
+  varianteEstadoObservacion,
+  varianteEstadoAsesorProyecto,
+  varianteEstadoProyecto,
+  varianteEstadoRespuesta,
+  varianteEstadoRevision,
   varianteEstadoUsuario,
 } from './estado-variante';
 
@@ -60,5 +65,57 @@ describe('varianteEstadoUsuario', () => {
     expect(varianteEstadoUsuario('ESTADO_INEXISTENTE', true)).toBe('neutro');
     expect(varianteEstadoUsuario('ACTIVO', false)).toBe('peligro');
     expect(varianteEstadoUsuario('INACTIVO', false)).toBe('peligro');
+  });
+});
+
+describe('varianteEstadoRespuesta', () => {
+  it('mapea cada estado de respuesta a su variante y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoRespuesta('APROBADA')).toBe('exito');
+    expect(varianteEstadoRespuesta('NO_APROBADA')).toBe('peligro');
+    expect(varianteEstadoRespuesta('EN_REVISION')).toBe('info');
+    expect(varianteEstadoRespuesta('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoRevision', () => {
+  it('mapea cada estado de revisión a su variante y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoRevision('NUEVA')).toBe('info');
+    expect(varianteEstadoRevision('VISUALIZADA')).toBe('neutro');
+    expect(varianteEstadoRevision('EN_PROGRESO')).toBe('advertencia');
+    expect(varianteEstadoRevision('CORRECCION_DISPONIBLE')).toBe('advertencia');
+    expect(varianteEstadoRevision('CERRADA')).toBe('exito');
+    expect(varianteEstadoRevision('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoObservacion', () => {
+  it('mapea cada estado de observación a su variante y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoObservacion('PENDIENTE')).toBe('advertencia');
+    expect(varianteEstadoObservacion('EN_PROGRESO')).toBe('info');
+    expect(varianteEstadoObservacion('CERRADO')).toBe('exito');
+    expect(varianteEstadoObservacion('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoProyecto', () => {
+  it('mapea cada estado de proyecto de grado a su variante y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoProyecto('EN_PROCESO')).toBe('info');
+    expect(varianteEstadoProyecto('LISTO_PARA_REVISION')).toBe('advertencia');
+    expect(varianteEstadoProyecto('ATRASADO')).toBe('peligro');
+    expect(varianteEstadoProyecto('FINALIZADO')).toBe('exito');
+    expect(varianteEstadoProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoAsesorProyecto', () => {
+  it('mapea ASIGNADO a éxito, FINALIZADO a neutro y un id desconocido cae en neutro', () => {
+    // Act / Assert
+    expect(varianteEstadoAsesorProyecto('ASIGNADO')).toBe('exito');
+    expect(varianteEstadoAsesorProyecto('FINALIZADO')).toBe('neutro');
+    expect(varianteEstadoAsesorProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
   });
 });

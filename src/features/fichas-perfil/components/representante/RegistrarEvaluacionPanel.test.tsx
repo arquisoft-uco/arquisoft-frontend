@@ -21,6 +21,11 @@ vi.mock('./EstadosEvaluacionPanel', () => ({ default: () => <div>Catálogo de es
 vi.mock('./AgregarObservacionEvaluacionPanel', () => ({
   default: () => <div>Agregar observación</div>,
 }));
+vi.mock('./ObservacionesEvaluacionRepresentantePanel', () => ({
+  default: ({ evaluacion }: { evaluacion: { id: string } }) => (
+    <div>Observaciones de {evaluacion.id}</div>
+  ),
+}));
 
 const consulta = vi.mocked(useEvaluacionFicha);
 const registro = vi.mocked(useRegistrarEvaluacion);
@@ -125,13 +130,14 @@ describe('RegistrarEvaluacionPanel', () => {
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getByText(/2026/)).toHaveAttribute('datetime', '2026-10-02');
+    expect(screen.getAllByText(/2026/)[0]).toHaveAttribute('datetime', '2026-10-02');
     expect(screen.queryByText(/ID:/)).not.toBeInTheDocument();
     expect(screen.queryByText('ev-2')).not.toBeInTheDocument();
     expect(screen.getByText('Sin estado')).toBeInTheDocument();
     expect(screen.getByText('Agregar estado a ev-2')).toBeInTheDocument();
-    expect(screen.queryByText('ev-1')).not.toBeInTheDocument();
-    expect(screen.queryByText('Aprobada')).not.toBeInTheDocument();
+    expect(screen.queryByText('Agregar estado a ev-1')).not.toBeInTheDocument();
+    expect(screen.getByText('Evaluaciones anteriores')).toBeInTheDocument();
+    expect(screen.getByText('Aprobada')).toBeInTheDocument();
   });
 
   it('muestra el nombre del estado cuando la última evaluación lo tiene', () => {
@@ -143,6 +149,41 @@ describe('RegistrarEvaluacionPanel', () => {
 
     // Assert
     expect(screen.getByText('Aprobada')).toBeInTheDocument();
+  });
+
+  it('«Ver observaciones» de la vigente abre el panel con esa evaluación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockConsulta({ data: [reciente] });
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Ver observaciones' }));
+
+    // Assert
+    expect(screen.getByText('Observaciones de ev-2')).toBeInTheDocument();
+    expect(screen.queryByText('Evaluaciones anteriores')).not.toBeInTheDocument();
+  });
+
+  it('lista las anteriores más reciente primero y su botón abre el panel de la suya', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const intermedia: EvaluacionFichaPerfil = {
+      ...antigua,
+      id: 'ev-0',
+      fechaCreacion: '2026-09-01',
+    };
+    mockConsulta({ data: [intermedia, antigua, reciente] });
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Act
+    const botones = screen.getAllByRole('button', { name: 'Ver observaciones' });
+    await user.click(botones[2]);
+
+    // Assert
+    expect(screen.getByText('Evaluaciones anteriores')).toBeInTheDocument();
+    expect(botones).toHaveLength(3);
+    expect(screen.getByText('Observaciones de ev-0')).toBeInTheDocument();
   });
 
   it('al confirmar el inicio lanza el toast de éxito y cierra el diálogo', async () => {

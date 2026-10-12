@@ -24,8 +24,6 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof FichasPerfilTab
     hayFiltros: false,
     orden: { clave: 'tituloProyecto', direccion: 'ASC' as const },
     onOrdenar: vi.fn(),
-    onVerEstudiantes: vi.fn(),
-    onCambiarAsesor: vi.fn(),
     onLimpiarFiltros: vi.fn(),
     ...parcial,
   };
@@ -91,24 +89,23 @@ describe('FichasPerfilTable', () => {
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
 
-  it('"Ver estudiantes" y "Cambiar asesor" del menú actúan sobre la ficha de esa fila', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const { onVerEstudiantes, onCambiarAsesor } = renderizar();
-
+  it('el título de la ficha es un enlace al detalle en Evaluaciones', () => {
     // Act
-    await user.click(
-      tabla().getByRole('button', { name: 'Acciones de la ficha Plataforma de riego' }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Ver estudiantes' }));
-    await user.click(
-      tabla().getByRole('button', { name: 'Acciones de la ficha Sistema de monitoreo' }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Cambiar asesor' }));
+    renderizar();
 
     // Assert
-    expect(onVerEstudiantes).toHaveBeenCalledWith(FICHA_2);
-    expect(onCambiarAsesor).toHaveBeenCalledWith(FICHA_1);
+    expect(
+      tabla().getByRole('link', { name: 'Abrir la ficha Sistema de monitoreo' }),
+    ).toHaveAttribute('href', '/fichas-perfil/f-1/evaluaciones');
+  });
+
+  it('ninguna fila ofrece un menú de acciones', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Acciones de la ficha/ })).not.toBeInTheDocument();
+    expect(tabla().queryByRole('columnheader', { name: 'Acciones' })).not.toBeInTheDocument();
   });
 
   it('ordenar desde la cabecera Ficha invierte la dirección y desde Asesor ordena por asesor', async () => {

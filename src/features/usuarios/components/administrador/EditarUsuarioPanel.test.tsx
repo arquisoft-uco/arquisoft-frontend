@@ -14,6 +14,7 @@ import type { Usuario } from '../../models/Usuario';
 vi.mock('../../services/usuariosService', () => ({
   usuariosService: {
     modificarUsuario: vi.fn(),
+    consultarIdentidadUsuario: vi.fn(),
     getEstadosUsuario: vi.fn(),
     agregarRol: vi.fn(),
     cambiarEstadoUsuario: vi.fn(),
@@ -51,6 +52,8 @@ const USUARIO_DADO_DE_BAJA: Usuario = {
   vigente: false,
   esEstudiante: false,
 };
+
+const IDENTIDAD = { nombres: 'Marta', apellidos: 'Ríos' };
 
 const ESTADOS = [
   { id: 'ACTIVO', nombre: 'Activo', descripcion: 'Puede operar' },
@@ -91,7 +94,7 @@ interface OpcionesDeRender {
   onCerrar?: () => void;
 }
 
-function renderizar({
+async function renderizar({
   usuario = USUARIO,
   pestanaInicial = 'datos',
   onCerrar = vi.fn(),
@@ -99,6 +102,7 @@ function renderizar({
   render(
     <EditarUsuarioPanel usuario={usuario} pestanaInicial={pestanaInicial} onCerrar={onCerrar} />,
   );
+  await screen.findByLabelText('Nombres');
   return onCerrar;
 }
 
@@ -118,6 +122,7 @@ describe('EditarUsuarioPanel', () => {
   beforeEach(() => {
     vi.mocked(usuariosService.modificarUsuario).mockReset();
     vi.mocked(usuariosService.agregarRol).mockReset();
+    vi.mocked(usuariosService.consultarIdentidadUsuario).mockReset().mockResolvedValue(IDENTIDAD);
     vi.mocked(usuariosService.getEstadosUsuario).mockReset().mockResolvedValue(ESTADOS);
     vi.mocked(toast.success).mockClear();
     vi.mocked(toast.error).mockClear();
@@ -126,7 +131,7 @@ describe('EditarUsuarioPanel', () => {
   it('muestra la cabecera con nombre, correo y estado, y las tres pestañas: abre en la inicial y las flechas cambian de pestaña', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar({ usuario: USUARIO_DADO_DE_BAJA, pestanaInicial: 'roles' });
+    await renderizar({ usuario: USUARIO_DADO_DE_BAJA, pestanaInicial: 'roles' });
 
     // Assert
     const panel = screen.getByRole('dialog', { name: USUARIO_DADO_DE_BAJA.nombre });
@@ -163,11 +168,12 @@ describe('EditarUsuarioPanel', () => {
   it('precarga los datos y habilita "Guardar cambios" solo mientras hay cambios', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar();
+    await renderizar();
 
     // Assert
     expect(campo('Identificador')).toHaveValue(USUARIO.identificador);
-    expect(campo('Nombre completo')).toHaveValue(USUARIO.nombre);
+    expect(campo('Nombres')).toHaveValue(IDENTIDAD.nombres);
+    expect(campo('Apellidos')).toHaveValue(IDENTIDAD.apellidos);
     expect(campo('Correo electrónico')).toHaveValue(USUARIO.email);
     expect(campo('Contacto')).toHaveValue(USUARIO.contacto);
     expect(botonGuardar()).toBeDisabled();
@@ -188,18 +194,20 @@ describe('EditarUsuarioPanel', () => {
   it('valida al salir de cada campo, no apaga "Guardar cambios" por inválido y, al enviar, muestra el resumen sin guardar', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar();
+    await renderizar();
 
     // Act
     await user.clear(campo('Identificador'));
-    await user.type(campo('Nombre completo'), '1');
+    await user.type(campo('Nombres'), '1');
     await user.clear(campo('Contacto'));
     await user.type(campo('Contacto'), 'abc1234567');
     await user.tab();
 
     // Assert
     expect(await screen.findByText(MENSAJES_VALIDACION.soloDigitos)).toBeInTheDocument();
-    expect(campo('Nombre completo')).toHaveAccessibleDescription(MENSAJES_VALIDACION.formatoNombre);
+    expect(campo('Nombres')).toHaveAccessibleDescription(
+      expect.stringContaining(MENSAJES_VALIDACION.formatoNombre),
+    );
     expect(campo('Identificador')).toHaveAccessibleDescription(MENSAJES_VALIDACION.requerido);
     expect(botonGuardar()).toBeEnabled();
 
@@ -219,20 +227,20 @@ describe('EditarUsuarioPanel', () => {
 
     // Act
     await user.click(
-      screen.getByRole('button', { name: `Nombre completo: ${MENSAJES_VALIDACION.formatoNombre}` }),
+      screen.getByRole('button', { name: `Nombres: ${MENSAJES_VALIDACION.formatoNombre}` }),
     );
 
     // Assert
-    expect(campo('Nombre completo')).toHaveFocus();
+    expect(campo('Nombres')).toHaveFocus();
   });
 
-  it('envía solo identificador, nombre, correo y contacto; mientras guarda muestra "Guardando…" y, en éxito, avisa y cierra', async () => {
+  it('envía identificador, nombres, apellidos, correo y contacto; mientras guarda muestra "Guardando…" y, en éxito, avisa y cierra', async () => {
     // Arrange
     const user = userEvent.setup();
     const guardado = crearDiferido<void>();
     const nuevoContacto = '3109876543';
     vi.mocked(usuariosService.modificarUsuario).mockReturnValue(guardado.promesa);
-    const onCerrar = renderizar();
+    const onCerrar = await renderizar();
     await user.clear(campo('Contacto'));
     await user.type(campo('Contacto'), nuevoContacto);
 
@@ -243,7 +251,8 @@ describe('EditarUsuarioPanel', () => {
     expect(await screen.findByRole('button', { name: 'Guardando…' })).toBeDisabled();
     expect(usuariosService.modificarUsuario).toHaveBeenCalledWith(USUARIO.id, {
       identificador: USUARIO.identificador,
-      nombre: USUARIO.nombre,
+      nombres: IDENTIDAD.nombres,
+      apellidos: IDENTIDAD.apellidos,
       email: USUARIO.email,
       contacto: nuevoContacto,
     });
@@ -256,7 +265,7 @@ describe('EditarUsuarioPanel', () => {
     await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
     expect(toast.success).toHaveBeenCalledWith(
       'Cambios guardados',
-      `Los datos de ${USUARIO.nombre} se guardaron.`,
+      `Los datos de ${IDENTIDAD.nombres} ${IDENTIDAD.apellidos} se guardaron.`,
     );
     expect(toast.error).not.toHaveBeenCalled();
   });
@@ -268,7 +277,7 @@ describe('EditarUsuarioPanel', () => {
     vi.mocked(usuariosService.modificarUsuario).mockRejectedValue(
       crearErrorApi(DUPLICADO_DE_CORREO),
     );
-    const onCerrar = renderizar();
+    const onCerrar = await renderizar();
     await user.clear(campo('Correo electrónico'));
     await user.type(campo('Correo electrónico'), nuevoCorreo);
 
@@ -291,7 +300,7 @@ describe('EditarUsuarioPanel', () => {
   it('cerrar sin cambios no pide confirmación y con cambios pide descartarlos', async () => {
     // Arrange
     const user = userEvent.setup();
-    const onCerrar = renderizar();
+    const onCerrar = await renderizar();
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));
@@ -323,7 +332,7 @@ describe('EditarUsuarioPanel', () => {
     // Arrange
     const user = userEvent.setup();
     vi.mocked(usuariosService.agregarRol).mockResolvedValue(undefined);
-    renderizar();
+    await renderizar();
     await user.type(campo('Contacto'), '0');
 
     // Act
@@ -347,7 +356,7 @@ describe('EditarUsuarioPanel', () => {
   it('con cambios sin guardar en Datos, el botón de las pestañas Roles y Acceso dice "Cancelar" y pide descartarlos', async () => {
     // Arrange
     const user = userEvent.setup();
-    const onCerrar = renderizar();
+    const onCerrar = await renderizar();
     await user.type(campo('Contacto'), '0');
     await user.click(screen.getByRole('tab', { name: 'Roles' }));
 
@@ -368,7 +377,7 @@ describe('EditarUsuarioPanel', () => {
     // Arrange
     const user = userEvent.setup();
     vi.mocked(usuariosService.cambiarEstadoUsuario).mockResolvedValue(undefined);
-    const onCerrar = renderizar();
+    const onCerrar = await renderizar();
     await user.type(campo('Contacto'), '0');
     await user.click(screen.getByRole('tab', { name: 'Acceso' }));
     await user.click(await screen.findByRole('radio', { name: 'Inactivo' }));
@@ -390,7 +399,7 @@ describe('EditarUsuarioPanel', () => {
     // Arrange
     const user = userEvent.setup();
     vi.mocked(usuariosService.cambiarEstadoUsuario).mockResolvedValue(undefined);
-    const onCerrar = renderizar({ pestanaInicial: 'acceso' });
+    const onCerrar = await renderizar({ pestanaInicial: 'acceso' });
     await user.click(await screen.findByRole('radio', { name: 'Inactivo' }));
 
     // Act
@@ -399,5 +408,116 @@ describe('EditarUsuarioPanel', () => {
 
     // Assert
     await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
+  });
+
+  it('mientras llega la identidad muestra el esqueleto sin formulario y, al llegar, precarga nombres y apellidos', async () => {
+    // Arrange
+    const identidad = crearDiferido<typeof IDENTIDAD>();
+    vi.mocked(usuariosService.consultarIdentidadUsuario).mockReturnValue(identidad.promesa);
+    render(<EditarUsuarioPanel usuario={USUARIO} pestanaInicial="datos" onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(
+      within(await screen.findByRole('tabpanel', { name: 'Datos' })).getByRole('status'),
+    ).toHaveTextContent('Cargando datos del usuario');
+    expect(screen.queryByLabelText('Nombres')).not.toBeInTheDocument();
+    expect(usuariosService.consultarIdentidadUsuario).toHaveBeenCalledWith(USUARIO.id);
+
+    // Act
+    identidad.resolver(IDENTIDAD);
+
+    // Assert
+    expect(await screen.findByLabelText('Nombres')).toHaveValue(IDENTIDAD.nombres);
+    expect(campo('Apellidos')).toHaveValue(IDENTIDAD.apellidos);
+    expect(botonGuardar()).toBeDisabled();
+  });
+
+  it('si la identidad falla muestra el error sin campos de nombre, deja operativas Roles y Acceso y "Reintentar" relanza la consulta', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.consultarIdentidadUsuario)
+      .mockRejectedValueOnce(
+        crearErrorApi({
+          error: 'Service Unavailable',
+          errorCode: 'USUARIO_IDP_NO_DISPONIBLE',
+          message: 'El proveedor de identidad no está disponible.',
+          status: 503,
+        }),
+      )
+      .mockResolvedValue(IDENTIDAD);
+    render(<EditarUsuarioPanel usuario={USUARIO} pestanaInicial="datos" onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'El proveedor de identidad no está disponible.',
+    );
+    expect(screen.queryByLabelText('Nombres')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Roles' }));
+
+    // Assert
+    expect(screen.getByRole('switch', { name: 'Estudiante' })).toBeChecked();
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Datos' }));
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(await screen.findByLabelText('Nombres')).toHaveValue(IDENTIDAD.nombres);
+    expect(usuariosService.consultarIdentidadUsuario).toHaveBeenCalledTimes(2);
+  });
+
+  it('con apellidos vacíos desde el proveedor exige completarlos y no guarda', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.consultarIdentidadUsuario).mockResolvedValue({
+      nombres: 'Marta',
+      apellidos: '',
+    });
+    render(<EditarUsuarioPanel usuario={USUARIO} pestanaInicial="datos" onCerrar={vi.fn()} />);
+    await user.type(await screen.findByLabelText('Contacto'), '0');
+
+    // Act
+    await user.click(botonGuardar());
+
+    // Assert
+    expect(campo('Apellidos')).toHaveValue('');
+    expect(
+      await screen.findByRole('button', { name: `Apellidos: ${MENSAJES_VALIDACION.requerido}` }),
+    ).toBeInTheDocument();
+    expect(usuariosService.modificarUsuario).not.toHaveBeenCalled();
+  });
+
+  it('un error del backend sobre "nombre" se pinta en Nombres y en Apellidos', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mensaje = 'El nombre contiene caracteres no permitidos.';
+    vi.mocked(usuariosService.modificarUsuario).mockRejectedValue(
+      new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+        data: {
+          error: 'Unprocessable Entity',
+          errorCode: 'USUARIO_NOMBRE_FORMATO',
+          message: mensaje,
+          status: 422,
+          fieldErrors: [{ field: 'nombre', message: mensaje }],
+        },
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+      }),
+    );
+    const onCerrar = await renderizar();
+    await user.type(campo('Contacto'), '0');
+
+    // Act
+    await user.click(botonGuardar());
+
+    // Assert
+    await waitFor(() => expect(toast.error).toHaveBeenCalled());
+    expect(campo('Nombres')).toHaveAccessibleDescription(expect.stringContaining(mensaje));
+    expect(campo('Apellidos')).toHaveAccessibleDescription(expect.stringContaining(mensaje));
+    expect(onCerrar).not.toHaveBeenCalled();
   });
 });

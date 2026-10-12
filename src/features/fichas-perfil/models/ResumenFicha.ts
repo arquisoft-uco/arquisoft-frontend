@@ -1,9 +1,12 @@
+import type { OrigenNavegacion } from '../../../shared/models/OrigenNavegacion';
+
 export interface ResumenFicha {
   id: string;
   titulo: string;
   estadoId?: string;
   estadoNombre?: string;
   fechaActualizacion?: string;
+  asesorId?: string;
   asesorNombre?: string;
   asesorEmail?: string;
 }
@@ -11,4 +14,5 @@ export interface ResumenFicha {
 export interface NavegacionDetalleFicha {
   resumen: ResumenFicha;
   search: string;
+  origen?: OrigenNavegacion;
 }

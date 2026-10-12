@@ -59,7 +59,7 @@ completa para registrar fichas; (4) los módulos «Próximamente» salen del men
 - **Routing:** esa ruta hija (hoy eliminada) exigió reestructurar `router.tsx` a «padre con `guarded` + `<Outlet />` y rutas
   hijas», que se conserva para el detalle; y el estado de los listados pasó a la URL; ya está descrito en `arquisoft-frontend-arquitectura`
   («Enrutamiento») y en el check 2.7 de `@4a`.
-- **Fuera de alcance:** el campo «UUID del coordinador» de `EnviarSolicitudNovedadForm` depende del backend (F5
+- **Fuera de alcance:** el campo «UUID del coordinador» de `SolicitudNovedadForm` depende del backend (F5
   y B4 de `docs/pendientes.md`); solo se migra su aspecto.
 
 ### Paso 4 — Detalle e inicio (hecho en HT-UX-06, 07 y 08)
@@ -84,7 +84,7 @@ Se agregaron a `src/arquitectura.test.ts` con el mismo mecanismo de `coloresCrud
 
 ## Qué archivo se migra a qué
 
-Estado: todo hecho salvo `EnviarSolicitudNovedadForm`.
+Estado: todo hecho.
 
 | Archivo actual | Pieza o patrón | Paso |
 |---|---|---|
@@ -102,7 +102,7 @@ Estado: todo hecho salvo `EnviarSolicitudNovedadForm`.
 | `fichas-perfil/…/EstadosEvaluacionPanel.tsx` | `Badge` (ya lo usaba); HT-UX-06 le sumó `ErrorState` con reintento y `EmptyState` | 1 |
 | `fichas-perfil/…/MiFichaHeader.tsx`, `EstudianteView.tsx` | Hecho en HT-UX-07: `MiFichaHeader`, `EstadosMiFichaPanel`, `RevisionesMiFichaPanel` y `EvaluacionesMiFichaPanel` se eliminaron; `EstudianteView` compone `PageHeader`, `Tabs` en modo `tablist` y `ResumenFichaPanel` con «Equipo» (de `integrantes`), y los formularios de ítem y título son `SidePanel` | 4 |
 | `fichas-perfil/…/AsesorFichaView.tsx`, `TiposItemPanel.tsx`, `DetalleFichaAsesor.tsx`, `DetalleFichaRepresentante.tsx` | Hecho en HT-UX-06: el detalle del asesor y del representante es la ruta `/fichas-perfil/:id/{items,estados,evaluaciones}` (`DetalleFicha`, `DetalleFichaEstructura`, `AsesorFichaDetalleView`, `RepresentanteDetalleView`); los dos `DetalleFicha*` se eliminaron, `AsesorFichaView` quedó con «Mis fichas» sin pestañas (HT-UX-06-AJ1); el historial de una ficha es la pestaña «Estados» de su detalle (`EstadosFichaAsesorPanel`) y `TiposItemPanel` es una lista que abre `AyudaTiposItem` | 4 |
-| `solicitudes/…/EnviarSolicitudNovedadForm.tsx` | Usa `Field`; `FormSection` queda pendiente (0 usos en el archivo). Su schema pasó a `solicitudes/utils/enviar-solicitud-schema.ts` y ya no está en el baseline de componentes grandes | 3 |
+| `solicitudes/…/SolicitudNovedadForm.tsx` | Hecho: el archivo se renombró; usa `FormSection`, `ErrorSummary`, `Button` y `Field` (con contador), y su lógica vive en `useSolicitudNovedadForm`. Su schema pasó a `solicitudes/utils/enviar-solicitud-schema.ts`. `EstudianteView` usa `Tabs` y `EmptyState` | 3 |
 | `dashboard/Dashboard.tsx` | Hecho en HT-UX-08: fan-out por rol (`EstudianteView`, `RepresentanteView`, `AdministradorView`, `BasicaView`) sobre un `dashboardService` propio; se borraron `hero-gradient`, `hero-pattern` y `quick-card` | 4 |
 | `layout/Sidebar.tsx`, `layout/Header.tsx`, `layout/nav-items.ts` | Hecho en HT-UX-08: `Sidebar` con `SidebarGrupo` («Trabajo» y «Próximamente»), `Header` partido en `SelectorRol` y `MenuCuenta` (con `Avatar`), `NavItem.disponible` y los helpers `estaDisponible`, `navItemsDelRol` y `agruparNavItems` | 4 |
 | `shared/components/ConfirmDialog.tsx`, `Toaster.tsx`, `PageSkeleton.tsx`, `AvisoNoDisponible.tsx`, `ComingSoon.tsx`, `PaginadorListado.tsx` | Se actualizan en su sitio | 0 a 3 |
