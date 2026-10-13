@@ -103,6 +103,9 @@ describe('AsesoresProyectoGradoPanel', () => {
     expect(within(filas[0]).getByText('Actual')).toBeInTheDocument();
     expect(within(filas[3]).queryByText('Actual')).not.toBeInTheDocument();
     expect(tabla.queryByText('Último registro')).not.toBeInTheDocument();
+    const tarjetas = within(screen.getByRole('list', { name: 'Asesores del proyecto de grado' }));
+    expect(tarjetas.getAllByText('Actual')).toHaveLength(1);
+    expect(tarjetas.queryByText('Último registro')).not.toBeInTheDocument();
     expect(screen.queryByText('Sin asesor asignado')).not.toBeInTheDocument();
   });
 
@@ -118,12 +121,18 @@ describe('AsesoresProyectoGradoPanel', () => {
     // Act
     render(<AsesoresProyectoGradoPanel {...PROPS} />);
     const tabla = within(await tablaDeAsesores());
+    const tarjetas = within(screen.getByRole('list', { name: 'Asesores del proyecto de grado' }));
 
     // Assert
     expect(tabla.getAllByText('Último registro')).toHaveLength(1);
     expect(tabla.queryByText('Actual')).not.toBeInTheDocument();
     const filas = tabla.getAllByRole('row').slice(1);
     expect(within(filas[0]).getByText('Último registro')).toBeInTheDocument();
+    expect(tarjetas.getAllByText('Último registro')).toHaveLength(1);
+    expect(tarjetas.queryByText('Actual')).not.toBeInTheDocument();
+    const fichas = tarjetas.getAllByRole('listitem');
+    expect(fichas).toHaveLength(3);
+    expect(within(fichas[0]).getByText('Último registro')).toBeInTheDocument();
     expect(screen.getByText('Sin asesor asignado')).toBeInTheDocument();
     expect(
       screen.getByText(/El último registro es de Ana Pérez \(finalizado\)/),
