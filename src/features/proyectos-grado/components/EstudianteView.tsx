@@ -7,6 +7,7 @@ import { useMisProyectosGrado } from '../hooks/useMisProyectosGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 import type { ResumenProyectoGrado } from '../models/ResumenProyectoGrado';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
+import EnlaceHistorialEstados from './estudiante/EnlaceHistorialEstados';
 import SelectorProyectoGrado from './estudiante/SelectorProyectoGrado';
 import ResumenProyectoGradoPanel from './ResumenProyectoGradoPanel';
 
@@ -65,7 +66,10 @@ export default function EstudianteView() {
         meta="Mi proyecto de grado"
       />
       <div className={CONTENEDOR_RESUMEN}>
-        <ResumenProyectoGradoPanel resumen={aResumen(proyecto)} />
+        <ResumenProyectoGradoPanel
+          resumen={aResumen(proyecto)}
+          accion={<EnlaceHistorialEstados proyecto={proyecto} />}
+        />
       </div>
     </div>
   );

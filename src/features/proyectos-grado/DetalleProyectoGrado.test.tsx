@@ -9,6 +9,10 @@ vi.mock('./components/CoordinadorDetalleView', () => ({
   default: () => <p>Detalle coordinador</p>,
 }));
 
+vi.mock('./components/EstudianteDetalleView', () => ({
+  default: () => <p>Detalle estudiante</p>,
+}));
+
 function renderizar() {
   return render(
     <Routes>
@@ -52,10 +56,22 @@ describe('DetalleProyectoGrado', () => {
     expect(screen.getByText('Detalle coordinador')).toBeInTheDocument();
   });
 
-  it('un rol sin vista va a /forbidden', () => {
+  it('el estudiante ve su detalle y no va a /forbidden', () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Detalle estudiante')).toBeInTheDocument();
+  });
+
+  it('un rol sin vista va a /forbidden', () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
 
     // Act
     renderizar();

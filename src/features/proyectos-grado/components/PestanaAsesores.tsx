@@ -1,16 +1,17 @@
-import { Navigate, useOutletContext, useParams } from 'react-router';
+import { useOutletContext } from 'react-router';
 import type { ContextoDetalleProyectoGrado } from '../models/ContextoDetalleProyectoGrado';
 import AsesoresProyectoGradoPanel from './coordinador/AsesoresProyectoGradoPanel';
 
-export default function PestanaAsesores() {
-  const { id } = useParams();
-  const contexto = useOutletContext<ContextoDetalleProyectoGrado | undefined>();
+interface Props {
+  proyectoGradoId: string;
+}
 
-  if (!id) return <Navigate to="/proyectos-grado" replace />;
+export default function PestanaAsesores({ proyectoGradoId }: Props) {
+  const contexto = useOutletContext<ContextoDetalleProyectoGrado | undefined>();
 
   return (
     <AsesoresProyectoGradoPanel
-      proyectoGradoId={id}
+      proyectoGradoId={proyectoGradoId}
       titulo={contexto?.titulo ?? 'Proyecto de grado'}
       finalizado={contexto?.finalizado ?? false}
     />

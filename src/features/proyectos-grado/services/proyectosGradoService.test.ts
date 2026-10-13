@@ -77,6 +77,36 @@ describe('proyectosGradoService', () => {
     });
   });
 
+  describe('getEstadosProyecto', () => {
+    it('consulta GET /proyectos-grado/{id}/estados y traduce el estado plano a { id, nombre }', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'h-1',
+            estadoProyecto: 'EN_REVISION',
+            estadoProyectoNombre: 'En revisión',
+            fechaActualizacion: '2026-09-02T10:00:00Z',
+          },
+        ],
+      });
+
+      // Act
+      const historial = await proyectosGradoService.getEstadosProyecto('p-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/proyectos-grado/p-1/estados');
+      expect(historial).toEqual([
+        {
+          id: 'h-1',
+          estado: { id: 'EN_REVISION', nombre: 'En revisión' },
+          fechaActualizacion: '2026-09-02T10:00:00Z',
+        },
+      ]);
+    });
+  });
+
   describe('asignarAsesor', () => {
     it('hace POST /proyectos-grado/{id}/asesores traduciendo asesorId a { asesor } y resuelve undefined', async () => {
       // Arrange

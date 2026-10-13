@@ -65,6 +65,19 @@ describe('EstudianteView', () => {
     expect(seleccionarProyecto).toHaveBeenCalledWith('p-2');
   });
 
+  it('el enlace del historial apunta al proyecto elegido', () => {
+    // Arrange
+    mockearHook({ proyecto: DOS, proyectos: [UNO, DOS] });
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    expect(
+      screen.getByRole('link', { name: /Ver el historial de estados de Otro/ }),
+    ).toHaveAttribute('href', '/proyectos-grado/p-2/estados');
+  });
+
   it('cargando muestra el esqueleto', () => {
     // Arrange
     mockearHook({ cargado: false, proyecto: null, proyectos: [] });
