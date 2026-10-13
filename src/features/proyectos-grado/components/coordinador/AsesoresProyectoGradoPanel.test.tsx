@@ -102,6 +102,44 @@ describe('AsesoresProyectoGradoPanel', () => {
     expect(filas).toHaveLength(4);
     expect(within(filas[0]).getByText('Actual')).toBeInTheDocument();
     expect(within(filas[3]).queryByText('Actual')).not.toBeInTheDocument();
+    expect(tabla.queryByText('Último registro')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sin asesor asignado')).not.toBeInTheDocument();
+  });
+
+  it('sin asesor asignado marca el último registro en la primera fila y avisa', async () => {
+    // Arrange
+    const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
+    consultar.mockResolvedValue([
+      { ...vigente, id: 'ap-3', estado: finalizado, actual: true },
+      { ...vigente, id: 'ap-2', actual: false },
+      { ...vigente, id: 'ap-1', estado: finalizado, actual: false },
+    ]);
+
+    // Act
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    const tabla = within(await tablaDeAsesores());
+
+    // Assert
+    expect(tabla.getAllByText('Último registro')).toHaveLength(1);
+    expect(tabla.queryByText('Actual')).not.toBeInTheDocument();
+    const filas = tabla.getAllByRole('row').slice(1);
+    expect(within(filas[0]).getByText('Último registro')).toBeInTheDocument();
+    expect(screen.getByText('Sin asesor asignado')).toBeInTheDocument();
+    expect(
+      screen.getByText(/El último registro es de Ana Pérez \(finalizado\)/),
+    ).toBeInTheDocument();
+  });
+
+  it('sin historial no muestra aviso de asesor', async () => {
+    // Arrange
+    consultar.mockResolvedValue([]);
+
+    // Act
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    await screen.findByText('Este proyecto aún no tiene asesores');
+
+    // Assert
+    expect(screen.queryByText('Sin asesor asignado')).not.toBeInTheDocument();
   });
 
   it('marca «Dado de baja» solo en el asesor con vigente = false', async () => {

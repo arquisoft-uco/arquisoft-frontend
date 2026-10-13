@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
+import Notice from '../../../../shared/components/ui/Notice';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useAsesoresProyectoGrado } from '../../hooks/useAsesoresProyectoGrado';
+import { ultimoRegistroSinAsesor } from '../../utils/asesor-actual';
 import AsesoresProyectoGradoTable from './AsesoresProyectoGradoTable';
 import AsignarAsesorProyectoGradoPanel from './AsignarAsesorProyectoGradoPanel';
 
@@ -18,6 +20,7 @@ export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, fi
   const { data, isLoading, isFetching, isError, error, refetch } =
     useAsesoresProyectoGrado(proyectoGradoId);
   const listaCargada = !isLoading && !isError;
+  const sinAsesor = listaCargada ? ultimoRegistroSinAsesor(data ?? []) : null;
 
   return (
     <div className="flex flex-col gap-4" aria-busy={isFetching}>
@@ -29,6 +32,12 @@ export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, fi
           </Button>
         )}
       </div>
+      {sinAsesor && (
+        <Notice variante="info" titulo="Sin asesor asignado">
+          El último registro es de {sinAsesor.nombre} ({sinAsesor.estado.nombre.toLowerCase()}).
+          Puedes asignar un asesor con «Asignar asesor».
+        </Notice>
+      )}
       {isError ? (
         <ErrorState
           titulo="No se pudieron cargar los asesores"
@@ -36,7 +45,11 @@ export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, fi
           onReintentar={refetch}
         />
       ) : (
-        <AsesoresProyectoGradoTable asesores={data ?? []} cargando={isLoading} />
+        <AsesoresProyectoGradoTable
+          asesores={data ?? []}
+          cargando={isLoading}
+          ultimoRegistroId={sinAsesor?.id}
+        />
       )}
       {abierto && (
         <AsignarAsesorProyectoGradoPanel

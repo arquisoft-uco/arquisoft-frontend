@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
-import { marcarAsesorActual } from './asesor-actual';
+import { marcarAsesorActual, ultimoRegistroSinAsesor } from './asesor-actual';
 
 const asignado = { id: 'ASIGNADO', nombre: 'Asignado' };
 const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
@@ -82,5 +82,21 @@ describe('marcarAsesorActual', () => {
     expect(marcarAsesorActual([])).toEqual([]);
     expect(resultado).not.toBe(entrada);
     expect(entrada.map((a) => a.actual)).toEqual([true, false, false, true]);
+  });
+});
+
+describe('ultimoRegistroSinAsesor', () => {
+  it('devuelve la primera fila sin asesor asignado vigente y null en otro caso', () => {
+    // Arrange
+    const captura = [
+      { ...base, id: 'ap-3', estado: finalizado, actual: true },
+      { ...base, id: 'ap-2', actual: false },
+      { ...base, id: 'ap-1', estado: finalizado, actual: false },
+    ];
+
+    // Assert
+    expect(ultimoRegistroSinAsesor(marcarAsesorActual(captura))?.id).toBe('ap-3');
+    expect(ultimoRegistroSinAsesor(marcarAsesorActual(capturaDelDetalle))).toBeNull();
+    expect(ultimoRegistroSinAsesor([])).toBeNull();
   });
 });

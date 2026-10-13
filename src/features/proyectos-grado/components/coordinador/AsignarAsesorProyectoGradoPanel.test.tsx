@@ -154,6 +154,24 @@ describe('AsignarAsesorProyectoGradoPanel', () => {
     expect(screen.getByRole('combobox', { name: 'Asesor' })).toBeInTheDocument();
   });
 
+  it('con el caso de la captura (último estado finalizado) ofrece el selector', () => {
+    // Arrange
+    const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
+
+    // Act
+    renderizar({
+      asesores: [
+        { ...FILA, id: 'ap-3', estado: finalizado, actual: true },
+        { ...FILA, id: 'ap-2', actual: false },
+        { ...FILA, id: 'ap-1', estado: finalizado, actual: false },
+      ],
+    });
+
+    // Assert
+    expect(screen.getByRole('combobox', { name: 'Asesor' })).toBeInTheDocument();
+    expect(screen.queryByText(/ya tiene un asesor asignado/)).not.toBeInTheDocument();
+  });
+
   it('con el proyecto finalizado muestra el aviso y no ofrece selector', () => {
     // Act
     renderizar({ finalizado: true });

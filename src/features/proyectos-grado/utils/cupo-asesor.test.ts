@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
 import { hayAsesorAsignado, opcionesAsesor } from './cupo-asesor';
 
-function asesor(estadoId: string): AsesorProyectoGrado {
+function asesor(estadoId: string, actual = estadoId === 'ASIGNADO'): AsesorProyectoGrado {
   return {
     id: `ap-${estadoId}`,
     proyectoGradoId: 'p-1',
@@ -13,14 +13,23 @@ function asesor(estadoId: string): AsesorProyectoGrado {
     estado: { id: estadoId, nombre: estadoId },
     fechaAsignado: '2026-10-01T00:00:00Z',
     vigente: estadoId === 'ASIGNADO',
-    actual: estadoId === 'ASIGNADO',
+    actual,
   };
 }
 
 describe('hayAsesorAsignado', () => {
-  it('es true solo con una fila ASIGNADO; FINALIZADO o lista vacía no cuentan', () => {
+  it('cuenta solo el ASIGNADO vigente; el histórico, FINALIZADO y la lista vacía no', () => {
+    // Arrange
+    const capturaDelDetalle = [
+      asesor('FINALIZADO', true),
+      asesor('ASIGNADO', false),
+      asesor('FINALIZADO', false),
+    ];
+
     // Assert
-    expect(hayAsesorAsignado([asesor('FINALIZADO'), asesor('ASIGNADO')])).toBe(true);
+    expect(hayAsesorAsignado([asesor('ASIGNADO', true)])).toBe(true);
+    expect(hayAsesorAsignado([asesor('ASIGNADO', false)])).toBe(false);
+    expect(hayAsesorAsignado(capturaDelDetalle)).toBe(false);
     expect(hayAsesorAsignado([asesor('FINALIZADO')])).toBe(false);
     expect(hayAsesorAsignado([])).toBe(false);
   });

@@ -4,9 +4,9 @@ import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
 
 export const ESTADO_ASESOR_ASIGNADO = 'ASIGNADO';
 
-// A diferencia del cupo de estudiantes, las filas FINALIZADO no cuentan: el backend solo limita los ASIGNADO.
+// El backend solo limita las filas ASIGNADO vigentes (la última de su asesor); el historial no cuenta.
 export function hayAsesorAsignado(asesores: AsesorProyectoGrado[]): boolean {
-  return asesores.some((a) => a.estado.id === ESTADO_ASESOR_ASIGNADO);
+  return asesores.some((a) => a.estado.id === ESTADO_ASESOR_ASIGNADO && a.actual);
 }
 
 export function opcionesAsesor(vigentes: Asesor[]): OpcionCombobox[] {
