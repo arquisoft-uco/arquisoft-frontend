@@ -13,6 +13,12 @@ vi.mock('../../services/proyectosGradoService', () => ({
   },
 }));
 
+vi.mock('./AsignarAsesorProyectoGradoPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de asignación" />,
+}));
+
+const PROPS = { proyectoGradoId: 'p-1', titulo: 'Proyecto', finalizado: false };
+
 const consultar = vi.mocked(proyectosGradoService.getAsesoresProyecto);
 
 const vigente: AsesorProyectoGrado = {
@@ -60,7 +66,7 @@ describe('AsesoresProyectoGradoPanel', () => {
     consultar.mockResolvedValue([vigente, anterior]);
 
     // Act
-    render(<AsesoresProyectoGradoPanel proyectoGradoId="p-1" />);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
     const tabla = within(await tablaDeAsesores());
 
     // Assert
@@ -87,7 +93,7 @@ describe('AsesoresProyectoGradoPanel', () => {
     ]);
 
     // Act
-    render(<AsesoresProyectoGradoPanel proyectoGradoId="p-1" />);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
     const tabla = within(await tablaDeAsesores());
 
     // Assert
@@ -96,6 +102,53 @@ describe('AsesoresProyectoGradoPanel', () => {
     expect(filas).toHaveLength(4);
     expect(within(filas[0]).getByText('Actual')).toBeInTheDocument();
     expect(within(filas[3]).queryByText('Actual')).not.toBeInTheDocument();
+    expect(tabla.queryByText('Último registro')).not.toBeInTheDocument();
+    const tarjetas = within(screen.getByRole('list', { name: 'Asesores del proyecto de grado' }));
+    expect(tarjetas.getAllByText('Actual')).toHaveLength(1);
+    expect(tarjetas.queryByText('Último registro')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sin asesor asignado')).not.toBeInTheDocument();
+  });
+
+  it('sin asesor asignado marca el último registro en la primera fila y avisa', async () => {
+    // Arrange
+    const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
+    consultar.mockResolvedValue([
+      { ...vigente, id: 'ap-3', estado: finalizado, actual: true },
+      { ...vigente, id: 'ap-2', actual: false },
+      { ...vigente, id: 'ap-1', estado: finalizado, actual: false },
+    ]);
+
+    // Act
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    const tabla = within(await tablaDeAsesores());
+    const tarjetas = within(screen.getByRole('list', { name: 'Asesores del proyecto de grado' }));
+
+    // Assert
+    expect(tabla.getAllByText('Último registro')).toHaveLength(1);
+    expect(tabla.queryByText('Actual')).not.toBeInTheDocument();
+    const filas = tabla.getAllByRole('row').slice(1);
+    expect(within(filas[0]).getByText('Último registro')).toBeInTheDocument();
+    expect(tarjetas.getAllByText('Último registro')).toHaveLength(1);
+    expect(tarjetas.queryByText('Actual')).not.toBeInTheDocument();
+    const fichas = tarjetas.getAllByRole('listitem');
+    expect(fichas).toHaveLength(3);
+    expect(within(fichas[0]).getByText('Último registro')).toBeInTheDocument();
+    expect(screen.getByText('Sin asesor asignado')).toBeInTheDocument();
+    expect(
+      screen.getByText(/El último registro es de Ana Pérez \(finalizado\)/),
+    ).toBeInTheDocument();
+  });
+
+  it('sin historial no muestra aviso de asesor', async () => {
+    // Arrange
+    consultar.mockResolvedValue([]);
+
+    // Act
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    await screen.findByText('Este proyecto aún no tiene asesores');
+
+    // Assert
+    expect(screen.queryByText('Sin asesor asignado')).not.toBeInTheDocument();
   });
 
   it('marca «Dado de baja» solo en el asesor con vigente = false', async () => {
@@ -103,7 +156,7 @@ describe('AsesoresProyectoGradoPanel', () => {
     consultar.mockResolvedValue([vigente, { ...anterior, vigente: false }]);
 
     // Act
-    render(<AsesoresProyectoGradoPanel proyectoGradoId="p-1" />);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
     const filas = within(await tablaDeAsesores())
       .getAllByRole('row')
       .slice(1);
@@ -118,7 +171,7 @@ describe('AsesoresProyectoGradoPanel', () => {
     consultar.mockReturnValue(new Promise(() => {}));
 
     // Act
-    render(<AsesoresProyectoGradoPanel proyectoGradoId="p-1" />);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
 
     // Assert
     expect(screen.getByRole('status')).toBeInTheDocument();
@@ -129,7 +182,7 @@ describe('AsesoresProyectoGradoPanel', () => {
     consultar.mockResolvedValue([]);
 
     // Act
-    render(<AsesoresProyectoGradoPanel proyectoGradoId="p-1" />);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
 
     // Assert
     expect(await screen.findByText('Este proyecto aún no tiene asesores')).toBeInTheDocument();
@@ -143,7 +196,7 @@ describe('AsesoresProyectoGradoPanel', () => {
     consultar.mockResolvedValueOnce([vigente]);
 
     // Act
-    render(<AsesoresProyectoGradoPanel proyectoGradoId="p-1" />);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
     const alerta = await screen.findByRole('alert');
     expect(within(alerta).getByText('No se pudieron cargar los asesores')).toBeInTheDocument();
     expect(within(alerta).getByText('El proyecto no pertenece al coordinador')).toBeInTheDocument();
@@ -152,5 +205,40 @@ describe('AsesoresProyectoGradoPanel', () => {
     // Assert
     await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
     expect(await tablaDeAsesores()).toBeInTheDocument();
+  });
+
+  it('muestra «Asignar asesor» con la lista cargada, incluso vacía, y abre el panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultar.mockResolvedValue([]);
+
+    // Act
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    await user.click(await screen.findByRole('button', { name: 'Asignar asesor' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de asignación' })).toBeInTheDocument();
+  });
+
+  it('no muestra «Asignar asesor» mientras carga ni cuando la consulta falla', async () => {
+    // Arrange
+    consultar.mockReturnValueOnce(new Promise(() => {}));
+
+    // Act
+    const { unmount } = render(<AsesoresProyectoGradoPanel {...PROPS} />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Asignar asesor' })).not.toBeInTheDocument();
+    unmount();
+
+    // Arrange
+    consultar.mockRejectedValueOnce(crearError422('fallo'));
+
+    // Act
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    await screen.findByRole('alert');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Asignar asesor' })).not.toBeInTheDocument();
   });
 });

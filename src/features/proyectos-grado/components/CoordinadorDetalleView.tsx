@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useParams } from 'react-router';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
+import type { ContextoDetalleProyectoGrado } from '../models/ContextoDetalleProyectoGrado';
 import { useResumenProyectoGrado } from '../hooks/useResumenProyectoGrado';
 import AccionesProyectoGradoCoordinador from './coordinador/AccionesProyectoGradoCoordinador';
 import { ESTADO_FINALIZADO } from '../utils/estados-proyecto';
@@ -16,6 +17,7 @@ export default function CoordinadorDetalleView() {
   if (!id) return <Navigate to="/proyectos-grado" replace />;
 
   const titulo = resumen?.titulo ?? TITULO_GENERICO;
+  const finalizado = resumen?.estadoId === ESTADO_FINALIZADO;
   const pestanas = [
     { id: 'asesores', etiqueta: 'Asesores', to: `/proyectos-grado/${id}/asesores` },
   ];
@@ -32,7 +34,7 @@ export default function CoordinadorDetalleView() {
       <div className={DISPOSICION.contenedor}>
         <div className={DISPOSICION.principal}>
           <Tabs items={pestanas} valor="asesores" etiqueta="Secciones del proyecto de grado" />
-          <Outlet />
+          <Outlet context={{ titulo, finalizado } satisfies ContextoDetalleProyectoGrado} />
         </div>
         <div className={DISPOSICION.lateral}>
           <ResumenProyectoGradoPanel
@@ -41,7 +43,7 @@ export default function CoordinadorDetalleView() {
               <AccionesProyectoGradoCoordinador
                 proyectoGradoId={id}
                 titulo={titulo}
-                finalizado={resumen?.estadoId === ESTADO_FINALIZADO}
+                finalizado={finalizado}
               />
             }
           />

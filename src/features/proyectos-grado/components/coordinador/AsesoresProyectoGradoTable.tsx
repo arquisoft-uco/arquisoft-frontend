@@ -11,28 +11,32 @@ import {
 
 const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
 
-const COLUMNAS: ColumnaTabla<AsesorProyectoGrado>[] = [
-  {
-    id: 'asesor',
-    encabezado: 'Asesor',
-    celda: (asesor) => <AsesorProyectoIdentidad asesor={asesor} />,
-  },
-  {
-    id: 'identificador',
-    encabezado: 'Identificador',
-    celda: (asesor) => <span>{asesor.identificador}</span>,
-  },
-  {
-    id: 'estado',
-    encabezado: 'Estado',
-    celda: (asesor) => <EstadoAsesorProyecto asesor={asesor} />,
-  },
-  {
-    id: 'fecha',
-    encabezado: 'Asignado el',
-    celda: (asesor) => <FechaAsignacion iso={asesor.fechaAsignado} />,
-  },
-];
+function columnas(ultimoRegistroId?: string): ColumnaTabla<AsesorProyectoGrado>[] {
+  return [
+    {
+      id: 'asesor',
+      encabezado: 'Asesor',
+      celda: (asesor) => <AsesorProyectoIdentidad asesor={asesor} />,
+    },
+    {
+      id: 'identificador',
+      encabezado: 'Identificador',
+      celda: (asesor) => <span>{asesor.identificador}</span>,
+    },
+    {
+      id: 'estado',
+      encabezado: 'Estado',
+      celda: (asesor) => (
+        <EstadoAsesorProyecto asesor={asesor} ultimoRegistro={asesor.id === ultimoRegistroId} />
+      ),
+    },
+    {
+      id: 'fecha',
+      encabezado: 'Asignado el',
+      celda: (asesor) => <FechaAsignacion iso={asesor.fechaAsignado} />,
+    },
+  ];
+}
 
 const VACIO = (
   <EmptyState
@@ -45,13 +49,18 @@ const VACIO = (
 interface Props {
   asesores: AsesorProyectoGrado[];
   cargando: boolean;
+  ultimoRegistroId?: string;
 }
 
-export default function AsesoresProyectoGradoTable({ asesores, cargando }: Props) {
+export default function AsesoresProyectoGradoTable({
+  asesores,
+  cargando,
+  ultimoRegistroId,
+}: Props) {
   return (
     <DataTable
       etiqueta="Asesores del proyecto de grado"
-      columnas={COLUMNAS}
+      columnas={columnas(ultimoRegistroId)}
       filas={asesores}
       idDeFila={(asesor) => asesor.id}
       cargando={cargando}
@@ -60,7 +69,7 @@ export default function AsesoresProyectoGradoTable({ asesores, cargando }: Props
         <>
           <AsesorProyectoIdentidad asesor={asesor} />
           <span className={DATO_TARJETA}>Identificador: {asesor.identificador}</span>
-          <EstadoAsesorProyecto asesor={asesor} />
+          <EstadoAsesorProyecto asesor={asesor} ultimoRegistro={asesor.id === ultimoRegistroId} />
           <span className={DATO_TARJETA}>
             Asignado el <FechaAsignacion iso={asesor.fechaAsignado} />
           </span>
