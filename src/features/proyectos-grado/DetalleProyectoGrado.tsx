@@ -3,11 +3,9 @@ import { Navigate } from 'react-router';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
 import CoordinadorDetalleView from './components/CoordinadorDetalleView';
-import EstudianteDetalleView from './components/EstudianteDetalleView';
 
 const VIEW_POR_ROL: Record<string, ComponentType> = {
   [Rol.Coordinador]: CoordinadorDetalleView,
-  [Rol.Estudiante]: EstudianteDetalleView,
 };
 
 export default function DetalleProyectoGrado() {
