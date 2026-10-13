@@ -1,8 +1,10 @@
-import { UserRound } from 'lucide-react';
+import { UserMinus, UserRound } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { AsesorProyectoGrado } from '../../models/AsesorProyectoGrado';
+import { puedeFinalizarse } from '../../utils/asesor-actual';
 import {
   AsesorProyectoIdentidad,
   EstadoAsesorProyecto,
@@ -50,12 +52,14 @@ interface Props {
   asesores: AsesorProyectoGrado[];
   cargando: boolean;
   ultimoRegistroId?: string;
+  onFinalizar?: (asesor: AsesorProyectoGrado) => void;
 }
 
 export default function AsesoresProyectoGradoTable({
   asesores,
   cargando,
   ultimoRegistroId,
+  onFinalizar,
 }: Props) {
   return (
     <DataTable
@@ -64,6 +68,23 @@ export default function AsesoresProyectoGradoTable({
       filas={asesores}
       idDeFila={(asesor) => asesor.id}
       cargando={cargando}
+      acciones={
+        onFinalizar &&
+        ((asesor) =>
+          puedeFinalizarse(asesor) ? (
+            <RowMenu
+              etiqueta={`Acciones de ${asesor.nombre}`}
+              acciones={[
+                {
+                  etiqueta: 'Finalizar participación',
+                  icono: UserMinus,
+                  peligro: true,
+                  onSeleccionar: () => onFinalizar(asesor),
+                },
+              ]}
+            />
+          ) : null)
+      }
       vacio={VACIO}
       tarjeta={(asesor) => (
         <>

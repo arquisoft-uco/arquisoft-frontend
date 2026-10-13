@@ -10,6 +10,7 @@ import AsesoresProyectoGradoPanel from './AsesoresProyectoGradoPanel';
 vi.mock('../../services/proyectosGradoService', () => ({
   proyectosGradoService: {
     getAsesoresProyecto: vi.fn(),
+    cambiarEstadoAsesor: vi.fn(),
   },
 }));
 
@@ -20,6 +21,7 @@ vi.mock('./AsignarAsesorProyectoGradoPanel', () => ({
 const PROPS = { proyectoGradoId: 'p-1', titulo: 'Proyecto', finalizado: false };
 
 const consultar = vi.mocked(proyectosGradoService.getAsesoresProyecto);
+const cambiarEstado = vi.mocked(proyectosGradoService.cambiarEstadoAsesor);
 
 const vigente: AsesorProyectoGrado = {
   id: 'ap-2',
@@ -240,5 +242,73 @@ describe('AsesoresProyectoGradoPanel', () => {
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Asignar asesor' })).not.toBeInTheDocument();
+  });
+
+  it('solo la fila vigente ASIGNADO ofrece «Finalizar participación»; con el proyecto finalizado ninguna', async () => {
+    // Arrange
+    consultar.mockResolvedValue([vigente, { ...vigente, id: 'ap-0', actual: false }, anterior]);
+
+    // Act
+    const { unmount } = render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    const filas = within(await tablaDeAsesores())
+      .getAllByRole('row')
+      .slice(1);
+
+    // Assert
+    expect(within(filas[0]).getByRole('button', { name: 'Acciones de Ana Pérez' })).toBeVisible();
+    expect(within(filas[1]).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(filas[2]).queryByRole('button')).not.toBeInTheDocument();
+    unmount();
+
+    // Act
+    render(<AsesoresProyectoGradoPanel {...PROPS} finalizado />);
+    await tablaDeAsesores();
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Acciones de/ })).not.toBeInTheDocument();
+  });
+
+  it('cancelar el diálogo no envía la finalización', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultar.mockResolvedValue([vigente]);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    const tabla = within(await tablaDeAsesores());
+
+    // Act
+    await user.click(tabla.getByRole('button', { name: 'Acciones de Ana Pérez' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Finalizar participación' }));
+    const dialogo = await screen.findByRole('alertdialog');
+    expect(within(dialogo).getByText(/Ana Pérez dejará de ser asesor/)).toBeInTheDocument();
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(cambiarEstado).not.toHaveBeenCalled();
+  });
+
+  it('confirmar finaliza por el asesorId de la fila, no por su id, y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    cambiarEstado.mockResolvedValue(undefined);
+    consultar.mockResolvedValue([vigente]);
+    render(<AsesoresProyectoGradoPanel {...PROPS} />);
+    const tabla = within(await tablaDeAsesores());
+
+    // Act
+    await user.click(tabla.getByRole('button', { name: 'Acciones de Ana Pérez' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Finalizar participación' }));
+    const dialogo = await screen.findByRole('alertdialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Finalizar participación' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(cambiarEstado).toHaveBeenCalledWith({
+        proyectoGradoId: 'p-1',
+        asesorId: 'a-1',
+        estadoAsesorId: 'FINALIZADO',
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 });

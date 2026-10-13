@@ -4,11 +4,12 @@ import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoR
 import { proyectosGradoService } from './proyectosGradoService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
+const patch = vi.mocked(apiClient.patch);
 const eliminar = vi.mocked(apiClient.delete);
 
 function crearRespuesta(
@@ -89,6 +90,26 @@ describe('proyectosGradoService', () => {
 
       // Assert
       expect(post).toHaveBeenCalledWith('/proyectos-grado/p-1/asesores', { asesor: 'a-1' });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('cambiarEstadoAsesor', () => {
+    it('hace PATCH por asesorId traduciendo estadoAsesorId a { estadoAsesor } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await proyectosGradoService.cambiarEstadoAsesor({
+        proyectoGradoId: 'p-1',
+        asesorId: 'a-1',
+        estadoAsesorId: 'FINALIZADO',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/proyectos-grado/p-1/asesores/a-1/estado', {
+        estadoAsesor: 'FINALIZADO',
+      });
       expect(resultado).toBeUndefined();
     });
   });

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
-import { marcarAsesorActual, ultimoRegistroSinAsesor } from './asesor-actual';
+import { marcarAsesorActual, puedeFinalizarse, ultimoRegistroSinAsesor } from './asesor-actual';
 
 const asignado = { id: 'ASIGNADO', nombre: 'Asignado' };
 const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
@@ -98,5 +98,15 @@ describe('ultimoRegistroSinAsesor', () => {
     expect(ultimoRegistroSinAsesor(marcarAsesorActual(captura))?.id).toBe('ap-3');
     expect(ultimoRegistroSinAsesor(marcarAsesorActual(capturaDelDetalle))).toBeNull();
     expect(ultimoRegistroSinAsesor([])).toBeNull();
+  });
+});
+
+describe('puedeFinalizarse', () => {
+  it('es true solo con ASIGNADO y actual, sin mirar vigente', () => {
+    // Assert
+    expect(puedeFinalizarse(base)).toBe(true);
+    expect(puedeFinalizarse({ ...base, vigente: false })).toBe(true);
+    expect(puedeFinalizarse({ ...base, estado: finalizado })).toBe(false);
+    expect(puedeFinalizarse({ ...base, actual: false })).toBe(false);
   });
 });
