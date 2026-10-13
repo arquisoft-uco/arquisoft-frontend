@@ -6,6 +6,11 @@ import { useMisProyectosGrado } from '../hooks/useMisProyectosGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 
 vi.mock('../hooks/useMisProyectosGrado', () => ({ useMisProyectosGrado: vi.fn() }));
+vi.mock('./estudiante/HistorialEstadosProyectoPanel', () => ({
+  default: ({ proyectoGradoId }: { proyectoGradoId: string }) => (
+    <p>Historial de {proyectoGradoId}</p>
+  ),
+}));
 
 type Hook = ReturnType<typeof useMisProyectosGrado>;
 
@@ -63,6 +68,37 @@ describe('EstudianteView', () => {
 
     // Assert
     expect(seleccionarProyecto).toHaveBeenCalledWith('p-2');
+  });
+
+  it('muestra la pestaña del historial con su panel y el resumen, sin enlace ni acciones', () => {
+    // Arrange
+    mockearHook();
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Historial de estados' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('Historial de p-1')).toBeInTheDocument();
+    expect(
+      screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /historial de estados/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('el panel del historial sigue al proyecto elegido', () => {
+    // Arrange
+    mockearHook({ proyecto: DOS, proyectos: [UNO, DOS] });
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    expect(screen.getByText('Historial de p-2')).toBeInTheDocument();
   });
 
   it('cargando muestra el esqueleto', () => {

@@ -7,7 +7,9 @@ import type { AsignarAsesorProyectoGradoRequest } from '../models/AsignarAsesorP
 import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEstudiantesProyectoGradoRequest';
 import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarEstadoAsesorProyectoGradoRequest';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
+import type { EstadoProyectoGradoResponse } from '../models/EstadoProyectoGradoResponse';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
+import type { HistorialEstadoProyectoGrado } from '../models/HistorialEstadoProyectoGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 
 function aAsesorProyectoGrado(r: AsesorProyectoGradoResponse): AsesorProyectoGrado {
@@ -22,6 +24,16 @@ function aAsesorProyectoGrado(r: AsesorProyectoGradoResponse): AsesorProyectoGra
     fechaAsignado: r.fechaAsignado,
     vigente: r.vigente,
     actual: r.actual,
+  };
+}
+
+function aHistorialEstadoProyectoGrado(
+  r: EstadoProyectoGradoResponse,
+): HistorialEstadoProyectoGrado {
+  return {
+    id: r.id,
+    estado: { id: r.estadoProyecto, nombre: r.estadoProyectoNombre },
+    fechaActualizacion: r.fechaActualizacion,
   };
 }
 
@@ -40,6 +52,12 @@ export const proyectosGradoService = {
     return apiClient
       .get<AsesorProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/asesores`)
       .then((r) => r.data.map(aAsesorProyectoGrado));
+  },
+
+  getEstadosProyecto(proyectoGradoId: string): Promise<HistorialEstadoProyectoGrado[]> {
+    return apiClient
+      .get<EstadoProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/estados`)
+      .then((r) => r.data.map(aHistorialEstadoProyectoGrado));
   },
 
   asignarAsesor(req: AsignarAsesorProyectoGradoRequest): Promise<void> {
