@@ -32,6 +32,10 @@ export const proyectosGradoService = {
       .then((r) => r.data);
   },
 
+  getMisProyectos(): Promise<ProyectoGrado[]> {
+    return apiClient.get<ProyectoGrado[]>('/proyectos-grado/estudiante').then((r) => r.data);
+  },
+
   getAsesoresProyecto(proyectoGradoId: string): Promise<AsesorProyectoGrado[]> {
     return apiClient
       .get<AsesorProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/asesores`)

@@ -47,7 +47,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: GraduationCap,
     path: '/proyectos-grado',
     order: 2,
-    roles: [Rol.Coordinador],
+    roles: [Rol.Coordinador, Rol.Estudiante],
   },
   {
     label: 'Artefactos',

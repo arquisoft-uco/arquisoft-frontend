@@ -9,6 +9,10 @@ vi.mock('./components/CoordinadorView', () => ({
   default: () => <p>Vista coordinador</p>,
 }));
 
+vi.mock('./components/EstudianteView', () => ({
+  default: () => <p>Vista estudiante</p>,
+}));
+
 function renderizar() {
   return render(
     <Routes>
@@ -52,10 +56,22 @@ describe('ProyectosGrado', () => {
     expect(screen.getByText('Vista coordinador')).toBeInTheDocument();
   });
 
-  it('un rol sin vista va a /forbidden', () => {
+  it('el estudiante ve su vista', () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Vista estudiante')).toBeInTheDocument();
+  });
+
+  it('un rol sin vista va a /forbidden', () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
 
     // Act
     renderizar();

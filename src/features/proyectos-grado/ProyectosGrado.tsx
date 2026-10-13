@@ -2,9 +2,11 @@ import { Navigate } from 'react-router';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
 import CoordinadorView from './components/CoordinadorView';
+import EstudianteView from './components/EstudianteView';
 
 const VIEW_POR_ROL: Record<string, React.ComponentType> = {
   [Rol.Coordinador]: CoordinadorView,
+  [Rol.Estudiante]: EstudianteView,
 };
 
 export default function ProyectosGrado() {
