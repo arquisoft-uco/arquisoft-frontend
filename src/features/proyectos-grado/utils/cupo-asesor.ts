@@ -3,6 +3,7 @@ import type { Asesor } from '../../../shared/models/Asesor';
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
 
 export const ESTADO_ASESOR_ASIGNADO = 'ASIGNADO';
+export const ESTADO_ASESOR_FINALIZADO = 'FINALIZADO';
 
 // El backend solo limita las filas ASIGNADO vigentes (la última de su asesor); el historial no cuenta.
 export function hayAsesorAsignado(asesores: AsesorProyectoGrado[]): boolean {

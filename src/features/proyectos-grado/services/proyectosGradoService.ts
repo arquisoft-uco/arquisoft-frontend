@@ -5,6 +5,7 @@ import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
 import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoResponse';
 import type { AsignarAsesorProyectoGradoRequest } from '../models/AsignarAsesorProyectoGradoRequest';
 import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEstudiantesProyectoGradoRequest';
+import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarEstadoAsesorProyectoGradoRequest';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
@@ -40,6 +41,14 @@ export const proyectosGradoService = {
   asignarAsesor(req: AsignarAsesorProyectoGradoRequest): Promise<void> {
     return apiClient
       .post(`/proyectos-grado/${req.proyectoGradoId}/asesores`, { asesor: req.asesorId })
+      .then(() => undefined);
+  },
+
+  cambiarEstadoAsesor(req: CambiarEstadoAsesorProyectoGradoRequest): Promise<void> {
+    return apiClient
+      .patch(`/proyectos-grado/${req.proyectoGradoId}/asesores/${req.asesorId}/estado`, {
+        estadoAsesor: req.estadoAsesorId,
+      })
       .then(() => undefined);
   },
 

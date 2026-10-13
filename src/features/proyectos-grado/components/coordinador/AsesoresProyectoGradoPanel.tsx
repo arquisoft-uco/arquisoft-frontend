@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import Button from '../../../../shared/components/ui/Button';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Notice from '../../../../shared/components/ui/Notice';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useAsesoresProyectoGrado } from '../../hooks/useAsesoresProyectoGrado';
+import { useFinalizacionAsesor } from '../../hooks/useFinalizacionAsesor';
 import { ultimoRegistroSinAsesor } from '../../utils/asesor-actual';
 import AsesoresProyectoGradoTable from './AsesoresProyectoGradoTable';
 import AsignarAsesorProyectoGradoPanel from './AsignarAsesorProyectoGradoPanel';
@@ -19,6 +21,8 @@ export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, fi
   const [abierto, setAbierto] = useState(false);
   const { data, isLoading, isFetching, isError, error, refetch } =
     useAsesoresProyectoGrado(proyectoGradoId);
+  const { pendiente, finalizando, solicitar, confirmar, cancelar } =
+    useFinalizacionAsesor(proyectoGradoId);
   const listaCargada = !isLoading && !isError;
   const sinAsesor = listaCargada ? ultimoRegistroSinAsesor(data ?? []) : null;
 
@@ -49,6 +53,23 @@ export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, fi
           asesores={data ?? []}
           cargando={isLoading}
           ultimoRegistroId={sinAsesor?.id}
+          onFinalizar={finalizado ? undefined : solicitar}
+        />
+      )}
+      {pendiente && (
+        <ConfirmDialog
+          titulo="Finalizar participación del asesor"
+          descripcion={`${pendiente.nombre} dejará de ser asesor de este proyecto de grado.`}
+          consecuencias={[
+            'El asesor recibirá un correo con el aviso.',
+            'El historial conserva el registro de su participación.',
+            'Se libera el cupo: podrás asignar a otro asesor, o al mismo.',
+          ]}
+          labelConfirmar="Finalizar participación"
+          variante="peligro"
+          cargando={finalizando}
+          onConfirmar={confirmar}
+          onCancelar={cancelar}
         />
       )}
       {abierto && (
