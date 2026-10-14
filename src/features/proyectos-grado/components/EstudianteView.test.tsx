@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../test-utils/render';
+import { render, screen, within } from '../../../test-utils/render';
 import EstudianteView from './EstudianteView';
 import { useMisProyectosGrado } from '../hooks/useMisProyectosGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
@@ -19,6 +19,12 @@ vi.mock('./estudiante/HistorialAsesoresProyectoPanel', () => ({
 vi.mock('./estudiante/AsesorActualResumen', () => ({
   default: ({ proyectoGradoId }: { proyectoGradoId: string }) => (
     <p>Asesor actual de {proyectoGradoId}</p>
+  ),
+}));
+
+vi.mock('./estudiante/CompanerosProyectoResumen', () => ({
+  default: ({ proyectoGradoId }: { proyectoGradoId: string }) => (
+    <p>Estudiantes de {proyectoGradoId}</p>
   ),
 }));
 
@@ -127,6 +133,19 @@ describe('EstudianteView', () => {
 
     // Assert
     expect(screen.getByText('Historial de p-2')).toBeInTheDocument();
+  });
+
+  it('el resumen lleva la sección de estudiantes del proyecto activo', () => {
+    // Arrange
+    mockearHook({ proyecto: DOS, proyectos: [UNO, DOS] });
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    const resumen = screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' });
+    expect(within(resumen).getByText('Estudiantes del proyecto')).toBeInTheDocument();
+    expect(within(resumen).getByText('Estudiantes de p-2')).toBeInTheDocument();
   });
 
   it('cargando muestra el esqueleto', () => {

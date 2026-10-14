@@ -6,6 +6,7 @@ import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoR
 import type { AsignarAsesorProyectoGradoRequest } from '../models/AsignarAsesorProyectoGradoRequest';
 import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEstudiantesProyectoGradoRequest';
 import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarEstadoAsesorProyectoGradoRequest';
+import type { CompaneroProyectoGrado } from '../models/CompaneroProyectoGrado';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
 import type { EstadoProyectoGradoResponse } from '../models/EstadoProyectoGradoResponse';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
@@ -83,6 +84,12 @@ export const proyectosGradoService = {
   getEstudiantesProyecto(proyectoGradoId: string): Promise<EstudianteProyectoGrado[]> {
     return apiClient
       .get<EstudianteProyectoGrado[]>(`/proyectos-grado/${proyectoGradoId}/estudiantes`)
+      .then((r) => r.data);
+  },
+
+  getCompanerosProyecto(proyectoGradoId: string): Promise<CompaneroProyectoGrado[]> {
+    return apiClient
+      .get<CompaneroProyectoGrado[]>(`/proyectos-grado/${proyectoGradoId}/companeros`)
       .then((r) => r.data);
   },
 
