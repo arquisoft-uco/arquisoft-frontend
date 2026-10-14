@@ -91,13 +91,15 @@ export default function JuradosDisponiblesLista({ elegidosIds, onAlternar }: Pro
 
   return (
     <div className={RAIZ}>
-      <FilterBarBusqueda
-        key={reinicios}
-        valor={texto}
-        onCambiar={cambiarTexto}
-        etiqueta="Buscar jurados"
-        placeholder="Buscar por nombre"
-      />
+      <div>
+        <FilterBarBusqueda
+          key={reinicios}
+          valor={texto}
+          onCambiar={cambiarTexto}
+          etiqueta="Buscar jurados"
+          placeholder="Buscar por nombre"
+        />
+      </div>
       <div aria-busy={isFetching} className={RAIZ}>
         {renderContenido()}
         {!isError && (

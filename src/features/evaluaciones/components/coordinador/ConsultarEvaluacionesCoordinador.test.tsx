@@ -178,9 +178,8 @@ describe('ConsultarEvaluacionesCoordinador', () => {
 
     // Act
     await user.click(
-      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+      screen.getAllByRole('button', { name: 'Asignar jurados a Sistema de monitoreo' })[0],
     );
-    await user.click(screen.getByRole('menuitem', { name: 'Asignar jurados' }));
 
     // Assert
     expect(screen.getByRole('dialog', { name: 'Panel de e-1' })).toBeInTheDocument();
@@ -202,13 +201,13 @@ describe('ConsultarEvaluacionesCoordinador', () => {
     render(<ConsultarEvaluacionesCoordinador />);
 
     // Act
-    await user.click(
-      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Asignar jurados' }));
+    const boton = screen.getAllByRole('button', {
+      name: 'Asignar jurados a Sistema de monitoreo',
+    })[0];
+    await user.click(boton);
 
     // Assert
-    expect(screen.getByRole('menuitem', { name: 'Asignar jurados' })).toBeDisabled();
+    expect(boton).toBeDisabled();
     expect(screen.queryByRole('dialog', { name: 'Panel de e-1' })).not.toBeInTheDocument();
   });
 });

@@ -3,8 +3,8 @@ import { UserPlus } from 'lucide-react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import Notice from '../../../../shared/components/ui/Notice';
-import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCatalogoEstadosEvaluacion } from '../../hooks/useCatalogoEstadosEvaluacion';
 import { useEvaluacionesCoordinador } from '../../hooks/useEvaluacionesCoordinador';
@@ -86,16 +86,13 @@ export default function ConsultarEvaluacionesCoordinador() {
             onLimpiarFiltros={listado.limpiarFiltros}
             encabezadoAcciones="Acciones"
             acciones={(evaluacion) => (
-              <RowMenu
-                etiqueta={`Acciones de ${evaluacion.entregable.proyecto}`}
-                acciones={[
-                  {
-                    etiqueta: 'Asignar jurados',
-                    icono: UserPlus,
-                    onSeleccionar: () => setEvaluacionAsignando(evaluacion),
-                    deshabilitada: evaluacion.estado.id === ESTADO_FINALIZADA,
-                  },
-                ]}
+              <IconButton
+                etiqueta={`Asignar jurados a ${evaluacion.entregable.proyecto}`}
+                icono={UserPlus}
+                tono="primario"
+                rotulo="Asignar jurados"
+                disabled={evaluacion.estado.id === ESTADO_FINALIZADA}
+                onClick={() => setEvaluacionAsignando(evaluacion)}
               />
             )}
           />
