@@ -9,6 +9,10 @@ vi.mock('./components/ItemsJuradoView', () => ({
   default: () => <p>Vista de ítems del jurado</p>,
 }));
 
+vi.mock('./components/CoordinadorView', () => ({
+  default: () => <p>Vista del coordinador</p>,
+}));
+
 function autenticarCon(rol: Rol) {
   setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
   setActiveRole(rol);
@@ -33,26 +37,35 @@ describe('Evaluaciones', () => {
     },
   );
 
-  it.each([Rol.Asesor, Rol.Estudiante, Rol.Coordinador])(
-    'con el rol %s, redirige a /forbidden',
-    (rol) => {
-      // Arrange
-      autenticarCon(rol);
+  it('con el rol coordinador, renderiza su vista y no la de ítems del jurado', () => {
+    // Arrange
+    autenticarCon(Rol.Coordinador);
 
-      // Act
-      render(
-        <Routes>
-          <Route path="/evaluaciones" element={<Evaluaciones />} />
-          <Route path="/forbidden" element={<p>Pantalla de acceso denegado</p>} />
-        </Routes>,
-        { initialPath: '/evaluaciones' },
-      );
+    // Act
+    render(<Evaluaciones />, { initialPath: '/evaluaciones' });
 
-      // Assert
-      expect(screen.getByText('Pantalla de acceso denegado')).toBeInTheDocument();
-      expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
-    },
-  );
+    // Assert
+    expect(screen.getByText('Vista del coordinador')).toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
+  });
+
+  it.each([Rol.Asesor, Rol.Estudiante])('con el rol %s, redirige a /forbidden', (rol) => {
+    // Arrange
+    autenticarCon(rol);
+
+    // Act
+    render(
+      <Routes>
+        <Route path="/evaluaciones" element={<Evaluaciones />} />
+        <Route path="/forbidden" element={<p>Pantalla de acceso denegado</p>} />
+      </Routes>,
+      { initialPath: '/evaluaciones' },
+    );
+
+    // Assert
+    expect(screen.getByText('Pantalla de acceso denegado')).toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
+  });
 
   it('sin rol activo, redirige a seleccionar-rol', () => {
     // Act
