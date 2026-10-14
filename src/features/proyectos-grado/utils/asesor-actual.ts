@@ -10,6 +10,10 @@ export function marcarAsesorActual(asesores: AsesorProyectoGrado[]): AsesorProye
   return asesores.map((asesor, indice) => ({ ...asesor, actual: indice === indiceActual }));
 }
 
+export function obtenerAsesorActual(asesores: AsesorProyectoGrado[]): AsesorProyectoGrado | null {
+  return asesores.find((asesor) => asesor.actual) ?? null;
+}
+
 export function puedeFinalizarse(asesor: AsesorProyectoGrado): boolean {
   return asesor.estado.id === ESTADO_ASESOR_ASIGNADO && asesor.actual;
 }

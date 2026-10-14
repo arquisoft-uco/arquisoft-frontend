@@ -11,6 +11,16 @@ vi.mock('./estudiante/HistorialEstadosProyectoPanel', () => ({
     <p>Historial de {proyectoGradoId}</p>
   ),
 }));
+vi.mock('./estudiante/HistorialAsesoresProyectoPanel', () => ({
+  default: ({ proyectoGradoId }: { proyectoGradoId: string }) => (
+    <p>Asesores de {proyectoGradoId}</p>
+  ),
+}));
+vi.mock('./estudiante/AsesorActualResumen', () => ({
+  default: ({ proyectoGradoId }: { proyectoGradoId: string }) => (
+    <p>Asesor actual de {proyectoGradoId}</p>
+  ),
+}));
 
 type Hook = ReturnType<typeof useMisProyectosGrado>;
 
@@ -88,6 +98,24 @@ describe('EstudianteView', () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /historial de estados/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('ofrece la pestaña de asesores con su panel del proyecto activo y el resumen lleva el asesor actual', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook();
+    render(<EstudianteView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Historial de asesores' }));
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Historial de asesores' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('Asesores de p-1')).toBeInTheDocument();
+    expect(screen.getByText('Asesor actual de p-1')).toBeInTheDocument();
   });
 
   it('el panel del historial sigue al proyecto elegido', () => {

@@ -36,6 +36,20 @@ describe('proyectosGradoService', () => {
     vi.clearAllMocks();
   });
 
+  describe('getAsesoresAsignadosProyecto', () => {
+    it('consulta GET /proyectos-grado/{id}/asesores-asignados y traduce el estado a { id, nombre }', async () => {
+      // Arrange
+      get.mockResolvedValue({ status: 200, data: [crearRespuesta({ id: 'ap-2' })] });
+
+      // Act
+      const asesores = await proyectosGradoService.getAsesoresAsignadosProyecto('p-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/proyectos-grado/p-1/asesores-asignados');
+      expect(asesores[0].estado).toEqual({ id: 'ASIGNADO', nombre: 'Asignado' });
+    });
+  });
+
   describe('getAsesoresProyecto', () => {
     it('consulta GET /proyectos-grado/{id}/asesores y traduce el estado plano a { id, nombre } conservando el orden', async () => {
       // Arrange

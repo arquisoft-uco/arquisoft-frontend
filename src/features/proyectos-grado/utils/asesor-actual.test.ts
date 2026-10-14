@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
-import { marcarAsesorActual, puedeFinalizarse, ultimoRegistroSinAsesor } from './asesor-actual';
+import {
+  marcarAsesorActual,
+  obtenerAsesorActual,
+  puedeFinalizarse,
+  ultimoRegistroSinAsesor,
+} from './asesor-actual';
 
 const asignado = { id: 'ASIGNADO', nombre: 'Asignado' };
 const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
@@ -82,6 +87,15 @@ describe('marcarAsesorActual', () => {
     expect(marcarAsesorActual([])).toEqual([]);
     expect(resultado).not.toBe(entrada);
     expect(entrada.map((a) => a.actual)).toEqual([true, false, false, true]);
+  });
+});
+
+describe('obtenerAsesorActual', () => {
+  it('devuelve la fila marcada «actual» y null si no hay ninguna o la lista está vacía', () => {
+    // Assert
+    expect(obtenerAsesorActual(marcarAsesorActual(capturaDelDetalle))?.id).toBe('ap-4');
+    expect(obtenerAsesorActual([{ ...base, actual: false }])).toBeNull();
+    expect(obtenerAsesorActual([])).toBeNull();
   });
 });
 

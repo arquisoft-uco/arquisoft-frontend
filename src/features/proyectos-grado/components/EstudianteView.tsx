@@ -10,19 +10,25 @@ import type { ProyectoGrado } from '../models/ProyectoGrado';
 import type { ResumenProyectoGrado } from '../models/ResumenProyectoGrado';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
 import { DISPOSICION } from './disposicion';
+import AsesorActualResumen from './estudiante/AsesorActualResumen';
+import HistorialAsesoresProyectoPanel from './estudiante/HistorialAsesoresProyectoPanel';
 import HistorialEstadosProyectoPanel from './estudiante/HistorialEstadosProyectoPanel';
 import SelectorProyectoGrado from './estudiante/SelectorProyectoGrado';
 import ResumenProyectoGradoPanel from './ResumenProyectoGradoPanel';
 
 const RAIZ = 'flex flex-col gap-6';
 
-type Pestana = 'estados';
+type Pestana = 'estados' | 'asesores';
 
 const PANEL_POR_PESTANA: Record<Pestana, ComponentType<{ proyectoGradoId: string }>> = {
   estados: HistorialEstadosProyectoPanel,
+  asesores: HistorialAsesoresProyectoPanel,
 };
 
-const PESTANAS = [{ id: 'estados' as const, etiqueta: 'Historial de estados' }];
+const PESTANAS = [
+  { id: 'estados' as const, etiqueta: 'Historial de estados' },
+  { id: 'asesores' as const, etiqueta: 'Historial de asesores' },
+];
 
 function aResumen(proyecto: ProyectoGrado): ResumenProyectoGrado {
   return {
@@ -90,7 +96,10 @@ export default function EstudianteView() {
           </Tabs>
         </div>
         <div className={DISPOSICION.lateral}>
-          <ResumenProyectoGradoPanel resumen={aResumen(proyecto)} />
+          <ResumenProyectoGradoPanel
+            resumen={aResumen(proyecto)}
+            asesor={<AsesorActualResumen key={proyecto.id} proyectoGradoId={proyecto.id} />}
+          />
         </div>
       </div>
     </div>

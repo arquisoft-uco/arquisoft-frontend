@@ -54,6 +54,12 @@ export const proyectosGradoService = {
       .then((r) => r.data.map(aAsesorProyectoGrado));
   },
 
+  getAsesoresAsignadosProyecto(proyectoGradoId: string): Promise<AsesorProyectoGrado[]> {
+    return apiClient
+      .get<AsesorProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/asesores-asignados`)
+      .then((r) => r.data.map(aAsesorProyectoGrado));
+  },
+
   getEstadosProyecto(proyectoGradoId: string): Promise<HistorialEstadoProyectoGrado[]> {
     return apiClient
       .get<EstadoProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/estados`)
