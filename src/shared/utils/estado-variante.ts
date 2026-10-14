@@ -12,6 +12,9 @@ const VARIANTE_FICHA: TablaDeVariantes = {
 };
 
 const VARIANTE_EVALUACION: TablaDeVariantes = {
+  PENDIENTE: 'advertencia',
+  EN_PROGRESO: 'info',
+  FINALIZADA: 'exito',
   EN_EVALUACION: 'info',
   APROBADA: 'exito',
   APROBADA_CON_OBSERVACIONES: 'advertencia',

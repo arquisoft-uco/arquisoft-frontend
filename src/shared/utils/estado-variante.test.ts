@@ -44,6 +44,9 @@ describe('varianteEstadoEvaluacion', () => {
       APROBADA_CON_OBSERVACIONES: 'advertencia',
       NO_APROBADA: 'peligro',
       DESCARTADA: 'neutro',
+      PENDIENTE: 'advertencia',
+      EN_PROGRESO: 'info',
+      FINALIZADA: 'exito',
     };
 
     // Act

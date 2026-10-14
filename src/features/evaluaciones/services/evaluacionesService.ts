@@ -1,4 +1,8 @@
 import apiClient from '../../../api/axiosInstance';
+import type { Page } from '../../../shared/models/api-response';
+import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
+import type { EstadoEvaluacion } from '../models/EstadoEvaluacion';
+import type { Evaluacion } from '../models/Evaluacion';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
@@ -72,4 +76,10 @@ export const evaluacionesService = {
     apiClient
       .patch<void>(`/evaluaciones/items-cuantitativos-jurado/${itemId}`, { descripcion })
       .then(() => undefined),
+
+  getEvaluacionesCoordinador: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
+    apiClient.post<Page<Evaluacion>>('/evaluaciones/coordinador', req).then((r) => r.data),
+
+  getEstadosEvaluacion: (): Promise<EstadoEvaluacion[]> =>
+    apiClient.get<EstadoEvaluacion[]>('/evaluaciones/estados-evaluacion').then((r) => r.data),
 };
