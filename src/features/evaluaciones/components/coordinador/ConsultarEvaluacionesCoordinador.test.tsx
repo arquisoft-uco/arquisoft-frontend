@@ -14,6 +14,16 @@ vi.mock('../../hooks/useCatalogoEstadosEvaluacion', () => ({
   useCatalogoEstadosEvaluacion: vi.fn(),
 }));
 
+vi.mock('./AsignarJuradosEvaluacionPanel', () => ({
+  default: ({ evaluacion, onCerrar }: { evaluacion: { id: string }; onCerrar: () => void }) => (
+    <div role="dialog" aria-label={`Panel de ${evaluacion.id}`}>
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
 const EVALUACION: Evaluacion = {
   id: 'e-1',
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 1 },
@@ -158,5 +168,47 @@ describe('ConsultarEvaluacionesCoordinador', () => {
     expect(screen.queryByRole('button', { name: 'En progreso' })).not.toBeInTheDocument();
     expect(screen.getByLabelText('Buscar evaluaciones')).toBeInTheDocument();
     expect(catalogo.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('ofrece "Asignar jurados" por fila, abre el panel de esa evaluación y lo cierra volviendo al listado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([EVALUACION]) });
+    render(<ConsultarEvaluacionesCoordinador />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Asignar jurados' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de e-1' })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Evaluaciones' })).toBeInTheDocument();
+  });
+
+  it('con la evaluación FINALIZADA la acción "Asignar jurados" queda deshabilitada y no abre el panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({
+      data: crearPagina([{ ...EVALUACION, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } }]),
+    });
+    render(<ConsultarEvaluacionesCoordinador />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Asignar jurados' }));
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Asignar jurados' })).toBeDisabled();
+    expect(screen.queryByRole('dialog', { name: 'Panel de e-1' })).not.toBeInTheDocument();
   });
 });

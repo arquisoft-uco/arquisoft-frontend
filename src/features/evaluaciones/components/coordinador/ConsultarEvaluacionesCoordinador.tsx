@@ -1,10 +1,16 @@
+import { useState } from 'react';
+import { UserPlus } from 'lucide-react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import Notice from '../../../../shared/components/ui/Notice';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCatalogoEstadosEvaluacion } from '../../hooks/useCatalogoEstadosEvaluacion';
 import { useEvaluacionesCoordinador } from '../../hooks/useEvaluacionesCoordinador';
+import type { Evaluacion } from '../../models/Evaluacion';
+import { ESTADO_FINALIZADA } from '../../utils/estados-evaluacion';
+import AsignarJuradosEvaluacionPanel from './AsignarJuradosEvaluacionPanel';
 import EvaluacionesTable from './EvaluacionesTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -18,6 +24,7 @@ function textoResumen(total?: number): string {
 export default function ConsultarEvaluacionesCoordinador() {
   const listado = useEvaluacionesCoordinador();
   const catalogo = useCatalogoEstadosEvaluacion();
+  const [evaluacionAsignando, setEvaluacionAsignando] = useState<Evaluacion | null>(null);
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const evaluaciones = data?.content ?? [];
@@ -77,6 +84,20 @@ export default function ConsultarEvaluacionesCoordinador() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            encabezadoAcciones="Acciones"
+            acciones={(evaluacion) => (
+              <RowMenu
+                etiqueta={`Acciones de ${evaluacion.entregable.proyecto}`}
+                acciones={[
+                  {
+                    etiqueta: 'Asignar jurados',
+                    icono: UserPlus,
+                    onSeleccionar: () => setEvaluacionAsignando(evaluacion),
+                    deshabilitada: evaluacion.estado.id === ESTADO_FINALIZADA,
+                  },
+                ]}
+              />
+            )}
           />
         )}
       </div>
@@ -90,6 +111,13 @@ export default function ConsultarEvaluacionesCoordinador() {
           cantidadEnPagina={evaluaciones.length}
           etiquetaPlural="evaluaciones"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {evaluacionAsignando && (
+        <AsignarJuradosEvaluacionPanel
+          evaluacion={evaluacionAsignando}
+          onCerrar={() => setEvaluacionAsignando(null)}
         />
       )}
     </div>
