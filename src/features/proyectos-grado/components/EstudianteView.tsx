@@ -11,6 +11,7 @@ import type { ResumenProyectoGrado } from '../models/ResumenProyectoGrado';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
 import { DISPOSICION } from './disposicion';
 import AsesorActualResumen from './estudiante/AsesorActualResumen';
+import CompanerosProyectoResumen from './estudiante/CompanerosProyectoResumen';
 import HistorialAsesoresProyectoPanel from './estudiante/HistorialAsesoresProyectoPanel';
 import HistorialEstadosProyectoPanel from './estudiante/HistorialEstadosProyectoPanel';
 import SelectorProyectoGrado from './estudiante/SelectorProyectoGrado';
@@ -99,6 +100,9 @@ export default function EstudianteView() {
           <ResumenProyectoGradoPanel
             resumen={aResumen(proyecto)}
             asesor={<AsesorActualResumen key={proyecto.id} proyectoGradoId={proyecto.id} />}
+            estudiantes={
+              <CompanerosProyectoResumen key={proyecto.id} proyectoGradoId={proyecto.id} />
+            }
           />
         </div>
       </div>
