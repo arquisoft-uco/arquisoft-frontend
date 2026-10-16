@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-10.
+Última revisión: 2026-10-14.
 
 ## Bloqueados por el backend
 
@@ -16,6 +16,7 @@ Al resolver un pendiente, se borra de aquí.
 | B5 | **Detalle de ficha para asesor y representante** | (a) No existe `GET /fichas-perfil/{id}` para estos roles: abrir el detalle por URL directa o recargar en otra pestaña muestra el título genérico «Ficha de perfil», sin estado ni asesor. Desde proyectos de grado el detalle recibe por state el título (`tituloProyecto`) y el estado sale del historial, pero sin asesor; la URL directa sigue sin resumen hasta que exista `GET /fichas-perfil/{id}` o el listado de proyectos traiga el asesor. (b) `FichaPerfilCriteria` no filtra por `id`, así que tampoco se puede recuperar la ficha por el listado. (c) `fichas:estudiante-ficha-perfil-coordinador:view` no la tienen `asesor-ficha` ni `representante-comite`, por eso el detalle omite la sección «Equipo». (d) El backend no lista el historial de estados de una evaluación (el listado de observaciones ya existe: HU-281) | Backend |
 | B6 | **Catálogo de estados de observación de ítem** | No existe endpoint de `estado_observacion_revision` (solo `/estados-revision`, otro catálogo). Por eso las pestañas Observaciones del asesor (HU-200) y del estudiante (HU-026) no ofrecen filtro por estado: solo ordena por estado. Valores del MER: `PENDIENTE`, `EN_PROGRESO`, `CERRADO` | Backend |
 | B7 | **Catálogo de estados de proyecto de grado y consultas pendientes** | Ya existen el listado del estudiante (`GET /proyectos-grado/estudiante`, HU-048), el historial (`/{id}/estados`) y el detalle del asesor. Sigue sin existir un endpoint del catálogo `estado_proyecto`: el listado de HU-159 ofrece 4 opciones de estado fijas en el frontend (`ESTADOS_PROYECTO`). Cuando exista, `ESTADOS_PROYECTO` se reemplaza por un hook | Backend |
+| B8 | **Coordinador sin lectura de jurados ya asignados** | No hay forma de que el coordinador consulte los jurados ya asignados a una evaluación: `POST /evaluaciones/{id}/evaluaciones-jurado` exige `evaluacion-jurado-estudiante:view` (solo estudiante) y `/evaluaciones/coordinador` no trae jurados. El panel de HU-283 no los precarga ni los muestra y se apoya en el 422 `JURADOS_YA_ASIGNADOS` | Backend |
 
 Client roles a confirmar en el realm desplegado:
 
@@ -57,6 +58,7 @@ Client roles a confirmar en el realm desplegado:
 - `proyectos:asesor-proyecto-grado:update-estado` para el coordinador (finalizar la participación de un asesor de un proyecto de grado, HU-166), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `proyectos:asesor-proyecto-grado:create` para el coordinador (asignar un asesor a un proyecto de grado, HU-165) y `usuarios:asesor-vigente:view` (catálogo de asesores vigentes), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `proyectos:proyecto-grado-asesor:view` para el asesor (listado de sus proyectos de grado, HU-153), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `evaluaciones:evaluacion-jurado:create` para el coordinador (asignar jurados a una evaluación, HU-283) y `usuarios:jurado-vigente:view` (catálogo de jurados vigentes consumido por el coordinador), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend
 
