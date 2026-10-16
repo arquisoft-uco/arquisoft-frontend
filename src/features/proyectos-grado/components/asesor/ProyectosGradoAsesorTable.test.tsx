@@ -37,7 +37,7 @@ function tabla() {
 }
 
 describe('ProyectosGradoAsesorTable', () => {
-  it('muestra título y estado de cada proyecto como texto, sin enlaces', () => {
+  it('muestra título y estado de cada proyecto y el título es un enlace al detalle', () => {
     // Act
     renderizar();
 
@@ -45,7 +45,9 @@ describe('ProyectosGradoAsesorTable', () => {
     expect(tabla().getByText('Sistema de monitoreo')).toBeInTheDocument();
     expect(tabla().getByText('En proceso')).toBeInTheDocument();
     expect(tabla().getByText('Atrasado')).toBeInTheDocument();
-    expect(tabla().queryByRole('link')).not.toBeInTheDocument();
+    expect(
+      tabla().getByRole('link', { name: 'Ver el detalle de Sistema de monitoreo' }),
+    ).toHaveAttribute('href', '/proyectos-grado/p-1');
   });
 
   it('pulsar la cabecera Proyecto invierte la dirección del orden', async () => {
