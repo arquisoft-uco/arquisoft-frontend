@@ -45,6 +45,10 @@ export const proyectosGradoService = {
       .then((r) => r.data);
   },
 
+  getProyectosAsesor(req: ConsultaCriteriaRequest): Promise<Page<ProyectoGrado>> {
+    return apiClient.post<Page<ProyectoGrado>>('/proyectos-grado/asesor', req).then((r) => r.data);
+  },
+
   getMisProyectos(): Promise<ProyectoGrado[]> {
     return apiClient.get<ProyectoGrado[]>('/proyectos-grado/estudiante').then((r) => r.data);
   },

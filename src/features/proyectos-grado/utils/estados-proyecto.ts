@@ -8,4 +8,9 @@ export const ESTADOS_PROYECTO: readonly EstadoProyecto[] = [
   { id: 'FINALIZADO', nombre: 'Finalizado' },
 ];
 
+export const OPCIONES_ESTADO_PROYECTO = ESTADOS_PROYECTO.map((e) => ({
+  id: e.id,
+  etiqueta: e.nombre,
+}));
+
 export const ESTADO_FINALIZADO = 'FINALIZADO';
