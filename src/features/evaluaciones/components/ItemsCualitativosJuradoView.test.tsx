@@ -12,7 +12,12 @@ import { useItemsCualitativosJurado } from '../hooks/useItemsCualitativosJurado'
 import { useCriteriosItemCualitativoJurado } from '../hooks/useCriteriosItemCualitativoJurado';
 import { useRegistrarItemCualitativoJurado } from '../hooks/useRegistrarItemCualitativoJurado';
 import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
+import { useRemoverItemCualitativoJurado } from '../hooks/useRemoverItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
+
+vi.mock('../hooks/useRemoverItemCualitativoJurado', () => ({
+  useRemoverItemCualitativoJurado: vi.fn(),
+}));
 
 vi.mock('../hooks/useItemsCualitativosJurado', () => ({
   useItemsCualitativosJurado: vi.fn(),
@@ -224,6 +229,36 @@ describe('ItemsCualitativosJuradoView', () => {
       ).toBeInTheDocument();
       unmount();
     }
+  });
+
+  it('el administrador ve Remover por ítem y abre la confirmación; el jurado no lo ve', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    vi.mocked(useRemoverItemCualitativoJurado).mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    } as Partial<ReturnType<typeof useRemoverItemCualitativoJurado>> as ReturnType<
+      typeof useRemoverItemCualitativoJurado
+    >);
+    setActiveRole(Rol.Administrador);
+    const user = userEvent.setup();
+    const { unmount } = render(<ItemsCualitativosJuradoView />);
+    const tabla = screen.getByRole('table', { name: 'Ítems cualitativos del jurado' });
+    expect(within(tabla).getAllByRole('button', { name: /^Remover ítem/ })).toHaveLength(2);
+
+    // Act
+    await user.click(within(tabla).getByRole('button', { name: 'Remover ítem Claridad' }));
+
+    // Assert
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Claridad');
+    unmount();
+
+    // Act
+    setActiveRole(Rol.Jurado);
+    render(<ItemsCualitativosJuradoView />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /^Remover ítem/ })).not.toBeInTheDocument();
   });
 
   it('el jurado no ve el lápiz de edición', () => {

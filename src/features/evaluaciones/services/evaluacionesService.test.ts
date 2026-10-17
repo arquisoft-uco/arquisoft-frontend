@@ -3,9 +3,10 @@ import apiClient from '../../../api/axiosInstance';
 import { evaluacionesService } from './evaluacionesService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), patch: vi.fn(), post: vi.fn() },
+  default: { get: vi.fn(), patch: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
 
+const del = vi.mocked(apiClient.delete);
 const patch = vi.mocked(apiClient.patch);
 const post = vi.mocked(apiClient.post);
 const get = vi.mocked(apiClient.get);
@@ -30,6 +31,20 @@ describe('evaluacionesService', () => {
       expect(patch).toHaveBeenCalledWith('/evaluaciones/items-cualitativos-jurado/item-1', {
         descripcion: 'Nueva descripción',
       });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('removerItemCualitativoJurado', () => {
+    it('llama DELETE con el itemId en la ruta y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerItemCualitativoJurado('item-1');
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/items-cualitativos-jurado/item-1');
       expect(resultado).toBeUndefined();
     });
   });
