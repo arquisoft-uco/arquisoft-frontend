@@ -44,11 +44,6 @@ export default function RemoverItemCualitativoJuradoDialog({ item, onCerrar }: P
     });
   }
 
-  function handleCancelar() {
-    if (isPending) return;
-    onCerrar();
-  }
-
   return (
     <ConfirmDialog
       variante="peligro"
@@ -58,7 +53,7 @@ export default function RemoverItemCualitativoJuradoDialog({ item, onCerrar }: P
       labelConfirmar="Remover"
       cargando={isPending}
       onConfirmar={handleConfirmar}
-      onCancelar={handleCancelar}
+      onCancelar={onCerrar}
     />
   );
 }
