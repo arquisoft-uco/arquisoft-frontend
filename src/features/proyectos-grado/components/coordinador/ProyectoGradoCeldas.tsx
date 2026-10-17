@@ -13,9 +13,11 @@ const ENLACE =
 
 interface PropsTitulo {
   proyecto: ProyectoGrado;
+  destino?: string;
+  etiquetaAccesible?: string;
 }
 
-export function TituloProyecto({ proyecto }: PropsTitulo) {
+export function TituloProyecto({ proyecto, destino = 'asesores', etiquetaAccesible }: PropsTitulo) {
   const { search } = useLocation();
   const titulo = proyecto.tituloProyecto;
   const navegacion: NavegacionDetalleProyecto = {
@@ -30,9 +32,11 @@ export function TituloProyecto({ proyecto }: PropsTitulo) {
 
   return (
     <Link
-      to={`/proyectos-grado/${proyecto.id}/asesores`}
+      to={
+        destino ? `/proyectos-grado/${proyecto.id}/${destino}` : `/proyectos-grado/${proyecto.id}`
+      }
       state={navegacion}
-      aria-label={`Ver los asesores de ${titulo}`}
+      aria-label={etiquetaAccesible ?? `Ver los asesores de ${titulo}`}
       title={titulo}
       className={TITULO}
     >

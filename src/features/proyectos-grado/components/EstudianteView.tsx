@@ -6,8 +6,7 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useMisProyectosGrado } from '../hooks/useMisProyectosGrado';
-import type { ProyectoGrado } from '../models/ProyectoGrado';
-import type { ResumenProyectoGrado } from '../models/ResumenProyectoGrado';
+import { aResumen } from '../utils/resumen-proyecto-grado';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
 import { DISPOSICION } from './disposicion';
 import AsesorActualResumen from './estudiante/AsesorActualResumen';
@@ -30,15 +29,6 @@ const PESTANAS = [
   { id: 'estados' as const, etiqueta: 'Historial de estados' },
   { id: 'asesores' as const, etiqueta: 'Historial de asesores' },
 ];
-
-function aResumen(proyecto: ProyectoGrado): ResumenProyectoGrado {
-  return {
-    id: proyecto.id,
-    titulo: proyecto.tituloProyecto,
-    estadoId: proyecto.estado.id,
-    estadoNombre: proyecto.estado.nombre,
-  };
-}
 
 export default function EstudianteView() {
   const { proyecto, proyectos, seleccionarProyecto, cargado, sinProyecto, hayError, reintentar } =
