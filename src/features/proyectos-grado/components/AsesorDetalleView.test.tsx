@@ -2,10 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import { AxiosError, type AxiosResponse } from 'axios';
-import { render, screen } from '../../../test-utils/render';
+import { render, screen, within } from '../../../test-utils/render';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 import type { EstudianteAsesoradoProyectoGrado } from '../models/EstudianteAsesoradoProyectoGrado';
 import AsesorDetalleView from './AsesorDetalleView';
+import PestanaResumenAsesor from './asesor/PestanaResumenAsesor';
 
 const { detalle, estudiantes, resumen } = vi.hoisted(() => ({
   detalle: vi.fn(),
@@ -60,10 +61,12 @@ function estudiantesCon(parcial: Record<string, unknown>) {
 function renderizar() {
   return render(
     <Routes>
-      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />} />
+      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />}>
+        <Route path="resumen" element={<PestanaResumenAsesor />} />
+      </Route>
       <Route path="/proyectos-grado" element={<p>Listado de proyectos</p>} />
     </Routes>,
-    { initialPath: '/proyectos-grado/p-1' },
+    { initialPath: '/proyectos-grado/p-1/resumen' },
   );
 }
 
@@ -90,9 +93,27 @@ describe('AsesorDetalleView', () => {
       'href',
       '/proyectos-grado?q=monitoreo',
     );
-    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
-    expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
-    expect(screen.getByText('2001')).toBeInTheDocument();
+    const panel = within(
+      screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' }),
+    );
+    expect(panel.getByText('Ana Pérez')).toBeInTheDocument();
+    expect(panel.getByText('ana@uco.edu.co')).toBeInTheDocument();
+    expect(panel.getByText('2001')).toBeInTheDocument();
+    expect(screen.queryByText('Estudiantes que asesoras')).not.toBeInTheDocument();
+  });
+
+  it('muestra la pestaña Resumen activa en la barra de secciones', () => {
+    // Arrange
+    detalleCon({ data: PROYECTO });
+
+    // Act
+    renderizar();
+
+    // Assert
+    const barra = screen.getByRole('navigation', { name: 'Secciones del proyecto de grado' });
+    const enlace = within(barra).getByRole('link', { name: 'Resumen' });
+    expect(enlace).toHaveAttribute('aria-current', 'page');
+    expect(enlace).toHaveAttribute('href', '/proyectos-grado/p-1/resumen');
   });
 
   it('durante la carga muestra el título provisional del state', () => {

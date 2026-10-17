@@ -1,18 +1,15 @@
 import { SearchX } from 'lucide-react';
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
+import Tabs from '../../../shared/components/ui/Tabs';
 import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
 import { useDetalleProyectoGradoAsesor } from '../hooks/useDetalleProyectoGradoAsesor';
 import { useResumenProyectoGrado } from '../hooks/useResumenProyectoGrado';
-import { aResumen } from '../utils/resumen-proyecto-grado';
-import EstudiantesAsesoradosPanel from './asesor/EstudiantesAsesoradosPanel';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
-import { DISPOSICION } from './disposicion';
-import ResumenProyectoGradoPanel from './ResumenProyectoGradoPanel';
 
 const RAIZ = 'flex flex-col gap-6';
 const TITULO_GENERICO = 'Proyecto de grado';
@@ -20,6 +17,7 @@ const TITULO_GENERICO = 'Proyecto de grado';
 export default function AsesorDetalleView() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { resumen, search } = useResumenProyectoGrado(id);
   const { data: proyecto, isLoading, error, refetch } = useDetalleProyectoGradoAsesor(id);
 
@@ -35,14 +33,7 @@ export default function AsesorDetalleView() {
           titulo={provisional}
           migas={[{ etiqueta: 'Proyectos de grado', to: rutaListado }, { etiqueta: provisional }]}
         />
-        <div className={DISPOSICION.contenedor}>
-          <div className={DISPOSICION.principal}>
-            <Skeleton variante="tarjetas" etiqueta="Cargando los estudiantes que asesoras…" />
-          </div>
-          <div className={DISPOSICION.lateral}>
-            <Skeleton variante="tarjetas" etiqueta="Cargando el resumen del proyecto…" />
-          </div>
-        </div>
+        <Skeleton variante="tarjetas" etiqueta="Cargando el resumen del proyecto…" />
       </div>
     );
   }
@@ -73,6 +64,8 @@ export default function AsesorDetalleView() {
   }
 
   const titulo = proyecto.tituloProyecto;
+  const pestanas = [{ id: 'resumen', etiqueta: 'Resumen', to: `/proyectos-grado/${id}/resumen` }];
+  const activa = pestanas.find((p) => pathname.startsWith(p.to)) ?? pestanas[0];
 
   return (
     <div className={RAIZ}>
@@ -83,14 +76,8 @@ export default function AsesorDetalleView() {
           <InsigniaEstadoProyecto estadoId={proyecto.estado.id} nombre={proyecto.estado.nombre} />
         }
       />
-      <div className={DISPOSICION.contenedor}>
-        <div className={DISPOSICION.principal}>
-          <EstudiantesAsesoradosPanel proyectoGradoId={proyecto.id} />
-        </div>
-        <div className={DISPOSICION.lateral}>
-          <ResumenProyectoGradoPanel resumen={aResumen(proyecto)} />
-        </div>
-      </div>
+      <Tabs items={pestanas} valor={activa.id} etiqueta="Secciones del proyecto de grado" />
+      <Outlet />
     </div>
   );
 }
