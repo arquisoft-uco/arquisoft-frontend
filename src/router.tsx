@@ -78,7 +78,6 @@ export const router = createBrowserRouter([
                 children: [
                   { index: true, element: <PestanaProyectoGrado /> },
                   { path: 'asesores', element: <PestanaProyectoGrado pestana="asesores" /> },
-                  { path: 'resumen', element: <PestanaProyectoGrado pestana="resumen" /> },
                 ],
               },
             ],

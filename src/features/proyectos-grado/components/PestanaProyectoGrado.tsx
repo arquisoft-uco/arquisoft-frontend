@@ -2,19 +2,16 @@ import type { ComponentType } from 'react';
 import { Navigate } from 'react-router';
 import { useRolActivo } from '../../../hooks/useAuth';
 import { Rol } from '../../../shared/models/rol';
-import PestanaResumenAsesor from './asesor/PestanaResumenAsesor';
 import PestanaAsesores from './PestanaAsesores';
 
-export type Pestana = 'asesores' | 'resumen';
+export type Pestana = 'asesores';
 
 const PANEL_POR_PESTANA: Record<Pestana, Record<string, ComponentType>> = {
   asesores: { [Rol.Coordinador]: PestanaAsesores },
-  resumen: { [Rol.Asesor]: PestanaResumenAsesor },
 };
 
 const PESTANA_INICIAL_POR_ROL: Record<string, Pestana> = {
   [Rol.Coordinador]: 'asesores',
-  [Rol.Asesor]: 'resumen',
 };
 
 interface Props {
@@ -24,11 +21,9 @@ interface Props {
 export default function PestanaProyectoGrado({ pestana }: Props) {
   const rol = useRolActivo();
   const inicial = rol ? PESTANA_INICIAL_POR_ROL[rol] : undefined;
+  const Panel = rol && pestana ? PANEL_POR_PESTANA[pestana][rol] : undefined;
 
-  if (!rol || !inicial) return <Navigate to="/forbidden" replace />;
-
-  const Panel = pestana ? PANEL_POR_PESTANA[pestana][rol] : undefined;
-  if (!Panel) return <Navigate to={pestana ? `../${inicial}` : inicial} replace />;
-
-  return <Panel />;
+  if (Panel) return <Panel />;
+  if (inicial) return <Navigate to={pestana ? `../${inicial}` : inicial} replace />;
+  return pestana ? <Navigate to=".." replace /> : null;
 }

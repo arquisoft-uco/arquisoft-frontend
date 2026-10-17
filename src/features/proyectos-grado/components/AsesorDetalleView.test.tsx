@@ -6,7 +6,6 @@ import { render, screen, within } from '../../../test-utils/render';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 import type { EstudianteAsesoradoProyectoGrado } from '../models/EstudianteAsesoradoProyectoGrado';
 import AsesorDetalleView from './AsesorDetalleView';
-import PestanaResumenAsesor from './asesor/PestanaResumenAsesor';
 
 const { detalle, estudiantes, resumen } = vi.hoisted(() => ({
   detalle: vi.fn(),
@@ -61,12 +60,10 @@ function estudiantesCon(parcial: Record<string, unknown>) {
 function renderizar() {
   return render(
     <Routes>
-      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />}>
-        <Route path="resumen" element={<PestanaResumenAsesor />} />
-      </Route>
+      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />} />
       <Route path="/proyectos-grado" element={<p>Listado de proyectos</p>} />
     </Routes>,
-    { initialPath: '/proyectos-grado/p-1/resumen' },
+    { initialPath: '/proyectos-grado/p-1' },
   );
 }
 
@@ -102,7 +99,7 @@ describe('AsesorDetalleView', () => {
     expect(screen.queryByText('Estudiantes que asesoras')).not.toBeInTheDocument();
   });
 
-  it('muestra la pestaña Resumen activa en la barra de secciones', () => {
+  it('no muestra barra de pestañas y deja el panel Resumen siempre visible', () => {
     // Arrange
     detalleCon({ data: PROYECTO });
 
@@ -110,10 +107,14 @@ describe('AsesorDetalleView', () => {
     renderizar();
 
     // Assert
-    const barra = screen.getByRole('navigation', { name: 'Secciones del proyecto de grado' });
-    const enlace = within(barra).getByRole('link', { name: 'Resumen' });
-    expect(enlace).toHaveAttribute('aria-current', 'page');
-    expect(enlace).toHaveAttribute('href', '/proyectos-grado/p-1/resumen');
+    expect(
+      screen.queryByRole('navigation', { name: 'Secciones del proyecto de grado' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Resumen' })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' }),
+    ).toBeInTheDocument();
   });
 
   it('durante la carga muestra el título provisional del state', () => {

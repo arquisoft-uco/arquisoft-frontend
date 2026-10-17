@@ -5,14 +5,21 @@ import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
+import type { ItemPestana } from '../../../shared/components/ui/ContenidoPestana';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
 import { useDetalleProyectoGradoAsesor } from '../hooks/useDetalleProyectoGradoAsesor';
 import { useResumenProyectoGrado } from '../hooks/useResumenProyectoGrado';
+import { aResumen } from '../utils/resumen-proyecto-grado';
+import EstudiantesAsesoradosResumen from './asesor/EstudiantesAsesoradosResumen';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
+import { DISPOSICION } from './disposicion';
+import ResumenProyectoGradoPanel from './ResumenProyectoGradoPanel';
 
 const RAIZ = 'flex flex-col gap-6';
 const TITULO_GENERICO = 'Proyecto de grado';
+// Las HU futuras del asesor agregan aquí su pestaña (con `to`) y su subruta en router.tsx.
+const PESTANAS: ItemPestana<string>[] = [];
 
 export default function AsesorDetalleView() {
   const { id = '' } = useParams();
@@ -64,8 +71,14 @@ export default function AsesorDetalleView() {
   }
 
   const titulo = proyecto.tituloProyecto;
-  const pestanas = [{ id: 'resumen', etiqueta: 'Resumen', to: `/proyectos-grado/${id}/resumen` }];
-  const activa = pestanas.find((p) => pathname.startsWith(p.to)) ?? pestanas[0];
+  const hayPestanas = PESTANAS.length > 0;
+  const activa = PESTANAS.find((p) => p.to && pathname.startsWith(p.to)) ?? PESTANAS[0];
+  const panel = (
+    <ResumenProyectoGradoPanel
+      resumen={aResumen(proyecto)}
+      estudiantes={<EstudiantesAsesoradosResumen proyectoGradoId={proyecto.id} />}
+    />
+  );
 
   return (
     <div className={RAIZ}>
@@ -76,8 +89,20 @@ export default function AsesorDetalleView() {
           <InsigniaEstadoProyecto estadoId={proyecto.estado.id} nombre={proyecto.estado.nombre} />
         }
       />
-      <Tabs items={pestanas} valor={activa.id} etiqueta="Secciones del proyecto de grado" />
-      <Outlet />
+      {hayPestanas ? (
+        <div className={DISPOSICION.contenedor}>
+          <div className={DISPOSICION.principal}>
+            <Tabs items={PESTANAS} valor={activa.id} etiqueta="Secciones del proyecto de grado" />
+            <Outlet />
+          </div>
+          <div className={DISPOSICION.lateral}>{panel}</div>
+        </div>
+      ) : (
+        <>
+          {panel}
+          <Outlet />
+        </>
+      )}
     </div>
   );
 }
