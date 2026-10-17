@@ -12,13 +12,15 @@ import CriteriosItemCualitativoJuradoPanel from './CriteriosItemCualitativoJurad
 import ItemsCualitativosJuradoTable from './ItemsCualitativosJuradoTable';
 import ModificarItemCualitativoJuradoPanel from './ModificarItemCualitativoJuradoPanel';
 import RegistrarItemCualitativoJuradoPanel from './RegistrarItemCualitativoJuradoPanel';
+import RemoverItemCualitativoJuradoDialog from './RemoverItemCualitativoJuradoDialog';
 
 const ROLES_ADMINISTRAN = [Rol.Administrador];
 
 type PanelItems =
   | { tipo: 'registrar' }
   | { tipo: 'criterios' }
-  | { tipo: 'modificar'; item: ItemCualitativoJurado };
+  | { tipo: 'modificar'; item: ItemCualitativoJurado }
+  | { tipo: 'remover'; item: ItemCualitativoJurado };
 
 export default function ItemsCualitativosJuradoView() {
   const { data, isLoading, isError, error, refetch } = useItemsCualitativosJurado();
@@ -70,6 +72,7 @@ export default function ItemsCualitativosJuradoView() {
         <ItemsCualitativosJuradoTable
           items={data}
           onEditar={esAdministrador ? (item) => setPanel({ tipo: 'modificar', item }) : undefined}
+          onRemover={esAdministrador ? (item) => setPanel({ tipo: 'remover', item }) : undefined}
         />
       )}
 
@@ -81,6 +84,13 @@ export default function ItemsCualitativosJuradoView() {
       )}
       {panel?.tipo === 'modificar' && (
         <ModificarItemCualitativoJuradoPanel
+          key={panel.item.id}
+          item={panel.item}
+          onCerrar={cerrarPanel}
+        />
+      )}
+      {panel?.tipo === 'remover' && (
+        <RemoverItemCualitativoJuradoDialog
           key={panel.item.id}
           item={panel.item}
           onCerrar={cerrarPanel}

@@ -14,10 +14,14 @@ import CategoriasItemCuantitativoJuradoPanel from './CategoriasItemCuantitativoJ
 import ItemsCuantitativosJuradoTable from './ItemsCuantitativosJuradoTable';
 import ModificarItemCuantitativoJuradoPanel from './ModificarItemCuantitativoJuradoPanel';
 import RegistrarItemCuantitativoJuradoPanel from './RegistrarItemCuantitativoJuradoPanel';
+import RemoverItemCuantitativoJuradoDialog from './RemoverItemCuantitativoJuradoDialog';
 
 const ROLES_ADMINISTRAN = [Rol.Administrador];
 
-type PanelItems = { tipo: 'registrar' } | { tipo: 'modificar'; item: ItemCuantitativoJurado };
+type PanelItems =
+  | { tipo: 'registrar' }
+  | { tipo: 'modificar'; item: ItemCuantitativoJurado }
+  | { tipo: 'remover'; item: ItemCuantitativoJurado };
 
 export default function ItemsCuantitativosJuradoView() {
   const { data, isLoading, isError, error, refetch } = useItemsCuantitativosJurado();
@@ -68,6 +72,7 @@ export default function ItemsCuantitativosJuradoView() {
           categorias={categorias.data}
           cargandoCategorias={categorias.isLoading}
           onEditar={esAdministrador ? (item) => setPanel({ tipo: 'modificar', item }) : undefined}
+          onRemover={esAdministrador ? (item) => setPanel({ tipo: 'remover', item }) : undefined}
         />
       )}
 
@@ -78,6 +83,13 @@ export default function ItemsCuantitativosJuradoView() {
       )}
       {panel?.tipo === 'modificar' && (
         <ModificarItemCuantitativoJuradoPanel
+          key={panel.item.id}
+          item={panel.item}
+          onCerrar={cerrarPanel}
+        />
+      )}
+      {panel?.tipo === 'remover' && (
+        <RemoverItemCuantitativoJuradoDialog
           key={panel.item.id}
           item={panel.item}
           onCerrar={cerrarPanel}
