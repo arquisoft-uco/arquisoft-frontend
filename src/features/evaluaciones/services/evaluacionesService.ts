@@ -115,6 +115,11 @@ export const evaluacionesService = {
       .patch<void>(`/evaluaciones/items-cuantitativos-jurado/${itemId}`, { descripcion })
       .then(() => undefined),
 
+  removerItemCuantitativoJurado: (itemId: string): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/items-cuantitativos-jurado/${itemId}`)
+      .then(() => undefined),
+
   getEvaluacionesCoordinador: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
     apiClient.post<Page<Evaluacion>>('/evaluaciones/coordinador', req).then((r) => r.data),
 

@@ -46,6 +46,7 @@ Client roles a confirmar en el realm desplegado:
 - `evaluaciones:item-cuantitativo-jurado:view` y `evaluaciones:categoria-item-cuantitativo-jurado:view` para `jurado` y `administrador` (ítems cuantitativos y nombres de sus categorías, HU-226), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden`.
 - `evaluaciones:item-cuantitativo-jurado:create` para `administrador` (registrar ítem cuantitativo, HU-270), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden`.
 - `evaluaciones:item-cualitativo-jurado:delete` para `administrador` (remover ítem cualitativo, HU-269), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden`. El backend también lo concede a `coordinador`, que no tiene pantalla de ítems.
+- `evaluaciones:item-cuantitativo-jurado:delete` para `administrador` (remover ítem cuantitativo, HU-272), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden`. El backend también lo concede a `coordinador`, que no tiene pantalla de ítems.
 - `solicitudes:solicitud:create` para el estudiante.
 - `solicitudes:solicitud-novedad-coordinador-enviada:view` para el estudiante (pestaña «Enviadas», HU-096). Si falta, con login real la pestaña lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `solicitudes:solicitud-novedad-coordinador:delete` para el estudiante (eliminar una solicitud enviada, HU-086). Si falta, con login real el botón de eliminar responde 403 y lleva a `/forbidden`.

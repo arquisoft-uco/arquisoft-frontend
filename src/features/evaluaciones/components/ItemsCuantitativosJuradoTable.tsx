@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { Calculator, Pencil } from 'lucide-react';
+import { Calculator, Pencil, Trash2 } from 'lucide-react';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
@@ -13,6 +13,7 @@ interface Props {
   categorias: CategoriaItemCuantitativoJurado[] | undefined;
   cargandoCategorias: boolean;
   onEditar?: (item: ItemCuantitativoJurado) => void;
+  onRemover?: (item: ItemCuantitativoJurado) => void;
 }
 
 const CATEGORIA_NO_DISPONIBLE = 'No disponible';
@@ -29,6 +30,7 @@ export default function ItemsCuantitativosJuradoTable({
   categorias,
   cargandoCategorias,
   onEditar,
+  onRemover,
 }: Props) {
   const nombrePorCategoria = useMemo(
     () => new Map((categorias ?? []).map((categoria) => [categoria.id, categoria.nombre])),
@@ -70,14 +72,27 @@ export default function ItemsCuantitativosJuradoTable({
       filas={items}
       idDeFila={(item) => item.id}
       acciones={
-        onEditar &&
+        (onEditar || onRemover) &&
         ((item) => (
-          <IconButton
-            etiqueta={`Editar ítem ${item.nombre}`}
-            icono={Pencil}
-            rotulo="Editar"
-            onClick={() => onEditar(item)}
-          />
+          <div className="flex shrink-0 items-center justify-end gap-1">
+            {onEditar && (
+              <IconButton
+                etiqueta={`Editar ítem ${item.nombre}`}
+                icono={Pencil}
+                rotulo="Editar"
+                onClick={() => onEditar(item)}
+              />
+            )}
+            {onRemover && (
+              <IconButton
+                etiqueta={`Remover ítem ${item.nombre}`}
+                icono={Trash2}
+                tono="peligro"
+                rotulo="Remover"
+                onClick={() => onRemover(item)}
+              />
+            )}
+          </div>
         ))
       }
       tarjeta={(item) => (
