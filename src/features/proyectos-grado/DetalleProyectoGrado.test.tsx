@@ -5,6 +5,10 @@ import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-
 import { Rol } from '../../shared/models/rol';
 import DetalleProyectoGrado from './DetalleProyectoGrado';
 
+vi.mock('./components/AsesorDetalleView', () => ({
+  default: () => <p>Detalle asesor</p>,
+}));
+
 vi.mock('./components/CoordinadorDetalleView', () => ({
   default: () => <p>Detalle coordinador</p>,
 }));
@@ -50,6 +54,18 @@ describe('DetalleProyectoGrado', () => {
 
     // Assert
     expect(screen.getByText('Detalle coordinador')).toBeInTheDocument();
+  });
+
+  it('el asesor ve su detalle', () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Detalle asesor')).toBeInTheDocument();
   });
 
   it('un rol sin vista va a /forbidden', () => {

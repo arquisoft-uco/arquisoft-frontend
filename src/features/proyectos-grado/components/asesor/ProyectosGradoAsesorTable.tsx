@@ -9,9 +9,8 @@ import type {
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { OrdenCampoProyectoGrado } from '../../models/OrdenCampoProyectoGrado';
 import type { ProyectoGrado } from '../../models/ProyectoGrado';
-import { InsigniaEstadoProyecto } from '../coordinador/ProyectoGradoCeldas';
+import { InsigniaEstadoProyecto, TituloProyecto } from '../coordinador/ProyectoGradoCeldas';
 
-const TITULO = 'block truncate text-left font-semibold text-on-surface';
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoProyectoGrado {
@@ -27,11 +26,13 @@ interface Props {
   onLimpiarFiltros: () => void;
 }
 
-function TituloPlano({ proyecto }: { proyecto: ProyectoGrado }) {
+function TituloDetalle({ proyecto }: { proyecto: ProyectoGrado }) {
   return (
-    <span title={proyecto.tituloProyecto} className={TITULO}>
-      {proyecto.tituloProyecto}
-    </span>
+    <TituloProyecto
+      proyecto={proyecto}
+      destino=""
+      etiquetaAccesible={`Ver el detalle de ${proyecto.tituloProyecto}`}
+    />
   );
 }
 
@@ -41,7 +42,7 @@ const COLUMNAS: ColumnaTabla<ProyectoGrado>[] = [
     encabezado: 'Proyecto',
     clave: 'tituloProyecto',
     ordenable: true,
-    celda: (proyecto) => <TituloPlano proyecto={proyecto} />,
+    celda: (proyecto) => <TituloDetalle proyecto={proyecto} />,
   },
   {
     id: 'estado',
@@ -95,7 +96,7 @@ export default function ProyectosGradoAsesorTable({
       vacio={vacio}
       tarjeta={(proyecto) => (
         <>
-          <TituloPlano proyecto={proyecto} />
+          <TituloDetalle proyecto={proyecto} />
           <div className={TARJETA_ESTADO}>
             <InsigniaEstadoProyecto estadoId={proyecto.estado.id} nombre={proyecto.estado.nombre} />
           </div>

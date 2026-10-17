@@ -9,6 +9,7 @@ import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarE
 import type { CompaneroProyectoGrado } from '../models/CompaneroProyectoGrado';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
 import type { EstadoProyectoGradoResponse } from '../models/EstadoProyectoGradoResponse';
+import type { EstudianteAsesoradoProyectoGrado } from '../models/EstudianteAsesoradoProyectoGrado';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
 import type { HistorialEstadoProyectoGrado } from '../models/HistorialEstadoProyectoGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
@@ -47,6 +48,20 @@ export const proyectosGradoService = {
 
   getProyectosAsesor(req: ConsultaCriteriaRequest): Promise<Page<ProyectoGrado>> {
     return apiClient.post<Page<ProyectoGrado>>('/proyectos-grado/asesor', req).then((r) => r.data);
+  },
+
+  getDetalleProyectoAsesor(proyectoGradoId: string): Promise<ProyectoGrado> {
+    return apiClient
+      .get<ProyectoGrado>(`/proyectos-grado/${proyectoGradoId}/asesor`)
+      .then((r) => r.data);
+  },
+
+  getEstudiantesAsesorados(proyectoGradoId: string): Promise<EstudianteAsesoradoProyectoGrado[]> {
+    return apiClient
+      .get<
+        EstudianteAsesoradoProyectoGrado[]
+      >(`/proyectos-grado/${proyectoGradoId}/estudiantes-asesorados`)
+      .then((r) => r.data);
   },
 
   getMisProyectos(): Promise<ProyectoGrado[]> {
