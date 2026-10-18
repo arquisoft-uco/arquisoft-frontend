@@ -6,10 +6,9 @@ import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { useRemoverRevisionItem } from '../../hooks/useRemoverRevisionItem';
 import { useRevisionesFichaAsesor } from '../../hooks/useRevisionesFichaAsesor';
+import { ESTADO_REVISION_CERRADA } from '../../utils/estado-revision';
 import RevisionesFichaTabla from '../RevisionesFichaTabla';
 import AgregarObservacionItemPanel from './AgregarObservacionItemPanel';
-
-const ESTADO_REVISION_CERRADA = 'CERRADA';
 
 function mensajeError(err: unknown): string {
   if (hasApiErrorCode(err, 'REVISION_ITEM_CERRADA')) {

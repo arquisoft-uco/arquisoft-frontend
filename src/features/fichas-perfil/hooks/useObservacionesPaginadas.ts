@@ -5,6 +5,7 @@ import type { ConsultaCriteriaRequest } from '../../../shared/models/query-crite
 import type { Item } from '../models/fichas-perfil';
 import type { ObservacionItem, ObservacionItemFila } from '../models/ObservacionItem';
 import type { RevisionItem } from '../models/RevisionItem';
+import { ESTADO_REVISION_CERRADA } from '../utils/estado-revision';
 import type { DireccionOrden } from './useRevisionesPaginadas';
 
 const PAGE_SIZE = 10;
@@ -30,10 +31,13 @@ export function useObservacionesPaginadas({
   const [direccion, setDireccion] = useState<DireccionOrden | undefined>(undefined);
   const [paginaActual, setPaginaActual] = useState({ alcance: '', page: 0 });
 
-  const { revisionIds, itemIdPorRevision } = useMemo(
+  const { revisionIds, itemIdPorRevision, revisionCerradaPorId } = useMemo(
     () => ({
       revisionIds: revisiones.map((r) => r.id).sort(),
       itemIdPorRevision: new Map(revisiones.map((r) => [r.id, r.itemId])),
+      revisionCerradaPorId: new Map(
+        revisiones.map((r) => [r.id, r.estadoId === ESTADO_REVISION_CERRADA]),
+      ),
     }),
     [revisiones],
   );
@@ -65,9 +69,13 @@ export function useObservacionesPaginadas({
     const itemsPorId = new Map(items.map((item) => [item.id, item]));
     return (contenido ?? []).map((observacion) => {
       const itemId = itemIdPorRevision.get(observacion.revisionItemId);
-      return { observacion, item: itemId ? itemsPorId.get(itemId) : undefined };
+      return {
+        observacion,
+        item: itemId ? itemsPorId.get(itemId) : undefined,
+        revisionCerrada: revisionCerradaPorId.get(observacion.revisionItemId) ?? false,
+      };
     });
-  }, [contenido, items, itemIdPorRevision]);
+  }, [contenido, items, itemIdPorRevision, revisionCerradaPorId]);
 
   const sinObservables =
     (itemsCargados && items.length === 0) || (revisionesCargadas && revisionIds.length === 0);
