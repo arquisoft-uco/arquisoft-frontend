@@ -123,9 +123,35 @@ describe('useObservacionesFichaAsesor', () => {
         valores: ['r-1', 'r-2'],
       },
     });
-    expect(result.current.filas[0]).toEqual({ observacion: OBSERVACION, item: ITEM_1 });
+    expect(result.current.filas[0]).toEqual({
+      observacion: OBSERVACION,
+      item: ITEM_1,
+      revisionCerrada: false,
+    });
     expect(result.current.totalElements).toBe(1);
     expect(result.current.sinObservables).toBe(false);
+  });
+
+  it('marca revisionCerrada solo en las filas cuya revisión está CERRADA', async () => {
+    // Arrange
+    const otra = { ...OBSERVACION, id: 'o-2', revisionItemId: 'r-2' };
+    conItems({ data: [ITEM_1, { ...ITEM_1, id: 'i-2' }] });
+    conRevisiones(
+      new Map([
+        ['i-1', REVISION_1],
+        ['i-2', { ...REVISION_2, estadoId: 'CERRADA' }],
+      ]),
+    );
+    consultar.mockResolvedValue(pagina([OBSERVACION, otra]));
+
+    // Act
+    const { result } = renderHook(() => useObservacionesFichaAsesor('f-1'), {
+      wrapper: crearWrapper(),
+    });
+
+    // Assert
+    await waitFor(() => expect(result.current.filas).toHaveLength(2));
+    expect(result.current.filas.map((fila) => fila.revisionCerrada)).toEqual([false, true]);
   });
 
   it('ordenar DESC envía estadoObservacionRevision:DESC y vuelve a la página 0', async () => {

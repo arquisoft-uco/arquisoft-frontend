@@ -1,0 +1,1 @@
+export const ESTADO_REVISION_CERRADA = 'CERRADA';

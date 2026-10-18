@@ -27,6 +27,7 @@ import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaP
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 import type { ModificarObservacionEvaluacionRequest } from '../models/ModificarObservacionEvaluacionRequest';
+import type { ModificarObservacionItemRequest } from '../models/ModificarObservacionItemRequest';
 import type {
   Item,
   TipoItem,
@@ -527,6 +528,13 @@ export const fichasPerfilService = {
         },
       )
       .then((r) => r.data),
+
+  modificarObservacionItem: (req: ModificarObservacionItemRequest): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-item/${req.observacionItemId}`, {
+        observacion: req.observacion,
+      })
+      .then(() => undefined),
 
   consultarObservacionesItemAsesor: (
     req: ConsultaCriteriaRequest,

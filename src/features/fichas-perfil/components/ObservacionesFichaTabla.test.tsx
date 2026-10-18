@@ -35,6 +35,7 @@ const FILA = {
     tipoItem: { id: 't-1', nombre: 'Objetivo general' },
     contenido: 'Medir el impacto',
   },
+  revisionCerrada: false,
 };
 
 describe('ObservacionesFichaTabla', () => {
@@ -105,5 +106,29 @@ describe('ObservacionesFichaTabla', () => {
 
     // Assert
     expect(ordenar).toHaveBeenCalledWith('ASC');
+  });
+
+  it('con acciones renderiza su contenido por fila y sin la prop no hay columna de acciones', () => {
+    // Act
+    const { unmount } = render(
+      <ObservacionesFichaTabla
+        {...BASE}
+        filas={[FILA]}
+        totalElements={1}
+        totalPages={1}
+        acciones={(fila) => <button type="button">Acción de {fila.observacion.id}</button>}
+      />,
+    );
+
+    // Assert
+    expect(screen.getAllByRole('button', { name: 'Acción de o-1' }).length).toBeGreaterThan(0);
+    unmount();
+
+    // Act
+    render(<ObservacionesFichaTabla {...BASE} filas={[FILA]} totalElements={1} totalPages={1} />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Acción de/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Acciones' })).not.toBeInTheDocument();
   });
 });
