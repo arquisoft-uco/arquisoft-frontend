@@ -7,14 +7,11 @@ import Field from '../../../../shared/components/ui/Field';
 import FormActions from '../../../../shared/components/ui/FormActions';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { toast } from '../../../../shared/hooks/useToast';
-import {
-  getApiErrorMessage,
-  getApiFieldErrors,
-  hasApiErrorCode,
-} from '../../../../shared/utils/api-error';
+import { getApiFieldErrors, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../../shared/validation';
 import { useModificarObservacionItem } from '../../hooks/useModificarObservacionItem';
 import type { ObservacionItem } from '../../models/ObservacionItem';
+import { mensajeErrorObservacionItem } from '../../utils/errores-observacion-item';
 
 const schema = z.object({
   observacion: textoRequerido(LIMITES.OBSERVACION_ITEM_MAX),
@@ -29,15 +26,6 @@ const CODIGOS_SIN_REINTENTO = [
   'OBSERVACION_ITEM_NO_ENCONTRADA',
   'FICHA_NO_PERTENECE_ASESOR',
 ];
-
-function mensajeError(err: unknown): string {
-  if (hasApiErrorCode(err, 'REVISION_ITEM_CERRADA')) {
-    return 'La revisión está cerrada y ya no admite cambios.';
-  }
-  if (hasApiErrorCode(err, 'OBSERVACION_ITEM_NO_ENCONTRADA')) return 'La observación ya no existe.';
-  if (hasApiErrorCode(err, 'FICHA_NO_PERTENECE_ASESOR')) return 'Esta ficha no está asignada a ti.';
-  return getApiErrorMessage(err, 'No se pudo actualizar la observación. Intenta nuevamente.');
-}
 
 interface Props {
   observacion: ObservacionItem;
@@ -78,7 +66,10 @@ export default function EditarObservacionItemPanel({
           cerrar();
         },
         onError: (err) => {
-          const mensaje = mensajeError(err);
+          const mensaje = mensajeErrorObservacionItem(
+            err,
+            'No se pudo actualizar la observación. Intenta nuevamente.',
+          );
           toast.error('No se pudo actualizar la observación', mensaje);
           if (CODIGOS_SIN_REINTENTO.some((codigo) => hasApiErrorCode(err, codigo))) {
             cerrar();
