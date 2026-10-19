@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-14.
+Última revisión: 2026-10-18.
 
 ## Bloqueados por el backend
 
@@ -31,6 +31,8 @@ Client roles a confirmar en el realm desplegado:
 - `fichas:revision-item:create` para el asesor de ficha (agregar una revisión a un ítem, HU-195), sin verificar en el realm desplegado. Si falta, con login real el botón «Agregar revisión» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:observacion-item:create` para el asesor de ficha (agregar una observación a una revisión de ítem, HU-199), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:observacion-item-asesor:view` para el asesor de ficha (consulta de observaciones de ítem, HU-200), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `fichas:observacion-item:update` para el asesor de ficha (modificar una observación de ítem, HU-202), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `fichas:observacion-item:delete` para el asesor de ficha (remover una observación de ítem, HU-203), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:item-ficha-perfil-coordinador:view` para el coordinador (ítems de una ficha, HU-284), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:estado-ficha-perfil-coordinador:view` para el coordinador (historial de estados de una ficha, HU-287), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:estado-ficha-perfil-aprobacion:create` para el coordinador (decisión de aprobación de una ficha, HU-184), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.

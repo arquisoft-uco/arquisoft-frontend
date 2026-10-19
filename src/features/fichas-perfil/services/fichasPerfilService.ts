@@ -536,6 +536,11 @@ export const fichasPerfilService = {
       })
       .then(() => undefined),
 
+  removerObservacionItem: (observacionItemId: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/observaciones-item/${observacionItemId}`)
+      .then(() => undefined),
+
   consultarObservacionesItemAsesor: (
     req: ConsultaCriteriaRequest,
   ): Promise<Page<ObservacionItem>> =>
