@@ -584,6 +584,78 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('consultarEvaluacionesFichasAsesor', () => {
+    it('envía el body tal cual a POST /fichas-perfil/evaluaciones/asesor, traduce el DTO (incluidos los null) y conserva la paginación', async () => {
+      // Arrange
+      const req = {
+        pagina: 0,
+        tamanio: 10,
+        ordenamiento: ['fechaCreacion:DESC'],
+      };
+      post.mockResolvedValue({
+        status: 200,
+        data: {
+          content: [
+            {
+              id: 'ev-1',
+              fichaPerfil: 'f-1',
+              tituloProyecto: 'Sistema de monitoreo',
+              fechaCreacion: '2026-09-01T10:00:00Z',
+              estadoEvaluacion: 'APROBADA',
+              estadoEvaluacionNombre: 'Aprobada',
+              representanteComite: { id: 'r-1', nombre: 'Luis Gómez' },
+            },
+            {
+              id: 'ev-2',
+              fichaPerfil: 'f-2',
+              tituloProyecto: 'Otro proyecto',
+              fechaCreacion: '2026-09-02T10:00:00Z',
+              estadoEvaluacion: null,
+              estadoEvaluacionNombre: null,
+              representanteComite: { id: 'r-2', nombre: 'Marta Ruiz' },
+            },
+          ],
+          totalElements: 2,
+          totalPages: 1,
+          page: 0,
+          size: 10,
+        },
+      });
+
+      // Act
+      const resultado = await fichasPerfilService.consultarEvaluacionesFichasAsesor(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/evaluaciones/asesor', req);
+      expect(resultado).toEqual({
+        content: [
+          {
+            id: 'ev-1',
+            fichaPerfilId: 'f-1',
+            tituloProyecto: 'Sistema de monitoreo',
+            fechaCreacion: '2026-09-01T10:00:00Z',
+            estadoEvaluacionId: 'APROBADA',
+            estadoEvaluacionNombre: 'Aprobada',
+            representante: { id: 'r-1', nombre: 'Luis Gómez' },
+          },
+          {
+            id: 'ev-2',
+            fichaPerfilId: 'f-2',
+            tituloProyecto: 'Otro proyecto',
+            fechaCreacion: '2026-09-02T10:00:00Z',
+            estadoEvaluacionId: null,
+            estadoEvaluacionNombre: null,
+            representante: { id: 'r-2', nombre: 'Marta Ruiz' },
+          },
+        ],
+        totalElements: 2,
+        totalPages: 1,
+        page: 0,
+        size: 10,
+      });
+    });
+  });
+
   describe('consultarObservacionesItemAsesor', () => {
     it('envía el body tal cual a POST /fichas-perfil/observaciones-item/asesor, traduce el DTO y conserva la paginación', async () => {
       // Arrange
