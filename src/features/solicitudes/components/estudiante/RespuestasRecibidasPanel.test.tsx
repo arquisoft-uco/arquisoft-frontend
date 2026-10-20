@@ -19,15 +19,12 @@ vi.mock('../../hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
 function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuestas {
   return {
     page: 0,
-    texto: '',
     estadoIds: [],
     ordenCampo: 'fechaRespuesta',
     ordenDireccion: 'DESC',
     hayFiltros: false,
     goToPage: vi.fn(),
-    setTexto: vi.fn(),
     toggleEstado: vi.fn(),
-    limpiarEstados: vi.fn(),
     setOrden: vi.fn(),
     limpiarFiltros: vi.fn(),
     ...parcial,
@@ -149,7 +146,7 @@ describe('RespuestasRecibidasPanel', () => {
     const user = userEvent.setup();
     const limpiarFiltros = vi.fn();
     mockearHook({ data: crearPagina([]) });
-    const filtros = crearFiltros({ hayFiltros: true, texto: 'zzz', limpiarFiltros });
+    const filtros = crearFiltros({ hayFiltros: true, limpiarFiltros });
 
     // Act
     render(<RespuestasRecibidasPanel filtros={filtros} />);

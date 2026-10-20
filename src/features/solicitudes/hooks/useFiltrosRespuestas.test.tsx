@@ -16,7 +16,6 @@ describe('useFiltrosRespuestas', () => {
     // Assert
     expect(result.current).toMatchObject({
       page: 0,
-      texto: '',
       estadoIds: [],
       ordenCampo: 'fechaRespuesta',
       ordenDireccion: 'DESC',
@@ -30,12 +29,6 @@ describe('useFiltrosRespuestas', () => {
     expect(result.current.page).toBe(3);
 
     // Act
-    act(() => result.current.setTexto('hola'));
-    // Assert
-    expect(result.current.page).toBe(0);
-
-    // Act
-    act(() => result.current.goToPage(2));
     act(() => result.current.toggleEstado('APROBADA'));
     // Assert
     expect(result.current.page).toBe(0);
@@ -50,18 +43,12 @@ describe('useFiltrosRespuestas', () => {
 
     // Act
     act(() => result.current.goToPage(2));
-    act(() => result.current.limpiarEstados());
-    // Assert
-    expect(result.current.page).toBe(0);
-
-    // Act
-    act(() => result.current.goToPage(2));
     act(() => result.current.limpiarFiltros());
     // Assert
     expect(result.current.page).toBe(0);
   });
 
-  it('toggleEstado agrega y quita, y limpiarFiltros vacía texto y estados', () => {
+  it('toggleEstado agrega y quita, y limpiarFiltros vacía los estados', () => {
     // Arrange
     const { result } = renderHook(() => useFiltrosRespuestas());
 
@@ -74,20 +61,8 @@ describe('useFiltrosRespuestas', () => {
     expect(result.current.hayFiltros).toBe(true);
 
     // Act
-    act(() => result.current.setTexto('algo'));
     act(() => result.current.limpiarFiltros());
     // Assert
-    expect(result.current).toMatchObject({ texto: '', estadoIds: [], hayFiltros: false });
-  });
-
-  it('hayFiltros ignora un texto de solo espacios', () => {
-    // Arrange
-    const { result } = renderHook(() => useFiltrosRespuestas());
-
-    // Act
-    act(() => result.current.setTexto('   '));
-
-    // Assert
-    expect(result.current.hayFiltros).toBe(false);
+    expect(result.current).toMatchObject({ estadoIds: [], hayFiltros: false });
   });
 });

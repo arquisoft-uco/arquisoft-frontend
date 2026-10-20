@@ -2,33 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { construirCriterioRespuestas, construirFiltrosRespuestas } from './criterio-respuestas';
 
 describe('construirFiltrosRespuestas', () => {
-  it('omite lo vacío, recorta el texto y combina texto y estados con AND', () => {
+  it('omite el filtro sin estados y arma un único predicado IN con los estados', () => {
     // Assert
-    expect(construirFiltrosRespuestas('   ', [])).toBeUndefined();
-    expect(construirFiltrosRespuestas('  reunión  ', [])).toEqual({
-      tipo: 'PREDICADO',
-      campo: 'contenido',
-      operador: 'CONTIENE',
-      valor: 'reunión',
-    });
-    expect(construirFiltrosRespuestas('', ['APROBADA', 'EN_REVISION'])).toEqual({
+    expect(construirFiltrosRespuestas([])).toBeUndefined();
+    expect(construirFiltrosRespuestas(['APROBADA', 'EN_REVISION'])).toEqual({
       tipo: 'PREDICADO_MULTIVALOR',
       campo: 'estadoRespuestaId',
       operador: 'IN',
       valores: ['APROBADA', 'EN_REVISION'],
-    });
-    expect(construirFiltrosRespuestas('reunión', ['APROBADA'])).toEqual({
-      tipo: 'GRUPO',
-      conector: 'AND',
-      nodos: [
-        { tipo: 'PREDICADO', campo: 'contenido', operador: 'CONTIENE', valor: 'reunión' },
-        {
-          tipo: 'PREDICADO_MULTIVALOR',
-          campo: 'estadoRespuestaId',
-          operador: 'IN',
-          valores: ['APROBADA'],
-        },
-      ],
     });
   });
 });
@@ -39,7 +20,6 @@ describe('construirCriterioRespuestas', () => {
     const criterio = construirCriterioRespuestas(
       {
         page: 2,
-        texto: '',
         estadoIds: ['APROBADA'],
         ordenCampo: 'destinatarioNombre',
         ordenDireccion: 'ASC',

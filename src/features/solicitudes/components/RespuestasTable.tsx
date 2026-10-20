@@ -100,7 +100,7 @@ export default function RespuestasTable({
     <EmptyState
       icono={SearchX}
       titulo="Sin resultados"
-      descripcion="No hay respuestas que coincidan con tu búsqueda o tus filtros."
+      descripcion="No hay respuestas con el estado elegido."
       accion={
         <Button variante="secundario" onClick={onLimpiarFiltros}>
           Limpiar filtros

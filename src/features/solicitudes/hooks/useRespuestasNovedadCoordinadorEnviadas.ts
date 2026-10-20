@@ -17,7 +17,6 @@ export function useRespuestasNovedadCoordinadorEnviadas(parametros: ParametrosRe
     queryKey: [
       ...RESPUESTAS_ENVIADAS_QUERY_KEY,
       parametros.page,
-      parametros.texto.trim(),
       parametros.estadoIds,
       parametros.ordenCampo,
       parametros.ordenDireccion,

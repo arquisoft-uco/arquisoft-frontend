@@ -19,7 +19,6 @@ const consultar = vi.mocked(solicitudesService.consultarRespuestasNovedadCoordin
 
 const PARAMETROS: ParametrosRespuestas = {
   page: 0,
-  texto: '',
   estadoIds: [],
   ordenCampo: 'fechaRespuesta',
   ordenDireccion: 'DESC',
@@ -71,13 +70,12 @@ describe('useRespuestasNovedadCoordinadorRecibidas', () => {
     expect(result.current.pageSize).toBe(10);
   });
 
-  it('envía texto, estados y orden en el criterio', async () => {
+  it('envía estados y orden en el criterio', async () => {
     // Act
     const { result } = renderHook(
       () =>
         useRespuestasNovedadCoordinadorRecibidas({
           page: 1,
-          texto: ' reunión ',
           estadoIds: ['APROBADA'],
           ordenCampo: 'destinatarioNombre',
           ordenDireccion: 'ASC',
@@ -92,17 +90,10 @@ describe('useRespuestasNovedadCoordinadorRecibidas', () => {
       tamanio: 10,
       ordenamiento: ['destinatarioNombre:ASC'],
       filtros: {
-        tipo: 'GRUPO',
-        conector: 'AND',
-        nodos: [
-          { tipo: 'PREDICADO', campo: 'contenido', operador: 'CONTIENE', valor: 'reunión' },
-          {
-            tipo: 'PREDICADO_MULTIVALOR',
-            campo: 'estadoRespuestaId',
-            operador: 'IN',
-            valores: ['APROBADA'],
-          },
-        ],
+        tipo: 'PREDICADO_MULTIVALOR',
+        campo: 'estadoRespuestaId',
+        operador: 'IN',
+        valores: ['APROBADA'],
       },
     });
   });

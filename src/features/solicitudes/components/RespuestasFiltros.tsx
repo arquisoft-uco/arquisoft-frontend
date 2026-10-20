@@ -10,34 +10,27 @@ interface Props {
 export default function RespuestasFiltros({ filtros }: Props) {
   const estados = useEstadosRespuesta();
 
+  if (estados.isError) {
+    return (
+      <Notice variante="advertencia">
+        No se pudo cargar la lista de estados. El listado sigue disponible.
+      </Notice>
+    );
+  }
+
+  if (!estados.data || estados.data.length === 0) return null;
+
   return (
-    <div className="flex flex-col gap-3">
-      <FilterBar
-        busqueda={{
-          valor: filtros.texto,
-          onCambiar: filtros.setTexto,
-          etiqueta: 'Buscar respuestas',
-          placeholder: 'Buscar en el contenido de la respuesta',
-        }}
-        chips={
-          estados.data
-            ? {
-                etiqueta: 'Estado',
-                opciones: estados.data.map(({ id, nombre }) => ({ id, etiqueta: nombre })),
-                seleccionados: filtros.estadoIds,
-                onAlternar: filtros.toggleEstado,
-                onTodos: filtros.limpiarEstados,
-              }
-            : undefined
-        }
-        aplicados={[]}
-        onLimpiar={filtros.limpiarFiltros}
-      />
-      {estados.isError && (
-        <Notice variante="advertencia">
-          No se pudo cargar la lista de estados. La búsqueda y el listado siguen disponibles.
-        </Notice>
-      )}
-    </div>
+    <FilterBar
+      chips={{
+        etiqueta: 'Estado',
+        opciones: estados.data.map(({ id, nombre }) => ({ id, etiqueta: nombre })),
+        seleccionados: filtros.estadoIds,
+        onAlternar: filtros.toggleEstado,
+        onTodos: filtros.limpiarFiltros,
+      }}
+      aplicados={[]}
+      onLimpiar={filtros.limpiarFiltros}
+    />
   );
 }

@@ -10,29 +10,16 @@ export const ORDEN_POR_DEFECTO: {
   direccion: OrdenDireccionRespuesta;
 } = { campo: 'fechaRespuesta', direccion: 'DESC' };
 
-const CAMPO_TEXTO = 'contenido';
 const CAMPO_ESTADO = 'estadoRespuestaId';
 
-export function construirFiltrosRespuestas(
-  texto: string,
-  estadoIds: string[],
-): NodoFiltroDTO | undefined {
-  const nodos: NodoFiltroDTO[] = [];
-  const recortado = texto.trim();
-  if (recortado) {
-    nodos.push({ tipo: 'PREDICADO', campo: CAMPO_TEXTO, operador: 'CONTIENE', valor: recortado });
-  }
-  if (estadoIds.length > 0) {
-    nodos.push({
-      tipo: 'PREDICADO_MULTIVALOR',
-      campo: CAMPO_ESTADO,
-      operador: 'IN',
-      valores: estadoIds,
-    });
-  }
-  if (nodos.length === 0) return undefined;
-  if (nodos.length === 1) return nodos[0];
-  return { tipo: 'GRUPO', conector: 'AND', nodos };
+export function construirFiltrosRespuestas(estadoIds: string[]): NodoFiltroDTO | undefined {
+  if (estadoIds.length === 0) return undefined;
+  return {
+    tipo: 'PREDICADO_MULTIVALOR',
+    campo: CAMPO_ESTADO,
+    operador: 'IN',
+    valores: estadoIds,
+  };
 }
 
 export function construirCriterioRespuestas(
@@ -43,6 +30,6 @@ export function construirCriterioRespuestas(
     pagina: parametros.page,
     tamanio,
     ordenamiento: [`${parametros.ordenCampo}:${parametros.ordenDireccion}`],
-    filtros: construirFiltrosRespuestas(parametros.texto, parametros.estadoIds),
+    filtros: construirFiltrosRespuestas(parametros.estadoIds),
   };
 }

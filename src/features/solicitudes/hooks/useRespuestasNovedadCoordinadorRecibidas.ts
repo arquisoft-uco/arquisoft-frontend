@@ -17,7 +17,6 @@ export function useRespuestasNovedadCoordinadorRecibidas(parametros: ParametrosR
     queryKey: [
       ...RESPUESTAS_RECIBIDAS_QUERY_KEY,
       parametros.page,
-      parametros.texto.trim(),
       parametros.estadoIds,
       parametros.ordenCampo,
       parametros.ordenDireccion,
