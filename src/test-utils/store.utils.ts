@@ -1,4 +1,5 @@
 import { useAuthStore } from '../auth/authStore';
+import { useProveedorStore } from '../auth/proveedorStore';
 import { useRoleStore } from '../auth/roleStore';
 import { useToastStore } from '../shared/stores/toastStore';
 import type { Rol } from '../shared/models/rol';
@@ -12,6 +13,7 @@ export function resetAllStores() {
     username: '',
   });
   useRoleStore.setState({ rolSeleccionado: null });
+  useProveedorStore.setState({ proveedor: null });
   useToastStore.setState({ toasts: [] });
 }
 

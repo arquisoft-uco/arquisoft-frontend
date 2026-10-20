@@ -27,8 +27,14 @@ RUN npm run build
 # ==================== STAGE 2: RUNTIME ====================
 FROM nginx:1.29-alpine
 
-# Copiar configuración personalizada de Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# La plantilla se procesa con envsubst al arrancar; solo se sustituyen los cuatro orígenes de la CSP
+# (así $uri y otras variables de nginx quedan intactas).
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+ENV NGINX_ENVSUBST_FILTER="^(PDP|SECURITY_UI|API|KEYCLOAK)_ORIGIN$"
+ENV PDP_ORIGIN="" \
+    SECURITY_UI_ORIGIN="" \
+    API_ORIGIN="" \
+    KEYCLOAK_ORIGIN=""
 
 # Copiar build desde stage anterior
 COPY --from=builder /app/dist /usr/share/nginx/html

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Rol } from '../shared/models/rol';
 import {
   NAV_ITEMS,
+  CAPACIDAD_POR_RUTA,
   ROLES_POR_RUTA,
   agruparNavItems,
   estaDisponible,
@@ -53,5 +54,20 @@ describe('nav-items', () => {
     noDisponibles.forEach((i) => {
       expect(ROLES_POR_RUTA[i.path.slice(1)]).toEqual(i.roles);
     });
+  });
+
+  it('Seguridad se habilita por capacidad: sin roles, order 11 y visible solo con la capacidad', () => {
+    // Arrange
+    const seguridad = NAV_ITEMS.find((i) => i.path === '/seguridad');
+
+    // Assert
+    expect(seguridad).toMatchObject({ order: 11, capacidad: 'administracion-seguridad' });
+    expect(seguridad?.roles).toBeUndefined();
+    expect(ROLES_POR_RUTA['seguridad']).toBeUndefined();
+    expect(CAPACIDAD_POR_RUTA['seguridad']).toBe('administracion-seguridad');
+    expect(navItemsDelRol(Rol.Administrador).map((i) => i.path)).not.toContain('/seguridad');
+    expect(
+      navItemsDelRol(Rol.Administrador, NAV_ITEMS, ['administracion-seguridad']).map((i) => i.path),
+    ).toContain('/seguridad');
   });
 });
