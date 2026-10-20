@@ -131,7 +131,11 @@ describe('useObservacionesMiFicha', () => {
         valores: ['r-1', 'r-2'],
       },
     });
-    expect(result.current.filas[0]).toEqual({ observacion: OBSERVACION, item: ITEM_1 });
+    expect(result.current.filas[0]).toEqual({
+      observacion: OBSERVACION,
+      item: ITEM_1,
+      revisionCerrada: false,
+    });
     expect(result.current.sinObservables).toBe(false);
     expect(
       queryClient.getQueryData([

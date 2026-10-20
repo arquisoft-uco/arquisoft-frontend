@@ -9,6 +9,7 @@ import type { AsignarEstudianteRequest } from '../models/AsignarEstudianteReques
 import type { ObservacionEvaluacion } from '../models/ObservacionEvaluacion';
 import type { ObservacionEvaluacionCreadaResponse } from '../models/ObservacionEvaluacionCreadaResponse';
 import type { CambiarAsesorRequest } from '../models/CambiarAsesorRequest';
+import type { EvaluacionFichaPerfilAsesor } from '../models/EvaluacionFichaPerfilAsesor';
 import type { EvaluacionFichaPerfilEstudiante } from '../models/EvaluacionFichaPerfilEstudiante';
 import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor';
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
@@ -27,6 +28,7 @@ import type { HistorialEstadoFichaPerfil } from '../models/HistorialEstadoFichaP
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ModificarFichaPerfilRequest } from '../models/ModificarFichaPerfilRequest';
 import type { ModificarObservacionEvaluacionRequest } from '../models/ModificarObservacionEvaluacionRequest';
+import type { ModificarObservacionItemRequest } from '../models/ModificarObservacionItemRequest';
 import type {
   Item,
   TipoItem,
@@ -109,6 +111,31 @@ function aEvaluacionEstudiante(
   return {
     id: dto.id,
     fichaPerfilId: dto.fichaPerfil,
+    fechaCreacion: dto.fechaCreacion,
+    estadoEvaluacionId: dto.estadoEvaluacion,
+    estadoEvaluacionNombre: dto.estadoEvaluacionNombre,
+    representante: { id: dto.representanteComite.id, nombre: dto.representanteComite.nombre },
+  };
+}
+
+// Forma cruda de EvaluacionFichaPerfilAsesorResponseDTO (POST .../evaluaciones/asesor).
+interface EvaluacionFichaPerfilAsesorResponseDTO {
+  id: string;
+  fichaPerfil: string;
+  tituloProyecto: string;
+  fechaCreacion: string;
+  estadoEvaluacion: string | null;
+  estadoEvaluacionNombre: string | null;
+  representanteComite: { id: string; nombre: string };
+}
+
+function aEvaluacionAsesor(
+  dto: EvaluacionFichaPerfilAsesorResponseDTO,
+): EvaluacionFichaPerfilAsesor {
+  return {
+    id: dto.id,
+    fichaPerfilId: dto.fichaPerfil,
+    tituloProyecto: dto.tituloProyecto,
     fechaCreacion: dto.fechaCreacion,
     estadoEvaluacionId: dto.estadoEvaluacion,
     estadoEvaluacionNombre: dto.estadoEvaluacionNombre,
@@ -502,6 +529,13 @@ export const fichasPerfilService = {
       .post<Page<RevisionItemResponseDTO>>('/fichas-perfil/revisiones-item/asesor', req)
       .then(({ data }) => ({ ...data, content: data.content.map(aRevisionItem) })),
 
+  consultarEvaluacionesFichasAsesor: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<EvaluacionFichaPerfilAsesor>> =>
+    apiClient
+      .post<Page<EvaluacionFichaPerfilAsesorResponseDTO>>('/fichas-perfil/evaluaciones/asesor', req)
+      .then(({ data }) => ({ ...data, content: data.content.map(aEvaluacionAsesor) })),
+
   agregarRevisionItem: (itemId: string): Promise<RevisionItemCreadaResponse> =>
     apiClient
       .post<RevisionItemCreadaResponse>(`/fichas-perfil/items/${itemId}/revisiones`)
@@ -527,6 +561,18 @@ export const fichasPerfilService = {
         },
       )
       .then((r) => r.data),
+
+  modificarObservacionItem: (req: ModificarObservacionItemRequest): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-item/${req.observacionItemId}`, {
+        observacion: req.observacion,
+      })
+      .then(() => undefined),
+
+  removerObservacionItem: (observacionItemId: string): Promise<void> =>
+    apiClient
+      .delete(`/fichas-perfil/observaciones-item/${observacionItemId}`)
+      .then(() => undefined),
 
   consultarObservacionesItemAsesor: (
     req: ConsultaCriteriaRequest,

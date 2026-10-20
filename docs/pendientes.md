@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-14.
+Última revisión: 2026-10-18.
 
 ## Bloqueados por el backend
 
@@ -18,6 +18,7 @@ Al resolver un pendiente, se borra de aquí.
 | B7 | **Catálogo de estados de proyecto de grado y consultas pendientes** | Ya existen el listado del estudiante (`GET /proyectos-grado/estudiante`, HU-048), el historial (`/{id}/estados`) y el detalle del asesor. Sigue sin existir un endpoint del catálogo `estado_proyecto`: el listado de HU-159 ofrece 4 opciones de estado fijas en el frontend (`ESTADOS_PROYECTO`). Cuando exista, `ESTADOS_PROYECTO` se reemplaza por un hook | Backend |
 | B8 | **Coordinador sin lectura de jurados ya asignados** | No hay forma de que el coordinador consulte los jurados ya asignados a una evaluación: `POST /evaluaciones/{id}/evaluaciones-jurado` exige `evaluacion-jurado-estudiante:view` (solo estudiante) y `/evaluaciones/coordinador` no trae jurados. El panel de HU-283 no los precarga ni los muestra y se apoya en el 422 `JURADOS_YA_ASIGNADOS` | Backend |
 | B9 | **Historial y asesores del proyecto no legibles por el asesor** | El asesor solo lee el detalle del proyecto y sus estudiantes asesorados (HU-151): el historial de estados y los asesores del proyecto (`asesores-asignados`) exigen client roles que `asesor` no tiene (403), por eso su detalle no los ofrece | Backend |
+| B10 | **Catálogo de estados de evaluación no legible por el asesor de ficha** | `GET /fichas-perfil/estados-evaluacion` exige `fichas:estado-evaluacion:view`, que `asesor-ficha` no tiene (403), por eso la pestaña Evaluaciones de «Mis fichas de perfil» (HU-209) no ofrece filtro por estado. Si se concede, el filtro se añade como chips con `useEstadosEvaluacion` | Backend / infra |
 
 Client roles a confirmar en el realm desplegado:
 
@@ -31,6 +32,9 @@ Client roles a confirmar en el realm desplegado:
 - `fichas:revision-item:create` para el asesor de ficha (agregar una revisión a un ítem, HU-195), sin verificar en el realm desplegado. Si falta, con login real el botón «Agregar revisión» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:observacion-item:create` para el asesor de ficha (agregar una observación a una revisión de ítem, HU-199), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:observacion-item-asesor:view` para el asesor de ficha (consulta de observaciones de ítem, HU-200), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `fichas:evaluacion-ficha-perfil-asesor:view` para el asesor de ficha (listado de evaluaciones de sus fichas, HU-209), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `fichas:observacion-item:update` para el asesor de ficha (modificar una observación de ítem, HU-202), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `fichas:observacion-item:delete` para el asesor de ficha (remover una observación de ítem, HU-203), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:item-ficha-perfil-coordinador:view` para el coordinador (ítems de una ficha, HU-284), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:estado-ficha-perfil-coordinador:view` para el coordinador (historial de estados de una ficha, HU-287), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:estado-ficha-perfil-aprobacion:create` para el coordinador (decisión de aprobación de una ficha, HU-184), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
