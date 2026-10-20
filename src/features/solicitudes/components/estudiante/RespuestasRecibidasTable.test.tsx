@@ -1,12 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import { RESPUESTA } from '../../../../test-utils/respuestas';
 import RespuestasRecibidasTable from './RespuestasRecibidasTable';
 
+const ORDEN = { clave: 'fechaRespuesta', direccion: 'DESC' } as const;
+
 describe('RespuestasRecibidasTable', () => {
   it('muestra coordinador, mensaje, respuesta y estado de cada fila, sin acciones', () => {
     // Act
-    render(<RespuestasRecibidasTable respuestas={[RESPUESTA]} cargando={false} />);
+    render(
+      <RespuestasRecibidasTable
+        respuestas={[RESPUESTA]}
+        cargando={false}
+        hayFiltros={false}
+        orden={ORDEN}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={vi.fn()}
+      />,
+    );
 
     // Assert
     const tabla = screen.getByRole('table', { name: 'Respuestas de novedades recibidas' });
@@ -15,12 +27,21 @@ describe('RespuestasRecibidasTable', () => {
     expect(within(tabla).getByText('No he podido contactar a mi asesor.')).toBeInTheDocument();
     expect(within(tabla).getByText('Programemos una reunión.')).toBeInTheDocument();
     expect(within(tabla).getByText('Aprobada')).toBeInTheDocument();
-    expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tabla).queryByRole('button', { name: /acciones/i })).not.toBeInTheDocument();
   });
 
   it('sin respuestas muestra el estado vacío', () => {
     // Act
-    render(<RespuestasRecibidasTable respuestas={[]} cargando={false} />);
+    render(
+      <RespuestasRecibidasTable
+        respuestas={[]}
+        cargando={false}
+        hayFiltros={false}
+        orden={ORDEN}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={vi.fn()}
+      />,
+    );
 
     // Assert
     expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
@@ -28,9 +49,65 @@ describe('RespuestasRecibidasTable', () => {
 
   it('mientras carga no muestra el estado vacío', () => {
     // Act
-    render(<RespuestasRecibidasTable respuestas={[]} cargando />);
+    render(
+      <RespuestasRecibidasTable
+        respuestas={[]}
+        cargando
+        hayFiltros={false}
+        orden={ORDEN}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={vi.fn()}
+      />,
+    );
 
     // Assert
     expect(screen.queryByText('Aún no has recibido respuestas')).not.toBeInTheDocument();
+  });
+  it('ordena por coordinador y por fecha desde la cabecera', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onOrdenar = vi.fn();
+    render(
+      <RespuestasRecibidasTable
+        respuestas={[RESPUESTA]}
+        cargando={false}
+        hayFiltros={false}
+        orden={ORDEN}
+        onOrdenar={onOrdenar}
+        onLimpiarFiltros={vi.fn()}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Coordinador' }));
+    await user.click(screen.getByRole('button', { name: 'Recibida' }));
+
+    // Assert
+    expect(onOrdenar).toHaveBeenNthCalledWith(1, 'destinatarioNombre', 'ASC');
+    expect(onOrdenar).toHaveBeenNthCalledWith(2, 'fechaRespuesta', 'ASC');
+  });
+
+  it('sin coincidencias con filtros muestra Sin resultados y Limpiar filtros los limpia', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onLimpiarFiltros = vi.fn();
+    render(
+      <RespuestasRecibidasTable
+        respuestas={[]}
+        cargando={false}
+        hayFiltros
+        orden={ORDEN}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={onLimpiarFiltros}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(screen.queryByText('Aún no has recibido respuestas')).not.toBeInTheDocument();
+    expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
 });

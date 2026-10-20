@@ -1,7 +1,9 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
+import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
+import type { EstadoRespuesta } from '../models/EstadoRespuesta';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
@@ -49,26 +51,25 @@ export const solicitudesService = {
       .then((r) => r.data),
 
   consultarRespuestasNovedadCoordinadorEnviadas: (
-    page = 0,
-    size = 10,
+    criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>
     apiClient
-      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-coordinador/respuestas/enviadas', {
-        pagina: page,
-        tamanio: size,
-      })
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/novedad-coordinador/respuestas/enviadas', criterio)
       .then((r) => r.data),
 
   consultarRespuestasNovedadCoordinadorRecibidas: (
-    page = 0,
-    size = 10,
+    criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>
     apiClient
-      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-coordinador/respuestas/recibidas', {
-        pagina: page,
-        tamanio: size,
-      })
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/novedad-coordinador/respuestas/recibidas', criterio)
       .then((r) => r.data),
+
+  getEstadosRespuesta: (): Promise<EstadoRespuesta[]> =>
+    apiClient.get<EstadoRespuesta[]>('/solicitudes/estados-respuesta').then((r) => r.data),
 
   eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),

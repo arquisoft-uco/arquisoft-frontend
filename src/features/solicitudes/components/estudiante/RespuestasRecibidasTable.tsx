@@ -1,3 +1,4 @@
+import type { TablaRespuestasProps } from '../RespuestasPanel';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
 import RespuestasTable from '../RespuestasTable';
@@ -13,18 +14,28 @@ function celdaCoordinador(respuesta: RespuestaSolicitud) {
   return <ParticipanteCelda nombre={nombre} detalle={email} />;
 }
 
-interface Props {
-  respuestas: RespuestaSolicitud[];
-  cargando: boolean;
-}
-
-export default function RespuestasRecibidasTable({ respuestas, cargando }: Props) {
+export default function RespuestasRecibidasTable({
+  respuestas,
+  cargando,
+  hayFiltros,
+  orden,
+  onOrdenar,
+  onLimpiarFiltros,
+}: TablaRespuestasProps) {
   return (
     <RespuestasTable
       respuestas={respuestas}
       cargando={cargando}
+      hayFiltros={hayFiltros}
+      orden={orden}
+      onOrdenar={onOrdenar}
+      onLimpiarFiltros={onLimpiarFiltros}
       etiqueta="Respuestas de novedades recibidas"
-      participante={{ encabezado: 'Coordinador', celda: celdaCoordinador }}
+      participante={{
+        encabezado: 'Coordinador',
+        celda: celdaCoordinador,
+        claveOrden: 'destinatarioNombre',
+      }}
       encabezadoFecha="Recibida"
       vacio={VACIO}
     />

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
+import { useFiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
 import RespuestasEnviadasPanel from './coordinador/RespuestasEnviadasPanel';
 import SolicitudesRecibidasPanel from './coordinador/SolicitudesRecibidasPanel';
 
@@ -13,25 +14,14 @@ const PESTANAS: { id: Pestana; etiqueta: string }[] = [
 
 export default function CoordinadorView() {
   const [pestana, setPestana] = useState<Pestana>('recibidas');
-  const [paginas, setPaginas] = useState<Record<Pestana, number>>({
-    recibidas: 0,
-    'respuestas-enviadas': 0,
-  });
-
-  function irAPagina(destino: Pestana) {
-    return (pagina: number) => setPaginas((actuales) => ({ ...actuales, [destino]: pagina }));
-  }
+  const [paginaRecibidas, setPaginaRecibidas] = useState(0);
+  const filtrosRespuestasEnviadas = useFiltrosRespuestas();
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     recibidas: (
-      <SolicitudesRecibidasPanel page={paginas.recibidas} onPageChange={irAPagina('recibidas')} />
+      <SolicitudesRecibidasPanel page={paginaRecibidas} onPageChange={setPaginaRecibidas} />
     ),
-    'respuestas-enviadas': (
-      <RespuestasEnviadasPanel
-        page={paginas['respuestas-enviadas']}
-        onPageChange={irAPagina('respuestas-enviadas')}
-      />
-    ),
+    'respuestas-enviadas': <RespuestasEnviadasPanel filtros={filtrosRespuestasEnviadas} />,
   };
 
   return (

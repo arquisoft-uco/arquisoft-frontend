@@ -12,6 +12,7 @@ import type { OpcionFiltro, SeccionFiltro } from './FilterBar';
 import type { SeccionOpciones } from './FilterBarSecciones';
 
 type Props = ComponentProps<typeof FilterBar>;
+type PropsBusqueda = NonNullable<Props['busqueda']>;
 type PropsChips = NonNullable<Props['chips']>;
 
 const TODOS: OpcionFiltro = { id: '', etiqueta: 'Todos' };
@@ -20,7 +21,7 @@ const OPCIONES_ROL: OpcionFiltro[] = [
   { id: 'asesor', etiqueta: 'Asesores' },
 ];
 
-function crearBusqueda(parcial: Partial<Props['busqueda']> = {}): Props['busqueda'] {
+function crearBusqueda(parcial: Partial<PropsBusqueda> = {}): PropsBusqueda {
   return {
     valor: '',
     onCambiar: vi.fn(),
@@ -252,6 +253,29 @@ describe('FilterBar', () => {
     expect(onLimpiar).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('textbox', { name: 'Buscar usuarios' })).toHaveValue('');
     expect(onCambiar).not.toHaveBeenCalled();
+  });
+
+  it('sin busqueda no pinta el campo y los chips y "Limpiar todo" siguen funcionando', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onTodos = vi.fn();
+    const onLimpiar = vi.fn();
+    render(
+      <FilterBar
+        chips={crearChips({ seleccionados: ['estudiante', 'asesor'], onTodos })}
+        aplicados={[]}
+        onLimpiar={onLimpiar}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Todos' }));
+    await user.click(screen.getByRole('button', { name: 'Limpiar todo' }));
+
+    // Assert
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(onTodos).toHaveBeenCalledTimes(1);
+    expect(onLimpiar).toHaveBeenCalledTimes(1);
   });
 
   it('el popover se abre con el foco dentro y se cierra con Esc devolviendo el foco al botón, o con un clic fuera', async () => {

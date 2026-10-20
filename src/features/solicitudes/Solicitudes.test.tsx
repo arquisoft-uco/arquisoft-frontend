@@ -11,6 +11,11 @@ import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitude
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
+import { useEstadosRespuesta } from './hooks/useEstadosRespuesta';
+
+vi.mock('./hooks/useEstadosRespuesta', () => ({
+  useEstadosRespuesta: vi.fn(),
+}));
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -108,6 +113,10 @@ describe('Solicitudes', () => {
     resetAllStores();
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEstadosRespuesta).mockReturnValue({
+      data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
+      isError: false,
+    } as ReturnType<typeof useEstadosRespuesta>);
     vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
   });
 
@@ -206,7 +215,7 @@ describe('Solicitudes', () => {
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
   });
 
-  it('abre Respuestas con su contenido real y conserva la página al ir a otra pestaña y volver', async () => {
+  it('abre Respuestas con su contenido real y conserva la página y el estado elegido al ir a otra pestaña y volver', async () => {
     autenticarCon(Rol.Estudiante);
     const hook = vi.mocked(useRespuestasNovedadCoordinadorRecibidas);
     const hookRespuestas: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>> = {
@@ -238,13 +247,74 @@ describe('Solicitudes', () => {
     const tabla = screen.getByRole('table', { name: 'Respuestas de novedades recibidas' });
     expect(within(tabla).getByText('Programemos una reunión.')).toBeInTheDocument();
     expect(screen.queryByText(/próximamente/i)).not.toBeInTheDocument();
-    expect(hook).toHaveBeenLastCalledWith(0);
+    expect(hook).toHaveBeenLastCalledWith(expect.objectContaining({ page: 0 }));
 
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
-    expect(hook).toHaveBeenLastCalledWith(1);
+    expect(hook).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
+
+    await user.click(screen.getByRole('button', { name: 'Aprobada' }));
+    expect(hook).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 0, estadoIds: ['APROBADA'] }),
+    );
 
     await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
     await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
-    expect(hook).toHaveBeenLastCalledWith(1);
+    expect(hook).toHaveBeenLastCalledWith(expect.objectContaining({ estadoIds: ['APROBADA'] }));
+    expect(screen.getByRole('button', { name: 'Aprobada' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('conserva el estado elegido en Respuestas enviadas al ir a Recibidas y volver', async () => {
+    autenticarCon(Rol.Coordinador);
+    const pagina = {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    };
+    const base: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>> = {
+      data: pagina,
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      pageSize: 10,
+    };
+    const baseRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
+      data: pagina,
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      pageSize: 10,
+    };
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      baseRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    const hook = vi.mocked(useRespuestasNovedadCoordinadorEnviadas);
+    hook.mockReturnValue(base as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>);
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.click(screen.getByRole('button', { name: 'Aprobada' }));
+    await user.click(screen.getByRole('tab', { name: 'Recibidas' }));
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+
+    expect(hook).toHaveBeenLastCalledWith(expect.objectContaining({ estadoIds: ['APROBADA'] }));
+    expect(screen.getByRole('button', { name: 'Aprobada' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });
