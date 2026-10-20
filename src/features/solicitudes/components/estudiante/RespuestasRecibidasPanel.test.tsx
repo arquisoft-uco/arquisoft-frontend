@@ -2,14 +2,37 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
+import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasNovedadCoordinadorRecibidas } from '../../hooks/useRespuestasNovedadCoordinadorRecibidas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA } from '../../../../test-utils/respuestas';
 import RespuestasRecibidasPanel from './RespuestasRecibidasPanel';
 
+vi.mock('../../hooks/useEstadosRespuesta', () => ({
+  useEstadosRespuesta: vi.fn(() => ({ data: undefined, isError: false })),
+}));
+
 vi.mock('../../hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
   useRespuestasNovedadCoordinadorRecibidas: vi.fn(),
 }));
+
+function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuestas {
+  return {
+    page: 0,
+    texto: '',
+    estadoIds: [],
+    ordenCampo: 'fechaRespuesta',
+    ordenDireccion: 'DESC',
+    hayFiltros: false,
+    goToPage: vi.fn(),
+    setTexto: vi.fn(),
+    toggleEstado: vi.fn(),
+    limpiarEstados: vi.fn(),
+    setOrden: vi.fn(),
+    limpiarFiltros: vi.fn(),
+    ...parcial,
+  };
+}
 
 type HookRespuestas = ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>;
 
@@ -50,7 +73,7 @@ describe('RespuestasRecibidasPanel', () => {
     mockearHook({ isLoading: true });
 
     // Act
-    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
@@ -64,7 +87,7 @@ describe('RespuestasRecibidasPanel', () => {
     mockearHook({ isError: true, error: new Error('fallo de red'), refetch });
 
     // Act
-    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las respuestas');
@@ -83,7 +106,7 @@ describe('RespuestasRecibidasPanel', () => {
     mockearHook({ data: crearPagina([]) });
 
     // Act
-    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
@@ -95,7 +118,7 @@ describe('RespuestasRecibidasPanel', () => {
     mockearHook({ data: crearPagina([RESPUESTA]) });
 
     // Act
-    render(<RespuestasRecibidasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasRecibidasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByText('1 respuesta')).toBeInTheDocument();
@@ -112,10 +135,29 @@ describe('RespuestasRecibidasPanel', () => {
     });
 
     // Act
-    render(<RespuestasRecibidasPanel page={0} onPageChange={onPageChange} />);
+    render(
+      <RespuestasRecibidasPanel filtros={crearFiltros({ page: 0, goToPage: onPageChange })} />,
+    );
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
     // Assert
     expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
+  it('sin coincidencias con filtros activos muestra Sin resultados y Limpiar filtros los limpia', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const limpiarFiltros = vi.fn();
+    mockearHook({ data: crearPagina([]) });
+    const filtros = crearFiltros({ hayFiltros: true, texto: 'zzz', limpiarFiltros });
+
+    // Act
+    render(<RespuestasRecibidasPanel filtros={filtros} />);
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(useRespuestasNovedadCoordinadorRecibidas).toHaveBeenCalledWith(filtros);
+    expect(limpiarFiltros).toHaveBeenCalled();
   });
 });

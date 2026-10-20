@@ -16,12 +16,20 @@ function celdaEstudiante(respuesta: RespuestaSolicitud) {
 export default function RespuestasEnviadasTable({
   respuestas,
   cargando,
+  hayFiltros,
+  orden,
+  onOrdenar,
+  onLimpiarFiltros,
   acciones,
 }: TablaRespuestasProps) {
   return (
     <RespuestasTable
       respuestas={respuestas}
       cargando={cargando}
+      hayFiltros={hayFiltros}
+      orden={orden}
+      onOrdenar={onOrdenar}
+      onLimpiarFiltros={onLimpiarFiltros}
       etiqueta="Respuestas de novedades enviadas"
       participante={{ encabezado: 'Estudiante', celda: celdaEstudiante }}
       encabezadoFecha="Respondida"

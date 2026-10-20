@@ -5,6 +5,7 @@ import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEliminarRespuestaNovedadCoordinador } from '../../hooks/useEliminarRespuestaNovedadCoordinador';
+import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasNovedadCoordinadorEnviadas } from '../../hooks/useRespuestasNovedadCoordinadorEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import {
@@ -25,12 +26,11 @@ const CONSECUENCIAS = [
 ];
 
 interface Props {
-  page: number;
-  onPageChange: (page: number) => void;
+  filtros: FiltrosRespuestas;
 }
 
-export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
-  const consulta = useRespuestasNovedadCoordinadorEnviadas(page);
+export default function RespuestasEnviadasPanel({ filtros }: Props) {
+  const consulta = useRespuestasNovedadCoordinadorEnviadas(filtros);
   const { mutate: eliminar, isPending: eliminando } = useEliminarRespuestaNovedadCoordinador();
   const [pendienteEliminar, setPendienteEliminar] = useState<RespuestaSolicitud | null>(null);
   const [pendienteDecision, setPendienteDecision] = useState<{
@@ -76,7 +76,9 @@ export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
       onSuccess: () => {
         toast.success('Respuesta eliminada', 'La respuesta fue eliminada correctamente.');
         setPendienteEliminar(null);
-        if ((consulta.data?.content.length ?? 0) === 1 && page > 0) onPageChange(page - 1);
+        if ((consulta.data?.content.length ?? 0) === 1 && filtros.page > 0) {
+          filtros.goToPage(filtros.page - 1);
+        }
       },
       onError: (err) => {
         toast.error(
@@ -97,8 +99,7 @@ export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
     <>
       <RespuestasPanel
         consulta={consulta}
-        page={page}
-        onPageChange={onPageChange}
+        filtros={filtros}
         Tabla={RespuestasEnviadasTable}
         acciones={acciones}
       />

@@ -1,14 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import apiClient from '../../../api/axiosInstance';
+import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import { solicitudesService } from './solicitudesService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { post: vi.fn(), delete: vi.fn(), patch: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), delete: vi.fn(), patch: vi.fn() },
 }));
 
+const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
 const eliminar = vi.mocked(apiClient.delete);
 const patch = vi.mocked(apiClient.patch);
+
+const CRITERIO: ConsultaCriteriaRequest = {
+  pagina: 1,
+  tamanio: 10,
+  ordenamiento: ['fechaRespuesta:DESC'],
+  filtros: {
+    tipo: 'PREDICADO_MULTIVALOR',
+    campo: 'estadoRespuestaId',
+    operador: 'IN',
+    valores: ['APROBADA'],
+  },
+};
 
 describe('solicitudesService', () => {
   beforeEach(() => {
@@ -118,7 +132,7 @@ describe('solicitudesService', () => {
   });
 
   describe('consultarRespuestasNovedadCoordinadorEnviadas', () => {
-    it('llama POST /solicitudes/novedad-coordinador/respuestas/enviadas con { pagina, tamanio } y resuelve la página', async () => {
+    it('llama POST /solicitudes/novedad-coordinador/respuestas/enviadas con el criterio recibido tal cual y resuelve la página', async () => {
       // Arrange
       const pagina = {
         content: [],
@@ -133,22 +147,20 @@ describe('solicitudesService', () => {
       post.mockResolvedValue({ status: 200, data: pagina });
 
       // Act
-      const resultado = await solicitudesService.consultarRespuestasNovedadCoordinadorEnviadas(
-        1,
-        10,
-      );
+      const resultado =
+        await solicitudesService.consultarRespuestasNovedadCoordinadorEnviadas(CRITERIO);
 
       // Assert
-      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/respuestas/enviadas', {
-        pagina: 1,
-        tamanio: 10,
-      });
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/novedad-coordinador/respuestas/enviadas',
+        CRITERIO,
+      );
       expect(resultado).toEqual(pagina);
     });
   });
 
   describe('consultarRespuestasNovedadCoordinadorRecibidas', () => {
-    it('llama POST /solicitudes/novedad-coordinador/respuestas/recibidas con { pagina, tamanio } y resuelve la página', async () => {
+    it('llama POST /solicitudes/novedad-coordinador/respuestas/recibidas con el criterio recibido tal cual y resuelve la página', async () => {
       // Arrange
       const pagina = {
         content: [],
@@ -163,17 +175,30 @@ describe('solicitudesService', () => {
       post.mockResolvedValue({ status: 200, data: pagina });
 
       // Act
-      const resultado = await solicitudesService.consultarRespuestasNovedadCoordinadorRecibidas(
-        1,
-        10,
-      );
+      const resultado =
+        await solicitudesService.consultarRespuestasNovedadCoordinadorRecibidas(CRITERIO);
 
       // Assert
-      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/respuestas/recibidas', {
-        pagina: 1,
-        tamanio: 10,
-      });
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/novedad-coordinador/respuestas/recibidas',
+        CRITERIO,
+      );
       expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('getEstadosRespuesta', () => {
+    it('llama GET /solicitudes/estados-respuesta y resuelve la lista', async () => {
+      // Arrange
+      const estados = [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }];
+      get.mockResolvedValue({ status: 200, data: estados });
+
+      // Act
+      const resultado = await solicitudesService.getEstadosRespuesta();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/solicitudes/estados-respuesta');
+      expect(resultado).toEqual(estados);
     });
   });
 
