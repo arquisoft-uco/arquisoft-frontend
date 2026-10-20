@@ -67,6 +67,7 @@ Client roles a confirmar en el realm desplegado:
 - `proyectos:asesor-proyecto-grado:create` para el coordinador (asignar un asesor a un proyecto de grado, HU-165) y `usuarios:asesor-vigente:view` (catálogo de asesores vigentes), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `proyectos:proyecto-grado-asesor:view` para el asesor (listado de sus proyectos de grado, HU-153), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-jurado:create` para el coordinador (asignar jurados a una evaluación, HU-283) y `usuarios:jurado-vigente:view` (catálogo de jurados vigentes consumido por el coordinador), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `evaluaciones:evaluacion-jurado-jurado:view` para el jurado (listado de sus evaluaciones asignadas, HU-289), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend
 
