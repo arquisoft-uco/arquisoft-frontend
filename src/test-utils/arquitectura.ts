@@ -44,7 +44,7 @@ const RANGO_DE_CAPA: Record<Capa, number> = {
 };
 const UMBRAL_LINEAS_COMPONENTE = 150;
 const ARCHIVOS_CON_AXIOS = ['api/axiosInstance.ts', 'shared/utils/api-error.ts'];
-const ARCHIVO_CON_STORAGE = 'auth/roleStore.ts';
+const ARCHIVO_CON_STORAGE = 'auth/safeStorage.ts';
 const CARPETA_DEL_KIT = 'shared/components/ui';
 const PREFIJO_DATATABLE = 'shared/components/ui/DataTable';
 const MODELO_CON_RUNTIME_PERMITIDO = 'shared/models/rol.ts';

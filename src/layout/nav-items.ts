@@ -11,7 +11,9 @@ import {
   BookOpen,
   ClipboardList,
   Users,
+  ShieldCheck,
 } from 'lucide-react';
+import type { Capacidad } from '../auth/proveedores/proveedor';
 import { Rol } from '../shared/models/rol';
 
 export interface NavItem {
@@ -20,6 +22,7 @@ export interface NavItem {
   path: string;
   order: number;
   roles?: Rol[];
+  capacidad?: Capacidad;
   disponible?: boolean;
 }
 
@@ -115,6 +118,13 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   { label: 'Usuarios', icon: Users, path: '/usuarios', order: 10, roles: [Rol.Administrador] },
+  {
+    label: 'Seguridad',
+    icon: ShieldCheck,
+    path: '/seguridad',
+    order: 11,
+    capacidad: 'administracion-seguridad',
+  },
 ];
 
 // Ruta (sin barra inicial) → roles permitidos, derivada de todos los ítems; sin entrada = sin restricción.
@@ -122,13 +132,23 @@ export const ROLES_POR_RUTA: Record<string, Rol[]> = Object.fromEntries(
   NAV_ITEMS.filter((item) => item.roles).map((item) => [item.path.slice(1), item.roles!]),
 );
 
+// Ruta (sin barra inicial) → capacidad del proveedor que la habilita.
+export const CAPACIDAD_POR_RUTA: Record<string, Capacidad> = Object.fromEntries(
+  NAV_ITEMS.filter((item) => item.capacidad).map((item) => [item.path.slice(1), item.capacidad!]),
+);
+
 export function estaDisponible(item: NavItem): boolean {
   return item.disponible !== false;
 }
 
-export function navItemsDelRol(rol: Rol | null, items: NavItem[] = NAV_ITEMS): NavItem[] {
+export function navItemsDelRol(
+  rol: Rol | null,
+  items: NavItem[] = NAV_ITEMS,
+  capacidades: readonly Capacidad[] = [],
+): NavItem[] {
   return items
     .filter((item) => !item.roles || (rol !== null && item.roles.includes(rol)))
+    .filter((item) => !item.capacidad || capacidades.includes(item.capacidad))
     .sort((a, b) => a.order - b.order);
 }
 

@@ -1,9 +1,11 @@
 import { lazy, type ReactElement } from 'react';
 import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import AuthGuard from './guards/AuthGuard';
+import CapacidadGuard from './guards/CapacidadGuard';
 import RoleGuard from './guards/RoleGuard';
 import AppLayout from './layout/AppLayout';
-import { ROLES_POR_RUTA } from './layout/nav-items';
+import { CAPACIDAD_POR_RUTA, ROLES_POR_RUTA } from './layout/nav-items';
+import IniciarSesion from './features/iniciar-sesion/IniciarSesion';
 import ForbiddenPage from './shared/components/ForbiddenPage';
 import RouteErrorPage from './shared/components/RouteErrorPage';
 
@@ -28,11 +30,13 @@ const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
 const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
+const Seguridad = lazy(() => import('./features/seguridad/Seguridad'));
 
 function guarded(path: string, element: ReactElement): ReactElement {
   const roles = ROLES_POR_RUTA[path];
-  if (!roles) return element;
-  return <RoleGuard roles={roles}>{element}</RoleGuard>;
+  const capacidad = CAPACIDAD_POR_RUTA[path];
+  const conRoles = roles ? <RoleGuard roles={roles}>{element}</RoleGuard> : element;
+  return capacidad ? <CapacidadGuard capacidad={capacidad}>{conRoles}</CapacidadGuard> : conRoles;
 }
 
 // Exportado para que el interceptor de Axios navegue a /forbidden fuera del árbol de React.
@@ -93,12 +97,14 @@ export const router = createBrowserRouter([
           { path: 'biblioteca', element: guarded('biblioteca', <Biblioteca />) },
           { path: 'solicitudes', element: guarded('solicitudes', <Solicitudes />) },
           { path: 'usuarios', element: guarded('usuarios', <Usuarios />) },
+          { path: 'seguridad', element: guarded('seguridad', <Seguridad />) },
           { path: 'seleccionar-rol', element: <SeleccionarRol /> },
           { path: '*', element: <Navigate to="/dashboard" replace /> },
         ],
       },
     ],
   },
+  { path: 'iniciar-sesion', element: <IniciarSesion /> },
   { path: 'forbidden', element: <ForbiddenPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ]);

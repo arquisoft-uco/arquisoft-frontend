@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../auth/authStore';
-import { keycloak } from '../auth/keycloak';
+import { proveedorActivo } from '../auth/proveedores/proveedorActivo';
 import { API_URL } from '../config/env';
 import { monitoring } from '../shared/utils/monitoring';
 
@@ -16,12 +16,24 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ── Request interceptor: attach Bearer token ─────────────────────────────────
-// Uses Zustand's getState() — NOT useContext() — so it works outside the React tree.
+// ── Request interceptor: credenciales del proveedor activo ───────────────────
+// Sin proveedor (bypass de desarrollo) se usa el token del store. getState(), no un hook:
+// el interceptor corre fuera del árbol de React.
 apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+  const proveedor = proveedorActivo();
+  const credenciales = proveedor
+    ? proveedor.credencialesHttp()
+    : { bearer: useAuthStore.getState().token };
+  if (credenciales.bearer) {
+    config.headers['Authorization'] = `Bearer ${credenciales.bearer}`;
+  }
+  if (credenciales.conCookies) {
+    config.withCredentials = true;
+    if (credenciales.nombreCookieCsrf && credenciales.nombreCabeceraCsrf) {
+      config.xsrfCookieName = credenciales.nombreCookieCsrf;
+      config.xsrfHeaderName = credenciales.nombreCabeceraCsrf;
+      config.withXSRFToken = true;
+    }
   }
   return config;
 });
@@ -43,31 +55,20 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (status === 401 && config && !config._retry) {
+    const proveedor = proveedorActivo();
+    if (status === 401 && config && !config._retry && proveedor) {
       config._retry = true;
       if (!refreshPromise) {
-        refreshPromise = keycloak
-          .updateToken(-1)
-          .then(() => {
-            if (keycloak.token) {
-              useAuthStore.setState({ token: keycloak.token, tokenParsed: keycloak.tokenParsed });
-            }
-            return true;
-          })
-          .catch(() => {
-            keycloak.logout({ redirectUri: window.location.origin });
-            return false;
-          })
+        refreshPromise = proveedor
+          .renovarSesion()
+          .catch(() => false)
           .finally(() => {
             refreshPromise = null;
           });
       }
       const refrescado = await refreshPromise;
-      // Sin refresco no se reintenta: el redirect al logout ya está en curso y reenviar el token inválido solo genera otro 401.
+      // Sin refresco no se reintenta: reenviar credenciales inválidas solo genera otro 401.
       if (!refrescado) return Promise.reject(error);
-      if (config.headers && keycloak.token) {
-        config.headers['Authorization'] = `Bearer ${keycloak.token}`;
-      }
       return apiClient(config);
     }
 

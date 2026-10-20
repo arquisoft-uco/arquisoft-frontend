@@ -59,7 +59,7 @@ jobs:
       - name: Generar .env para CI
         if: steps.check.outputs.exists == 'true'
         run: |
-          echo "VITE_API_URL=http://localhost:8082/api" >> .env
+          echo "VITE_API_URL=http://localhost:8080/api" >> .env
           echo "VITE_KEYCLOAK_URL=http://localhost:8080/" >> .env
           echo "VITE_KEYCLOAK_REALM=ci-realm" >> .env
           echo "VITE_KEYCLOAK_CLIENT_ID=ci-client" >> .env
