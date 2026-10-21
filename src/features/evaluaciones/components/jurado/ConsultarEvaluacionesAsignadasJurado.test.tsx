@@ -45,11 +45,10 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
     mockHook({ isLoading: true, isFetching: true });
 
     // Act
-    const { container } = render(<ConsultarEvaluacionesAsignadasJurado />);
+    render(<ConsultarEvaluacionesAsignadasJurado />);
 
     // Assert
-    expect(screen.getByRole('status')).toBeInTheDocument();
-    expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
+    expect(screen.getByRole('status', { busy: true })).toBeInTheDocument();
     expect(screen.queryByText(/asignadas?$/)).not.toBeInTheDocument();
   });
 

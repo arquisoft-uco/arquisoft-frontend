@@ -18,8 +18,10 @@ const ASIGNACION: EvaluacionAsignadaJurado = {
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
 };
 
-function crearContexto() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function crearContexto(opcionesQueries: { staleTime?: number } = {}) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, ...opcionesQueries } },
+  });
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
@@ -55,5 +57,20 @@ describe('useEvaluacionesAsignadasJurado', () => {
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it('vuelve a pedir la lista al remontar aunque el staleTime global la considere fresca', async () => {
+    // Arrange
+    getAsignadas.mockResolvedValue([ASIGNACION]);
+    const { Wrapper } = crearContexto({ staleTime: 5 * 60 * 1000 });
+    const primero = renderHook(() => useEvaluacionesAsignadasJurado(), { wrapper: Wrapper });
+    await waitFor(() => expect(primero.result.current.isSuccess).toBe(true));
+    primero.unmount();
+
+    // Act
+    renderHook(() => useEvaluacionesAsignadasJurado(), { wrapper: Wrapper });
+
+    // Assert
+    await waitFor(() => expect(getAsignadas).toHaveBeenCalledTimes(2));
   });
 });
