@@ -56,6 +56,10 @@ vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
   useRespuestasNovedadCoordinadorEnviadas: vi.fn(),
 }));
 
+vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
+  useRespuestasNovedadAsesorRecibidas: vi.fn(),
+}));
+
 vi.mock('./hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
   useRespuestasNovedadCoordinadorRecibidas: vi.fn(),
 }));

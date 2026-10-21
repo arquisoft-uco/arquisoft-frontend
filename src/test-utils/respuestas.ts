@@ -26,3 +26,21 @@ export const RESPUESTA: RespuestaSolicitud = {
     },
   },
 };
+
+export const RESPUESTA_ASESOR: RespuestaSolicitud = {
+  ...RESPUESTA,
+  id: 'r-2',
+  contenido: 'Nos vemos el lunes en mi oficina.',
+  solicitud: {
+    ...RESPUESTA.solicitud,
+    id: 's-2',
+    mensajeSolicitud: 'Necesito reprogramar la asesoría.',
+    tipoSolicitudNombre: 'NOVEDAD_PARA_EL_ASESOR',
+    destinatario: {
+      usuarioId: 'u-3',
+      identificador: '3001',
+      nombre: 'Pedro Asesor',
+      email: 'pedro@uco.edu.co',
+    },
+  },
+};
