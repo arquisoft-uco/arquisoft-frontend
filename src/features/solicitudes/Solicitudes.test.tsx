@@ -8,6 +8,7 @@ import { RESPUESTA } from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNovedadAsesorRecibidas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
@@ -43,6 +44,10 @@ vi.mock('./hooks/useEliminarSolicitudNovedadAsesor', () => ({
 
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
   useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesNovedadAsesorRecibidas', () => ({
+  useSolicitudesNovedadAsesorRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
@@ -221,6 +226,40 @@ describe('Solicitudes', () => {
 
     expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
+  });
+
+  it('renderiza AsesorView con el listado de recibidas y sin pestañas cuando el rol activo es Asesor', () => {
+    autenticarCon(Rol.Asesor);
+    const hookAsesor: Partial<ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>> = {
+      data: {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      },
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      page: 0,
+      pageSize: 10,
+      goToPage: vi.fn(),
+    };
+    vi.mocked(useSolicitudesNovedadAsesorRecibidas).mockReturnValue(
+      hookAsesor as ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>,
+    );
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
+    expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
   it('abre Respuestas con su contenido real y conserva la página y el estado elegido al ir a otra pestaña y volver', async () => {

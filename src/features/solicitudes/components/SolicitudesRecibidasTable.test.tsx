@@ -1,7 +1,7 @@
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '../../../../test-utils/render';
-import type { Solicitud } from '../../models/Solicitud';
+import { render, screen, within } from '../../../test-utils/render';
+import type { Solicitud } from '../models/Solicitud';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
 
 const FECHA_ISO = '2026-09-01T15:30:00Z';
@@ -51,6 +51,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesReci
   const props = {
     solicitudes: SOLICITUDES,
     cargando: false,
+    receptor: 'coordinador' as const,
     onResponder: vi.fn(),
     ...parcial,
   };
@@ -90,6 +91,28 @@ describe('SolicitudesRecibidasTable', () => {
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('con receptor asesor muestra el vacío del asesor y sin onResponder no hay botón Responder', () => {
+    // Arrange / Act
+    const { rerender } = render(
+      <SolicitudesRecibidasTable solicitudes={[]} cargando={false} receptor="asesor" />,
+    );
+
+    // Assert
+    expect(
+      screen.getByText('Cuando un estudiante te envíe una novedad, aparecerá aquí.'),
+    ).toBeInTheDocument();
+
+    // Act
+    rerender(
+      <SolicitudesRecibidasTable solicitudes={SOLICITUDES} cargando={false} receptor="asesor" />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Solicitudes de novedad recibidas' });
+    expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
+    expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('el botón de cada fila llama a onResponder con la solicitud de esa fila', async () => {
