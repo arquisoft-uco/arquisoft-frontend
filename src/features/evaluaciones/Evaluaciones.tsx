@@ -3,11 +3,12 @@ import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
 import CoordinadorView from './components/CoordinadorView';
 import ItemsJuradoView from './components/ItemsJuradoView';
+import JuradoView from './components/JuradoView';
 
 const VIEW_POR_ROL: Record<string, React.ComponentType> = {
   [Rol.Administrador]: ItemsJuradoView,
   [Rol.Coordinador]: CoordinadorView,
-  [Rol.Jurado]: ItemsJuradoView,
+  [Rol.Jurado]: JuradoView,
 };
 
 export default function Evaluaciones() {

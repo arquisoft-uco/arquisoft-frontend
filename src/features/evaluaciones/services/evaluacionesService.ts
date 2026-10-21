@@ -5,6 +5,7 @@ import type { EstadoEvaluacion } from '../models/EstadoEvaluacion';
 import type { AsignarJuradosEvaluacionRequest } from '../models/AsignarJuradosEvaluacionRequest';
 import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosEvaluacionResponse';
 import type { Evaluacion } from '../models/Evaluacion';
+import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
@@ -122,6 +123,11 @@ export const evaluacionesService = {
 
   getEvaluacionesCoordinador: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
     apiClient.post<Page<Evaluacion>>('/evaluaciones/coordinador', req).then((r) => r.data),
+
+  getEvaluacionesAsignadasJurado: (): Promise<EvaluacionAsignadaJurado[]> =>
+    apiClient
+      .get<EvaluacionAsignadaJurado[]>('/evaluaciones/evaluaciones-jurado/jurado')
+      .then((r) => r.data),
 
   getEstadosEvaluacion: (): Promise<EstadoEvaluacion[]> =>
     apiClient.get<EstadoEvaluacion[]>('/evaluaciones/estados-evaluacion').then((r) => r.data),
