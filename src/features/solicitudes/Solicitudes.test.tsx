@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { render, screen, within } from '../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
-import { RESPUESTA } from '../../test-utils/respuestas';
+import type { Page } from '../../shared/models/api-response';
+import { RESPUESTA, RESPUESTA_ASESOR } from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
 import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNovedadAsesorRecibidas';
+import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedadAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
@@ -50,6 +53,10 @@ vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
 
 vi.mock('./hooks/useSolicitudesNovedadAsesorRecibidas', () => ({
   useSolicitudesNovedadAsesorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasNovedadAsesorEnviadas', () => ({
+  useRespuestasNovedadAsesorEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
@@ -175,6 +182,30 @@ function autenticarCon(rol: Rol) {
   setActiveRole(rol);
 }
 
+const PAGINA_VACIA = {
+  content: [],
+  page: 0,
+  size: 10,
+  totalElements: 0,
+  totalPages: 0,
+  first: true,
+  last: true,
+  empty: true,
+};
+
+function crearConsulta<T>(data: Page<T>): Partial<UseQueryResult<Page<T>>> & { pageSize: number } {
+  return {
+    data,
+    error: null,
+    isLoading: false,
+    isError: false,
+    isFetching: false,
+    isPlaceholderData: false,
+    refetch: vi.fn(),
+    pageSize: 10,
+  };
+}
+
 describe('Solicitudes', () => {
   beforeEach(() => {
     resetAllStores();
@@ -235,41 +266,11 @@ describe('Solicitudes', () => {
 
   it('renderiza CoordinadorView con dos pestañas, arranca en Recibidas y abre Respuestas enviadas', async () => {
     autenticarCon(Rol.Coordinador);
-    const pagina = {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    };
-    const hookRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
-      data: pagina,
-      error: null,
-      isLoading: false,
-      isError: false,
-      isFetching: false,
-      isPlaceholderData: false,
-      refetch: vi.fn(),
-      pageSize: 10,
-    };
-    const hookRespuestas: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>> = {
-      data: pagina,
-      error: null,
-      isLoading: false,
-      isError: false,
-      isFetching: false,
-      isPlaceholderData: false,
-      refetch: vi.fn(),
-      pageSize: 10,
-    };
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
-      hookRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
     );
     vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
-      hookRespuestas as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
     );
     const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
@@ -288,64 +289,76 @@ describe('Solicitudes', () => {
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
   });
 
-  it('renderiza AsesorView con el listado de recibidas y sin pestañas cuando el rol activo es Asesor', () => {
+  it('renderiza AsesorView con las pestañas Recibidas y Respuestas enviadas cuando el rol activo es Asesor', async () => {
     autenticarCon(Rol.Asesor);
-    const hookAsesor: Partial<ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>> = {
-      data: {
-        content: [],
-        page: 0,
-        size: 10,
-        totalElements: 0,
-        totalPages: 0,
-        first: true,
-        last: true,
-        empty: true,
-      },
-      error: null,
-      isLoading: false,
-      isError: false,
-      isFetching: false,
-      isPlaceholderData: false,
-      refetch: vi.fn(),
-      page: 0,
-      pageSize: 10,
-      goToPage: vi.fn(),
-    };
     vi.mocked(useSolicitudesNovedadAsesorRecibidas).mockReturnValue(
-      hookAsesor as ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>,
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>,
     );
+    vi.mocked(useRespuestasNovedadAsesorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadAsesorEnviadas>,
+    );
+    const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
-    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Recibidas',
+      'Respuestas enviadas',
+    ]);
     expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+
+    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
+  });
+
+  it('conserva la página elegida en Recibidas al ir a Respuestas enviadas y volver', async () => {
+    // Arrange
+    autenticarCon(Rol.Asesor);
+    const hookRecibidas = vi.mocked(useSolicitudesNovedadAsesorRecibidas);
+    hookRecibidas.mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_ASESOR.solicitud],
+        totalElements: 25,
+        totalPages: 3,
+        last: false,
+        empty: false,
+      }) as ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadAsesorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadAsesorEnviadas>,
+    );
+    const user = userEvent.setup();
+
+    // Act
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+
+    // Assert
+    expect(hookRecibidas).toHaveBeenLastCalledWith(1);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.click(screen.getByRole('tab', { name: 'Recibidas' }));
+
+    // Assert
+    expect(hookRecibidas).toHaveBeenLastCalledWith(1);
   });
 
   it('abre Respuestas con su contenido real y conserva la página y el estado elegido al ir a otra pestaña y volver', async () => {
     autenticarCon(Rol.Estudiante);
     const hook = vi.mocked(useRespuestasNovedadCoordinadorRecibidas);
-    const hookRespuestas: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>> = {
-      data: {
+    hook.mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
         content: [RESPUESTA],
-        page: 0,
-        size: 10,
         totalElements: 25,
         totalPages: 3,
-        first: true,
         last: false,
         empty: false,
-      },
-      error: null,
-      isLoading: false,
-      isError: false,
-      isFetching: false,
-      isPlaceholderData: false,
-      refetch: vi.fn(),
-      pageSize: 10,
-    };
-    hook.mockReturnValue(
-      hookRespuestas as ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>,
+      }) as ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>,
     );
     const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
@@ -375,41 +388,13 @@ describe('Solicitudes', () => {
 
   it('conserva el estado elegido en Respuestas enviadas al ir a Recibidas y volver', async () => {
     autenticarCon(Rol.Coordinador);
-    const pagina = {
-      content: [],
-      page: 0,
-      size: 10,
-      totalElements: 0,
-      totalPages: 0,
-      first: true,
-      last: true,
-      empty: true,
-    };
-    const base: Partial<ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>> = {
-      data: pagina,
-      error: null,
-      isLoading: false,
-      isError: false,
-      isFetching: false,
-      isPlaceholderData: false,
-      refetch: vi.fn(),
-      pageSize: 10,
-    };
-    const baseRecibidas: Partial<ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>> = {
-      data: pagina,
-      error: null,
-      isLoading: false,
-      isError: false,
-      isFetching: false,
-      isPlaceholderData: false,
-      refetch: vi.fn(),
-      pageSize: 10,
-    };
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
-      baseRecibidas as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
     );
     const hook = vi.mocked(useRespuestasNovedadCoordinadorEnviadas);
-    hook.mockReturnValue(base as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>);
+    hook.mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
     const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 

@@ -215,6 +215,33 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarRespuestasNovedadAsesorEnviadas', () => {
+    it('llama POST /solicitudes/novedad-asesor/respuestas/enviadas con el criterio recibido tal cual y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValueOnce({ data: pagina });
+
+      // Act
+      const resultado = await solicitudesService.consultarRespuestasNovedadAsesorEnviadas(CRITERIO);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/novedad-asesor/respuestas/enviadas',
+        CRITERIO,
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('getEstadosRespuesta', () => {
     it('llama GET /solicitudes/estados-respuesta y resuelve la lista', async () => {
       // Arrange

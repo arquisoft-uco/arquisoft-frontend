@@ -59,9 +59,7 @@ function crearHookMock(parcial: Partial<HookRecibidas> = {}): HookRecibidas {
     isFetching: false,
     isPlaceholderData: false,
     refetch: vi.fn(),
-    page: 0,
     pageSize: 10,
-    goToPage: vi.fn(),
     ...parcial,
   } as HookRecibidas;
 }
@@ -101,7 +99,7 @@ describe('SolicitudesRecibidasAsesorPanel', () => {
     );
 
     // Act
-    render(<SolicitudesRecibidasAsesorPanel />);
+    render(<SolicitudesRecibidasAsesorPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
@@ -117,7 +115,7 @@ describe('SolicitudesRecibidasAsesorPanel', () => {
     );
 
     // Act
-    render(<SolicitudesRecibidasAsesorPanel />);
+    render(<SolicitudesRecibidasAsesorPanel page={0} onPageChange={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     // Assert
@@ -133,7 +131,7 @@ describe('SolicitudesRecibidasAsesorPanel', () => {
     );
 
     // Act
-    render(<SolicitudesRecibidasAsesorPanel />);
+    render(<SolicitudesRecibidasAsesorPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
@@ -150,7 +148,7 @@ describe('SolicitudesRecibidasAsesorPanel', () => {
     );
 
     // Act
-    render(<SolicitudesRecibidasAsesorPanel />);
+    render(<SolicitudesRecibidasAsesorPanel page={0} onPageChange={vi.fn()} />);
 
     // Assert
     const tabla = screen.getByRole('table', { name: 'Solicitudes de novedad recibidas' });
@@ -172,7 +170,7 @@ describe('SolicitudesRecibidasAsesorPanel', () => {
     vi.mocked(useSolicitudesNovedadAsesorRecibidas).mockReturnValue(
       crearHookMock({ data: crearPagina([SOLICITUD]) }),
     );
-    render(<SolicitudesRecibidasAsesorPanel />);
+    render(<SolicitudesRecibidasAsesorPanel page={0} onPageChange={vi.fn()} />);
 
     // Act
     await user.click(
@@ -196,19 +194,18 @@ describe('SolicitudesRecibidasAsesorPanel', () => {
   it('con varias páginas el paginador pide la siguiente', async () => {
     // Arrange
     const user = userEvent.setup();
-    const goToPage = vi.fn();
+    const onPageChange = vi.fn();
     vi.mocked(useSolicitudesNovedadAsesorRecibidas).mockReturnValue(
       crearHookMock({
         data: { ...crearPagina([SOLICITUD]), totalElements: 25, totalPages: 3 },
-        goToPage,
       }),
     );
 
     // Act
-    render(<SolicitudesRecibidasAsesorPanel />);
+    render(<SolicitudesRecibidasAsesorPanel page={0} onPageChange={onPageChange} />);
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
     // Assert
-    expect(goToPage).toHaveBeenCalledWith(1);
+    expect(onPageChange).toHaveBeenCalledWith(1);
   });
 });

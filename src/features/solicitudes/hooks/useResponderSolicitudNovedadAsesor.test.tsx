@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import { solicitudesService } from '../services/solicitudesService';
 import { useResponderSolicitudNovedadAsesor } from './useResponderSolicitudNovedadAsesor';
+import { RESPUESTAS_ASESOR_ENVIADAS_QUERY_KEY } from './useRespuestasNovedadAsesorEnviadas';
 
 vi.mock('../services/solicitudesService', () => ({
   solicitudesService: {
@@ -42,5 +43,24 @@ describe('useResponderSolicitudNovedadAsesor', () => {
       contenido: 'Revisemos tu avance.',
     });
     expect(result.current.data).toEqual({ id: 'r-2' });
+  });
+
+  it('invalida las respuestas enviadas del asesor tras responder', async () => {
+    // Arrange
+    responderSolicitudNovedadAsesor.mockResolvedValue({ id: 'r-3' });
+    const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useResponderSolicitudNovedadAsesor(), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+    });
+
+    // Act
+    act(() => result.current.mutate({ solicitudId: 's-3', contenido: 'Gracias por avisar.' }));
+
+    // Assert
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: RESPUESTAS_ASESOR_ENVIADAS_QUERY_KEY });
   });
 });
