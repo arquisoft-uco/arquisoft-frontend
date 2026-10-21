@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ClipboardCheck } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -13,6 +14,8 @@ const VERSION = 'text-[13px] text-on-surface-secondary';
 interface Props {
   evaluaciones: EvaluacionAsignadaJurado[];
   cargando: boolean;
+  acciones?: (asignacion: EvaluacionAsignadaJurado) => ReactNode;
+  encabezadoAcciones?: string;
 }
 
 function InsigniaEstado({ asignacion }: { asignacion: EvaluacionAsignadaJurado }) {
@@ -41,7 +44,12 @@ const COLUMNAS: ColumnaTabla<EvaluacionAsignadaJurado>[] = [
   },
 ];
 
-export default function EvaluacionesAsignadasJuradoTable({ evaluaciones, cargando }: Props) {
+export default function EvaluacionesAsignadasJuradoTable({
+  evaluaciones,
+  cargando,
+  acciones,
+  encabezadoAcciones,
+}: Props) {
   return (
     <DataTable
       etiqueta="Evaluaciones asignadas"
@@ -49,6 +57,8 @@ export default function EvaluacionesAsignadasJuradoTable({ evaluaciones, cargand
       filas={evaluaciones}
       idDeFila={(asignacion) => asignacion.id}
       cargando={cargando}
+      acciones={acciones}
+      encabezadoAcciones={encabezadoAcciones}
       vacio={
         <EmptyState
           icono={ClipboardCheck}
