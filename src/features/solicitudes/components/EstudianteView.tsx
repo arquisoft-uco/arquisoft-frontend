@@ -5,7 +5,7 @@ import Tabs from '../../../shared/components/ui/Tabs';
 import { useFiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
 import EnviadasPanel from './estudiante/EnviadasPanel';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
-import RespuestasRecibidasPanel from './estudiante/RespuestasRecibidasPanel';
+import RecibidasPanel from './estudiante/RecibidasPanel';
 
 type Pestana = 'nueva' | 'enviadas' | 'respuestas';
 
@@ -17,12 +17,15 @@ const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
 
 export default function EstudianteView() {
   const [pestana, setPestana] = useState<Pestana>('nueva');
-  const filtrosRespuestas = useFiltrosRespuestas();
+  const filtrosCoordinador = useFiltrosRespuestas();
+  const filtrosAsesor = useFiltrosRespuestas();
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     nueva: <NuevaSolicitudPanel />,
     enviadas: <EnviadasPanel />,
-    respuestas: <RespuestasRecibidasPanel filtros={filtrosRespuestas} />,
+    respuestas: (
+      <RecibidasPanel filtros={{ coordinador: filtrosCoordinador, asesor: filtrosAsesor }} />
+    ),
   };
 
   return (

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
-import { RESPUESTA } from '../../../../test-utils/respuestas';
+import { RESPUESTA, RESPUESTA_ASESOR } from '../../../../test-utils/respuestas';
 import RespuestasRecibidasTable from './RespuestasRecibidasTable';
 
 const ORDEN = { clave: 'fechaRespuesta', direccion: 'DESC' } as const;
@@ -11,6 +11,7 @@ describe('RespuestasRecibidasTable', () => {
     // Act
     render(
       <RespuestasRecibidasTable
+        tipo="coordinador"
         respuestas={[RESPUESTA]}
         cargando={false}
         hayFiltros={false}
@@ -34,6 +35,7 @@ describe('RespuestasRecibidasTable', () => {
     // Act
     render(
       <RespuestasRecibidasTable
+        tipo="coordinador"
         respuestas={[]}
         cargando={false}
         hayFiltros={false}
@@ -51,6 +53,7 @@ describe('RespuestasRecibidasTable', () => {
     // Act
     render(
       <RespuestasRecibidasTable
+        tipo="coordinador"
         respuestas={[]}
         cargando
         hayFiltros={false}
@@ -69,6 +72,7 @@ describe('RespuestasRecibidasTable', () => {
     const onOrdenar = vi.fn();
     render(
       <RespuestasRecibidasTable
+        tipo="coordinador"
         respuestas={[RESPUESTA]}
         cargando={false}
         hayFiltros={false}
@@ -93,6 +97,7 @@ describe('RespuestasRecibidasTable', () => {
     const onLimpiarFiltros = vi.fn();
     render(
       <RespuestasRecibidasTable
+        tipo="coordinador"
         respuestas={[]}
         cargando={false}
         hayFiltros
@@ -109,5 +114,38 @@ describe('RespuestasRecibidasTable', () => {
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(screen.queryByText('Aún no has recibido respuestas')).not.toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('con tipo asesor muestra el asesor que respondió, su encabezado y el vacío propio', () => {
+    // Arrange
+    const props = {
+      cargando: false,
+      hayFiltros: false,
+      orden: ORDEN,
+      onOrdenar: vi.fn(),
+      onLimpiarFiltros: vi.fn(),
+    };
+
+    // Act
+    const { rerender } = render(
+      <RespuestasRecibidasTable tipo="asesor" respuestas={[RESPUESTA_ASESOR]} {...props} />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', {
+      name: 'Respuestas de novedades del asesor recibidas',
+    });
+    expect(within(tabla).getByRole('button', { name: 'Asesor' })).toBeInTheDocument();
+    expect(within(tabla).getByText('Pedro Asesor')).toBeInTheDocument();
+    expect(within(tabla).getByText(/pedro@uco.edu.co/)).toBeInTheDocument();
+    expect(within(tabla).getByText('Nos vemos el lunes en mi oficina.')).toBeInTheDocument();
+    expect(within(tabla).getByText('Aprobada')).toBeInTheDocument();
+
+    // Act
+    rerender(<RespuestasRecibidasTable tipo="asesor" respuestas={[]} {...props} />);
+
+    // Assert
+    expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
+    expect(screen.getByText(/Cuando tu asesor responda/)).toBeInTheDocument();
   });
 });
