@@ -5,6 +5,7 @@ import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolici
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
 import type { EstadoRespuesta } from '../models/EstadoRespuesta';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
+import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import type { Solicitud } from '../models/Solicitud';
@@ -101,6 +102,15 @@ export const solicitudesService = {
         `/solicitudes/novedad-coordinador/${req.solicitudId}/respuesta`,
         { contenido: req.contenido },
       )
+      .then((r) => r.data),
+
+  responderSolicitudNovedadAsesor: (
+    req: ResponderSolicitudNovedadAsesorRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(`/solicitudes/novedad-asesor/${req.solicitudId}/respuesta`, {
+        contenido: req.contenido,
+      })
       .then((r) => r.data),
 
   eliminarRespuestaNovedadCoordinador: (solicitudId: string): Promise<void> =>
