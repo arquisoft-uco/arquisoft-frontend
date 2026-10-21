@@ -5,19 +5,19 @@ import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEliminarRespuestaNovedadCoordinador } from '../../hooks/useEliminarRespuestaNovedadCoordinador';
+import { useModificarEstadoRespuestaNovedadCoordinador } from '../../hooks/useModificarEstadoRespuestaNovedadCoordinador';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasNovedadCoordinadorEnviadas } from '../../hooks/useRespuestasNovedadCoordinadorEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import {
   ESTADO_RESPUESTA_APROBADA,
+  ESTADO_RESPUESTA_EN_REVISION,
   ESTADO_RESPUESTA_NO_APROBADA,
   TEXTOS_DECISION,
 } from '../../utils/decisiones-respuesta';
 import RespuestasPanel from '../RespuestasPanel';
-import ModificarEstadoRespuestaDialog from './ModificarEstadoRespuestaDialog';
+import ModificarEstadoRespuestaDialog from '../ModificarEstadoRespuestaDialog';
 import RespuestasEnviadasTable from './RespuestasEnviadasTable';
-
-const ESTADO_RESPUESTA_EN_REVISION = 'EN_REVISION';
 
 const CONSECUENCIAS = [
   'El estudiante dejará de ver la respuesta en sus respuestas recibidas.',
@@ -32,6 +32,7 @@ interface Props {
 export default function RespuestasEnviadasPanel({ filtros }: Props) {
   const consulta = useRespuestasNovedadCoordinadorEnviadas(filtros);
   const { mutate: eliminar, isPending: eliminando } = useEliminarRespuestaNovedadCoordinador();
+  const modificarEstado = useModificarEstadoRespuestaNovedadCoordinador();
   const [pendienteEliminar, setPendienteEliminar] = useState<RespuestaSolicitud | null>(null);
   const [pendienteDecision, setPendienteDecision] = useState<{
     respuesta: RespuestaSolicitud;
@@ -107,6 +108,7 @@ export default function RespuestasEnviadasPanel({ filtros }: Props) {
         <ModificarEstadoRespuestaDialog
           respuesta={pendienteDecision.respuesta}
           nuevoEstado={pendienteDecision.nuevoEstado}
+          mutacion={modificarEstado}
           onCerrar={() => setPendienteDecision(null)}
         />
       )}

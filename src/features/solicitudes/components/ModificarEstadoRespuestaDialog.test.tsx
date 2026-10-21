@@ -1,45 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../../test-utils/render';
-import { toast } from '../../../../shared/hooks/useToast';
-import type { ApiError } from '../../../../shared/models/api-response';
-import { RESPUESTA } from '../../../../test-utils/respuestas';
-import { useModificarEstadoRespuestaNovedadCoordinador } from '../../hooks/useModificarEstadoRespuestaNovedadCoordinador';
+import { render, screen } from '../../../test-utils/render';
+import { toast } from '../../../shared/hooks/useToast';
+import type { ApiError } from '../../../shared/models/api-response';
+import { RESPUESTA } from '../../../test-utils/respuestas';
 import ModificarEstadoRespuestaDialog from './ModificarEstadoRespuestaDialog';
 
-vi.mock('../../hooks/useModificarEstadoRespuestaNovedadCoordinador', () => ({
-  useModificarEstadoRespuestaNovedadCoordinador: vi.fn(),
-}));
-
-vi.mock('../../../../shared/hooks/useToast', () => ({
+vi.mock('../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
-type Hook = ReturnType<typeof useModificarEstadoRespuestaNovedadCoordinador>;
 type OpcionesMutate = { onSuccess?: () => void; onError?: (err: unknown) => void };
 
-function mockearHook(mutate = vi.fn(), isPending = false) {
-  vi.mocked(useModificarEstadoRespuestaNovedadCoordinador).mockReturnValue({
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: 'idle',
-    isError: false,
-    isIdle: true,
-    isPending: false,
-    isSuccess: false,
-    mutate,
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-    ...(isPending ? { isPending: true } : {}),
-  } as Hook);
-  return mutate;
+function crearMutacion(mutate = vi.fn(), isPending = false) {
+  return { mutate, isPending };
 }
 
 function crearErrorApi(cuerpo: ApiError) {
@@ -59,13 +34,14 @@ describe('ModificarEstadoRespuestaDialog', () => {
 
   it('muestra el título, el estudiante y las consecuencias de cada decisión', () => {
     // Arrange
-    mockearHook();
+    const mutacion = crearMutacion();
 
     // Act
     const { unmount } = render(
       <ModificarEstadoRespuestaDialog
         respuesta={RESPUESTA}
         nuevoEstado="APROBADA"
+        mutacion={mutacion}
         onCerrar={vi.fn()}
       />,
     );
@@ -82,6 +58,7 @@ describe('ModificarEstadoRespuestaDialog', () => {
       <ModificarEstadoRespuestaDialog
         respuesta={RESPUESTA}
         nuevoEstado="NO_APROBADA"
+        mutacion={mutacion}
         onCerrar={vi.fn()}
       />,
     );
@@ -96,13 +73,12 @@ describe('ModificarEstadoRespuestaDialog', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    const mutate = mockearHook(
-      vi.fn((_req: unknown, opciones?: OpcionesMutate) => opciones?.onSuccess?.()),
-    );
+    const mutate = vi.fn((_req: unknown, opciones?: OpcionesMutate) => opciones?.onSuccess?.());
     render(
       <ModificarEstadoRespuestaDialog
         respuesta={RESPUESTA}
         nuevoEstado="APROBADA"
+        mutacion={crearMutacion(mutate)}
         onCerrar={onCerrar}
       />,
     );
@@ -124,22 +100,21 @@ describe('ModificarEstadoRespuestaDialog', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    mockearHook(
-      vi.fn((_req: unknown, opciones?: OpcionesMutate) =>
-        opciones?.onError?.(
-          crearErrorApi({
-            error: 'Unprocessable Entity',
-            errorCode: 'RESPUESTA_NO_EN_REVISION',
-            message: 'La respuesta ya fue evaluada.',
-            status: 422,
-          }),
-        ),
+    const mutate = vi.fn((_req: unknown, opciones?: OpcionesMutate) =>
+      opciones?.onError?.(
+        crearErrorApi({
+          error: 'Unprocessable Entity',
+          errorCode: 'RESPUESTA_NO_EN_REVISION',
+          message: 'La respuesta ya fue evaluada.',
+          status: 422,
+        }),
       ),
     );
     render(
       <ModificarEstadoRespuestaDialog
         respuesta={RESPUESTA}
         nuevoEstado="NO_APROBADA"
+        mutacion={crearMutacion(mutate)}
         onCerrar={onCerrar}
       />,
     );
@@ -160,11 +135,12 @@ describe('ModificarEstadoRespuestaDialog', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    const mutate = mockearHook();
+    const mutate = vi.fn();
     render(
       <ModificarEstadoRespuestaDialog
         respuesta={RESPUESTA}
         nuevoEstado="APROBADA"
+        mutacion={crearMutacion(mutate)}
         onCerrar={onCerrar}
       />,
     );
@@ -181,11 +157,11 @@ describe('ModificarEstadoRespuestaDialog', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    mockearHook(vi.fn(), true);
     render(
       <ModificarEstadoRespuestaDialog
         respuesta={RESPUESTA}
         nuevoEstado="APROBADA"
+        mutacion={crearMutacion(vi.fn(), true)}
         onCerrar={onCerrar}
       />,
     );

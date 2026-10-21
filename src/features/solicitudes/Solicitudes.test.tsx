@@ -18,6 +18,8 @@ import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNo
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
+import { useModificarEstadoRespuestaNovedadAsesor } from './hooks/useModificarEstadoRespuestaNovedadAsesor';
+import { useModificarEstadoRespuestaNovedadCoordinador } from './hooks/useModificarEstadoRespuestaNovedadCoordinador';
 import { useEstadosRespuesta } from './hooks/useEstadosRespuesta';
 
 vi.mock('./hooks/useEstadosRespuesta', () => ({
@@ -78,6 +80,10 @@ vi.mock('./hooks/useEliminarRespuestaNovedadAsesor', () => ({
 
 vi.mock('./hooks/useEliminarRespuestaNovedadCoordinador', () => ({
   useEliminarRespuestaNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('./hooks/useModificarEstadoRespuestaNovedadAsesor', () => ({
+  useModificarEstadoRespuestaNovedadAsesor: vi.fn(),
 }));
 
 vi.mock('./hooks/useModificarEstadoRespuestaNovedadCoordinador', () => ({
@@ -182,6 +188,27 @@ function crearMutacionEliminarMock(): MutacionEliminarRespuesta {
   } as MutacionEliminarRespuesta;
 }
 
+function crearMutacionModificarMock() {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as ReturnType<typeof useModificarEstadoRespuestaNovedadAsesor>;
+}
+
 function autenticarCon(rol: Rol) {
   setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
   setActiveRole(rol);
@@ -222,6 +249,12 @@ describe('Solicitudes', () => {
     } as ReturnType<typeof useEstadosRespuesta>);
     vi.mocked(useEliminarRespuestaNovedadAsesor).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
+    vi.mocked(useModificarEstadoRespuestaNovedadAsesor).mockReturnValue(
+      crearMutacionModificarMock(),
+    );
+    vi.mocked(useModificarEstadoRespuestaNovedadCoordinador).mockReturnValue(
+      crearMutacionModificarMock(),
+    );
     vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue(
       crearMutacionResponderCoordinadorMock(),
     );

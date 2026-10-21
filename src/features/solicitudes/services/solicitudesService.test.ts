@@ -369,4 +369,23 @@ describe('solicitudesService', () => {
       expect(resultado).toBeUndefined();
     });
   });
+
+  describe('modificarEstadoRespuestaNovedadAsesor', () => {
+    it('llama PATCH /solicitudes/novedad-asesor/{solicitudId}/respuesta/estado con solo { nuevoEstado } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.modificarEstadoRespuestaNovedadAsesor({
+        solicitudId: 'abc',
+        nuevoEstado: 'NO_APROBADA',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/solicitudes/novedad-asesor/abc/respuesta/estado', {
+        nuevoEstado: 'NO_APROBADA',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
 });
