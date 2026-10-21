@@ -1,8 +1,17 @@
+import { useEliminarSolicitudNovedadAsesor } from '../../hooks/useEliminarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadAsesorEnviadas } from '../../hooks/useSolicitudesNovedadAsesorEnviadas';
-import ListadoSolicitudesEnviadas from './ListadoSolicitudesEnviadas';
+import ListadoSolicitudesEnviadasEliminable from './ListadoSolicitudesEnviadasEliminable';
 
 export default function SolicitudesAsesorEnviadasPanel() {
   const consulta = useSolicitudesNovedadAsesorEnviadas();
+  const { mutate: eliminar, isPending: eliminando } = useEliminarSolicitudNovedadAsesor();
 
-  return <ListadoSolicitudesEnviadas tipo="asesor" consulta={consulta} />;
+  return (
+    <ListadoSolicitudesEnviadasEliminable
+      tipo="asesor"
+      consulta={consulta}
+      eliminar={eliminar}
+      eliminando={eliminando}
+    />
+  );
 }

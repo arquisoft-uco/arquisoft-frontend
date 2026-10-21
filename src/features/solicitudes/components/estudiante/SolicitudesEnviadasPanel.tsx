@@ -1,69 +1,17 @@
-import { useState } from 'react';
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEliminarSolicitudNovedadCoordinador } from '../../hooks/useEliminarSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadCoordinadorEnviadas } from '../../hooks/useSolicitudesNovedadCoordinadorEnviadas';
-import type { Solicitud } from '../../models/Solicitud';
-import ListadoSolicitudesEnviadas from './ListadoSolicitudesEnviadas';
-
-const RAIZ = 'flex flex-col gap-4';
+import ListadoSolicitudesEnviadasEliminable from './ListadoSolicitudesEnviadasEliminable';
 
 export default function SolicitudesEnviadasPanel() {
   const consulta = useSolicitudesNovedadCoordinadorEnviadas();
-
   const { mutate: eliminar, isPending: eliminando } = useEliminarSolicitudNovedadCoordinador();
-  const [pendienteEliminar, setPendienteEliminar] = useState<Solicitud | null>(null);
-
-  function handleConfirmarEliminar() {
-    if (!pendienteEliminar) return;
-    eliminar(pendienteEliminar.id, {
-      onSuccess: () => {
-        toast.success(
-          'Solicitud eliminada',
-          'La solicitud de novedad fue eliminada correctamente.',
-        );
-        setPendienteEliminar(null);
-      },
-      onError: (err) => {
-        toast.error(
-          'No se pudo eliminar la solicitud',
-          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
-        );
-        setPendienteEliminar(null);
-      },
-    });
-  }
-
-  function handleCancelarEliminar() {
-    if (eliminando) return;
-    setPendienteEliminar(null);
-  }
 
   return (
-    <div className={RAIZ}>
-      <ListadoSolicitudesEnviadas
-        tipo="coordinador"
-        consulta={consulta}
-        eliminando={eliminando}
-        onEliminar={setPendienteEliminar}
-      />
-
-      {pendienteEliminar && (
-        <ConfirmDialog
-          variante="peligro"
-          titulo="¿Eliminar solicitud?"
-          descripcion={`Vas a eliminar la solicitud enviada a ${pendienteEliminar.destinatario.nombre}.`}
-          consecuencias={[
-            'Dejará de aparecer en tus solicitudes enviadas.',
-            'No se puede deshacer.',
-          ]}
-          labelConfirmar="Eliminar"
-          cargando={eliminando}
-          onConfirmar={handleConfirmarEliminar}
-          onCancelar={handleCancelarEliminar}
-        />
-      )}
-    </div>
+    <ListadoSolicitudesEnviadasEliminable
+      tipo="coordinador"
+      consulta={consulta}
+      eliminar={eliminar}
+      eliminando={eliminando}
+    />
   );
 }
