@@ -3,9 +3,9 @@ import { Plus, type LucideIcon } from 'lucide-react';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useFiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
+import EnviadasPanel from './estudiante/EnviadasPanel';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
 import RespuestasRecibidasPanel from './estudiante/RespuestasRecibidasPanel';
-import SolicitudesEnviadasPanel from './estudiante/SolicitudesEnviadasPanel';
 
 type Pestana = 'nueva' | 'enviadas' | 'respuestas';
 
@@ -21,7 +21,7 @@ export default function EstudianteView() {
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     nueva: <NuevaSolicitudPanel />,
-    enviadas: <SolicitudesEnviadasPanel />,
+    enviadas: <EnviadasPanel />,
     respuestas: <RespuestasRecibidasPanel filtros={filtrosRespuestas} />,
   };
 

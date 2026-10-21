@@ -1,21 +1,16 @@
 import { useState } from 'react';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import PaginadorListado from '../../../../shared/components/PaginadorListado';
-import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEliminarSolicitudNovedadCoordinador } from '../../hooks/useEliminarSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadCoordinadorEnviadas } from '../../hooks/useSolicitudesNovedadCoordinadorEnviadas';
 import type { Solicitud } from '../../models/Solicitud';
-import ResumenListado from '../ResumenListado';
-import SolicitudesEnviadasTable from './SolicitudesEnviadasTable';
+import ListadoSolicitudesEnviadas from './ListadoSolicitudesEnviadas';
 
 const RAIZ = 'flex flex-col gap-4';
 
 export default function SolicitudesEnviadasPanel() {
-  const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, ...paginacion } =
-    useSolicitudesNovedadCoordinadorEnviadas();
-  const solicitudes = data?.content ?? [];
+  const consulta = useSolicitudesNovedadCoordinadorEnviadas();
 
   const { mutate: eliminar, isPending: eliminando } = useEliminarSolicitudNovedadCoordinador();
   const [pendienteEliminar, setPendienteEliminar] = useState<Solicitud | null>(null);
@@ -47,36 +42,12 @@ export default function SolicitudesEnviadasPanel() {
 
   return (
     <div className={RAIZ}>
-      <ResumenListado total={data?.totalElements} singular="solicitud" plural="solicitudes" />
-
-      <div aria-busy={isFetching}>
-        {isError ? (
-          <ErrorState
-            titulo="No se pudieron cargar las solicitudes"
-            descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
-            onReintentar={refetch}
-          />
-        ) : (
-          <SolicitudesEnviadasTable
-            solicitudes={solicitudes}
-            cargando={isLoading || (isPlaceholderData && solicitudes.length === 0)}
-            eliminando={eliminando}
-            onEliminar={setPendienteEliminar}
-          />
-        )}
-      </div>
-
-      {!isError && (
-        <PaginadorListado
-          page={paginacion.page}
-          pageSize={paginacion.pageSize}
-          totalPages={data?.totalPages ?? 0}
-          totalElements={data?.totalElements ?? 0}
-          cantidadEnPagina={solicitudes.length}
-          etiquetaPlural="solicitudes"
-          onPageChange={paginacion.goToPage}
-        />
-      )}
+      <ListadoSolicitudesEnviadas
+        tipo="coordinador"
+        consulta={consulta}
+        eliminando={eliminando}
+        onEliminar={setPendienteEliminar}
+      />
 
       {pendienteEliminar && (
         <ConfirmDialog

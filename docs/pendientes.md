@@ -54,6 +54,7 @@ Client roles a confirmar en el realm desplegado:
 - `solicitudes:solicitud:create` para el estudiante.
 - `solicitudes:solicitud-novedad-asesor:create` para el estudiante (enviar solicitud de novedad al asesor, HU-082). Si falta, con login real «Enviar solicitud» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `solicitudes:solicitud-novedad-coordinador-enviada:view` para el estudiante (pestaña «Enviadas», HU-096). Si falta, con login real la pestaña lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
+- `solicitudes:solicitud-novedad-asesor-enviada:view` para el estudiante (selector «Novedad al asesor» de la pestaña «Enviadas», HU-097). Si falta, con login real el listado lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `solicitudes:solicitud-novedad-coordinador:delete` para el estudiante (eliminar una solicitud enviada, HU-086). Si falta, con login real el botón de eliminar responde 403 y lleva a `/forbidden`.
 - `solicitudes:respuesta-novedad-coordinador:create` para el coordinador (responder una solicitud recibida, HU-056). Si falta, con login real «Enviar respuesta» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `solicitudes:respuesta-novedad-coordinador:delete` para el coordinador (eliminar una respuesta enviada, HU-061). Si falta, con login real la acción «Eliminar respuesta» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
@@ -74,7 +75,7 @@ Client roles a confirmar en el realm desplegado:
 
 | # | Pendiente | Detalle |
 |---|---|---|
-| F3 | **HU que el backend ya entregó y no tienen frontend** | Revisado el 2026-10-03 contra `origin/develop` del backend (HU-281, consulta de observaciones del representante, entregada el 2026-10-08). **Revisiones y observaciones de ítem:** 204. **Solicitudes:** HU-057, 062, 067, 082 a 084, 087, 091, 092, 097 y 101; HU-081 y HU-082 están mergeadas. **Evaluaciones (jurado):** HU-215, 225, 267 y 268 (HU-225 en el PR #50). **Usuarios sin cliente:** `POST /usuarios/coordinadores/vigentes` y `/representantes-comite/vigentes` |
+| F3 | **HU que el backend ya entregó y no tienen frontend** | Revisado el 2026-10-03 contra `origin/develop` del backend (HU-281, consulta de observaciones del representante, entregada el 2026-10-08). **Revisiones y observaciones de ítem:** 204. **Solicitudes:** HU-057, 062, 067, 082 a 084, 087, 091, 092 y 101; HU-081 y HU-082 están mergeadas. **Evaluaciones (jurado):** HU-215, 225, 267 y 268 (HU-225 en el PR #50). **Usuarios sin cliente:** `POST /usuarios/coordinadores/vigentes` y `/representantes-comite/vigentes` |
 | F4 | **Pantallas en construcción** | Pestaña Evaluaciones oculta para el asesor hasta que exista su historia (sus pestañas Revisiones, HU-194, y Observaciones, HU-200, ya existen, igual que las pestañas Revisiones, HU-027, Observaciones, HU-026, y Evaluaciones, HU-038, del estudiante); `AdministradorView` de fichas; `Solicitudes` para los roles distintos del estudiante, y los módulos con `disponible: false` en el menú |
 | F5 | **Solicitudes** | `EnviarSolicitudNovedadForm` pide el UUID del coordinador a mano, con aviso y sin deshabilitar el envío |
 | F6 | **Revisar el PR #175 del backend** | "Filtro por estado actual en el listado de fichas de perfil", ya mergeado. Puede cambiar cómo filtra HU-160 por estado |
