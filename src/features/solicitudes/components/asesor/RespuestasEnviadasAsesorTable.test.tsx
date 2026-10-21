@@ -30,6 +30,26 @@ describe('RespuestasEnviadasAsesorTable', () => {
     expect(within(tabla).queryByRole('button', { name: /acciones/i })).not.toBeInTheDocument();
   });
 
+  it('con acciones las renderiza por fila bajo la columna Acciones', () => {
+    // Act
+    render(
+      <RespuestasEnviadasAsesorTable
+        respuestas={[RESPUESTA]}
+        cargando={false}
+        hayFiltros={false}
+        orden={ORDEN}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={vi.fn()}
+        acciones={(respuesta) => <button type="button">Acción {respuesta.id}</button>}
+      />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Respuestas de novedades enviadas' });
+    expect(within(tabla).getByRole('columnheader', { name: 'Acciones' })).toBeInTheDocument();
+    expect(within(tabla).getByRole('button', { name: 'Acción r-1' })).toBeInTheDocument();
+  });
+
   it('sin respuestas muestra el estado vacío', () => {
     // Act
     render(
