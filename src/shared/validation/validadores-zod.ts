@@ -117,6 +117,31 @@ export function listaConMaximo(max: number) {
   return z.array(z.string()).max(max, MENSAJES_VALIDACION.listaMaxima(max));
 }
 
+// Espejo de la lista no vacía del comando y de ValidatorColeccion.sinDuplicados del backend:
+// `clave` identifica a cada elemento y dos elementos con la misma clave son un duplicado.
+export function listaNoVaciaSinDuplicados<T extends z.ZodTypeAny>(
+  elemento: T,
+  clave: (valor: z.infer<T>) => string,
+) {
+  return z
+    .array(elemento)
+    .min(1, MENSAJES_VALIDACION.listaVacia)
+    .superRefine((lista, ctx) => {
+      const vistas = new Set<string>();
+      for (const valor of lista) {
+        const k = clave(valor);
+        if (vistas.has(k)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: MENSAJES_VALIDACION.elementoRepetido,
+          });
+          return;
+        }
+        vistas.add(k);
+      }
+    });
+}
+
 // Espejo de la regla compuesta del backend sobre `nombres + " " + apellidos`: longitud del conjunto
 // (error en ambos campos) y luego formato (error en el campo con el carácter inválido).
 export function validarParDeNombres(

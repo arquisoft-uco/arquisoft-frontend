@@ -13,6 +13,7 @@ import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoResponse } from '../models/RegistrarItemCualitativoJuradoResponse';
 import type { RegistrarItemCuantitativoJuradoRequest } from '../models/RegistrarItemCuantitativoJuradoRequest';
@@ -164,4 +165,17 @@ export const evaluacionesService = {
         jurados: juradosIds,
       })
       .then((r) => r.data),
+
+  registrarEvaluacionesCualitativasJurado: ({
+    evaluacionJuradoId,
+    evaluaciones,
+  }: RegistrarEvaluacionesCualitativasJuradoRequest): Promise<void> =>
+    apiClient
+      .post<void>(`/evaluaciones-jurado/${evaluacionJuradoId}/evaluaciones-cualitativas`, {
+        evaluaciones: evaluaciones.map(({ itemId, criterioId }) => ({
+          item: itemId,
+          criterio: criterioId,
+        })),
+      })
+      .then(() => undefined),
 };

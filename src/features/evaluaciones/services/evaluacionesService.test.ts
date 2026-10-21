@@ -16,6 +16,31 @@ describe('evaluacionesService', () => {
     vi.clearAllMocks();
   });
 
+  describe('registrarEvaluacionesCualitativasJurado', () => {
+    it('envía a la ruta sin prefijo con item/criterio traducidos y resuelve undefined', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.registrarEvaluacionesCualitativasJurado({
+        evaluacionJuradoId: 'ej-1',
+        evaluaciones: [
+          { itemId: 'item-1', criterioId: 'crit-1' },
+          { itemId: 'item-2', criterioId: 'crit-1' },
+        ],
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/evaluaciones-jurado/ej-1/evaluaciones-cualitativas', {
+        evaluaciones: [
+          { item: 'item-1', criterio: 'crit-1' },
+          { item: 'item-2', criterio: 'crit-1' },
+        ],
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarItemCualitativoJurado', () => {
     it('llama PATCH con el itemId en la ruta y solo { descripcion } en el body, y resuelve undefined', async () => {
       // Arrange

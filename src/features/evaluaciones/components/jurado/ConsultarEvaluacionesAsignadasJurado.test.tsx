@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { Route, Routes } from 'react-router';
 import { render, screen } from '../../../../test-utils/render';
+import {
+  resetAllStores,
+  setActiveRole,
+  setAuthenticatedUser,
+} from '../../../../test-utils/store.utils';
+import { Rol } from '../../../../shared/models/rol';
 import ConsultarEvaluacionesAsignadasJurado from './ConsultarEvaluacionesAsignadasJurado';
 import { useEvaluacionesAsignadasJurado } from '../../hooks/useEvaluacionesAsignadasJurado';
 import type { EvaluacionAsignadaJurado } from '../../models/EvaluacionAsignadaJurado';
@@ -100,5 +107,52 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
     expect(filas[1]).toHaveTextContent('Sistema de monitoreo');
     expect(filas[2]).toHaveTextContent('Plataforma de riego');
     expect(filas[2]).toHaveTextContent('Finalizada');
+  });
+
+  describe('acción «Evaluar»', () => {
+    function autenticarCon(rol: Rol) {
+      setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
+      setActiveRole(rol);
+    }
+
+    beforeEach(() => {
+      resetAllStores();
+    });
+
+    it('con rol jurado ofrece «Evaluar» por fila, deshabilitado en la finalizada, y navega a la pantalla de registro', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      autenticarCon(Rol.Jurado);
+      mockHook({ data: [ASIGNACION, FINALIZADA] });
+      render(
+        <Routes>
+          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
+          <Route path="/evaluaciones/:id/evaluar" element={<p>Pantalla de registro</p>} />
+        </Routes>,
+      );
+
+      // Assert
+      for (const boton of screen.getAllByRole('button', { name: 'Evaluar Plataforma de riego' })) {
+        expect(boton).toBeDisabled();
+      }
+
+      // Act
+      await user.click(screen.getAllByRole('button', { name: 'Evaluar Sistema de monitoreo' })[0]);
+
+      // Assert
+      expect(await screen.findByText('Pantalla de registro')).toBeInTheDocument();
+    });
+
+    it('con otro rol activo no hay acción de evaluar', () => {
+      // Arrange
+      autenticarCon(Rol.Coordinador);
+      mockHook({ data: [ASIGNACION] });
+
+      // Act
+      render(<ConsultarEvaluacionesAsignadasJurado />);
+
+      // Assert
+      expect(screen.queryByRole('button', { name: /^Evaluar/ })).not.toBeInTheDocument();
+    });
   });
 });

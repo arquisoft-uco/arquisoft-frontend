@@ -74,12 +74,13 @@ Client roles a confirmar en el realm desplegado:
 - `proyectos:proyecto-grado-asesor:view` para el asesor (listado de sus proyectos de grado, HU-153), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-jurado:create` para el coordinador (asignar jurados a una evaluación, HU-283) y `usuarios:jurado-vigente:view` (catálogo de jurados vigentes consumido por el coordinador), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-jurado-jurado:view` para el jurado (listado de sus evaluaciones asignadas, HU-289), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `evaluaciones:evaluacion-cualitativa-jurado:create` para el jurado (registrar evaluaciones cualitativas, HU-215), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend
 
 | # | Pendiente | Detalle |
 |---|---|---|
-| F3 | **HU que el backend ya entregó y no tienen frontend** | Revisado el 2026-10-03 contra `origin/develop` del backend (HU-281, consulta de observaciones del representante, entregada el 2026-10-08). **Revisiones y observaciones de ítem:** 204. **Solicitudes:** HU-062, 082 a 084, 091 y 101; HU-081 y HU-082 están mergeadas. **Evaluaciones (jurado):** HU-215, 225, 267 y 268 (HU-225 en el PR #50). **Usuarios sin cliente:** `POST /usuarios/coordinadores/vigentes` y `/representantes-comite/vigentes` |
+| F3 | **HU que el backend ya entregó y no tienen frontend** | Revisado el 2026-10-03 contra `origin/develop` del backend (HU-281, consulta de observaciones del representante, entregada el 2026-10-08). **Revisiones y observaciones de ítem:** 204. **Solicitudes:** HU-062, 082 a 084, 091 y 101; HU-081 y HU-082 están mergeadas. **Evaluaciones (jurado):** HU-225, 267 y 268 (HU-225 en el PR #50). **Usuarios sin cliente:** `POST /usuarios/coordinadores/vigentes` y `/representantes-comite/vigentes` |
 | F4 | **Pantallas en construcción** | Pestaña Evaluaciones oculta para el asesor hasta que exista su historia (sus pestañas Revisiones, HU-194, y Observaciones, HU-200, ya existen, igual que las pestañas Revisiones, HU-027, Observaciones, HU-026, y Evaluaciones, HU-038, del estudiante); `AdministradorView` de fichas; `Solicitudes` para los roles distintos del estudiante, el coordinador y el asesor, y los módulos con `disponible: false` en el menú |
 | F5 | **Solicitudes** | `EnviarSolicitudNovedadForm` pide el UUID del coordinador a mano, con aviso y sin deshabilitar el envío |
 | F6 | **Revisar el PR #175 del backend** | "Filtro por estado actual en el listado de fichas de perfil", ya mergeado. Puede cambiar cómo filtra HU-160 por estado |
