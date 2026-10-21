@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import { solicitudesService } from '../services/solicitudesService';
 import { useEnviarSolicitudNovedadAsesor } from './useEnviarSolicitudNovedadAsesor';
@@ -29,6 +31,33 @@ describe('useEnviarSolicitudNovedadAsesor', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(enviarSolicitudNovedadAsesor).toHaveBeenCalledWith(REQUEST);
+  });
+
+  it('invalida el listado de enviadas al asesor al terminar bien y no lo hace si falla', async () => {
+    enviarSolicitudNovedadAsesor.mockResolvedValueOnce({ id: 's-3' });
+    enviarSolicitudNovedadAsesor.mockRejectedValueOnce(new Error('422'));
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useEnviarSolicitudNovedadAsesor(), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+    });
+
+    act(() => result.current.mutate(REQUEST));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['solicitudes', 'novedad-asesor', 'enviadas'],
+    });
+
+    act(() => result.current.mutate(REQUEST));
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(invalidar).toHaveBeenCalledTimes(1);
   });
 
   it('expone el error cuando el service rechaza', async () => {
