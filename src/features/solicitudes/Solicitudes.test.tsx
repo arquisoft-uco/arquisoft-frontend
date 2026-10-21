@@ -16,6 +16,7 @@ import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNo
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
 import { useEstadosRespuesta } from './hooks/useEstadosRespuesta';
+import type { Solicitud } from './models/Solicitud';
 
 vi.mock('./hooks/useEstadosRespuesta', () => ({
   useEstadosRespuesta: vi.fn(),
@@ -336,6 +337,77 @@ describe('Solicitudes', () => {
 
     expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
+  });
+
+  it('conserva la página elegida en Recibidas al ir a Respuestas enviadas y volver', async () => {
+    autenticarCon(Rol.Asesor);
+    const vacia = {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    };
+    const base: Partial<ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>> &
+      Partial<ReturnType<typeof useRespuestasNovedadAsesorEnviadas>> = {
+      error: null,
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      isPlaceholderData: false,
+      refetch: vi.fn(),
+      pageSize: 10,
+    };
+    const solicitud: Solicitud = {
+      id: 's-1',
+      mensajeSolicitud: 'Mi asesor no responde.',
+      fechaCreacion: '2026-09-01T15:30:00Z',
+      tipoSolicitudId: 't-2',
+      tipoSolicitudNombre: 'NOVEDAD_PARA_EL_ASESOR',
+      remitente: {
+        usuarioId: 'u-1',
+        identificador: '2001',
+        nombre: 'Luis Gómez',
+        email: 'luis@uco.edu.co',
+      },
+      destinatario: {
+        usuarioId: 'u-2',
+        identificador: '1001',
+        nombre: 'Ana Pérez',
+        email: 'ana@uco.edu.co',
+      },
+    };
+    const hookRecibidas = vi.mocked(useSolicitudesNovedadAsesorRecibidas);
+    hookRecibidas.mockReturnValue({
+      ...base,
+      data: {
+        content: [solicitud],
+        page: 0,
+        size: 10,
+        totalElements: 25,
+        totalPages: 3,
+        first: true,
+        last: false,
+        empty: false,
+      },
+    } as ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>);
+    vi.mocked(useRespuestasNovedadAsesorEnviadas).mockReturnValue({
+      ...base,
+      data: vacia,
+    } as ReturnType<typeof useRespuestasNovedadAsesorEnviadas>);
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+    expect(hookRecibidas).toHaveBeenLastCalledWith(1);
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.click(screen.getByRole('tab', { name: 'Recibidas' }));
+
+    expect(hookRecibidas).toHaveBeenLastCalledWith(1);
   });
 
   it('abre Respuestas con su contenido real y conserva la página y el estado elegido al ir a otra pestaña y volver', async () => {

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
+import { useEstadosRespuesta } from '../../hooks/useEstadosRespuesta';
 import { useRespuestasNovedadAsesorEnviadas } from '../../hooks/useRespuestasNovedadAsesorEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA } from '../../../../test-utils/respuestas';
@@ -63,6 +64,10 @@ function mockearHook(parcial: Partial<HookRespuestas> = {}) {
 describe('RespuestasEnviadasAsesorPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useEstadosRespuesta).mockReturnValue({
+      data: undefined,
+      isError: false,
+    } as ReturnType<typeof useEstadosRespuesta>);
   });
 
   it('muestra el esqueleto de carga y no la tabla', () => {
@@ -135,5 +140,38 @@ describe('RespuestasEnviadasAsesorPanel', () => {
 
     // Assert
     expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('con estados disponibles, pulsar un estado lo alterna y el hook recibe los filtros con ese estado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const toggleEstado = vi.fn();
+    mockearHook({ data: crearPagina([RESPUESTA]) });
+    vi.mocked(useEstadosRespuesta).mockReturnValue({
+      data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
+      isError: false,
+    } as ReturnType<typeof useEstadosRespuesta>);
+    const { rerender } = render(
+      <RespuestasEnviadasAsesorPanel filtros={crearFiltros({ toggleEstado })} />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Aprobada' }));
+
+    // Assert
+    expect(toggleEstado).toHaveBeenCalledWith('APROBADA');
+
+    // Act
+    const filtrosConEstado = crearFiltros({ estadoIds: ['APROBADA'], hayFiltros: true });
+    rerender(<RespuestasEnviadasAsesorPanel filtros={filtrosConEstado} />);
+
+    // Assert
+    expect(useRespuestasNovedadAsesorEnviadas).toHaveBeenLastCalledWith(
+      expect.objectContaining({ estadoIds: ['APROBADA'] }),
+    );
+    expect(screen.getByRole('button', { name: 'Aprobada' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });
