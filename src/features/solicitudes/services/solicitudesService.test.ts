@@ -216,6 +216,20 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('eliminarSolicitudNovedadAsesor', () => {
+    it('llama DELETE /solicitudes/novedad-asesor/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarSolicitudNovedadAsesor('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/novedad-asesor/s-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('eliminarRespuestaNovedadCoordinador', () => {
     it('llama DELETE /solicitudes/novedad-coordinador/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
       // Arrange

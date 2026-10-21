@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
+import { useEliminarSolicitudNovedadAsesor } from '../../hooks/useEliminarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadAsesorEnviadas } from '../../hooks/useSolicitudesNovedadAsesorEnviadas';
 import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesAsesorEnviadasPanel from './SolicitudesAsesorEnviadasPanel';
@@ -10,7 +11,12 @@ vi.mock('../../hooks/useSolicitudesNovedadAsesorEnviadas', () => ({
   useSolicitudesNovedadAsesorEnviadas: vi.fn(),
 }));
 
+vi.mock('../../hooks/useEliminarSolicitudNovedadAsesor', () => ({
+  useEliminarSolicitudNovedadAsesor: vi.fn(),
+}));
+
 type HookEnviadas = ReturnType<typeof useSolicitudesNovedadAsesorEnviadas>;
+type HookEliminar = ReturnType<typeof useEliminarSolicitudNovedadAsesor>;
 
 const SOLICITUD: Solicitud = {
   id: 's-1',
@@ -56,9 +62,32 @@ function crearHookMock(parcial: Partial<HookEnviadas> = {}): HookEnviadas {
   } as HookEnviadas;
 }
 
+function mockearEliminar(mutate = vi.fn()) {
+  vi.mocked(useEliminarSolicitudNovedadAsesor).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookEliminar);
+  return mutate;
+}
+
 describe('SolicitudesAsesorEnviadasPanel', () => {
   beforeEach(() => {
     vi.mocked(useSolicitudesNovedadAsesorEnviadas).mockReset();
+    mockearEliminar();
   });
 
   it('mientras carga muestra el esqueleto y no la tabla', () => {
@@ -110,7 +139,7 @@ describe('SolicitudesAsesorEnviadasPanel', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('con datos muestra destinatario, mensaje y fecha, sin botones de eliminar', () => {
+  it('con datos muestra destinatario, mensaje y fecha, y el botón de eliminar', () => {
     // Arrange
     vi.mocked(useSolicitudesNovedadAsesorEnviadas).mockReturnValue(
       crearHookMock({ data: crearPagina([SOLICITUD]) }),
@@ -127,7 +156,9 @@ describe('SolicitudesAsesorEnviadasPanel', () => {
     expect(within(tabla).getByText('Ana Pérez')).toBeInTheDocument();
     expect(within(tabla).getByText('Mi asesor no responde.')).toBeInTheDocument();
     expect(within(tabla).getByText(/2026/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /eliminar/i })).not.toBeInTheDocument();
+    expect(
+      within(tabla).getByRole('button', { name: 'Eliminar la solicitud enviada a Ana Pérez' }),
+    ).toBeInTheDocument();
   });
 
   it('con varias páginas el paginador pide la siguiente', async () => {
@@ -147,5 +178,26 @@ describe('SolicitudesAsesorEnviadasPanel', () => {
 
     // Assert
     expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('al confirmar la eliminación llama la mutación del asesor con el id', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearEliminar();
+    vi.mocked(useSolicitudesNovedadAsesorEnviadas).mockReturnValue(
+      crearHookMock({ data: crearPagina([SOLICITUD]) }),
+    );
+    render(<SolicitudesAsesorEnviadasPanel />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Eliminar la solicitud enviada a Ana Pérez',
+      }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith('s-1', expect.any(Object));
   });
 });
