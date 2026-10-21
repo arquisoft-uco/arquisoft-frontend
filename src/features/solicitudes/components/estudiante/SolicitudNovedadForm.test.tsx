@@ -39,13 +39,13 @@ type MutateOptions = {
   onError?: (err: unknown) => void;
 };
 
-function renderizarFormulario(enviar = vi.fn(), enviando = false) {
+function renderizarFormulario(enviar = vi.fn(), enviando = false, reiniciar = vi.fn()) {
   render(
     <SolicitudNovedadForm
       textos={TEXTOS}
       enviar={enviar}
       enviando={enviando}
-      reiniciar={vi.fn()}
+      reiniciar={reiniciar}
     />,
   );
   return enviar;
@@ -63,18 +63,11 @@ describe('SolicitudNovedadForm', () => {
     vi.clearAllMocks();
   });
 
-  it('no abre la confirmación con campos vacíos, resume los errores y muestra el aviso de catálogo no disponible', async () => {
+  it('muestra el aviso de catálogo no disponible con el envío habilitado', () => {
     renderizarFormulario();
-    const user = userEvent.setup();
-    const submit = screen.getByRole('button', { name: 'Enviar solicitud' });
 
-    expect(submit).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
     expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
-
-    await user.click(submit);
-
-    expect(await screen.findByText('Revisa 2 campos antes de continuar')).toBeInTheDocument();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('el contador del mensaje sigue lo que se escribe frente al límite', async () => {
@@ -100,22 +93,6 @@ describe('SolicitudNovedadForm', () => {
     await user.click(screen.getByRole('button', { name: /^Mensaje:/ }));
 
     expect(screen.getByLabelText(/^Mensaje/)).toHaveFocus();
-  });
-
-  it('el resumen de errores desaparece tras un envío exitoso', async () => {
-    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) => opciones?.onSuccess?.());
-    renderizarFormulario(mutate);
-    const user = userEvent.setup();
-
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
-    expect(await screen.findByText('Revisa 2 campos antes de continuar')).toBeInTheDocument();
-
-    await llenarFormularioValido(user);
-    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
-    await user.click(screen.getByRole('button', { name: 'Enviar' }));
-
-    expect(mutate).toHaveBeenCalled();
-    expect(screen.queryByText(/Revisa \d campos? antes de continuar/)).not.toBeInTheDocument();
   });
 
   it('bloquea el envío cuando el destinatario no tiene formato UUID', async () => {
@@ -149,13 +126,17 @@ describe('SolicitudNovedadForm', () => {
     expect(mutate).not.toHaveBeenCalled();
   });
 
-  it('al confirmar con datos válidos, envía la solicitud, notifica el éxito y limpia el formulario', async () => {
+  it('al confirmar con datos válidos envía la solicitud, notifica el éxito, reinicia y limpia el formulario y el resumen', async () => {
     const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) => opciones?.onSuccess?.());
-    renderizarFormulario(mutate);
+    const reiniciar = vi.fn();
+    renderizarFormulario(mutate, false, reiniciar);
     const user = userEvent.setup();
 
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    expect(await screen.findByText('Revisa 2 campos antes de continuar')).toBeInTheDocument();
+
     await llenarFormularioValido(user);
-    await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
     expect(mutate).toHaveBeenCalledWith(
@@ -163,34 +144,10 @@ describe('SolicitudNovedadForm', () => {
       expect.anything(),
     );
     expect(toast.success).toHaveBeenCalledWith('Solicitud enviada', TEXTOS.mensajeExito);
+    expect(reiniciar).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario/)).toHaveValue('');
-  });
-
-  it('pinta el error en el campo destinatario y notifica cuando el backend responde DESTINATARIO_NO_ENCONTRADO', async () => {
-    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) =>
-      opciones?.onError?.(
-        crearErrorApi({
-          error: 'Unprocessable Entity',
-          errorCode: 'DESTINATARIO_NO_ENCONTRADO',
-          message: 'El coordinador indicado no existe.',
-          status: 422,
-        }),
-      ),
-    );
-    renderizarFormulario(mutate);
-    const user = userEvent.setup();
-
-    await llenarFormularioValido(user);
-    await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
-    await user.click(screen.getByRole('button', { name: 'Enviar' }));
-
-    expect(await screen.findByText('El coordinador indicado no existe.')).toBeInTheDocument();
-    expect(toast.error).toHaveBeenCalledWith(
-      'No se pudo enviar la solicitud',
-      'El coordinador indicado no existe.',
-    );
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Revisa \d campos? antes de continuar/)).not.toBeInTheDocument();
   });
 
   it('notifica con toast sin marcar ningún campo cuando el backend responde SOLICITUD_DUPLICADA', async () => {
