@@ -74,17 +74,17 @@ export default function SolicitudesEnviadasTable({
 }: Props) {
   const textos = TEXTOS_POR_TIPO[tipo];
 
-  function acciones(solicitud: Solicitud) {
-    return (
-      <IconButton
-        etiqueta={`Eliminar la solicitud enviada a ${solicitud.destinatario.nombre}`}
-        icono={Trash2}
-        tono="peligro"
-        disabled={eliminando}
-        onClick={() => onEliminar?.(solicitud)}
-      />
-    );
-  }
+  const acciones = onEliminar
+    ? (solicitud: Solicitud) => (
+        <IconButton
+          etiqueta={`Eliminar la solicitud enviada a ${solicitud.destinatario.nombre}`}
+          icono={Trash2}
+          tono="peligro"
+          disabled={eliminando}
+          onClick={() => onEliminar(solicitud)}
+        />
+      )
+    : undefined;
 
   return (
     <DataTable
@@ -92,7 +92,7 @@ export default function SolicitudesEnviadasTable({
       columnas={COLUMNAS_POR_TIPO[tipo]}
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
-      acciones={onEliminar ? acciones : undefined}
+      acciones={acciones}
       encabezadoAcciones="Acciones"
       cargando={cargando}
       vacio={

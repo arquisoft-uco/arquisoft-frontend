@@ -3,7 +3,7 @@ import Field from '../../../../shared/components/ui/Field';
 
 export type TipoSolicitudUi = 'coordinador' | 'asesor';
 
-export const TIPOS_SOLICITUD_LOCALES: {
+const TIPOS_SOLICITUD_LOCALES: {
   value: TipoSolicitudUi;
   label: string;
   icono: LucideIcon;

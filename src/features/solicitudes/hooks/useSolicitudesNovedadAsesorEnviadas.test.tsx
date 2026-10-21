@@ -5,10 +5,7 @@ import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { Solicitud } from '../models/Solicitud';
 import { solicitudesService } from '../services/solicitudesService';
-import {
-  SOLICITUDES_ASESOR_ENVIADAS_QUERY_KEY,
-  useSolicitudesNovedadAsesorEnviadas,
-} from './useSolicitudesNovedadAsesorEnviadas';
+import { useSolicitudesNovedadAsesorEnviadas } from './useSolicitudesNovedadAsesorEnviadas';
 
 vi.mock('../services/solicitudesService', () => ({
   solicitudesService: {
@@ -41,10 +38,13 @@ function crearPagina(numero: number, content: Solicitud[]): Page<Solicitud> {
   };
 }
 
-function crearWrapper() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+function crearQueryClient() {
+  return new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 5000 } },
   });
+}
+
+function crearWrapper(queryClient = crearQueryClient()) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
@@ -58,25 +58,13 @@ describe('useSolicitudesNovedadAsesorEnviadas', () => {
     );
   });
 
-  it('expone la clave de prefijo de enviadas al asesor y la usa en la query', async () => {
+  it('consulta la página 0 con tamaño 10 y la guarda bajo la clave de enviadas al asesor', async () => {
+    // Arrange
+    const queryClient = crearQueryClient();
+
     // Act
     const { result } = renderHook(() => useSolicitudesNovedadAsesorEnviadas(), {
-      wrapper: crearWrapper(),
-    });
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-
-    // Assert
-    expect(SOLICITUDES_ASESOR_ENVIADAS_QUERY_KEY).toEqual([
-      'solicitudes',
-      'novedad-asesor',
-      'enviadas',
-    ]);
-  });
-
-  it('consulta la página 0 con tamaño 10', async () => {
-    // Act
-    const { result } = renderHook(() => useSolicitudesNovedadAsesorEnviadas(), {
-      wrapper: crearWrapper(),
+      wrapper: crearWrapper(queryClient),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -85,6 +73,9 @@ describe('useSolicitudesNovedadAsesorEnviadas', () => {
     expect(result.current.data?.content).toEqual([solicitud]);
     expect(result.current.page).toBe(0);
     expect(result.current.pageSize).toBe(10);
+    expect(queryClient.getQueryData(['solicitudes', 'novedad-asesor', 'enviadas', 0])).toEqual(
+      result.current.data,
+    );
   });
 
   it('vuelve a consultar con la página nueva cuando se llama a goToPage', async () => {

@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import NovedadAsesorForm from './NovedadAsesorForm';
 import NovedadCoordinadorForm from './NovedadCoordinadorForm';
-import SelectorTipoSolicitud from './SelectorTipoSolicitud';
-import type { TipoSolicitudUi } from './SelectorTipoSolicitud';
+import SelectorTipoSolicitud, { type TipoSolicitudUi } from './SelectorTipoSolicitud';
 
 const FORM_POR_TIPO: Record<TipoSolicitudUi, React.ComponentType> = {
   coordinador: NovedadCoordinadorForm,

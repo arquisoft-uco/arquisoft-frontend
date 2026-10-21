@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import SelectorTipoSolicitud from './SelectorTipoSolicitud';
-import type { TipoSolicitudUi } from './SelectorTipoSolicitud';
+import SelectorTipoSolicitud, { type TipoSolicitudUi } from './SelectorTipoSolicitud';
 import SolicitudesAsesorEnviadasPanel from './SolicitudesAsesorEnviadasPanel';
 import SolicitudesEnviadasPanel from './SolicitudesEnviadasPanel';
 

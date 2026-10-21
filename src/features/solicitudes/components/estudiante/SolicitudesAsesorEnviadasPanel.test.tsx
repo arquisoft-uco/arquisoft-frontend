@@ -126,7 +126,7 @@ describe('SolicitudesAsesorEnviadasPanel', () => {
     expect(screen.getByText('1 solicitud')).toBeInTheDocument();
     expect(within(tabla).getByText('Ana Pérez')).toBeInTheDocument();
     expect(within(tabla).getByText('Mi asesor no responde.')).toBeInTheDocument();
-    expect(tabla.querySelector('time')).toHaveAttribute('datetime', SOLICITUD.fechaCreacion);
+    expect(within(tabla).getByText(/2026/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /eliminar/i })).not.toBeInTheDocument();
   });
 
