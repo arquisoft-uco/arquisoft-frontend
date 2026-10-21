@@ -6,7 +6,9 @@ export const MENSAJES_VALIDACION = {
   longitudMaxima: (max: number) => `Máximo ${max} caracteres`,
   longitudEntre: (min: number, max: number) => `Debe tener entre ${min} y ${max} caracteres`,
   listaVacia: 'Agrega al menos un elemento',
+  elementoRepetido: 'Hay un elemento repetido',
   listaMaxima: (max: number) => `Máximo ${max} elementos`,
   soloDigitos: 'Solo se permiten dígitos',
   formatoNombre: 'Solo letras y espacios',
+  valorEntre: (min: number, max: number) => `Debe estar entre ${min} y ${max}`,
 } as const;

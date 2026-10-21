@@ -1,0 +1,1 @@
+export const ESTADO_FINALIZADA = 'FINALIZADA';

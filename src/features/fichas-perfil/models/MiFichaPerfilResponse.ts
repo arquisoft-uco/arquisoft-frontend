@@ -1,4 +1,4 @@
-import type { Asesor } from './Asesor';
+import type { Asesor } from '../../../shared/models/Asesor';
 import type { Estudiante } from './Estudiante';
 
 export interface MiFichaPerfilEstadoActual {

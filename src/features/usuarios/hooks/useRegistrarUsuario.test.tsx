@@ -8,7 +8,6 @@ import { useRegistrarUsuario } from './useRegistrarUsuario';
 
 vi.mock('../services/usuariosService', () => ({
   usuariosService: {
-    consultarCoordinadoresAdministrador: vi.fn(),
     registrarUsuario: vi.fn(),
   },
 }));

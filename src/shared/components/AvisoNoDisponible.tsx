@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react';
+import Notice from './ui/Notice';
 
 interface Props {
   recurso: string;
@@ -6,14 +6,8 @@ interface Props {
 
 export default function AvisoNoDisponible({ recurso }: Props) {
   return (
-    <div
-      role="alert"
-      className="flex items-start gap-2 rounded-lg border border-tertiary/40 bg-tertiary-muted px-3 py-2 text-xs text-tertiary-muted-foreground"
-    >
-      <AlertTriangle size={14} className="mt-0.5 shrink-0" aria-hidden />
-      <span>
-        El catálogo de {recurso} no está disponible: el backend aún no expone este endpoint.
-      </span>
-    </div>
+    <Notice variante="advertencia" etiqueta={`No disponible: ${recurso}`}>
+      Esta opción aún no está disponible.
+    </Notice>
   );
 }

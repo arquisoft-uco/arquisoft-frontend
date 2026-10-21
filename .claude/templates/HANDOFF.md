@@ -59,6 +59,15 @@ ESTADO: OK|PREGUNTA|RECHAZADO|ERROR|EN CURSO · {máx. 15 palabras}
 
 La primera línea es el estado: para saber si un paso terminó basta leerla (`Read` con `limit: 1`).
 
+**Excepción — `@4a`:** su entregable es un texto largo, así que el cuerpo de su `.out.md` **es** el
+reporte completo (`# Reporte de Validación — {ID}`, con las secciones de `VALIDATOR.md`), precedido por
+la línea `ESTADO`; no lleva `## Resumen` ni `## Salidas`. `@4b` lo persiste desde ahí. Es el único
+archivo que `@4a` escribe.
+
+**Nadie transcribe lo que produjo un delegado.** Si un delegado entregó su contenido en el mensaje sin
+escribir su `.out.md`, quien lo invocó se lo pide con `SendMessage` o lo trata como `ERROR`; copiarlo a
+mano trae el trabajo del delegado al contexto de quien delega y rompe la regla de oro.
+
 ## Cómo delegas
 
 Prompt del `Agent`, siempre igual y corto: `Lee {ruta .in.md} y ejecútalo.`
@@ -79,9 +88,9 @@ delegado con `SendMessage` si lo tienes: conserva su contexto y no repaga el arr
 agente nuevo). Sin `SendMessage`, un `.in.md` nuevo que diga "reanuda", con la respuesta en «Decisiones».
 
 **Con `SendMessage`, escribe antes la respuesta del usuario**, textual, en «Decisiones» del `.in.md` del
-delegado, y en el mensaje cita esa ruta. Los agentes con acciones externas (`@4c`: commit, push, PR,
-publicación) solo aceptan autorizaciones registradas ahí; una que llega solo por mensaje la rechazan, y
-cuesta una vuelta de más. Además queda escrito qué aprobó el usuario y cuándo.
+delegado, y en el mensaje cita esa ruta: queda escrito qué aprobó el usuario y cuándo. `@4c` ya no pide
+autorización (la orden de entregar basta; el usuario revisa el PR en GitHub), así que no hay nada que
+registrar para él.
 
 **Tu respuesta final** es la línea `ESTADO`, la ruta y una frase corta. El contenido (preguntas, planes,
 reportes) va en el `.out.md`, nunca en el mensaje: quien te invocó lo lee del archivo.

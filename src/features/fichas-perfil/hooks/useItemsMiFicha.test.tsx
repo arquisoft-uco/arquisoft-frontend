@@ -1,0 +1,330 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ReactNode } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '../../../test-utils/render';
+import { fichasPerfilService } from '../services/fichasPerfilService';
+import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
+import { useItemsMiFicha } from './useItemsMiFicha';
+import { useTiposItem } from './useTiposItem';
+import { errorApi } from '../../../test-utils/errores-api';
+
+vi.mock('../services/fichasPerfilService', () => ({
+  fichasPerfilService: {
+    consultarItemsMiFichaPerfil: vi.fn(),
+    agregarItemFichaPerfil: vi.fn(),
+    modificarItem: vi.fn(),
+    removerItem: vi.fn(),
+  },
+}));
+vi.mock('./useFichaPerfilIdEstudiante', () => ({ useFichaPerfilIdEstudiante: vi.fn() }));
+vi.mock('./useMiFichaPerfil', () => ({ useMiFichaPerfil: () => ({ ficha: { id: 'f-1' } }) }));
+vi.mock('./useTiposItem', () => ({ useTiposItem: vi.fn() }));
+
+const consultar = vi.mocked(fichasPerfilService.consultarItemsMiFichaPerfil);
+const idEstudiante = vi.mocked(useFichaPerfilIdEstudiante);
+const tipos = vi.mocked(useTiposItem);
+
+function conTipos(parcial: { data?: unknown[]; isLoading?: boolean; isError?: boolean } = {}) {
+  tipos.mockReturnValue({ data: [], isLoading: false, isError: false, ...parcial } as ReturnType<
+    typeof useTiposItem
+  >);
+}
+
+const ITEM = {
+  id: 'i-1',
+  fichaPerfilId: 'f-1',
+  tipoItem: { id: 't-1', nombre: 'Objetivo' },
+  contenido: 'Medir',
+};
+
+function crearWrapper() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  };
+}
+
+function conFicha(fichaPerfilId: string | null) {
+  idEstudiante.mockReturnValue({ fichaPerfilId } as ReturnType<typeof useFichaPerfilIdEstudiante>);
+}
+
+describe('useItemsMiFicha', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    conTipos();
+  });
+
+  it('consulta los ítems de la ficha activa y los expone', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+
+    // Assert
+    await waitFor(() => expect(result.current.items).toEqual([ITEM]));
+    expect(consultar).toHaveBeenCalledWith('f-1');
+  });
+
+  it('guarda los ítems bajo la key de la ficha activa', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+
+    // Assert
+    await waitFor(() => expect(result.current.items).toEqual([ITEM]));
+    expect(queryClient.getQueryData(['fichas-perfil', 'estudiante', 'f-1', 'items'])).toEqual([
+      ITEM,
+    ]);
+  });
+
+  it('no consulta mientras no haya ficha activa', () => {
+    // Arrange
+    conFicha(null);
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+
+    // Assert
+    expect(consultar).not.toHaveBeenCalled();
+    expect(result.current.items).toEqual([]);
+  });
+
+  it('marca isError cuando el service falla', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockRejectedValue(new Error('fallo'));
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it('refetch vuelve a consultar los ítems de la ficha activa', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+    await waitFor(() => expect(result.current.itemsCargados).toBe(true));
+
+    // Act
+    await result.current.refetch();
+
+    // Assert
+    expect(consultar).toHaveBeenCalledTimes(2);
+    expect(consultar).toHaveBeenLastCalledWith('f-1');
+  });
+
+  it('itemsCargados solo es verdadero con los ítems resueltos', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+    const antes = result.current.itemsCargados;
+    await waitFor(() => expect(result.current.itemsCargados).toBe(true));
+
+    // Assert
+    expect(antes).toBe(false);
+  });
+
+  it('un fallo o carga del catálogo de tipos no marca error ni carga de los ítems', async () => {
+    // Arrange
+    conFicha('f-1');
+    consultar.mockResolvedValue([ITEM]);
+    conTipos({ isLoading: true, isError: true });
+
+    // Act
+    const { result } = renderHook(() => useItemsMiFicha(), { wrapper: crearWrapper() });
+    await waitFor(() => expect(result.current.itemsCargados).toBe(true));
+
+    // Assert
+    expect(result.current.isError).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.errorTipos).toBe(true);
+    expect(result.current.cargandoTipos).toBe(true);
+    expect(result.current.items).toEqual([ITEM]);
+  });
+
+  describe('agregar', () => {
+    it('invalida la key de ítems de la ficha y vuelve a consultarlos tras agregar', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([]);
+      vi.mocked(fichasPerfilService.agregarItemFichaPerfil).mockResolvedValue({ id: 'i-2' });
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+      const req = { fichaPerfilId: 'f-1', tipoItemId: 't-1', contenido: 'Medir' };
+
+      // Act
+      await result.current.agregar.mutateAsync(req);
+
+      // Assert
+      expect(fichasPerfilService.agregarItemFichaPerfil).toHaveBeenCalledWith(req);
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['fichas-perfil', 'estudiante', 'f-1', 'items'],
+      });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
+    });
+
+    it('no invalida los ítems cuando el service falla', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([]);
+      vi.mocked(fichasPerfilService.agregarItemFichaPerfil).mockRejectedValue(new Error('422'));
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+
+      // Act
+      await expect(
+        result.current.agregar.mutateAsync({
+          fichaPerfilId: 'f-1',
+          tipoItemId: 't-1',
+          contenido: 'x',
+        }),
+      ).rejects.toThrow('422');
+
+      // Assert
+      expect(invalidar).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('modificar', () => {
+    function conCliente() {
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      return { invalidar, wrapper };
+    }
+
+    it('invalida la key de ítems de la ficha y vuelve a consultarlos tras modificar', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.modificarItem).mockResolvedValue(undefined);
+      const { invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+      const req = { itemId: 'i-1', contenido: 'Nuevo' };
+
+      // Act
+      await result.current.modificar.mutateAsync(req);
+
+      // Assert
+      expect(fichasPerfilService.modificarItem).toHaveBeenCalledWith(req);
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['fichas-perfil', 'estudiante', 'f-1', 'items'],
+      });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
+    });
+
+    it('no invalida los ítems cuando el service falla', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.modificarItem).mockRejectedValue(new Error('422'));
+      const { invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+
+      // Act
+      await expect(
+        result.current.modificar.mutateAsync({ itemId: 'i-1', contenido: 'x' }),
+      ).rejects.toThrow('422');
+
+      // Assert
+      expect(invalidar).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('remover', () => {
+    const KEY = ['fichas-perfil', 'estudiante', 'f-1', 'items'];
+    const OTRO = { ...ITEM, id: 'i-2', contenido: 'Otro' };
+
+    function conCliente() {
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+      const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+      return { queryClient, invalidar, wrapper };
+    }
+
+    it('quita solo el ítem eliminado de la caché sin volver a consultar', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM, OTRO]);
+      vi.mocked(fichasPerfilService.removerItem).mockResolvedValue(undefined);
+      const { queryClient, invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+      // Act
+      await result.current.remover.mutateAsync('i-1');
+
+      // Assert
+      expect(fichasPerfilService.removerItem).toHaveBeenCalledWith('i-1');
+      expect(queryClient.getQueryData(KEY)).toEqual([OTRO]);
+      expect(invalidar).not.toHaveBeenCalled();
+    });
+
+    it('invalida la key de ítems cuando el backend responde 400 por ítem inexistente', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.removerItem).mockRejectedValue(errorApi(400));
+      const { invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(1));
+
+      // Act
+      await expect(result.current.remover.mutateAsync('i-1')).rejects.toThrow('fallo');
+
+      // Assert
+      expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY });
+      await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
+    });
+
+    it('deja la caché intacta y no invalida ante un 422', async () => {
+      // Arrange
+      conFicha('f-1');
+      consultar.mockResolvedValue([ITEM]);
+      vi.mocked(fichasPerfilService.removerItem).mockRejectedValue(
+        errorApi(422, { errorCode: 'ITEM_CON_REVISIONES' }),
+      );
+      const { queryClient, invalidar, wrapper } = conCliente();
+      const { result } = renderHook(() => useItemsMiFicha(), { wrapper });
+      await waitFor(() => expect(result.current.items).toEqual([ITEM]));
+
+      // Act
+      await expect(result.current.remover.mutateAsync('i-1')).rejects.toThrow('fallo');
+
+      // Assert
+      expect(queryClient.getQueryData(KEY)).toEqual([ITEM]);
+      expect(invalidar).not.toHaveBeenCalled();
+    });
+  });
+});

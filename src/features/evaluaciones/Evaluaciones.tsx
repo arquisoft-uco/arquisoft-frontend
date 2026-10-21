@@ -1,12 +1,24 @@
-import { ClipboardCheck } from 'lucide-react';
-import ComingSoon from '../../shared/components/ComingSoon';
+import { Navigate } from 'react-router';
+import { useRolActivo } from '../../hooks/useAuth';
+import { Rol } from '../../shared/models/rol';
+import CoordinadorView from './components/CoordinadorView';
+import ItemsJuradoView from './components/ItemsJuradoView';
+import JuradoView from './components/JuradoView';
+
+const VIEW_POR_ROL: Record<string, React.ComponentType> = {
+  [Rol.Administrador]: ItemsJuradoView,
+  [Rol.Coordinador]: CoordinadorView,
+  [Rol.Jurado]: JuradoView,
+};
 
 export default function Evaluaciones() {
-  return (
-    <ComingSoon
-      title="Evaluaciones"
-      description="Calificar y revisar el desempeño de proyectos académicos"
-      icon={ClipboardCheck}
-    />
-  );
+  const rolActivo = useRolActivo();
+
+  if (!rolActivo) return <Navigate to="/seleccionar-rol" replace />;
+
+  const View = VIEW_POR_ROL[rolActivo];
+
+  if (!View) return <Navigate to="/forbidden" replace />;
+
+  return <View />;
 }

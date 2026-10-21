@@ -1,10 +1,6 @@
 import { useRouteError, isRouteErrorResponse, useNavigate } from 'react-router';
+import Button from './ui/Button';
 
-/**
- * Error page for React Router's errorElement prop.
- * Handles errors thrown inside route components (AuthGuard, AppLayout, feature pages).
- * useRouteError() gives access to the thrown value — could be an Error, a Response, or anything.
- */
 export default function RouteErrorPage() {
   const error = useRouteError();
   const navigate = useNavigate();
@@ -29,23 +25,18 @@ export default function RouteErrorPage() {
         </p>
         <p className="mt-4 rounded-lg bg-muted px-4 py-2 font-mono text-xs text-on-surface-secondary break-all">
           {message}
-          {detail && <><br />{detail}</>}
+          {detail && (
+            <>
+              <br />
+              {detail}
+            </>
+          )}
         </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <button
-            type="button"
-            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-muted"
-            onClick={() => navigate('/', { replace: true })}
-          >
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Button variante="secundario" onClick={() => navigate('/', { replace: true })}>
             Ir al inicio
-          </button>
-          <button
-            type="button"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            onClick={() => window.location.reload()}
-          >
-            Recargar página
-          </button>
+          </Button>
+          <Button onClick={() => window.location.reload()}>Recargar página</Button>
         </div>
       </div>
     </div>

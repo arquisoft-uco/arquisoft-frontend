@@ -13,7 +13,7 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
 
 const TEXTOS: TextosSolicitudNovedad = {
   titulo: 'Enviar solicitud de novedad al coordinador',
-  etiquetaDestinatario: 'Destinatario (UUID del coordinador)',
+  etiquetaDestinatario: 'Destinatario (identificador del coordinador)',
   placeholderMensaje: 'Describe la novedad',
   recursoAviso: 'coordinadores',
   tituloConfirmacion: 'Enviar solicitud al coordinador',
@@ -39,9 +39,14 @@ type MutateOptions = {
   onError?: (err: unknown) => void;
 };
 
-function renderizarFormulario(enviar = vi.fn(), enviando = false) {
+function renderizarFormulario(enviar = vi.fn(), enviando = false, reiniciar = vi.fn()) {
   render(
-    <SolicitudNovedadForm textos={TEXTOS} enviar={enviar} enviando={enviando} reiniciar={vi.fn()} />,
+    <SolicitudNovedadForm
+      textos={TEXTOS}
+      enviar={enviar}
+      enviando={enviando}
+      reiniciar={reiniciar}
+    />,
   );
   return enviar;
 }
@@ -58,18 +63,37 @@ describe('SolicitudNovedadForm', () => {
     vi.clearAllMocks();
   });
 
-  it('mantiene Enviar solicitud deshabilitado hasta que los campos son válidos y muestra el aviso de catálogo no disponible', async () => {
+  it('muestra el aviso de catálogo no disponible con el envío habilitado', () => {
+    renderizarFormulario();
+
+    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeEnabled();
+    expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
+  });
+
+  it('el contador del mensaje sigue lo que se escribe frente al límite', async () => {
     renderizarFormulario();
     const user = userEvent.setup();
-    const submit = screen.getByRole('button', { name: 'Enviar solicitud' });
 
-    expect(submit).toBeDisabled();
-    expect(screen.getByRole('alert')).toHaveTextContent(/catálogo de coordinadores/i);
+    expect(screen.getByText('0/100')).toBeInTheDocument();
 
-    await llenarFormularioValido(user);
+    await user.click(screen.getByLabelText(/^Mensaje/));
+    await user.paste(MENSAJE_VALIDO);
 
-    await waitFor(() => expect(submit).toBeEnabled());
-  }, 15000);
+    expect(screen.getByText(`${MENSAJE_VALIDO.length}/100`)).toBeInTheDocument();
+  });
+
+  it('al enviar vacío enfoca el primer campo con error y el enlace del resumen enfoca el otro campo', async () => {
+    renderizarFormulario();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+
+    await waitFor(() => expect(screen.getByLabelText(/Destinatario/)).toHaveFocus());
+
+    await user.click(screen.getByRole('button', { name: /^Mensaje:/ }));
+
+    expect(screen.getByLabelText(/^Mensaje/)).toHaveFocus();
+  });
 
   it('bloquea el envío cuando el destinatario no tiene formato UUID', async () => {
     renderizarFormulario();
@@ -79,9 +103,10 @@ describe('SolicitudNovedadForm', () => {
     await user.paste('no-es-un-uuid');
     await user.click(screen.getByLabelText(/^Mensaje/));
     await user.paste(MENSAJE_VALIDO);
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
 
     expect(await screen.findByText('Identificador inválido')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Enviar solicitud' })).toBeDisabled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('abre el diálogo de confirmación al enviar y lo cierra sin llamar a mutate al cancelar', async () => {
@@ -101,13 +126,17 @@ describe('SolicitudNovedadForm', () => {
     expect(mutate).not.toHaveBeenCalled();
   });
 
-  it('al confirmar con datos válidos, envía la solicitud, notifica el éxito y limpia el formulario', async () => {
+  it('al confirmar con datos válidos envía la solicitud, notifica el éxito, reinicia y limpia el formulario y el resumen', async () => {
     const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) => opciones?.onSuccess?.());
-    renderizarFormulario(mutate);
+    const reiniciar = vi.fn();
+    renderizarFormulario(mutate, false, reiniciar);
     const user = userEvent.setup();
 
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
+    expect(await screen.findByText('Revisa 2 campos antes de continuar')).toBeInTheDocument();
+
     await llenarFormularioValido(user);
-    await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }));
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
     expect(mutate).toHaveBeenCalledWith(
@@ -115,34 +144,10 @@ describe('SolicitudNovedadForm', () => {
       expect.anything(),
     );
     expect(toast.success).toHaveBeenCalledWith('Solicitud enviada', TEXTOS.mensajeExito);
+    expect(reiniciar).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario/)).toHaveValue('');
-  });
-
-  it('pinta el error en el campo destinatario y notifica cuando el backend responde DESTINATARIO_NO_ENCONTRADO', async () => {
-    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) =>
-      opciones?.onError?.(
-        crearErrorApi({
-          error: 'Unprocessable Entity',
-          errorCode: 'DESTINATARIO_NO_ENCONTRADO',
-          message: 'El coordinador indicado no existe.',
-          status: 422,
-        }),
-      ),
-    );
-    renderizarFormulario(mutate);
-    const user = userEvent.setup();
-
-    await llenarFormularioValido(user);
-    await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
-    await user.click(screen.getByRole('button', { name: 'Enviar' }));
-
-    expect(await screen.findByText('El coordinador indicado no existe.')).toBeInTheDocument();
-    expect(toast.error).toHaveBeenCalledWith(
-      'No se pudo enviar la solicitud',
-      'El coordinador indicado no existe.',
-    );
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Revisa \d campos? antes de continuar/)).not.toBeInTheDocument();
   });
 
   it('notifica con toast sin marcar ningún campo cuando el backend responde SOLICITUD_DUPLICADA', async () => {
@@ -171,5 +176,32 @@ describe('SolicitudNovedadForm', () => {
     );
     expect(screen.queryByText('Ya enviaste esta misma solicitud hoy.')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario/)).toHaveValue(UUID_VALIDO);
+  });
+
+  it('abre la confirmación al enviar con Enter, pinta los errores de campos del formulario e ignora los ajenos', async () => {
+    const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) =>
+      opciones?.onError?.(
+        crearErrorApi({
+          error: 'Bad Request',
+          message: 'Datos inválidos.',
+          status: 400,
+          fieldErrors: [
+            { field: 'mensajeSolicitud', message: 'El mensaje excede el límite.' },
+            { field: 'campoAjeno', message: 'No debe pintarse.' },
+          ],
+        }),
+      ),
+    );
+    renderizarFormulario(mutate);
+    const user = userEvent.setup();
+
+    await llenarFormularioValido(user);
+    await user.click(screen.getByLabelText(/Destinatario/));
+    await user.keyboard('{Enter}');
+    await user.click(await screen.findByRole('button', { name: 'Enviar' }));
+
+    expect(await screen.findByText('El mensaje excede el límite.')).toBeInTheDocument();
+    expect(screen.queryByText('No debe pintarse.')).not.toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith('No se pudo enviar la solicitud', 'Datos inválidos.');
   });
 });

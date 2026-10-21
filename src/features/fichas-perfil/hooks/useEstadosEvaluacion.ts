@@ -3,7 +3,7 @@ import { fichasPerfilService } from '../services/fichasPerfilService';
 
 export function useEstadosEvaluacion() {
   return useQuery({
-    queryKey: ['estados-evaluacion'],
+    queryKey: ['fichas-perfil', 'estados-evaluacion'],
     queryFn: () => fichasPerfilService.getEstadosEvaluacion(),
     staleTime: Infinity,
     gcTime: Infinity,

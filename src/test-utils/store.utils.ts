@@ -1,5 +1,6 @@
 import { useAuthStore } from '../auth/authStore';
 import { useRoleStore } from '../auth/roleStore';
+import { useToastStore } from '../shared/stores/toastStore';
 import type { Rol } from '../shared/models/rol';
 
 export function resetAllStores() {
@@ -11,6 +12,7 @@ export function resetAllStores() {
     username: '',
   });
   useRoleStore.setState({ rolSeleccionado: null });
+  useToastStore.setState({ toasts: [] });
 }
 
 export function setAuthenticatedUser(overrides?: {
