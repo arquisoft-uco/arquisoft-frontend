@@ -1,23 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../../test-utils/render';
-import { toast } from '../../../../shared/hooks/useToast';
-import type { ApiError } from '../../../../shared/models/api-response';
-import { LIMITES } from '../../../../shared/validation';
-import { useResponderSolicitudNovedadCoordinador } from '../../hooks/useResponderSolicitudNovedadCoordinador';
-import type { Solicitud } from '../../models/Solicitud';
+import { render, screen } from '../../../test-utils/render';
+import { toast } from '../../../shared/hooks/useToast';
+import type { ApiError } from '../../../shared/models/api-response';
+import { LIMITES } from '../../../shared/validation';
+import type { Solicitud } from '../models/Solicitud';
 import ResponderSolicitudForm from './ResponderSolicitudForm';
 
-vi.mock('../../hooks/useResponderSolicitudNovedadCoordinador', () => ({
-  useResponderSolicitudNovedadCoordinador: vi.fn(),
-}));
-
-vi.mock('../../../../shared/hooks/useToast', () => ({
+vi.mock('../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
-
-type Mutacion = ReturnType<typeof useResponderSolicitudNovedadCoordinador>;
 
 type OpcionesMutate = {
   onSuccess?: () => void;
@@ -39,26 +32,26 @@ const SOLICITUD: Solicitud = {
   destinatario: { usuarioId: 'u-2', identificador: '1001', nombre: 'Ana', email: 'ana@uco.edu.co' },
 };
 
-function mockearMutacion(mutate = vi.fn(), isPending = false) {
-  vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue({
-    data: undefined,
-    error: null,
-    variables: undefined,
-    context: undefined,
-    failureCount: 0,
-    failureReason: null,
-    isPaused: false,
-    submittedAt: 0,
-    status: isPending ? 'pending' : 'idle',
-    isError: false,
-    isIdle: !isPending,
-    isPending,
-    isSuccess: false,
-    mutate,
-    mutateAsync: vi.fn(),
-    reset: vi.fn(),
-  } as Mutacion);
-  return mutate;
+const reiniciar = vi.fn();
+
+function renderizar(
+  props: {
+    responder?: (req: unknown, opciones: OpcionesMutate) => void;
+    respondiendo?: boolean;
+    onCerrar?: () => void;
+  } = {},
+) {
+  const responder = vi.fn(props.responder ?? (() => undefined));
+  render(
+    <ResponderSolicitudForm
+      solicitud={SOLICITUD}
+      onCerrar={props.onCerrar ?? vi.fn()}
+      responder={responder}
+      respondiendo={props.respondiendo ?? false}
+      reiniciar={reiniciar}
+    />,
+  );
+  return responder;
 }
 
 function crearErrorApi(cuerpo: ApiError) {
@@ -74,12 +67,11 @@ function crearErrorApi(cuerpo: ApiError) {
 describe('ResponderSolicitudForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockearMutacion();
   });
 
   it('muestra el contexto de la solicitud y limita el campo a la longitud del backend', () => {
     // Arrange / Act
-    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={vi.fn()} />);
+    renderizar();
 
     // Assert
     expect(screen.getByRole('region', { name: 'Mensaje original' })).toHaveTextContent(
@@ -94,8 +86,7 @@ describe('ResponderSolicitudForm', () => {
   it('enviar vacío muestra el resumen de errores y no llama a la mutación', async () => {
     // Arrange
     const user = userEvent.setup();
-    const mutate = mockearMutacion();
-    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={vi.fn()} />);
+    const mutate = renderizar();
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Enviar respuesta' }));
@@ -109,10 +100,8 @@ describe('ResponderSolicitudForm', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    const mutate = mockearMutacion(
-      vi.fn((_req: unknown, opciones?: OpcionesMutate) => opciones?.onSuccess?.()),
-    );
-    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={onCerrar} />);
+    const mutate = vi.fn((_req: unknown, opciones?: OpcionesMutate) => opciones?.onSuccess?.());
+    renderizar({ responder: mutate, onCerrar });
 
     // Act
     await user.type(
@@ -137,19 +126,17 @@ describe('ResponderSolicitudForm', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    mockearMutacion(
-      vi.fn((_req: unknown, opciones?: OpcionesMutate) =>
-        opciones?.onError?.(
-          crearErrorApi({
-            status: 400,
-            message: 'Datos inválidos',
-            errorCode: 'RESPUESTA_CONTENIDO_REQUERIDO',
-            fieldErrors: [{ field: 'contenido', message: 'La respuesta es obligatoria.' }],
-          } as ApiError),
-        ),
+    const responder = vi.fn((_req: unknown, opciones?: OpcionesMutate) =>
+      opciones?.onError?.(
+        crearErrorApi({
+          status: 400,
+          message: 'Datos inválidos',
+          errorCode: 'RESPUESTA_CONTENIDO_REQUERIDO',
+          fieldErrors: [{ field: 'contenido', message: 'La respuesta es obligatoria.' }],
+        } as ApiError),
       ),
     );
-    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={onCerrar} />);
+    renderizar({ responder, onCerrar });
 
     // Act
     await user.type(screen.getByRole('textbox', { name: /Respuesta/ }), 'Hola');
@@ -166,8 +153,7 @@ describe('ResponderSolicitudForm', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    const mutate = mockearMutacion();
-    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={onCerrar} />);
+    const mutate = renderizar({ onCerrar });
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));
@@ -181,7 +167,7 @@ describe('ResponderSolicitudForm', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={onCerrar} />);
+    renderizar({ onCerrar });
     await user.type(screen.getByRole('textbox', { name: /Respuesta/ }), 'Borrador');
 
     // Act
@@ -197,8 +183,7 @@ describe('ResponderSolicitudForm', () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
-    mockearMutacion(vi.fn(), true);
-    render(<ResponderSolicitudForm solicitud={SOLICITUD} onCerrar={onCerrar} />);
+    renderizar({ respondiendo: true, onCerrar });
 
     // Act
     await user.keyboard('{Escape}');

@@ -2,15 +2,14 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
-import Field from '../../../../shared/components/ui/Field';
-import FormActions from '../../../../shared/components/ui/FormActions';
-import SidePanel from '../../../../shared/components/ui/SidePanel';
-import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage, getApiFieldErrors } from '../../../../shared/utils/api-error';
-import { LIMITES, textoRequerido } from '../../../../shared/validation';
-import { useResponderSolicitudNovedadCoordinador } from '../../hooks/useResponderSolicitudNovedadCoordinador';
-import type { Solicitud } from '../../models/Solicitud';
+import ErrorSummary, { resumirErrores } from '../../../shared/components/ui/ErrorSummary';
+import Field from '../../../shared/components/ui/Field';
+import FormActions from '../../../shared/components/ui/FormActions';
+import SidePanel from '../../../shared/components/ui/SidePanel';
+import { toast } from '../../../shared/hooks/useToast';
+import { getApiErrorMessage, getApiFieldErrors } from '../../../shared/utils/api-error';
+import { LIMITES, textoRequerido } from '../../../shared/validation';
+import type { Solicitud } from '../models/Solicitud';
 
 const schema = z.object({
   contenido: textoRequerido(LIMITES.RESPUESTA_CONTENIDO_MAX),
@@ -22,13 +21,26 @@ const ID_FORMULARIO = 'responder-solicitud';
 const ETIQUETAS = { contenido: 'Respuesta' };
 const CONTEXTO = 'rounded-xl border border-border bg-surface-secondary p-3.5';
 
+interface OpcionesEnvio {
+  onSuccess: () => void;
+  onError: (err: unknown) => void;
+}
+
 interface Props {
   solicitud: Solicitud;
   onCerrar: () => void;
+  responder: (req: { solicitudId: string; contenido: string }, opciones: OpcionesEnvio) => void;
+  respondiendo: boolean;
+  reiniciar: () => void;
 }
 
-export default function ResponderSolicitudForm({ solicitud, onCerrar }: Props) {
-  const { mutate, isPending, reset: reiniciarMutacion } = useResponderSolicitudNovedadCoordinador();
+export default function ResponderSolicitudForm({
+  solicitud,
+  onCerrar,
+  responder,
+  respondiendo,
+  reiniciar,
+}: Props) {
   const [resumenVisible, setResumenVisible] = useState(false);
   const formulario = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -41,12 +53,12 @@ export default function ResponderSolicitudForm({ solicitud, onCerrar }: Props) {
 
   function cerrar() {
     formulario.reset();
-    reiniciarMutacion();
+    reiniciar();
     onCerrar();
   }
 
   function enviar(values: FormValues) {
-    mutate(
+    responder(
       { solicitudId: solicitud.id, contenido: values.contenido },
       {
         onSuccess: () => {
@@ -76,14 +88,14 @@ export default function ResponderSolicitudForm({ solicitud, onCerrar }: Props) {
       titulo="Responder solicitud"
       descripcion={`Solicitud de ${solicitud.remitente.nombre}`}
       sucio={isDirty}
-      ocupado={isPending}
+      ocupado={respondiendo}
       onCerrar={cerrar}
       pie={(solicitarCierre) => (
         <FormActions
           formId={ID_FORMULARIO}
           accion="Enviar respuesta"
           accionEnviando="Enviando…"
-          enviando={isPending}
+          enviando={respondiendo}
           sucio={isDirty}
           onCancelar={solicitarCierre}
         />
@@ -92,7 +104,7 @@ export default function ResponderSolicitudForm({ solicitud, onCerrar }: Props) {
       <form
         id={ID_FORMULARIO}
         noValidate
-        aria-busy={isPending}
+        aria-busy={respondiendo}
         onSubmit={formulario.handleSubmit(enviar, () => setResumenVisible(true))}
         className="flex flex-col gap-5"
       >

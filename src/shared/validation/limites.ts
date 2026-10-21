@@ -15,7 +15,7 @@ export const LIMITES = {
   // (ApplicationValidationException) de EnviarSolicitudNovedadCoordinador (HU-081) y de
   // EnviarSolicitudNovedadAsesor (HU-082), confirmado con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
-  // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear
+  // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear y ResponderSolicitudNovedadAsesorCommand.crear
   // (ValidatorLongitud.longitudEntre(1, 100)), SolicitudesLimits.Respuesta.CONTENIDO_MAX.
   RESPUESTA_CONTENIDO_MAX: 100,
   USUARIO_IDENTIFICADOR_MIN: 4,

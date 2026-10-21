@@ -263,6 +263,25 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('responderSolicitudNovedadAsesor', () => {
+    it('llama POST /solicitudes/novedad-asesor/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-2' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudNovedadAsesor({
+        solicitudId: 's-2',
+        contenido: 'Revisemos tu avance el lunes.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/novedad-asesor/s-2/respuesta', {
+        contenido: 'Revisemos tu avance el lunes.',
+      });
+      expect(resultado).toEqual({ id: 'r-2' });
+    });
+  });
+
   describe('modificarEstadoRespuestaNovedadCoordinador', () => {
     it('llama PATCH /solicitudes/novedad-coordinador/{solicitudId}/respuesta/estado con solo { nuevoEstado } y resuelve undefined', async () => {
       // Arrange

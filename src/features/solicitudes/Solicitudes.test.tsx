@@ -8,6 +8,8 @@ import { RESPUESTA } from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
+import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNovedadAsesorRecibidas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
@@ -70,6 +72,10 @@ vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
   useResponderSolicitudNovedadCoordinador: vi.fn(),
 }));
 
+vi.mock('./hooks/useResponderSolicitudNovedadAsesor', () => ({
+  useResponderSolicitudNovedadAsesor: vi.fn(),
+}));
+
 type MutacionEnviarSolicitud = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
 
 function crearMutacionMock(): MutacionEnviarSolicitud {
@@ -91,6 +97,50 @@ function crearMutacionMock(): MutacionEnviarSolicitud {
     mutateAsync: vi.fn(),
     reset: vi.fn(),
   } as MutacionEnviarSolicitud;
+}
+
+function crearMutacionResponderAsesorMock(): ReturnType<typeof useResponderSolicitudNovedadAsesor> {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as ReturnType<typeof useResponderSolicitudNovedadAsesor>;
+}
+
+function crearMutacionResponderCoordinadorMock(): ReturnType<
+  typeof useResponderSolicitudNovedadCoordinador
+> {
+  return {
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate: vi.fn(),
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as ReturnType<typeof useResponderSolicitudNovedadCoordinador>;
 }
 
 type MutacionEliminarRespuesta = ReturnType<typeof useEliminarRespuestaNovedadCoordinador>;
@@ -131,6 +181,12 @@ describe('Solicitudes', () => {
       isError: false,
     } as ReturnType<typeof useEstadosRespuesta>);
     vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
+    vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue(
+      crearMutacionResponderCoordinadorMock(),
+    );
+    vi.mocked(useResponderSolicitudNovedadAsesor).mockReturnValue(
+      crearMutacionResponderAsesorMock(),
+    );
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {

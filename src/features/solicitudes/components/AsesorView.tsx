@@ -6,7 +6,7 @@ export default function AsesorView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Solicitudes"
-        descripcion="Consulta las novedades que los estudiantes te han enviado."
+        descripcion="Consulta y responde las novedades que los estudiantes te han enviado."
       />
 
       <SolicitudesRecibidasAsesorPanel />
