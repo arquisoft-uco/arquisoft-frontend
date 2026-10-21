@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, renderHook, waitFor } from '../../../test-utils/render';
+import { renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { Solicitud } from '../models/Solicitud';
 import { solicitudesService } from '../services/solicitudesService';
@@ -63,7 +63,7 @@ describe('useSolicitudesNovedadAsesorRecibidas', () => {
     const queryClient = crearQueryClient();
 
     // Act
-    const { result } = renderHook(() => useSolicitudesNovedadAsesorRecibidas(), {
+    const { result } = renderHook(() => useSolicitudesNovedadAsesorRecibidas(0), {
       wrapper: crearWrapper(queryClient),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -71,27 +71,26 @@ describe('useSolicitudesNovedadAsesorRecibidas', () => {
     // Assert
     expect(consultar).toHaveBeenCalledWith(0, 10);
     expect(result.current.data?.content).toEqual([solicitud]);
-    expect(result.current.page).toBe(0);
     expect(result.current.pageSize).toBe(10);
     expect(queryClient.getQueryData(['solicitudes', 'novedad-asesor', 'recibidas', 0])).toEqual(
       result.current.data,
     );
   });
 
-  it('vuelve a consultar con la página nueva cuando se llama a goToPage', async () => {
+  it('vuelve a consultar con la página nueva cuando cambia el parámetro page', async () => {
     // Arrange
-    const { result } = renderHook(() => useSolicitudesNovedadAsesorRecibidas(), {
-      wrapper: crearWrapper(),
-    });
+    const { result, rerender } = renderHook(
+      ({ page }) => useSolicitudesNovedadAsesorRecibidas(page),
+      { wrapper: crearWrapper(), initialProps: { page: 0 } },
+    );
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     // Act
-    act(() => result.current.goToPage(1));
+    rerender({ page: 1 });
 
     // Assert
     await waitFor(() => expect(consultar).toHaveBeenLastCalledWith(1, 10));
     await waitFor(() => expect(result.current.data?.page).toBe(1));
-    expect(result.current.page).toBe(1);
   });
 
   it('expone el error cuando el service falla', async () => {
@@ -99,7 +98,7 @@ describe('useSolicitudesNovedadAsesorRecibidas', () => {
     consultar.mockRejectedValue(new Error('fallo de red'));
 
     // Act
-    const { result } = renderHook(() => useSolicitudesNovedadAsesorRecibidas(), {
+    const { result } = renderHook(() => useSolicitudesNovedadAsesorRecibidas(0), {
       wrapper: crearWrapper(),
     });
 

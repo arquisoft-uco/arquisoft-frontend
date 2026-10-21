@@ -7,15 +7,20 @@ import ResponderSolicitudForm from '../ResponderSolicitudForm';
 
 const RAIZ = 'flex flex-col gap-4';
 
-export default function SolicitudesRecibidasAsesorPanel() {
-  const consulta = useSolicitudesNovedadAsesorRecibidas();
+interface Props {
+  page: number;
+  onPageChange: (page: number) => void;
+}
+
+export default function SolicitudesRecibidasAsesorPanel({ page, onPageChange }: Props) {
+  const consulta = useSolicitudesNovedadAsesorRecibidas(page);
   const { mutate, isPending, reset } = useResponderSolicitudNovedadAsesor();
   const [solicitudAResponder, setSolicitudAResponder] = useState<Solicitud | null>(null);
 
   return (
     <div className={RAIZ}>
       <ListadoSolicitudesRecibidas
-        consulta={consulta}
+        consulta={{ ...consulta, page, goToPage: onPageChange }}
         receptor="asesor"
         onResponder={setSolicitudAResponder}
       />

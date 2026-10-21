@@ -11,6 +11,7 @@ import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitude
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
 import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNovedadAsesorRecibidas';
+import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedadAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
@@ -50,6 +51,10 @@ vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
 
 vi.mock('./hooks/useSolicitudesNovedadAsesorRecibidas', () => ({
   useSolicitudesNovedadAsesorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasNovedadAsesorEnviadas', () => ({
+  useRespuestasNovedadAsesorEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
@@ -288,37 +293,48 @@ describe('Solicitudes', () => {
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
   });
 
-  it('renderiza AsesorView con el listado de recibidas y sin pestañas cuando el rol activo es Asesor', () => {
+  it('renderiza AsesorView con las pestañas Recibidas y Respuestas enviadas cuando el rol activo es Asesor', async () => {
     autenticarCon(Rol.Asesor);
-    const hookAsesor: Partial<ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>> = {
-      data: {
-        content: [],
-        page: 0,
-        size: 10,
-        totalElements: 0,
-        totalPages: 0,
-        first: true,
-        last: true,
-        empty: true,
-      },
+    const vacia = {
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    };
+    const base: Partial<ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>> &
+      Partial<ReturnType<typeof useRespuestasNovedadAsesorEnviadas>> = {
+      data: vacia,
       error: null,
       isLoading: false,
       isError: false,
       isFetching: false,
       isPlaceholderData: false,
       refetch: vi.fn(),
-      page: 0,
       pageSize: 10,
-      goToPage: vi.fn(),
     };
     vi.mocked(useSolicitudesNovedadAsesorRecibidas).mockReturnValue(
-      hookAsesor as ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>,
+      base as ReturnType<typeof useSolicitudesNovedadAsesorRecibidas>,
     );
+    vi.mocked(useRespuestasNovedadAsesorEnviadas).mockReturnValue(
+      base as ReturnType<typeof useRespuestasNovedadAsesorEnviadas>,
+    );
+    const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
-    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Recibidas',
+      'Respuestas enviadas',
+    ]);
     expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+
+    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
