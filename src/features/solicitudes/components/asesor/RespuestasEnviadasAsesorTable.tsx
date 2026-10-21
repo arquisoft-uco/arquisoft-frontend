@@ -20,6 +20,7 @@ export default function RespuestasEnviadasAsesorTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  acciones,
 }: TablaRespuestasProps) {
   return (
     <RespuestasTable
@@ -33,6 +34,7 @@ export default function RespuestasEnviadasAsesorTable({
       participante={{ encabezado: 'Estudiante', celda: celdaEstudiante }}
       encabezadoFecha="Respondida"
       vacio={VACIO}
+      acciones={acciones}
     />
   );
 }

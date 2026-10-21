@@ -299,6 +299,20 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('eliminarRespuestaNovedadAsesor', () => {
+    it('llama DELETE /solicitudes/novedad-asesor/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarRespuestaNovedadAsesor('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/novedad-asesor/s-1/respuesta');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('responderSolicitudNovedadCoordinador', () => {
     it('llama POST /solicitudes/novedad-coordinador/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
       // Arrange
