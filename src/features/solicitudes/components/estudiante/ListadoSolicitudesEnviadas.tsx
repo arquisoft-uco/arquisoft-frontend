@@ -1,7 +1,7 @@
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
-import type { Page } from '../../../../shared/models/api-response';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import type { ConsultaListadoSolicitudes } from '../../models/ConsultaListadoSolicitudes';
 import type { Solicitud } from '../../models/Solicitud';
 import ResumenListado from '../ResumenListado';
 import type { TipoSolicitudUi } from './SelectorTipoSolicitud';
@@ -9,21 +9,8 @@ import SolicitudesEnviadasTable from './SolicitudesEnviadasTable';
 
 const RAIZ = 'flex flex-col gap-4';
 
-interface Consulta {
-  data?: Page<Solicitud>;
-  isLoading: boolean;
-  isError: boolean;
-  error: unknown;
-  isFetching: boolean;
-  isPlaceholderData: boolean;
-  refetch: () => unknown;
-  page: number;
-  pageSize: number;
-  goToPage: (page: number) => void;
-}
-
 interface Props {
-  consulta: Consulta;
+  consulta: ConsultaListadoSolicitudes;
   tipo: TipoSolicitudUi;
   eliminando?: boolean;
   onEliminar?: (solicitud: Solicitud) => void;
