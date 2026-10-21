@@ -50,7 +50,7 @@ describe('CambioAsesorForm', () => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/Destinatario \(UUID del coordinador\)/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/por qué solicitas cambiar de asesor/)).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent(/catálogo de coordinadores/i);
+    expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
   });
 
   it('al confirmar envía con el hook del cambio de asesor', async () => {

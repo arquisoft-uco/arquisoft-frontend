@@ -17,11 +17,6 @@ export default function CambioAsesorForm() {
   const { mutate, isPending, reset } = useEnviarSolicitudCambioAsesor();
 
   return (
-    <SolicitudNovedadForm
-      textos={TEXTOS}
-      enviar={mutate}
-      enviando={isPending}
-      reiniciar={reset}
-    />
+    <SolicitudNovedadForm textos={TEXTOS} enviar={mutate} enviando={isPending} reiniciar={reset} />
   );
 }
