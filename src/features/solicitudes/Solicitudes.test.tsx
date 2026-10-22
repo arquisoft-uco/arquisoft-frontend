@@ -58,6 +58,10 @@ vi.mock('./hooks/useEliminarSolicitudNovedadAsesor', () => ({
   useEliminarSolicitudNovedadAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useEliminarSolicitudCambioAsesor', () => ({
+  useEliminarSolicitudCambioAsesor: vi.fn(),
+}));
+
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
   useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
 }));
