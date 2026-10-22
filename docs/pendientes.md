@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-18.
+Última revisión: 2026-10-22.
 
 ## Bloqueados por el backend
 
@@ -44,7 +44,7 @@ Client roles a confirmar en el realm desplegado:
 - `proyectos:asesor-proyecto-grado-estudiante:view` para el estudiante (asesores asignados a su proyecto de grado, HU-045), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `proyectos:estudiante-proyecto-grado-estudiante:view` para el estudiante (estudiantes del proyecto de grado, HU-046), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-coordinador:view` para el coordinador (listado de evaluaciones, HU-157), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
-- `evaluaciones:estado-evaluacion:view` para el coordinador (catálogo de estados del filtro, HU-157), sin verificar en el realm desplegado: un 403 con login real degrada el filtro de estado y con `VITE_AUTH_BYPASS=true` no se nota.
+- `evaluaciones:estado-evaluacion:view` para el coordinador y el estudiante (catálogo de estados del filtro, HU-157 y HU-013), sin verificar en el realm desplegado: un 403 con login real degrada el filtro de estado y con `VITE_AUTH_BYPASS=true` no se nota.
 - `usuarios:usuario-administrador:view`, `usuarios:*-vigente:view`, `usuarios:estado-usuario:view`, `usuarios:usuario-estado:update`, `usuarios:usuario:update` y `usuarios:*:delete` para el administrador.
 - `evaluaciones:criterio-item-cualitativo-jurado:view` para `jurado` y `administrador` (criterios de los ítems cualitativos, HU-212), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden`.
 - `evaluaciones:item-cuantitativo-jurado:view` y `evaluaciones:categoria-item-cuantitativo-jurado:view` para `jurado` y `administrador` (ítems cuantitativos y nombres de sus categorías, HU-226), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden`.

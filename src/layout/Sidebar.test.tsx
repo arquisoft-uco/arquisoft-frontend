@@ -63,7 +63,13 @@ describe('Sidebar', () => {
       within(trabajo)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href')),
-    ).toEqual(['/dashboard', '/fichas-perfil', '/proyectos-grado', '/solicitudes']);
+    ).toEqual([
+      '/dashboard',
+      '/fichas-perfil',
+      '/proyectos-grado',
+      '/evaluaciones',
+      '/solicitudes',
+    ]);
     const proximamente = screen.getByRole('list', { name: 'Próximamente' });
     const pendientes = within(proximamente).getAllByRole('link');
     expect(pendientes.length).toBeGreaterThan(0);

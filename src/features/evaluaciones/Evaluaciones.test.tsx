@@ -9,6 +9,10 @@ vi.mock('./components/ItemsJuradoView', () => ({
   default: () => <p>Vista de ítems del jurado</p>,
 }));
 
+vi.mock('./components/EstudianteView', () => ({
+  default: () => <p>Vista del estudiante</p>,
+}));
+
 vi.mock('./components/JuradoView', () => ({
   default: () => <p>Vista del jurado</p>,
 }));
@@ -63,7 +67,20 @@ describe('Evaluaciones', () => {
     expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
   });
 
-  it.each([Rol.Asesor, Rol.Estudiante])('con el rol %s, redirige a /forbidden', (rol) => {
+  it('con el rol estudiante, renderiza su vista y no las de otros roles', () => {
+    // Arrange
+    autenticarCon(Rol.Estudiante);
+
+    // Act
+    render(<Evaluaciones />, { initialPath: '/evaluaciones' });
+
+    // Assert
+    expect(screen.getByText('Vista del estudiante')).toBeInTheDocument();
+    expect(screen.queryByText('Vista del coordinador')).not.toBeInTheDocument();
+    expect(screen.queryByText('Vista del jurado')).not.toBeInTheDocument();
+  });
+
+  it.each([Rol.Asesor, Rol.Bibliotecario])('con el rol %s, redirige a /forbidden', (rol) => {
     // Arrange
     autenticarCon(rol);
 

@@ -1,20 +1,22 @@
 import type { ReactNode } from 'react';
 import { ClipboardCheck, SearchX } from 'lucide-react';
-import Badge from '../../../../shared/components/ui/Badge';
-import Button from '../../../../shared/components/ui/Button';
-import DataTable from '../../../../shared/components/ui/DataTable';
+import Badge from '../../../shared/components/ui/Badge';
+import Button from '../../../shared/components/ui/Button';
+import DataTable from '../../../shared/components/ui/DataTable';
 import type {
   ColumnaTabla,
   DireccionOrden,
   OrdenTabla,
-} from '../../../../shared/components/ui/DataTable';
-import EmptyState from '../../../../shared/components/ui/EmptyState';
-import { varianteEstadoEvaluacion } from '../../../../shared/utils/estado-variante';
-import type { Evaluacion } from '../../models/Evaluacion';
-import type { OrdenCampoEvaluacion } from '../../models/OrdenCampoEvaluacion';
+} from '../../../shared/components/ui/DataTable';
+import EmptyState from '../../../shared/components/ui/EmptyState';
+import { varianteEstadoEvaluacion } from '../../../shared/utils/estado-variante';
+import type { Evaluacion } from '../models/Evaluacion';
+import type { OrdenCampoEvaluacion } from '../models/OrdenCampoEvaluacion';
 
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
 const TITULO = 'font-medium text-on-surface';
+const DESCRIPCION_VACIO =
+  'Aparecerán aquí cuando se registren evaluaciones de los proyectos de grado.';
 const VERSION = 'text-[13px] text-on-surface-secondary';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoEvaluacion {
@@ -30,6 +32,7 @@ interface Props {
   onLimpiarFiltros: () => void;
   acciones?: (evaluacion: Evaluacion) => ReactNode;
   encabezadoAcciones?: string;
+  descripcionVacio?: string;
 }
 
 function InsigniaEstado({ evaluacion }: { evaluacion: Evaluacion }) {
@@ -71,6 +74,7 @@ export default function EvaluacionesTable({
   onLimpiarFiltros,
   acciones,
   encabezadoAcciones,
+  descripcionVacio = DESCRIPCION_VACIO,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -91,7 +95,7 @@ export default function EvaluacionesTable({
     <EmptyState
       icono={ClipboardCheck}
       titulo="Aún no hay evaluaciones"
-      descripcion="Aparecerán aquí cuando se registren evaluaciones de los proyectos de grado."
+      descripcion={descripcionVacio}
     />
   );
 
