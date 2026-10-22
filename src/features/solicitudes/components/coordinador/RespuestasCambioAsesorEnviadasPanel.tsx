@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, Trash2, XCircle } from 'lucide-react';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
+import { toast } from '../../../../shared/hooks/useToast';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEliminarRespuestaCambioAsesor } from '../../hooks/useEliminarRespuestaCambioAsesor';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useModificarEstadoRespuestaCambioAsesor } from '../../hooks/useModificarEstadoRespuestaCambioAsesor';
 import { useRespuestasCambioAsesorEnviadas } from '../../hooks/useRespuestasCambioAsesorEnviadas';
@@ -14,6 +18,12 @@ import {
 import ModificarEstadoRespuestaDialog from '../ModificarEstadoRespuestaDialog';
 import RespuestasPanel, { type TablaRespuestasProps } from '../RespuestasPanel';
 import RespuestasEnviadasTable from './RespuestasEnviadasTable';
+
+const CONSECUENCIAS = [
+  'El estudiante dejará de ver la respuesta en sus respuestas recibidas.',
+  'La solicitud quedará sin respuesta y podrás responderla de nuevo.',
+  'No se puede deshacer.',
+];
 
 function TablaCambioAsesor(props: TablaRespuestasProps) {
   return <RespuestasEnviadasTable {...props} tipo="cambio-asesor" />;
@@ -30,6 +40,8 @@ export default function RespuestasCambioAsesorEnviadasPanel({ filtros }: Props) 
     respuesta: RespuestaSolicitud;
     nuevoEstado: string;
   } | null>(null);
+  const { mutate: eliminar, isPending: eliminando } = useEliminarRespuestaCambioAsesor();
+  const [pendienteEliminar, setPendienteEliminar] = useState<RespuestaSolicitud | null>(null);
 
   function acciones(respuesta: RespuestaSolicitud) {
     if (respuesta.estadoRespuestaId !== ESTADO_RESPUESTA_EN_REVISION) return null;
@@ -49,9 +61,41 @@ export default function RespuestasCambioAsesorEnviadasPanel({ filtros }: Props) 
             onSeleccionar: () =>
               setPendienteDecision({ respuesta, nuevoEstado: ESTADO_RESPUESTA_NO_APROBADA }),
           },
+          {
+            etiqueta: 'Eliminar respuesta',
+            icono: Trash2,
+            peligro: true,
+            deshabilitada: eliminando,
+            onSeleccionar: () => setPendienteEliminar(respuesta),
+          },
         ]}
       />
     );
+  }
+
+  function handleConfirmarEliminar() {
+    if (!pendienteEliminar) return;
+    eliminar(pendienteEliminar.solicitud.id, {
+      onSuccess: () => {
+        toast.success('Respuesta eliminada', 'La respuesta fue eliminada correctamente.');
+        setPendienteEliminar(null);
+        if ((consulta.data?.content.length ?? 0) === 1 && filtros.page > 0) {
+          filtros.goToPage(filtros.page - 1);
+        }
+      },
+      onError: (err) => {
+        toast.error(
+          'No se pudo eliminar la respuesta',
+          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
+        );
+        setPendienteEliminar(null);
+      },
+    });
+  }
+
+  function handleCancelarEliminar() {
+    if (eliminando) return;
+    setPendienteEliminar(null);
   }
 
   return (
@@ -68,6 +112,18 @@ export default function RespuestasCambioAsesorEnviadasPanel({ filtros }: Props) 
           nuevoEstado={pendienteDecision.nuevoEstado}
           mutacion={modificarEstado}
           onCerrar={() => setPendienteDecision(null)}
+        />
+      )}
+      {pendienteEliminar && (
+        <ConfirmDialog
+          variante="peligro"
+          titulo="¿Eliminar respuesta?"
+          descripcion={`Vas a eliminar tu respuesta a ${pendienteEliminar.solicitud.remitente.nombre}.`}
+          consecuencias={CONSECUENCIAS}
+          labelConfirmar="Eliminar"
+          cargando={eliminando}
+          onConfirmar={handleConfirmarEliminar}
+          onCancelar={handleCancelarEliminar}
         />
       )}
     </>

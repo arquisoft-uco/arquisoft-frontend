@@ -175,6 +175,9 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  eliminarRespuestaCambioAsesor: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/cambio-asesor/${solicitudId}/respuesta`).then(() => undefined),
+
   eliminarRespuestaNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient
       .delete(`/solicitudes/novedad-coordinador/${solicitudId}/respuesta`)
