@@ -7,12 +7,27 @@ import type { Solicitud } from '../models/Solicitud';
 import FechaSolicitud from './FechaSolicitud';
 import FechaTarjeta from './FechaTarjeta';
 import ParticipanteCelda from './ParticipanteCelda';
+import type { TipoSolicitudRecibidaUi } from './SelectorTipoSolicitud';
 
 export type ReceptorSolicitud = 'coordinador' | 'asesor';
 
-const DESCRIPCION_VACIO: Record<ReceptorSolicitud, string> = {
-  coordinador: 'Cuando alguien te envíe una novedad, aparecerá aquí.',
-  asesor: 'Cuando un estudiante te envíe una novedad, aparecerá aquí.',
+const DESCRIPCION_VACIO_CAMBIO_ASESOR =
+  'Cuando un estudiante solicite un cambio de asesor, aparecerá aquí.';
+
+const DESCRIPCION_VACIO: Record<TipoSolicitudRecibidaUi, Record<ReceptorSolicitud, string>> = {
+  novedad: {
+    coordinador: 'Cuando alguien te envíe una novedad, aparecerá aquí.',
+    asesor: 'Cuando un estudiante te envíe una novedad, aparecerá aquí.',
+  },
+  'cambio-asesor': {
+    coordinador: DESCRIPCION_VACIO_CAMBIO_ASESOR,
+    asesor: DESCRIPCION_VACIO_CAMBIO_ASESOR,
+  },
+};
+
+const ETIQUETA_TABLA: Record<TipoSolicitudRecibidaUi, string> = {
+  novedad: 'Solicitudes de novedad recibidas',
+  'cambio-asesor': 'Solicitudes de cambio de asesor recibidas',
 };
 
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
@@ -44,6 +59,7 @@ interface Props {
   solicitudes: Solicitud[];
   cargando: boolean;
   receptor: ReceptorSolicitud;
+  tipo?: TipoSolicitudRecibidaUi;
   onResponder?: (solicitud: Solicitud) => void;
 }
 
@@ -51,6 +67,7 @@ export default function SolicitudesRecibidasTable({
   solicitudes,
   cargando,
   receptor,
+  tipo = 'novedad',
   onResponder,
 }: Props) {
   function acciones(solicitud: Solicitud) {
@@ -67,7 +84,7 @@ export default function SolicitudesRecibidasTable({
 
   return (
     <DataTable
-      etiqueta="Solicitudes de novedad recibidas"
+      etiqueta={ETIQUETA_TABLA[tipo]}
       columnas={COLUMNAS}
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
@@ -78,7 +95,7 @@ export default function SolicitudesRecibidasTable({
         <EmptyState
           icono={Inbox}
           titulo="Aún no has recibido solicitudes"
-          descripcion={DESCRIPCION_VACIO[receptor]}
+          descripcion={DESCRIPCION_VACIO[tipo][receptor]}
         />
       }
       tarjeta={(solicitud) => (

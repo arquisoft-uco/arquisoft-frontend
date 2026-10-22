@@ -7,7 +7,7 @@ import type { Solicitud } from '../../models/Solicitud';
 import FechaSolicitud from '../FechaSolicitud';
 import FechaTarjeta from '../FechaTarjeta';
 import ParticipanteCelda from '../ParticipanteCelda';
-import type { TipoSolicitudEnviableUi } from './SelectorTipoSolicitud';
+import type { TipoSolicitudEnviableUi } from '../SelectorTipoSolicitud';
 
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
 

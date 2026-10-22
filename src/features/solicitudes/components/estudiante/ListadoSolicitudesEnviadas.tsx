@@ -4,7 +4,7 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import type { ConsultaListadoSolicitudes } from '../../models/ConsultaListadoSolicitudes';
 import type { Solicitud } from '../../models/Solicitud';
 import ResumenListado from '../ResumenListado';
-import type { TipoSolicitudEnviableUi } from './SelectorTipoSolicitud';
+import type { TipoSolicitudEnviableUi } from '../SelectorTipoSolicitud';
 import SolicitudesEnviadasTable from './SolicitudesEnviadasTable';
 
 const RAIZ = 'flex flex-col gap-4';

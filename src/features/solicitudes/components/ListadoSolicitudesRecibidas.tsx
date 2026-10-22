@@ -4,6 +4,7 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { ConsultaListadoSolicitudes } from '../models/ConsultaListadoSolicitudes';
 import type { Solicitud } from '../models/Solicitud';
 import ResumenListado from './ResumenListado';
+import type { TipoSolicitudRecibidaUi } from './SelectorTipoSolicitud';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
 import type { ReceptorSolicitud } from './SolicitudesRecibidasTable';
 
@@ -12,10 +13,16 @@ const RAIZ = 'flex flex-col gap-4';
 interface Props {
   consulta: ConsultaListadoSolicitudes;
   receptor: ReceptorSolicitud;
+  tipo?: TipoSolicitudRecibidaUi;
   onResponder?: (solicitud: Solicitud) => void;
 }
 
-export default function ListadoSolicitudesRecibidas({ consulta, receptor, onResponder }: Props) {
+export default function ListadoSolicitudesRecibidas({
+  consulta,
+  receptor,
+  tipo,
+  onResponder,
+}: Props) {
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = consulta;
   const solicitudes = data?.content ?? [];
 
@@ -35,6 +42,7 @@ export default function ListadoSolicitudesRecibidas({ consulta, receptor, onResp
             solicitudes={solicitudes}
             cargando={isLoading || (isPlaceholderData && solicitudes.length === 0)}
             receptor={receptor}
+            tipo={tipo}
             onResponder={onResponder}
           />
         )}

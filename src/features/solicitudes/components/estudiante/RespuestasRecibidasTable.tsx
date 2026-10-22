@@ -2,7 +2,7 @@ import type { TablaRespuestasProps } from '../RespuestasPanel';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
 import RespuestasTable from '../RespuestasTable';
-import type { TipoSolicitudUi } from './SelectorTipoSolicitud';
+import type { TipoSolicitudUi } from '../SelectorTipoSolicitud';
 
 const TEXTOS_POR_TIPO: Record<
   TipoSolicitudUi,

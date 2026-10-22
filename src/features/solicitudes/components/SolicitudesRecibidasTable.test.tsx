@@ -130,4 +130,36 @@ describe('SolicitudesRecibidasTable', () => {
     expect(onResponder).toHaveBeenCalledTimes(1);
     expect(onResponder).toHaveBeenCalledWith(SOLICITUDES[1]);
   });
+
+  it('con tipo cambio-asesor usa su etiqueta y su vacío, y sin onResponder no hay acciones', () => {
+    // Arrange / Act
+    const { rerender } = render(
+      <SolicitudesRecibidasTable
+        solicitudes={[]}
+        cargando={false}
+        receptor="coordinador"
+        tipo="cambio-asesor"
+      />,
+    );
+
+    // Assert
+    expect(
+      screen.getByText('Cuando un estudiante solicite un cambio de asesor, aparecerá aquí.'),
+    ).toBeInTheDocument();
+
+    // Act
+    rerender(
+      <SolicitudesRecibidasTable
+        solicitudes={SOLICITUDES}
+        cargando={false}
+        receptor="coordinador"
+        tipo="cambio-asesor"
+      />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Solicitudes de cambio de asesor recibidas' });
+    expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
+    expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
+  });
 });
