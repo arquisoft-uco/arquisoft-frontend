@@ -359,6 +359,7 @@ describe('Solicitudes', () => {
   });
 
   it('en Respuestas enviadas el coordinador cambia a Cambio de asesor y ve ese listado', async () => {
+    // Arrange
     autenticarCon(Rol.Coordinador);
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
       crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
@@ -376,14 +377,16 @@ describe('Solicitudes', () => {
       }) as ReturnType<typeof useRespuestasCambioAsesorEnviadas>,
     );
     const user = userEvent.setup();
-    render(<Solicitudes />, { initialPath: '/solicitudes' });
 
+    // Act
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
     await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
       'cambio-asesor',
     );
 
+    // Assert
     const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' });
     expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
   });
