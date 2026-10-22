@@ -1,7 +1,22 @@
+import { useState } from 'react';
+import { Trash2 } from 'lucide-react';
+import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
+import { toast } from '../../../../shared/hooks/useToast';
+import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEliminarRespuestaCambioAsesor } from '../../hooks/useEliminarRespuestaCambioAsesor';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasCambioAsesorEnviadas } from '../../hooks/useRespuestasCambioAsesorEnviadas';
+import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
+import { ESTADO_RESPUESTA_EN_REVISION } from '../../utils/decisiones-respuesta';
 import RespuestasPanel, { type TablaRespuestasProps } from '../RespuestasPanel';
 import RespuestasEnviadasTable from './RespuestasEnviadasTable';
+
+const CONSECUENCIAS = [
+  'El estudiante dejará de ver la respuesta en sus respuestas recibidas.',
+  'La solicitud quedará sin respuesta y podrás responderla de nuevo.',
+  'No se puede deshacer.',
+];
 
 function TablaCambioAsesor(props: TablaRespuestasProps) {
   return <RespuestasEnviadasTable {...props} tipo="cambio-asesor" />;
@@ -13,6 +28,72 @@ interface Props {
 
 export default function RespuestasCambioAsesorEnviadasPanel({ filtros }: Props) {
   const consulta = useRespuestasCambioAsesorEnviadas(filtros);
+  const { mutate: eliminar, isPending: eliminando } = useEliminarRespuestaCambioAsesor();
+  const [pendienteEliminar, setPendienteEliminar] = useState<RespuestaSolicitud | null>(null);
 
-  return <RespuestasPanel consulta={consulta} filtros={filtros} Tabla={TablaCambioAsesor} />;
+  function acciones(respuesta: RespuestaSolicitud) {
+    if (respuesta.estadoRespuestaId !== ESTADO_RESPUESTA_EN_REVISION) return null;
+    return (
+      <RowMenu
+        etiqueta={`Acciones de la respuesta a ${respuesta.solicitud.remitente.nombre}`}
+        acciones={[
+          {
+            etiqueta: 'Eliminar respuesta',
+            icono: Trash2,
+            peligro: true,
+            deshabilitada: eliminando,
+            onSeleccionar: () => setPendienteEliminar(respuesta),
+          },
+        ]}
+      />
+    );
+  }
+
+  function handleConfirmarEliminar() {
+    if (!pendienteEliminar) return;
+    eliminar(pendienteEliminar.solicitud.id, {
+      onSuccess: () => {
+        toast.success('Respuesta eliminada', 'La respuesta fue eliminada correctamente.');
+        setPendienteEliminar(null);
+        if ((consulta.data?.content.length ?? 0) === 1 && filtros.page > 0) {
+          filtros.goToPage(filtros.page - 1);
+        }
+      },
+      onError: (err) => {
+        toast.error(
+          'No se pudo eliminar la respuesta',
+          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
+        );
+        setPendienteEliminar(null);
+      },
+    });
+  }
+
+  function handleCancelarEliminar() {
+    if (eliminando) return;
+    setPendienteEliminar(null);
+  }
+
+  return (
+    <>
+      <RespuestasPanel
+        consulta={consulta}
+        filtros={filtros}
+        Tabla={TablaCambioAsesor}
+        acciones={acciones}
+      />
+      {pendienteEliminar && (
+        <ConfirmDialog
+          variante="peligro"
+          titulo="¿Eliminar respuesta?"
+          descripcion={`Vas a eliminar tu respuesta a ${pendienteEliminar.solicitud.remitente.nombre}.`}
+          consecuencias={CONSECUENCIAS}
+          labelConfirmar="Eliminar"
+          cargando={eliminando}
+          onConfirmar={handleConfirmarEliminar}
+          onCancelar={handleCancelarEliminar}
+        />
+      )}
+    </>
+  );
 }
