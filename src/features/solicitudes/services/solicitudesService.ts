@@ -43,7 +43,6 @@ export const solicitudesService = {
         mensajeSolicitud: req.mensajeSolicitud,
       })
       .then((r) => r.data),
-
   consultarSolicitudesNovedadCoordinadorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/enviadas', {
