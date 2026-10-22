@@ -11,4 +11,6 @@ export const MENSAJES_VALIDACION = {
   soloDigitos: 'Solo se permiten dígitos',
   formatoNombre: 'Solo letras y espacios',
   valorEntre: (min: number, max: number) => `Debe estar entre ${min} y ${max}`,
+  fechaInvalida: 'Ingresa una fecha válida',
+  fechaFinPosterior: 'La fecha de fin debe ser posterior a la de inicio',
 } as const;

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   DIGITOS_REGEX,
   EMAIL_REGEX,
+  FECHA_ISO_REGEX,
   NOMBRE_COMPLETO_REGEX,
   UUID_REGEX,
 } from './expresiones-regulares';
@@ -171,6 +172,48 @@ export function validarParDeNombres(
       code: z.ZodIssueCode.custom,
       path: ['apellidos'],
       message: MENSAJES_VALIDACION.formatoNombre,
+    });
+  }
+}
+
+function esFechaIsoReal(valor: string): boolean {
+  if (!FECHA_ISO_REGEX.test(valor)) return false;
+  const [anio, mes, dia] = valor.split('-').map(Number);
+  const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+  return (
+    fecha.getUTCFullYear() === anio && fecha.getUTCMonth() === mes - 1 && fecha.getUTCDate() === dia
+  );
+}
+
+// Espejo de las reglas MAPA_RUTA_FECHA_*_REQUERIDA/_INVALIDA del backend: requerida, formato
+// yyyy-MM-dd y fecha real, en ese orden.
+export function fechaIso() {
+  return z.string().superRefine((val, ctx) => {
+    const valor = val.trim();
+    if (valor.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.requerido });
+      return;
+    }
+    if (!esFechaIsoReal(valor)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.fechaInvalida });
+    }
+  });
+}
+
+// Espejo de MAPA_RUTA_FECHA_FIN_NO_POSTERIOR: la fecha de fin es estrictamente posterior a la de
+// inicio. Si alguna no es una fecha real no hace nada: ya la marca fechaIso().
+export function validarFechaFinPosterior(
+  valores: { fechaInicio: string; fechaFin: string },
+  ctx: z.RefinementCtx,
+) {
+  const inicio = valores.fechaInicio.trim();
+  const fin = valores.fechaFin.trim();
+  if (!esFechaIsoReal(inicio) || !esFechaIsoReal(fin)) return;
+  if (fin <= inicio) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['fechaFin'],
+      message: MENSAJES_VALIDACION.fechaFinPosterior,
     });
   }
 }
