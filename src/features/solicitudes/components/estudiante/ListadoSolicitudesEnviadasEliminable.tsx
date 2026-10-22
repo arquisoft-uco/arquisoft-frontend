@@ -4,9 +4,15 @@ import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import type { Solicitud } from '../../models/Solicitud';
 import ListadoSolicitudesEnviadas from './ListadoSolicitudesEnviadas';
-import type { TipoSolicitudUi } from './SelectorTipoSolicitud';
+import type { TipoSolicitudEnviableUi } from './SelectorTipoSolicitud';
 
 const RAIZ = 'flex flex-col gap-4';
+
+const MENSAJE_ELIMINADA: Record<TipoSolicitudEnviableUi, string> = {
+  coordinador: 'La solicitud de novedad fue eliminada correctamente.',
+  asesor: 'La solicitud de novedad fue eliminada correctamente.',
+  'cambio-asesor': 'La solicitud de cambio de asesor fue eliminada correctamente.',
+};
 
 interface OpcionesEliminar {
   onSuccess: () => void;
@@ -14,7 +20,7 @@ interface OpcionesEliminar {
 }
 
 interface Props {
-  tipo: TipoSolicitudUi;
+  tipo: TipoSolicitudEnviableUi;
   consulta: ComponentProps<typeof ListadoSolicitudesEnviadas>['consulta'];
   eliminar: (id: string, opciones: OpcionesEliminar) => void;
   eliminando: boolean;
@@ -32,10 +38,7 @@ export default function ListadoSolicitudesEnviadasEliminable({
     if (!pendienteEliminar) return;
     eliminar(pendienteEliminar.id, {
       onSuccess: () => {
-        toast.success(
-          'Solicitud eliminada',
-          'La solicitud de novedad fue eliminada correctamente.',
-        );
+        toast.success('Solicitud eliminada', MENSAJE_ELIMINADA[tipo]);
         setPendienteEliminar(null);
       },
       onError: (err) => {

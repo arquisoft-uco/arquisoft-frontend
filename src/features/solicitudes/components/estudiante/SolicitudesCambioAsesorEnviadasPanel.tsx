@@ -1,8 +1,17 @@
+import { useEliminarSolicitudCambioAsesor } from '../../hooks/useEliminarSolicitudCambioAsesor';
 import { useSolicitudesCambioAsesorEnviadas } from '../../hooks/useSolicitudesCambioAsesorEnviadas';
-import ListadoSolicitudesEnviadas from './ListadoSolicitudesEnviadas';
+import ListadoSolicitudesEnviadasEliminable from './ListadoSolicitudesEnviadasEliminable';
 
 export default function SolicitudesCambioAsesorEnviadasPanel() {
   const consulta = useSolicitudesCambioAsesorEnviadas();
+  const { mutate: eliminar, isPending: eliminando } = useEliminarSolicitudCambioAsesor();
 
-  return <ListadoSolicitudesEnviadas tipo="cambio-asesor" consulta={consulta} />;
+  return (
+    <ListadoSolicitudesEnviadasEliminable
+      tipo="cambio-asesor"
+      consulta={consulta}
+      eliminar={eliminar}
+      eliminando={eliminando}
+    />
+  );
 }

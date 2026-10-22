@@ -62,11 +62,14 @@ function crearErrorApi(cuerpo: ApiError) {
   });
 }
 
-async function abrirDialogo(eliminar: (id: string, opciones: OpcionesEliminar) => void) {
+async function abrirDialogo(
+  eliminar: (id: string, opciones: OpcionesEliminar) => void,
+  tipo: 'asesor' | 'cambio-asesor' = 'asesor',
+) {
   const user = userEvent.setup();
   render(
     <ListadoSolicitudesEnviadasEliminable
-      tipo="asesor"
+      tipo={tipo}
       consulta={CONSULTA}
       eliminar={eliminar}
       eliminando={false}
@@ -123,6 +126,21 @@ describe('ListadoSolicitudesEnviadasEliminable', () => {
     expect(toast.success).toHaveBeenCalledWith('Solicitud eliminada', expect.any(String));
     expect(toast.error).not.toHaveBeenCalled();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('en cambio de asesor el toast de éxito nombra el cambio de asesor', async () => {
+    // Arrange
+    const eliminar = vi.fn((_id: string, opciones: OpcionesEliminar) => opciones.onSuccess());
+    const user = await abrirDialogo(eliminar, 'cambio-asesor');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(toast.success).toHaveBeenCalledWith(
+      'Solicitud eliminada',
+      'La solicitud de cambio de asesor fue eliminada correctamente.',
+    );
   });
 
   it('en error lanza toast.error con el mensaje del backend y cierra el diálogo', async () => {
