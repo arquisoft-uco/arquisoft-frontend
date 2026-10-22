@@ -147,6 +147,31 @@ describe('SolicitudesEnviadasTable', () => {
     ).toBeInTheDocument();
   });
 
+  it('con tipo cambio-asesor y sin onEliminar usa sus textos y no muestra acciones', () => {
+    // Act
+    renderizar({ tipo: 'cambio-asesor', onEliminar: undefined });
+
+    // Assert
+    const tablaCambio = screen.getByRole('table', {
+      name: 'Solicitudes de cambio de asesor enviadas',
+    });
+    expect(
+      within(tablaCambio).getByRole('columnheader', { name: 'Destinatario' }),
+    ).toBeInTheDocument();
+    expect(within(tablaCambio).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaCambio).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo cambio-asesor y sin solicitudes el vacío menciona el cambio de asesor', () => {
+    // Act
+    renderizar({ tipo: 'cambio-asesor', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText('Cuando envíes una solicitud de cambio de asesor, aparecerá aquí.'),
+    ).toBeInTheDocument();
+  });
+
   it('deshabilita todos los botones de eliminar mientras se elimina', () => {
     // Arrange / Act
     renderizar({ eliminando: true });

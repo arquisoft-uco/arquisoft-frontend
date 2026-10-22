@@ -2,7 +2,7 @@ import { GraduationCap, UserCog, Users, type LucideIcon } from 'lucide-react';
 import Field from '../../../../shared/components/ui/Field';
 
 export type TipoSolicitudUi = 'coordinador' | 'asesor';
-export type TipoNuevaSolicitudUi = TipoSolicitudUi | 'cambio-asesor';
+export type TipoSolicitudEnviableUi = TipoSolicitudUi | 'cambio-asesor';
 
 interface OpcionTipo<T extends string> {
   value: T;
@@ -15,7 +15,7 @@ export const TIPOS_SOLICITUD: OpcionTipo<TipoSolicitudUi>[] = [
   { value: 'asesor', label: 'Novedad al asesor', icono: GraduationCap },
 ];
 
-export const TIPOS_NUEVA_SOLICITUD: OpcionTipo<TipoNuevaSolicitudUi>[] = [
+export const TIPOS_SOLICITUD_ENVIABLE: OpcionTipo<TipoSolicitudEnviableUi>[] = [
   ...TIPOS_SOLICITUD,
   { value: 'cambio-asesor', label: 'Cambio de asesor', icono: UserCog },
 ];
