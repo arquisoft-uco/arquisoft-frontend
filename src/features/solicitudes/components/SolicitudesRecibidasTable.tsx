@@ -15,6 +15,16 @@ const DESCRIPCION_VACIO: Record<ReceptorSolicitud, string> = {
   asesor: 'Cuando un estudiante te envíe una novedad, aparecerá aquí.',
 };
 
+export type TipoSolicitudRecibida = 'novedad' | 'cambio-asesor';
+
+const ETIQUETA_TABLA: Record<TipoSolicitudRecibida, string> = {
+  novedad: 'Solicitudes de novedad recibidas',
+  'cambio-asesor': 'Solicitudes de cambio de asesor recibidas',
+};
+
+const DESCRIPCION_VACIO_CAMBIO_ASESOR =
+  'Cuando un estudiante solicite un cambio de asesor, aparecerá aquí.';
+
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
 
 function Remitente({ solicitud }: { solicitud: Solicitud }) {
@@ -44,6 +54,7 @@ interface Props {
   solicitudes: Solicitud[];
   cargando: boolean;
   receptor: ReceptorSolicitud;
+  tipo?: TipoSolicitudRecibida;
   onResponder?: (solicitud: Solicitud) => void;
 }
 
@@ -51,6 +62,7 @@ export default function SolicitudesRecibidasTable({
   solicitudes,
   cargando,
   receptor,
+  tipo = 'novedad',
   onResponder,
 }: Props) {
   function acciones(solicitud: Solicitud) {
@@ -67,7 +79,7 @@ export default function SolicitudesRecibidasTable({
 
   return (
     <DataTable
-      etiqueta="Solicitudes de novedad recibidas"
+      etiqueta={ETIQUETA_TABLA[tipo]}
       columnas={COLUMNAS}
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
@@ -78,7 +90,9 @@ export default function SolicitudesRecibidasTable({
         <EmptyState
           icono={Inbox}
           titulo="Aún no has recibido solicitudes"
-          descripcion={DESCRIPCION_VACIO[receptor]}
+          descripcion={
+            tipo === 'cambio-asesor' ? DESCRIPCION_VACIO_CAMBIO_ASESOR : DESCRIPCION_VACIO[receptor]
+          }
         />
       }
       tarjeta={(solicitud) => (

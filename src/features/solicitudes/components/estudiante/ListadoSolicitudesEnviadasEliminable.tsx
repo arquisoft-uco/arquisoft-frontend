@@ -4,7 +4,7 @@ import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import type { Solicitud } from '../../models/Solicitud';
 import ListadoSolicitudesEnviadas from './ListadoSolicitudesEnviadas';
-import type { TipoSolicitudEnviableUi } from './SelectorTipoSolicitud';
+import type { TipoSolicitudEnviableUi } from '../SelectorTipoSolicitud';
 
 const RAIZ = 'flex flex-col gap-4';
 

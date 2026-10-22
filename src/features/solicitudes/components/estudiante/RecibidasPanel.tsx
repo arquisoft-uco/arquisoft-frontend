@@ -5,7 +5,7 @@ import RespuestasRecibidasPanel from './RespuestasRecibidasPanel';
 import SelectorTipoSolicitud, {
   TIPOS_SOLICITUD,
   type TipoSolicitudUi,
-} from './SelectorTipoSolicitud';
+} from '../SelectorTipoSolicitud';
 
 const PANEL_POR_TIPO: Record<
   TipoSolicitudUi,

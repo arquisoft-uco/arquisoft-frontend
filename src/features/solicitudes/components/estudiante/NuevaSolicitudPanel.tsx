@@ -5,7 +5,7 @@ import NovedadCoordinadorForm from './NovedadCoordinadorForm';
 import SelectorTipoSolicitud, {
   TIPOS_SOLICITUD_ENVIABLE,
   type TipoSolicitudEnviableUi,
-} from './SelectorTipoSolicitud';
+} from '../SelectorTipoSolicitud';
 
 const FORM_POR_TIPO: Record<TipoSolicitudEnviableUi, React.ComponentType> = {
   coordinador: NovedadCoordinadorForm,

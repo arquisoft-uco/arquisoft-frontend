@@ -3,7 +3,8 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useFiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
 import RespuestasEnviadasPanel from './coordinador/RespuestasEnviadasPanel';
-import SolicitudesRecibidasPanel from './coordinador/SolicitudesRecibidasPanel';
+import RecibidasPanel from './coordinador/RecibidasPanel';
+import type { TipoSolicitudRecibidaUi } from './SelectorTipoSolicitud';
 
 type Pestana = 'recibidas' | 'respuestas-enviadas';
 
@@ -14,12 +15,22 @@ const PESTANAS: { id: Pestana; etiqueta: string }[] = [
 
 export default function CoordinadorView() {
   const [pestana, setPestana] = useState<Pestana>('recibidas');
-  const [paginaRecibidas, setPaginaRecibidas] = useState(0);
+  const [paginasRecibidas, setPaginasRecibidas] = useState<Record<TipoSolicitudRecibidaUi, number>>(
+    {
+      novedad: 0,
+      'cambio-asesor': 0,
+    },
+  );
   const filtrosRespuestasEnviadas = useFiltrosRespuestas();
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     recibidas: (
-      <SolicitudesRecibidasPanel page={paginaRecibidas} onPageChange={setPaginaRecibidas} />
+      <RecibidasPanel
+        paginas={paginasRecibidas}
+        onPageChange={(tipo, page) =>
+          setPaginasRecibidas((actuales) => ({ ...actuales, [tipo]: page }))
+        }
+      />
     ),
     'respuestas-enviadas': <RespuestasEnviadasPanel filtros={filtrosRespuestasEnviadas} />,
   };
@@ -28,7 +39,7 @@ export default function CoordinadorView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Solicitudes"
-        descripcion="Consulta las novedades que te han enviado y las respuestas que diste."
+        descripcion="Consulta las solicitudes que te han enviado y las respuestas que diste."
       />
 
       <Tabs

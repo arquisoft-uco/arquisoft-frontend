@@ -2,7 +2,7 @@ import { useState } from 'react';
 import SelectorTipoSolicitud, {
   TIPOS_SOLICITUD_ENVIABLE,
   type TipoSolicitudEnviableUi,
-} from './SelectorTipoSolicitud';
+} from '../SelectorTipoSolicitud';
 import SolicitudesAsesorEnviadasPanel from './SolicitudesAsesorEnviadasPanel';
 import SolicitudesCambioAsesorEnviadasPanel from './SolicitudesCambioAsesorEnviadasPanel';
 import SolicitudesEnviadasPanel from './SolicitudesEnviadasPanel';

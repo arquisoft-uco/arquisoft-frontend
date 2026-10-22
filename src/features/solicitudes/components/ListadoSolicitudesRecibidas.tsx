@@ -5,17 +5,23 @@ import type { ConsultaListadoSolicitudes } from '../models/ConsultaListadoSolici
 import type { Solicitud } from '../models/Solicitud';
 import ResumenListado from './ResumenListado';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
-import type { ReceptorSolicitud } from './SolicitudesRecibidasTable';
+import type { ReceptorSolicitud, TipoSolicitudRecibida } from './SolicitudesRecibidasTable';
 
 const RAIZ = 'flex flex-col gap-4';
 
 interface Props {
   consulta: ConsultaListadoSolicitudes;
   receptor: ReceptorSolicitud;
+  tipo?: TipoSolicitudRecibida;
   onResponder?: (solicitud: Solicitud) => void;
 }
 
-export default function ListadoSolicitudesRecibidas({ consulta, receptor, onResponder }: Props) {
+export default function ListadoSolicitudesRecibidas({
+  consulta,
+  receptor,
+  tipo,
+  onResponder,
+}: Props) {
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = consulta;
   const solicitudes = data?.content ?? [];
 
@@ -35,6 +41,7 @@ export default function ListadoSolicitudesRecibidas({ consulta, receptor, onResp
             solicitudes={solicitudes}
             cargando={isLoading || (isPlaceholderData && solicitudes.length === 0)}
             receptor={receptor}
+            tipo={tipo}
             onResponder={onResponder}
           />
         )}
