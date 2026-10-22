@@ -19,6 +19,7 @@ import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedad
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
+import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
 import { useModificarEstadoRespuestaCambioAsesor } from './hooks/useModificarEstadoRespuestaCambioAsesor';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaCambioAsesor } from './hooks/useEliminarRespuestaCambioAsesor';
@@ -92,6 +93,10 @@ vi.mock('./hooks/useRespuestasCambioAsesorEnviadas', () => ({
 
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
   useRespuestasNovedadAsesorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasCambioAsesorRecibidas', () => ({
+  useRespuestasCambioAsesorRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
@@ -538,6 +543,36 @@ describe('Solicitudes', () => {
       'aria-pressed',
       'true',
     );
+  });
+
+  it('en Respuestas el estudiante cambia a Cambio de asesor y ve ese listado', async () => {
+    // Arrange
+    autenticarCon(Rol.Estudiante);
+    vi.mocked(useRespuestasNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasCambioAsesorRecibidas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_CAMBIO_ASESOR],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasCambioAsesorRecibidas>,
+    );
+    const user = userEvent.setup();
+
+    // Act
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'cambio-asesor',
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor recibidas' });
+    expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
   });
 
   it('conserva el estado elegido en Respuestas enviadas al ir a Recibidas y volver', async () => {

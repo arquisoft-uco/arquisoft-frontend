@@ -1,7 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
-import { RESPUESTA, RESPUESTA_ASESOR } from '../../../../test-utils/respuestas';
+import {
+  RESPUESTA,
+  RESPUESTA_ASESOR,
+  RESPUESTA_CAMBIO_ASESOR,
+} from '../../../../test-utils/respuestas';
 import RespuestasRecibidasTable from './RespuestasRecibidasTable';
 
 const ORDEN = { clave: 'fechaRespuesta', direccion: 'DESC' } as const;
@@ -147,5 +151,43 @@ describe('RespuestasRecibidasTable', () => {
     // Assert
     expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
     expect(screen.getByText(/Cuando tu asesor responda/)).toBeInTheDocument();
+  });
+
+  it('con tipo cambio-asesor muestra el coordinador que respondió, su encabezado y el vacío propio', () => {
+    // Arrange
+    const props = {
+      cargando: false,
+      hayFiltros: false,
+      orden: ORDEN,
+      onOrdenar: vi.fn(),
+      onLimpiarFiltros: vi.fn(),
+    };
+
+    // Act
+    const { rerender } = render(
+      <RespuestasRecibidasTable
+        tipo="cambio-asesor"
+        respuestas={[RESPUESTA_CAMBIO_ASESOR]}
+        {...props}
+      />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor recibidas' });
+    expect(within(tabla).getByRole('button', { name: 'Coordinador' })).toBeInTheDocument();
+    expect(within(tabla).getByText('Ana Coordinadora')).toBeInTheDocument();
+    expect(within(tabla).getByText(/ana@uco.edu.co/)).toBeInTheDocument();
+    expect(
+      within(tabla).getByText('Quiero cambiar de asesor por incompatibilidad de horarios.'),
+    ).toBeInTheDocument();
+    expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
+    expect(within(tabla).getByText('Aprobada')).toBeInTheDocument();
+
+    // Act
+    rerender(<RespuestasRecibidasTable tipo="cambio-asesor" respuestas={[]} {...props} />);
+
+    // Assert
+    expect(screen.getByText('Aún no has recibido respuestas')).toBeInTheDocument();
+    expect(screen.getByText(/Cuando el coordinador responda/)).toBeInTheDocument();
   });
 });
