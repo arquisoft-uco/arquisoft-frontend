@@ -412,8 +412,8 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
 
 - **Reemplazó:** el `label` con `input type="radio"` escrito a mano en `EstadoDeLaCuenta`. Lo usan ese panel (Usuarios) y
   `DecisionFichaPanel` (Fichas, coordinador).
-- **Cuándo:** pocas opciones excluyentes (hasta 5) que necesitan su consecuencia a la vista; un `select` nativo no la muestra.
-- **API:** `nombre` (el `name` del grupo), `valor`, `titulo`, `descripcion`, `elegida: boolean`, `deshabilitada?` y
+- **Cuándo:** pocas opciones excluyentes (hasta 5) que necesitan su consecuencia a la vista; un `select` nativo no la muestra. Excepción: un catálogo paginado que debe verse de base y seguir visible tras elegir (proyectos de «Nuevo mapa de ruta») va como lista de radios en línea con buscador y «Cargar más», sin `Combobox`.
+- **API:** `nombre` (el `name` del grupo), `valor`, `titulo`, `descripcion?`, `elegida: boolean`, `deshabilitada?` y
   `onElegir: (valor: string) => void`. El `role="radiogroup"` con su `aria-labelledby` lo pone quien la usa.
 - **A11y:** el radio se nombra con el título (`aria-labelledby`) y se describe con la descripción (`aria-describedby`).
 
@@ -436,7 +436,7 @@ OpcionRadio.radio | checkbox-control shrink-0 accent-primary
 - **Cuándo:** hasta 5 opciones, radio o chips; de 6 a 8, `select` nativo; más de 8, o cuando hay que reconocer
   personas, `Combobox`.
 - **API:** `opciones: { id; etiqueta; descripcion? }[]`, `valor` (un `id` o `id[]`), `onCambiar`, `multiple?`,
-  `max?`, `textoVacio`, `etiquetaElegidos` (nombre accesible de la lista de elegidos), `placeholder?`, `deshabilitado?`, `onBlur?`, `ref?` (React 19) y los
+  `max?`, `textoVacio`, `etiquetaElegidos` (nombre accesible de la lista de elegidos), `placeholder?`, `deshabilitado?`, `cargarMas?: { etiqueta; cargando; onCargar }` (botón «Cargar más» al pie de la lista para catálogos paginados; el consumidor lo pasa solo mientras hay más páginas), `onBlur?`, `ref?` (React 19) y los
   atributos de `Field` (`id`, `aria-invalid`, `aria-describedby`); se envuelve en `Field` para su etiqueta. El tipo `OpcionCombobox` vive en
   `useCombobox.ts` y `Combobox.tsx` lo reexporta.
 - **Modo único:** con valor, el input se oculta y se muestra una tarjeta (`Combobox.elegido`) con el nombre, el correo y «Cambiar», que recibe el

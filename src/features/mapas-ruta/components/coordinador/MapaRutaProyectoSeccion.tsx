@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Controller, type Control } from 'react-hook-form';
 import { Map } from 'lucide-react';
-import Combobox from '../../../../shared/components/ui/Combobox';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Field from '../../../../shared/components/ui/Field';
@@ -9,6 +8,7 @@ import FormSection from '../../../../shared/components/ui/FormSection';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import ListaProyectosElegibles from './ListaProyectosElegibles';
 import type { useProyectosElegibles } from '../../hooks/useProyectosElegibles';
 import type { RegistrarMapaRutaValues } from '../../hooks/useRegistrarMapaRutaForm';
 
@@ -57,25 +57,16 @@ export default function MapaRutaProyectoSeccion({ control, catalogo }: Props) {
           render={({ field, fieldState }) => (
             <Field etiqueta="Proyecto" error={fieldState.error?.message}>
               {(campo) => (
-                <Combobox
+                <ListaProyectosElegibles
                   {...campo}
                   ref={field.ref}
                   onBlur={field.onBlur}
                   valor={field.value}
                   onCambiar={field.onChange}
                   opciones={opciones}
-                  etiquetaElegidos="Proyecto elegido"
-                  textoVacio="No hay proyectos que coincidan."
-                  placeholder="Busca por título"
-                  cargarMas={
-                    hayMas
-                      ? {
-                          etiqueta: 'Cargar más proyectos',
-                          cargando: cargandoMas,
-                          onCargar: () => void cargarMas(),
-                        }
-                      : undefined
-                  }
+                  hayMas={hayMas}
+                  cargandoMas={cargandoMas}
+                  onCargarMas={() => void cargarMas()}
                 />
               )}
             </Field>

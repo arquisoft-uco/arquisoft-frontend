@@ -22,6 +22,7 @@ export default function RegistrarMapaRutaForm({ registro, idFormulario }: Props)
       onSubmit={enviar}
       className="flex flex-col gap-6"
     >
+      <MapaRutaProyectoSeccion control={form.control} catalogo={catalogo} />
       <FormSection titulo="Fechas importantes">
         <Field etiqueta="Fecha de inicio" error={errors.fechaInicio?.message}>
           {(campo) => (
@@ -39,7 +40,6 @@ export default function RegistrarMapaRutaForm({ registro, idFormulario }: Props)
           )}
         </Field>
       </FormSection>
-      <MapaRutaProyectoSeccion control={form.control} catalogo={catalogo} />
       <ErrorSummary errores={registro.errores} onIrAlCampo={registro.irAlCampo} />
     </form>
   );

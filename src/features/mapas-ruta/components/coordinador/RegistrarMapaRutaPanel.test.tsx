@@ -73,8 +73,7 @@ type Usuario = ReturnType<typeof userEvent.setup>;
 async function llenar(user: Usuario, inicio: string, fin: string) {
   await user.type(screen.getByLabelText(/Fecha de inicio/), inicio);
   await user.type(screen.getByLabelText(/Fecha de fin/), fin);
-  await user.click(screen.getByRole('combobox', { name: 'Proyecto' }));
-  await user.click(screen.getByRole('option', { name: /Sistema de monitoreo/ }));
+  await user.click(screen.getByRole('radio', { name: /Sistema de monitoreo/ }));
 }
 
 const CREAR = { name: 'Crear mapa de ruta' };
@@ -85,6 +84,16 @@ describe('RegistrarMapaRutaPanel', () => {
     resetAllStores();
     mockCatalogo();
     mockMutacion();
+  });
+
+  it('al abrir el panel los proyectos ya son radios visibles, sin desplegable', () => {
+    // Arrange / Act
+    render(<RegistrarMapaRutaPanel onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.getByRole('radio', { name: 'Sistema de monitoreo' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Plataforma web' })).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).toBeNull();
   });
 
   it('muestra el skeleton mientras carga el catálogo', () => {
@@ -237,7 +246,6 @@ describe('RegistrarMapaRutaPanel', () => {
     render(<RegistrarMapaRutaPanel onCerrar={vi.fn()} />);
 
     // Act
-    await user.click(screen.getByRole('combobox', { name: 'Proyecto' }));
     await user.click(screen.getByRole('button', { name: /Cargar más proyectos/ }));
 
     // Assert
