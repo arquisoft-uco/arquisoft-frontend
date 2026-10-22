@@ -4,15 +4,16 @@ import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { ConsultaListadoSolicitudes } from '../models/ConsultaListadoSolicitudes';
 import type { Solicitud } from '../models/Solicitud';
 import ResumenListado from './ResumenListado';
+import type { TipoSolicitudRecibidaUi } from './SelectorTipoSolicitud';
 import SolicitudesRecibidasTable from './SolicitudesRecibidasTable';
-import type { ReceptorSolicitud, TipoSolicitudRecibida } from './SolicitudesRecibidasTable';
+import type { ReceptorSolicitud } from './SolicitudesRecibidasTable';
 
 const RAIZ = 'flex flex-col gap-4';
 
 interface Props {
   consulta: ConsultaListadoSolicitudes;
   receptor: ReceptorSolicitud;
-  tipo?: TipoSolicitudRecibida;
+  tipo?: TipoSolicitudRecibidaUi;
   onResponder?: (solicitud: Solicitud) => void;
 }
 
