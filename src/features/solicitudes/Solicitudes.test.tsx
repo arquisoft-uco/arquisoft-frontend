@@ -19,6 +19,7 @@ import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedad
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
+import { useModificarEstadoRespuestaCambioAsesor } from './hooks/useModificarEstadoRespuestaCambioAsesor';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
 import { useModificarEstadoRespuestaNovedadAsesor } from './hooks/useModificarEstadoRespuestaNovedadAsesor';
@@ -110,6 +111,10 @@ vi.mock('./hooks/useModificarEstadoRespuestaNovedadAsesor', () => ({
 
 vi.mock('./hooks/useModificarEstadoRespuestaNovedadCoordinador', () => ({
   useModificarEstadoRespuestaNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('./hooks/useModificarEstadoRespuestaCambioAsesor', () => ({
+  useModificarEstadoRespuestaCambioAsesor: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
@@ -282,6 +287,9 @@ describe('Solicitudes', () => {
     vi.mocked(useModificarEstadoRespuestaNovedadCoordinador).mockReturnValue(
       crearMutacionModificarMock(),
     );
+    vi.mocked(useModificarEstadoRespuestaCambioAsesor).mockReturnValue(
+      crearMutacionModificarMock(),
+    );
     vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue(
       crearMutacionResponderCoordinadorMock(),
     );
@@ -389,6 +397,44 @@ describe('Solicitudes', () => {
     // Assert
     const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' });
     expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
+  });
+
+  it('en Cambio de asesor el coordinador abre el diálogo para aprobar una respuesta En revisión', async () => {
+    // Arrange
+    autenticarCon(Rol.Coordinador);
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
+    vi.mocked(useRespuestasCambioAsesorEnviadas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [{ ...RESPUESTA_CAMBIO_ASESOR, estadoRespuestaId: 'EN_REVISION' }],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasCambioAsesorEnviadas>,
+    );
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'cambio-asesor',
+    );
+
+    // Act
+    await user.click(
+      within(
+        screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' }),
+      ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Aprobar respuesta?');
   });
 
   it('renderiza AsesorView con las pestañas Recibidas y Respuestas enviadas cuando el rol activo es Asesor', async () => {

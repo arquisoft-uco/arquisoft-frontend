@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
+import { useModificarEstadoRespuestaCambioAsesor } from '../../hooks/useModificarEstadoRespuestaCambioAsesor';
 import { useRespuestasCambioAsesorEnviadas } from '../../hooks/useRespuestasCambioAsesorEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA_CAMBIO_ASESOR } from '../../../../test-utils/respuestas';
@@ -14,6 +15,14 @@ vi.mock('../../hooks/useEstadosRespuesta', () => ({
 
 vi.mock('../../hooks/useRespuestasCambioAsesorEnviadas', () => ({
   useRespuestasCambioAsesorEnviadas: vi.fn(),
+}));
+
+vi.mock('../../hooks/useModificarEstadoRespuestaCambioAsesor', () => ({
+  useModificarEstadoRespuestaCambioAsesor: vi.fn(),
+}));
+
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
 function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuestas {
@@ -32,6 +41,35 @@ function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuest
 }
 
 type HookRespuestas = ReturnType<typeof useRespuestasCambioAsesorEnviadas>;
+type HookModificar = ReturnType<typeof useModificarEstadoRespuestaCambioAsesor>;
+
+const RESPUESTA_EN_REVISION: RespuestaSolicitud = {
+  ...RESPUESTA_CAMBIO_ASESOR,
+  estadoRespuestaId: 'EN_REVISION',
+  estadoRespuestaNombre: 'En revisión',
+};
+
+function mockearModificar(mutate = vi.fn()) {
+  vi.mocked(useModificarEstadoRespuestaCambioAsesor).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookModificar);
+  return mutate;
+}
 
 function crearPagina(content: RespuestaSolicitud[]): Page<RespuestaSolicitud> {
   return {
@@ -63,6 +101,7 @@ function mockearHook(parcial: Partial<HookRespuestas> = {}) {
 describe('RespuestasCambioAsesorEnviadasPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockearModificar();
   });
 
   it('muestra el esqueleto de carga y no la tabla', () => {
@@ -108,7 +147,7 @@ describe('RespuestasCambioAsesorEnviadasPanel', () => {
     expect(screen.getByText(/solicitud de cambio de asesor desde Recibidas/)).toBeInTheDocument();
   });
 
-  it('con datos muestra las filas de solo lectura, sin menú de acciones', () => {
+  it('con datos muestra la tabla y las filas ya resueltas no ofrecen acciones', () => {
     // Arrange
     mockearHook({ data: crearPagina([RESPUESTA_CAMBIO_ASESOR]) });
     const filtros = crearFiltros();
@@ -121,11 +160,70 @@ describe('RespuestasCambioAsesorEnviadasPanel', () => {
     expect(screen.getByText('1 respuesta')).toBeInTheDocument();
     const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' });
     expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
-    expect(
-      within(tabla).getByText('Quiero cambiar de asesor por incompatibilidad de horarios.'),
-    ).toBeInTheDocument();
     expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
     expect(within(tabla).getByText('Aprobada')).toBeInTheDocument();
     expect(within(tabla).queryByRole('button', { name: /acciones/i })).not.toBeInTheDocument();
+  });
+
+  it('ofrece el menú solo en la fila En revisión con aprobar y marcar como no aprobada', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION, RESPUESTA_CAMBIO_ASESOR]) });
+    render(<RespuestasCambioAsesorEnviadasPanel filtros={crearFiltros()} />);
+    const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' });
+
+    // Act
+    const botones = within(tabla).getAllByRole('button', {
+      name: 'Acciones de la respuesta a Luis Gómez',
+    });
+    await user.click(botones[0]);
+
+    // Assert
+    expect(botones).toHaveLength(1);
+    expect(screen.getByRole('menuitem', { name: 'Aprobar respuesta' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: /eliminar/i })).not.toBeInTheDocument();
+  });
+
+  it('cada decisión abre su diálogo y confirmar envía el estado elegido', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearModificar();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasCambioAsesorEnviadasPanel filtros={crearFiltros()} />);
+    const abrirMenu = () =>
+      user.click(
+        within(
+          screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' }),
+        ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+      );
+
+    // Act
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Aprobar respuesta?');
+    expect(screen.getByRole('dialog')).toHaveTextContent('Luis Gómez');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Marcar como no aprobada?');
+    expect(mutate).not.toHaveBeenCalled();
+
+    // Act
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Marcar como no aprobada' }),
+    );
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith(
+      { solicitudId: 's-3', nuevoEstado: 'NO_APROBADA' },
+      expect.any(Object),
+    );
   });
 });
