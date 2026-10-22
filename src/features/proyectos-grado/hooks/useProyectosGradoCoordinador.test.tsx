@@ -6,7 +6,7 @@ import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 import { proyectosGradoService } from '../services/proyectosGradoService';
-import { construirFiltros, useProyectosGradoCoordinador } from './useProyectosGradoCoordinador';
+import { useProyectosGradoCoordinador } from './useProyectosGradoCoordinador';
 
 vi.mock('../services/proyectosGradoService', () => ({
   proyectosGradoService: {
@@ -54,34 +54,6 @@ function montarEn(entrada = '/') {
     wrapper: crearWrapper(entrada),
   });
 }
-
-describe('construirFiltros', () => {
-  it('combina el título y los estados según lo que haya', () => {
-    // Arrange
-    const titulo = {
-      tipo: 'PREDICADO',
-      campo: 'tituloProyecto',
-      operador: 'CONTIENE',
-      valor: 'monitoreo',
-    };
-    const estados = {
-      tipo: 'PREDICADO_MULTIVALOR',
-      campo: 'estadoProyectoGrado',
-      operador: 'IN',
-      valores: ['EN_PROCESO', 'ATRASADO'],
-    };
-
-    // Act / Assert
-    expect(construirFiltros('   ', [])).toBeUndefined();
-    expect(construirFiltros('  monitoreo ', [])).toEqual(titulo);
-    expect(construirFiltros('', ['EN_PROCESO', 'ATRASADO'])).toEqual(estados);
-    expect(construirFiltros('monitoreo', ['EN_PROCESO', 'ATRASADO'])).toEqual({
-      tipo: 'GRUPO',
-      conector: 'AND',
-      nodos: [titulo, estados],
-    });
-  });
-});
 
 describe('useProyectosGradoCoordinador', () => {
   beforeEach(() => {

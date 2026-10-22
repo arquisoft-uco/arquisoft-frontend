@@ -1,8 +1,15 @@
 import apiClient from '../../../api/axiosInstance';
+import type { EnviarSolicitudCambioAsesorRequest } from '../models/EnviarSolicitudCambioAsesorRequest';
 import type { Page } from '../../../shared/models/api-response';
+import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
+import type { EstadoRespuesta } from '../models/EstadoRespuesta';
+import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
+import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
+import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
+import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import type { Solicitud } from '../models/Solicitud';
@@ -29,9 +36,34 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  enviarSolicitudCambioAsesor: (
+    req: EnviarSolicitudCambioAsesorRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>('/solicitudes/cambio-asesor', {
+        destinatario: req.destinatario,
+        mensajeSolicitud: req.mensajeSolicitud,
+      })
+      .then((r) => r.data),
   consultarSolicitudesNovedadCoordinadorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/enviadas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarSolicitudesNovedadAsesorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/novedad-asesor/enviadas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarSolicitudesCambioAsesorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/cambio-asesor/enviadas', {
         pagina: page,
         tamanio: size,
       })
@@ -48,30 +80,79 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
-  consultarRespuestasNovedadCoordinadorEnviadas: (
-    page = 0,
-    size = 10,
-  ): Promise<Page<RespuestaSolicitud>> =>
+  consultarSolicitudesCambioAsesorRecibidas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
-      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-coordinador/respuestas/enviadas', {
+      .post<Page<Solicitud>>('/solicitudes/cambio-asesor/recibidas', {
         pagina: page,
         tamanio: size,
       })
+      .then((r) => r.data),
+
+  consultarSolicitudesNovedadAsesorRecibidas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/novedad-asesor/recibidas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarRespuestasNovedadCoordinadorEnviadas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/novedad-coordinador/respuestas/enviadas', criterio)
       .then((r) => r.data),
 
   consultarRespuestasNovedadCoordinadorRecibidas: (
-    page = 0,
-    size = 10,
+    criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>
     apiClient
-      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-coordinador/respuestas/recibidas', {
-        pagina: page,
-        tamanio: size,
-      })
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/novedad-coordinador/respuestas/recibidas', criterio)
       .then((r) => r.data),
+
+  consultarRespuestasNovedadAsesorRecibidas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-asesor/respuestas/recibidas', criterio)
+      .then((r) => r.data),
+
+  consultarRespuestasCambioAsesorEnviadas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/cambio-asesor/respuestas/enviadas', criterio)
+      .then((r) => r.data),
+
+  consultarRespuestasCambioAsesorRecibidas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/cambio-asesor/respuestas/recibidas', criterio)
+      .then((r) => r.data),
+
+  consultarRespuestasNovedadAsesorEnviadas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-asesor/respuestas/enviadas', criterio)
+      .then((r) => r.data),
+
+  getEstadosRespuesta: (): Promise<EstadoRespuesta[]> =>
+    apiClient.get<EstadoRespuesta[]>('/solicitudes/estados-respuesta').then((r) => r.data),
 
   eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),
+
+  eliminarSolicitudNovedadAsesor: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/novedad-asesor/${solicitudId}`).then(() => undefined),
+
+  eliminarSolicitudCambioAsesor: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/cambio-asesor/${solicitudId}`).then(() => undefined),
 
   responderSolicitudNovedadCoordinador: (
     req: ResponderSolicitudNovedadCoordinadorRequest,
@@ -83,16 +164,57 @@ export const solicitudesService = {
       )
       .then((r) => r.data),
 
+  responderSolicitudNovedadAsesor: (
+    req: ResponderSolicitudNovedadAsesorRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(`/solicitudes/novedad-asesor/${req.solicitudId}/respuesta`, {
+        contenido: req.contenido,
+      })
+      .then((r) => r.data),
+
+  responderSolicitudCambioAsesor: (
+    req: ResponderSolicitudCambioAsesorRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(`/solicitudes/cambio-asesor/${req.solicitudId}/respuesta`, {
+        contenido: req.contenido,
+      })
+      .then((r) => r.data),
+
+  eliminarRespuestaCambioAsesor: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/cambio-asesor/${solicitudId}/respuesta`).then(() => undefined),
+
   eliminarRespuestaNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient
       .delete(`/solicitudes/novedad-coordinador/${solicitudId}/respuesta`)
       .then(() => undefined),
+
+  eliminarRespuestaNovedadAsesor: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/novedad-asesor/${solicitudId}/respuesta`).then(() => undefined),
 
   modificarEstadoRespuestaNovedadCoordinador: (
     req: ModificarEstadoRespuestaNovedadCoordinadorRequest,
   ): Promise<void> =>
     apiClient
       .patch(`/solicitudes/novedad-coordinador/${req.solicitudId}/respuesta/estado`, {
+        nuevoEstado: req.nuevoEstado,
+      })
+      .then(() => undefined),
+
+  modificarEstadoRespuestaNovedadAsesor: (
+    req: ModificarEstadoRespuestaNovedadAsesorRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/solicitudes/novedad-asesor/${req.solicitudId}/respuesta/estado`, {
+        nuevoEstado: req.nuevoEstado,
+      })
+      .then(() => undefined),
+  modificarEstadoRespuestaCambioAsesor: (
+    req: ModificarEstadoRespuestaCambioAsesorRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/solicitudes/cambio-asesor/${req.solicitudId}/respuesta/estado`, {
         nuevoEstado: req.nuevoEstado,
       })
       .then(() => undefined),

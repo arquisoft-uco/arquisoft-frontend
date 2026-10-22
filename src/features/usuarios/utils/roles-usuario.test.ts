@@ -26,6 +26,7 @@ function crearUsuario(parcial: Partial<Usuario> = {}): Usuario {
     esCoordinador: false,
     esRepresentanteComite: false,
     esAdministrador: false,
+    esJurado: false,
     esBibliotecario: false,
     ...parcial,
   };
@@ -43,6 +44,7 @@ describe('rolesDeUsuario', () => {
   it('devuelve solo los roles marcados en true, en el orden del catálogo', () => {
     // Arrange
     const usuario = crearUsuario({
+      esJurado: true,
       esAdministrador: true,
       esEstudiante: true,
       esCoordinador: true,
@@ -52,7 +54,7 @@ describe('rolesDeUsuario', () => {
     const roles = rolesDeUsuario(usuario);
 
     // Assert
-    expect(roles).toEqual([Rol.Estudiante, Rol.Coordinador, Rol.Administrador]);
+    expect(roles).toEqual([Rol.Estudiante, Rol.Coordinador, Rol.Administrador, Rol.Jurado]);
   });
 
   it('suma al bibliotecario al final del catálogo, que ya es un rol filtrable', () => {
@@ -96,19 +98,18 @@ describe('ROLES_DEL_PANEL', () => {
 });
 
 describe('puedeCambiarRol', () => {
-  it('permite quitar y agregar los roles gestionables, Bibliotecario incluido; Jurado no se cambia', () => {
+  it('permite agregar y quitar todos los roles', () => {
     // Arrange
-    const esperadoAlQuitar = {
+    const esperado = {
       [Rol.Estudiante]: true,
       [Rol.Asesor]: true,
       [Rol.AsesorFicha]: true,
       [Rol.Coordinador]: true,
       [Rol.RepresentanteComiteCurriculum]: true,
       [Rol.Administrador]: true,
-      [Rol.Jurado]: false,
+      [Rol.Jurado]: true,
       [Rol.Bibliotecario]: true,
     };
-    const esperadoAlAgregar = esperadoAlQuitar;
 
     // Act
     const [quitar, agregar] = [true, false].map((asignado) =>
@@ -116,13 +117,13 @@ describe('puedeCambiarRol', () => {
     );
 
     // Assert
-    expect(quitar).toEqual(esperadoAlQuitar);
-    expect(agregar).toEqual(esperadoAlAgregar);
+    expect(quitar).toEqual(esperado);
+    expect(agregar).toEqual(esperado);
   });
 });
 
 describe('ROLES_REGISTRABLES', () => {
-  it('ofrece los siete roles del lienzo: con Bibliotecario agregable y sin Jurado', () => {
+  it('ofrece los ocho roles del lienzo, con Jurado entre Administrador y Bibliotecario', () => {
     // Assert
     expect(ROLES_REGISTRABLES).toEqual([
       Rol.Estudiante,
@@ -131,9 +132,10 @@ describe('ROLES_REGISTRABLES', () => {
       Rol.Coordinador,
       Rol.RepresentanteComiteCurriculum,
       Rol.Administrador,
+      Rol.Jurado,
       Rol.Bibliotecario,
     ]);
     expect(ROLES_AGREGABLES.has(Rol.Bibliotecario)).toBe(true);
-    expect(ROLES_REGISTRABLES).not.toContain(Rol.Jurado);
+    expect(ROLES_AGREGABLES.has(Rol.Jurado)).toBe(true);
   });
 });

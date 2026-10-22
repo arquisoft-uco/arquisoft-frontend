@@ -5,10 +5,15 @@ import { render, screen, within } from '../../../../test-utils/render';
 import { toast } from '../../../../shared/hooks/useToast';
 import type { ApiError, Page } from '../../../../shared/models/api-response';
 import { useEliminarRespuestaNovedadCoordinador } from '../../hooks/useEliminarRespuestaNovedadCoordinador';
+import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasNovedadCoordinadorEnviadas } from '../../hooks/useRespuestasNovedadCoordinadorEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA } from '../../../../test-utils/respuestas';
 import RespuestasEnviadasPanel from './RespuestasEnviadasPanel';
+
+vi.mock('../../hooks/useEstadosRespuesta', () => ({
+  useEstadosRespuesta: vi.fn(() => ({ data: undefined, isError: false })),
+}));
 
 vi.mock('../../hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
   useRespuestasNovedadCoordinadorEnviadas: vi.fn(),
@@ -28,6 +33,21 @@ vi.mock('../../hooks/useModificarEstadoRespuestaNovedadCoordinador', () => ({
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
+
+function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuestas {
+  return {
+    page: 0,
+    estadoIds: [],
+    ordenCampo: 'fechaRespuesta',
+    ordenDireccion: 'DESC',
+    hayFiltros: false,
+    goToPage: vi.fn(),
+    toggleEstado: vi.fn(),
+    setOrden: vi.fn(),
+    limpiarFiltros: vi.fn(),
+    ...parcial,
+  };
+}
 
 type HookRespuestas = ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>;
 type HookEliminar = ReturnType<typeof useEliminarRespuestaNovedadCoordinador>;
@@ -128,7 +148,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ isLoading: true });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByRole('status')).toHaveTextContent(/cargando/i);
@@ -142,7 +162,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ isError: true, error: new Error('fallo de red'), refetch });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las respuestas');
@@ -160,7 +180,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ data: crearPagina([]) });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
@@ -172,7 +192,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ data: crearPagina([RESPUESTA]) });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
 
     // Assert
     expect(screen.getByText('1 respuesta')).toBeInTheDocument();
@@ -189,7 +209,7 @@ describe('RespuestasEnviadasPanel', () => {
     });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={onPageChange} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros({ page: 0, goToPage: onPageChange })} />);
     await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
 
     // Assert
@@ -201,7 +221,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION, RESPUESTA]) });
 
     // Act
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
 
     // Assert
     const tabla = screen.getByRole('table', { name: 'Respuestas de novedades enviadas' });
@@ -214,7 +234,7 @@ describe('RespuestasEnviadasPanel', () => {
     // Arrange
     const user = userEvent.setup();
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
 
     // Act
     await abrirDialogoEliminar(user);
@@ -232,7 +252,7 @@ describe('RespuestasEnviadasPanel', () => {
     const user = userEvent.setup();
     const mutate = mockearEliminar();
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
     await abrirDialogoEliminar(user);
 
     // Act
@@ -251,7 +271,7 @@ describe('RespuestasEnviadasPanel', () => {
     );
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
     const onPageChange = vi.fn();
-    render(<RespuestasEnviadasPanel page={0} onPageChange={onPageChange} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros({ page: 0, goToPage: onPageChange })} />);
     await abrirDialogoEliminar(user);
 
     // Act
@@ -281,7 +301,7 @@ describe('RespuestasEnviadasPanel', () => {
       ),
     );
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
     await abrirDialogoEliminar(user);
 
     // Act
@@ -302,7 +322,7 @@ describe('RespuestasEnviadasPanel', () => {
     mockearEliminar(vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()));
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
     const onPageChange = vi.fn();
-    render(<RespuestasEnviadasPanel page={2} onPageChange={onPageChange} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros({ page: 2, goToPage: onPageChange })} />);
     await abrirDialogoEliminar(user);
 
     // Act
@@ -316,7 +336,7 @@ describe('RespuestasEnviadasPanel', () => {
     // Arrange
     const user = userEvent.setup();
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
 
     // Act
     await abrirMenuFila(user);
@@ -331,7 +351,7 @@ describe('RespuestasEnviadasPanel', () => {
     // Arrange
     const user = userEvent.setup();
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
-    render(<RespuestasEnviadasPanel page={0} onPageChange={vi.fn()} />);
+    render(<RespuestasEnviadasPanel filtros={crearFiltros()} />);
     const abrirMenu = () => abrirMenuFila(user);
 
     // Act
@@ -348,5 +368,22 @@ describe('RespuestasEnviadasPanel', () => {
 
     // Assert
     expect(screen.getByRole('dialog')).toHaveTextContent('¿Marcar como no aprobada?');
+  });
+
+  it('sin coincidencias con filtros activos muestra Sin resultados y Limpiar filtros los limpia', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const limpiarFiltros = vi.fn();
+    mockearHook({ data: crearPagina([]) });
+    const filtros = crearFiltros({ hayFiltros: true, limpiarFiltros });
+
+    // Act
+    render(<RespuestasEnviadasPanel filtros={filtros} />);
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(useRespuestasNovedadCoordinadorEnviadas).toHaveBeenCalledWith(filtros);
+    expect(limpiarFiltros).toHaveBeenCalled();
   });
 });

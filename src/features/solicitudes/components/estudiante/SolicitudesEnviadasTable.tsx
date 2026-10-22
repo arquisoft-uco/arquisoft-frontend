@@ -7,61 +7,95 @@ import type { Solicitud } from '../../models/Solicitud';
 import FechaSolicitud from '../FechaSolicitud';
 import FechaTarjeta from '../FechaTarjeta';
 import ParticipanteCelda from '../ParticipanteCelda';
+import type { TipoSolicitudEnviableUi } from '../SelectorTipoSolicitud';
 
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
 
-const COLUMNAS: ColumnaTabla<Solicitud>[] = [
-  {
-    id: 'destinatario',
+const TEXTOS_POR_TIPO: Record<
+  TipoSolicitudEnviableUi,
+  { encabezado: string; etiqueta: string; vacio: string }
+> = {
+  coordinador: {
     encabezado: 'Coordinador',
-    celda: (solicitud) => (
-      <ParticipanteCelda
-        nombre={solicitud.destinatario.nombre}
-        detalle={solicitud.destinatario.email}
-      />
-    ),
+    etiqueta: 'Solicitudes de novedad enviadas al coordinador',
+    vacio: 'Cuando envíes una novedad al coordinador, aparecerá aquí.',
   },
-  {
-    id: 'mensaje',
-    encabezado: 'Mensaje',
-    celda: (solicitud) => <p className={MENSAJE}>{solicitud.mensajeSolicitud}</p>,
+  asesor: {
+    encabezado: 'Asesor',
+    etiqueta: 'Solicitudes de novedad enviadas al asesor',
+    vacio: 'Cuando envíes una novedad al asesor, aparecerá aquí.',
   },
-  {
-    id: 'fecha',
-    encabezado: 'Enviada',
-    celda: (solicitud) => <FechaSolicitud iso={solicitud.fechaCreacion} />,
+  'cambio-asesor': {
+    encabezado: 'Destinatario',
+    etiqueta: 'Solicitudes de cambio de asesor enviadas',
+    vacio: 'Cuando envíes una solicitud de cambio de asesor, aparecerá aquí.',
   },
-];
+};
+
+function columnasDe(encabezadoDestinatario: string): ColumnaTabla<Solicitud>[] {
+  return [
+    {
+      id: 'destinatario',
+      encabezado: encabezadoDestinatario,
+      celda: (solicitud) => (
+        <ParticipanteCelda
+          nombre={solicitud.destinatario.nombre}
+          detalle={solicitud.destinatario.email}
+        />
+      ),
+    },
+    {
+      id: 'mensaje',
+      encabezado: 'Mensaje',
+      celda: (solicitud) => <p className={MENSAJE}>{solicitud.mensajeSolicitud}</p>,
+    },
+    {
+      id: 'fecha',
+      encabezado: 'Enviada',
+      celda: (solicitud) => <FechaSolicitud iso={solicitud.fechaCreacion} />,
+    },
+  ];
+}
+
+const COLUMNAS_POR_TIPO: Record<TipoSolicitudEnviableUi, ColumnaTabla<Solicitud>[]> = {
+  coordinador: columnasDe(TEXTOS_POR_TIPO.coordinador.encabezado),
+  asesor: columnasDe(TEXTOS_POR_TIPO.asesor.encabezado),
+  'cambio-asesor': columnasDe(TEXTOS_POR_TIPO['cambio-asesor'].encabezado),
+};
 
 interface Props {
+  tipo: TipoSolicitudEnviableUi;
   solicitudes: Solicitud[];
   cargando: boolean;
-  eliminando: boolean;
-  onEliminar: (solicitud: Solicitud) => void;
+  eliminando?: boolean;
+  onEliminar?: (solicitud: Solicitud) => void;
 }
 
 export default function SolicitudesEnviadasTable({
+  tipo,
   solicitudes,
   cargando,
-  eliminando,
+  eliminando = false,
   onEliminar,
 }: Props) {
-  function acciones(solicitud: Solicitud) {
-    return (
-      <IconButton
-        etiqueta={`Eliminar la solicitud enviada a ${solicitud.destinatario.nombre}`}
-        icono={Trash2}
-        tono="peligro"
-        disabled={eliminando}
-        onClick={() => onEliminar(solicitud)}
-      />
-    );
-  }
+  const textos = TEXTOS_POR_TIPO[tipo];
+
+  const acciones = onEliminar
+    ? (solicitud: Solicitud) => (
+        <IconButton
+          etiqueta={`Eliminar la solicitud enviada a ${solicitud.destinatario.nombre}`}
+          icono={Trash2}
+          tono="peligro"
+          disabled={eliminando}
+          onClick={() => onEliminar(solicitud)}
+        />
+      )
+    : undefined;
 
   return (
     <DataTable
-      etiqueta="Solicitudes de novedad enviadas al coordinador"
-      columnas={COLUMNAS}
+      etiqueta={textos.etiqueta}
+      columnas={COLUMNAS_POR_TIPO[tipo]}
       filas={solicitudes}
       idDeFila={(solicitud) => solicitud.id}
       acciones={acciones}
@@ -71,7 +105,7 @@ export default function SolicitudesEnviadasTable({
         <EmptyState
           icono={Send}
           titulo="Aún no has enviado solicitudes"
-          descripcion="Cuando envíes una novedad al coordinador, aparecerá aquí."
+          descripcion={textos.vacio}
         />
       }
       tarjeta={(solicitud) => (

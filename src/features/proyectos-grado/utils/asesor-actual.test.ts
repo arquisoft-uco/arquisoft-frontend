@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import type { AsesorProyectoGrado } from '../models/AsesorProyectoGrado';
-import { marcarAsesorActual } from './asesor-actual';
+import {
+  marcarAsesorActual,
+  obtenerAsesorActual,
+  puedeFinalizarse,
+  ultimoRegistroSinAsesor,
+} from './asesor-actual';
 
 const asignado = { id: 'ASIGNADO', nombre: 'Asignado' };
 const finalizado = { id: 'FINALIZADO', nombre: 'Finalizado' };
@@ -82,5 +87,40 @@ describe('marcarAsesorActual', () => {
     expect(marcarAsesorActual([])).toEqual([]);
     expect(resultado).not.toBe(entrada);
     expect(entrada.map((a) => a.actual)).toEqual([true, false, false, true]);
+  });
+});
+
+describe('obtenerAsesorActual', () => {
+  it('devuelve la fila marcada «actual» y null si no hay ninguna o la lista está vacía', () => {
+    // Assert
+    expect(obtenerAsesorActual(marcarAsesorActual(capturaDelDetalle))?.id).toBe('ap-4');
+    expect(obtenerAsesorActual([{ ...base, actual: false }])).toBeNull();
+    expect(obtenerAsesorActual([])).toBeNull();
+  });
+});
+
+describe('ultimoRegistroSinAsesor', () => {
+  it('devuelve la primera fila sin asesor asignado vigente y null en otro caso', () => {
+    // Arrange
+    const captura = [
+      { ...base, id: 'ap-3', estado: finalizado, actual: true },
+      { ...base, id: 'ap-2', actual: false },
+      { ...base, id: 'ap-1', estado: finalizado, actual: false },
+    ];
+
+    // Assert
+    expect(ultimoRegistroSinAsesor(marcarAsesorActual(captura))?.id).toBe('ap-3');
+    expect(ultimoRegistroSinAsesor(marcarAsesorActual(capturaDelDetalle))).toBeNull();
+    expect(ultimoRegistroSinAsesor([])).toBeNull();
+  });
+});
+
+describe('puedeFinalizarse', () => {
+  it('es true solo con ASIGNADO y actual, sin mirar vigente', () => {
+    // Assert
+    expect(puedeFinalizarse(base)).toBe(true);
+    expect(puedeFinalizarse({ ...base, vigente: false })).toBe(true);
+    expect(puedeFinalizarse({ ...base, estado: finalizado })).toBe(false);
+    expect(puedeFinalizarse({ ...base, actual: false })).toBe(false);
   });
 });

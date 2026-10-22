@@ -8,6 +8,7 @@ export const ROLES_USUARIO: { rol: Rol; campo: keyof Usuario }[] = [
   { rol: Rol.Coordinador, campo: 'esCoordinador' },
   { rol: Rol.RepresentanteComiteCurriculum, campo: 'esRepresentanteComite' },
   { rol: Rol.Administrador, campo: 'esAdministrador' },
+  { rol: Rol.Jurado, campo: 'esJurado' },
   { rol: Rol.Bibliotecario, campo: 'esBibliotecario' },
 ];
 
@@ -29,6 +30,7 @@ export const ROLES_AGREGABLES: ReadonlySet<Rol> = new Set([
   Rol.AsesorFicha,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Jurado,
   Rol.Bibliotecario,
 ]);
 
@@ -40,6 +42,7 @@ export const ROLES_QUITABLES: ReadonlySet<Rol> = new Set([
   Rol.AsesorFicha,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Jurado,
   Rol.Bibliotecario,
 ]);
 
@@ -54,7 +57,6 @@ export const ROLES_DEL_PANEL: readonly Rol[] = [
   Rol.Bibliotecario,
 ];
 
-// Sin Jurado: el backend aún no lo asigna al registrar (TODO HU250 en RegistrarUsuarioUseCaseImpl).
 export const ROLES_REGISTRABLES: readonly Rol[] = ROLES_DEL_PANEL.filter((rol) =>
   ROLES_AGREGABLES.has(rol),
 );

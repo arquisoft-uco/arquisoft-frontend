@@ -53,6 +53,7 @@ function tabla() {
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesEnviadasTable>> = {}) {
   const props = {
+    tipo: 'coordinador' as const,
     solicitudes: SOLICITUDES,
     cargando: false,
     eliminando: false,
@@ -121,6 +122,54 @@ describe('SolicitudesEnviadasTable', () => {
     // Assert
     expect(onEliminar).toHaveBeenCalledTimes(1);
     expect(onEliminar).toHaveBeenCalledWith(SOLICITUDES[1]);
+  });
+
+  it('con tipo asesor y sin onEliminar usa los textos del asesor y no muestra acciones', () => {
+    // Act
+    renderizar({ tipo: 'asesor', onEliminar: undefined });
+
+    // Assert
+    const tablaAsesor = screen.getByRole('table', {
+      name: 'Solicitudes de novedad enviadas al asesor',
+    });
+    expect(within(tablaAsesor).getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
+    expect(within(tablaAsesor).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaAsesor).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo asesor y sin solicitudes el vacío menciona al asesor', () => {
+    // Act
+    renderizar({ tipo: 'asesor', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText('Cuando envíes una novedad al asesor, aparecerá aquí.'),
+    ).toBeInTheDocument();
+  });
+
+  it('con tipo cambio-asesor y sin onEliminar usa sus textos y no muestra acciones', () => {
+    // Act
+    renderizar({ tipo: 'cambio-asesor', onEliminar: undefined });
+
+    // Assert
+    const tablaCambio = screen.getByRole('table', {
+      name: 'Solicitudes de cambio de asesor enviadas',
+    });
+    expect(
+      within(tablaCambio).getByRole('columnheader', { name: 'Destinatario' }),
+    ).toBeInTheDocument();
+    expect(within(tablaCambio).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaCambio).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo cambio-asesor y sin solicitudes el vacío menciona el cambio de asesor', () => {
+    // Act
+    renderizar({ tipo: 'cambio-asesor', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText('Cuando envíes una solicitud de cambio de asesor, aparecerá aquí.'),
+    ).toBeInTheDocument();
   });
 
   it('deshabilita todos los botones de eliminar mientras se elimina', () => {

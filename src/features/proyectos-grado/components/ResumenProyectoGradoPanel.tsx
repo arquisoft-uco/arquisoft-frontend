@@ -10,10 +10,12 @@ const ACCIONES = 'flex flex-col items-start gap-2 border-t border-border pt-3';
 
 interface Props {
   resumen: ResumenProyectoGrado | null;
+  asesor?: ReactNode;
+  estudiantes?: ReactNode;
   accion?: ReactNode;
 }
 
-export default function ResumenProyectoGradoPanel({ resumen, accion }: Props) {
+export default function ResumenProyectoGradoPanel({ resumen, asesor, estudiantes, accion }: Props) {
   const tieneEstado = Boolean(resumen?.estadoId && resumen.estadoNombre);
 
   return (
@@ -33,6 +35,18 @@ export default function ResumenProyectoGradoPanel({ resumen, accion }: Props) {
               nombre={resumen.estadoNombre ?? ''}
             />
           </div>
+        </div>
+      )}
+      {asesor && (
+        <div className={FILA}>
+          <span className={ETIQUETA}>Asesor actual</span>
+          {asesor}
+        </div>
+      )}
+      {estudiantes && (
+        <div className={FILA}>
+          <span className={ETIQUETA}>Estudiantes del proyecto</span>
+          {estudiantes}
         </div>
       )}
       {accion && (

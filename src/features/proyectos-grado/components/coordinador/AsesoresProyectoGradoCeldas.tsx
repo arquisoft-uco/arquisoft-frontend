@@ -35,13 +35,18 @@ export function AsesorProyectoIdentidad({ asesor }: PropsAsesor) {
   );
 }
 
-export function EstadoAsesorProyecto({ asesor }: PropsAsesor) {
+interface PropsEstado extends PropsAsesor {
+  ultimoRegistro?: boolean;
+}
+
+export function EstadoAsesorProyecto({ asesor, ultimoRegistro }: PropsEstado) {
   return (
     <div className={INSIGNIAS}>
       <Badge variante={varianteEstadoAsesorProyecto(asesor.estado.id)}>
         {asesor.estado.nombre}
       </Badge>
       {asesor.actual && <Badge variante="info">Actual</Badge>}
+      {ultimoRegistro && <Badge variante="neutro">Último registro</Badge>}
     </div>
   );
 }

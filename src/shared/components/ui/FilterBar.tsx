@@ -27,7 +27,7 @@ const LIMPIAR_TODO =
   'inline-flex items-center text-sm font-semibold text-primary underline underline-offset-4 max-sm:min-h-11';
 
 interface Props {
-  busqueda: ComponentProps<typeof FilterBarBusqueda>;
+  busqueda?: ComponentProps<typeof FilterBarBusqueda>;
   chips?: {
     etiqueta: string;
     opciones: OpcionFiltro[];
@@ -60,11 +60,7 @@ export default function FilterBar({
   useClicFuera(abierto, [boton, panel], () => setAbierto(false));
 
   const filtrosActivos =
-    (busqueda.valor.trim() ? 1 : 0) + (chips?.seleccionados.length ?? 0) + aplicados.length;
-
-  function cerrar() {
-    setAbierto(false);
-  }
+    (busqueda?.valor.trim() ? 1 : 0) + (chips?.seleccionados.length ?? 0) + aplicados.length;
 
   function limpiarTodo() {
     onLimpiar();
@@ -73,37 +69,40 @@ export default function FilterBar({
 
   return (
     <section aria-label="Búsqueda y filtros" className={RAIZ}>
-      <div className={FILA}>
-        <FilterBarBusqueda key={claveBusqueda} {...busqueda} />
-        {popover && (
-          <div className={ENVOLTURA}>
-            <Button
-              ref={boton}
-              variante="secundario"
-              icono={SlidersHorizontal}
-              aria-haspopup="dialog"
-              aria-expanded={abierto}
-              aria-controls={abierto ? idPanel : undefined}
-              onClick={() => setAbierto((previo) => !previo)}
-              className="w-full sm:w-auto"
-            >
-              Filtros {aplicados.length > 0 && <span className={CONTADOR}>{aplicados.length}</span>}
-            </Button>
-            {abierto && (
-              <FilterBarPanel
-                id={idPanel}
-                ref={panel}
-                retorno={boton}
-                secciones={popover.secciones}
-                orden={orden}
-                totalResultados={totalResultados}
-                hayAplicados={aplicados.length > 0}
-                onCerrar={cerrar}
-              />
-            )}
-          </div>
-        )}
-      </div>
+      {(busqueda || popover) && (
+        <div className={FILA}>
+          {busqueda && <FilterBarBusqueda key={claveBusqueda} {...busqueda} />}
+          {popover && (
+            <div className={ENVOLTURA}>
+              <Button
+                ref={boton}
+                variante="secundario"
+                icono={SlidersHorizontal}
+                aria-haspopup="dialog"
+                aria-expanded={abierto}
+                aria-controls={abierto ? idPanel : undefined}
+                onClick={() => setAbierto((previo) => !previo)}
+                className="w-full sm:w-auto"
+              >
+                Filtros{' '}
+                {aplicados.length > 0 && <span className={CONTADOR}>{aplicados.length}</span>}
+              </Button>
+              {abierto && (
+                <FilterBarPanel
+                  id={idPanel}
+                  ref={panel}
+                  retorno={boton}
+                  secciones={popover.secciones}
+                  orden={orden}
+                  totalResultados={totalResultados}
+                  hayAplicados={aplicados.length > 0}
+                  onCerrar={() => setAbierto(false)}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      )}
       {chips && (
         <div role="group" aria-label={chips.etiqueta} className={CHIPS}>
           <FilterChip

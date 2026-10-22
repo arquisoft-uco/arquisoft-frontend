@@ -112,13 +112,13 @@ describe('EstudianteView', () => {
     expect(hora).toHaveAttribute('dateTime', '2026-03-01T10:00:00Z');
   });
 
-  it('la ruta académica marca «En curso» solo el paso disponible y los demás «Pronto» sin enlace', () => {
+  it('la ruta académica marca «En curso» los pasos disponibles (ficha, proyecto de grado y evaluaciones) y los demás «Pronto» sin enlace', () => {
     render(<EstudianteView />);
 
     const seccion = screen.getByRole('region', { name: 'Tu ruta académica' });
-    expect(within(seccion).getAllByText('En curso')).toHaveLength(1);
-    expect(within(seccion).getAllByText('Pronto')).toHaveLength(5);
-    expect(within(seccion).getAllByRole('link')).toHaveLength(1);
+    expect(within(seccion).getAllByText('En curso')).toHaveLength(3);
+    expect(within(seccion).getAllByText('Pronto')).toHaveLength(3);
+    expect(within(seccion).getAllByRole('link')).toHaveLength(3);
   });
 
   it('un error de la ficha muestra alerta con «Reintentar» sin tumbar el resto del inicio', async () => {

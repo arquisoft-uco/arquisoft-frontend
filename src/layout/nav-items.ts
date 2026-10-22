@@ -47,7 +47,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: GraduationCap,
     path: '/proyectos-grado',
     order: 2,
-    roles: [Rol.Coordinador],
+    roles: [Rol.Coordinador, Rol.Estudiante, Rol.Asesor],
   },
   {
     label: 'Artefactos',
@@ -70,7 +70,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: ClipboardCheck,
     path: '/evaluaciones',
     order: 5,
-    roles: [Rol.Administrador, Rol.Jurado],
+    roles: [Rol.Administrador, Rol.Coordinador, Rol.Estudiante, Rol.Jurado],
   },
   {
     label: 'Mapas de ruta',

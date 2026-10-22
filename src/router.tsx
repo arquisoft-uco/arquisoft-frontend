@@ -14,10 +14,15 @@ const DetalleFicha = lazy(() => import('./features/fichas-perfil/DetalleFicha'))
 const PestanaFicha = lazy(() => import('./features/fichas-perfil/components/PestanaFicha'));
 const ProyectosGrado = lazy(() => import('./features/proyectos-grado/ProyectosGrado'));
 const DetalleProyectoGrado = lazy(() => import('./features/proyectos-grado/DetalleProyectoGrado'));
-const PestanaAsesores = lazy(() => import('./features/proyectos-grado/components/PestanaAsesores'));
+const PestanaProyectoGrado = lazy(
+  () => import('./features/proyectos-grado/components/PestanaProyectoGrado'),
+);
 const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
 const Evaluaciones = lazy(() => import('./features/evaluaciones/Evaluaciones'));
+const RegistrarEvaluacionesCualitativas = lazy(
+  () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
+);
 const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
 const RepositorioArtefactos = lazy(
   () => import('./features/repositorio-artefactos/RepositorioArtefactos'),
@@ -74,15 +79,25 @@ export const router = createBrowserRouter([
                 path: ':id',
                 element: <DetalleProyectoGrado />,
                 children: [
-                  { index: true, element: <Navigate to="asesores" replace /> },
-                  { path: 'asesores', element: <PestanaAsesores /> },
+                  { index: true, element: <PestanaProyectoGrado /> },
+                  { path: 'asesores', element: <PestanaProyectoGrado pestana="asesores" /> },
                 ],
               },
             ],
           },
           { path: 'artefactos', element: guarded('artefactos', <Artefactos />) },
           { path: 'entregables', element: guarded('entregables', <Entregables />) },
-          { path: 'evaluaciones', element: guarded('evaluaciones', <Evaluaciones />) },
+          {
+            path: 'evaluaciones',
+            element: guarded('evaluaciones', <Outlet />),
+            children: [
+              { index: true, element: <Evaluaciones /> },
+              {
+                path: ':evaluacionJuradoId/evaluar',
+                element: <RegistrarEvaluacionesCualitativas />,
+              },
+            ],
+          },
           { path: 'mapas-ruta', element: guarded('mapas-ruta', <MapasRuta />) },
           {
             path: 'repositorio-artefactos',

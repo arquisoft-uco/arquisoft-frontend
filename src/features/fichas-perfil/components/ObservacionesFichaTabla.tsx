@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { MessageSquare } from 'lucide-react';
 import type { DireccionOrden } from '../hooks/useRevisionesPaginadas';
 import type { ObservacionItemFila } from '../models/ObservacionItem';
@@ -53,6 +54,7 @@ interface Props {
   isError: boolean;
   error: unknown;
   reintentar: () => void;
+  acciones?: (fila: ObservacionItemFila) => ReactNode;
 }
 
 export default function ObservacionesFichaTabla({
@@ -71,6 +73,7 @@ export default function ObservacionesFichaTabla({
   isError,
   error,
   reintentar,
+  acciones,
 }: Props) {
   if (isError) {
     return (
@@ -96,6 +99,7 @@ export default function ObservacionesFichaTabla({
         columnas={COLUMNAS}
         filas={filas}
         idDeFila={(fila) => fila.observacion.id}
+        acciones={acciones}
         orden={direccion ? { clave: CLAVE_ESTADO, direccion } : undefined}
         onOrdenar={(clave, nuevaDireccion) => {
           if (clave === CLAVE_ESTADO) ordenar(nuevaDireccion);

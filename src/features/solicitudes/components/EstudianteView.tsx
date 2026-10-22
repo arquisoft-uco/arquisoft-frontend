@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Plus, type LucideIcon } from 'lucide-react';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
+import { useFiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
+import EnviadasPanel from './estudiante/EnviadasPanel';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
-import RespuestasRecibidasPanel from './estudiante/RespuestasRecibidasPanel';
-import SolicitudesEnviadasPanel from './estudiante/SolicitudesEnviadasPanel';
+import RecibidasPanel from './estudiante/RecibidasPanel';
 
 type Pestana = 'nueva' | 'enviadas' | 'respuestas';
 
@@ -16,13 +17,21 @@ const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
 
 export default function EstudianteView() {
   const [pestana, setPestana] = useState<Pestana>('nueva');
-  const [paginaRespuestas, setPaginaRespuestas] = useState(0);
+  const filtrosCoordinador = useFiltrosRespuestas();
+  const filtrosAsesor = useFiltrosRespuestas();
+  const filtrosCambioAsesor = useFiltrosRespuestas();
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     nueva: <NuevaSolicitudPanel />,
-    enviadas: <SolicitudesEnviadasPanel />,
+    enviadas: <EnviadasPanel />,
     respuestas: (
-      <RespuestasRecibidasPanel page={paginaRespuestas} onPageChange={setPaginaRespuestas} />
+      <RecibidasPanel
+        filtros={{
+          coordinador: filtrosCoordinador,
+          asesor: filtrosAsesor,
+          'cambio-asesor': filtrosCambioAsesor,
+        }}
+      />
     ),
   };
 

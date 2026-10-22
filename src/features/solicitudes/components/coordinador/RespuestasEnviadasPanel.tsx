@@ -5,18 +5,19 @@ import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEliminarRespuestaNovedadCoordinador } from '../../hooks/useEliminarRespuestaNovedadCoordinador';
+import { useModificarEstadoRespuestaNovedadCoordinador } from '../../hooks/useModificarEstadoRespuestaNovedadCoordinador';
+import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasNovedadCoordinadorEnviadas } from '../../hooks/useRespuestasNovedadCoordinadorEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import {
   ESTADO_RESPUESTA_APROBADA,
+  ESTADO_RESPUESTA_EN_REVISION,
   ESTADO_RESPUESTA_NO_APROBADA,
   TEXTOS_DECISION,
 } from '../../utils/decisiones-respuesta';
 import RespuestasPanel from '../RespuestasPanel';
-import ModificarEstadoRespuestaDialog from './ModificarEstadoRespuestaDialog';
+import ModificarEstadoRespuestaDialog from '../ModificarEstadoRespuestaDialog';
 import RespuestasEnviadasTable from './RespuestasEnviadasTable';
-
-const ESTADO_RESPUESTA_EN_REVISION = 'EN_REVISION';
 
 const CONSECUENCIAS = [
   'El estudiante dejará de ver la respuesta en sus respuestas recibidas.',
@@ -25,13 +26,13 @@ const CONSECUENCIAS = [
 ];
 
 interface Props {
-  page: number;
-  onPageChange: (page: number) => void;
+  filtros: FiltrosRespuestas;
 }
 
-export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
-  const consulta = useRespuestasNovedadCoordinadorEnviadas(page);
+export default function RespuestasEnviadasPanel({ filtros }: Props) {
+  const consulta = useRespuestasNovedadCoordinadorEnviadas(filtros);
   const { mutate: eliminar, isPending: eliminando } = useEliminarRespuestaNovedadCoordinador();
+  const modificarEstado = useModificarEstadoRespuestaNovedadCoordinador();
   const [pendienteEliminar, setPendienteEliminar] = useState<RespuestaSolicitud | null>(null);
   const [pendienteDecision, setPendienteDecision] = useState<{
     respuesta: RespuestaSolicitud;
@@ -76,7 +77,9 @@ export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
       onSuccess: () => {
         toast.success('Respuesta eliminada', 'La respuesta fue eliminada correctamente.');
         setPendienteEliminar(null);
-        if ((consulta.data?.content.length ?? 0) === 1 && page > 0) onPageChange(page - 1);
+        if ((consulta.data?.content.length ?? 0) === 1 && filtros.page > 0) {
+          filtros.goToPage(filtros.page - 1);
+        }
       },
       onError: (err) => {
         toast.error(
@@ -97,8 +100,7 @@ export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
     <>
       <RespuestasPanel
         consulta={consulta}
-        page={page}
-        onPageChange={onPageChange}
+        filtros={filtros}
         Tabla={RespuestasEnviadasTable}
         acciones={acciones}
       />
@@ -106,6 +108,7 @@ export default function RespuestasEnviadasPanel({ page, onPageChange }: Props) {
         <ModificarEstadoRespuestaDialog
           respuesta={pendienteDecision.respuesta}
           nuevoEstado={pendienteDecision.nuevoEstado}
+          mutacion={modificarEstado}
           onCerrar={() => setPendienteDecision(null)}
         />
       )}

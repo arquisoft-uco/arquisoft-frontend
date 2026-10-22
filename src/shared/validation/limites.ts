@@ -12,11 +12,13 @@ export const LIMITES = {
   // FichasLimits.ObservacionItem.OBSERVACION_MAX
   OBSERVACION_ITEM_MAX: 200,
   // No es un @Size del DTO (record desnudo): origen es la validación de dominio
-  // (ApplicationValidationException) de EnviarSolicitudNovedadCoordinador (HU-081) y de
-  // EnviarSolicitudNovedadAsesor (HU-082), confirmado con 400 real.
+  // (ApplicationValidationException) de EnviarSolicitudNovedadCoordinador (HU-081), de
+  // EnviarSolicitudNovedadAsesor (HU-082) y de EnviarSolicitudCambioAsesor (HU-083), confirmado
+  // con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
-  // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear
-  // (ValidatorLongitud.longitudEntre(1, 100)), SolicitudesLimits.Respuesta.CONTENIDO_MAX.
+  // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear, ResponderSolicitudNovedadAsesorCommand.crear
+  // y ResponderSolicitudCambioAsesorCommand.crear (ValidatorLongitud.longitudEntre(1, 100)),
+  // SolicitudesLimits.Respuesta.CONTENIDO_MAX.
   RESPUESTA_CONTENIDO_MAX: 100,
   USUARIO_IDENTIFICADOR_MIN: 4,
   USUARIO_IDENTIFICADOR_MAX: 30,

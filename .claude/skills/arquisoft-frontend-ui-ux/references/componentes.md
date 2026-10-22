@@ -485,7 +485,8 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
   «Filtros»), `FilterBarSecciones.tsx` (declara `SeccionFiltro` —unión de tres tipos— y `OrdenFiltro`; trae `SeccionChips`,
   `SeccionDeFiltro`, que despacha por `tipo`, y `limpiarSeccion`) y `FilterBarSeccionTexto.tsx` (la sección de texto).
   `FilterBar` y `FilterBarPanel` reexportan los tipos.
-- **API:** `busqueda: { valor; onCambiar; etiqueta; placeholder }`, `chips?: { etiqueta; opciones; seleccionados; onAlternar(id);
+- **API:** `busqueda?: { valor; onCambiar; etiqueta; placeholder }` (sin ella no se pinta el campo ni su fila: listados que solo filtran
+  por chips), `chips?: { etiqueta; opciones; seleccionados; onAlternar(id);
   onTodos() }`, `popover?: { secciones: SeccionFiltro[] }`, `orden?: OrdenFiltro`, `aplicados: { id; etiqueta; onQuitar }[]`,
   `onLimpiar` y `totalResultados?: number`. `SeccionFiltro` es una unión por `tipo`, todas con `id` y `etiqueta`: **opciones** (`tipo?: 'opciones'`, el ausente; `opciones`, `valor`,
   `onCambiar(id)`, `deshabilitada?`, `aviso?`) es de **selección única**: `valor` es el `id` elegido, «Todos» es una opción más (con `id`

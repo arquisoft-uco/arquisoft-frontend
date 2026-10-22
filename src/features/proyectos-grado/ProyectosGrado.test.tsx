@@ -5,8 +5,16 @@ import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-
 import { Rol } from '../../shared/models/rol';
 import ProyectosGrado from './ProyectosGrado';
 
+vi.mock('./components/AsesorView', () => ({
+  default: () => <p>Vista asesor</p>,
+}));
+
 vi.mock('./components/CoordinadorView', () => ({
   default: () => <p>Vista coordinador</p>,
+}));
+
+vi.mock('./components/EstudianteView', () => ({
+  default: () => <p>Vista estudiante</p>,
 }));
 
 function renderizar() {
@@ -52,10 +60,34 @@ describe('ProyectosGrado', () => {
     expect(screen.getByText('Vista coordinador')).toBeInTheDocument();
   });
 
-  it('un rol sin vista va a /forbidden', () => {
+  it('el estudiante ve su vista', () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Vista estudiante')).toBeInTheDocument();
+  });
+
+  it('el asesor ve su vista', () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Vista asesor')).toBeInTheDocument();
+  });
+
+  it('un rol sin vista va a /forbidden', () => {
+    // Arrange
+    entrarComo(Rol.Administrador);
+    setActiveRole(Rol.Administrador);
 
     // Act
     renderizar();

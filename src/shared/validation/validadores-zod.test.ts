@@ -9,6 +9,7 @@ import {
   emailValido,
   uuidValido,
   listaConMaximo,
+  listaNoVaciaSinDuplicados,
   textoEntre,
   textoNoVacio,
   soloDigitosEntre,
@@ -247,6 +248,33 @@ describe('listaConMaximo', () => {
         MENSAJES_VALIDACION.listaMaxima(LIMITES.ESTUDIANTES_MAX),
       );
     }
+  });
+});
+
+describe('listaNoVaciaSinDuplicados', () => {
+  const esquema = listaNoVaciaSinDuplicados(
+    z.object({ item: z.string(), criterio: z.string() }),
+    (par) => par.item,
+  );
+
+  it('rechaza la lista vacía y la clave repetida, y acepta claves distintas', () => {
+    const vacia = esquema.safeParse([]);
+    const repetida = esquema.safeParse([
+      { item: 'a', criterio: 'x' },
+      { item: 'a', criterio: 'y' },
+    ]);
+    const valida = esquema.safeParse([
+      { item: 'a', criterio: 'x' },
+      { item: 'b', criterio: 'x' },
+    ]);
+
+    expect(vacia.success ? [] : vacia.error.issues.map((i) => i.message)).toEqual([
+      MENSAJES_VALIDACION.listaVacia,
+    ]);
+    expect(repetida.success ? [] : repetida.error.issues.map((i) => i.message)).toEqual([
+      MENSAJES_VALIDACION.elementoRepetido,
+    ]);
+    expect(valida.success).toBe(true);
   });
 });
 

@@ -16,6 +16,7 @@ vi.mock('../services/usuariosService', () => ({
     removerRepresentanteComite: vi.fn(),
     removerAdministrador: vi.fn(),
     removerBibliotecario: vi.fn(),
+    removerJurado: vi.fn(),
   },
 }));
 
@@ -31,6 +32,7 @@ const removerRepresentanteComite = vi.mocked(usuariosService.removerRepresentant
 
 const removerAdministrador = vi.mocked(usuariosService.removerAdministrador);
 const removerBibliotecario = vi.mocked(usuariosService.removerBibliotecario);
+const removerJurado = vi.mocked(usuariosService.removerJurado);
 
 function crearContexto() {
   const queryClient = new QueryClient({
@@ -186,6 +188,25 @@ describe('useRemoverRol', () => {
     expect(removerAdministrador).not.toHaveBeenCalled();
     await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
     expect(toast.success).toHaveBeenCalledWith('Rol quitado', 'Ana Pérez ya no es bibliotecario.');
+    await waitFor(() => expect(onExito).toHaveBeenCalledOnce());
+  });
+
+  it('despacha removerJurado, invalida usuarios, avisa el éxito y ejecuta onExito cuando el rol es jurado', async () => {
+    // Arrange
+    removerJurado.mockResolvedValue(undefined);
+    const onExito = vi.fn();
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useRemoverRol(), { wrapper: Wrapper });
+    act(() => result.current.solicitar({ usuarioId: 'u-8', nombre: 'Ana Pérez', rol: Rol.Jurado }));
+
+    // Act
+    act(() => result.current.confirmar(onExito));
+
+    // Assert
+    await waitFor(() => expect(removerJurado).toHaveBeenCalledWith('u-8'));
+    expect(removerBibliotecario).not.toHaveBeenCalled();
+    await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: ['usuarios'] }));
+    expect(toast.success).toHaveBeenCalledWith('Rol quitado', 'Ana Pérez ya no es jurado.');
     await waitFor(() => expect(onExito).toHaveBeenCalledOnce());
   });
 
