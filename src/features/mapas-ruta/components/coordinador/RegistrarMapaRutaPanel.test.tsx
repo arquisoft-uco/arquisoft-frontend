@@ -125,6 +125,22 @@ describe('RegistrarMapaRutaPanel', () => {
     expect(screen.getByRole('button', CREAR)).toBeDisabled();
   });
 
+  it('si falla una página siguiente conserva los proyectos y mantiene habilitado el envío', () => {
+    // Arrange
+    mockCatalogo({ isError: true, error: new Error('500'), hayMas: true });
+
+    // Act
+    render(<RegistrarMapaRutaPanel onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.getByRole('button', CREAR)).toBeEnabled();
+    expect(screen.queryByText('No se pudieron cargar los proyectos')).toBeNull();
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudieron cargar más proyectos',
+      expect.any(String),
+    );
+  });
+
   it('un fin anterior al inicio muestra el error en la fecha de fin y no registra', async () => {
     // Arrange
     const user = userEvent.setup();

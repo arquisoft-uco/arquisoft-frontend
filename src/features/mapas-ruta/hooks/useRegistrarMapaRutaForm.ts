@@ -47,8 +47,7 @@ export function useRegistrarMapaRutaForm({ onCerrar }: Opciones) {
   const catalogo = useProyectosElegibles();
   const { mutate, isPending, reset: reiniciarMutacion } = useAgregarMapaRuta();
 
-  const catalogoNoDisponible =
-    catalogo.isError || (!catalogo.isLoading && catalogo.proyectos.length === 0);
+  const catalogoNoDisponible = !catalogo.isLoading && catalogo.proyectos.length === 0;
 
   const errores = resumenVisible
     ? CAMPOS.flatMap((campo) => {
