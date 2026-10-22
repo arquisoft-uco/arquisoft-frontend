@@ -39,7 +39,7 @@ export default function CoordinadorView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Solicitudes"
-        descripcion="Consulta las solicitudes que te han enviado y las respuestas que diste."
+        descripcion="Consulta y responde las solicitudes que te han enviado, y revisa las respuestas que diste."
       />
 
       <Tabs

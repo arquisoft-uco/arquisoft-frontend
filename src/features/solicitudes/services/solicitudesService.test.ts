@@ -385,6 +385,25 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('responderSolicitudCambioAsesor', () => {
+    it('llama POST /solicitudes/cambio-asesor/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-3' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudCambioAsesor({
+        solicitudId: 's-3',
+        contenido: 'Revisemos el cambio.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/cambio-asesor/s-3/respuesta', {
+        contenido: 'Revisemos el cambio.',
+      });
+      expect(resultado).toEqual({ id: 'r-3' });
+    });
+  });
+
   describe('modificarEstadoRespuestaNovedadCoordinador', () => {
     it('llama PATCH /solicitudes/novedad-coordinador/{solicitudId}/respuesta/estado con solo { nuevoEstado } y resuelve undefined', async () => {
       // Arrange

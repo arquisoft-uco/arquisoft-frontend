@@ -7,6 +7,7 @@ import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarS
 import type { EstadoRespuesta } from '../models/EstadoRespuesta';
 import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
+import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
@@ -153,6 +154,15 @@ export const solicitudesService = {
   ): Promise<SolicitudCreadaResponse> =>
     apiClient
       .post<SolicitudCreadaResponse>(`/solicitudes/novedad-asesor/${req.solicitudId}/respuesta`, {
+        contenido: req.contenido,
+      })
+      .then((r) => r.data),
+
+  responderSolicitudCambioAsesor: (
+    req: ResponderSolicitudCambioAsesorRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(`/solicitudes/cambio-asesor/${req.solicitudId}/respuesta`, {
         contenido: req.contenido,
       })
       .then((r) => r.data),

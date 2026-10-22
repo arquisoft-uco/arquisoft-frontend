@@ -16,8 +16,9 @@ export const LIMITES = {
   // EnviarSolicitudNovedadAsesor (HU-082) y de EnviarSolicitudCambioAsesor (HU-083), confirmado
   // con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
-  // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear y ResponderSolicitudNovedadAsesorCommand.crear
-  // (ValidatorLongitud.longitudEntre(1, 100)), SolicitudesLimits.Respuesta.CONTENIDO_MAX.
+  // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear, ResponderSolicitudNovedadAsesorCommand.crear
+  // y ResponderSolicitudCambioAsesorCommand.crear (ValidatorLongitud.longitudEntre(1, 100)),
+  // SolicitudesLimits.Respuesta.CONTENIDO_MAX.
   RESPUESTA_CONTENIDO_MAX: 100,
   USUARIO_IDENTIFICADOR_MIN: 4,
   USUARIO_IDENTIFICADOR_MAX: 30,
