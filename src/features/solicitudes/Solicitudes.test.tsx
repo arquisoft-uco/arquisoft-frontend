@@ -20,6 +20,7 @@ import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNo
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
+import { useEliminarRespuestaCambioAsesor } from './hooks/useEliminarRespuestaCambioAsesor';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
 import { useModificarEstadoRespuestaNovedadAsesor } from './hooks/useModificarEstadoRespuestaNovedadAsesor';
 import { useModificarEstadoRespuestaNovedadCoordinador } from './hooks/useModificarEstadoRespuestaNovedadCoordinador';
@@ -98,6 +99,10 @@ vi.mock('./hooks/useRespuestasNovedadCoordinadorRecibidas', () => ({
 
 vi.mock('./hooks/useEliminarRespuestaNovedadAsesor', () => ({
   useEliminarRespuestaNovedadAsesor: vi.fn(),
+}));
+
+vi.mock('./hooks/useEliminarRespuestaCambioAsesor', () => ({
+  useEliminarRespuestaCambioAsesor: vi.fn(),
 }));
 
 vi.mock('./hooks/useEliminarRespuestaNovedadCoordinador', () => ({
@@ -276,6 +281,7 @@ describe('Solicitudes', () => {
     } as ReturnType<typeof useEstadosRespuesta>);
     vi.mocked(useEliminarRespuestaNovedadAsesor).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
+    vi.mocked(useEliminarRespuestaCambioAsesor).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useModificarEstadoRespuestaNovedadAsesor).mockReturnValue(
       crearMutacionModificarMock(),
     );
