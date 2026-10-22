@@ -125,6 +125,9 @@ export const evaluacionesService = {
   getEvaluacionesCoordinador: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
     apiClient.post<Page<Evaluacion>>('/evaluaciones/coordinador', req).then((r) => r.data),
 
+  getEvaluacionesEstudiante: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
+    apiClient.post<Page<Evaluacion>>('/evaluaciones/estudiante', req).then((r) => r.data),
+
   getEvaluacionesAsignadasJurado: (): Promise<EvaluacionAsignadaJurado[]> =>
     apiClient
       .get<EvaluacionAsignadaJurado[]>('/evaluaciones/evaluaciones-jurado/jurado')

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, within } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../test-utils/render';
 import EvaluacionesTable from './EvaluacionesTable';
-import type { Evaluacion } from '../../models/Evaluacion';
+import type { Evaluacion } from '../models/Evaluacion';
 
 const EVALUACION_1: Evaluacion = {
   id: 'e-1',
@@ -67,6 +67,23 @@ describe('EvaluacionesTable', () => {
     // Assert
     expect(screen.getByText('Aún no hay evaluaciones')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument();
+  });
+
+  it('descripcionVacio reemplaza el texto del vacío sin filtros y no afecta al vacío con filtros', () => {
+    // Arrange
+    const texto = 'Texto propio del estudiante';
+    const { unmount } = renderizar({ evaluaciones: [], descripcionVacio: texto });
+
+    // Assert
+    expect(screen.getByText(texto)).toBeInTheDocument();
+    unmount();
+
+    // Act
+    renderizar({ evaluaciones: [], hayFiltros: true, descripcionVacio: texto });
+
+    // Assert
+    expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+    expect(screen.queryByText(texto)).not.toBeInTheDocument();
   });
 
   it('sin evaluaciones y con filtros muestra "Sin resultados" y "Limpiar filtros" los quita', async () => {

@@ -6,7 +6,8 @@ import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
 import type { Evaluacion } from '../models/Evaluacion';
 import { evaluacionesService } from '../services/evaluacionesService';
-import { construirFiltros, useEvaluacionesCoordinador } from './useEvaluacionesCoordinador';
+import { useEvaluacionesCoordinador } from './useEvaluacionesCoordinador';
+import { construirFiltros } from './useListadoEvaluaciones';
 
 vi.mock('../services/evaluacionesService', () => ({
   evaluacionesService: {
