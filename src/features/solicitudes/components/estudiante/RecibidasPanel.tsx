@@ -2,7 +2,10 @@ import { useState } from 'react';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import RespuestasAsesorRecibidasPanel from './RespuestasAsesorRecibidasPanel';
 import RespuestasRecibidasPanel from './RespuestasRecibidasPanel';
-import SelectorTipoSolicitud, { type TipoSolicitudUi } from './SelectorTipoSolicitud';
+import SelectorTipoSolicitud, {
+  TIPOS_SOLICITUD,
+  type TipoSolicitudUi,
+} from './SelectorTipoSolicitud';
 
 const PANEL_POR_TIPO: Record<
   TipoSolicitudUi,
@@ -25,7 +28,7 @@ export default function RecibidasPanel({ filtros }: Props) {
 
   return (
     <div className={RAIZ}>
-      <SelectorTipoSolicitud valor={tipo} onCambiar={setTipo} />
+      <SelectorTipoSolicitud valor={tipo} onCambiar={setTipo} opciones={TIPOS_SOLICITUD} />
 
       <PanelElegido filtros={filtros[tipo]} />
     </div>

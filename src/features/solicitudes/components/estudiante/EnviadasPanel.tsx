@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import SelectorTipoSolicitud, { type TipoSolicitudUi } from './SelectorTipoSolicitud';
+import SelectorTipoSolicitud, {
+  TIPOS_SOLICITUD,
+  type TipoSolicitudUi,
+} from './SelectorTipoSolicitud';
 import SolicitudesAsesorEnviadasPanel from './SolicitudesAsesorEnviadasPanel';
 import SolicitudesEnviadasPanel from './SolicitudesEnviadasPanel';
 
@@ -17,7 +20,7 @@ export default function EnviadasPanel() {
 
   return (
     <div className={RAIZ}>
-      <SelectorTipoSolicitud valor={tipo} onCambiar={setTipo} />
+      <SelectorTipoSolicitud valor={tipo} onCambiar={setTipo} opciones={TIPOS_SOLICITUD} />
 
       <PanelElegido />
     </div>

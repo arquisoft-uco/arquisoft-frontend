@@ -9,6 +9,7 @@ import type { Page } from '../../shared/models/api-response';
 import { RESPUESTA, RESPUESTA_ASESOR } from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
+import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
 import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSolicitudNovedadCoordinador';
@@ -32,6 +33,10 @@ vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
 
 vi.mock('./hooks/useEnviarSolicitudNovedadAsesor', () => ({
   useEnviarSolicitudNovedadAsesor: vi.fn(),
+}));
+
+vi.mock('./hooks/useEnviarSolicitudCambioAsesor', () => ({
+  useEnviarSolicitudCambioAsesor: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
@@ -243,6 +248,7 @@ describe('Solicitudes', () => {
     resetAllStores();
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,

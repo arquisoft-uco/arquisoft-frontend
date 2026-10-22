@@ -1,27 +1,40 @@
-import { GraduationCap, Users, type LucideIcon } from 'lucide-react';
+import { GraduationCap, UserCog, Users, type LucideIcon } from 'lucide-react';
 import Field from '../../../../shared/components/ui/Field';
 
 export type TipoSolicitudUi = 'coordinador' | 'asesor';
+export type TipoNuevaSolicitudUi = TipoSolicitudUi | 'cambio-asesor';
 
-const TIPOS_SOLICITUD_LOCALES: {
-  value: TipoSolicitudUi;
+interface OpcionTipo<T extends string> {
+  value: T;
   label: string;
   icono: LucideIcon;
-}[] = [
+}
+
+export const TIPOS_SOLICITUD: OpcionTipo<TipoSolicitudUi>[] = [
   { value: 'coordinador', label: 'Novedad al coordinador', icono: Users },
   { value: 'asesor', label: 'Novedad al asesor', icono: GraduationCap },
+];
+
+export const TIPOS_NUEVA_SOLICITUD: OpcionTipo<TipoNuevaSolicitudUi>[] = [
+  ...TIPOS_SOLICITUD,
+  { value: 'cambio-asesor', label: 'Cambio de asesor', icono: UserCog },
 ];
 
 const ICONO_DEL_TIPO =
   'pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary';
 
-interface Props {
-  valor: TipoSolicitudUi;
-  onCambiar: (tipo: TipoSolicitudUi) => void;
+interface Props<T extends string> {
+  valor: T;
+  onCambiar: (tipo: T) => void;
+  opciones: OpcionTipo<T>[];
 }
 
-export default function SelectorTipoSolicitud({ valor, onCambiar }: Props) {
-  const IconoElegido = TIPOS_SOLICITUD_LOCALES.find((t) => t.value === valor)?.icono;
+export default function SelectorTipoSolicitud<T extends string>({
+  valor,
+  onCambiar,
+  opciones,
+}: Props<T>) {
+  const IconoElegido = opciones.find((t) => t.value === valor)?.icono;
 
   return (
     <Field etiqueta="Tipo de solicitud">
@@ -32,12 +45,12 @@ export default function SelectorTipoSolicitud({ valor, onCambiar }: Props) {
             className="field-input field-input--icono font-medium"
             value={valor}
             onChange={(e) => {
-              const elegido = TIPOS_SOLICITUD_LOCALES.find((t) => t.value === e.target.value);
+              const elegido = opciones.find((t) => t.value === e.target.value);
               if (elegido) onCambiar(elegido.value);
             }}
             {...control}
           >
-            {TIPOS_SOLICITUD_LOCALES.map((t) => (
+            {opciones.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.label}
               </option>

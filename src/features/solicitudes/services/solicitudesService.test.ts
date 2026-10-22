@@ -69,6 +69,26 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('enviarSolicitudCambioAsesor', () => {
+    it('llama POST /solicitudes/cambio-asesor con { destinatario, mensajeSolicitud } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 's-3' } });
+
+      // Act
+      const resultado = await solicitudesService.enviarSolicitudCambioAsesor({
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Necesito cambiar de asesor.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/cambio-asesor', {
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Necesito cambiar de asesor.',
+      });
+      expect(resultado).toEqual({ id: 's-3' });
+    });
+  });
+
   describe('consultarSolicitudesNovedadCoordinadorEnviadas', () => {
     const pagina = {
       content: [],

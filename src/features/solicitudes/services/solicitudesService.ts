@@ -1,4 +1,5 @@
 import apiClient from '../../../api/axiosInstance';
+import type { EnviarSolicitudCambioAsesorRequest } from '../models/EnviarSolicitudCambioAsesorRequest';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
@@ -33,6 +34,15 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  enviarSolicitudCambioAsesor: (
+    req: EnviarSolicitudCambioAsesorRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>('/solicitudes/cambio-asesor', {
+        destinatario: req.destinatario,
+        mensajeSolicitud: req.mensajeSolicitud,
+      })
+      .then((r) => r.data),
   consultarSolicitudesNovedadCoordinadorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/enviadas', {

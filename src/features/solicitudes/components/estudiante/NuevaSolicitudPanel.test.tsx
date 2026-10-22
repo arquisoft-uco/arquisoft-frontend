@@ -11,8 +11,12 @@ vi.mock('./NovedadAsesorForm', () => ({
   default: () => <h2>Formulario asesor</h2>,
 }));
 
+vi.mock('./CambioAsesorForm', () => ({
+  default: () => <h2>Formulario cambio de asesor</h2>,
+}));
+
 describe('NuevaSolicitudPanel', () => {
-  it('ofrece solo dos tipos habilitados y muestra por defecto el formulario del coordinador', () => {
+  it('ofrece tres tipos habilitados y muestra por defecto el formulario del coordinador', () => {
     render(<NuevaSolicitudPanel />);
 
     const selector = screen.getByRole('combobox', { name: 'Tipo de solicitud' });
@@ -20,6 +24,7 @@ describe('NuevaSolicitudPanel', () => {
     expect(opciones.map((o) => o.textContent)).toEqual([
       'Novedad al coordinador',
       'Novedad al asesor',
+      'Cambio de asesor',
     ]);
     opciones.forEach((o) => expect(o).toBeEnabled());
     expect(selector).toHaveValue('coordinador');
@@ -37,6 +42,23 @@ describe('NuevaSolicitudPanel', () => {
     );
 
     expect(screen.getByRole('heading', { name: 'Formulario asesor' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Formulario coordinador' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('cambia al formulario de cambio de asesor y desmonta el del coordinador al elegir Cambio de asesor', async () => {
+    const user = userEvent.setup();
+    render(<NuevaSolicitudPanel />);
+
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'Cambio de asesor',
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Formulario cambio de asesor' }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Formulario coordinador' }),
     ).not.toBeInTheDocument();
