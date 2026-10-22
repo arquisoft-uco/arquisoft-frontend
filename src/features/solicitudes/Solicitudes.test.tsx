@@ -6,7 +6,7 @@ import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-
 import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
 import type { Page } from '../../shared/models/api-response';
-import { RESPUESTA, RESPUESTA_ASESOR } from '../../test-utils/respuestas';
+import { RESPUESTA, RESPUESTA_ASESOR, RESPUESTA_CAMBIO_ASESOR } from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
@@ -17,6 +17,7 @@ import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSol
 import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNovedadAsesorRecibidas';
 import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedadAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
+import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
@@ -81,6 +82,10 @@ vi.mock('./hooks/useRespuestasNovedadAsesorEnviadas', () => ({
 
 vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
   useRespuestasNovedadCoordinadorEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasCambioAsesorEnviadas', () => ({
+  useRespuestasCambioAsesorEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
@@ -351,6 +356,36 @@ describe('Solicitudes', () => {
 
     expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
+  });
+
+  it('en Respuestas enviadas el coordinador cambia a Cambio de asesor y ve ese listado', async () => {
+    autenticarCon(Rol.Coordinador);
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
+    vi.mocked(useRespuestasCambioAsesorEnviadas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_CAMBIO_ASESOR],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasCambioAsesorEnviadas>,
+    );
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'cambio-asesor',
+    );
+
+    const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' });
+    expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
   });
 
   it('renderiza AsesorView con las pestañas Recibidas y Respuestas enviadas cuando el rol activo es Asesor', async () => {
