@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { CheckCircle2, Trash2, XCircle } from 'lucide-react';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -7,11 +7,17 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEliminarRespuestaNovedadAsesor } from '../../hooks/useEliminarRespuestaNovedadAsesor';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasNovedadAsesorEnviadas } from '../../hooks/useRespuestasNovedadAsesorEnviadas';
+import { useModificarEstadoRespuestaNovedadAsesor } from '../../hooks/useModificarEstadoRespuestaNovedadAsesor';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
+import {
+  ESTADO_RESPUESTA_APROBADA,
+  ESTADO_RESPUESTA_EN_REVISION,
+  ESTADO_RESPUESTA_NO_APROBADA,
+  TEXTOS_DECISION,
+} from '../../utils/decisiones-respuesta';
+import ModificarEstadoRespuestaDialog from '../ModificarEstadoRespuestaDialog';
 import RespuestasPanel from '../RespuestasPanel';
 import RespuestasEnviadasAsesorTable from './RespuestasEnviadasAsesorTable';
-
-const ESTADO_RESPUESTA_EN_REVISION = 'EN_REVISION';
 
 const CONSECUENCIAS = [
   'El estudiante dejará de ver la respuesta en sus respuestas recibidas.',
@@ -26,7 +32,13 @@ interface Props {
 export default function RespuestasEnviadasAsesorPanel({ filtros }: Props) {
   const consulta = useRespuestasNovedadAsesorEnviadas(filtros);
   const { mutate: eliminar, isPending: eliminando } = useEliminarRespuestaNovedadAsesor();
+  const modificarEstado = useModificarEstadoRespuestaNovedadAsesor();
+  const modificando = modificarEstado.isPending;
   const [pendienteEliminar, setPendienteEliminar] = useState<RespuestaSolicitud | null>(null);
+  const [pendienteDecision, setPendienteDecision] = useState<{
+    respuesta: RespuestaSolicitud;
+    nuevoEstado: string;
+  } | null>(null);
 
   function acciones(respuesta: RespuestaSolicitud) {
     if (respuesta.estadoRespuestaId !== ESTADO_RESPUESTA_EN_REVISION) return null;
@@ -35,10 +47,24 @@ export default function RespuestasEnviadasAsesorPanel({ filtros }: Props) {
         etiqueta={`Acciones de la respuesta a ${respuesta.solicitud.remitente.nombre}`}
         acciones={[
           {
+            etiqueta: TEXTOS_DECISION[ESTADO_RESPUESTA_APROBADA].etiquetaAccion,
+            icono: CheckCircle2,
+            deshabilitada: eliminando || modificando,
+            onSeleccionar: () =>
+              setPendienteDecision({ respuesta, nuevoEstado: ESTADO_RESPUESTA_APROBADA }),
+          },
+          {
+            etiqueta: TEXTOS_DECISION[ESTADO_RESPUESTA_NO_APROBADA].etiquetaAccion,
+            icono: XCircle,
+            deshabilitada: eliminando || modificando,
+            onSeleccionar: () =>
+              setPendienteDecision({ respuesta, nuevoEstado: ESTADO_RESPUESTA_NO_APROBADA }),
+          },
+          {
             etiqueta: 'Eliminar respuesta',
             icono: Trash2,
             peligro: true,
-            deshabilitada: eliminando,
+            deshabilitada: eliminando || modificando,
             onSeleccionar: () => setPendienteEliminar(respuesta),
           },
         ]}
@@ -79,6 +105,14 @@ export default function RespuestasEnviadasAsesorPanel({ filtros }: Props) {
         Tabla={RespuestasEnviadasAsesorTable}
         acciones={acciones}
       />
+      {pendienteDecision && (
+        <ModificarEstadoRespuestaDialog
+          respuesta={pendienteDecision.respuesta}
+          nuevoEstado={pendienteDecision.nuevoEstado}
+          mutacion={modificarEstado}
+          onCerrar={() => setPendienteDecision(null)}
+        />
+      )}
       {pendienteEliminar && (
         <ConfirmDialog
           variante="peligro"

@@ -7,6 +7,7 @@ import type { ApiError, Page } from '../../../../shared/models/api-response';
 import { useEliminarRespuestaNovedadAsesor } from '../../hooks/useEliminarRespuestaNovedadAsesor';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useEstadosRespuesta } from '../../hooks/useEstadosRespuesta';
+import { useModificarEstadoRespuestaNovedadAsesor } from '../../hooks/useModificarEstadoRespuestaNovedadAsesor';
 import { useRespuestasNovedadAsesorEnviadas } from '../../hooks/useRespuestasNovedadAsesorEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA } from '../../../../test-utils/respuestas';
@@ -24,12 +25,17 @@ vi.mock('../../hooks/useEliminarRespuestaNovedadAsesor', () => ({
   useEliminarRespuestaNovedadAsesor: vi.fn(),
 }));
 
+vi.mock('../../hooks/useModificarEstadoRespuestaNovedadAsesor', () => ({
+  useModificarEstadoRespuestaNovedadAsesor: vi.fn(),
+}));
+
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
 type HookRespuestas = ReturnType<typeof useRespuestasNovedadAsesorEnviadas>;
 type HookEliminar = ReturnType<typeof useEliminarRespuestaNovedadAsesor>;
+type HookModificar = ReturnType<typeof useModificarEstadoRespuestaNovedadAsesor>;
 
 type OpcionesMutate = {
   onSuccess?: () => void;
@@ -72,6 +78,35 @@ function mockearEliminar(mutate = vi.fn()) {
     reset: vi.fn(),
   } as HookEliminar);
   return mutate;
+}
+
+function mockearModificar(mutate = vi.fn()) {
+  vi.mocked(useModificarEstadoRespuestaNovedadAsesor).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookModificar);
+  return mutate;
+}
+
+async function abrirMenuFila(user: ReturnType<typeof userEvent.setup>) {
+  const tabla = screen.getByRole('table', { name: 'Respuestas de novedades enviadas' });
+  await user.click(
+    within(tabla).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+  );
 }
 
 async function abrirDialogoEliminar(user: ReturnType<typeof userEvent.setup>) {
@@ -128,6 +163,7 @@ describe('RespuestasEnviadasAsesorPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockearEliminar();
+    mockearModificar();
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: undefined,
       isError: false,
@@ -251,6 +287,53 @@ describe('RespuestasEnviadasAsesorPanel', () => {
     expect(
       within(tabla).getAllByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
     ).toHaveLength(1);
+  });
+
+  it('la fila En revisión ofrece aprobar, marcar como no aprobada y eliminar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasEnviadasAsesorPanel filtros={crearFiltros()} />);
+
+    // Act
+    await abrirMenuFila(user);
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Aprobar respuesta' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Eliminar respuesta' })).toBeInTheDocument();
+  });
+
+  it('al elegir cada decisión abre su diálogo y al confirmar envía el estado elegido', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearModificar();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasEnviadasAsesorPanel filtros={crearFiltros()} />);
+
+    // Act
+    await abrirMenuFila(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Aprobar respuesta?');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await abrirMenuFila(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Marcar como no aprobada?');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Marcar como no aprobada' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith(
+      { solicitudId: RESPUESTA_EN_REVISION.solicitud.id, nuevoEstado: 'NO_APROBADA' },
+      expect.any(Object),
+    );
   });
 
   it('al elegir eliminar abre el diálogo con el estudiante y las consecuencias', async () => {

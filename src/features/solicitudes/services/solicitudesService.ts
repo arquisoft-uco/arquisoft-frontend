@@ -4,6 +4,7 @@ import type { ConsultaCriteriaRequest } from '../../../shared/models/query-crite
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
 import type { EstadoRespuesta } from '../models/EstadoRespuesta';
+import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
@@ -140,6 +141,15 @@ export const solicitudesService = {
   ): Promise<void> =>
     apiClient
       .patch(`/solicitudes/novedad-coordinador/${req.solicitudId}/respuesta/estado`, {
+        nuevoEstado: req.nuevoEstado,
+      })
+      .then(() => undefined),
+
+  modificarEstadoRespuestaNovedadAsesor: (
+    req: ModificarEstadoRespuestaNovedadAsesorRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/solicitudes/novedad-asesor/${req.solicitudId}/respuesta/estado`, {
         nuevoEstado: req.nuevoEstado,
       })
       .then(() => undefined),

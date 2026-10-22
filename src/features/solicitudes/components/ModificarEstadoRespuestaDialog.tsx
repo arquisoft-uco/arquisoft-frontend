@@ -1,22 +1,31 @@
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
-import { useModificarEstadoRespuestaNovedadCoordinador } from '../../hooks/useModificarEstadoRespuestaNovedadCoordinador';
-import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
-import { TEXTOS_DECISION } from '../../utils/decisiones-respuesta';
+import ConfirmDialog from '../../../shared/components/ConfirmDialog';
+import { toast } from '../../../shared/hooks/useToast';
+import { getApiErrorMessage } from '../../../shared/utils/api-error';
+import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
+import { TEXTOS_DECISION } from '../utils/decisiones-respuesta';
+
+interface MutacionModificarEstado {
+  mutate: (
+    req: { solicitudId: string; nuevoEstado: string },
+    opciones: { onSuccess: () => void; onError: (err: unknown) => void },
+  ) => void;
+  isPending: boolean;
+}
 
 interface Props {
   respuesta: RespuestaSolicitud;
   nuevoEstado: string;
+  mutacion: MutacionModificarEstado;
   onCerrar: () => void;
 }
 
 export default function ModificarEstadoRespuestaDialog({
   respuesta,
   nuevoEstado,
+  mutacion,
   onCerrar,
 }: Props) {
-  const { mutate, isPending } = useModificarEstadoRespuestaNovedadCoordinador();
+  const { mutate, isPending } = mutacion;
   const textos = TEXTOS_DECISION[nuevoEstado];
 
   function handleConfirmar() {
