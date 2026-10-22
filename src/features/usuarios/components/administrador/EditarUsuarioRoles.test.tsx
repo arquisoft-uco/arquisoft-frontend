@@ -19,6 +19,7 @@ vi.mock('../../services/usuariosService', () => ({
     removerRepresentanteComite: vi.fn(),
     removerAdministrador: vi.fn(),
     removerBibliotecario: vi.fn(),
+    removerJurado: vi.fn(),
   },
 }));
 
@@ -82,22 +83,37 @@ describe('EditarUsuarioRoles', () => {
     expect(screen.queryByText('Pronto')).not.toBeInTheDocument();
   });
 
-  it('un usuario jurado abre con Jurado encendido y deshabilitado con "Pronto", y no se puede quitar todavía', async () => {
+  it('un usuario jurado abre con Jurado encendido y habilitado, y al apagarlo pide confirmación, quita el rol y avisa', async () => {
     // Arrange
     const user = userEvent.setup();
+    vi.mocked(usuariosService.removerJurado).mockResolvedValue(undefined);
+    const rol = ETIQUETAS_ROL[Rol.Jurado];
     render(<EditarUsuarioRoles usuario={{ ...USUARIO, esJurado: true }} />);
 
     // Assert
     expect(interruptor(Rol.Jurado)).toBeChecked();
-    expect(interruptor(Rol.Jurado)).toBeDisabled();
-    expect(screen.getAllByText('Pronto')).toHaveLength(1);
-    expect(interruptor(Rol.Jurado)).toHaveAccessibleDescription(/Pronto/);
+    expect(interruptor(Rol.Jurado)).toBeEnabled();
+    expect(screen.queryByText('Pronto')).not.toBeInTheDocument();
 
     // Act
     await user.click(interruptor(Rol.Jurado));
 
     // Assert
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('alertdialog', { name: `¿Quitar el rol ${rol} a ${USUARIO.nombre}?` }),
+    ).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
+
+    // Assert
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(usuariosService.removerJurado).toHaveBeenCalledWith(USUARIO.id);
+    expect(interruptor(Rol.Jurado)).not.toBeChecked();
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol quitado',
+      `${USUARIO.nombre} ya no es ${rol.toLowerCase()}.`,
+    );
   });
 
   it('encender Jurado llama al service con el id y el rol jurado', async () => {

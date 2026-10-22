@@ -98,9 +98,9 @@ describe('ROLES_DEL_PANEL', () => {
 });
 
 describe('puedeCambiarRol', () => {
-  it('permite agregar todos los roles y quitar todos menos Jurado (HU-251)', () => {
+  it('permite agregar y quitar todos los roles', () => {
     // Arrange
-    const esperadoAlAgregar = {
+    const esperado = {
       [Rol.Estudiante]: true,
       [Rol.Asesor]: true,
       [Rol.AsesorFicha]: true,
@@ -110,7 +110,6 @@ describe('puedeCambiarRol', () => {
       [Rol.Jurado]: true,
       [Rol.Bibliotecario]: true,
     };
-    const esperadoAlQuitar = { ...esperadoAlAgregar, [Rol.Jurado]: false };
 
     // Act
     const [quitar, agregar] = [true, false].map((asignado) =>
@@ -118,8 +117,8 @@ describe('puedeCambiarRol', () => {
     );
 
     // Assert
-    expect(quitar).toEqual(esperadoAlQuitar);
-    expect(agregar).toEqual(esperadoAlAgregar);
+    expect(quitar).toEqual(esperado);
+    expect(agregar).toEqual(esperado);
   });
 });
 

@@ -42,6 +42,7 @@ export const ROLES_QUITABLES: ReadonlySet<Rol> = new Set([
   Rol.AsesorFicha,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Jurado,
   Rol.Bibliotecario,
 ]);
 
