@@ -19,12 +19,19 @@ export default function EstudianteView() {
   const [pestana, setPestana] = useState<Pestana>('nueva');
   const filtrosCoordinador = useFiltrosRespuestas();
   const filtrosAsesor = useFiltrosRespuestas();
+  const filtrosCambioAsesor = useFiltrosRespuestas();
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     nueva: <NuevaSolicitudPanel />,
     enviadas: <EnviadasPanel />,
     respuestas: (
-      <RecibidasPanel filtros={{ coordinador: filtrosCoordinador, asesor: filtrosAsesor }} />
+      <RecibidasPanel
+        filtros={{
+          coordinador: filtrosCoordinador,
+          asesor: filtrosAsesor,
+          'cambio-asesor': filtrosCambioAsesor,
+        }}
+      />
     ),
   };
 

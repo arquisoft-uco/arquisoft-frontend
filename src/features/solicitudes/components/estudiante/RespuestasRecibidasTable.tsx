@@ -2,10 +2,10 @@ import type { TablaRespuestasProps } from '../RespuestasPanel';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
 import RespuestasTable from '../RespuestasTable';
-import type { TipoSolicitudUi } from '../SelectorTipoSolicitud';
+import type { TipoSolicitudEnviableUi } from '../SelectorTipoSolicitud';
 
 const TEXTOS_POR_TIPO: Record<
-  TipoSolicitudUi,
+  TipoSolicitudEnviableUi,
   { etiqueta: string; encabezado: string; vacio: { titulo: string; descripcion: string } }
 > = {
   coordinador: {
@@ -26,6 +26,15 @@ const TEXTOS_POR_TIPO: Record<
         'Cuando tu asesor responda una de tus novedades, la respuesta aparecerá aquí. Puedes enviar una desde «Nueva solicitud».',
     },
   },
+  'cambio-asesor': {
+    etiqueta: 'Respuestas de cambio de asesor recibidas',
+    encabezado: 'Coordinador',
+    vacio: {
+      titulo: 'Aún no has recibido respuestas',
+      descripcion:
+        'Cuando el coordinador responda una de tus solicitudes de cambio de asesor, la respuesta aparecerá aquí. Puedes enviar una desde «Nueva solicitud».',
+    },
+  },
 };
 
 function celdaDestinatario(respuesta: RespuestaSolicitud) {
@@ -34,7 +43,7 @@ function celdaDestinatario(respuesta: RespuestaSolicitud) {
 }
 
 interface Props extends TablaRespuestasProps {
-  tipo: TipoSolicitudUi;
+  tipo: TipoSolicitudEnviableUi;
 }
 
 export default function RespuestasRecibidasTable({
