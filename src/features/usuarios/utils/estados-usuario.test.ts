@@ -23,6 +23,7 @@ function crearUsuario(parcial: Partial<Usuario> = {}): Usuario {
     esCoordinador: false,
     esRepresentanteComite: false,
     esAdministrador: false,
+    esJurado: false,
     esBibliotecario: false,
     ...parcial,
   };
