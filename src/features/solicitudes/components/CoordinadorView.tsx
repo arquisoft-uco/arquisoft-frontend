@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
-import { useFiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
-import RespuestasEnviadasPanel from './coordinador/RespuestasEnviadasPanel';
+import { useFiltrosRespuestas, type FiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
+import RespuestasEnviadasPorTipoPanel from './coordinador/RespuestasEnviadasPorTipoPanel';
 import RecibidasPanel from './coordinador/RecibidasPanel';
 import type { TipoSolicitudRecibidaUi } from './SelectorTipoSolicitud';
 
@@ -21,7 +21,10 @@ export default function CoordinadorView() {
       'cambio-asesor': 0,
     },
   );
-  const filtrosRespuestasEnviadas = useFiltrosRespuestas();
+  const filtrosRespuestasEnviadas: Record<TipoSolicitudRecibidaUi, FiltrosRespuestas> = {
+    novedad: useFiltrosRespuestas(),
+    'cambio-asesor': useFiltrosRespuestas(),
+  };
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     recibidas: (
@@ -32,7 +35,7 @@ export default function CoordinadorView() {
         }
       />
     ),
-    'respuestas-enviadas': <RespuestasEnviadasPanel filtros={filtrosRespuestasEnviadas} />,
+    'respuestas-enviadas': <RespuestasEnviadasPorTipoPanel filtros={filtrosRespuestasEnviadas} />,
   };
 
   return (

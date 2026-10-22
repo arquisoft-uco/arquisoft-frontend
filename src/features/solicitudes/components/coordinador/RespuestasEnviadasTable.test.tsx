@@ -50,6 +50,25 @@ describe('RespuestasEnviadasTable', () => {
     expect(within(tabla).getByRole('button', { name: 'Acción r-1' })).toBeInTheDocument();
   });
 
+  it('con tipo cambio-asesor usa la etiqueta y el vacío de cambio de asesor', () => {
+    // Act
+    render(
+      <RespuestasEnviadasTable
+        respuestas={[]}
+        cargando={false}
+        hayFiltros={false}
+        orden={ORDEN}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={vi.fn()}
+        tipo="cambio-asesor"
+      />,
+    );
+
+    // Assert
+    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
+    expect(screen.getByText(/solicitud de cambio de asesor desde Recibidas/)).toBeInTheDocument();
+  });
+
   it('sin respuestas muestra el estado vacío', () => {
     // Act
     render(

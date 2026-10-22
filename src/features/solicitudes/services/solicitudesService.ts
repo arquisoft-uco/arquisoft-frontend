@@ -120,6 +120,13 @@ export const solicitudesService = {
       .post<Page<RespuestaSolicitud>>('/solicitudes/novedad-asesor/respuestas/recibidas', criterio)
       .then((r) => r.data),
 
+  consultarRespuestasCambioAsesorEnviadas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/cambio-asesor/respuestas/enviadas', criterio)
+      .then((r) => r.data),
+
   consultarRespuestasNovedadAsesorEnviadas: (
     criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>

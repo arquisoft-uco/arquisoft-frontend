@@ -44,3 +44,16 @@ export const RESPUESTA_ASESOR: RespuestaSolicitud = {
     },
   },
 };
+
+export const RESPUESTA_CAMBIO_ASESOR: RespuestaSolicitud = {
+  ...RESPUESTA,
+  id: 'r-3',
+  contenido: 'Aprobamos el cambio de asesor.',
+  solicitud: {
+    ...RESPUESTA.solicitud,
+    id: 's-3',
+    mensajeSolicitud: 'Quiero cambiar de asesor por incompatibilidad de horarios.',
+    tipoSolicitudId: 't-3',
+    tipoSolicitudNombre: 'CAMBIO_DE_ASESOR',
+  },
+};

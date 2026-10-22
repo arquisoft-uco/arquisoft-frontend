@@ -2,10 +2,27 @@ import type { TablaRespuestasProps } from '../RespuestasPanel';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
 import RespuestasTable from '../RespuestasTable';
+import type { TipoSolicitudRecibidaUi } from '../SelectorTipoSolicitud';
 
-const VACIO = {
-  titulo: 'Aún no has enviado respuestas',
-  descripcion: 'Cuando respondas una novedad desde Recibidas, la respuesta aparecerá aquí.',
+const TEXTOS_POR_TIPO: Record<
+  TipoSolicitudRecibidaUi,
+  { etiqueta: string; vacio: { titulo: string; descripcion: string } }
+> = {
+  novedad: {
+    etiqueta: 'Respuestas de novedades enviadas',
+    vacio: {
+      titulo: 'Aún no has enviado respuestas',
+      descripcion: 'Cuando respondas una novedad desde Recibidas, la respuesta aparecerá aquí.',
+    },
+  },
+  'cambio-asesor': {
+    etiqueta: 'Respuestas de cambio de asesor enviadas',
+    vacio: {
+      titulo: 'Aún no has enviado respuestas',
+      descripcion:
+        'Cuando respondas una solicitud de cambio de asesor desde Recibidas, la respuesta aparecerá aquí.',
+    },
+  },
 };
 
 function celdaEstudiante(respuesta: RespuestaSolicitud) {
@@ -21,7 +38,10 @@ export default function RespuestasEnviadasTable({
   onOrdenar,
   onLimpiarFiltros,
   acciones,
-}: TablaRespuestasProps) {
+  tipo = 'novedad',
+}: TablaRespuestasProps & { tipo?: TipoSolicitudRecibidaUi }) {
+  const { etiqueta, vacio } = TEXTOS_POR_TIPO[tipo];
+
   return (
     <RespuestasTable
       respuestas={respuestas}
@@ -30,10 +50,10 @@ export default function RespuestasEnviadasTable({
       orden={orden}
       onOrdenar={onOrdenar}
       onLimpiarFiltros={onLimpiarFiltros}
-      etiqueta="Respuestas de novedades enviadas"
+      etiqueta={etiqueta}
       participante={{ encabezado: 'Estudiante', celda: celdaEstudiante }}
       encabezadoFecha="Respondida"
-      vacio={VACIO}
+      vacio={vacio}
       acciones={acciones}
     />
   );
