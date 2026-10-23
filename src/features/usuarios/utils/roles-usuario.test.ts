@@ -81,6 +81,7 @@ describe('rolesDeUsuario', () => {
       Rol.Coordinador,
       Rol.RepresentanteComiteCurriculum,
       Rol.Administrador,
+      Rol.Jurado,
       Rol.Bibliotecario,
     ]);
     expect(ROLES_USUARIO.map(({ rol }) => rol)).toEqual(expect.arrayContaining(filtrables));
