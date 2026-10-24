@@ -64,7 +64,7 @@ function crearErrorApi(cuerpo: ApiError) {
 
 async function abrirDialogo(
   eliminar: (id: string, opciones: OpcionesEliminar) => void,
-  tipo: 'asesor' | 'cambio-asesor' = 'asesor',
+  tipo: 'asesor' | 'cambio-asesor' | 'ampliacion-plazo' = 'asesor',
 ) {
   const user = userEvent.setup();
   render(
@@ -140,6 +140,21 @@ describe('ListadoSolicitudesEnviadasEliminable', () => {
     expect(toast.success).toHaveBeenCalledWith(
       'Solicitud eliminada',
       'La solicitud de cambio de asesor fue eliminada correctamente.',
+    );
+  });
+
+  it('en ampliación de plazo el toast de éxito nombra la ampliación de plazo', async () => {
+    // Arrange
+    const eliminar = vi.fn((_id: string, opciones: OpcionesEliminar) => opciones.onSuccess());
+    const user = await abrirDialogo(eliminar, 'ampliacion-plazo');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(toast.success).toHaveBeenCalledWith(
+      'Solicitud eliminada',
+      'La solicitud de ampliación de plazo fue eliminada correctamente.',
     );
   });
 
