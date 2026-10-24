@@ -10,23 +10,31 @@ const JURADO: EvaluacionJurado = {
 };
 
 describe('AccionesJuradoEvaluacion', () => {
-  it('la cualitativa notifica el jurado y la cuantitativa queda deshabilitada', async () => {
+  it('cada botón notifica el jurado a su callback', async () => {
     // Arrange
     const onVerCualitativa = vi.fn();
-    render(<AccionesJuradoEvaluacion jurado={JURADO} onVerCualitativa={onVerCualitativa} />);
+    const onVerCuantitativa = vi.fn();
+    render(
+      <AccionesJuradoEvaluacion
+        jurado={JURADO}
+        onVerCualitativa={onVerCualitativa}
+        onVerCuantitativa={onVerCuantitativa}
+      />,
+    );
 
     // Act
     await userEvent.click(
       screen.getByRole('button', { name: 'Ver evaluación cualitativa de Ana Pérez' }),
     );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ver evaluación cuantitativa de Ana Pérez' }),
+    );
 
     // Assert
-    expect(onVerCualitativa).toHaveBeenCalledTimes(1);
     expect(onVerCualitativa).toHaveBeenCalledWith(JURADO);
+    expect(onVerCuantitativa).toHaveBeenCalledWith(JURADO);
     expect(
-      screen.getByRole('button', {
-        name: 'Ver evaluación cuantitativa de Ana Pérez (próximamente)',
-      }),
-    ).toBeDisabled();
+      screen.getByRole('button', { name: 'Ver evaluación cuantitativa de Ana Pérez' }),
+    ).toBeEnabled();
   });
 });

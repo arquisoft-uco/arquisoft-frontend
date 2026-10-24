@@ -1,6 +1,6 @@
 import type { ResumenEvaluacion } from './ResumenEvaluacion';
 
-export interface NavegacionCualitativasJurado {
+export interface NavegacionEvaluacionJurado {
   evaluacionJuradoId: string;
   evaluacionId: string;
   jurado: string;
