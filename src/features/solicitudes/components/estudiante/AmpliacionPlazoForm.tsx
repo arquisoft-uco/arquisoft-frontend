@@ -17,11 +17,6 @@ export default function AmpliacionPlazoForm() {
   const { mutate, isPending, reset } = useEnviarSolicitudAmpliacionPlazo();
 
   return (
-    <SolicitudNovedadForm
-      textos={TEXTOS}
-      enviar={mutate}
-      enviando={isPending}
-      reiniciar={reset}
-    />
+    <SolicitudNovedadForm textos={TEXTOS} enviar={mutate} enviando={isPending} reiniciar={reset} />
   );
 }

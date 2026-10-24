@@ -62,9 +62,7 @@ describe('AmpliacionPlazoForm', () => {
     await user.click(screen.getByLabelText(/^Mensaje/));
     await user.paste(MENSAJE_VALIDO);
     await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Enviar solicitud de ampliación de plazo',
-    );
+    expect(screen.getByRole('dialog')).toHaveTextContent('Enviar solicitud de ampliación de plazo');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
     expect(mutate).toHaveBeenCalledWith(
