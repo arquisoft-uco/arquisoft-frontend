@@ -1,8 +1,9 @@
-import { GraduationCap, UserCog, Users, type LucideIcon } from 'lucide-react';
+import { CalendarClock, GraduationCap, UserCog, Users, type LucideIcon } from 'lucide-react';
 import Field from '../../../shared/components/ui/Field';
 
 export type TipoSolicitudUi = 'coordinador' | 'asesor';
 export type TipoSolicitudEnviableUi = TipoSolicitudUi | 'cambio-asesor';
+export type TipoSolicitudNuevaUi = TipoSolicitudEnviableUi | 'ampliacion-plazo';
 export type TipoSolicitudRecibidaUi = 'novedad' | 'cambio-asesor';
 
 interface OpcionTipo<T extends string> {
@@ -19,6 +20,11 @@ export const TIPOS_SOLICITUD: OpcionTipo<TipoSolicitudUi>[] = [
 export const TIPOS_SOLICITUD_ENVIABLE: OpcionTipo<TipoSolicitudEnviableUi>[] = [
   ...TIPOS_SOLICITUD,
   { value: 'cambio-asesor', label: 'Cambio de asesor', icono: UserCog },
+];
+
+export const TIPOS_SOLICITUD_NUEVA: OpcionTipo<TipoSolicitudNuevaUi>[] = [
+  ...TIPOS_SOLICITUD_ENVIABLE,
+  { value: 'ampliacion-plazo', label: 'Ampliación de plazo', icono: CalendarClock },
 ];
 
 export const TIPOS_SOLICITUD_RECIBIDA: OpcionTipo<TipoSolicitudRecibidaUi>[] = [

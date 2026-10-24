@@ -89,6 +89,26 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('enviarSolicitudAmpliacionPlazo', () => {
+    it('llama POST /solicitudes/ampliacion-plazo con { destinatario, mensajeSolicitud } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 's-4' } });
+
+      // Act
+      const resultado = await solicitudesService.enviarSolicitudAmpliacionPlazo({
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Necesito más plazo.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo', {
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Necesito más plazo.',
+      });
+      expect(resultado).toEqual({ id: 's-4' });
+    });
+  });
+
   describe('consultarSolicitudesNovedadCoordinadorEnviadas', () => {
     const pagina = {
       content: [],

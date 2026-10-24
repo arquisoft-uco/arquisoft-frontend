@@ -10,6 +10,7 @@ import { RESPUESTA, RESPUESTA_ASESOR, RESPUESTA_CAMBIO_ASESOR } from '../../test
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
+import { useEnviarSolicitudAmpliacionPlazo } from './hooks/useEnviarSolicitudAmpliacionPlazo';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import { useResponderSolicitudCambioAsesor } from './hooks/useResponderSolicitudCambioAsesor';
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
@@ -42,6 +43,10 @@ vi.mock('./hooks/useEnviarSolicitudNovedadAsesor', () => ({
 
 vi.mock('./hooks/useEnviarSolicitudCambioAsesor', () => ({
   useEnviarSolicitudCambioAsesor: vi.fn(),
+}));
+
+vi.mock('./hooks/useEnviarSolicitudAmpliacionPlazo', () => ({
+  useEnviarSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
@@ -285,6 +290,7 @@ describe('Solicitudes', () => {
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,

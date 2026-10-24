@@ -1,4 +1,5 @@
 import apiClient from '../../../api/axiosInstance';
+import type { EnviarSolicitudAmpliacionPlazoRequest } from '../models/EnviarSolicitudAmpliacionPlazoRequest';
 import type { EnviarSolicitudCambioAsesorRequest } from '../models/EnviarSolicitudCambioAsesorRequest';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
@@ -45,6 +46,17 @@ export const solicitudesService = {
         mensajeSolicitud: req.mensajeSolicitud,
       })
       .then((r) => r.data),
+
+  enviarSolicitudAmpliacionPlazo: (
+    req: EnviarSolicitudAmpliacionPlazoRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>('/solicitudes/ampliacion-plazo', {
+        destinatario: req.destinatario,
+        mensajeSolicitud: req.mensajeSolicitud,
+      })
+      .then((r) => r.data),
+
   consultarSolicitudesNovedadCoordinadorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/enviadas', {
