@@ -15,6 +15,10 @@ vi.mock('./SolicitudesCambioAsesorEnviadasPanel', () => ({
   default: () => <p>Listado del cambio de asesor</p>,
 }));
 
+vi.mock('./SolicitudesAmpliacionPlazoEnviadasPanel', () => ({
+  default: () => <p>Listado de la ampliación de plazo</p>,
+}));
+
 describe('EnviadasPanel', () => {
   it('muestra por defecto el listado del coordinador y cambia al del asesor con el selector', async () => {
     // Arrange
@@ -30,7 +34,7 @@ describe('EnviadasPanel', () => {
     expect(screen.queryByText('Listado del coordinador')).not.toBeInTheDocument();
   });
 
-  it('ofrece tres tipos y al elegir «Cambio de asesor» muestra su listado', async () => {
+  it('ofrece cuatro tipos y al elegir «Cambio de asesor» muestra su listado', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<EnviadasPanel />);
@@ -40,8 +44,24 @@ describe('EnviadasPanel', () => {
     await user.selectOptions(selector, 'cambio-asesor');
 
     // Assert
-    expect(screen.getAllByRole('option')).toHaveLength(3);
+    expect(screen.getAllByRole('option')).toHaveLength(4);
     expect(screen.getByText('Listado del cambio de asesor')).toBeInTheDocument();
+    expect(screen.queryByText('Listado del coordinador')).not.toBeInTheDocument();
+  });
+
+  it('al elegir «Ampliación de plazo» muestra su listado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<EnviadasPanel />);
+
+    // Act
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Assert
+    expect(screen.getByText('Listado de la ampliación de plazo')).toBeInTheDocument();
     expect(screen.queryByText('Listado del coordinador')).not.toBeInTheDocument();
   });
 });

@@ -28,7 +28,7 @@ function crearContexto() {
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
-  return { Wrapper };
+  return { Wrapper, queryClient };
 }
 
 describe('useEnviarSolicitudAmpliacionPlazo', () => {
@@ -47,6 +47,22 @@ describe('useEnviarSolicitudAmpliacionPlazo', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(enviarSolicitudAmpliacionPlazo).toHaveBeenCalledWith(REQUEST);
+  });
+
+  it('al enviar con éxito invalida las enviadas de ampliación de plazo por prefijo', async () => {
+    enviarSolicitudAmpliacionPlazo.mockResolvedValue({ id: 's-4' });
+    const { Wrapper, queryClient } = crearContexto();
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useEnviarSolicitudAmpliacionPlazo(), {
+      wrapper: Wrapper,
+    });
+
+    act(() => result.current.mutate(REQUEST));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['solicitudes', 'ampliacion-plazo', 'enviadas'],
+    });
   });
 
   it('expone el error cuando el service rechaza', async () => {
