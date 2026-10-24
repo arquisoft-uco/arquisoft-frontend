@@ -20,6 +20,7 @@ const PestanaProyectoGrado = lazy(
 const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
 const Evaluaciones = lazy(() => import('./features/evaluaciones/Evaluaciones'));
+const JuradosEvaluacion = lazy(() => import('./features/evaluaciones/JuradosEvaluacion'));
 const RegistrarEvaluacionesCualitativas = lazy(
   () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
 );
@@ -96,6 +97,7 @@ export const router = createBrowserRouter([
                 path: ':evaluacionJuradoId/evaluar',
                 element: <RegistrarEvaluacionesCualitativas />,
               },
+              { path: ':evaluacionId/jurados', element: <JuradosEvaluacion /> },
             ],
           },
           { path: 'mapas-ruta', element: guarded('mapas-ruta', <MapasRuta />) },
