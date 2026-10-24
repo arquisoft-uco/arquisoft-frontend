@@ -1,9 +1,12 @@
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
+import AccionesJuradoEvaluacion from './components/estudiante/AccionesJuradoEvaluacion';
 import ListadoJuradosEvaluacion from './components/estudiante/ListadoJuradosEvaluacion';
 import { useJuradosEvaluacion } from './hooks/useJuradosEvaluacion';
+import type { EvaluacionJurado } from './models/EvaluacionJurado';
+import type { NavegacionCualitativasJurado } from './models/NavegacionCualitativasJurado';
 import { useResumenEvaluacion } from './hooks/useResumenEvaluacion';
 
 const ROLES_CONSULTAN = [Rol.Estudiante];
@@ -13,8 +16,21 @@ export default function JuradosEvaluacion() {
   const { evaluacionId = '' } = useParams();
   const esEstudiante = useHasRole(ROLES_CONSULTAN);
   const navigate = useNavigate();
+  const { search: searchJurados } = useLocation();
   const { resumen, search } = useResumenEvaluacion(evaluacionId);
   const listado = useJuradosEvaluacion(evaluacionId);
+
+  function verCualitativa(jurado: EvaluacionJurado) {
+    const state: NavegacionCualitativasJurado = {
+      evaluacionJuradoId: jurado.id,
+      evaluacionId,
+      jurado: jurado.jurado.nombre,
+      resumen,
+      search,
+      searchJurados,
+    };
+    navigate(`/evaluaciones/${jurado.id}/cualitativas`, { state });
+  }
 
   if (!esEstudiante) return <Navigate to="/forbidden" replace />;
 
@@ -30,7 +46,14 @@ export default function JuradosEvaluacion() {
   return (
     <div className={RAIZ}>
       <PageHeader titulo="Evaluaciones del jurado" descripcion={descripcion} migas={migas} />
-      <ListadoJuradosEvaluacion listado={listado} onVolver={() => navigate(rutaListado)} />
+      <ListadoJuradosEvaluacion
+        listado={listado}
+        onVolver={() => navigate(rutaListado)}
+        encabezadoAcciones="Acciones"
+        acciones={(jurado) => (
+          <AccionesJuradoEvaluacion jurado={jurado} onVerCualitativa={verCualitativa} />
+        )}
+      />
     </div>
   );
 }
