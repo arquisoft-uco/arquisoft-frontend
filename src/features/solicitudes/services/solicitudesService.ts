@@ -174,6 +174,9 @@ export const solicitudesService = {
   eliminarSolicitudCambioAsesor: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/cambio-asesor/${solicitudId}`).then(() => undefined),
 
+  eliminarSolicitudAmpliacionPlazo: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/ampliacion-plazo/${solicitudId}`).then(() => undefined),
+
   responderSolicitudNovedadCoordinador: (
     req: ResponderSolicitudNovedadCoordinadorRequest,
   ): Promise<SolicitudCreadaResponse> =>
