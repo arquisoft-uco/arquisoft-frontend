@@ -1,93 +1,52 @@
 import { describe, it, expect, vi } from 'vitest';
-import userEvent from '@testing-library/user-event';
+import { useSearchParams } from 'react-router';
 import { render, screen } from '../../../test-utils/render';
 import AsesorFichaView from './AsesorFichaView';
-import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
-
-const FICHA: FichaPerfilAsesor = { id: 'f-1', titulo: 'Sistema de monitoreo', estadoActual: 'En Construcción' };
 
 vi.mock('./asesor-ficha/ConsultarFichasAsesor', () => ({
-  default: ({ onSeleccionar }: { onSeleccionar: (ficha: FichaPerfilAsesor) => void }) => (
-    <div>
-      <p>Listado de fichas</p>
-      <button type="button" onClick={() => onSeleccionar(FICHA)}>
-        Seleccionar ficha
-      </button>
-    </div>
-  ),
+  default: function ListadoFalso() {
+    const [params] = useSearchParams();
+    return <p>Listado de fichas {params.get('q')}</p>;
+  },
 }));
 
-vi.mock('./asesor-ficha/DetalleFichaAsesor', () => ({
-  default: ({
-    ficha,
-    onVolver,
-    onEstadoCambiado,
-  }: {
-    ficha: FichaPerfilAsesor;
-    onVolver: () => void;
-    onEstadoCambiado?: (nuevoEstado: string) => void;
-  }) => (
-    <div>
-      <p>Detalle de {ficha.titulo}</p>
-      <p>Estado: {ficha.estadoActual}</p>
-      <button type="button" onClick={onVolver}>
-        Volver
-      </button>
-      <button type="button" onClick={() => onEstadoCambiado?.('Aprobada')}>
-        Cambiar estado
-      </button>
-    </div>
-  ),
+vi.mock('./asesor-ficha/ConsultarEvaluacionesAsesor', () => ({
+  default: function EvaluacionesFalso() {
+    return <p>Listado de evaluaciones</p>;
+  },
 }));
 
 describe('AsesorFichaView', () => {
-  it('sin ficha seleccionada, renderiza el listado', () => {
+  it('muestra un solo título, las pestañas y por defecto el listado de fichas', () => {
     // Act
     render(<AsesorFichaView />);
 
     // Assert
-    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
-    expect(screen.queryByText(/Detalle de/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'Fichas' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toBeInTheDocument();
+    expect(screen.getByText(/Listado de fichas/)).toBeInTheDocument();
+    expect(screen.queryByText('Listado de evaluaciones')).not.toBeInTheDocument();
   });
 
-  it('al seleccionar una ficha desde el listado, se desmonta el listado y se renderiza el detalle con esa ficha', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    render(<AsesorFichaView />);
-
+  it('con ?vista=evaluaciones muestra el listado de evaluaciones', () => {
     // Act
-    await user.click(screen.getByRole('button', { name: 'Seleccionar ficha' }));
+    render(<AsesorFichaView />, { initialPath: '/fichas-perfil?vista=evaluaciones' });
 
     // Assert
-    expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
-    expect(screen.getByText('Detalle de Sistema de monitoreo')).toBeInTheDocument();
+    expect(screen.getByText('Listado de evaluaciones')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.queryByText(/Listado de fichas/)).not.toBeInTheDocument();
   });
 
-  it('al volver desde el detalle, vuelve a renderizar el listado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    render(<AsesorFichaView />);
-    await user.click(screen.getByRole('button', { name: 'Seleccionar ficha' }));
-
+  it('ignora un ?vista=estados antiguo: muestra las fichas y conserva la búsqueda', () => {
     // Act
-    await user.click(screen.getByRole('button', { name: 'Volver' }));
+    render(<AsesorFichaView />, { initialPath: '/fichas-perfil?vista=estados&q=sis' });
 
     // Assert
-    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
-    expect(screen.queryByText(/Detalle de/)).not.toBeInTheDocument();
-  });
-
-  it('al cambiar el estado desde el detalle, el detalle recibe la ficha con el estadoActual actualizado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    render(<AsesorFichaView />);
-    await user.click(screen.getByRole('button', { name: 'Seleccionar ficha' }));
-    expect(screen.getByText('Estado: En Construcción')).toBeInTheDocument();
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
-
-    // Assert
-    expect(screen.getByText('Estado: Aprobada')).toBeInTheDocument();
+    expect(screen.getByText('Listado de fichas sis')).toBeInTheDocument();
   });
 });

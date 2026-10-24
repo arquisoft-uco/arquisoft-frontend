@@ -1,54 +1,73 @@
+import { ClipboardCheck } from 'lucide-react';
+import { toast } from '../../../../shared/hooks/useToast';
+import Badge from '../../../../shared/components/ui/Badge';
+import IconButton from '../../../../shared/components/ui/IconButton';
+import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
+import { varianteEstadoRevision } from '../../../../shared/utils/estado-variante';
+import { useAgregarRevisionItem } from '../../hooks/useAgregarRevisionItem';
 import { useItemsFichaAsesor } from '../../hooks/useItemsFichaAsesor';
+import { useRevisionesPorItemAsesor } from '../../hooks/useRevisionesPorItemAsesor';
+import AyudaTiposItem from '../AyudaTiposItem';
+import ItemsFichaLista from '../ItemsFichaLista';
 
 interface Props {
   fichaPerfilId: string;
 }
 
+function mensajeError(err: unknown): string {
+  if (hasApiErrorCode(err, 'REVISION_ITEM_YA_EXISTE')) return 'Este ítem ya tiene una revisión.';
+  if (hasApiErrorCode(err, 'ITEM_NO_ENCONTRADO')) return 'El ítem ya no existe.';
+  if (hasApiErrorCode(err, 'FICHA_NO_PERTENECE_ASESOR')) return 'Esta ficha no está asignada a ti.';
+  return getApiErrorMessage(err, 'No se pudo agregar la revisión.');
+}
+
 export default function ItemsFichaAsesorPanel({ fichaPerfilId }: Props) {
-  const { data: items = [], isLoading, isError } = useItemsFichaAsesor(fichaPerfilId);
+  const { data, isLoading, isError, refetch } = useItemsFichaAsesor(fichaPerfilId);
+  const { revisionPorItem, isLoading: cargandoRevisiones } =
+    useRevisionesPorItemAsesor(fichaPerfilId);
+  const agregar = useAgregarRevisionItem(fichaPerfilId);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-10" aria-live="polite" aria-busy="true">
-        <div
-          className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent"
-          role="status"
-        >
-          <span className="sr-only">Cargando ítems...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="rounded-xl border border-border bg-surface p-6 text-center" role="alert">
-        <p className="text-sm text-on-surface-secondary">
-          No se pudieron cargar los ítems. Intenta nuevamente.
-        </p>
-      </div>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center">
-        <p className="text-sm text-on-surface-secondary">Esta ficha no tiene ítems registrados.</p>
-      </div>
-    );
+  function agregarRevision(itemId: string) {
+    agregar.mutate(itemId, {
+      onSuccess: () => toast.success('Revisión agregada', 'El ítem quedó en revisión.'),
+      onError: (err) => toast.error('No se pudo agregar la revisión', mensajeError(err)),
+    });
   }
 
   return (
-    <div className="space-y-3" aria-label="Ítems de la ficha">
-      <h3 className="text-sm font-semibold text-on-surface">Ítems de la Ficha</h3>
-      {items.map((item) => (
-        <div key={item.id} className="rounded-lg border border-border bg-surface p-3">
-          <span className="inline-block rounded bg-primary-muted px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
-            {item.tipoItem.nombre}
-          </span>
-          <p className="mt-2 text-sm text-on-surface">{item.contenido}</p>
-        </div>
-      ))}
+    <div className="flex flex-col items-start gap-3">
+      <AyudaTiposItem />
+      <div className="w-full">
+        <ItemsFichaLista
+          items={data}
+          cargando={isLoading}
+          error={isError}
+          onReintentar={refetch}
+          insignias={(item) => {
+            const revision = revisionPorItem.get(item.id);
+            if (!revision) return null;
+            return (
+              <Badge variante={varianteEstadoRevision(revision.estadoId)}>
+                {revision.estadoNombre}
+              </Badge>
+            );
+          }}
+          acciones={(item) => {
+            if (revisionPorItem.has(item.id)) return null;
+            return (
+              <IconButton
+                tono="primario"
+                icono={ClipboardCheck}
+                etiqueta={`Agregar revisión al ítem ${item.tipoItem.nombre}`}
+                disabled={
+                  cargandoRevisiones || (agregar.isPending && agregar.variables === item.id)
+                }
+                onClick={() => agregarRevision(item.id)}
+              />
+            );
+          }}
+        />
+      </div>
     </div>
   );
 }

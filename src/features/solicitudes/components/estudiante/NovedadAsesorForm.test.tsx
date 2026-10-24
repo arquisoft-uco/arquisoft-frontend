@@ -53,9 +53,9 @@ describe('NovedadAsesorForm', () => {
     expect(
       screen.getByRole('heading', { name: 'Enviar solicitud de novedad al asesor' }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/Destinatario \(UUID del asesor\)/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Destinatario \(identificador del asesor\)/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/reportar al asesor/)).toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent(/catálogo de asesores/i);
+    expect(screen.getByRole('note', { name: 'No disponible: asesores' })).toBeInTheDocument();
   });
 
   it('al confirmar envía con el hook del asesor y nunca con el del coordinador', async () => {

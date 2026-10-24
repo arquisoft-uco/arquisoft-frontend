@@ -1,43 +1,32 @@
-import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import type { Page } from '../../../shared/models/api-response';
-import type { FichaPerfilAsesor } from '../models/FichaPerfilAsesor';
+import { useLocation } from 'react-router';
+import PageHeader from '../../../shared/components/ui/PageHeader';
+import Tabs from '../../../shared/components/ui/Tabs';
+import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
+import ConsultarEvaluacionesAsesor from './asesor-ficha/ConsultarEvaluacionesAsesor';
 import ConsultarFichasAsesor from './asesor-ficha/ConsultarFichasAsesor';
-import DetalleFichaAsesor from './asesor-ficha/DetalleFichaAsesor';
+
+const RAIZ = 'flex flex-col gap-6';
 
 export default function AsesorFichaView() {
-  const [fichaSeleccionada, setFichaSeleccionada] = useState<FichaPerfilAsesor | null>(null);
-  const queryClient = useQueryClient();
+  const { pathname } = useLocation();
+  const vista =
+    useParametrosListado().texto('vista') === 'evaluaciones' ? 'evaluaciones' : 'fichas';
 
-  const handleEstadoCambiado = (nuevoEstado: string) => {
-    if (!fichaSeleccionada) return;
-
-    setFichaSeleccionada((prev) => (prev ? { ...prev, estadoActual: nuevoEstado } : prev));
-
-    queryClient.setQueriesData<Page<FichaPerfilAsesor>>(
-      { queryKey: ['fichas-perfil', 'asesor'] },
-      (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          content: old.content.map((f) =>
-            f.id === fichaSeleccionada.id ? { ...f, estadoActual: nuevoEstado } : f,
-          ),
-        };
-      },
-    );
-  };
-
-  if (fichaSeleccionada) {
-    return (
-      <DetalleFichaAsesor
-        ficha={fichaSeleccionada}
-        onVolver={() => setFichaSeleccionada(null)}
-        onEstadoCambiado={handleEstadoCambiado}
+  return (
+    <div className={RAIZ}>
+      <PageHeader
+        titulo="Mis fichas de perfil"
+        descripcion="Revisa las fichas que asesoras y las evaluaciones que han recibido."
       />
-    );
-  }
-
-  return <ConsultarFichasAsesor onSeleccionar={setFichaSeleccionada} />;
+      <Tabs
+        etiqueta="Secciones de mis fichas"
+        valor={vista}
+        items={[
+          { id: 'fichas', etiqueta: 'Fichas', to: pathname },
+          { id: 'evaluaciones', etiqueta: 'Evaluaciones', to: `${pathname}?vista=evaluaciones` },
+        ]}
+      />
+      {vista === 'evaluaciones' ? <ConsultarEvaluacionesAsesor /> : <ConsultarFichasAsesor />}
+    </div>
+  );
 }
-

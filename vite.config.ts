@@ -8,5 +8,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test-utils/setup.ts'],
+    // Por defecto Vitest vacía los .css; el test de arquitectura lee src/tailwind.css con ?raw.
+    css: { include: [/\.css\?raw/] },
   },
 });

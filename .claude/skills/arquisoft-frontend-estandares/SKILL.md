@@ -25,6 +25,9 @@ entera hasta que un usuario ve dos comportamientos distintos en dos pantallas.
 | Texto de error de validación | `MENSAJES_VALIDACION` |
 | Lectura de un error de API | Helpers de `shared/utils/api-error.ts` |
 | Restricción de rol por ruta | `NAV_ITEMS[].roles` |
+| Módulo sin pantalla | `NavItem.disponible` en `nav-items.ts` |
+| Estado de negocio → variante de `Badge` | `shared/utils/estado-variante.ts` |
+| Duración y tope de los toasts | `shared/stores/toastStore.ts` |
 | Token, refresco y ruteo de 401/403 | `api/axiosInstance.ts` |
 
 **Cuándo se sube algo.** A la segunda vista que necesita lo mismo: la primera lo resuelve local, la
@@ -47,14 +50,13 @@ una pasada aparte: se migra cuando se toque ese archivo por otra razón. Un plan
 | Panel/tabla/formulario de un rol | `components/{rol}/{Concepto}{Panel\|Table\|Form}.tsx` | `coordinador/EstudiantesVinculadosPanel.tsx` |
 | Hook | `use{Accion\|Recurso}.ts`, `export function` | `useRegistrarFichaPerfil.ts` |
 | Service | `{feature}Service.ts`, `export const` | `fichasPerfilService.ts` |
-| Modelo | `PascalCase.ts` | `FichaPerfilAsesor.ts` |
+| Modelo | `PascalCase.ts` | `FichaPerfilRepresentante.ts` |
 | Request/Response | `{Accion}{Entidad}Request.ts` / `{Entidad}{Estado}Response.ts` | `AsignarEstudianteRequest.ts` |
 | Store | `{concepto}Store.ts` → `use{Concepto}Store` | `toastStore.ts` |
 | Test | `{ArchivoBajoPrueba}.test.ts(x)`, junto al archivo | `AvisoNoDisponible.test.tsx` |
 
-**Sin JSDoc** (regla de `CLAUDE.md`). El código anterior a esa decisión lo conserva
-(`axiosInstance.ts`, `keycloak.ts`, `api-error.ts`, `roleStore.ts`) y **no se migra**. Un comentario
-de una línea sí vale cuando explica un *porqué* que el nombre no puede llevar.
+**Sin JSDoc** (regla de `CLAUDE.md`). El JSDoc anterior a esa decisión **no se migra** ni cuenta como
+hallazgo. Un comentario de una línea sí vale cuando explica un *porqué* que el nombre no puede llevar.
 
 ## Componentes
 
@@ -83,8 +85,8 @@ mezcla fetch + transformación + estado, lo que sale es un **hook**, no un sub-c
 | Compartido entre features, no del servidor | Store Zustand en `src/shared/stores/` |
 
 **Nunca `useEffect` + `axios`/`fetch` para cargar datos.** `useEffect` es solo para sincronizar con
-algo externo a React: el `keycloak.init()` de `AuthGuard`, el listener de `Escape` de `AppLayout`, el
-`setValue` de un prop que llega tarde en `RegistrarFichaPerfil`.
+algo externo a React: el `keycloak.init()` de `AuthGuard`, el listener de `Escape` de `AppLayout` y el
+listener de clic fuera de `useClicFuera`.
 
 ## Services
 
@@ -112,8 +114,8 @@ DTOs menores.
 
 `create<State>()((set) => ({ … }))`; con persistencia, `persist(..., { name, storage })`.
 
-- `authStore` es **de solo lectura** desde features; solo lo escriben `AuthGuard`, `devAuth` y el
-  interceptor.
+- `authStore` es **de solo lectura** desde features; solo lo escribe la capa de auth (`AuthGuard`,
+  `devAuth`, `session.ts`) y el interceptor de Axios al refrescar el token.
 - **`persist` solo si el dato debe sobrevivir a un refresh y no es sensible.** Hoy, únicamente el
   string del rol activo.
 - Fuera del árbol de React se accede con `getState()`, nunca con el hook.
@@ -130,7 +132,9 @@ const { register, handleSubmit, formState: { errors, isValid } } =
 ```
 
 - `defaultValues` siempre — sin ellos React salta de no controlado a controlado.
-- `mode: 'onChange'` si el submit se deshabilita con `!isValid` (el patrón del proyecto).
+- `mode: 'onChange'` si el submit se deshabilita con `!isValid` (el patrón de los formularios existentes).
+  **En un formulario nuevo o migrado manda `arquisoft-frontend-ui-ux`**: `mode: 'onTouched'` y el botón
+  principal no se deshabilita por validez (el cableado con RHF y Zod de abajo no cambia).
 - Campo no nativo (chips, selección múltiple): `watch(...)` + `setValue(..., { shouldValidate: true })`.
 - Al cancelar: `reset()` del formulario **y** de la mutación, o queda colgando el error anterior.
 
@@ -142,13 +146,12 @@ parametrizados** que cada formulario compone en su `z.object(...)`.
 
 | Archivo | Contenido |
 |---|---|
-| `limites.ts` | `LIMITES` — espejo de los `@Size` del backend: `TITULO_PROYECTO_MAX 100`, `ITEM_CONTENIDO_MAX 7000`, `ESTADO_EVALUACION_ID_MAX 50`, `ESTUDIANTES_MAX 3` |
-| `expresiones-regulares.ts` | `EMAIL_REGEX`, `UUID_REGEX` |
+| `limites.ts` | `LIMITES` — espejo de los `@Size` y límites de dominio del backend |
+| `expresiones-regulares.ts` | Regex, cada una espejo de un patrón del backend |
 | `mensajes-validacion.ts` | `MENSAJES_VALIDACION`, algunos como función (`longitudMaxima(max)`) |
-| `validadores-zod.ts` | `textoRequerido(max)`, `opcionRequerida()`, `emailValido()`, `uuidValido()`, `listaConMaximo(max)` |
+| `validadores-zod.ts` | Builders: `textoRequerido(max)`, `textoEntre(min, max)`, `emailValido()`, `uuidValido()`… |
 
-Importa siempre del barril `index.ts`. La tabla refleja lo que había al escribirla; abre el archivo
-antes de decidir que un validador no existe.
+Importa siempre del barril `index.ts`. Abre los archivos antes de decidir que un validador no existe.
 
 **El frontend replica todas las reglas de forma del backend, sin excepción.** Cada campo que el DTO
 de entrada o el validador del caso de uso exija o restrinja lleva la misma regla en el schema Zod:
@@ -173,8 +176,8 @@ retrocompatibles se prefiere a crear uno paralelo que haga casi lo mismo. Solo q
 no tiene una regla del backend detrás.
 
 **Un número mágico en un `.max(...)` es un hallazgo.** Si el límite lo impone el backend va en
-`LIMITES`, y el `maxLength` del input lo lee de ahí. `validadores-zod.test.ts` fija esos cuatro
-valores: cambiarlos sin actualizar el backend rompe el test, que es lo que se busca.
+`LIMITES`, y el `maxLength` del input lo lee de ahí. `validadores-zod.test.ts` fija esos valores:
+cambiarlos sin actualizar el backend rompe el test, que es lo que se busca.
 
 **El cliente valida forma; el backend decide conjunto.** Obligatoriedad, longitud, formato y tamaño
 de lista → Zod. Unicidad, existencia, propiedad y transición permitida → llegan como 422 y se
@@ -205,27 +208,27 @@ consultó el objeto afectado. No se deja al usuario en el formulario limpio ni s
 
 - **Orden en el éxito:** el hook invalida la query del listado por prefijo (para que refleje el
   cambio); el componente, en el `onSuccess` del `mutate(...)`, lanza el toast de éxito y cierra la
-  vista (`onCerrar()` / `onVolver()`). `CoordinadorView` → `RegistrarFichaPerfil onCerrar` y
-  `AsesorFichaView` → `onVolver` son la referencia.
+  vista (`onCerrar()` / `onVolver()`). `RegistrarFichaPerfilPanel` (`useNuevaFichaForm({ onCerrar })`) es la referencia; en el detalle con
+  ruta (`DetalleFichaEstructura`) la miga «Fichas de perfil» restaura la `search` del listado.
+- **Si algún día el formulario es una página** (hoy ninguno lo es), se vuelve al listado con la misma búsqueda guardada en la
+  URL: `navigate({ pathname, search })`, con la `search` que el listado pasó al abrir la página.
 - **Filtros y paginación viven por encima del formulario**, en la `{Rol}View` o en el hook del listado
   (`useFichasPerfilCoordinador`), nunca dentro del panel que se desmonta: si viven dentro, volver los
   resetea.
-- **Con ruta propia** (`/{feature}/nuevo`, `/{feature}/:id/editar`), los filtros van en search params
-  y el retorno los conserva; no se reconstruyen a mano.
 - **Eliminar desde el detalle** vuelve al listado, no al detalle de un objeto que ya no existe.
 - **En error** se queda en el formulario, con los datos intactos y los errores pintados.
-- **Sin listado todavía** (el backend no expone el `GET`): el formulario abre desde la vista de la
-  feature y el retorno es a esa vista. El plan lo declara explícitamente para que, cuando llegue el
-  listado, el retorno se mueva a él.
 
 ## Estados de carga, vacío y error
 
 Toda `useQuery` consumida por un componente maneja **las tres** ramas, y son distintas:
 
-- **Carga** → `<PageSkeleton />` (página) o spinner con `role="status"`, `aria-live="polite"`,
-  `aria-busy="true"` y un `<span className="sr-only">` que diga qué carga.
-- **Vacío** → texto en una fila o bloque. **No es un error.**
-- **Error** → contenedor con `role="alert"` y texto accionable.
+- **Carga** → `Skeleton` con la forma de lo que viene (`tabla`, `tarjetas`, `formulario` o `lineas`),
+  `PageSkeleton` como fallback de la página y `Button cargando` al enviar. Nunca un spinner escrito a mano:
+  `src/arquitectura.test.ts` lo rechaza fuera de `shared/components/ui/`.
+- **Vacío** → `EmptyState`. **No es un error.**
+- **Error** → `ErrorState` con `onReintentar` (o `Notice` para un aviso en línea).
+
+Las recetas de cada pieza están en `arquisoft-frontend-ui-ux`.
 
 ## Errores de API
 
@@ -245,7 +248,7 @@ Toda `useQuery` consumida por un componente maneja **las tres** ramas, y son dis
 ## Notificaciones
 
 `toast` de `src/shared/hooks/useToast.ts` — singleton, funciona dentro y fuera de un componente.
-Niveles: `success` (4 s), `info` (4 s), `debug` (8 s), `error` (6 s). Firma
+Niveles: `success` (4 s), `info` (4 s) y `error` (6 s); no hay nivel `debug`. Firma
 `toast.error(titulo, mensaje?)`, con el mensaje desde `getApiErrorMessage(...)`.
 
 Va en el `onSuccess`/`onError` de la mutación — en el hook **o** en el `mutate(...)` del componente,
@@ -258,6 +261,9 @@ el envío falló, aunque el campo quede fuera de la vista. Un `onError` que solo
 mutación sin toast de éxito, es un hallazgo. Las validaciones de Zod mientras se escribe no llevan
 toast: se pintan en el campo.
 
+El `Toaster` (en `shared/components/`) muestra como máximo tres, pausa al pasar el cursor o con el foco y
+usa `role="alert"` en el error; no se monta en una feature.
+
 Acción destructiva → `<ConfirmDialog />` (`variante: 'peligro' | 'advertencia'`), nunca `window.confirm`.
 
 ## Accesibilidad
@@ -267,10 +273,10 @@ Obligatoria desde el primer commit:
 - `role="alert"` en errores; `role="status"` + `aria-live="polite"` + `aria-busy` en carga.
 - `aria-label` en botones solo-icono; `aria-hidden` en iconos decorativos.
 - Campo con error: `aria-invalid={!!errors.campo}` + `aria-describedby` al `id` del mensaje.
-  `RegistrarFichaPerfil` es la referencia completa.
+  `Field` y `NuevaFichaForm` son la referencia completa.
 - `<label htmlFor>` con `id` en cada campo; si el control no es un input, contenedor con `aria-labelledby`.
-- `aria-expanded` en botones que despliegan (`FichasPerfilTable`).
-- Tablas: `<table aria-label>` y `<th scope="col">`.
+- `aria-expanded` en botones que despliegan (el botón «Filtros» de `FilterBar`).
+- Tablas: solo con `DataTable` (trae `aria-label`, `scope="col"` y las tarjetas del celular); un `<table>` suelto lo rechaza el test de arquitectura.
 - Nunca un `<div>` con `onClick` haciendo de botón.
 
 ## Estilos
@@ -282,21 +288,27 @@ Solo clases semánticas, nunca un color crudo de la paleta:
 
 | Rol | Clases |
 |---|---|
-| Superficies | `bg-surface`, `bg-surface-secondary`, `bg-surface-elevated`, `bg-background` |
-| Texto | `text-on-surface`, `text-on-surface-secondary` |
-| Bordes | `border-border`, `border-border-strong` |
-| Marca | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted` |
+| Superficies | `bg-surface`, `bg-surface-secondary`, `bg-surface-elevated`, `bg-background`, `bg-muted` |
+| Texto | `text-on-surface`, `text-on-surface-secondary`, `text-muted-foreground` |
+| Bordes | `border-border`, `border-border-strong`, `border-border-input` |
+| Marca | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted`, `text-primary-muted-foreground` |
 | Secundario / terciario | misma familia de sufijos con `-secondary` / `-tertiary` |
-| Peligro | `bg-danger`, `text-danger`, `text-danger-foreground` |
+| Peligro | `bg-danger`, `text-danger`, `text-danger-foreground`, `bg-danger-muted`, `text-danger-muted-foreground` |
 | Navegación | `bg-nav-active-bg`, `text-nav-active-text`, `bg-nav-hover-bg` |
 | Sombras | `shadow-card`, `shadow-card-hover`, `shadow-dropdown`, `shadow-lg` |
-| Animaciones | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-scale-in` |
+| Animaciones | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-slide-in-right`, `animate-scale-in`, `animate-shimmer` (`Skeleton`), `animate-toast-in` y `animate-toast-out` (solo `Toaster`) |
+| Radios | `rounded-sm` a `rounded-2xl`; easing `ease-out-strong` |
+
+El escaneo de clases de Tailwind excluye `.claude/` y `docs/` (`@source not` en `src/tailwind.css`): los nombres de clase que citan los `.md` no inflan el CSS.
+
+Contraste y uso de cada token: `arquisoft-frontend-ui-ux` (`references/tokens.md`). Un `--color-*` que
+falte en `@theme` no genera estilo y `src/arquitectura.test.ts` lo vigila.
 
 Sin CSS custom fuera de `index.css`/`tailwind.css`, sin `style={{}}` salvo valor calculado en
 runtime. Clases condicionales con array + `.join(' ')`, no ternarios anidados.
 
-`text-red-500` en el asterisco de `RegistrarFichaPerfil` es una desviación preexistente conocida: no
-se reporta como hallazgo nuevo, pero tampoco se copia.
+Los colores crudos que ya existen en `fichas-perfil` (`text-red-500`, `text-red-600`…) son una
+desviación preexistente: no se reportan como hallazgo nuevo, pero tampoco se copian.
 
 ### Mobile first
 
@@ -314,7 +326,7 @@ decisión y se desincroniza el día que cambie: usa la clase.
 
 | Clase global | Qué resuelve |
 |---|---|
-| `.field-label` / `.field-input` / `.field-error` | El campo completo: etiqueta, control y mensaje. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
+| `.field-label` / `.field-input` / `.field-error` / `.field-hint` | El campo completo: etiqueta, control, mensaje y ayuda bajo el campo; `.field-input--icono` y `.field-input--accion` dan sitio a un icono o un botón dentro del input. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
 | `.tap-target` | Área táctil de 44 px en celular, sin mínimo desde `sm` — para la etiqueta que envuelve una casilla o un radio |
 | `.checkbox-control` | Casilla de 20 px para el dedo, 16 px desde `sm` |
 | `.actions-row` | Fila de botones: apilada y de ancho completo en celular, con la acción principal arriba; en fila a la derecha desde `sm` |
@@ -327,16 +339,16 @@ segunda vista, sube a `index.css`:
 |---|---|
 | Nada de anchos fijos | `w-full` + `max-w-*`; nunca `w-[720px]` ni `min-w` por encima de 320 px |
 | Columnas | apiladas por defecto, `sm:grid-cols-2` o `sm:flex-row` después |
-| Icono-botón | `h-11 w-11 sm:h-9 sm:w-9` |
+| Icono-botón | la pieza `IconButton`; a mano, `h-11 w-11 sm:h-9 sm:w-9` |
 | Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
 
-Las vistas anteriores a esta regla (las de `fichas-perfil`) todavía traen las utilidades a mano: se
-migran a las clases globales cuando se toque el archivo, no en una pasada aparte.
-
 **Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
-desplazamiento horizontal (`document.documentElement.scrollWidth` igual a `window.innerWidth`) ni
-elementos que se salgan de su contenedor. Si la ventana del navegador no se deja redimensionar, monta
-la ruta en un `iframe` del ancho a probar: su viewport propio sí evalúa los breakpoints.
+desplazamiento horizontal ni elementos que se salgan de su contenedor. El contenedor que desplaza en la
+aplicación es `main` (no el documento), así que `document.documentElement.scrollWidth` igual a
+`window.innerWidth` da falsos negativos: mide también `main.scrollWidth - main.clientWidth` y los elementos
+cuyo borde queda fuera de la caja de `main` (sin contar contenedores con scroll propio, como la lista de
+pestañas). La ventana de Chrome no baja de 500 px de viewport: monta la misma ruta en un `iframe` del ancho
+exacto a probar (390 y 320 px), cuyo viewport propio sí evalúa los breakpoints, con la sesión ya iniciada.
 
 ## TypeScript
 
@@ -362,6 +374,7 @@ vive en `vite.config.ts`; **no crees `vitest.config.ts`**.
 | `src/test-utils/render.tsx` | `render` con `QueryClientProvider` (`retry: false`, `gcTime: 0`) + `MemoryRouter`; acepta `{ initialPath }` y reexporta testing-library |
 | `src/test-utils/keycloak.mock.ts` | Importarlo aplica el `vi.mock` |
 | `src/test-utils/store.utils.ts` | `resetAllStores()`, `setAuthenticatedUser(...)`, `setActiveRole(rol)` |
+| `src/test-utils/temporizadores.ts` | `usarTemporizadoresFalsos()` (devuelve el `userEvent` que avanza los temporizadores de Vitest), `avanzar(ms)` y `restaurarTemporizadores()` para el `afterEach`: úsalo en las pruebas con retardo (la búsqueda de 300 ms) en vez de copiar el puente de `jest` |
 
 **Importar `render` de `@testing-library/react` es un error**: sin el wrapper, un componente con
 `useQuery` o `<Navigate>` revienta. Escribir `useAuthStore.setState` a mano también: usa
@@ -375,15 +388,15 @@ eso prueba el interceptor, no la feature. Un test nunca llega a la red.
 Vitest carga el módulo real para inspeccionar qué exporta, y esa carga arrastra la cadena
 `hook → service → apiClient → config/env.ts`, que lanza en test porque `VITE_API_URL` no está
 definida: el archivo falla entero con un error de entorno que no tiene que ver con lo que se prueba.
-La fábrica corta la cadena. `RegistrarUsuarioForm.test.tsx` y `test-utils/keycloak.mock.ts` son la
+La fábrica corta la cadena. `RegistrarUsuarioPanel.test.tsx` y `test-utils/keycloak.mock.ts` son la
 referencia.
 
 `describe`/`it` en **español**, describiendo comportamiento observable. Marcadores
 `// Arrange / Act / Assert`. Consultas por rol y nombre accesible, no por `data-testid` ni clases.
 Interacción con `userEvent`, no `fireEvent`. Sin JSDoc.
 
-Referencias vivas: `AvisoNoDisponible.test.tsx` (componente) y `validadores-zod.test.ts` (lógica
-pura). **No hay aún test de hook ni de service**: el primero fija el patrón.
+Referencias vivas: `AvisoNoDisponible.test.tsx` (componente), `useRegistrarFichaPerfil.test.tsx`
+(hook), `fichasPerfilService.test.ts` (service) y `validadores-zod.test.ts` (lógica pura).
 
 Un service casi nunca merece test propio — es delegación tipada. La excepción es el método que
 **traduce** nombres (`registrarFichaPerfil`): ahí sí hay lógica que romper.
@@ -423,12 +436,19 @@ Un service casi nunca merece test propio — es delegación tipada. La excepció
 npm run lint          # tsc -p tsconfig.app.json --noEmit
 npm test -- --run     # sin --run entra en watch y no termina
 npm run build         # type-check + bundle
+npm run format:check  # Prettier solo sobre lo que tocaste respecto a develop
 ```
 
 Un archivo suelto: `npx vitest run src/features/<feature>/<Archivo>.test.tsx`.
 
 `npm run build` repite el type-check, así que `lint` verde con `build` rojo significa fallo de
-bundling, no de tipos. `.github/workflows/ci.yml` corre los tres en cada push y PR con Node 20.
+bundling, no de tipos. `.github/workflows/ci.yml` corre los cuatro en cada push y PR con Node 20.
+
+`npm test` incluye `src/arquitectura.test.ts` (capas, HTTP, query keys por feature, tipos inseguros,
+tamaño de componente, colores crudos, JSDoc, colores sin token en `@theme`, un solo spinner, nada por debajo de
+12 px y tablas solo con `DataTable`). Si falla, el mensaje dice qué corregir; la deuda previa
+vive en `src/test-utils/arquitectura.baseline.ts` y **no se amplía**. `format:check` no revisa el código
+heredado, solo lo modificado: formatea con `npx prettier --write` únicamente esos archivos.
 
 El aviso de build sobre `router.tsx` importado dinámica y estáticamente a la vez es el patrón
 deliberado del interceptor; no es un hallazgo.

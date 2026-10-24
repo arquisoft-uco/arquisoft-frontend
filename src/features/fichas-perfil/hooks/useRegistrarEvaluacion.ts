@@ -7,7 +7,10 @@ export function useRegistrarEvaluacion(fichaPerfilId: string) {
   return useMutation({
     mutationFn: () => fichasPerfilService.registrarEvaluacion({ fichaPerfilId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['evaluacion-representante', fichaPerfilId] });
+      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', fichaPerfilId, 'evaluacion'] });
+      queryClient.invalidateQueries({
+        queryKey: ['fichas-perfil', fichaPerfilId, 'representante-estados'],
+      });
     },
   });
 }

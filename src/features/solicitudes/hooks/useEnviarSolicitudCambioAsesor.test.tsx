@@ -28,7 +28,7 @@ function crearContexto() {
   function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   }
-  return { Wrapper };
+  return { Wrapper, queryClient };
 }
 
 describe('useEnviarSolicitudCambioAsesor', () => {
@@ -47,6 +47,22 @@ describe('useEnviarSolicitudCambioAsesor', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(enviarSolicitudCambioAsesor).toHaveBeenCalledWith(REQUEST);
+  });
+
+  it('invalida el listado de cambio de asesor enviadas tras un envío exitoso', async () => {
+    enviarSolicitudCambioAsesor.mockResolvedValue({ id: 's-3' });
+    const { Wrapper, queryClient } = crearContexto();
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useEnviarSolicitudCambioAsesor(), {
+      wrapper: Wrapper,
+    });
+
+    act(() => result.current.mutate(REQUEST));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['solicitudes', 'cambio-asesor', 'enviadas'],
+    });
   });
 
   it('expone el error cuando el service rechaza', async () => {

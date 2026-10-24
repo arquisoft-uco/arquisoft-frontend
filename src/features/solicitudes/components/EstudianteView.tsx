@@ -1,53 +1,52 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, type LucideIcon } from 'lucide-react';
+import PageHeader from '../../../shared/components/ui/PageHeader';
+import Tabs from '../../../shared/components/ui/Tabs';
+import { useFiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
+import EnviadasPanel from './estudiante/EnviadasPanel';
 import NuevaSolicitudPanel from './estudiante/NuevaSolicitudPanel';
-import PestanaEnConstruccion from './PestanaEnConstruccion';
-import Tabs from './Tabs';
+import RecibidasPanel from './estudiante/RecibidasPanel';
 
-type Tab = 'nueva' | 'enviadas' | 'respuestas';
+type Pestana = 'nueva' | 'enviadas' | 'respuestas';
 
-const TABS: { key: Tab; label: string; icono?: React.ReactNode }[] = [
-  { key: 'nueva', label: 'Nueva solicitud', icono: <Plus size={16} aria-hidden /> },
-  { key: 'enviadas', label: 'Enviadas' },
-  { key: 'respuestas', label: 'Respuestas' },
+const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
+  { id: 'nueva', etiqueta: 'Nueva solicitud', icono: Plus },
+  { id: 'enviadas', etiqueta: 'Enviadas' },
+  { id: 'respuestas', etiqueta: 'Respuestas' },
 ];
 
-const PANEL_POR_TAB: Record<Tab, React.ReactNode> = {
-  nueva: <NuevaSolicitudPanel />,
-  enviadas: (
-    <PestanaEnConstruccion
-      titulo="Solicitudes enviadas"
-      descripcion="El seguimiento de tus solicitudes enviadas estará disponible próximamente."
-    />
-  ),
-  respuestas: (
-    <PestanaEnConstruccion
-      titulo="Respuestas"
-      descripcion="Las respuestas a tus solicitudes estarán disponibles próximamente."
-    />
-  ),
-};
-
 export default function EstudianteView() {
-  const [tab, setTab] = useState<Tab>('nueva');
+  const [pestana, setPestana] = useState<Pestana>('nueva');
+  const filtrosCoordinador = useFiltrosRespuestas();
+  const filtrosAsesor = useFiltrosRespuestas();
+  const filtrosCambioAsesor = useFiltrosRespuestas();
+
+  const panelPorPestana: Record<Pestana, React.ReactNode> = {
+    nueva: <NuevaSolicitudPanel />,
+    enviadas: <EnviadasPanel />,
+    respuestas: (
+      <RecibidasPanel
+        filtros={{
+          coordinador: filtrosCoordinador,
+          asesor: filtrosAsesor,
+          'cambio-asesor': filtrosCambioAsesor,
+        }}
+      />
+    ),
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="text-xl font-bold text-on-surface sm:text-2xl">Solicitudes</h1>
-        <p className="mt-1 text-sm text-on-surface-secondary">
-          Envía solicitudes y consulta su seguimiento.
-        </p>
-      </header>
+      <PageHeader titulo="Solicitudes" descripcion="Envía solicitudes y consulta su seguimiento." />
 
       <Tabs
-        tabs={TABS}
-        activa={tab}
-        onCambiar={setTab}
-        ariaLabel="Secciones de solicitudes"
+        items={PESTANAS}
+        valor={pestana}
+        onCambiar={setPestana}
+        etiqueta="Secciones de solicitudes"
         idBase="solicitudes"
       >
-        {PANEL_POR_TAB[tab]}
+        {panelPorPestana[pestana]}
       </Tabs>
     </div>
   );

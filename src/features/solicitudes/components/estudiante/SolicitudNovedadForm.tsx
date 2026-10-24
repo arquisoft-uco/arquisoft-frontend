@@ -1,19 +1,12 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage, getApiFieldErrors, hasApiErrorCode } from '../../../../shared/utils/api-error';
-import { LIMITES, textoRequerido, uuidValido } from '../../../../shared/validation';
+import { useSolicitudNovedadForm } from '../../hooks/useSolicitudNovedadForm';
+import type { EnviarSolicitud } from '../../hooks/useSolicitudNovedadForm';
+import { LIMITES } from '../../../../shared/validation';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-
-const schema = z.object({
-  destinatario: uuidValido(),
-  mensajeSolicitud: textoRequerido(LIMITES.MENSAJE_SOLICITUD_MAX),
-});
-
-type FormValues = z.infer<typeof schema>;
+import Button from '../../../../shared/components/ui/Button';
+import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/ErrorSummary';
+import Field from '../../../../shared/components/ui/Field';
+import FormSection from '../../../../shared/components/ui/FormSection';
 
 export interface TextosSolicitudNovedad {
   titulo: string;
@@ -25,139 +18,77 @@ export interface TextosSolicitudNovedad {
   mensajeExito: string;
 }
 
-interface OpcionesEnvio {
-  onSuccess: () => void;
-  onError: (err: unknown) => void;
-}
+const TARJETA = 'rounded-xl border border-border bg-surface p-4 shadow-card sm:p-5';
+const FORMULARIO = 'flex flex-col gap-4';
+const ETIQUETAS = { destinatario: 'Destinatario', mensajeSolicitud: 'Mensaje' };
 
 interface Props {
   textos: TextosSolicitudNovedad;
-  enviar: (body: FormValues, opciones: OpcionesEnvio) => void;
+  enviar: EnviarSolicitud;
   enviando: boolean;
   reiniciar: () => void;
 }
 
 export default function SolicitudNovedadForm({ textos, enviar, enviando, reiniciar }: Props) {
-  const [confirmando, setConfirmando] = useState(false);
-
   const {
     register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isValid },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { destinatario: '', mensajeSolicitud: '' },
-    mode: 'onChange',
-  });
+    errors,
+    longitudMensaje,
+    resumenVisible,
+    confirmando,
+    alEnviarFormulario,
+    irAlCampo,
+    cancelarConfirmacion,
+    confirmar,
+  } = useSolicitudNovedadForm({ mensajeExito: textos.mensajeExito, enviar, reiniciar });
 
-  function onSubmit(values: FormValues) {
-    enviar(
-      { destinatario: values.destinatario, mensajeSolicitud: values.mensajeSolicitud },
-      {
-        onSuccess: () => {
-          toast.success('Solicitud enviada', textos.mensajeExito);
-          reset();
-          reiniciar();
-          setConfirmando(false);
-        },
-        onError: (err) => {
-          getApiFieldErrors(err).forEach((fieldError) => {
-            setError(fieldError.field as keyof FormValues, { message: fieldError.message });
-          });
-          if (
-            hasApiErrorCode(err, 'DESTINATARIO_NO_ENCONTRADO') ||
-            hasApiErrorCode(err, 'DESTINATARIO_NO_ASIGNADO')
-          ) {
-            setError('destinatario', {
-              message: getApiErrorMessage(err, 'El destinatario indicado no es válido.'),
-            });
-          }
-          toast.error(
-            'No se pudo enviar la solicitud',
-            getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.'),
-          );
-          setConfirmando(false);
-        },
-      },
-    );
-  }
-
-  function handleAbrirConfirmacion() {
-    setConfirmando(true);
-  }
-
-  function handleCancelarConfirmacion() {
-    setConfirmando(false);
-  }
-
-  function handleConfirmar() {
-    handleSubmit(onSubmit)();
-  }
-
-  function handleSubmitNativo(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-  }
+  const erroresResumidos = resumenVisible ? resumirErrores(errors, ETIQUETAS) : [];
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
-      <h2 className="mb-4 text-base font-semibold text-on-surface">{textos.titulo}</h2>
-
-      <form className="flex flex-col gap-4" onSubmit={handleSubmitNativo}>
-        <div>
-          <label htmlFor="sn-destinatario" className="field-label">
-            {textos.etiquetaDestinatario} <span aria-hidden className="text-danger">*</span>
-          </label>
-          <input
-            id="sn-destinatario"
-            type="text"
-            className="field-input"
-            aria-invalid={!!errors.destinatario}
-            aria-describedby={errors.destinatario ? 'sn-destinatario-error' : undefined}
-            placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
-            {...register('destinatario')}
-          />
-          {errors.destinatario && (
-            <p id="sn-destinatario-error" className="field-error" role="alert">
-              {errors.destinatario.message}
-            </p>
-          )}
-          <div className="mt-2">
-            <AvisoNoDisponible recurso={textos.recursoAviso} />
+    <div className={TARJETA}>
+      <form noValidate className={FORMULARIO} onSubmit={alEnviarFormulario} aria-busy={enviando}>
+        <FormSection titulo={textos.titulo}>
+          <div>
+            <Field etiqueta={textos.etiquetaDestinatario} error={errors.destinatario?.message}>
+              {(control) => (
+                <input
+                  type="text"
+                  className="field-input"
+                  placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                  {...register('destinatario')}
+                  {...control}
+                />
+              )}
+            </Field>
+            <div className="mt-2">
+              <AvisoNoDisponible recurso={textos.recursoAviso} />
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="sn-mensaje" className="field-label">
-            Mensaje <span aria-hidden className="text-danger">*</span>
-          </label>
-          <textarea
-            id="sn-mensaje"
-            rows={4}
-            maxLength={LIMITES.MENSAJE_SOLICITUD_MAX}
-            className="field-input"
-            aria-invalid={!!errors.mensajeSolicitud}
-            aria-describedby={errors.mensajeSolicitud ? 'sn-mensaje-error' : undefined}
-            placeholder={textos.placeholderMensaje}
-            {...register('mensajeSolicitud')}
-          />
-          {errors.mensajeSolicitud && (
-            <p id="sn-mensaje-error" className="field-error" role="alert">
-              {errors.mensajeSolicitud.message}
-            </p>
-          )}
-        </div>
+          <Field
+            etiqueta={ETIQUETAS.mensajeSolicitud}
+            error={errors.mensajeSolicitud?.message}
+            contador={{ actual: longitudMensaje, max: LIMITES.MENSAJE_SOLICITUD_MAX }}
+          >
+            {(control) => (
+              <textarea
+                rows={4}
+                maxLength={LIMITES.MENSAJE_SOLICITUD_MAX}
+                className="field-input"
+                placeholder={textos.placeholderMensaje}
+                {...register('mensajeSolicitud')}
+                {...control}
+              />
+            )}
+          </Field>
+        </FormSection>
+
+        <ErrorSummary errores={erroresResumidos} onIrAlCampo={irAlCampo} />
 
         <div className="actions-row border-t border-border pt-4">
-          <button
-            type="button"
-            onClick={handleAbrirConfirmacion}
-            disabled={!isValid || enviando}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-          >
-            {enviando ? 'Enviando...' : 'Enviar solicitud'}
-          </button>
+          <Button type="submit" cargando={enviando}>
+            {enviando ? 'Enviando…' : 'Enviar solicitud'}
+          </Button>
         </div>
       </form>
 
@@ -168,8 +99,8 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
           labelConfirmar="Enviar"
           variante="advertencia"
           cargando={enviando}
-          onConfirmar={handleConfirmar}
-          onCancelar={handleCancelarConfirmacion}
+          onConfirmar={confirmar}
+          onCancelar={cancelarConfirmacion}
         />
       )}
     </div>

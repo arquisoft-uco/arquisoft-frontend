@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { DIGITOS_REGEX, EMAIL_REGEX, UUID_REGEX } from './expresiones-regulares';
+import {
+  DIGITOS_REGEX,
+  EMAIL_REGEX,
+  NOMBRE_COMPLETO_REGEX,
+  UUID_REGEX,
+} from './expresiones-regulares';
 import { MENSAJES_VALIDACION } from './mensajes-validacion';
 
 export function textoRequerido(max: number) {
@@ -24,7 +29,10 @@ export function textoEntre(min: number, max: number) {
       return;
     }
     if (valor.length < min || valor.length > max) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.longitudEntre(min, max) });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: MENSAJES_VALIDACION.longitudEntre(min, max),
+      });
     }
   });
 }
@@ -48,7 +56,33 @@ export function soloDigitosEntre(min: number, max: number) {
       return;
     }
     if (valor.length < min || valor.length > max) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.longitudEntre(min, max) });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: MENSAJES_VALIDACION.longitudEntre(min, max),
+      });
+    }
+  });
+}
+
+// Espejo de la validación de un entero obligatorio dentro de un rango inclusivo del backend,
+// en este orden: requerido, formato (solo dígitos) y rango.
+export function enteroEntre(min: number, max: number) {
+  return z.string().superRefine((val, ctx) => {
+    const valor = val.trim();
+    if (valor.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.requerido });
+      return;
+    }
+    if (!DIGITOS_REGEX.test(valor)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.soloDigitos });
+      return;
+    }
+    const numero = Number(valor);
+    if (numero < min || numero > max) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: MENSAJES_VALIDACION.valorEntre(min, max),
+      });
     }
   });
 }
@@ -67,7 +101,10 @@ export function emailValido(min?: number, max?: number) {
       return;
     }
     if (min !== undefined && max !== undefined && (valor.length < min || valor.length > max)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.longitudEntre(min, max) });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: MENSAJES_VALIDACION.longitudEntre(min, max),
+      });
     }
   });
 }
@@ -78,4 +115,62 @@ export function uuidValido() {
 
 export function listaConMaximo(max: number) {
   return z.array(z.string()).max(max, MENSAJES_VALIDACION.listaMaxima(max));
+}
+
+// Espejo de la lista no vacía del comando y de ValidatorColeccion.sinDuplicados del backend:
+// `clave` identifica a cada elemento y dos elementos con la misma clave son un duplicado.
+export function listaNoVaciaSinDuplicados<T extends z.ZodTypeAny>(
+  elemento: T,
+  clave: (valor: z.infer<T>) => string,
+) {
+  return z
+    .array(elemento)
+    .min(1, MENSAJES_VALIDACION.listaVacia)
+    .superRefine((lista, ctx) => {
+      const vistas = new Set<string>();
+      for (const valor of lista) {
+        const k = clave(valor);
+        if (vistas.has(k)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: MENSAJES_VALIDACION.elementoRepetido,
+          });
+          return;
+        }
+        vistas.add(k);
+      }
+    });
+}
+
+// Espejo de la regla compuesta del backend sobre `nombres + " " + apellidos`: longitud del conjunto
+// (error en ambos campos) y luego formato (error en el campo con el carácter inválido).
+export function validarParDeNombres(
+  valores: { nombres: string; apellidos: string },
+  ctx: z.RefinementCtx,
+  min: number,
+  max: number,
+) {
+  const nombres = valores.nombres.trim();
+  const apellidos = valores.apellidos.trim();
+
+  const longitud = `${nombres} ${apellidos}`.length;
+  if (longitud < min || longitud > max) {
+    const message = MENSAJES_VALIDACION.longitudEntre(min, max);
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['nombres'], message });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['apellidos'], message });
+  }
+  if (!NOMBRE_COMPLETO_REGEX.test(nombres)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['nombres'],
+      message: MENSAJES_VALIDACION.formatoNombre,
+    });
+  }
+  if (!NOMBRE_COMPLETO_REGEX.test(apellidos)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['apellidos'],
+      message: MENSAJES_VALIDACION.formatoNombre,
+    });
+  }
 }

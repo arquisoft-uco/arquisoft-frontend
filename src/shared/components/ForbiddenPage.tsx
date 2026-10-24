@@ -1,7 +1,10 @@
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import { ShieldOff, ArrowLeft } from 'lucide-react';
+import Button from './ui/Button';
 
 export default function ForbiddenPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6" role="main">
       <div
@@ -17,15 +20,10 @@ export default function ForbiddenPage() {
         <p className="mt-2 text-sm leading-relaxed text-on-surface-secondary">
           No tienes los permisos necesarios para acceder a esta sección.
         </p>
-        <Link
-          to="/dashboard"
-          className="mt-7 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary-hover hover:shadow-md active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          <ArrowLeft size={16} aria-hidden />
+        <Button icono={ArrowLeft} className="mt-7" onClick={() => navigate('/dashboard')}>
           Ir al inicio
-        </Link>
+        </Button>
       </div>
     </div>
   );
 }
-

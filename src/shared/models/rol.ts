@@ -33,7 +33,7 @@ export const ETIQUETAS_ROL: Record<Rol, string> = {
   [Rol.Jurado]: 'Jurado',
   [Rol.Coordinador]: 'Coordinador',
   [Rol.Bibliotecario]: 'Bibliotecario',
-  [Rol.RepresentanteComiteCurriculum]: 'Representante del Comité de Currículum',
+  [Rol.RepresentanteComiteCurriculum]: 'Representante del Comité',
 };
 
 /** Lucide React component icons for each role — LucideIcon, not LucideIconData */
