@@ -3,11 +3,11 @@ import { Route, Routes } from 'react-router';
 import { render, screen } from '../../test-utils/render';
 import EvaluacionesCualitativasJurado from './EvaluacionesCualitativasJurado';
 import { useHasRole } from '../../hooks/useHasRole';
-import { useNavegacionCualitativasJurado } from './hooks/useNavegacionCualitativasJurado';
+import { useNavegacionEvaluacionJurado } from './hooks/useNavegacionEvaluacionJurado';
 
 vi.mock('../../hooks/useHasRole', () => ({ useHasRole: vi.fn() }));
-vi.mock('./hooks/useNavegacionCualitativasJurado', () => ({
-  useNavegacionCualitativasJurado: vi.fn(),
+vi.mock('./hooks/useNavegacionEvaluacionJurado', () => ({
+  useNavegacionEvaluacionJurado: vi.fn(),
 }));
 vi.mock('./components/estudiante/ConsultarEvaluacionesCualitativasJurado', () => ({
   default: () => <p>Consulta de cualitativas</p>,
@@ -34,7 +34,7 @@ describe('EvaluacionesCualitativasJurado', () => {
 
   it('con navegación muestra jurado, proyecto y versión, y migas hacia el origen', () => {
     // Arrange
-    vi.mocked(useNavegacionCualitativasJurado).mockReturnValue({
+    vi.mocked(useNavegacionEvaluacionJurado).mockReturnValue({
       evaluacionJuradoId: 'ej-1',
       evaluacionId: 'e-1',
       jurado: 'Ana Pérez',
@@ -64,7 +64,7 @@ describe('EvaluacionesCualitativasJurado', () => {
 
   it('sin navegación muestra la descripción genérica y la miga sin search', () => {
     // Arrange
-    vi.mocked(useNavegacionCualitativasJurado).mockReturnValue(null);
+    vi.mocked(useNavegacionEvaluacionJurado).mockReturnValue(null);
 
     // Act
     montar();
@@ -82,7 +82,7 @@ describe('EvaluacionesCualitativasJurado', () => {
   it('un rol distinto de estudiante es redirigido a /forbidden', () => {
     // Arrange
     vi.mocked(useHasRole).mockReturnValue(false);
-    vi.mocked(useNavegacionCualitativasJurado).mockReturnValue(null);
+    vi.mocked(useNavegacionEvaluacionJurado).mockReturnValue(null);
 
     // Act
     montar();

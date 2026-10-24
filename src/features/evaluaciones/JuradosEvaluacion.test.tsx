@@ -32,8 +32,10 @@ vi.mock('./hooks/useResumenEvaluacion', () => ({ useResumenEvaluacion: vi.fn() }
 let stateDestino: unknown;
 
 function Destino() {
-  stateDestino = useLocation().state;
-  return <p>Destino cualitativas</p>;
+  const location = useLocation();
+  const ultimo = location.pathname.split('/').pop();
+  stateDestino = location.state;
+  return <p>Destino {ultimo}</p>;
 }
 
 function montar() {
@@ -41,6 +43,7 @@ function montar() {
     <Routes>
       <Route path="/evaluaciones/:evaluacionId/jurados" element={<JuradosEvaluacion />} />
       <Route path="/evaluaciones/:id/cualitativas" element={<Destino />} />
+      <Route path="/evaluaciones/:id/cuantitativas" element={<Destino />} />
       <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/evaluaciones/e-1/jurados?pagina=2' },
@@ -116,6 +119,29 @@ describe('JuradosEvaluacion', () => {
 
     // Assert
     expect(screen.getByText('Destino cualitativas')).toBeInTheDocument();
+    expect(stateDestino).toEqual({
+      evaluacionJuradoId: 'ej-1',
+      evaluacionId: 'e-1',
+      jurado: 'Ana Pérez',
+      resumen,
+      search: '?q=sis',
+      searchJurados: '?pagina=2',
+    });
+  });
+
+  it('«Ver evaluación cuantitativa» navega a la ruta del jurado con el mismo contexto en el state', async () => {
+    // Arrange
+    const resumen = { id: 'e-1', proyecto: 'Sistema de monitoreo', version: 3 };
+    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen, search: '?q=sis' });
+    montar();
+
+    // Act
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Ver evaluación cuantitativa de Ana Pérez' }),
+    );
+
+    // Assert
+    expect(screen.getByText('Destino cuantitativas')).toBeInTheDocument();
     expect(stateDestino).toEqual({
       evaluacionJuradoId: 'ej-1',
       evaluacionId: 'e-1',

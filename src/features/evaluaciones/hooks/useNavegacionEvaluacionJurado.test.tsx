@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { renderHook } from '../../../test-utils/render';
-import { useNavegacionCualitativasJurado } from './useNavegacionCualitativasJurado';
+import { useNavegacionEvaluacionJurado } from './useNavegacionEvaluacionJurado';
 
 function montar(state: unknown) {
   function Wrapper({ children }: { children: ReactNode }) {
@@ -12,7 +12,7 @@ function montar(state: unknown) {
       </MemoryRouter>
     );
   }
-  return renderHook(() => useNavegacionCualitativasJurado('ej-1'), { wrapper: Wrapper }).result
+  return renderHook(() => useNavegacionEvaluacionJurado('ej-1'), { wrapper: Wrapper }).result
     .current;
 }
 
@@ -25,7 +25,7 @@ const VALIDO = {
   searchJurados: '?pagina=2',
 };
 
-describe('useNavegacionCualitativasJurado', () => {
+describe('useNavegacionEvaluacionJurado', () => {
   it('devuelve la navegación cuando el state es válido y coincide con la ruta', () => {
     // Act & Assert
     expect(montar(VALIDO)).toEqual(VALIDO);

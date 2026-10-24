@@ -24,6 +24,9 @@ const JuradosEvaluacion = lazy(() => import('./features/evaluaciones/JuradosEval
 const EvaluacionesCualitativasJurado = lazy(
   () => import('./features/evaluaciones/EvaluacionesCualitativasJurado'),
 );
+const EvaluacionesCuantitativasJurado = lazy(
+  () => import('./features/evaluaciones/EvaluacionesCuantitativasJurado'),
+);
 const RegistrarEvaluacionesCualitativas = lazy(
   () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
 );
@@ -104,6 +107,10 @@ export const router = createBrowserRouter([
               {
                 path: ':evaluacionJuradoId/cualitativas',
                 element: <EvaluacionesCualitativasJurado />,
+              },
+              {
+                path: ':evaluacionJuradoId/cuantitativas',
+                element: <EvaluacionesCuantitativasJurado />,
               },
             ],
           },
