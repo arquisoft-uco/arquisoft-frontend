@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { Route, Routes, useLocation } from 'react-router';
 import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarEvaluacionesEstudiante from './ConsultarEvaluacionesEstudiante';
 import { useEvaluacionesEstudiante } from '../../hooks/useEvaluacionesEstudiante';
@@ -106,7 +107,7 @@ describe('ConsultarEvaluacionesEstudiante', () => {
     expect(tabla.getByText('3')).toBeInTheDocument();
     expect(tabla.getByText('Pendiente')).toBeInTheDocument();
     expect(screen.getByText('1 evaluación')).toBeInTheDocument();
-    expect(tabla.getAllByRole('columnheader')).toHaveLength(3);
+    expect(tabla.getAllByRole('columnheader')).toHaveLength(4);
     expect(screen.queryByRole('button', { name: /Asignar jurados/ })).not.toBeInTheDocument();
   });
 
@@ -153,5 +154,37 @@ describe('ConsultarEvaluacionesEstudiante', () => {
     expect(screen.queryByRole('button', { name: 'En progreso' })).not.toBeInTheDocument();
     expect(screen.getByLabelText('Buscar evaluaciones')).toBeInTheDocument();
     expect(catalogo.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('cada fila ofrece "Ver evaluaciones del jurado" que navega a la ruta hija con el resumen y el search', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([EVALUACION]) });
+    let estado: unknown = null;
+    function Destino() {
+      estado = useLocation().state;
+      return <p>Destino jurados</p>;
+    }
+    render(
+      <Routes>
+        <Route path="/evaluaciones" element={<ConsultarEvaluacionesEstudiante />} />
+        <Route path="/evaluaciones/:evaluacionId/jurados" element={<Destino />} />
+      </Routes>,
+      { initialPath: '/evaluaciones?q=sis' },
+    );
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', {
+        name: 'Ver evaluaciones del jurado de Sistema de monitoreo',
+      })[0],
+    );
+
+    // Assert
+    expect(screen.getByText('Destino jurados')).toBeInTheDocument();
+    expect(estado).toEqual({
+      resumen: { id: 'e-1', proyecto: 'Sistema de monitoreo', version: 3 },
+      search: '?q=sis',
+    });
   });
 });
