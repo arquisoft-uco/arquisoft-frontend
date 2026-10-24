@@ -4,6 +4,7 @@ import Field from '../../../shared/components/ui/Field';
 export type TipoSolicitudUi = 'coordinador' | 'asesor';
 export type TipoSolicitudEnviableUi = TipoSolicitudUi | 'cambio-asesor';
 export type TipoSolicitudNuevaUi = TipoSolicitudEnviableUi | 'ampliacion-plazo';
+export type TipoSolicitudEnviadaUi = TipoSolicitudNuevaUi;
 export type TipoSolicitudRecibidaUi = 'novedad' | 'cambio-asesor';
 
 interface OpcionTipo<T extends string> {
@@ -26,6 +27,8 @@ export const TIPOS_SOLICITUD_NUEVA: OpcionTipo<TipoSolicitudNuevaUi>[] = [
   ...TIPOS_SOLICITUD_ENVIABLE,
   { value: 'ampliacion-plazo', label: 'Ampliación de plazo', icono: CalendarClock },
 ];
+
+export const TIPOS_SOLICITUD_ENVIADA = TIPOS_SOLICITUD_NUEVA;
 
 export const TIPOS_SOLICITUD_RECIBIDA: OpcionTipo<TipoSolicitudRecibidaUi>[] = [
   { value: 'novedad', label: 'Novedad', icono: Users },

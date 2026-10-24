@@ -172,6 +172,31 @@ describe('SolicitudesEnviadasTable', () => {
     ).toBeInTheDocument();
   });
 
+  it('con tipo ampliacion-plazo usa sus textos, sin acciones, y su vacío menciona la ampliación', () => {
+    // Arrange
+    renderizar({ tipo: 'ampliacion-plazo', onEliminar: undefined });
+
+    // Assert
+    const tablaAmpliacion = screen.getByRole('table', {
+      name: 'Solicitudes de ampliación de plazo enviadas',
+    });
+    expect(
+      within(tablaAmpliacion).getByRole('columnheader', { name: 'Coordinador' }),
+    ).toBeInTheDocument();
+    expect(within(tablaAmpliacion).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaAmpliacion).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo ampliacion-plazo y sin solicitudes el vacío menciona la ampliación de plazo', () => {
+    // Act
+    renderizar({ tipo: 'ampliacion-plazo', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText('Cuando envíes una solicitud de ampliación de plazo, aparecerá aquí.'),
+    ).toBeInTheDocument();
+  });
+
   it('deshabilita todos los botones de eliminar mientras se elimina', () => {
     // Arrange / Act
     renderizar({ eliminando: true });
