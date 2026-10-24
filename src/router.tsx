@@ -21,6 +21,9 @@ const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
 const Evaluaciones = lazy(() => import('./features/evaluaciones/Evaluaciones'));
 const JuradosEvaluacion = lazy(() => import('./features/evaluaciones/JuradosEvaluacion'));
+const EvaluacionesCualitativasJurado = lazy(
+  () => import('./features/evaluaciones/EvaluacionesCualitativasJurado'),
+);
 const RegistrarEvaluacionesCualitativas = lazy(
   () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
 );
@@ -98,6 +101,10 @@ export const router = createBrowserRouter([
                 element: <RegistrarEvaluacionesCualitativas />,
               },
               { path: ':evaluacionId/jurados', element: <JuradosEvaluacion /> },
+              {
+                path: ':evaluacionJuradoId/cualitativas',
+                element: <EvaluacionesCualitativasJurado />,
+              },
             ],
           },
           { path: 'mapas-ruta', element: guarded('mapas-ruta', <MapasRuta />) },
