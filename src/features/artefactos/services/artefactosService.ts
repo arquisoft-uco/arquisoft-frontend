@@ -1,8 +1,12 @@
 import apiClient from '../../../api/axiosInstance';
+import type { Page } from '../../../shared/models/api-response';
+import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
+import type { RevisionAsesor } from '../models/RevisionAsesor';
+import type { RevisionAsesorResponse } from '../models/RevisionAsesorResponse';
 
 function aObservacionRevision({
   revisionAsesor,
@@ -10,6 +14,22 @@ function aObservacionRevision({
   ...resto
 }: ObservacionRevisionResponse): ObservacionRevision {
   return { ...resto, revisionAsesorId: revisionAsesor, estadoId: estado };
+}
+
+function aRevisionAsesor({
+  versionArtefacto,
+  artefacto,
+  estadoRevisionAsesor,
+  estadoRevisionAsesorNombre,
+  ...resto
+}: RevisionAsesorResponse): RevisionAsesor {
+  return {
+    ...resto,
+    versionArtefactoId: versionArtefacto,
+    artefactoId: artefacto,
+    estadoId: estadoRevisionAsesor,
+    estadoNombre: estadoRevisionAsesorNombre,
+  };
 }
 
 export const artefactosService = {
@@ -32,4 +52,9 @@ export const artefactosService = {
         ObservacionRevisionResponse[]
       >(`/revisiones-asesor/${revisionAsesorId}/observaciones/estudiante`)
       .then((r) => r.data.map(aObservacionRevision)),
+
+  consultarRevisionesAsesor: (req: ConsultaCriteriaRequest): Promise<Page<RevisionAsesor>> =>
+    apiClient
+      .post<Page<RevisionAsesorResponse>>('/revisiones-asesor/asesor', req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aRevisionAsesor) })),
 };

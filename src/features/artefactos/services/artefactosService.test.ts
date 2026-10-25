@@ -3,10 +3,11 @@ import apiClient from '../../../api/axiosInstance';
 import { artefactosService } from './artefactosService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
+const post = vi.mocked(apiClient.post);
 
 describe('artefactosService', () => {
   beforeEach(() => {
@@ -53,6 +54,49 @@ describe('artefactosService', () => {
 
       // Assert
       expect(resultado).toEqual([]);
+    });
+  });
+
+  describe('consultarRevisionesAsesor', () => {
+    it('hace POST /revisiones-asesor/asesor con el criterio y traduce los nombres conservando la página', async () => {
+      // Arrange
+      const criterio = { pagina: 0, tamanio: 10, ordenamiento: ['estadoRevisionAsesor:ASC'] };
+      post.mockResolvedValue({
+        data: {
+          content: [
+            {
+              id: 'r-1',
+              versionArtefacto: 'v-1',
+              artefacto: 'a-1',
+              version: 2,
+              estadoRevisionAsesor: 'PENDIENTE',
+              estadoRevisionAsesorNombre: 'Pendiente',
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+
+      // Act
+      const resultado = await artefactosService.consultarRevisionesAsesor(criterio);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/revisiones-asesor/asesor', criterio);
+      expect(resultado).toEqual({
+        content: [
+          {
+            id: 'r-1',
+            versionArtefactoId: 'v-1',
+            artefactoId: 'a-1',
+            version: 2,
+            estadoId: 'PENDIENTE',
+            estadoNombre: 'Pendiente',
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+      });
     });
   });
 
