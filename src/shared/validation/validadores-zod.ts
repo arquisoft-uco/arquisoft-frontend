@@ -176,7 +176,7 @@ export function validarParDeNombres(
   }
 }
 
-function esFechaIsoReal(valor: string): boolean {
+export function esFechaIsoReal(valor: string): boolean {
   if (!FECHA_ISO_REGEX.test(valor)) return false;
   const [anio, mes, dia] = valor.split('-').map(Number);
   const fecha = new Date(Date.UTC(anio, mes - 1, dia));

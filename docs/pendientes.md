@@ -89,6 +89,7 @@ Client roles a confirmar en el realm desplegado:
 - `evaluaciones:evaluacion-cualitativa-jurado-estudiante:view` para el estudiante (evaluaciones cualitativas de un jurado, HU-016), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-jurado-jurado:view` para el jurado (listado de sus evaluaciones asignadas, HU-289), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-cualitativa-jurado:create` para el jurado (registrar evaluaciones cualitativas, HU-215), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `mapas-ruta:mapa-ruta-coordinador:view` para el coordinador (listado de sus mapas de ruta según fechas, HU-173), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota. Además, la réplica `proyecto_grado` de `mapas_ruta` no tiene productor en el backend, así que con login real el listado puede salir vacío.
 - `mapas-ruta:mapa-ruta:create` para el coordinador (crear un mapa de ruta con sus fechas importantes, HU-172). Se crea a mano en el Keycloak desplegado: si falta, con login real «Crear mapa de ruta» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend

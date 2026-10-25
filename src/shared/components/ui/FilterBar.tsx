@@ -3,7 +3,7 @@ import { SlidersHorizontal, X } from 'lucide-react';
 import { useClicFuera } from '../../hooks/useClicFuera';
 import Button from './Button';
 import FilterBarBusqueda from './FilterBarBusqueda';
-import FilterBarPanel from './FilterBarPanel';
+import FilterBarPanel, { type AlineacionPanel } from './FilterBarPanel';
 import type { OrdenFiltro, SeccionFiltro } from './FilterBarSecciones';
 import FilterChip, { type OpcionFiltro } from './FilterChip';
 
@@ -36,6 +36,7 @@ interface Props {
     onTodos: () => void;
   };
   popover?: { secciones: SeccionFiltro[] };
+  alineacionPanel?: AlineacionPanel;
   orden?: OrdenFiltro;
   aplicados: { id: string; etiqueta: string; onQuitar: () => void }[];
   onLimpiar: () => void;
@@ -46,6 +47,7 @@ export default function FilterBar({
   busqueda,
   chips,
   popover,
+  alineacionPanel,
   orden,
   aplicados,
   onLimpiar,
@@ -56,7 +58,6 @@ export default function FilterBar({
   const panel = useRef<HTMLDivElement>(null);
   const [abierto, setAbierto] = useState(false);
   const [claveBusqueda, setClaveBusqueda] = useState(0);
-
   useClicFuera(abierto, [boton, panel], () => setAbierto(false));
 
   const filtrosActivos =
@@ -93,6 +94,7 @@ export default function FilterBar({
                   ref={panel}
                   retorno={boton}
                   secciones={popover.secciones}
+                  alineacion={alineacionPanel}
                   orden={orden}
                   totalResultados={totalResultados}
                   hayAplicados={aplicados.length > 0}

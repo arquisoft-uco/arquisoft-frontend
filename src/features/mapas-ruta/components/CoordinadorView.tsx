@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Map, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
-import EmptyState from '../../../shared/components/ui/EmptyState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
+import ConsultarMapasRutaCoordinador from './coordinador/ConsultarMapasRutaCoordinador';
 import RegistrarMapaRutaPanel from './coordinador/RegistrarMapaRutaPanel';
 
 export default function CoordinadorView() {
@@ -19,11 +19,7 @@ export default function CoordinadorView() {
           </Button>
         }
       />
-      <EmptyState
-        icono={Map}
-        titulo="Aún no hay datos"
-        descripcion="Elige un proyecto en proceso y define sus fechas de inicio y de fin."
-      />
+      <ConsultarMapasRutaCoordinador onNuevoMapa={() => setRegistrando(true)} />
       {registrando && <RegistrarMapaRutaPanel onCerrar={() => setRegistrando(false)} />}
     </div>
   );

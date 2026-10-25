@@ -3,6 +3,8 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
+import type { MapaRuta } from '../models/MapaRuta';
+import type { MapaRutaResponse } from '../models/MapaRutaResponse';
 import type { PaginaProyectosElegibles } from '../models/PaginaProyectosElegibles';
 import type { ProyectoElegibleResponse } from '../models/ProyectoElegibleResponse';
 
@@ -38,5 +40,18 @@ export const mapasRutaService = {
         proyectos: r.data.content.map((dto) => ({ id: dto.id, titulo: dto.tituloProyecto })),
         siguientePagina: r.data.last ? null : r.data.page + 1,
       }));
+  },
+
+  consultarMapasRutaCoordinador(req: ConsultaCriteriaRequest): Promise<Page<MapaRuta>> {
+    return apiClient.post<Page<MapaRutaResponse>>('/mapas-ruta/coordinador', req).then((r) => ({
+      ...r.data,
+      content: r.data.content.map((dto) => ({
+        id: dto.id,
+        proyectoGradoId: dto.proyectoGrado,
+        titulo: dto.tituloProyecto,
+        fechaInicio: dto.fechaInicio,
+        fechaFin: dto.fechaFin,
+      })),
+    }));
   },
 };
