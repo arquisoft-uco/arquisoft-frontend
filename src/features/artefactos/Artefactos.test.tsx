@@ -8,17 +8,27 @@ import Artefactos from './Artefactos';
 vi.mock('./services/artefactosService', () => ({
   artefactosService: {
     getEstadosRevisionAsesor: vi.fn().mockResolvedValue([]),
+    consultarRevisionesAsesor: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
   },
 }));
 
-function renderizar() {
+function renderizar(ruta = '/artefactos') {
   return render(
     <Routes>
       <Route path="/artefactos" element={<Artefactos />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
       <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
-    { initialPath: '/artefactos' },
+    { initialPath: ruta },
   );
 }
 
@@ -31,7 +41,7 @@ describe('Artefactos', () => {
     resetAllStores();
   });
 
-  it('el asesor ve el encabezado de estados de revisión', async () => {
+  it('el asesor ve el encabezado de revisiones de artefactos', async () => {
     // Arrange
     entrarComo(Rol.Asesor);
     setActiveRole(Rol.Asesor);
@@ -41,8 +51,28 @@ describe('Artefactos', () => {
 
     // Assert
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Estados de revisión' }),
+      await screen.findByRole('heading', { level: 1, name: 'Revisiones de artefactos' }),
     ).toBeInTheDocument();
+  });
+
+  it('el asesor ve por defecto las revisiones realizadas y con ?vista=estados el catálogo', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    const { unmount } = renderizar();
+    const porDefecto = await screen.findByRole('link', { name: 'Revisiones realizadas' });
+    unmount();
+    renderizar('/artefactos?vista=estados');
+
+    // Assert
+    expect(porDefecto).toHaveAttribute('aria-current', 'page');
+    expect(await screen.findByText('Aún no hay estados de revisión')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estados de revisión' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('sin rol activo redirige a /seleccionar-rol', () => {
