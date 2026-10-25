@@ -7,6 +7,7 @@ import {
   varianteEstadoProyecto,
   varianteEstadoRespuesta,
   varianteEstadoRevision,
+  varianteEstadoRevisionAsesor,
   varianteEstadoUsuario,
 } from './estado-variante';
 
@@ -120,5 +121,17 @@ describe('varianteEstadoAsesorProyecto', () => {
     expect(varianteEstadoAsesorProyecto('ASIGNADO')).toBe('exito');
     expect(varianteEstadoAsesorProyecto('FINALIZADO')).toBe('neutro');
     expect(varianteEstadoAsesorProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoRevisionAsesor', () => {
+  it('asigna su variante a cada estado de la revisión del asesor y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteEstadoRevisionAsesor('PENDIENTE')).toBe('advertencia');
+    expect(varianteEstadoRevisionAsesor('EN_PROGRESO')).toBe('info');
+    expect(varianteEstadoRevisionAsesor('RESUELTA')).toBe('exito');
+    expect(varianteEstadoRevisionAsesor('CERRADA')).toBe('neutro');
+    expect(varianteEstadoRevisionAsesor('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoRevisionAsesor('constructor')).toBe('neutro');
   });
 });
