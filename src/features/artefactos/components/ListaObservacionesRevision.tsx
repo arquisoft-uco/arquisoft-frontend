@@ -1,6 +1,6 @@
-import Badge from '../../../../shared/components/ui/Badge';
-import { varianteEstadoObservacionArtefacto } from '../../../../shared/utils/estado-variante';
-import type { ObservacionRevision } from '../../models/ObservacionRevision';
+import Badge from '../../../shared/components/ui/Badge';
+import { varianteEstadoObservacionArtefacto } from '../../../shared/utils/estado-variante';
+import type { ObservacionRevision } from '../models/ObservacionRevision';
 
 const LISTA = 'flex flex-col gap-3';
 const TARJETA =
