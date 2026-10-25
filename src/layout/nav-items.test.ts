@@ -54,4 +54,15 @@ describe('nav-items', () => {
       expect(ROLES_POR_RUTA[i.path.slice(1)]).toEqual(i.roles);
     });
   });
+
+  it('Artefactos está disponible solo para el asesor', () => {
+    // Act
+    const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/artefactos');
+    const delEstudiante = navItemsDelRol(Rol.Estudiante).find((i) => i.path === '/artefactos');
+
+    // Assert
+    expect(delAsesor).toBeDefined();
+    expect(estaDisponible(delAsesor!)).toBe(true);
+    expect(delEstudiante).toBeUndefined();
+  });
 });

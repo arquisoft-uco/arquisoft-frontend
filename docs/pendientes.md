@@ -24,6 +24,7 @@ Client roles a confirmar en el realm desplegado:
 
 - `fichas:ficha-perfil-coordinador:view` para `representante-comite` (listado de HU-160). Con `dev-user` carga; falta probar con un usuario que solo tenga ese rol.
 - `fichas:estado-ficha:view` para los roles que consultan el catálogo de estados.
+- `artefactos:estado-revision-asesor:view` para el asesor (catálogo de estados de revisión, HU-113), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:estado-ficha-perfil-asesor:view` para el asesor de ficha (historial de estados de una ficha en su detalle, HU-205), sin verificar en el realm export: un 403 con login real lleva a `/forbidden`.
 - `fichas:estudiante-ficha-perfil-estudiante:view` para el estudiante (compañeros de su ficha, HU-039); el frontend ya no consume el endpoint (Equipo sale de `integrantes` de «mi ficha»); falta el permiso en el realm si se quiere volver a usar.
 - `fichas:evaluacion-ficha-perfil-estudiante:view` para el estudiante (evaluaciones de su ficha, HU-038), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota. El `estudiante` no tiene `fichas:estado-evaluacion:view`, por eso la pantalla no consulta el catálogo de estados de evaluación.
