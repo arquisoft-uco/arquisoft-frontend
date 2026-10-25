@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-22.
+Última revisión: 2026-10-24.
 
 ## Bloqueados por el backend
 
@@ -14,7 +14,6 @@ Al resolver un pendiente, se borra de aquí.
 | B3 | **Client roles de Keycloak sin confirmar** | Pueden faltar en el realm desplegado (no se pudo verificar; el export de `arquisoft-infra` es del 2026-09-11 y está desactualizado). Si faltan, con login real se llega a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota. Ver lista abajo | Infra / backend |
 | B4 | Mejoras menores del backend | Consulta de fichas del estudiante con `INNER JOIN`: una ficha sin estado o sin asesor se omite. No hay endpoint para que el estudiante obtenga su coordinador (solicitudes). El endpoint de estados del asesor (HU-205) solo ordena por título: el detalle ordena por fecha en el cliente | Backend |
 | B5 | **Detalle de ficha para asesor y representante** | (a) No existe `GET /fichas-perfil/{id}` para estos roles: abrir el detalle por URL directa o recargar en otra pestaña muestra el título genérico «Ficha de perfil», sin estado ni asesor. Desde proyectos de grado el detalle recibe por state el título (`tituloProyecto`) y el estado sale del historial, pero sin asesor; la URL directa sigue sin resumen hasta que exista `GET /fichas-perfil/{id}` o el listado de proyectos traiga el asesor. (b) `FichaPerfilCriteria` no filtra por `id`, así que tampoco se puede recuperar la ficha por el listado. (c) `fichas:estudiante-ficha-perfil-coordinador:view` no la tienen `asesor-ficha` ni `representante-comite`, por eso el detalle omite la sección «Equipo». (d) El backend no lista el historial de estados de una evaluación (el listado de observaciones ya existe: HU-281) | Backend |
-| B6 | **Catálogo de estados de observación de ítem** | No existe endpoint de `estado_observacion_revision` (solo `/estados-revision`, otro catálogo). Por eso las pestañas Observaciones del asesor (HU-200) y del estudiante (HU-026) no ofrecen filtro por estado: solo ordena por estado. Valores del MER: `PENDIENTE`, `EN_PROGRESO`, `CERRADO` | Backend |
 | B7 | **Catálogo de estados de proyecto de grado y consultas pendientes** | Ya existen el listado del estudiante (`GET /proyectos-grado/estudiante`, HU-048), el historial (`/{id}/estados`) y el detalle del asesor. Sigue sin existir un endpoint del catálogo `estado_proyecto`: el listado de HU-159 ofrece 4 opciones de estado fijas en el frontend (`ESTADOS_PROYECTO`). Cuando exista, `ESTADOS_PROYECTO` se reemplaza por un hook | Backend |
 | B8 | **Coordinador sin lectura de jurados ya asignados** | No hay forma de que el coordinador consulte los jurados ya asignados a una evaluación: `POST /evaluaciones/{id}/evaluaciones-jurado` exige `evaluacion-jurado-estudiante:view` (solo estudiante) y `/evaluaciones/coordinador` no trae jurados. El panel de HU-283 no los precarga ni los muestra y se apoya en el 422 `JURADOS_YA_ASIGNADOS` | Backend |
 | B9 | **Historial y asesores del proyecto no legibles por el asesor** | El asesor solo lee el detalle del proyecto y sus estudiantes asesorados (HU-151): el historial de estados y los asesores del proyecto (`asesores-asignados`) exigen client roles que `asesor` no tiene (403), por eso su detalle no los ofrece | Backend |
@@ -24,6 +23,7 @@ Client roles a confirmar en el realm desplegado:
 
 - `fichas:ficha-perfil-coordinador:view` para `representante-comite` (listado de HU-160). Con `dev-user` carga; falta probar con un usuario que solo tenga ese rol.
 - `fichas:estado-ficha:view` para los roles que consultan el catálogo de estados.
+- `fichas:estado-observacion-revision-estudiante:view` para el estudiante (catálogo de estados de observación, HU-020), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `artefactos:estado-revision-asesor:view` para el asesor (catálogo de estados de revisión, HU-113), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `fichas:estado-ficha-perfil-asesor:view` para el asesor de ficha (historial de estados de una ficha en su detalle, HU-205), sin verificar en el realm export: un 403 con login real lleva a `/forbidden`.
 - `fichas:estudiante-ficha-perfil-estudiante:view` para el estudiante (compañeros de su ficha, HU-039); el frontend ya no consume el endpoint (Equipo sale de `integrantes` de «mi ficha»); falta el permiso en el realm si se quiere volver a usar.
