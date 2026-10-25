@@ -3,6 +3,7 @@ import {
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
   varianteEstadoObservacion,
+  varianteEstadoObservacionArtefacto,
   varianteEstadoAsesorProyecto,
   varianteEstadoProyecto,
   varianteEstadoRespuesta,
@@ -133,5 +134,18 @@ describe('varianteEstadoRevisionAsesor', () => {
     expect(varianteEstadoRevisionAsesor('CERRADA')).toBe('neutro');
     expect(varianteEstadoRevisionAsesor('ESTADO_INEXISTENTE')).toBe('neutro');
     expect(varianteEstadoRevisionAsesor('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoObservacionArtefacto', () => {
+  it('asigna su variante a cada estado de la observación de revisión y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteEstadoObservacionArtefacto('NUEVA')).toBe('info');
+    expect(varianteEstadoObservacionArtefacto('EN_PROGRESO')).toBe('advertencia');
+    expect(varianteEstadoObservacionArtefacto('SOLUCIONADA')).toBe('exito');
+    expect(varianteEstadoObservacionArtefacto('CERRADA')).toBe('neutro');
+    expect(varianteEstadoObservacionArtefacto('REABIERTA')).toBe('peligro');
+    expect(varianteEstadoObservacionArtefacto('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoObservacionArtefacto('constructor')).toBe('neutro');
   });
 });
