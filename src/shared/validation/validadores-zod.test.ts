@@ -15,6 +15,8 @@ import {
   soloDigitosEntre,
   enteroEntre,
   validarParDeNombres,
+  fechaIso,
+  validarFechaFinPosterior,
 } from './validadores-zod';
 
 describe('límites alineados al backend', () => {
@@ -316,5 +318,37 @@ describe('validarParDeNombres', () => {
     expect(errores(largo, 'b')).toEqual([`nombres:${longitud}`, `apellidos:${longitud}`]);
     expect(errores('Ana1', 'Gómez')).toEqual([`nombres:${MENSAJES_VALIDACION.formatoNombre}`]);
     expect(errores('Ana', 'G0mez')).toEqual([`apellidos:${MENSAJES_VALIDACION.formatoNombre}`]);
+  });
+});
+
+describe('fechaIso', () => {
+  it('exige la fecha, el formato yyyy-MM-dd y que sea una fecha real', () => {
+    const mensaje = (v: string) => {
+      const r = fechaIso().safeParse(v);
+      return r.success ? null : r.error.issues[0].message;
+    };
+    expect(mensaje('')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('22/10/2026')).toBe(MENSAJES_VALIDACION.fechaInvalida);
+    expect(mensaje('2026-02-30')).toBe(MENSAJES_VALIDACION.fechaInvalida);
+    expect(mensaje('2026-10-22')).toBeNull();
+  });
+});
+
+describe('validarFechaFinPosterior', () => {
+  const esquema = z
+    .object({ fechaInicio: z.string(), fechaFin: z.string() })
+    .superRefine(validarFechaFinPosterior);
+
+  function errores(fechaInicio: string, fechaFin: string) {
+    const r = esquema.safeParse({ fechaInicio, fechaFin });
+    return r.success ? [] : r.error.issues.map((i) => `${i.path.join('.')}:${i.message}`);
+  }
+
+  it('rechaza un fin igual o anterior al inicio y acepta uno posterior', () => {
+    const mensaje = `fechaFin:${MENSAJES_VALIDACION.fechaFinPosterior}`;
+    expect(errores('2026-10-22', '2026-10-22')).toEqual([mensaje]);
+    expect(errores('2026-10-22', '2026-10-21')).toEqual([mensaje]);
+    expect(errores('2026-10-22', '2026-10-23')).toEqual([]);
+    expect(errores('2026-02-30', '2026-01-01')).toEqual([]);
   });
 });

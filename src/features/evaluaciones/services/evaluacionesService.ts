@@ -6,6 +6,8 @@ import type { AsignarJuradosEvaluacionRequest } from '../models/AsignarJuradosEv
 import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosEvaluacionResponse';
 import type { Evaluacion } from '../models/Evaluacion';
 import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
+import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
+import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
@@ -127,6 +129,23 @@ export const evaluacionesService = {
 
   getEvaluacionesEstudiante: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
     apiClient.post<Page<Evaluacion>>('/evaluaciones/estudiante', req).then((r) => r.data),
+
+  getJuradosEvaluacion: (
+    evaluacionId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<EvaluacionJurado>> =>
+    apiClient
+      .post<Page<EvaluacionJurado>>(`/evaluaciones/${evaluacionId}/evaluaciones-jurado`, req)
+      .then((r) => r.data),
+
+  getEvaluacionesCualitativasJurado: (
+    evaluacionJuradoId: string,
+  ): Promise<EvaluacionCualitativaJurado[]> =>
+    apiClient
+      .get<
+        EvaluacionCualitativaJurado[]
+      >(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cualitativas`)
+      .then((r) => r.data),
 
   getEvaluacionesAsignadasJurado: (): Promise<EvaluacionAsignadaJurado[]> =>
     apiClient
