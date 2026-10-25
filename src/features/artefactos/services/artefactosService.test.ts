@@ -55,4 +55,47 @@ describe('artefactosService', () => {
       expect(resultado).toEqual([]);
     });
   });
+
+  describe('getObservacionesRevisionEstudiante', () => {
+    it('consulta GET /revisiones-asesor/{id}/observaciones/estudiante y traduce revisionAsesor y estado', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        data: [
+          {
+            id: 'o-1',
+            revisionAsesor: 'r-1',
+            descripcion: 'Falta el diagrama',
+            estado: 'NUEVA',
+            estadoNombre: 'Nueva',
+          },
+        ],
+      });
+
+      // Act
+      const resultado = await artefactosService.getObservacionesRevisionEstudiante('r-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/revisiones-asesor/r-1/observaciones/estudiante');
+      expect(resultado).toEqual([
+        {
+          id: 'o-1',
+          revisionAsesorId: 'r-1',
+          descripcion: 'Falta el diagrama',
+          estadoId: 'NUEVA',
+          estadoNombre: 'Nueva',
+        },
+      ]);
+    });
+
+    it('devuelve una lista vacía cuando la revisión no tiene observaciones', async () => {
+      // Arrange
+      get.mockResolvedValue({ data: [] });
+
+      // Act
+      const resultado = await artefactosService.getObservacionesRevisionEstudiante('r-1');
+
+      // Assert
+      expect(resultado).toEqual([]);
+    });
+  });
 });

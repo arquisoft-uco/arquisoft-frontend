@@ -4,6 +4,14 @@ import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 
+function aObservacionRevision({
+  revisionAsesor,
+  estado,
+  ...resto
+}: ObservacionRevisionResponse): ObservacionRevision {
+  return { ...resto, revisionAsesorId: revisionAsesor, estadoId: estado };
+}
+
 export const artefactosService = {
   getEstadosRevisionAsesor: (): Promise<EstadoRevisionAsesor[]> =>
     apiClient.get<EstadoRevisionAsesor[]>('/estados-revision-asesor').then((r) => r.data),
@@ -16,11 +24,12 @@ export const artefactosService = {
   getObservacionesRevision: (revisionAsesorId: string): Promise<ObservacionRevision[]> =>
     apiClient
       .get<ObservacionRevisionResponse[]>(`/revisiones-asesor/${revisionAsesorId}/observaciones`)
-      .then((r) =>
-        r.data.map(({ revisionAsesor, estado, ...resto }) => ({
-          ...resto,
-          revisionAsesorId: revisionAsesor,
-          estadoId: estado,
-        })),
-      ),
+      .then((r) => r.data.map(aObservacionRevision)),
+
+  getObservacionesRevisionEstudiante: (revisionAsesorId: string): Promise<ObservacionRevision[]> =>
+    apiClient
+      .get<
+        ObservacionRevisionResponse[]
+      >(`/revisiones-asesor/${revisionAsesorId}/observaciones/estudiante`)
+      .then((r) => r.data.map(aObservacionRevision)),
 };
