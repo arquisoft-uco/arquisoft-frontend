@@ -54,6 +54,16 @@ describe('RepositoriosTable', () => {
     expect(screen.getAllByText('Sin administrador asignado').length).toBeGreaterThan(0);
   });
 
+  it('el nombre es un enlace a las versiones del repositorio', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      screen.getAllByRole('link', { name: 'Ver las versiones de Repositorio Alfa' })[0],
+    ).toHaveAttribute('href', '/repositorio-artefactos/r-1/versiones');
+  });
+
   it('sin filtros el vacío invita a esperar repositorios', () => {
     // Act
     renderizar({ repositorios: [] });

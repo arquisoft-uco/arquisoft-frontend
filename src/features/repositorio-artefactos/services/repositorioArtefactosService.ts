@@ -2,6 +2,7 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { RepositorioArtefacto } from '../models/RepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../models/VersionRepositorioArtefacto';
 
 export const repositorioArtefactosService = {
   consultarRepositoriosAdministrador: (
@@ -9,5 +10,10 @@ export const repositorioArtefactosService = {
   ): Promise<Page<RepositorioArtefacto>> =>
     apiClient
       .post<Page<RepositorioArtefacto>>('/repositorio-artefactos/administrador', req)
+      .then((r) => r.data),
+
+  consultarVersionesRepositorio: (repositorioId: string): Promise<VersionRepositorioArtefacto[]> =>
+    apiClient
+      .get<VersionRepositorioArtefacto[]>(`/repositorio-artefactos/${repositorioId}/versiones`)
       .then((r) => r.data),
 };
