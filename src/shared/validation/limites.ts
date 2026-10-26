@@ -38,4 +38,7 @@ export const LIMITES = {
   ITEM_CUANTITATIVO_VALOR_MAX: 500,
   // EvaluacionesLimits.CategoriaItemCuantitativoJurado.NOMBRE_MAX
   CATEGORIA_ITEM_CUANTITATIVO_NOMBRE_FILTRO_MAX: 100,
+  // Espejo de RepositorioArtefactosLimits.RepositorioArtefacto (NOMBRE_MAX, DESCRIPCION_MAX) del backend.
+  REPOSITORIO_NOMBRE_MAX: 100,
+  REPOSITORIO_DESCRIPCION_MAX: 300,
 } as const;

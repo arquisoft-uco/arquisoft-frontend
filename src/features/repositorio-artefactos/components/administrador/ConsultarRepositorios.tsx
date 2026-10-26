@@ -13,7 +13,11 @@ function textoResumen(total?: number): string {
   return `${total} ${total === 1 ? 'repositorio' : 'repositorios'}`;
 }
 
-export default function ConsultarRepositorios() {
+interface Props {
+  onGenerar?: () => void;
+}
+
+export default function ConsultarRepositorios({ onGenerar }: Props) {
   const listado = useRepositoriosArtefacto();
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const repositorios = data?.content ?? [];
@@ -52,6 +56,7 @@ export default function ConsultarRepositorios() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onGenerar={onGenerar}
           />
         )}
       </div>
