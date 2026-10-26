@@ -31,6 +31,9 @@ const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
 const RepositorioArtefactos = lazy(
   () => import('./features/repositorio-artefactos/RepositorioArtefactos'),
 );
+const VersionesRepositorio = lazy(
+  () => import('./features/repositorio-artefactos/VersionesRepositorio'),
+);
 const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
@@ -110,7 +113,11 @@ export const router = createBrowserRouter([
           { path: 'mapas-ruta', element: guarded('mapas-ruta', <MapasRuta />) },
           {
             path: 'repositorio-artefactos',
-            element: guarded('repositorio-artefactos', <RepositorioArtefactos />),
+            element: guarded('repositorio-artefactos', <Outlet />),
+            children: [
+              { index: true, element: <RepositorioArtefactos /> },
+              { path: ':repositorioId/versiones', element: <VersionesRepositorio /> },
+            ],
           },
           { path: 'biblioteca', element: guarded('biblioteca', <Biblioteca />) },
           { path: 'solicitudes', element: guarded('solicitudes', <Solicitudes />) },

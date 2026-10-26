@@ -8,9 +8,11 @@ import type {
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { RepositorioArtefacto } from '../../models/RepositorioArtefacto';
+import EnlaceRepositorio from './EnlaceRepositorio';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const NOMBRE = 'font-medium text-on-surface';
+const TARJETA_ENLACE =
+  'hover:text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
@@ -57,7 +59,7 @@ export default function RepositoriosTable({
       encabezado: 'Nombre',
       clave: 'nombreRepositorio',
       ordenable: true,
-      celda: (repositorio) => <span className={NOMBRE}>{repositorio.nombreRepositorio}</span>,
+      celda: (repositorio) => <EnlaceRepositorio repositorio={repositorio} />,
     },
     {
       id: 'descripcion',
@@ -106,7 +108,9 @@ export default function RepositoriosTable({
       vacio={vacio}
       tarjeta={(repositorio) => (
         <>
-          <p className={TARJETA_NOMBRE}>{repositorio.nombreRepositorio}</p>
+          <p className={TARJETA_NOMBRE}>
+            <EnlaceRepositorio repositorio={repositorio} clase={TARJETA_ENLACE} />
+          </p>
           <p className={TARJETA_DATO}>{descripcionDe(repositorio)}</p>
           <p className={TARJETA_DATO}>{nombreAdministrador(repositorio)}</p>
         </>
