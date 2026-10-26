@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '../../../../test-utils/render';
-import type { VersionRepositorioArtefacto } from '../../models/VersionRepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
 import VersionesRepositorioTable from './VersionesRepositorioTable';
 
 const CON_HUELLA: VersionRepositorioArtefacto = {

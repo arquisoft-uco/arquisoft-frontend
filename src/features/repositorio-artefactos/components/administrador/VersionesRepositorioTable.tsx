@@ -3,8 +3,8 @@ import Badge from '../../../../shared/components/ui/Badge';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import type { VersionRepositorioArtefacto } from '../../models/VersionRepositorioArtefacto';
-import { formatearFechaCreacion, formatearTamano } from '../../utils/formato-version';
+import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
+import { formatearFechaCreacion, formatearTamano } from '../../../../shared/utils/formato-version';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
