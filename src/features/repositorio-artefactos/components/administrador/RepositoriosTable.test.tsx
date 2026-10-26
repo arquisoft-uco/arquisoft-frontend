@@ -85,6 +85,22 @@ describe('RepositoriosTable', () => {
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
 
+  it('sin filtros y con onGenerar el vacío ofrece generar; con filtros no', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onGenerar = vi.fn();
+    const { unmount } = renderizar({ repositorios: [], onGenerar });
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Generar repositorio' }));
+    unmount();
+    renderizar({ repositorios: [], hayFiltros: true, onGenerar });
+
+    // Assert
+    expect(onGenerar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Generar repositorio' })).not.toBeInTheDocument();
+  });
+
   it('al pulsar el encabezado Administrador pide ordenar por administradorNombre', async () => {
     // Arrange
     const user = userEvent.setup();

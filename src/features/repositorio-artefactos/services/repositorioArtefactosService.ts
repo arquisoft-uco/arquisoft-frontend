@@ -1,6 +1,8 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
+import type { GenerarRepositorioArtefactoRequest } from '../models/GenerarRepositorioArtefactoRequest';
+import type { GenerarRepositorioArtefactoResponse } from '../models/GenerarRepositorioArtefactoResponse';
 import type { RepositorioArtefacto } from '../models/RepositorioArtefacto';
 import type { VersionRepositorioArtefacto } from '../models/VersionRepositorioArtefacto';
 
@@ -15,5 +17,12 @@ export const repositorioArtefactosService = {
   consultarVersionesRepositorio: (repositorioId: string): Promise<VersionRepositorioArtefacto[]> =>
     apiClient
       .get<VersionRepositorioArtefacto[]>(`/repositorio-artefactos/${repositorioId}/versiones`)
+      .then((r) => r.data),
+
+  generarRepositorio: (
+    req: GenerarRepositorioArtefactoRequest,
+  ): Promise<GenerarRepositorioArtefactoResponse> =>
+    apiClient
+      .post<GenerarRepositorioArtefactoResponse>('/repositorio-artefactos', req)
       .then((r) => r.data),
 };

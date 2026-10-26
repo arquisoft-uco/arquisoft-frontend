@@ -43,6 +43,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onGenerar?: () => void;
 }
 
 export default function RepositoriosTable({
@@ -52,6 +53,7 @@ export default function RepositoriosTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onGenerar,
 }: Props) {
   const columnas: ColumnaTabla<RepositorioArtefacto>[] = [
     {
@@ -92,7 +94,12 @@ export default function RepositoriosTable({
     <EmptyState
       icono={CloudUpload}
       titulo="Aún no hay repositorios"
-      descripcion="Aparecerán aquí cuando se registren repositorios de artefactos."
+      descripcion={
+        onGenerar
+          ? 'Genera el primero para empezar.'
+          : 'Aparecerán aquí cuando se registren repositorios de artefactos.'
+      }
+      accion={onGenerar && <Button onClick={onGenerar}>Generar repositorio</Button>}
     />
   );
 

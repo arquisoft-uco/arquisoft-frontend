@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Route, Routes } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
@@ -52,6 +53,20 @@ describe('RepositorioArtefactos', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Repositorio de artefactos' }),
     ).toBeInTheDocument();
+  });
+
+  it('el botón Generar repositorio abre el panel de generación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    entrarComo(Rol.Administrador);
+    setActiveRole(Rol.Administrador);
+    renderizar();
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Generar repositorio' }));
+
+    // Assert
+    expect(await screen.findByRole('dialog', { name: 'Generar repositorio' })).toBeInTheDocument();
   });
 
   it('sin rol activo redirige a /seleccionar-rol', () => {
