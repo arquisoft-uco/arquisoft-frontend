@@ -2,8 +2,8 @@ import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/E
 import FormActions from '../../../../shared/components/ui/FormActions';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { useGenerarRepositorioForm } from '../../hooks/useGenerarRepositorioForm';
-import GenerarRepositorioCampos from './GenerarRepositorioCampos';
-import { ETIQUETAS_CAMPO } from '../../utils/generar-repositorio-schema';
+import RepositorioCampos from './RepositorioCampos';
+import { ETIQUETAS_CAMPO } from '../../utils/repositorio-schema';
 
 const ID_FORMULARIO = 'generar-repositorio';
 const FORMULARIO = 'flex flex-col gap-6';
@@ -46,7 +46,7 @@ export default function GenerarRepositorioPanel({ onCerrar }: Props) {
         className={FORMULARIO}
       >
         <p className={FRASE}>Ambos campos son obligatorios. Quedas a cargo del repositorio.</p>
-        <GenerarRepositorioCampos
+        <RepositorioCampos
           register={register}
           errors={formState.errors}
           longitudNombre={(watch('nombreRepositorio') ?? '').length}

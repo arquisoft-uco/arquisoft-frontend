@@ -2,6 +2,7 @@ import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import type { RepositorioArtefacto } from '../../models/RepositorioArtefacto';
 import { useRepositoriosArtefacto } from '../../hooks/useRepositoriosArtefacto';
 import RepositoriosTable from './RepositoriosTable';
 
@@ -15,9 +16,10 @@ function textoResumen(total?: number): string {
 
 interface Props {
   onGenerar?: () => void;
+  onEditar?: (repositorio: RepositorioArtefacto) => void;
 }
 
-export default function ConsultarRepositorios({ onGenerar }: Props) {
+export default function ConsultarRepositorios({ onGenerar, onEditar }: Props) {
   const listado = useRepositoriosArtefacto();
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const repositorios = data?.content ?? [];
@@ -57,6 +59,7 @@ export default function ConsultarRepositorios({ onGenerar }: Props) {
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
             onGenerar={onGenerar}
+            onEditar={onEditar}
           />
         )}
       </div>

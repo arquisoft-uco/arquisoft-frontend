@@ -2,17 +2,17 @@ import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import Field from '../../../../shared/components/ui/Field';
 import FormSection from '../../../../shared/components/ui/FormSection';
 import { LIMITES } from '../../../../shared/validation';
-import { ETIQUETAS_CAMPO } from '../../utils/generar-repositorio-schema';
-import type { GenerarRepositorioValues } from '../../utils/generar-repositorio-schema';
+import { ETIQUETAS_CAMPO } from '../../utils/repositorio-schema';
+import type { RepositorioValues } from '../../utils/repositorio-schema';
 
 interface Props {
-  register: UseFormRegister<GenerarRepositorioValues>;
-  errors: FieldErrors<GenerarRepositorioValues>;
+  register: UseFormRegister<RepositorioValues>;
+  errors: FieldErrors<RepositorioValues>;
   longitudNombre: number;
   longitudDescripcion: number;
 }
 
-export default function GenerarRepositorioCampos({
+export default function RepositorioCampos({
   register,
   errors,
   longitudNombre,

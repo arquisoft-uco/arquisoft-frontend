@@ -1,4 +1,4 @@
-import { CloudUpload, SearchX } from 'lucide-react';
+import { CloudUpload, Pencil, SearchX } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type {
@@ -7,6 +7,7 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { RepositorioArtefacto } from '../../models/RepositorioArtefacto';
 import EnlaceRepositorio from './EnlaceRepositorio';
 
@@ -44,6 +45,7 @@ interface Props {
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
   onGenerar?: () => void;
+  onEditar?: (repositorio: RepositorioArtefacto) => void;
 }
 
 export default function RepositoriosTable({
@@ -54,6 +56,7 @@ export default function RepositoriosTable({
   onOrdenar,
   onLimpiarFiltros,
   onGenerar,
+  onEditar,
 }: Props) {
   const columnas: ColumnaTabla<RepositorioArtefacto>[] = [
     {
@@ -111,6 +114,17 @@ export default function RepositoriosTable({
       idDeFila={(repositorio) => repositorio.id}
       orden={orden}
       onOrdenar={onOrdenar}
+      acciones={
+        onEditar &&
+        ((repositorio) => (
+          <RowMenu
+            etiqueta={`Acciones de ${repositorio.nombreRepositorio}`}
+            acciones={[
+              { etiqueta: 'Editar', icono: Pencil, onSeleccionar: () => onEditar(repositorio) },
+            ]}
+          />
+        ))
+      }
       cargando={cargando}
       vacio={vacio}
       tarjeta={(repositorio) => (

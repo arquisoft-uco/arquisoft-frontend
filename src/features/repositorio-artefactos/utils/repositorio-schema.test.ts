@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { LIMITES, MENSAJES_VALIDACION } from '../../../shared/validation';
-import { generarRepositorioSchema } from './generar-repositorio-schema';
+import { repositorioSchema } from './repositorio-schema';
 
 const VALIDO = { nombreRepositorio: 'Repositorio Alfa', descripcion: 'Artefactos del semillero' };
 
 function mensajes(entrada: unknown) {
-  const resultado = generarRepositorioSchema.safeParse(entrada);
+  const resultado = repositorioSchema.safeParse(entrada);
   return resultado.success ? [] : resultado.error.issues.map((i) => i.message);
 }
 
-describe('generarRepositorioSchema', () => {
+describe('repositorioSchema', () => {
   it('exige ambos campos con trim, respeta los máximos y recorta el valor', () => {
     // Act
     const vacios = mensajes({ nombreRepositorio: '   ', descripcion: '' });
@@ -21,11 +21,11 @@ describe('generarRepositorioSchema', () => {
       ...VALIDO,
       descripcion: 'a'.repeat(LIMITES.REPOSITORIO_DESCRIPCION_MAX + 1),
     });
-    const enElLimite = generarRepositorioSchema.safeParse({
+    const enElLimite = repositorioSchema.safeParse({
       nombreRepositorio: 'a'.repeat(LIMITES.REPOSITORIO_NOMBRE_MAX),
       descripcion: 'a'.repeat(LIMITES.REPOSITORIO_DESCRIPCION_MAX),
     });
-    const recortado = generarRepositorioSchema.safeParse({
+    const recortado = repositorioSchema.safeParse({
       nombreRepositorio: '  Alfa  ',
       descripcion: '  Desc  ',
     });

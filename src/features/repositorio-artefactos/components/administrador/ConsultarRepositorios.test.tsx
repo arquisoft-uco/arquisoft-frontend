@@ -68,6 +68,21 @@ describe('ConsultarRepositorios', () => {
     await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
   });
 
+  it('elegir Editar en una fila entrega ese repositorio a onEditar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onEditar = vi.fn();
+    render(<ConsultarRepositorios onEditar={onEditar} />);
+    await screen.findByText('2 repositorios');
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Acciones de Repositorio Beta' })[0]);
+    await user.click(screen.getByRole('menuitem', { name: 'Editar' }));
+
+    // Assert
+    expect(onEditar).toHaveBeenCalledWith(PAGINA.content[1]);
+  });
+
   it('escribir en la búsqueda vuelve a consultar con el filtro', async () => {
     // Arrange
     const user = userEvent.setup();

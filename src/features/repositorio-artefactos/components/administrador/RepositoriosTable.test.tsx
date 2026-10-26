@@ -112,4 +112,28 @@ describe('RepositoriosTable', () => {
     // Assert
     expect(onOrdenar).toHaveBeenCalledWith('administradorNombre', 'ASC');
   });
+
+  it('con onEditar el menú de la fila ofrece Editar y lo invoca con el repositorio', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onEditar = vi.fn();
+    renderizar({ onEditar });
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Acciones de Repositorio Alfa' })[0]);
+    await user.click(screen.getByRole('menuitem', { name: 'Editar' }));
+
+    // Assert
+    expect(onEditar).toHaveBeenCalledWith(COMPLETO);
+  });
+
+  it('sin onEditar no hay menú de acciones', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      screen.queryByRole('button', { name: 'Acciones de Repositorio Alfa' }),
+    ).not.toBeInTheDocument();
+  });
 });
