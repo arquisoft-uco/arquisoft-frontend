@@ -1,5 +1,6 @@
-import { FileStack } from 'lucide-react';
+import { FileStack, Upload } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
+import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
@@ -72,9 +73,10 @@ const COLUMNAS: ColumnaTabla<VersionRepositorioArtefacto>[] = [
 interface Props {
   versiones: VersionRepositorioArtefacto[];
   cargando: boolean;
+  onSubir?: () => void;
 }
 
-export default function VersionesRepositorioTable({ versiones, cargando }: Props) {
+export default function VersionesRepositorioTable({ versiones, cargando, onSubir }: Props) {
   return (
     <DataTable
       etiqueta="Versiones del repositorio"
@@ -87,6 +89,13 @@ export default function VersionesRepositorioTable({ versiones, cargando }: Props
           icono={FileStack}
           titulo="Este repositorio aún no tiene versiones"
           descripcion="Aparecerán aquí cuando se cargue una versión."
+          accion={
+            onSubir && (
+              <Button icono={Upload} onClick={onSubir}>
+                Subir versión
+              </Button>
+            )
+          }
         />
       }
       tarjeta={(version) => (

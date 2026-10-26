@@ -8,6 +8,8 @@ declare module 'axios' {
   interface AxiosRequestConfig {
     // Peticiones que no deben refrescar token, reintentar ni navegar a /forbidden (p. ej. el logout)
     _omitirManejoAuth?: boolean;
+    // Peticiones a un host externo ya firmado (MinIO): sin Bearer ni manejo de 401/403
+    _sinCredenciales?: boolean;
   }
 }
 
@@ -19,6 +21,7 @@ const apiClient = axios.create({
 // ── Request interceptor: attach Bearer token ─────────────────────────────────
 // Uses Zustand's getState() — NOT useContext() — so it works outside the React tree.
 apiClient.interceptors.request.use((config) => {
+  if (config._sinCredenciales) return config;
   const token = useAuthStore.getState().token;
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
@@ -38,7 +41,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const config = error.config as typeof error.config & { _retry?: boolean };
 
-    if (config?._omitirManejoAuth) {
+    if (config?._omitirManejoAuth || config?._sinCredenciales) {
       monitoring.captureHttpError(status, config.url, config.method);
       return Promise.reject(error);
     }

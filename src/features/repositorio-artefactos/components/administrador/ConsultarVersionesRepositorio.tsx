@@ -13,9 +13,10 @@ function textoResumen(total?: number): string {
 
 interface Props {
   repositorioId: string;
+  onSubir?: () => void;
 }
 
-export default function ConsultarVersionesRepositorio({ repositorioId }: Props) {
+export default function ConsultarVersionesRepositorio({ repositorioId, onSubir }: Props) {
   const { data, isLoading, isError, error, isFetching, refetch } =
     useVersionesRepositorioArtefacto(repositorioId);
 
@@ -33,7 +34,11 @@ export default function ConsultarVersionesRepositorio({ repositorioId }: Props) 
             onReintentar={refetch}
           />
         ) : (
-          <VersionesRepositorioTable versiones={data ?? []} cargando={isLoading} />
+          <VersionesRepositorioTable
+            versiones={data ?? []}
+            cargando={isLoading}
+            onSubir={onSubir}
+          />
         )}
       </div>
     </div>

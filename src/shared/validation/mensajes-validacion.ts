@@ -13,4 +13,14 @@ export const MENSAJES_VALIDACION = {
   valorEntre: (min: number, max: number) => `Debe estar entre ${min} y ${max}`,
   fechaInvalida: 'Ingresa una fecha válida',
   fechaFinPosterior: 'La fecha de fin debe ser posterior a la de inicio',
+  archivoRequerido: 'Selecciona un archivo',
+  formatoArchivo: (extensiones: readonly string[]) => {
+    const nombres = extensiones.map((e) => e.toUpperCase());
+    const ultimo = nombres[nombres.length - 1];
+    const previos = nombres.slice(0, -1);
+    return `Formato no permitido. Usa ${previos.length > 0 ? `${previos.join(', ')} o ${ultimo}` : ultimo}`;
+  },
+  archivoVacio: 'El archivo está vacío',
+  archivoMuyGrande: (maxBytes: number) => `El archivo supera los ${maxBytes / 1_048_576} MB`,
+  nombreArchivoInvalido: 'El nombre del archivo tiene caracteres no permitidos',
 } as const;

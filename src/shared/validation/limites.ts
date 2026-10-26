@@ -41,4 +41,9 @@ export const LIMITES = {
   // Espejo de RepositorioArtefactosLimits.RepositorioArtefacto (NOMBRE_MAX, DESCRIPCION_MAX) del backend.
   REPOSITORIO_NOMBRE_MAX: 100,
   REPOSITORIO_DESCRIPCION_MAX: 300,
+  // Espejo de RepositorioArtefactosLimits.VersionRepositorioArtefacto (NOMBRE_DOCUMENTO_MAX, NOMBRE_ARCHIVO_MAX).
+  VERSION_NOMBRE_DOCUMENTO_MAX: 100,
+  VERSION_NOMBRE_ARCHIVO_MAX: 255,
+  // repositorio-artefactos.almacenamiento.tamano-maximo-bytes (application.yml del backend).
+  VERSION_ARCHIVO_TAMANO_MAX_BYTES: 5_242_880,
 } as const;

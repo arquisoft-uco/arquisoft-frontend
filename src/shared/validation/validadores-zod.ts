@@ -3,6 +3,7 @@ import {
   DIGITOS_REGEX,
   EMAIL_REGEX,
   FECHA_ISO_REGEX,
+  NOMBRE_ARCHIVO_INVALIDO_REGEX,
   NOMBRE_COMPLETO_REGEX,
   UUID_REGEX,
 } from './expresiones-regulares';
@@ -216,4 +217,61 @@ export function validarFechaFinPosterior(
       message: MENSAJES_VALIDACION.fechaFinPosterior,
     });
   }
+}
+
+interface OpcionesArchivo {
+  extensiones: readonly string[];
+  tamanoMaxBytes: number;
+  nombreMax: number;
+}
+
+// Espejo de la validación de un archivo del backend, en este orden: requerido, longitud del nombre,
+// caracteres del nombre, extensión permitida y tamaño (vacío o excedido).
+export function archivoPermitido({ extensiones, tamanoMaxBytes, nombreMax }: OpcionesArchivo) {
+  return z
+    .instanceof(File)
+    .nullable()
+    .superRefine((archivo, ctx) => {
+      if (!archivo) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.archivoRequerido,
+        });
+        return;
+      }
+      const nombre = archivo.name.trim();
+      if (nombre.length > nombreMax) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.longitudMaxima(nombreMax),
+        });
+        return;
+      }
+      if (NOMBRE_ARCHIVO_INVALIDO_REGEX.test(nombre)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.nombreArchivoInvalido,
+        });
+        return;
+      }
+      const punto = nombre.lastIndexOf('.');
+      const extension = punto < 0 ? '' : nombre.slice(punto + 1).toLowerCase();
+      if (!extensiones.includes(extension)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.formatoArchivo(extensiones),
+        });
+        return;
+      }
+      if (archivo.size < 1) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.archivoVacio });
+        return;
+      }
+      if (archivo.size > tamanoMaxBytes) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.archivoMuyGrande(tamanoMaxBytes),
+        });
+      }
+    });
 }
