@@ -83,8 +83,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CloudUpload,
     path: '/repositorio-artefactos',
     order: 7,
-    roles: ROLES_GENERALES,
-    disponible: false,
+    roles: [Rol.Administrador],
   },
   {
     label: 'Biblioteca',
