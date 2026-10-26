@@ -3,18 +3,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useGenerarRepositorioArtefacto } from './useGenerarRepositorioArtefacto';
 import { toast } from '../../../shared/hooks/useToast';
-import {
-  getApiErrorMessage,
-  getApiFieldErrors,
-  hasApiErrorCode,
-} from '../../../shared/utils/api-error';
-import {
-  CAMPOS,
-  generarRepositorioSchema,
-  type GenerarRepositorioValues,
-} from '../utils/generar-repositorio-schema';
-
-const MENSAJE_DUPLICADO = 'Ya existe un repositorio con este nombre.';
+import { getApiErrorMessage, hasApiErrorCode } from '../../../shared/utils/api-error';
+import { aplicarErrorDeRepositorio } from '../utils/errores-repositorio';
+import { CAMPOS, repositorioSchema, type RepositorioValues } from '../utils/repositorio-schema';
 
 interface Opciones {
   onCerrar: () => void;
@@ -22,8 +13,8 @@ interface Opciones {
 
 export function useGenerarRepositorioForm({ onCerrar }: Opciones) {
   const [resumenVisible, setResumenVisible] = useState(false);
-  const form = useForm<GenerarRepositorioValues>({
-    resolver: zodResolver(generarRepositorioSchema),
+  const form = useForm<RepositorioValues>({
+    resolver: zodResolver(repositorioSchema),
     defaultValues: { nombreRepositorio: '', descripcion: '' },
     mode: 'onTouched',
   });
@@ -40,17 +31,11 @@ export function useGenerarRepositorioForm({ onCerrar }: Opciones) {
       ? 'Tu cuenta de administrador no está vigente.'
       : 'Inténtalo nuevamente.';
     toast.error('No se pudo generar el repositorio', getApiErrorMessage(err, respaldo));
-    if (hasApiErrorCode(err, 'REPOSITORIO_ARTEFACTO_DUPLICADO')) {
-      form.setError('nombreRepositorio', { message: MENSAJE_DUPLICADO }, { shouldFocus: true });
-    }
-    for (const { field, message } of getApiFieldErrors(err)) {
-      const campo = CAMPOS.find((c) => c === field);
-      if (campo) form.setError(campo, { message });
-    }
+    aplicarErrorDeRepositorio(err, form.setError);
     setResumenVisible(true);
   }
 
-  function generar(valores: GenerarRepositorioValues) {
+  function generar(valores: RepositorioValues) {
     setResumenVisible(false);
     mutate(valores, {
       onSuccess: () => {

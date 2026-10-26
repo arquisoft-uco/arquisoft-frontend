@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { GenerarRepositorioArtefactoRequest } from '../models/GenerarRepositorioArtefactoRequest';
 import type { GenerarRepositorioArtefactoResponse } from '../models/GenerarRepositorioArtefactoResponse';
+import type { ModificarRepositorioArtefactoRequest } from '../models/ModificarRepositorioArtefactoRequest';
 import type { RepositorioArtefacto } from '../models/RepositorioArtefacto';
 import type { VersionRepositorioArtefacto } from '../models/VersionRepositorioArtefacto';
 
@@ -25,4 +26,10 @@ export const repositorioArtefactosService = {
     apiClient
       .post<GenerarRepositorioArtefactoResponse>('/repositorio-artefactos', req)
       .then((r) => r.data),
+
+  modificarRepositorio: (
+    repositorioId: string,
+    req: ModificarRepositorioArtefactoRequest,
+  ): Promise<void> =>
+    apiClient.patch<void>(`/repositorio-artefactos/${repositorioId}`, req).then(() => undefined),
 };
