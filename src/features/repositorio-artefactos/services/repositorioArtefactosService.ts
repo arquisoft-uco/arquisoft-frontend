@@ -9,7 +9,7 @@ import type { SolicitarCargaVersionRequest } from '../models/SolicitarCargaVersi
 import type { SolicitarCargaVersionResponse } from '../models/SolicitarCargaVersionResponse';
 import type { SubirVersionRequest } from '../models/SubirVersionRequest';
 import type { SubirVersionResponse } from '../models/SubirVersionResponse';
-import type { VersionRepositorioArtefacto } from '../models/VersionRepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../../../shared/models/VersionRepositorioArtefacto';
 
 export const repositorioArtefactosService = {
   consultarRepositoriosAdministrador: (

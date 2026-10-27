@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { LIMITES } from '../../../shared/validation';
-import type { VersionRepositorioArtefacto } from '../models/VersionRepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../../../shared/models/VersionRepositorioArtefacto';
 import { nombresDeDocumento, sugerirNombreDocumento } from './documentos-version';
 
 function version(nombreDocumento: string, numeroVersion: number): VersionRepositorioArtefacto {

@@ -6,7 +6,7 @@ import { toast } from '../../../../shared/hooks/useToast';
 import type { ApiError } from '../../../../shared/models/api-response';
 import { useSubirVersionRepositorio } from '../../hooks/useSubirVersionRepositorio';
 import { useVersionesRepositorioArtefacto } from '../../hooks/useVersionesRepositorioArtefacto';
-import type { VersionRepositorioArtefacto } from '../../models/VersionRepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
 import SubirVersionPanel from './SubirVersionPanel';
 
 vi.mock('../../hooks/useSubirVersionRepositorio', () => ({ useSubirVersionRepositorio: vi.fn() }));

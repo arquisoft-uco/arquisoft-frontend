@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
-import type { VersionRepositorioArtefacto } from '../../models/VersionRepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
 import VersionesRepositorioTable from './VersionesRepositorioTable';
 
 const CON_HUELLA: VersionRepositorioArtefacto = {

@@ -1,5 +1,5 @@
 import { LIMITES } from '../../../shared/validation';
-import type { VersionRepositorioArtefacto } from '../models/VersionRepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../../../shared/models/VersionRepositorioArtefacto';
 
 export function nombresDeDocumento(versiones: VersionRepositorioArtefacto[]): string[] {
   return [...new Set(versiones.map((v) => v.nombreDocumento))].sort((a, b) =>

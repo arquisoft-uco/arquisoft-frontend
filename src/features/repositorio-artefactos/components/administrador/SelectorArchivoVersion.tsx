@@ -1,5 +1,5 @@
 import type { ControlDeCampo } from '../../../../shared/components/ui/Field';
-import { formatearTamano } from '../../utils/formato-version';
+import { formatearTamano } from '../../../../shared/utils/formato-version';
 import { ACEPTA_VERSION } from '../../utils/tipos-archivo-version';
 
 const RAIZ = 'flex min-w-0 flex-col gap-2';
