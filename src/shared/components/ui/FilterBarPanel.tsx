@@ -10,7 +10,7 @@ import type { OrdenFiltro, SeccionFiltro } from './FilterBarSecciones';
 export type { OrdenFiltro, SeccionFiltro };
 
 const PANEL =
-  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col rounded-t-2xl bg-surface shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:bottom-auto sm:top-full sm:z-30 sm:mt-2 sm:max-h-none sm:w-85 sm:max-w-[calc(100vw-3rem)] sm:rounded-xl sm:border sm:border-border sm:shadow-dropdown';
+  'fixed inset-x-0 bottom-0 z-50 flex max-h-[86dvh] flex-col rounded-t-2xl bg-surface shadow-lg sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:z-30 sm:mt-2 sm:max-h-none sm:w-85 sm:max-w-[calc(100vw-3rem)] sm:rounded-xl sm:border sm:border-border sm:shadow-dropdown';
 const TELON = 'fixed inset-0 z-40 bg-black/40 animate-fade-in sm:hidden';
 const CABECERA = 'flex shrink-0 items-center justify-between py-1 pl-5 pr-2 sm:hidden';
 const TITULO = 'text-lg font-semibold text-on-surface';
@@ -34,6 +34,7 @@ interface Props {
   orden?: OrdenFiltro;
   totalResultados?: number;
   hayAplicados: boolean;
+  anclaIzquierda?: boolean;
   onCerrar: () => void;
 }
 
@@ -45,6 +46,7 @@ export default function FilterBarPanel({
   orden,
   totalResultados,
   hayAplicados,
+  anclaIzquierda = false,
   onCerrar,
 }: Props) {
   const telon = useRef<HTMLDivElement>(null);
@@ -62,7 +64,14 @@ export default function FilterBarPanel({
 
   return (
     <>
-      <div ref={ref} id={id} role="dialog" aria-label="Filtros" tabIndex={-1} className={PANEL}>
+      <div
+        ref={ref}
+        id={id}
+        role="dialog"
+        aria-label="Filtros"
+        tabIndex={-1}
+        className={[PANEL, anclaIzquierda ? 'sm:left-0' : 'sm:right-0'].join(' ')}
+      >
         <div className={CABECERA}>
           <h2 className={TITULO}>Filtros y orden</h2>
           <IconButton etiqueta="Cerrar filtros" icono={X} onClick={onCerrar} />

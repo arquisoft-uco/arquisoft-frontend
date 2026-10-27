@@ -1,7 +1,9 @@
-import { useId } from 'react';
 import type { ReactNode } from 'react';
+import FilterBarSeccionFechas from './FilterBarSeccionFechas';
+import FilterBarSeccionSeleccion from './FilterBarSeccionSeleccion';
 import FilterBarSeccionTexto from './FilterBarSeccionTexto';
-import FilterChip from './FilterChip';
+import { GrupoDeChips, SeccionChips } from './FilterBarSeccionChips';
+import type { OpcionCombobox } from './Combobox';
 import type { OpcionFiltro } from './FilterChip';
 
 interface SeccionBase {
@@ -35,7 +37,31 @@ export interface SeccionTexto extends SeccionBase {
   placeholder?: string;
 }
 
-export type SeccionFiltro = SeccionOpciones | SeccionMultiple | SeccionTexto;
+export interface SeccionSeleccion extends SeccionBase {
+  tipo: 'seleccion';
+  opciones: OpcionCombobox[];
+  valor: string;
+  onCambiar: (id: string) => void;
+  textoVacio: string;
+  placeholder?: string;
+  deshabilitada?: boolean;
+  aviso?: ReactNode;
+}
+
+export interface SeccionFechas extends SeccionBase {
+  tipo: 'fechas';
+  desde: string;
+  hasta: string;
+  onCambiarDesde: (valor: string) => void;
+  onCambiarHasta: (valor: string) => void;
+}
+
+export type SeccionFiltro =
+  | SeccionOpciones
+  | SeccionMultiple
+  | SeccionTexto
+  | SeccionSeleccion
+  | SeccionFechas;
 
 export interface OrdenFiltro {
   etiqueta: string;
@@ -44,73 +70,7 @@ export interface OrdenFiltro {
   onCambiar: (id: string) => void;
 }
 
-const SECCION = 'flex flex-col gap-2.5 sm:gap-2';
-const ETIQUETA = 'text-sm font-semibold text-on-surface sm:font-medium';
-const OPCIONES = 'flex flex-wrap gap-2';
-
-interface PropsGrupo {
-  etiqueta: string;
-  opciones: OpcionFiltro[];
-  estaActiva: (id: string) => boolean;
-  onElegir: (id: string) => void;
-  deshabilitada?: boolean;
-  aviso?: ReactNode;
-  className?: string;
-}
-
-function GrupoDeChips({
-  etiqueta,
-  opciones,
-  estaActiva,
-  onElegir,
-  deshabilitada,
-  aviso,
-  className,
-}: PropsGrupo) {
-  const idEtiqueta = useId();
-
-  return (
-    <div className={[SECCION, className].filter(Boolean).join(' ')}>
-      <span id={idEtiqueta} className={ETIQUETA}>
-        {etiqueta}
-      </span>
-      <div role="group" aria-labelledby={idEtiqueta} className={OPCIONES}>
-        {opciones.map((opcion) => (
-          <FilterChip
-            key={opcion.id}
-            etiqueta={opcion.etiqueta}
-            activo={estaActiva(opcion.id)}
-            disabled={deshabilitada}
-            onClick={() => onElegir(opcion.id)}
-          />
-        ))}
-      </div>
-      {aviso}
-    </div>
-  );
-}
-
-export function SeccionChips({
-  etiqueta,
-  opciones,
-  valor,
-  onCambiar,
-  deshabilitada,
-  aviso,
-  className,
-}: Omit<SeccionOpciones, 'id' | 'tipo'> & { className?: string }) {
-  return (
-    <GrupoDeChips
-      etiqueta={etiqueta}
-      opciones={opciones}
-      estaActiva={(id) => id === valor}
-      onElegir={onCambiar}
-      deshabilitada={deshabilitada}
-      aviso={aviso}
-      className={className}
-    />
-  );
-}
+export { SeccionChips };
 
 export function SeccionDeFiltro({ seccion }: { seccion: SeccionFiltro }) {
   if (seccion.tipo === 'texto') {
@@ -120,6 +80,31 @@ export function SeccionDeFiltro({ seccion }: { seccion: SeccionFiltro }) {
         valor={seccion.valor}
         onCambiar={seccion.onCambiar}
         placeholder={seccion.placeholder}
+      />
+    );
+  }
+  if (seccion.tipo === 'seleccion') {
+    return (
+      <FilterBarSeccionSeleccion
+        etiqueta={seccion.etiqueta}
+        opciones={seccion.opciones}
+        valor={seccion.valor}
+        onCambiar={seccion.onCambiar}
+        textoVacio={seccion.textoVacio}
+        placeholder={seccion.placeholder}
+        deshabilitada={seccion.deshabilitada}
+        aviso={seccion.aviso}
+      />
+    );
+  }
+  if (seccion.tipo === 'fechas') {
+    return (
+      <FilterBarSeccionFechas
+        etiqueta={seccion.etiqueta}
+        desde={seccion.desde}
+        hasta={seccion.hasta}
+        onCambiarDesde={seccion.onCambiarDesde}
+        onCambiarHasta={seccion.onCambiarHasta}
       />
     );
   }
@@ -140,5 +125,8 @@ export function SeccionDeFiltro({ seccion }: { seccion: SeccionFiltro }) {
 
 export function limpiarSeccion(seccion: SeccionFiltro) {
   if (seccion.tipo === 'multiple') seccion.onLimpiar();
-  else seccion.onCambiar('');
+  else if (seccion.tipo === 'fechas') {
+    seccion.onCambiarDesde('');
+    seccion.onCambiarHasta('');
+  } else seccion.onCambiar('');
 }

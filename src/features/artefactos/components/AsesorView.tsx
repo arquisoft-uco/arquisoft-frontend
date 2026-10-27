@@ -5,18 +5,20 @@ import Tabs from '../../../shared/components/ui/Tabs';
 import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import ConsultarEstadosRevisionAsesor from './asesor/ConsultarEstadosRevisionAsesor';
 import ConsultarRevisionesRealizadas from './asesor/ConsultarRevisionesRealizadas';
+import ConsultarVersionesArtefactoAsesor from './asesor/ConsultarVersionesArtefactoAsesor';
 import ConsultarVersionesRepositorioAsesor from './asesor/ConsultarVersionesRepositorioAsesor';
 
-type Vista = 'revisiones' | 'estados' | 'versiones';
+type Vista = 'revisiones' | 'estados' | 'versiones' | 'versiones-artefactos';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
   revisiones: ConsultarRevisionesRealizadas,
   estados: ConsultarEstadosRevisionAsesor,
   versiones: ConsultarVersionesRepositorioAsesor,
+  'versiones-artefactos': ConsultarVersionesArtefactoAsesor,
 };
 
 function leerVista(valor: string): Vista {
-  return valor === 'estados' || valor === 'versiones' ? valor : 'revisiones';
+  return Object.keys(CONTENIDO_POR_VISTA).includes(valor) ? (valor as Vista) : 'revisiones';
 }
 
 export default function AsesorView() {
@@ -28,7 +30,7 @@ export default function AsesorView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Artefactos"
-        descripcion="Consulta tus revisiones realizadas, sus estados y las versiones de repositorio disponibles para asignar."
+        descripcion="Consulta tus revisiones realizadas, sus estados, las versiones de repositorio disponibles para asignar y las versiones de los artefactos que tienes asignados."
       />
       <Tabs
         etiqueta="Secciones de artefactos"
@@ -40,6 +42,11 @@ export default function AsesorView() {
             id: 'versiones',
             etiqueta: 'Versiones de repositorio',
             to: `${pathname}?vista=versiones`,
+          },
+          {
+            id: 'versiones-artefactos',
+            etiqueta: 'Versiones de artefactos',
+            to: `${pathname}?vista=versiones-artefactos`,
           },
         ]}
       />

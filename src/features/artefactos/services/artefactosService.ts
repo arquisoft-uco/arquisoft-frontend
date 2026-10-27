@@ -1,12 +1,14 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
+import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { RevisionAsesor } from '../models/RevisionAsesor';
 import type { RevisionAsesorResponse } from '../models/RevisionAsesorResponse';
+import type { VersionArtefactoAsesor } from '../models/VersionArtefactoAsesor';
 import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
 
 function aObservacionRevision({
@@ -65,4 +67,14 @@ export const artefactosService = {
     apiClient
       .post<Page<VersionRepositorioAsesor>>('/repositorio-artefactos/versiones/asesor', req)
       .then((r) => r.data),
+
+  consultarVersionesArtefactoAsesor: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<VersionArtefactoAsesor>> =>
+    apiClient
+      .post<Page<VersionArtefactoAsesor>>('/versiones-artefacto/asesor', req)
+      .then((r) => r.data),
+
+  consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
+    apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', req).then((r) => r.data),
 };

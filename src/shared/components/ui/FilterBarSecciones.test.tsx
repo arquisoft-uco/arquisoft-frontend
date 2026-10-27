@@ -172,4 +172,61 @@ describe('secciones de FilterBar', () => {
     expect(onTexto).toHaveBeenCalledWith('');
     expect(onOpciones).toHaveBeenCalledWith('');
   });
+  it('"Limpiar" vacía la sección de selección', async () => {
+    // Arrange
+    const user = usarTemporizadoresFalsos();
+    const onCambiar = vi.fn();
+    renderizar([
+      {
+        id: 'artefacto',
+        tipo: 'seleccion',
+        etiqueta: 'Artefacto',
+        opciones: OPCIONES,
+        valor: 'a',
+        onCambiar,
+        textoVacio: 'Sin coincidencias',
+      },
+    ]);
+    const panel = await abrirPanel(user);
+    expect(panel.getByText('Artefacto')).toBeInTheDocument();
+
+    // Act
+    await user.click(panel.getByRole('button', { name: 'Limpiar' }));
+
+    // Assert
+    expect(onCambiar).toHaveBeenCalledWith('');
+  });
+
+  it('la sección de fechas emite desde y hasta, aplica min y max, y "Limpiar" vacía ambas', async () => {
+    // Arrange
+    const user = usarTemporizadoresFalsos();
+    const onDesde = vi.fn();
+    const onHasta = vi.fn();
+    renderizar([
+      {
+        id: 'fechas',
+        tipo: 'fechas',
+        etiqueta: 'Fecha de creación',
+        desde: '2026-10-01',
+        hasta: '2026-10-20',
+        onCambiarDesde: onDesde,
+        onCambiarHasta: onHasta,
+      },
+    ]);
+    const panel = await abrirPanel(user);
+    const desde = panel.getByLabelText('Desde');
+    const hasta = panel.getByLabelText('Hasta');
+
+    // Assert
+    expect(desde).toHaveAttribute('max', '2026-10-20');
+    expect(hasta).toHaveAttribute('min', '2026-10-01');
+
+    // Act
+    await user.clear(desde);
+    await user.click(panel.getByRole('button', { name: 'Limpiar' }));
+
+    // Assert
+    expect(onDesde).toHaveBeenCalledWith('');
+    expect(onHasta).toHaveBeenCalledWith('');
+  });
 });

@@ -8,6 +8,7 @@ import type { OrdenFiltro, SeccionFiltro } from './FilterBarSecciones';
 import FilterChip, { type OpcionFiltro } from './FilterChip';
 
 export type { OpcionFiltro, OrdenFiltro, SeccionFiltro };
+export type { SeccionFechas, SeccionSeleccion } from './FilterBarSecciones';
 
 const RAIZ =
   'relative flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-4 shadow-card';
@@ -96,6 +97,7 @@ export default function FilterBar({
                   orden={orden}
                   totalResultados={totalResultados}
                   hayAplicados={aplicados.length > 0}
+                  anclaIzquierda={!busqueda}
                   onCerrar={() => setAbierto(false)}
                 />
               )}
