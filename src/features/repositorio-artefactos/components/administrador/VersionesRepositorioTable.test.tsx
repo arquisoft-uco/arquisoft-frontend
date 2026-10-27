@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
 import VersionesRepositorioTable from './VersionesRepositorioTable';
@@ -40,5 +41,23 @@ describe('VersionesRepositorioTable', () => {
 
     // Assert
     expect(screen.getByText('Este repositorio aún no tiene versiones')).toBeInTheDocument();
+  });
+
+  it('el botón del estado vacío invoca onSubir y sin la prop no se muestra', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onSubir = vi.fn();
+    const { unmount } = render(
+      <VersionesRepositorioTable versiones={[]} cargando={false} onSubir={onSubir} />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Subir versión' }));
+
+    // Assert
+    expect(onSubir).toHaveBeenCalledTimes(1);
+    unmount();
+    render(<VersionesRepositorioTable versiones={[]} cargando={false} />);
+    expect(screen.queryByRole('button', { name: 'Subir versión' })).not.toBeInTheDocument();
   });
 });

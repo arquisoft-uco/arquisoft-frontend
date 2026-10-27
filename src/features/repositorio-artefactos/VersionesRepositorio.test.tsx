@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { Navigate, Route, Routes } from 'react-router';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
@@ -8,6 +9,9 @@ import VersionesRepositorio from './VersionesRepositorio';
 vi.mock('./services/repositorioArtefactosService', () => ({
   repositorioArtefactosService: {
     consultarVersionesRepositorio: vi.fn().mockResolvedValue([]),
+    solicitarCargaVersion: vi.fn(),
+    cargarArchivoVersion: vi.fn(),
+    subirVersion: vi.fn(),
   },
 }));
 
@@ -74,6 +78,20 @@ describe('VersionesRepositorio', () => {
       '/repositorio-artefactos',
     );
     expect(screen.getAllByText('Repositorio').length).toBeGreaterThan(0);
+  });
+
+  it('el botón de la cabecera abre el panel para subir una versión', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    entrarComo(Rol.Administrador);
+    setActiveRole(Rol.Administrador);
+    renderizar();
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Subir versión' }));
+
+    // Assert
+    expect(await screen.findByRole('dialog', { name: 'Subir versión' })).toBeInTheDocument();
   });
 
   it('sin rol activo redirige a /seleccionar-rol', () => {

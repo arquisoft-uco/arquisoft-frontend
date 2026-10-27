@@ -17,6 +17,7 @@ import {
   validarParDeNombres,
   fechaIso,
   validarFechaFinPosterior,
+  archivoPermitido,
 } from './validadores-zod';
 
 describe('límites alineados al backend', () => {
@@ -47,6 +48,9 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.REPOSITORIO_DESCRIPCION_MAX).toBe(300);
     expect(LIMITES.OBSERVACION_EVALUACION_MAX).toBe(200);
     expect(LIMITES.OBSERVACION_ITEM_MAX).toBe(200);
+    expect(LIMITES.VERSION_NOMBRE_DOCUMENTO_MAX).toBe(100);
+    expect(LIMITES.VERSION_NOMBRE_ARCHIVO_MAX).toBe(255);
+    expect(LIMITES.VERSION_ARCHIVO_TAMANO_MAX_BYTES).toBe(5_242_880);
   });
 });
 
@@ -352,5 +356,36 @@ describe('validarFechaFinPosterior', () => {
     expect(errores('2026-10-22', '2026-10-21')).toEqual([mensaje]);
     expect(errores('2026-10-22', '2026-10-23')).toEqual([]);
     expect(errores('2026-02-30', '2026-01-01')).toEqual([]);
+  });
+});
+
+describe('archivoPermitido', () => {
+  const esquema = archivoPermitido({
+    extensiones: ['pdf', 'docx'],
+    tamanoMaxBytes: 10,
+    nombreMax: 20,
+  });
+  const formato = MENSAJES_VALIDACION.formatoArchivo(['pdf', 'docx']);
+
+  function mensaje(archivo: File | null) {
+    const r = esquema.safeParse(archivo);
+    return r.success ? null : r.error.issues[0].message;
+  }
+
+  function archivo(nombre: string, tamano: number) {
+    return new File([new Uint8Array(tamano)], nombre);
+  }
+
+  it('exige archivo, nombre válido, extensión permitida y tamaño entre 1 byte y el máximo', () => {
+    expect(mensaje(null)).toBe(MENSAJES_VALIDACION.archivoRequerido);
+    expect(mensaje(archivo(`${'a'.repeat(20)}.pdf`, 1))).toBe(
+      MENSAJES_VALIDACION.longitudMaxima(20),
+    );
+    expect(mensaje(archivo('a/b.pdf', 1))).toBe(MENSAJES_VALIDACION.nombreArchivoInvalido);
+    expect(mensaje(archivo('nota.txt', 1))).toBe(formato);
+    expect(mensaje(archivo('sin-extension', 1))).toBe(formato);
+    expect(mensaje(archivo('a.pdf', 0))).toBe(MENSAJES_VALIDACION.archivoVacio);
+    expect(mensaje(archivo('a.pdf', 11))).toBe(MENSAJES_VALIDACION.archivoMuyGrande(10));
+    expect(mensaje(archivo('A.PDF', 10))).toBeNull();
   });
 });
