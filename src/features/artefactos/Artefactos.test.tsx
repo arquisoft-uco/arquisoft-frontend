@@ -8,6 +8,16 @@ import Artefactos from './Artefactos';
 vi.mock('./services/artefactosService', () => ({
   artefactosService: {
     getEstadosRevisionAsesor: vi.fn().mockResolvedValue([]),
+    consultarVersionesRepositorioAsesor: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
     consultarRevisionesAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -51,7 +61,7 @@ describe('Artefactos', () => {
 
     // Assert
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Revisiones de artefactos' }),
+      await screen.findByRole('heading', { level: 1, name: 'Artefactos' }),
     ).toBeInTheDocument();
   });
 
@@ -73,6 +83,23 @@ describe('Artefactos', () => {
       'aria-current',
       'page',
     );
+  });
+
+  it('con ?vista=versiones el asesor ve la pestaña de versiones de repositorio', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar('/artefactos?vista=versiones');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay versiones de repositorio')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones de repositorio' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Revisiones realizadas' })).toBeInTheDocument();
   });
 
   it('sin rol activo redirige a /seleccionar-rol', () => {

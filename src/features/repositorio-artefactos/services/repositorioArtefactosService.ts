@@ -5,7 +5,7 @@ import type { GenerarRepositorioArtefactoRequest } from '../models/GenerarReposi
 import type { GenerarRepositorioArtefactoResponse } from '../models/GenerarRepositorioArtefactoResponse';
 import type { ModificarRepositorioArtefactoRequest } from '../models/ModificarRepositorioArtefactoRequest';
 import type { RepositorioArtefacto } from '../models/RepositorioArtefacto';
-import type { VersionRepositorioArtefacto } from '../models/VersionRepositorioArtefacto';
+import type { VersionRepositorioArtefacto } from '../../../shared/models/VersionRepositorioArtefacto';
 
 export const repositorioArtefactosService = {
   consultarRepositoriosAdministrador: (

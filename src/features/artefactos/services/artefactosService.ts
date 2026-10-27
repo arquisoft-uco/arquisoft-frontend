@@ -7,6 +7,7 @@ import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { RevisionAsesor } from '../models/RevisionAsesor';
 import type { RevisionAsesorResponse } from '../models/RevisionAsesorResponse';
+import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
 
 function aObservacionRevision({
   revisionAsesor,
@@ -57,4 +58,11 @@ export const artefactosService = {
     apiClient
       .post<Page<RevisionAsesorResponse>>('/revisiones-asesor/asesor', req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aRevisionAsesor) })),
+
+  consultarVersionesRepositorioAsesor: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<VersionRepositorioAsesor>> =>
+    apiClient
+      .post<Page<VersionRepositorioAsesor>>('/repositorio-artefactos/versiones/asesor', req)
+      .then((r) => r.data),
 };
