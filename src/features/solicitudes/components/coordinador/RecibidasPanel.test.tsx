@@ -24,13 +24,24 @@ vi.mock('./SolicitudesCambioAsesorRecibidasPanel', () => ({
   ),
 }));
 
+vi.mock('./SolicitudesAmpliacionPlazoRecibidasPanel', () => ({
+  default: ({ page, onPageChange }: PropsPanel) => (
+    <button type="button" onClick={() => onPageChange(9)}>
+      Panel de ampliación de plazo, página {page}
+    </button>
+  ),
+}));
+
 describe('RecibidasPanel del coordinador', () => {
   it('muestra novedad por defecto y al cambiar de tipo entrega a cada panel su propia página', async () => {
     // Arrange
     const user = userEvent.setup();
     const onPageChange = vi.fn();
     render(
-      <RecibidasPanel paginas={{ novedad: 2, 'cambio-asesor': 5 }} onPageChange={onPageChange} />,
+      <RecibidasPanel
+        paginas={{ novedad: 2, 'cambio-asesor': 5, 'ampliacion-plazo': 3 }}
+        onPageChange={onPageChange}
+      />,
     );
     const panelNovedad = screen.getByRole('button', { name: 'Panel de novedad, página 2' });
 
@@ -54,5 +65,18 @@ describe('RecibidasPanel del coordinador', () => {
 
     // Assert
     expect(onPageChange).toHaveBeenLastCalledWith('cambio-asesor', 8);
+
+    // Act
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Panel de ampliación de plazo, página 3' }),
+    );
+
+    // Assert
+    expect(screen.queryByText(/Panel de cambio de asesor/)).not.toBeInTheDocument();
+    expect(onPageChange).toHaveBeenLastCalledWith('ampliacion-plazo', 9);
   });
 });

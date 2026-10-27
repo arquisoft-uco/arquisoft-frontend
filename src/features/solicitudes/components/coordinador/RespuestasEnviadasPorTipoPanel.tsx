@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import SelectorTipoSolicitud, {
-  TIPOS_SOLICITUD_RECIBIDA,
-  type TipoSolicitudRecibidaUi,
+  TIPOS_RESPUESTA_ENVIADA_COORDINADOR,
+  type TipoRespuestaEnviadaCoordinadorUi,
 } from '../SelectorTipoSolicitud';
 import RespuestasCambioAsesorEnviadasPanel from './RespuestasCambioAsesorEnviadasPanel';
 import RespuestasEnviadasPanel from './RespuestasEnviadasPanel';
 
 const PANEL_POR_TIPO: Record<
-  TipoSolicitudRecibidaUi,
+  TipoRespuestaEnviadaCoordinadorUi,
   React.ComponentType<{ filtros: FiltrosRespuestas }>
 > = {
   novedad: RespuestasEnviadasPanel,
@@ -18,17 +18,21 @@ const PANEL_POR_TIPO: Record<
 const RAIZ = 'flex flex-col gap-4';
 
 interface Props {
-  filtros: Record<TipoSolicitudRecibidaUi, FiltrosRespuestas>;
+  filtros: Record<TipoRespuestaEnviadaCoordinadorUi, FiltrosRespuestas>;
 }
 
 export default function RespuestasEnviadasPorTipoPanel({ filtros }: Props) {
-  const [tipo, setTipo] = useState<TipoSolicitudRecibidaUi>('novedad');
+  const [tipo, setTipo] = useState<TipoRespuestaEnviadaCoordinadorUi>('novedad');
 
   const PanelElegido = PANEL_POR_TIPO[tipo];
 
   return (
     <div className={RAIZ}>
-      <SelectorTipoSolicitud valor={tipo} onCambiar={setTipo} opciones={TIPOS_SOLICITUD_RECIBIDA} />
+      <SelectorTipoSolicitud
+        valor={tipo}
+        onCambiar={setTipo}
+        opciones={TIPOS_RESPUESTA_ENVIADA_COORDINADOR}
+      />
 
       <PanelElegido filtros={filtros[tipo]} />
     </div>

@@ -14,6 +14,9 @@ export type ReceptorSolicitud = 'coordinador' | 'asesor';
 const DESCRIPCION_VACIO_CAMBIO_ASESOR =
   'Cuando un estudiante solicite un cambio de asesor, aparecerá aquí.';
 
+const DESCRIPCION_VACIO_AMPLIACION_PLAZO =
+  'Cuando un estudiante solicite una ampliación de plazo, aparecerá aquí.';
+
 const DESCRIPCION_VACIO: Record<TipoSolicitudRecibidaUi, Record<ReceptorSolicitud, string>> = {
   novedad: {
     coordinador: 'Cuando alguien te envíe una novedad, aparecerá aquí.',
@@ -23,11 +26,16 @@ const DESCRIPCION_VACIO: Record<TipoSolicitudRecibidaUi, Record<ReceptorSolicitu
     coordinador: DESCRIPCION_VACIO_CAMBIO_ASESOR,
     asesor: DESCRIPCION_VACIO_CAMBIO_ASESOR,
   },
+  'ampliacion-plazo': {
+    coordinador: DESCRIPCION_VACIO_AMPLIACION_PLAZO,
+    asesor: DESCRIPCION_VACIO_AMPLIACION_PLAZO,
+  },
 };
 
 const ETIQUETA_TABLA: Record<TipoSolicitudRecibidaUi, string> = {
   novedad: 'Solicitudes de novedad recibidas',
   'cambio-asesor': 'Solicitudes de cambio de asesor recibidas',
+  'ampliacion-plazo': 'Solicitudes de ampliación de plazo recibidas',
 };
 
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';

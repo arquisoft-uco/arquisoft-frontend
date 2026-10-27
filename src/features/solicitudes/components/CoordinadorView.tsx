@@ -4,7 +4,10 @@ import Tabs from '../../../shared/components/ui/Tabs';
 import { useFiltrosRespuestas, type FiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
 import RespuestasEnviadasPorTipoPanel from './coordinador/RespuestasEnviadasPorTipoPanel';
 import RecibidasPanel from './coordinador/RecibidasPanel';
-import type { TipoSolicitudRecibidaUi } from './SelectorTipoSolicitud';
+import type {
+  TipoRespuestaEnviadaCoordinadorUi,
+  TipoSolicitudRecibidaUi,
+} from './SelectorTipoSolicitud';
 
 type Pestana = 'recibidas' | 'respuestas-enviadas';
 
@@ -19,9 +22,10 @@ export default function CoordinadorView() {
     {
       novedad: 0,
       'cambio-asesor': 0,
+      'ampliacion-plazo': 0,
     },
   );
-  const filtrosRespuestasEnviadas: Record<TipoSolicitudRecibidaUi, FiltrosRespuestas> = {
+  const filtrosRespuestasEnviadas: Record<TipoRespuestaEnviadaCoordinadorUi, FiltrosRespuestas> = {
     novedad: useFiltrosRespuestas(),
     'cambio-asesor': useFiltrosRespuestas(),
   };
