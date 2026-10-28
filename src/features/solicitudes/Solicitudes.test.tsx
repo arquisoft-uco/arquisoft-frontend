@@ -30,6 +30,7 @@ import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasN
 import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
 import { useRespuestasAmpliacionPlazoRecibidas } from './hooks/useRespuestasAmpliacionPlazoRecibidas';
 import { useModificarEstadoRespuestaCambioAsesor } from './hooks/useModificarEstadoRespuestaCambioAsesor';
+import { useModificarEstadoRespuestaAmpliacionPlazo } from './hooks/useModificarEstadoRespuestaAmpliacionPlazo';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaCambioAsesor } from './hooks/useEliminarRespuestaCambioAsesor';
 import { useEliminarRespuestaAmpliacionPlazo } from './hooks/useEliminarRespuestaAmpliacionPlazo';
@@ -163,6 +164,10 @@ vi.mock('./hooks/useModificarEstadoRespuestaNovedadCoordinador', () => ({
 
 vi.mock('./hooks/useModificarEstadoRespuestaCambioAsesor', () => ({
   useModificarEstadoRespuestaCambioAsesor: vi.fn(),
+}));
+
+vi.mock('./hooks/useModificarEstadoRespuestaAmpliacionPlazo', () => ({
+  useModificarEstadoRespuestaAmpliacionPlazo: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
@@ -345,6 +350,9 @@ describe('Solicitudes', () => {
     vi.mocked(useModificarEstadoRespuestaCambioAsesor).mockReturnValue(
       crearMutacionModificarMock(),
     );
+    vi.mocked(useModificarEstadoRespuestaAmpliacionPlazo).mockReturnValue(
+      crearMutacionModificarMock(),
+    );
     vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue(
       crearMutacionResponderCoordinadorMock(),
     );
@@ -520,6 +528,44 @@ describe('Solicitudes', () => {
     await user.click(
       within(
         screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' }),
+      ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Aprobar respuesta?');
+  });
+
+  it('en Ampliación de plazo el coordinador abre el diálogo para aprobar una respuesta En revisión', async () => {
+    // Arrange
+    autenticarCon(Rol.Coordinador);
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
+    vi.mocked(useRespuestasAmpliacionPlazoEnviadas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [{ ...RESPUESTA_AMPLIACION_PLAZO, estadoRespuestaId: 'EN_REVISION' }],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasAmpliacionPlazoEnviadas>,
+    );
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Act
+    await user.click(
+      within(
+        screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' }),
       ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
     );
     await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));

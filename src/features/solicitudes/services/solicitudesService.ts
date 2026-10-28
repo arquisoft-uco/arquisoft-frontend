@@ -6,6 +6,7 @@ import type { ConsultaCriteriaRequest } from '../../../shared/models/query-crite
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
 import type { EstadoRespuesta } from '../models/EstadoRespuesta';
+import type { ModificarEstadoRespuestaAmpliacionPlazoRequest } from '../models/ModificarEstadoRespuestaAmpliacionPlazoRequest';
 import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
@@ -277,6 +278,14 @@ export const solicitudesService = {
   ): Promise<void> =>
     apiClient
       .patch(`/solicitudes/cambio-asesor/${req.solicitudId}/respuesta/estado`, {
+        nuevoEstado: req.nuevoEstado,
+      })
+      .then(() => undefined),
+  modificarEstadoRespuestaAmpliacionPlazo: (
+    req: ModificarEstadoRespuestaAmpliacionPlazoRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta/estado`, {
         nuevoEstado: req.nuevoEstado,
       })
       .then(() => undefined),
