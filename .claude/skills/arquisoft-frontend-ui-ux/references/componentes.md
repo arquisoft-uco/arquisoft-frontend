@@ -479,15 +479,16 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
 
 - **Reemplaza:** `FiltrosUsuariosPanel`, el formulario de filtros de `ConsultarFichasRepresentante`, el de
   la lista de estados del asesor (eliminada en HT-UX-06-AJ1) y las pestañas por rol de Usuarios.
-- **Archivos:** `FilterBar.tsx` (la tarjeta, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo; su
+- **Archivos:** `FilterBar.tsx` (la tarjeta, la búsqueda, el botón de fechas, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo; su
   borrador y su retardo viven en el hook `useTextoConRetardo`), `FilterChip.tsx` (chip de selección, `aria-pressed`; declara
-  `OpcionFiltro = { id; etiqueta }`), `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón
-  «Filtros»), `FilterBarSecciones.tsx` (declara `SeccionFiltro` —unión de tres tipos— y `OrdenFiltro`; trae `SeccionChips`,
-  `SeccionDeFiltro`, que despacha por `tipo`, y `limpiarSeccion`) y `FilterBarSeccionTexto.tsx` (la sección de texto).
-  `FilterBar` y `FilterBarPanel` reexportan los tipos.
-- **API:** `busqueda?: { valor; onCambiar; etiqueta; placeholder }` (sin ella no se pinta el campo ni su fila: listados que solo filtran
+  `OpcionFiltro = { id; etiqueta }`), `FilterBarDesplegable.tsx` (el par botón + panel: estado abierto, clic fuera y referencias; lo usan el botón de fechas y «Filtros»),
+  `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón que lo abrió; `titulo?` es la cabecera de la hoja, por defecto «Filtros y orden», y `etiqueta?` el nombre del diálogo, por defecto «Filtros»; el cierre dice `Cerrar {etiqueta en minúsculas}`), `FilterBarSecciones.tsx` (declara `SeccionFiltro` —unión de **cuatro** tipos: `opciones`, `multiple`, `texto` y `fechas`— y `OrdenFiltro`; trae `SeccionChips`,
+  `SeccionDeFiltro`, que despacha por `tipo`, y `limpiarSeccion`) `FilterBarSeccionTexto.tsx` (la sección de texto) y `FilterBarSeccionFechas.tsx` (la de fechas).
+  `FilterBar` y `FilterBarPanel` reexportan los tipos. El formato de las fechas sale de `src/shared/utils/formato-fecha.ts` (`formatearFechaCorta`, `YYYY-MM-DD` → `dd/mm/aaaa`; `textoRangoFechas(desde, hasta)`).
+  La sección **fechas** (`tipo: 'fechas'`; `desde`, `hasta`, `onCambiarDesde(valor)`, `onCambiarHasta(valor)`) pinta dos campos `date` que emiten `YYYY-MM-DD` o `''`, con `min`/`max` cruzados, y `limpiarSeccion` vacía ambos. No hay sección de selección con `Combobox`: nació en HU-112 y se retiró en HU-112-AJ1 por no tener consumidor; vuelve a crearse cuando una HU necesite filtrar un catálogo largo.
+- **API:** `busqueda?: { valor; onCambiar; etiqueta; placeholder; deshabilitada? }` (`deshabilitada` deshabilita el campo y oculta su ✕; sin `busqueda` no se pinta el campo ni su fila: listados que solo filtran
   por chips), `chips?: { etiqueta; opciones; seleccionados; onAlternar(id);
-  onTodos() }`, `popover?: { secciones: SeccionFiltro[] }`, `orden?: OrdenFiltro`, `aplicados: { id; etiqueta; onQuitar }[]`,
+  onTodos() }`, `fechas?: { etiqueta; desde; hasta; onCambiarDesde(valor); onCambiarHasta(valor) }`, `popover?: { secciones: SeccionFiltro[] }`, `orden?: OrdenFiltro`, `aplicados: { id; etiqueta; onQuitar }[]`,
   `onLimpiar` y `totalResultados?: number`. `SeccionFiltro` es una unión por `tipo`, todas con `id` y `etiqueta`: **opciones** (`tipo?: 'opciones'`, el ausente; `opciones`, `valor`,
   `onCambiar(id)`, `deshabilitada?`, `aviso?`) es de **selección única**: `valor` es el `id` elegido, «Todos» es una opción más (con `id`
   vacío) que pone quien la usa y `''` significa «sin filtro»; **multiple** (`tipo: 'multiple'`, `opciones`, `valores: string[]`,
@@ -509,11 +510,11 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
   Los filtros principales (uno o dos, con 7 opciones como máximo) están a la vista como chips (`role="group"` con
   `aria-label={chips.etiqueta}`; «Todos» es un chip más, con `aria-pressed` mientras no hay ninguno seleccionado, y llama a
   `onTodos`); los secundarios, en el panel. En celular los chips se desplazan en horizontal y miden 44 px; desde `sm` envuelven y
-  miden 36 px. El botón «Filtros» (`Button` secundario con `SlidersHorizontal`, `aria-haspopup="dialog"`, `aria-expanded` y,
+  miden 36 px. El botón de **fechas** (`fechas`; icono `CalendarRange`, a la derecha de la búsqueda) dice la `etiqueta` sin fechas y el rango con ellas (`dd/mm/aaaa – dd/mm/aaaa`, `Desde …` o `Hasta …`); con rango, su nombre accesible es «{etiqueta}: {rango}», que contiene el texto visible. Abre el mismo panel (diálogo con `titulo` y `etiqueta` iguales a la etiqueta de las fechas, con foco, Esc y retorno del foco) con una sola sección de fechas y «Limpiar». El botón «Filtros» (`Button` secundario con `SlidersHorizontal`, `aria-haspopup="dialog"`, `aria-expanded` y,
   abierto, `aria-controls`) **solo existe si llega `popover`** (y `orden` solo se dibuja dentro de su panel); su contador es
   `aplicados.length`.
 - **Aplicados:** la fila existe si hay `aplicados` o más de un filtro activo en total (texto, chips y aplicados). Muestra solo lo
-  que está en el panel (los chips ya se ven marcados): «Filtros aplicados:» (solo con aplicados), un chip por aplicado con ✕
+  que está en el panel de «Filtros» (los chips ya se ven marcados, y las fechas no generan chip porque el botón ya muestra el rango, pero cuentan como filtro activo para «Limpiar todo»): «Filtros aplicados:» (solo con aplicados), un chip por aplicado con ✕
   («Quitar filtro {etiqueta}») y «Limpiar todo» (solo con más de un filtro activo). «Limpiar todo» llama a `onLimpiar()` y
   **remonta el buscador** (cambia su `key`) para descartar el borrador y el retardo pendientes.
 - **Panel:** un solo `div role="dialog" aria-label="Filtros"` con `tabIndex={-1}` y **sin `aria-modal`** (la hoja es modal solo en

@@ -98,6 +98,7 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
   pieza existe; o inventar una variante que la receta no tiene.
 - Abrir un formulario encima de la lista, o un panel o una página sin «Cancelar» y una acción principal con verbo.
 - Poner un botón «Actualizar», «Buscar» o «Filtrar»; ordenar con un `select`; filtrar con casillas sueltas.
+- Dejar el botón «Filtros» solo en una barra: va acompañado de búsqueda, fechas o chips, y los filtros secundarios son su razón de ser.
 - Mezclar en un formulario casillas que guardan al instante con un botón de guardar, sin separarlos.
 - Ofrecer como destino un módulo o una pestaña sin pantalla.
 - Usar `window.confirm`, emoji como icono, el color como único portador del significado, texto de menos de 12 px,
