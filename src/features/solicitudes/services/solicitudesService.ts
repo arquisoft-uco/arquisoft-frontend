@@ -242,6 +242,11 @@ export const solicitudesService = {
   eliminarRespuestaCambioAsesor: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/cambio-asesor/${solicitudId}/respuesta`).then(() => undefined),
 
+  eliminarRespuestaAmpliacionPlazo: (solicitudId: string): Promise<void> =>
+    apiClient
+      .delete(`/solicitudes/ampliacion-plazo/${solicitudId}/respuesta`)
+      .then(() => undefined),
+
   eliminarRespuestaNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient
       .delete(`/solicitudes/novedad-coordinador/${solicitudId}/respuesta`)

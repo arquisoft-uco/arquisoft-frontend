@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen, within } from '../../../../test-utils/render';
-import type { Page } from '../../../../shared/models/api-response';
+import { toast } from '../../../../shared/hooks/useToast';
+import type { ApiError, Page } from '../../../../shared/models/api-response';
+import { useEliminarRespuestaAmpliacionPlazo } from '../../hooks/useEliminarRespuestaAmpliacionPlazo';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasAmpliacionPlazoEnviadas } from '../../hooks/useRespuestasAmpliacionPlazoEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
@@ -16,7 +19,15 @@ vi.mock('../../hooks/useRespuestasAmpliacionPlazoEnviadas', () => ({
   useRespuestasAmpliacionPlazoEnviadas: vi.fn(),
 }));
 
-function crearFiltros(): FiltrosRespuestas {
+vi.mock('../../hooks/useEliminarRespuestaAmpliacionPlazo', () => ({
+  useEliminarRespuestaAmpliacionPlazo: vi.fn(),
+}));
+
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+}));
+
+function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuestas {
   return {
     page: 0,
     estadoIds: [],
@@ -27,10 +38,63 @@ function crearFiltros(): FiltrosRespuestas {
     toggleEstado: vi.fn(),
     setOrden: vi.fn(),
     limpiarFiltros: vi.fn(),
+    ...parcial,
   };
 }
 
 type HookRespuestas = ReturnType<typeof useRespuestasAmpliacionPlazoEnviadas>;
+type HookEliminar = ReturnType<typeof useEliminarRespuestaAmpliacionPlazo>;
+
+type OpcionesMutate = {
+  onSuccess?: () => void;
+  onError?: (err: unknown) => void;
+};
+
+const RESPUESTA_EN_REVISION: RespuestaSolicitud = {
+  ...RESPUESTA_AMPLIACION_PLAZO,
+  estadoRespuestaId: 'EN_REVISION',
+  estadoRespuestaNombre: 'En revisión',
+};
+
+function crearErrorApi(cuerpo: ApiError) {
+  return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+    data: cuerpo,
+    status: cuerpo.status,
+    statusText: 'Unprocessable Entity',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
+}
+
+function mockearEliminar(mutate = vi.fn()) {
+  vi.mocked(useEliminarRespuestaAmpliacionPlazo).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookEliminar);
+  return mutate;
+}
+
+async function abrirDialogoEliminar(user: ReturnType<typeof userEvent.setup>) {
+  const tabla = screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' });
+  await user.click(
+    within(tabla).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+  );
+  await user.click(screen.getByRole('menuitem', { name: 'Eliminar respuesta' }));
+}
 
 function crearPagina(content: RespuestaSolicitud[]): Page<RespuestaSolicitud> {
   return {
@@ -62,6 +126,7 @@ function mockearHook(parcial: Partial<HookRespuestas> = {}) {
 describe('RespuestasAmpliacionPlazoEnviadasPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockearEliminar();
   });
 
   it('muestra el esqueleto de carga y no la tabla', () => {
@@ -128,5 +193,133 @@ describe('RespuestasAmpliacionPlazoEnviadasPanel', () => {
     expect(within(tabla).getByText('Aprobamos la ampliación de plazo.')).toBeInTheDocument();
     expect(within(tabla).getByText('Aprobada')).toBeInTheDocument();
     expect(within(tabla).queryByRole('button', { name: /acciones/i })).not.toBeInTheDocument();
+  });
+
+  it('ofrece el menú de eliminar solo en la fila En revisión', () => {
+    // Arrange
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION, RESPUESTA_AMPLIACION_PLAZO]) });
+
+    // Act
+    render(<RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros()} />);
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' });
+    expect(
+      within(tabla).getAllByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+    ).toHaveLength(1);
+  });
+
+  it('al elegir eliminar abre el diálogo y cancelar lo cierra sin eliminar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearEliminar();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros()} />);
+
+    // Act
+    await abrirDialogoEliminar(user);
+
+    // Assert
+    const dialogo = screen.getByRole('alertdialog');
+    expect(dialogo).toHaveTextContent('¿Eliminar respuesta?');
+    expect(dialogo).toHaveTextContent('Vas a eliminar tu respuesta a Luis Gómez.');
+    expect(dialogo).toHaveTextContent('podrás responderla de nuevo');
+    expect(dialogo).toHaveTextContent('No se puede deshacer.');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('al confirmar elimina por el id de la solicitud, lanza el toast y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearEliminar(
+      vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()),
+    );
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    const goToPage = vi.fn();
+    render(<RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros({ goToPage })} />);
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith('s-4', expect.any(Object));
+    expect(toast.success).toHaveBeenCalledWith('Respuesta eliminada', expect.any(String));
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(goToPage).not.toHaveBeenCalled();
+  });
+
+  it('en error lanza toast.error con el mensaje del backend y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar(
+      vi.fn((_id: string, opciones?: OpcionesMutate) =>
+        opciones?.onError?.(
+          crearErrorApi({
+            error: 'Unprocessable Entity',
+            errorCode: 'RESPUESTA_NO_EN_REVISION',
+            message: 'La respuesta ya fue evaluada y no puede eliminarse.',
+            status: 422,
+          }),
+        ),
+      ),
+    );
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros()} />);
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo eliminar la respuesta',
+      'La respuesta ya fue evaluada y no puede eliminarse.',
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('retrocede una página solo si se elimina la única fila de una página posterior', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar(vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()));
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    const goToPage = vi.fn();
+    render(
+      <RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros({ page: 2, goToPage })} />,
+    );
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('no retrocede si la página aún tiene más filas', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar(vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()));
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION, RESPUESTA_AMPLIACION_PLAZO]) });
+    const goToPage = vi.fn();
+    render(
+      <RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros({ page: 2, goToPage })} />,
+    );
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(goToPage).not.toHaveBeenCalled();
   });
 });
