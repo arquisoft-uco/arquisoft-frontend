@@ -3,10 +3,11 @@ import apiClient from '../../../api/axiosInstance';
 import { mapasRutaService } from './mapasRutaService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { post: vi.fn() },
+  default: { post: vi.fn(), patch: vi.fn() },
 }));
 
 const post = vi.mocked(apiClient.post);
+const patch = vi.mocked(apiClient.patch);
 
 describe('mapasRutaService', () => {
   beforeEach(() => {
@@ -119,6 +120,20 @@ describe('mapasRutaService', () => {
         totalElements: 1,
         last: true,
       });
+    });
+  });
+
+  describe('cambiarFechaFin', () => {
+    it('hace PATCH /mapas-ruta/{id}/fecha-fin solo con fechaFin y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.cambiarFechaFin('m-1', { fechaFin: '2026-12-01' });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/mapas-ruta/m-1/fecha-fin', { fechaFin: '2026-12-01' });
+      expect(resultado).toBeUndefined();
     });
   });
 });

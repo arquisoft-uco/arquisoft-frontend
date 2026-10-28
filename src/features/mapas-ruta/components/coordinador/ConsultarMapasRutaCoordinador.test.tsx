@@ -5,6 +5,9 @@ import { useMapasRutaCoordinador } from '../../hooks/useMapasRutaCoordinador';
 import ConsultarMapasRutaCoordinador from './ConsultarMapasRutaCoordinador';
 
 vi.mock('../../hooks/useMapasRutaCoordinador', () => ({ useMapasRutaCoordinador: vi.fn() }));
+vi.mock('../../hooks/useCambiarFechaFinMapaRuta', () => ({
+  useCambiarFechaFinMapaRuta: vi.fn(() => ({ mutate: vi.fn(), isPending: false, reset: vi.fn() })),
+}));
 
 const useListado = vi.mocked(useMapasRutaCoordinador);
 

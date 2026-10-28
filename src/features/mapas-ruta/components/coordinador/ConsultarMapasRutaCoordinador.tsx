@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import type { SeccionFiltro } from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useMapasRutaCoordinador } from '../../hooks/useMapasRutaCoordinador';
+import type { MapaRuta } from '../../models/MapaRuta';
 import type { FechasFiltro } from '../../utils/filtros-mapa-ruta';
 import { formatearFechaCivil } from '../../utils/formato-fecha';
+import CambiarFechaFinMapaRutaPanel from './CambiarFechaFinMapaRutaPanel';
 import MapasRutaTable from './MapasRutaTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -31,6 +34,7 @@ interface Props {
 
 export default function ConsultarMapasRutaCoordinador({ onNuevoMapa }: Props) {
   const listado = useMapasRutaCoordinador();
+  const [mapaEnEdicion, setMapaEnEdicion] = useState<MapaRuta | null>(null);
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, fechas } =
     listado;
@@ -89,6 +93,7 @@ export default function ConsultarMapasRutaCoordinador({ onNuevoMapa }: Props) {
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
             onNuevoMapa={onNuevoMapa}
+            onCambiarFechaFin={setMapaEnEdicion}
           />
         )}
       </div>
@@ -102,6 +107,13 @@ export default function ConsultarMapasRutaCoordinador({ onNuevoMapa }: Props) {
           cantidadEnPagina={mapas.length}
           etiquetaPlural="mapas de ruta"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {mapaEnEdicion && (
+        <CambiarFechaFinMapaRutaPanel
+          mapa={mapaEnEdicion}
+          onCerrar={() => setMapaEnEdicion(null)}
         />
       )}
     </div>

@@ -1,4 +1,5 @@
 import { getApiErrorMessage, hasApiErrorCode } from '../../../shared/utils/api-error';
+import { MENSAJES_VALIDACION } from '../../../shared/validation';
 
 // Los textos propios existen porque el message del backend trae UUID, estado o fechas crudos.
 export function mensajeErrorMapaRuta(err: unknown): string {
@@ -31,4 +32,20 @@ export function campoDeErrorMapaRuta(err: unknown): 'proyectoGrado' | 'fechaFin'
   }
   if (hasApiErrorCode(err, 'MAPA_RUTA_FECHA_FIN_NO_POSTERIOR')) return 'fechaFin';
   return null;
+}
+
+export function mensajeErrorCambioFechaFin(err: unknown): string {
+  if (hasApiErrorCode(err, 'MAPA_RUTA_NO_ENCONTRADO')) {
+    return 'El mapa de ruta ya no está disponible. Actualiza la lista e inténtalo de nuevo.';
+  }
+  if (hasApiErrorCode(err, 'PROYECTO_GRADO_NO_PROPIETARIO')) {
+    return 'Solo el coordinador asignado al proyecto puede cambiar la fecha de fin de su mapa de ruta.';
+  }
+  if (hasApiErrorCode(err, 'PROYECTO_GRADO_NO_EN_PROCESO')) {
+    return 'El proyecto ya no está en proceso y su mapa de ruta no admite cambios.';
+  }
+  if (hasApiErrorCode(err, 'MAPA_RUTA_FECHA_FIN_NO_POSTERIOR')) {
+    return MENSAJES_VALIDACION.fechaFinPosterior;
+  }
+  return getApiErrorMessage(err, 'Verifica la fecha e inténtalo nuevamente.');
 }
