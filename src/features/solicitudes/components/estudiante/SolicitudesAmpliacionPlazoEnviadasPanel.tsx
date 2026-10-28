@@ -1,8 +1,17 @@
+import { useEliminarSolicitudAmpliacionPlazo } from '../../hooks/useEliminarSolicitudAmpliacionPlazo';
 import { useSolicitudesAmpliacionPlazoEnviadas } from '../../hooks/useSolicitudesAmpliacionPlazoEnviadas';
-import ListadoSolicitudesEnviadas from './ListadoSolicitudesEnviadas';
+import ListadoSolicitudesEnviadasEliminable from './ListadoSolicitudesEnviadasEliminable';
 
 export default function SolicitudesAmpliacionPlazoEnviadasPanel() {
   const consulta = useSolicitudesAmpliacionPlazoEnviadas();
+  const { mutate: eliminar, isPending: eliminando } = useEliminarSolicitudAmpliacionPlazo();
 
-  return <ListadoSolicitudesEnviadas tipo="ampliacion-plazo" consulta={consulta} />;
+  return (
+    <ListadoSolicitudesEnviadasEliminable
+      tipo="ampliacion-plazo"
+      consulta={consulta}
+      eliminar={eliminar}
+      eliminando={eliminando}
+    />
+  );
 }

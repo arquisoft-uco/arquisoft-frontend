@@ -17,7 +17,8 @@ export const LIMITES = {
   // con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
   // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear, ResponderSolicitudNovedadAsesorCommand.crear
-  // y ResponderSolicitudCambioAsesorCommand.crear (ValidatorLongitud.longitudEntre(1, 100)),
+  // ResponderSolicitudCambioAsesorCommand.crear y ResponderSolicitudAmpliacionPlazoCommand.crear
+  // (ValidatorLongitud.longitudEntre(1, 100)),
   // SolicitudesLimits.Respuesta.CONTENIDO_MAX.
   RESPUESTA_CONTENIDO_MAX: 100,
   USUARIO_IDENTIFICADOR_MIN: 4,

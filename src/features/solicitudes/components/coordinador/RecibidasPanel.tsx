@@ -3,6 +3,7 @@ import SelectorTipoSolicitud, {
   TIPOS_SOLICITUD_RECIBIDA,
   type TipoSolicitudRecibidaUi,
 } from '../SelectorTipoSolicitud';
+import SolicitudesAmpliacionPlazoRecibidasPanel from './SolicitudesAmpliacionPlazoRecibidasPanel';
 import SolicitudesCambioAsesorRecibidasPanel from './SolicitudesCambioAsesorRecibidasPanel';
 import SolicitudesRecibidasPanel from './SolicitudesRecibidasPanel';
 
@@ -12,6 +13,7 @@ const PANEL_POR_TIPO: Record<
 > = {
   novedad: SolicitudesRecibidasPanel,
   'cambio-asesor': SolicitudesCambioAsesorRecibidasPanel,
+  'ampliacion-plazo': SolicitudesAmpliacionPlazoRecibidasPanel,
 };
 
 const RAIZ = 'flex flex-col gap-4';

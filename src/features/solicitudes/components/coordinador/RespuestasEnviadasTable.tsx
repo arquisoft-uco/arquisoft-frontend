@@ -2,10 +2,10 @@ import type { TablaRespuestasProps } from '../RespuestasPanel';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
 import RespuestasTable from '../RespuestasTable';
-import type { TipoSolicitudRecibidaUi } from '../SelectorTipoSolicitud';
+import type { TipoRespuestaEnviadaCoordinadorUi } from '../SelectorTipoSolicitud';
 
 const TEXTOS_POR_TIPO: Record<
-  TipoSolicitudRecibidaUi,
+  TipoRespuestaEnviadaCoordinadorUi,
   { etiqueta: string; vacio: { titulo: string; descripcion: string } }
 > = {
   novedad: {
@@ -39,7 +39,7 @@ export default function RespuestasEnviadasTable({
   onLimpiarFiltros,
   acciones,
   tipo = 'novedad',
-}: TablaRespuestasProps & { tipo?: TipoSolicitudRecibidaUi }) {
+}: TablaRespuestasProps & { tipo?: TipoRespuestaEnviadaCoordinadorUi }) {
   const { etiqueta, vacio } = TEXTOS_POR_TIPO[tipo];
 
   return (

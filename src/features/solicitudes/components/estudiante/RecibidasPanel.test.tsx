@@ -22,6 +22,12 @@ vi.mock('./RespuestasCambioAsesorRecibidasPanel', () => ({
   ),
 }));
 
+vi.mock('./RespuestasAmpliacionPlazoRecibidasPanel', () => ({
+  default: ({ filtros }: { filtros: FiltrosRespuestas }) => (
+    <p>Respuestas de ampliación de plazo, página {filtros.page}</p>
+  ),
+}));
+
 function crearFiltros(page: number): FiltrosRespuestas {
   return {
     page,
@@ -46,6 +52,7 @@ describe('RecibidasPanel', () => {
           coordinador: crearFiltros(2),
           asesor: crearFiltros(5),
           'cambio-asesor': crearFiltros(7),
+          'ampliacion-plazo': crearFiltros(9),
         }}
       />,
     );
@@ -67,6 +74,16 @@ describe('RecibidasPanel', () => {
     // Assert
     expect(screen.getByText('Respuestas de cambio de asesor, página 7')).toBeInTheDocument();
     expect(screen.queryByText(/Respuestas del asesor/)).not.toBeInTheDocument();
+
+    // Act
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Assert
+    expect(screen.getByText('Respuestas de ampliación de plazo, página 9')).toBeInTheDocument();
+    expect(screen.queryByText(/Respuestas de cambio de asesor/)).not.toBeInTheDocument();
 
     // Act
     await user.selectOptions(

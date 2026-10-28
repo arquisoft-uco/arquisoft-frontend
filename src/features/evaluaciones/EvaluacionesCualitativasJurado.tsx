@@ -3,7 +3,7 @@ import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
 import ConsultarEvaluacionesCualitativasJurado from './components/estudiante/ConsultarEvaluacionesCualitativasJurado';
-import { useNavegacionCualitativasJurado } from './hooks/useNavegacionCualitativasJurado';
+import { useNavegacionEvaluacionJurado } from './hooks/useNavegacionEvaluacionJurado';
 import type { NavegacionJuradosEvaluacion } from './models/ResumenEvaluacion';
 
 const ROLES_CONSULTAN = [Rol.Estudiante];
@@ -14,7 +14,7 @@ export default function EvaluacionesCualitativasJurado() {
   const { evaluacionJuradoId = '' } = useParams();
   const esEstudiante = useHasRole(ROLES_CONSULTAN);
   const navigate = useNavigate();
-  const navegacion = useNavegacionCualitativasJurado(evaluacionJuradoId);
+  const navegacion = useNavegacionEvaluacionJurado(evaluacionJuradoId);
 
   if (!esEstudiante) return <Navigate to="/forbidden" replace />;
 

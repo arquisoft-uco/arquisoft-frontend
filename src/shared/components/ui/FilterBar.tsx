@@ -4,6 +4,7 @@ import { textoRangoFechas } from '../../utils/formato-fecha';
 import FilterBarAplicados from './FilterBarAplicados';
 import FilterBarBusqueda from './FilterBarBusqueda';
 import FilterBarDesplegable from './FilterBarDesplegable';
+import type { AlineacionPanel } from './FilterBarPanel';
 import type { OrdenFiltro, SeccionFiltro } from './FilterBarSecciones';
 import FilterChip, { type OpcionFiltro } from './FilterChip';
 
@@ -34,6 +35,7 @@ interface Props {
     onCambiarHasta: (valor: string) => void;
   };
   popover?: { secciones: SeccionFiltro[] };
+  alineacionPanel?: AlineacionPanel;
   orden?: OrdenFiltro;
   aplicados: { id: string; etiqueta: string; onQuitar: () => void }[];
   onLimpiar: () => void;
@@ -45,6 +47,7 @@ export default function FilterBar({
   chips,
   fechas,
   popover,
+  alineacionPanel,
   orden,
   aplicados,
   onLimpiar,
@@ -97,7 +100,7 @@ export default function FilterBar({
               orden={orden}
               totalResultados={totalResultados}
               hayAplicados={aplicados.length > 0}
-              anclaIzquierda={!busqueda && !fechas}
+              alineacion={alineacionPanel ?? (!busqueda && !fechas ? 'inicio' : 'fin')}
             />
           )}
         </div>

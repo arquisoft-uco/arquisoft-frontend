@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import FilterBarSeccionFecha from './FilterBarSeccionFecha';
+import type { PropsSeccionFecha } from './FilterBarSeccionFecha';
 import FilterBarSeccionFechas from './FilterBarSeccionFechas';
 import FilterBarSeccionTexto from './FilterBarSeccionTexto';
 import { GrupoDeChips, SeccionChips } from './FilterBarSeccionChips';
@@ -35,6 +37,8 @@ export interface SeccionTexto extends SeccionBase {
   placeholder?: string;
 }
 
+export type SeccionFecha = SeccionBase & PropsSeccionFecha & { tipo: 'fecha' };
+
 export interface SeccionFechas extends SeccionBase {
   tipo: 'fechas';
   desde: string;
@@ -43,7 +47,12 @@ export interface SeccionFechas extends SeccionBase {
   onCambiarHasta: (valor: string) => void;
 }
 
-export type SeccionFiltro = SeccionOpciones | SeccionMultiple | SeccionTexto | SeccionFechas;
+export type SeccionFiltro =
+  | SeccionOpciones
+  | SeccionMultiple
+  | SeccionTexto
+  | SeccionFecha
+  | SeccionFechas;
 
 export interface OrdenFiltro {
   etiqueta: string;
@@ -65,6 +74,7 @@ export function SeccionDeFiltro({ seccion }: { seccion: SeccionFiltro }) {
       />
     );
   }
+  if (seccion.tipo === 'fecha') return <FilterBarSeccionFecha {...seccion} />;
   if (seccion.tipo === 'fechas') {
     return (
       <FilterBarSeccionFechas

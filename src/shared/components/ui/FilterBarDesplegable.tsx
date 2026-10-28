@@ -2,7 +2,7 @@ import { useId, useRef, useState, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { useClicFuera } from '../../hooks/useClicFuera';
 import Button from './Button';
-import FilterBarPanel from './FilterBarPanel';
+import FilterBarPanel, { type AlineacionPanel } from './FilterBarPanel';
 import type { OrdenFiltro, SeccionFiltro } from './FilterBarSecciones';
 
 const ENVOLTURA = 'relative flex-1 sm:flex-none';
@@ -15,7 +15,7 @@ interface Props {
   orden?: OrdenFiltro;
   totalResultados?: number;
   hayAplicados: boolean;
-  anclaIzquierda?: boolean;
+  alineacion?: AlineacionPanel;
   titulo?: string;
   etiquetaPanel?: string;
 }
@@ -28,7 +28,7 @@ export default function FilterBarDesplegable({
   orden,
   totalResultados,
   hayAplicados,
-  anclaIzquierda,
+  alineacion,
   titulo,
   etiquetaPanel,
 }: Props) {
@@ -63,7 +63,7 @@ export default function FilterBarDesplegable({
           orden={orden}
           totalResultados={totalResultados}
           hayAplicados={hayAplicados}
-          anclaIzquierda={anclaIzquierda}
+          alineacion={alineacion}
           titulo={titulo}
           etiqueta={etiquetaPanel}
           onCerrar={() => setAbierto(false)}

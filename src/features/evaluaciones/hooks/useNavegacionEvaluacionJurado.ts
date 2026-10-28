@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router';
-import type { NavegacionCualitativasJurado } from '../models/NavegacionCualitativasJurado';
+import type { NavegacionEvaluacionJurado } from '../models/NavegacionEvaluacionJurado';
 import type { ResumenEvaluacion } from '../models/ResumenEvaluacion';
 
 function esObjeto(valor: unknown): valor is Record<string, unknown> {
@@ -23,7 +23,7 @@ function leerResumen(bruto: unknown, evaluacionId: string): ResumenEvaluacion | 
 function leerNavegacion(
   state: unknown,
   evaluacionJuradoId: string,
-): NavegacionCualitativasJurado | null {
+): NavegacionEvaluacionJurado | null {
   if (
     !esObjeto(state) ||
     state.evaluacionJuradoId !== evaluacionJuradoId ||
@@ -46,9 +46,9 @@ function leerNavegacion(
   };
 }
 
-export function useNavegacionCualitativasJurado(
+export function useNavegacionEvaluacionJurado(
   evaluacionJuradoId: string,
-): NavegacionCualitativasJurado | null {
+): NavegacionEvaluacionJurado | null {
   const location = useLocation();
   const [navegacion] = useState(() => leerNavegacion(location.state, evaluacionJuradoId));
   return navegacion;

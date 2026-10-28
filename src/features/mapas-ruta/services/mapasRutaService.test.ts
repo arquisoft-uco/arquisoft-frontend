@@ -78,4 +78,47 @@ describe('mapasRutaService', () => {
       expect(resultado.siguientePagina).toBeNull();
     });
   });
+
+  describe('consultarMapasRutaCoordinador', () => {
+    it('envía el criterio a POST /mapas-ruta/coordinador y traduce los campos del mapa', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [
+            {
+              id: 'm-1',
+              proyectoGrado: 'p-1',
+              tituloProyecto: 'Sistema A',
+              fechaInicio: '2026-03-05',
+              fechaFin: '2026-08-01',
+            },
+          ],
+          page: 0,
+          totalElements: 1,
+          last: true,
+        },
+      });
+      const criterio = { pagina: 0, tamanio: 10, ordenamiento: ['fechaFin:ASC'] };
+
+      // Act
+      const resultado = await mapasRutaService.consultarMapasRutaCoordinador(criterio);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/mapas-ruta/coordinador', criterio);
+      expect(resultado).toEqual({
+        content: [
+          {
+            id: 'm-1',
+            proyectoGradoId: 'p-1',
+            titulo: 'Sistema A',
+            fechaInicio: '2026-03-05',
+            fechaFin: '2026-08-01',
+          },
+        ],
+        page: 0,
+        totalElements: 1,
+        last: true,
+      });
+    });
+  });
 });
