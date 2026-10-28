@@ -23,6 +23,14 @@ const TEXTOS_POR_TIPO: Record<
         'Cuando respondas una solicitud de cambio de asesor desde Recibidas, la respuesta aparecerá aquí.',
     },
   },
+  'ampliacion-plazo': {
+    etiqueta: 'Respuestas de ampliación de plazo enviadas',
+    vacio: {
+      titulo: 'Aún no has enviado respuestas',
+      descripcion:
+        'Cuando respondas una solicitud de ampliación de plazo desde Recibidas, la respuesta aparecerá aquí.',
+    },
+  },
 };
 
 function celdaEstudiante(respuesta: RespuestaSolicitud) {

@@ -24,6 +24,7 @@ import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSol
 import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNovedadAsesorRecibidas';
 import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedadAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
+import { useRespuestasAmpliacionPlazoEnviadas } from './hooks/useRespuestasAmpliacionPlazoEnviadas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
@@ -113,6 +114,10 @@ vi.mock('./hooks/useRespuestasNovedadCoordinadorEnviadas', () => ({
 
 vi.mock('./hooks/useRespuestasCambioAsesorEnviadas', () => ({
   useRespuestasCambioAsesorEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasAmpliacionPlazoEnviadas', () => ({
+  useRespuestasAmpliacionPlazoEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
@@ -444,6 +449,39 @@ describe('Solicitudes', () => {
     // Assert
     const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' });
     expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
+  });
+
+  it('en Respuestas enviadas el coordinador cambia a Ampliación de plazo y ve ese listado', async () => {
+    // Arrange
+    autenticarCon(Rol.Coordinador);
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
+    vi.mocked(useRespuestasAmpliacionPlazoEnviadas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_AMPLIACION_PLAZO],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasAmpliacionPlazoEnviadas>,
+    );
+    const user = userEvent.setup();
+
+    // Act
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' });
+    expect(within(tabla).getByText('Aprobamos la ampliación de plazo.')).toBeInTheDocument();
   });
 
   it('en Cambio de asesor el coordinador abre el diálogo para aprobar una respuesta En revisión', async () => {

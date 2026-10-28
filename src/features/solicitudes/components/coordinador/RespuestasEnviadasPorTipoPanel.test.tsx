@@ -12,6 +12,10 @@ vi.mock('./RespuestasEnviadasPanel', () => ({
   default: ({ filtros }: PropsPanel) => <p>Panel de novedad, página {filtros.page}</p>,
 }));
 
+vi.mock('./RespuestasAmpliacionPlazoEnviadasPanel', () => ({
+  default: ({ filtros }: PropsPanel) => <p>Panel de ampliación de plazo, página {filtros.page}</p>,
+}));
+
 vi.mock('./RespuestasCambioAsesorEnviadasPanel', () => ({
   default: ({ filtros }: PropsPanel) => <p>Panel de cambio de asesor, página {filtros.page}</p>,
 }));
@@ -36,7 +40,11 @@ describe('RespuestasEnviadasPorTipoPanel', () => {
     const user = userEvent.setup();
     render(
       <RespuestasEnviadasPorTipoPanel
-        filtros={{ novedad: crearFiltros(2), 'cambio-asesor': crearFiltros(5) }}
+        filtros={{
+          novedad: crearFiltros(2),
+          'cambio-asesor': crearFiltros(5),
+          'ampliacion-plazo': crearFiltros(7),
+        }}
       />,
     );
 
@@ -52,5 +60,15 @@ describe('RespuestasEnviadasPorTipoPanel', () => {
     // Assert
     expect(screen.getByText('Panel de cambio de asesor, página 5')).toBeInTheDocument();
     expect(screen.queryByText(/Panel de novedad/)).not.toBeInTheDocument();
+
+    // Act
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Assert
+    expect(screen.getByText('Panel de ampliación de plazo, página 7')).toBeInTheDocument();
+    expect(screen.queryByText(/Panel de cambio de asesor/)).not.toBeInTheDocument();
   });
 });
