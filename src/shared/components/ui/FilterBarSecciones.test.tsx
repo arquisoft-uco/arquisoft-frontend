@@ -172,4 +172,38 @@ describe('secciones de FilterBar', () => {
     expect(onTexto).toHaveBeenCalledWith('');
     expect(onOpciones).toHaveBeenCalledWith('');
   });
+
+  it('la sección de fecha emite el valor elegido, aplica min/max y "Limpiar" lo vacía', async () => {
+    // Arrange
+    const user = usarTemporizadoresFalsos();
+    const onCambiar = vi.fn();
+    renderizar([
+      {
+        id: 'f',
+        tipo: 'fecha',
+        etiqueta: 'Inicia desde',
+        valor: '2026-03-05',
+        onCambiar,
+        min: '2026-01-01',
+        max: '2026-12-31',
+      },
+    ]);
+    const panel = await abrirPanel(user);
+    const campo = panel.getByLabelText('Inicia desde');
+
+    // Act
+    await user.clear(campo);
+
+    // Assert
+    expect(campo).toHaveAttribute('min', '2026-01-01');
+    expect(campo).toHaveAttribute('max', '2026-12-31');
+    expect(onCambiar).toHaveBeenCalledWith('');
+
+    // Act
+    onCambiar.mockClear();
+    await user.click(panel.getByRole('button', { name: 'Limpiar' }));
+
+    // Assert
+    expect(onCambiar).toHaveBeenCalledWith('');
+  });
 });

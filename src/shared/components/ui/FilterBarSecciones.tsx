@@ -1,5 +1,7 @@
 import { useId } from 'react';
 import type { ReactNode } from 'react';
+import FilterBarSeccionFecha from './FilterBarSeccionFecha';
+import type { PropsSeccionFecha } from './FilterBarSeccionFecha';
 import FilterBarSeccionTexto from './FilterBarSeccionTexto';
 import FilterChip from './FilterChip';
 import type { OpcionFiltro } from './FilterChip';
@@ -35,7 +37,9 @@ export interface SeccionTexto extends SeccionBase {
   placeholder?: string;
 }
 
-export type SeccionFiltro = SeccionOpciones | SeccionMultiple | SeccionTexto;
+export type SeccionFecha = SeccionBase & PropsSeccionFecha & { tipo: 'fecha' };
+
+export type SeccionFiltro = SeccionOpciones | SeccionMultiple | SeccionTexto | SeccionFecha;
 
 export interface OrdenFiltro {
   etiqueta: string;
@@ -123,6 +127,7 @@ export function SeccionDeFiltro({ seccion }: { seccion: SeccionFiltro }) {
       />
     );
   }
+  if (seccion.tipo === 'fecha') return <FilterBarSeccionFecha {...seccion} />;
   if (seccion.tipo === 'multiple') {
     return (
       <GrupoDeChips
