@@ -22,6 +22,8 @@ const ASIGNACION: EvaluacionAsignadaJurado = {
   estado: { id: 'PENDIENTE_POR_EVALUAR', nombre: 'Pendiente por evaluar' },
   evaluacion: { id: 'e-1', estado: { id: 'PENDIENTE', nombre: 'Pendiente' } },
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
+  tieneEvaluacionesCualitativas: false,
+  tieneEvaluacionesCuantitativas: false,
 };
 
 const PAGINA: Page<EvaluacionAsignadaJurado> = {

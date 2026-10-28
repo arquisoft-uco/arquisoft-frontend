@@ -2,7 +2,8 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
-import ConsultarEvaluacionesCualitativasJurado from './components/estudiante/ConsultarEvaluacionesCualitativasJurado';
+import ConsultarEvaluacionesCualitativasJurado from './components/ConsultarEvaluacionesCualitativasJurado';
+import { useEvaluacionesCualitativasJurado } from './hooks/useEvaluacionesCualitativasJurado';
 import { useNavegacionEvaluacionJurado } from './hooks/useNavegacionEvaluacionJurado';
 import type { NavegacionJuradosEvaluacion } from './models/ResumenEvaluacion';
 
@@ -15,6 +16,7 @@ export default function EvaluacionesCualitativasJurado() {
   const esEstudiante = useHasRole(ROLES_CONSULTAN);
   const navigate = useNavigate();
   const navegacion = useNavegacionEvaluacionJurado(evaluacionJuradoId);
+  const consulta = useEvaluacionesCualitativasJurado(evaluacionJuradoId);
 
   if (!esEstudiante) return <Navigate to="/forbidden" replace />;
 
@@ -55,7 +57,8 @@ export default function EvaluacionesCualitativasJurado() {
     <div className={RAIZ}>
       <PageHeader titulo={TITULO} descripcion={descripcion} migas={migas} />
       <ConsultarEvaluacionesCualitativasJurado
-        evaluacionJuradoId={evaluacionJuradoId}
+        consulta={consulta}
+        etiquetaVolver="Volver a los jurados"
         onVolver={volver}
       />
     </div>

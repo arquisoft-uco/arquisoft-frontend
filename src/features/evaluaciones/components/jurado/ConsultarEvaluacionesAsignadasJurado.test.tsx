@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useLocation } from 'react-router';
 import { render, screen } from '../../../../test-utils/render';
 import {
   resetAllStores,
@@ -21,6 +21,8 @@ const ASIGNACION: EvaluacionAsignadaJurado = {
   estado: { id: 'PENDIENTE_POR_EVALUAR', nombre: 'Pendiente por evaluar' },
   evaluacion: { id: 'e-1', estado: { id: 'PENDIENTE', nombre: 'Pendiente' } },
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
+  tieneEvaluacionesCualitativas: false,
+  tieneEvaluacionesCuantitativas: true,
 };
 
 const FINALIZADA: EvaluacionAsignadaJurado = {
@@ -28,6 +30,8 @@ const FINALIZADA: EvaluacionAsignadaJurado = {
   estado: { id: 'EVALUADA', nombre: 'Evaluada' },
   evaluacion: { id: 'e-2', estado: { id: 'FINALIZADA', nombre: 'Finalizada' } },
   entregable: { id: 'en-2', proyecto: 'Plataforma de riego', version: 1 },
+  tieneEvaluacionesCualitativas: true,
+  tieneEvaluacionesCuantitativas: true,
 };
 
 type Hook = ReturnType<typeof useEvaluacionesAsignadasJurado>;
@@ -211,6 +215,64 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
 
       // Assert
       expect(screen.queryByRole('button', { name: /^Evaluar/ })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('indicadores de faltante y «Ver cualitativas»', () => {
+    beforeEach(() => {
+      resetAllStores();
+      setAuthenticatedUser({
+        tokenParsed: { sub: 'user-id', realm_access: { roles: [Rol.Jurado] } },
+      });
+      setActiveRole(Rol.Jurado);
+    });
+
+    it('muestra el faltante junto al badge de una pendiente y nada en la evaluada', () => {
+      // Arrange
+      mockHook({ data: [ASIGNACION, FINALIZADA] });
+
+      // Act
+      render(<ConsultarEvaluacionesAsignadasJurado />);
+
+      // Assert
+      const filas = screen.getAllByRole('row');
+      expect(filas[1]).toHaveTextContent('Falta la cualitativa');
+      expect(filas[2]).not.toHaveTextContent(/Falta|Faltan/);
+    });
+
+    it('ofrece «Ver cualitativas» solo si hay cualitativas y navega con el state', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      mockHook({ data: [ASIGNACION, FINALIZADA] });
+      let estado: unknown;
+      function Destino() {
+        estado = useLocation().state;
+        return <p>Pantalla de cualitativas</p>;
+      }
+      render(
+        <Routes>
+          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
+          <Route path="/evaluaciones/:id/cualitativas-realizadas" element={<Destino />} />
+        </Routes>,
+      );
+
+      // Assert
+      expect(
+        screen.queryByRole('button', { name: 'Ver cualitativas de Sistema de monitoreo' }),
+      ).not.toBeInTheDocument();
+
+      // Act
+      await user.click(
+        screen.getAllByRole('button', { name: 'Ver cualitativas de Plataforma de riego' })[0],
+      );
+
+      // Assert
+      expect(await screen.findByText('Pantalla de cualitativas')).toBeInTheDocument();
+      expect(estado).toEqual({
+        evaluacionJuradoId: 'ej-2',
+        search: '',
+        resumen: { proyecto: 'Plataforma de riego', version: 1 },
+      });
     });
   });
 });

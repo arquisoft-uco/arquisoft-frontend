@@ -6,10 +6,13 @@ import { useHasRole } from '../../hooks/useHasRole';
 import { useNavegacionEvaluacionJurado } from './hooks/useNavegacionEvaluacionJurado';
 
 vi.mock('../../hooks/useHasRole', () => ({ useHasRole: vi.fn() }));
+vi.mock('./hooks/useEvaluacionesCualitativasJurado', () => ({
+  useEvaluacionesCualitativasJurado: vi.fn(() => ({})),
+}));
 vi.mock('./hooks/useNavegacionEvaluacionJurado', () => ({
   useNavegacionEvaluacionJurado: vi.fn(),
 }));
-vi.mock('./components/estudiante/ConsultarEvaluacionesCualitativasJurado', () => ({
+vi.mock('./components/ConsultarEvaluacionesCualitativasJurado', () => ({
   default: () => <p>Consulta de cualitativas</p>,
 }));
 

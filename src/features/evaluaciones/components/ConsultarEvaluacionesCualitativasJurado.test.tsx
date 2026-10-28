@@ -1,15 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen } from '../../../test-utils/render';
 import ConsultarEvaluacionesCualitativasJurado from './ConsultarEvaluacionesCualitativasJurado';
-import { useEvaluacionesCualitativasJurado } from '../../hooks/useEvaluacionesCualitativasJurado';
-import { EVALUACION_CUALITATIVA_JURADO_EVALUACION_JURADO_NO_ENCONTRADA } from '../../utils/codigos-error-evaluaciones';
-import type { EvaluacionCualitativaJurado } from '../../models/EvaluacionCualitativaJurado';
-
-vi.mock('../../hooks/useEvaluacionesCualitativasJurado', () => ({
-  useEvaluacionesCualitativasJurado: vi.fn(),
-}));
+import type { ConsultaCualitativas } from './ConsultarEvaluacionesCualitativasJurado';
+import {
+  EVALUACION_CUALITATIVA_JURADO_EVALUACION_JURADO_NO_ENCONTRADA,
+  EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO,
+} from '../utils/codigos-error-evaluaciones';
+import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
 
 const FILA: EvaluacionCualitativaJurado = {
   id: 'ec-1',
@@ -27,23 +26,25 @@ function crearError(status: number, errorCode?: string, message = 'Falla del ser
   });
 }
 
-function mockHook(parcial: Record<string, unknown> = {}) {
+function montar(parcial: Partial<ConsultaCualitativas> = {}) {
   const refetch = vi.fn();
-  vi.mocked(useEvaluacionesCualitativasJurado).mockReturnValue({
+  const onVolver = vi.fn();
+  const consulta: ConsultaCualitativas = {
     data: undefined,
     error: null,
     isLoading: false,
     isError: false,
     refetch,
     ...parcial,
-  } as never);
-  return refetch;
-}
-
-function montar() {
-  const onVolver = vi.fn();
-  render(<ConsultarEvaluacionesCualitativasJurado evaluacionJuradoId="ej-1" onVolver={onVolver} />);
-  return onVolver;
+  };
+  render(
+    <ConsultarEvaluacionesCualitativasJurado
+      consulta={consulta}
+      etiquetaVolver="Volver a los jurados"
+      onVolver={onVolver}
+    />,
+  );
+  return { refetch, onVolver };
 }
 
 describe('ConsultarEvaluacionesCualitativasJurado', () => {
@@ -52,11 +53,8 @@ describe('ConsultarEvaluacionesCualitativasJurado', () => {
   });
 
   it('lista ítem y criterio con nombre y descripción y anuncia el total', () => {
-    // Arrange
-    mockHook({ data: [FILA] });
-
-    // Act
-    montar();
+    // Arrange / Act
+    montar({ data: [FILA] });
 
     // Assert
     expect(screen.getByText('1 evaluación cualitativa')).toBeInTheDocument();
@@ -67,48 +65,52 @@ describe('ConsultarEvaluacionesCualitativasJurado', () => {
   });
 
   it('muestra el estado de carga', () => {
-    // Arrange
-    mockHook({ isLoading: true });
-
-    // Act
-    montar();
+    // Arrange / Act
+    montar({ isLoading: true });
 
     // Assert
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('muestra el estado vacío cuando no hay evaluaciones', () => {
-    // Arrange
-    mockHook({ data: [] });
-
-    // Act
-    montar();
+    // Arrange / Act
+    montar({ data: [] });
 
     // Assert
     expect(screen.getByText('Aún no hay evaluaciones cualitativas')).toBeInTheDocument();
   });
 
-  it('un 422 de jurado no encontrado muestra no disponible, permite volver y no ofrece reintento', async () => {
+  it('cada 422 muestra un error sin reintento y permite volver', async () => {
     // Arrange
-    mockHook({
+    const { onVolver } = montar({
       isError: true,
       error: crearError(422, EVALUACION_CUALITATIVA_JURADO_EVALUACION_JURADO_NO_ENCONTRADA),
     });
-    const onVolver = montar();
 
     // Act
     await userEvent.click(screen.getByRole('button', { name: 'Volver a los jurados' }));
 
     // Assert
-    expect(screen.getByText('Esta evaluación del jurado no está disponible')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Esta evaluación no está disponible');
     expect(onVolver).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /Reintentar/ })).not.toBeInTheDocument();
+  });
+
+  it('el 422 de otro jurado muestra su propio mensaje sin reintento', () => {
+    // Arrange / Act
+    montar({
+      isError: true,
+      error: crearError(422, EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO),
+    });
+
+    // Assert
+    expect(screen.getByRole('alert')).toHaveTextContent('No puedes consultar esta evaluación');
     expect(screen.queryByRole('button', { name: /Reintentar/ })).not.toBeInTheDocument();
   });
 
   it('otro error muestra el mensaje del backend y reintenta con refetch', async () => {
     // Arrange
-    const refetch = mockHook({ isError: true, error: crearError(400, 'X', 'Id inválido') });
-    montar();
+    const { refetch } = montar({ isError: true, error: crearError(400, 'X', 'Id inválido') });
 
     // Act
     await userEvent.click(screen.getByRole('button', { name: /Reintentar/ }));

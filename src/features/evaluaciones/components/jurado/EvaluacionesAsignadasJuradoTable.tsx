@@ -6,11 +6,13 @@ import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { varianteEstadoEvaluacionJurado } from '../../../../shared/utils/estado-variante';
+import { textoEvaluacionFaltante } from '../../utils/estados-evaluacion-jurado';
 import type { EvaluacionAsignadaJurado } from '../../models/EvaluacionAsignadaJurado';
 
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
 const TITULO = 'font-medium text-on-surface';
 const VERSION = 'text-[13px] text-on-surface-secondary';
+const FALTANTE = 'text-xs text-on-surface-secondary';
 
 interface Props {
   evaluaciones: EvaluacionAsignadaJurado[];
@@ -22,10 +24,14 @@ interface Props {
 }
 
 function InsigniaEstado({ asignacion }: { asignacion: EvaluacionAsignadaJurado }) {
+  const faltante = textoEvaluacionFaltante(asignacion);
   return (
-    <Badge variante={varianteEstadoEvaluacionJurado(asignacion.estado.id)}>
-      {asignacion.estado.nombre}
-    </Badge>
+    <>
+      <Badge variante={varianteEstadoEvaluacionJurado(asignacion.estado.id)}>
+        {asignacion.estado.nombre}
+      </Badge>
+      {faltante && <span className={FALTANTE}>{faltante}</span>}
+    </>
   );
 }
 
@@ -43,7 +49,11 @@ const COLUMNAS: ColumnaTabla<EvaluacionAsignadaJurado>[] = [
   {
     id: 'estado',
     encabezado: 'Estado',
-    celda: (asignacion) => <InsigniaEstado asignacion={asignacion} />,
+    celda: (asignacion) => (
+      <div className={TARJETA_ESTADO}>
+        <InsigniaEstado asignacion={asignacion} />
+      </div>
+    ),
   },
 ];
 
