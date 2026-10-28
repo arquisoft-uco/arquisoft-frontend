@@ -7,6 +7,7 @@ import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosE
 import type { Evaluacion } from '../models/Evaluacion';
 import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
 import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
+import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
@@ -145,6 +146,15 @@ export const evaluacionesService = {
       .get<
         EvaluacionCualitativaJurado[]
       >(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cualitativas`)
+      .then((r) => r.data),
+
+  getEvaluacionesCuantitativasJurado: (
+    evaluacionJuradoId: string,
+  ): Promise<EvaluacionCuantitativaJurado[]> =>
+    apiClient
+      .get<
+        EvaluacionCuantitativaJurado[]
+      >(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cuantitativas`)
       .then((r) => r.data),
 
   getEvaluacionesAsignadasJurado: (): Promise<EvaluacionAsignadaJurado[]> =>

@@ -6,7 +6,7 @@ import AccionesJuradoEvaluacion from './components/estudiante/AccionesJuradoEval
 import ListadoJuradosEvaluacion from './components/estudiante/ListadoJuradosEvaluacion';
 import { useJuradosEvaluacion } from './hooks/useJuradosEvaluacion';
 import type { EvaluacionJurado } from './models/EvaluacionJurado';
-import type { NavegacionCualitativasJurado } from './models/NavegacionCualitativasJurado';
+import type { NavegacionEvaluacionJurado } from './models/NavegacionEvaluacionJurado';
 import { useResumenEvaluacion } from './hooks/useResumenEvaluacion';
 
 const ROLES_CONSULTAN = [Rol.Estudiante];
@@ -20,8 +20,8 @@ export default function JuradosEvaluacion() {
   const { resumen, search } = useResumenEvaluacion(evaluacionId);
   const listado = useJuradosEvaluacion(evaluacionId);
 
-  function verCualitativa(jurado: EvaluacionJurado) {
-    const state: NavegacionCualitativasJurado = {
+  function irA(jurado: EvaluacionJurado, ruta: 'cualitativas' | 'cuantitativas') {
+    const state: NavegacionEvaluacionJurado = {
       evaluacionJuradoId: jurado.id,
       evaluacionId,
       jurado: jurado.jurado.nombre,
@@ -29,7 +29,15 @@ export default function JuradosEvaluacion() {
       search,
       searchJurados,
     };
-    navigate(`/evaluaciones/${jurado.id}/cualitativas`, { state });
+    navigate(`/evaluaciones/${jurado.id}/${ruta}`, { state });
+  }
+
+  function verCualitativa(jurado: EvaluacionJurado) {
+    irA(jurado, 'cualitativas');
+  }
+
+  function verCuantitativa(jurado: EvaluacionJurado) {
+    irA(jurado, 'cuantitativas');
   }
 
   if (!esEstudiante) return <Navigate to="/forbidden" replace />;
@@ -51,7 +59,11 @@ export default function JuradosEvaluacion() {
         onVolver={() => navigate(rutaListado)}
         encabezadoAcciones="Acciones"
         acciones={(jurado) => (
-          <AccionesJuradoEvaluacion jurado={jurado} onVerCualitativa={verCualitativa} />
+          <AccionesJuradoEvaluacion
+            jurado={jurado}
+            onVerCualitativa={verCualitativa}
+            onVerCuantitativa={verCuantitativa}
+          />
         )}
       />
     </div>
