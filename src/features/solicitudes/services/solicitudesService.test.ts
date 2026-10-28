@@ -488,6 +488,25 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('responderSolicitudAmpliacionPlazo', () => {
+    it('llama POST /solicitudes/ampliacion-plazo/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-4' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudAmpliacionPlazo({
+        solicitudId: 's-4',
+        contenido: 'Plazo ampliado.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/s-4/respuesta', {
+        contenido: 'Plazo ampliado.',
+      });
+      expect(resultado).toEqual({ id: 'r-4' });
+    });
+  });
+
   describe('responderSolicitudCambioAsesor', () => {
     it('llama POST /solicitudes/cambio-asesor/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
       // Arrange

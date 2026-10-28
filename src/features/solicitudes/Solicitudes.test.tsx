@@ -12,6 +12,7 @@ import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNoved
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
 import { useEnviarSolicitudAmpliacionPlazo } from './hooks/useEnviarSolicitudAmpliacionPlazo';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import { useResponderSolicitudAmpliacionPlazo } from './hooks/useResponderSolicitudAmpliacionPlazo';
 import { useResponderSolicitudCambioAsesor } from './hooks/useResponderSolicitudCambioAsesor';
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
 import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSolicitudNovedadCoordinador';
@@ -146,6 +147,10 @@ vi.mock('./hooks/useModificarEstadoRespuestaCambioAsesor', () => ({
 
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
   useResponderSolicitudNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('./hooks/useResponderSolicitudAmpliacionPlazo', () => ({
+  useResponderSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudCambioAsesor', () => ({
@@ -324,6 +329,9 @@ describe('Solicitudes', () => {
     );
     vi.mocked(useResponderSolicitudNovedadAsesor).mockReturnValue(
       crearMutacionResponderAsesorMock(),
+    );
+    vi.mocked(useResponderSolicitudAmpliacionPlazo).mockReturnValue(
+      crearMutacionResponderCoordinadorMock(),
     );
     vi.mocked(useResponderSolicitudCambioAsesor).mockReturnValue(
       crearMutacionResponderCoordinadorMock(),

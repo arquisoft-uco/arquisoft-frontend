@@ -9,6 +9,7 @@ import type { EstadoRespuesta } from '../models/EstadoRespuesta';
 import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
+import type { ResponderSolicitudAmpliacionPlazoRequest } from '../models/ResponderSolicitudAmpliacionPlazoRequest';
 import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
@@ -209,6 +210,15 @@ export const solicitudesService = {
   ): Promise<SolicitudCreadaResponse> =>
     apiClient
       .post<SolicitudCreadaResponse>(`/solicitudes/cambio-asesor/${req.solicitudId}/respuesta`, {
+        contenido: req.contenido,
+      })
+      .then((r) => r.data),
+
+  responderSolicitudAmpliacionPlazo: (
+    req: ResponderSolicitudAmpliacionPlazoRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta`, {
         contenido: req.contenido,
       })
       .then((r) => r.data),
