@@ -2,12 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
+import { useResponderSolicitudAmpliacionPlazo } from '../../hooks/useResponderSolicitudAmpliacionPlazo';
 import { useSolicitudesAmpliacionPlazoRecibidas } from '../../hooks/useSolicitudesAmpliacionPlazoRecibidas';
 import type { Solicitud } from '../../models/Solicitud';
 import SolicitudesAmpliacionPlazoRecibidasPanel from './SolicitudesAmpliacionPlazoRecibidasPanel';
 
 vi.mock('../../hooks/useSolicitudesAmpliacionPlazoRecibidas', () => ({
   useSolicitudesAmpliacionPlazoRecibidas: vi.fn(),
+}));
+
+vi.mock('../../hooks/useResponderSolicitudAmpliacionPlazo', () => ({
+  useResponderSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
 type HookRecibidas = ReturnType<typeof useSolicitudesAmpliacionPlazoRecibidas>;
@@ -55,8 +60,28 @@ function mockearHook(parcial: Partial<HookRecibidas> = {}) {
 }
 
 describe('SolicitudesAmpliacionPlazoRecibidasPanel', () => {
+  const mutate = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useResponderSolicitudAmpliacionPlazo).mockReturnValue({
+      mutate,
+      mutateAsync: vi.fn(),
+      isPending: false,
+      isIdle: true,
+      isError: false,
+      isSuccess: false,
+      status: 'idle',
+      data: undefined,
+      error: null,
+      variables: undefined,
+      context: undefined,
+      failureCount: 0,
+      failureReason: null,
+      isPaused: false,
+      submittedAt: 0,
+      reset: vi.fn(),
+    } as ReturnType<typeof useResponderSolicitudAmpliacionPlazo>);
   });
 
   it('muestra el esqueleto de carga y no la tabla', () => {
@@ -101,7 +126,7 @@ describe('SolicitudesAmpliacionPlazoRecibidasPanel', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('con datos muestra remitente, mensaje y fecha, sin botón Responder', () => {
+  it('con datos muestra remitente, mensaje, fecha y un botón Responder por fila', () => {
     // Arrange
     mockearHook({ data: crearPagina([SOLICITUD]) });
 
@@ -119,7 +144,9 @@ describe('SolicitudesAmpliacionPlazoRecibidasPanel', () => {
       within(tabla).getByText('Necesito dos semanas más para entregar el informe.'),
     ).toBeInTheDocument();
     expect(tabla.querySelector('time')).toHaveAttribute('datetime', SOLICITUD.fechaCreacion);
-    expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
+    expect(
+      within(tabla).getByRole('button', { name: 'Responder la solicitud de Luis Gómez' }),
+    ).toBeInTheDocument();
   });
 
   it('con varias páginas el paginador llama a onPageChange con la siguiente', async () => {
@@ -134,5 +161,55 @@ describe('SolicitudesAmpliacionPlazoRecibidasPanel', () => {
 
     // Assert
     expect(onPageChange).toHaveBeenCalledWith(1);
+  });
+
+  it('Responder abre el panel con el mensaje y un envío válido llama al hook con solicitudId y contenido', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({ data: crearPagina([SOLICITUD]) });
+    render(<SolicitudesAmpliacionPlazoRecibidasPanel page={0} onPageChange={vi.fn()} />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Responder la solicitud de Luis Gómez',
+      }),
+    );
+    const dialogo = screen.getByRole('dialog', { name: 'Responder solicitud' });
+    await user.type(within(dialogo).getByRole('textbox', { name: /Respuesta/ }), 'Aprobado.');
+    await user.click(within(dialogo).getByRole('button', { name: 'Enviar respuesta' }));
+
+    // Assert
+    expect(
+      within(dialogo).getByText('Necesito dos semanas más para entregar el informe.'),
+    ).toBeInTheDocument();
+    expect(mutate).toHaveBeenCalledWith(
+      { solicitudId: 's-1', contenido: 'Aprobado.' },
+      expect.anything(),
+    );
+  });
+
+  it('cierra el panel al tener éxito el envío y lo mantiene abierto si falla', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({ data: crearPagina([SOLICITUD]) });
+    mutate.mockImplementationOnce((_req, opciones) => opciones.onError(new Error('fallo')));
+    mutate.mockImplementationOnce((_req, opciones) => opciones.onSuccess());
+    render(<SolicitudesAmpliacionPlazoRecibidasPanel page={0} onPageChange={vi.fn()} />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Responder la solicitud de Luis Gómez',
+      }),
+    );
+    const dialogo = screen.getByRole('dialog', { name: 'Responder solicitud' });
+    await user.type(within(dialogo).getByRole('textbox', { name: /Respuesta/ }), 'Aprobado.');
+    await user.click(within(dialogo).getByRole('button', { name: 'Enviar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Responder solicitud' })).toBeInTheDocument();
+    await user.click(within(dialogo).getByRole('button', { name: 'Enviar respuesta' }));
+    expect(screen.queryByRole('dialog', { name: 'Responder solicitud' })).not.toBeInTheDocument();
   });
 });
