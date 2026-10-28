@@ -22,7 +22,7 @@ export default function ConsultarVersionesArtefactoAsesor() {
 
   return (
     <div className={RAIZ}>
-      <FiltrosVersionesArtefactoAsesor listado={listado} catalogo={catalogo} />
+      <FiltrosVersionesArtefactoAsesor listado={listado} />
 
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.totalElements)}

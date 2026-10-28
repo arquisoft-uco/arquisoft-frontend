@@ -31,21 +31,22 @@ export function inicioDelDiaSiguienteUtc(fecha: string): string {
   return aUtcSinZona(aDiaLocal(fecha, 1));
 }
 
-export function formatearFechaFiltro(fecha: string): string {
-  const [anio, mes, dia] = fecha.split('-');
-  return `${dia}/${mes}/${anio}`;
-}
-
 interface Filtros {
-  artefacto: string;
+  artefactos: string[];
   desde: string;
   hasta: string;
 }
 
-export function construirFiltros({ artefacto, desde, hasta }: Filtros): NodoFiltroDTO | undefined {
+export function construirFiltros({ artefactos, desde, hasta }: Filtros): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
-  if (artefacto)
-    nodos.push({ tipo: 'PREDICADO', campo: 'artefacto', operador: 'ES', valor: artefacto });
+  if (artefactos.length > 0) {
+    nodos.push({
+      tipo: 'PREDICADO_MULTIVALOR',
+      campo: 'artefacto',
+      operador: 'IN',
+      valores: artefactos,
+    });
+  }
   if (desde) {
     nodos.push({
       tipo: 'PREDICADO',

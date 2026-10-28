@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
+import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import { artefactosService } from '../services/artefactosService';
 import { construirFiltros } from '../utils/filtros-versiones-artefacto';
 import { useVersionesArtefactoAsesor } from './useVersionesArtefactoAsesor';
@@ -10,10 +11,24 @@ import { useVersionesArtefactoAsesor } from './useVersionesArtefactoAsesor';
 vi.mock('../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoAsesor: vi.fn(),
+    consultarArtefactosAsesor: vi.fn(),
   },
 }));
 
 const consultar = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
+const consultarCatalogo = vi.mocked(artefactosService.consultarArtefactosAsesor);
+
+function artefacto(id: string, nombreDocumento: string, nombreProyecto: string): ArtefactoAsesor {
+  return {
+    id,
+    proyectoGrado: 'p-1',
+    nombreProyecto,
+    versionRepositorioArtefacto: 'r-1',
+    nombreDocumento,
+    versionDocumento: 1,
+    nombreRepositorio: 'Repo',
+  };
+}
 
 const PAGINA_VACIA = {
   content: [],
@@ -42,6 +57,13 @@ describe('useVersionesArtefactoAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockResolvedValue(PAGINA_VACIA);
+    consultarCatalogo.mockResolvedValue({
+      ...PAGINA_VACIA,
+      content: [
+        artefacto('a-1', 'Acta de inicio', 'Sistema de riego'),
+        artefacto('a-2', 'Cronograma', 'Huerta urbana'),
+      ],
+    });
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
@@ -60,24 +82,21 @@ describe('useVersionesArtefactoAsesor', () => {
       filtros: undefined,
     });
     expect(result.current.hayFiltros).toBe(false);
-    expect(queryClient.getQueryCache().getAll()[0].queryKey).toEqual([
-      'artefactos',
-      'versiones-artefacto',
-      'asesor',
-      0,
-      '',
-      '',
-      '',
-      'fechaCreacion:DESC',
-    ]);
+    expect(
+      queryClient
+        .getQueryCache()
+        .getAll()
+        .map((q) => q.queryKey)
+        .find((k) => k[1] === 'versiones-artefacto'),
+    ).toEqual(['artefactos', 'versiones-artefacto', 'asesor', 0, [], '', '', 'fechaCreacion:DESC']);
   });
 
-  it('lee artefacto, desde, hasta y orden de la URL y los traduce a filtros', async () => {
+  it('lee q, desde, hasta y orden de la URL y los traduce a filtros con IN sobre el catálogo', async () => {
     // Act
     const { result } = renderHook(() => useVersionesArtefactoAsesor(), {
       wrapper: crearWrapper(
         queryClient,
-        '/artefactos?artefacto=a-1&desde=2026-10-01&hasta=2026-10-15&orden=version:ASC',
+        '/artefactos?q=acta&desde=2026-10-01&hasta=2026-10-15&orden=version:ASC',
       ),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -87,7 +106,7 @@ describe('useVersionesArtefactoAsesor', () => {
       pagina: 0,
       tamanio: 10,
       ordenamiento: ['version:ASC'],
-      filtros: construirFiltros({ artefacto: 'a-1', desde: '2026-10-01', hasta: '2026-10-15' }),
+      filtros: construirFiltros({ artefactos: ['a-1'], desde: '2026-10-01', hasta: '2026-10-15' }),
     });
     expect(result.current.hayFiltros).toBe(true);
     expect(result.current.ordenCampo).toBe('version');
@@ -109,7 +128,7 @@ describe('useVersionesArtefactoAsesor', () => {
   it('setOrden cambia la petición y limpiarFiltros quita los filtros', async () => {
     // Arrange
     const { result } = renderHook(() => useVersionesArtefactoAsesor(), {
-      wrapper: crearWrapper(queryClient, '/artefactos?artefacto=a-1'),
+      wrapper: crearWrapper(queryClient, '/artefactos?q=acta'),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -128,6 +147,34 @@ describe('useVersionesArtefactoAsesor', () => {
 
     // Assert
     await waitFor(() => expect(result.current.hayFiltros).toBe(false));
+    expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined }));
+  });
+
+  it('un texto sin coincidencias en el catálogo no consulta y devuelve la página vacía', async () => {
+    // Act
+    const { result } = renderHook(() => useVersionesArtefactoAsesor(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?q=zzz'),
+    });
+    await waitFor(() => expect(consultarCatalogo).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.data?.totalElements).toBe(0));
+
+    // Assert
+    expect(consultar).not.toHaveBeenCalled();
+    expect(result.current.hayFiltros).toBe(true);
+  });
+
+  it('si el catálogo falla ignora q, consulta sin filtro y marca la búsqueda como no disponible', async () => {
+    // Arrange
+    consultarCatalogo.mockRejectedValue(new Error('fallo'));
+
+    // Act
+    const { result } = renderHook(() => useVersionesArtefactoAsesor(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?q=acta'),
+    });
+    await waitFor(() => expect(result.current.busquedaDisponible).toBe(false));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
     expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined }));
   });
 });

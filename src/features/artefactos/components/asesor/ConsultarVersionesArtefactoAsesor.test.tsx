@@ -1,6 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, within } from '../../../../test-utils/render';
+import { render, screen, waitFor, within } from '../../../../test-utils/render';
+import {
+  avanzar,
+  restaurarTemporizadores,
+  usarTemporizadoresFalsos,
+} from '../../../../test-utils/temporizadores';
 import type { Page } from '../../../../shared/models/api-response';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import type { VersionArtefactoAsesor } from '../../models/VersionArtefactoAsesor';
@@ -48,6 +53,10 @@ function pagina<T>(content: T[]): Page<T> {
 }
 
 describe('ConsultarVersionesArtefactoAsesor', () => {
+  afterEach(() => {
+    restaurarTemporizadores();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
@@ -105,28 +114,27 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(consultarVersiones).toHaveBeenCalledTimes(2);
   });
 
-  it('si el catálogo falla, el filtro avisa y la tabla sigue con "Artefacto sin nombre"', async () => {
+  it('si el catálogo falla, la búsqueda se deshabilita con aviso y la tabla sigue con "Artefacto sin nombre"', async () => {
     // Arrange
-    const user = userEvent.setup();
     consultarArtefactos.mockRejectedValue(new Error('fallo'));
 
     // Act
     render(<ConsultarVersionesArtefactoAsesor />);
     const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
-    await user.click(screen.getByRole('button', { name: /^filtros/i }));
 
     // Assert
     expect(await within(tabla).findByText('Artefacto sin nombre')).toBeInTheDocument();
     expect(await screen.findByText(/No se pudo cargar la lista de artefactos/)).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeDisabled();
   });
 
-  it('elegir un rango de fechas consulta con el criterio y muestra los chips aplicados', async () => {
+  it('elegir un rango desde el botón de fechas consulta con el criterio y el botón muestra el rango', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<ConsultarVersionesArtefactoAsesor />);
     await screen.findByRole('table', { name: 'Versiones de artefactos' });
-    await user.click(screen.getByRole('button', { name: /^filtros/i }));
-    const panel = within(screen.getByRole('dialog', { name: 'Filtros' }));
+    await user.click(screen.getByRole('button', { name: 'Fecha de creación', expanded: false }));
+    const panel = within(screen.getByRole('dialog', { name: 'Fecha de creación' }));
 
     // Act
     await user.type(panel.getByLabelText('Desde'), '2026-03-01');
@@ -139,30 +147,51 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
         filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'AND' }),
       }),
     );
-    expect(await screen.findByText('Desde: 01/03/2026')).toBeInTheDocument();
-    expect(screen.getByText('Hasta: 31/03/2026')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'Fecha de creación: 01/03/2026 – 31/03/2026' }),
+    ).toBeInTheDocument();
   });
 
-  it('elegir un artefacto consulta con el predicado ES y muestra su nombre en el chip', async () => {
+  it('escribir en "Buscar artefactos" consulta con IN sobre los artefactos que coinciden', async () => {
     // Arrange
-    const user = userEvent.setup();
+    const user = usarTemporizadoresFalsos();
     render(<ConsultarVersionesArtefactoAsesor />);
     await screen.findByRole('table', { name: 'Versiones de artefactos' });
-    await user.click(screen.getByRole('button', { name: /^filtros/i }));
-    const panel = within(screen.getByRole('dialog', { name: 'Filtros' }));
 
     // Act
-    await user.click(await panel.findByRole('combobox', { name: 'Artefacto' }));
-    await user.click(await screen.findByRole('option', { name: /Acta de inicio/ }));
+    await user.type(screen.getByRole('textbox', { name: 'Buscar artefactos' }), 'acta');
+    avanzar(300);
 
     // Assert
-    expect(consultarVersiones).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        filtros: { tipo: 'PREDICADO', campo: 'artefacto', operador: 'ES', valor: 'a-1' },
-      }),
+    await waitFor(() =>
+      expect(consultarVersiones).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filtros: {
+            tipo: 'PREDICADO_MULTIVALOR',
+            campo: 'artefacto',
+            operador: 'IN',
+            valores: ['a-1'],
+          },
+        }),
+      ),
     );
+  });
+
+  it('un texto sin coincidencias muestra "Sin resultados" sin consultar y "Limpiar filtros" restablece', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarVersionesArtefactoAsesor />, { initialPath: '/artefactos?q=zzz' });
+
+    // Assert
+    expect(await screen.findByText('Sin resultados')).toBeInTheDocument();
+    expect(consultarVersiones).not.toHaveBeenCalled();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /limpiar filtros/i }));
+
+    // Assert
     expect(
-      await screen.findByText('Artefacto: Acta de inicio · Sistema de riego'),
+      await screen.findByRole('table', { name: 'Versiones de artefactos' }),
     ).toBeInTheDocument();
   });
 });

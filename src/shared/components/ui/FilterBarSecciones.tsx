@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react';
 import FilterBarSeccionFechas from './FilterBarSeccionFechas';
-import FilterBarSeccionSeleccion from './FilterBarSeccionSeleccion';
 import FilterBarSeccionTexto from './FilterBarSeccionTexto';
 import { GrupoDeChips, SeccionChips } from './FilterBarSeccionChips';
-import type { OpcionCombobox } from './Combobox';
 import type { OpcionFiltro } from './FilterChip';
 
 interface SeccionBase {
@@ -37,17 +35,6 @@ export interface SeccionTexto extends SeccionBase {
   placeholder?: string;
 }
 
-export interface SeccionSeleccion extends SeccionBase {
-  tipo: 'seleccion';
-  opciones: OpcionCombobox[];
-  valor: string;
-  onCambiar: (id: string) => void;
-  textoVacio: string;
-  placeholder?: string;
-  deshabilitada?: boolean;
-  aviso?: ReactNode;
-}
-
 export interface SeccionFechas extends SeccionBase {
   tipo: 'fechas';
   desde: string;
@@ -56,12 +43,7 @@ export interface SeccionFechas extends SeccionBase {
   onCambiarHasta: (valor: string) => void;
 }
 
-export type SeccionFiltro =
-  | SeccionOpciones
-  | SeccionMultiple
-  | SeccionTexto
-  | SeccionSeleccion
-  | SeccionFechas;
+export type SeccionFiltro = SeccionOpciones | SeccionMultiple | SeccionTexto | SeccionFechas;
 
 export interface OrdenFiltro {
   etiqueta: string;
@@ -80,20 +62,6 @@ export function SeccionDeFiltro({ seccion }: { seccion: SeccionFiltro }) {
         valor={seccion.valor}
         onCambiar={seccion.onCambiar}
         placeholder={seccion.placeholder}
-      />
-    );
-  }
-  if (seccion.tipo === 'seleccion') {
-    return (
-      <FilterBarSeccionSeleccion
-        etiqueta={seccion.etiqueta}
-        opciones={seccion.opciones}
-        valor={seccion.valor}
-        onCambiar={seccion.onCambiar}
-        textoVacio={seccion.textoVacio}
-        placeholder={seccion.placeholder}
-        deshabilitada={seccion.deshabilitada}
-        aviso={seccion.aviso}
       />
     );
   }
