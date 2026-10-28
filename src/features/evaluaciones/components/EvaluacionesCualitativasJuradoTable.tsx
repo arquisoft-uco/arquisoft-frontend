@@ -1,8 +1,8 @@
 import { ClipboardList } from 'lucide-react';
-import DataTable from '../../../../shared/components/ui/DataTable';
-import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
-import EmptyState from '../../../../shared/components/ui/EmptyState';
-import type { EvaluacionCualitativaJurado } from '../../models/EvaluacionCualitativaJurado';
+import DataTable from '../../../shared/components/ui/DataTable';
+import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
+import EmptyState from '../../../shared/components/ui/EmptyState';
+import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
 
 const NOMBRE = 'font-medium text-on-surface';
 const DESCRIPCION = 'text-[13px] text-on-surface-secondary';

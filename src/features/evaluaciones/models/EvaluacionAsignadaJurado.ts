@@ -10,4 +10,6 @@ export interface EvaluacionAsignadaJurado {
     estado: Pick<EstadoEvaluacion, 'id' | 'nombre'>;
   };
   entregable: EntregableEvaluacion;
+  tieneEvaluacionesCualitativas: boolean;
+  tieneEvaluacionesCuantitativas: boolean;
 }

@@ -21,6 +21,8 @@ const PENDIENTE: EvaluacionAsignadaJurado = {
   id: 'ej-1',
   estado: { id: 'PENDIENTE_POR_EVALUAR', nombre: 'Pendiente por evaluar' },
   evaluacion: { id: 'e-1', estado: { id: 'PENDIENTE', nombre: 'Pendiente' } },
+  tieneEvaluacionesCualitativas: false,
+  tieneEvaluacionesCuantitativas: false,
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
 };
 
@@ -29,6 +31,8 @@ const FINALIZADA: EvaluacionAsignadaJurado = {
   estado: { id: 'EVALUADA', nombre: 'Evaluada' },
   evaluacion: { id: 'e-2', estado: { id: 'FINALIZADA', nombre: 'Finalizada' } },
   entregable: { id: 'en-2', proyecto: 'Plataforma de riego', version: 1 },
+  tieneEvaluacionesCualitativas: true,
+  tieneEvaluacionesCuantitativas: true,
 };
 
 type HookAsignacion = ReturnType<typeof useEvaluacionAsignadaJurado>;

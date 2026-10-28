@@ -211,4 +211,22 @@ describe('evaluacionesService', () => {
       expect(resultado).toEqual({ evaluacionesJurado: ['a'] });
     });
   });
+
+  describe('getEvaluacionesCualitativasRealizadasJurado', () => {
+    it('llama GET a la ruta de cualitativas del jurado y resuelve la lista', async () => {
+      // Arrange
+      const lista = [{ id: 'ec-1' }];
+      get.mockResolvedValue({ status: 200, data: lista });
+
+      // Act
+      const resultado =
+        await evaluacionesService.getEvaluacionesCualitativasRealizadasJurado('ej-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-jurado/ej-1/cualitativas/jurado',
+      );
+      expect(resultado).toEqual(lista);
+    });
+  });
 });
