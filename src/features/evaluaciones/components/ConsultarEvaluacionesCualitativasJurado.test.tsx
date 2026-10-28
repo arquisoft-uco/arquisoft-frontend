@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ComponentProps } from 'react';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../test-utils/render';
+import { cleanup, render, screen } from '../../../test-utils/render';
 import ConsultarEvaluacionesCualitativasJurado from './ConsultarEvaluacionesCualitativasJurado';
 import type { ConsultaCualitativas } from './ConsultarEvaluacionesCualitativasJurado';
 import {
@@ -26,7 +27,10 @@ function crearError(status: number, errorCode?: string, message = 'Falla del ser
   });
 }
 
-function montar(parcial: Partial<ConsultaCualitativas> = {}) {
+function montar(
+  parcial: Partial<ConsultaCualitativas> = {},
+  seleccion?: ComponentProps<typeof ConsultarEvaluacionesCualitativasJurado>['seleccion'],
+) {
   const refetch = vi.fn();
   const onVolver = vi.fn();
   const consulta: ConsultaCualitativas = {
@@ -42,6 +46,7 @@ function montar(parcial: Partial<ConsultaCualitativas> = {}) {
       consulta={consulta}
       etiquetaVolver="Volver a los jurados"
       onVolver={onVolver}
+      seleccion={seleccion}
     />,
   );
   return { refetch, onVolver };
@@ -62,6 +67,27 @@ describe('ConsultarEvaluacionesCualitativasJurado', () => {
     expect(screen.getAllByText('Qué tan claro es el documento').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Excelente').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Supera lo esperado').length).toBeGreaterThan(0);
+  });
+
+  it('sin selección no hay casillas y con selección hay una por fila que avisa su id', async () => {
+    // Arrange
+    montar({ data: [FILA] });
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+
+    // Arrange
+    const onAlternar = vi.fn();
+    cleanup();
+    montar({ data: [FILA] }, { seleccionados: new Set(['ec-1']), onAlternar });
+    const casilla = screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0];
+
+    // Act
+    await userEvent.click(casilla);
+
+    // Assert
+    expect(casilla).toBeChecked();
+    expect(onAlternar).toHaveBeenCalledWith('ec-1');
   });
 
   it('muestra el estado de carga', () => {

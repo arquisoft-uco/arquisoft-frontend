@@ -2,7 +2,7 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
-import ConsultarEvaluacionesCualitativasJurado from './components/ConsultarEvaluacionesCualitativasJurado';
+import EvaluacionesCualitativasRealizadasJuradoPanel from './components/jurado/EvaluacionesCualitativasRealizadasJuradoPanel';
 import { useEvaluacionesCualitativasRealizadasJurado } from './hooks/useEvaluacionesCualitativasRealizadasJurado';
 import { useNavegacionCualitativasRealizadasJurado } from './hooks/useNavegacionCualitativasRealizadasJurado';
 
@@ -32,8 +32,10 @@ export default function EvaluacionesCualitativasRealizadasJurado() {
         descripcion={descripcion}
         migas={[{ etiqueta: 'Evaluaciones', to: rutaListado }, { etiqueta: TITULO }]}
       />
-      <ConsultarEvaluacionesCualitativasJurado
+      <EvaluacionesCualitativasRealizadasJuradoPanel
+        evaluacionJuradoId={evaluacionJuradoId}
         consulta={consulta}
+        finalizada={navegacion?.evaluacionFinalizada ?? false}
         etiquetaVolver="Volver a mis evaluaciones"
         onVolver={() => navigate(rutaListado)}
       />

@@ -38,6 +38,7 @@ export default function ConsultarEvaluacionesAsignadasJurado() {
     const state: NavegacionCualitativasRealizadasJurado = {
       evaluacionJuradoId: asignacion.id,
       search: location.search,
+      evaluacionFinalizada: asignacion.evaluacion.estado.id === ESTADO_FINALIZADA,
       resumen: { proyecto: asignacion.entregable.proyecto, version: asignacion.entregable.version },
     };
     navigate(`/evaluaciones/${asignacion.id}/cualitativas-realizadas`, { state });
