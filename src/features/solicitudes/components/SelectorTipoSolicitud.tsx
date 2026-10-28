@@ -5,6 +5,7 @@ export type TipoSolicitudUi = 'coordinador' | 'asesor';
 export type TipoSolicitudEnviableUi = TipoSolicitudUi | 'cambio-asesor';
 export type TipoSolicitudNuevaUi = TipoSolicitudEnviableUi | 'ampliacion-plazo';
 export type TipoSolicitudEnviadaUi = TipoSolicitudNuevaUi;
+export type TipoRespuestaRecibidaEstudianteUi = TipoSolicitudNuevaUi;
 export type TipoRespuestaEnviadaCoordinadorUi = 'novedad' | 'cambio-asesor';
 export type TipoSolicitudRecibidaUi = TipoRespuestaEnviadaCoordinadorUi | 'ampliacion-plazo';
 
@@ -30,6 +31,8 @@ export const TIPOS_SOLICITUD_NUEVA: OpcionTipo<TipoSolicitudNuevaUi>[] = [
 ];
 
 export const TIPOS_SOLICITUD_ENVIADA = TIPOS_SOLICITUD_NUEVA;
+
+export const TIPOS_RESPUESTA_RECIBIDA_ESTUDIANTE = TIPOS_SOLICITUD_NUEVA;
 
 export const TIPOS_RESPUESTA_ENVIADA_COORDINADOR: OpcionTipo<TipoRespuestaEnviadaCoordinadorUi>[] =
   [

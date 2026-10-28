@@ -2,10 +2,10 @@ import type { TablaRespuestasProps } from '../RespuestasPanel';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import ParticipanteCelda from '../ParticipanteCelda';
 import RespuestasTable from '../RespuestasTable';
-import type { TipoSolicitudEnviableUi } from '../SelectorTipoSolicitud';
+import type { TipoRespuestaRecibidaEstudianteUi } from '../SelectorTipoSolicitud';
 
 const TEXTOS_POR_TIPO: Record<
-  TipoSolicitudEnviableUi,
+  TipoRespuestaRecibidaEstudianteUi,
   { etiqueta: string; encabezado: string; vacio: { titulo: string; descripcion: string } }
 > = {
   coordinador: {
@@ -35,6 +35,15 @@ const TEXTOS_POR_TIPO: Record<
         'Cuando el coordinador responda una de tus solicitudes de cambio de asesor, la respuesta aparecerá aquí. Puedes enviar una desde «Nueva solicitud».',
     },
   },
+  'ampliacion-plazo': {
+    etiqueta: 'Respuestas de ampliación de plazo recibidas',
+    encabezado: 'Coordinador',
+    vacio: {
+      titulo: 'Aún no has recibido respuestas',
+      descripcion:
+        'Cuando el coordinador responda una de tus solicitudes de ampliación de plazo, la respuesta aparecerá aquí. Puedes enviar una desde «Nueva solicitud».',
+    },
+  },
 };
 
 function celdaDestinatario(respuesta: RespuestaSolicitud) {
@@ -43,7 +52,7 @@ function celdaDestinatario(respuesta: RespuestaSolicitud) {
 }
 
 interface Props extends TablaRespuestasProps {
-  tipo: TipoSolicitudEnviableUi;
+  tipo: TipoRespuestaRecibidaEstudianteUi;
 }
 
 export default function RespuestasRecibidasTable({
