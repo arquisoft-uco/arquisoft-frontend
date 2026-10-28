@@ -4,6 +4,7 @@ import SelectorTipoSolicitud, {
   TIPOS_RESPUESTA_ENVIADA_COORDINADOR,
   type TipoRespuestaEnviadaCoordinadorUi,
 } from '../SelectorTipoSolicitud';
+import RespuestasAmpliacionPlazoEnviadasPanel from './RespuestasAmpliacionPlazoEnviadasPanel';
 import RespuestasCambioAsesorEnviadasPanel from './RespuestasCambioAsesorEnviadasPanel';
 import RespuestasEnviadasPanel from './RespuestasEnviadasPanel';
 
@@ -13,6 +14,7 @@ const PANEL_POR_TIPO: Record<
 > = {
   novedad: RespuestasEnviadasPanel,
   'cambio-asesor': RespuestasCambioAsesorEnviadasPanel,
+  'ampliacion-plazo': RespuestasAmpliacionPlazoEnviadasPanel,
 };
 
 const RAIZ = 'flex flex-col gap-4';

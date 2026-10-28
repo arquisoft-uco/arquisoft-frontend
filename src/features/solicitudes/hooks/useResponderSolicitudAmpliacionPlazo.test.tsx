@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import { solicitudesService } from '../services/solicitudesService';
+import { RESPUESTAS_AMPLIACION_PLAZO_ENVIADAS_QUERY_KEY } from './useRespuestasAmpliacionPlazoEnviadas';
 import { useResponderSolicitudAmpliacionPlazo } from './useResponderSolicitudAmpliacionPlazo';
 
 vi.mock('../services/solicitudesService', () => ({
@@ -30,7 +31,7 @@ describe('useResponderSolicitudAmpliacionPlazo', () => {
     vi.clearAllMocks();
   });
 
-  it('delega en el service con solicitudId y contenido, expone el id y no invalida queries', async () => {
+  it('delega en el service con solicitudId y contenido, expone el id e invalida las respuestas enviadas de ampliación de plazo', async () => {
     // Arrange
     responderSolicitudAmpliacionPlazo.mockResolvedValue({ id: 'r-1' });
     const queryClient = crearCliente();
@@ -49,7 +50,9 @@ describe('useResponderSolicitudAmpliacionPlazo', () => {
       contenido: 'Plazo ampliado.',
     });
     expect(result.current.data).toEqual({ id: 'r-1' });
-    expect(invalidar).not.toHaveBeenCalled();
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: RESPUESTAS_AMPLIACION_PLAZO_ENVIADAS_QUERY_KEY,
+    });
   });
 
   it('ante un error del service expone el error', async () => {

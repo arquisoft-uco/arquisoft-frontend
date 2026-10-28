@@ -28,6 +28,7 @@ export default function CoordinadorView() {
   const filtrosRespuestasEnviadas: Record<TipoRespuestaEnviadaCoordinadorUi, FiltrosRespuestas> = {
     novedad: useFiltrosRespuestas(),
     'cambio-asesor': useFiltrosRespuestas(),
+    'ampliacion-plazo': useFiltrosRespuestas(),
   };
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {

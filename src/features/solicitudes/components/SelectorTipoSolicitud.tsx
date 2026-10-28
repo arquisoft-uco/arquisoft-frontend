@@ -6,8 +6,8 @@ export type TipoSolicitudEnviableUi = TipoSolicitudUi | 'cambio-asesor';
 export type TipoSolicitudNuevaUi = TipoSolicitudEnviableUi | 'ampliacion-plazo';
 export type TipoSolicitudEnviadaUi = TipoSolicitudNuevaUi;
 export type TipoRespuestaRecibidaEstudianteUi = TipoSolicitudNuevaUi;
-export type TipoRespuestaEnviadaCoordinadorUi = 'novedad' | 'cambio-asesor';
-export type TipoSolicitudRecibidaUi = TipoRespuestaEnviadaCoordinadorUi | 'ampliacion-plazo';
+export type TipoRespuestaEnviadaCoordinadorUi = 'novedad' | 'cambio-asesor' | 'ampliacion-plazo';
+export type TipoSolicitudRecibidaUi = TipoRespuestaEnviadaCoordinadorUi;
 
 interface OpcionTipo<T extends string> {
   value: T;
@@ -38,12 +38,11 @@ export const TIPOS_RESPUESTA_ENVIADA_COORDINADOR: OpcionTipo<TipoRespuestaEnviad
   [
     { value: 'novedad', label: 'Novedad', icono: Users },
     { value: 'cambio-asesor', label: 'Cambio de asesor', icono: UserCog },
+    { value: 'ampliacion-plazo', label: 'Ampliación de plazo', icono: CalendarClock },
   ];
 
-export const TIPOS_SOLICITUD_RECIBIDA: OpcionTipo<TipoSolicitudRecibidaUi>[] = [
-  ...TIPOS_RESPUESTA_ENVIADA_COORDINADOR,
-  { value: 'ampliacion-plazo', label: 'Ampliación de plazo', icono: CalendarClock },
-];
+export const TIPOS_SOLICITUD_RECIBIDA: OpcionTipo<TipoSolicitudRecibidaUi>[] =
+  TIPOS_RESPUESTA_ENVIADA_COORDINADOR;
 
 const ICONO_DEL_TIPO =
   'pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary';

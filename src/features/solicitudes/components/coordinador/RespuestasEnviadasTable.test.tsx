@@ -69,6 +69,27 @@ describe('RespuestasEnviadasTable', () => {
     expect(screen.getByText(/solicitud de cambio de asesor desde Recibidas/)).toBeInTheDocument();
   });
 
+  it('con tipo ampliacion-plazo usa la etiqueta y el vacío de ampliación de plazo', () => {
+    // Act
+    render(
+      <RespuestasEnviadasTable
+        respuestas={[]}
+        cargando={false}
+        hayFiltros={false}
+        orden={ORDEN}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={vi.fn()}
+        tipo="ampliacion-plazo"
+      />,
+    );
+
+    // Assert
+    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
+    expect(
+      screen.getByText(/solicitud de ampliación de plazo desde Recibidas/),
+    ).toBeInTheDocument();
+  });
+
   it('sin respuestas muestra el estado vacío', () => {
     // Act
     render(
