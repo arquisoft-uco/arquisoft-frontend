@@ -20,6 +20,7 @@ export default function EstudianteView() {
   const filtrosCoordinador = useFiltrosRespuestas();
   const filtrosAsesor = useFiltrosRespuestas();
   const filtrosCambioAsesor = useFiltrosRespuestas();
+  const filtrosAmpliacionPlazo = useFiltrosRespuestas();
 
   const panelPorPestana: Record<Pestana, React.ReactNode> = {
     nueva: <NuevaSolicitudPanel />,
@@ -30,6 +31,7 @@ export default function EstudianteView() {
           coordinador: filtrosCoordinador,
           asesor: filtrosAsesor,
           'cambio-asesor': filtrosCambioAsesor,
+          'ampliacion-plazo': filtrosAmpliacionPlazo,
         }}
       />
     ),

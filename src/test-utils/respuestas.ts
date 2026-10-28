@@ -57,3 +57,16 @@ export const RESPUESTA_CAMBIO_ASESOR: RespuestaSolicitud = {
     tipoSolicitudNombre: 'CAMBIO_DE_ASESOR',
   },
 };
+
+export const RESPUESTA_AMPLIACION_PLAZO: RespuestaSolicitud = {
+  ...RESPUESTA,
+  id: 'r-4',
+  contenido: 'Aprobamos la ampliación de plazo.',
+  solicitud: {
+    ...RESPUESTA.solicitud,
+    id: 's-4',
+    mensajeSolicitud: 'Necesito más tiempo para entregar el documento final.',
+    tipoSolicitudId: 't-4',
+    tipoSolicitudNombre: 'AMPLIACION_DE_PLAZO',
+  },
+};
