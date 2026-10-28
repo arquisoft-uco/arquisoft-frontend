@@ -450,6 +450,20 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('eliminarRespuestaAmpliacionPlazo', () => {
+    it('llama DELETE /solicitudes/ampliacion-plazo/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarRespuestaAmpliacionPlazo('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/s-1/respuesta');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('eliminarRespuestaNovedadCoordinador', () => {
     it('llama DELETE /solicitudes/novedad-coordinador/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
       // Arrange
