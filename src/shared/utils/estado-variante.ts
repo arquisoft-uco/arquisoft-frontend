@@ -22,6 +22,11 @@ const VARIANTE_EVALUACION: TablaDeVariantes = {
   DESCARTADA: 'neutro',
 };
 
+const VARIANTE_EVALUACION_JURADO: TablaDeVariantes = {
+  PENDIENTE_POR_EVALUAR: 'advertencia',
+  EVALUADA: 'exito',
+};
+
 const VARIANTE_USUARIO: TablaDeVariantes = {
   ACTIVO: 'exito',
   INACTIVO: 'neutro',
@@ -84,6 +89,10 @@ export function varianteEstadoFicha(id: string): VarianteBadge {
 
 export function varianteEstadoEvaluacion(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_EVALUACION, id);
+}
+
+export function varianteEstadoEvaluacionJurado(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_EVALUACION_JURADO, id);
 }
 
 export function varianteEstadoUsuario(estadoId: string, vigente: boolean): VarianteBadge {
