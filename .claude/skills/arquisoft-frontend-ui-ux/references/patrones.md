@@ -8,7 +8,7 @@ y `arquisoft-frontend-estandares`; aquí no se repiten.
 
 ```
 PageHeader   titulo + descripcion ........................ [Acción principal]
-FilterBar    [ buscar por nombre, correo o identificador ]  [Filtros (2)]
+FilterBar    [ buscar por nombre, correo o identificador ]  [Fechas] [Filtros (2)]
              [Todos] [Estudiantes] [Asesores] …                       <- chips principales
              Filtros aplicados: [Estado: Activo x] [Vigencia: Vigentes x]  Limpiar todo
 Resumen      12 usuarios                                              <- aria-live="polite"
@@ -32,6 +32,7 @@ PaginadorListado   1–10 de 98 usuarios · ‹ 1 2 3 … ›
   una dependencia de backend.
 - **Fichas del representante** conserva sus filtros (`titulo`, nombre y correo del asesor, estados con `IN`): la
   búsqueda cubre el título; el asesor y los estados van en el popover como secciones.
+- **El botón «Filtros» no va solo.** Una barra lleva búsqueda, fechas o chips; «Filtros» es para los filtros secundarios y nunca el único control (un botón pequeño en una tarjeta ancha se ve perdido). Si el listado solo tiene búsqueda y rango de fechas (versiones de artefactos), la barra es la búsqueda con ancho flexible y, a su derecha, el botón de rango de fechas («Fecha de creación» o «01/10/2026 – 27/10/2026»), que abre un panel pequeño con «Desde» y «Hasta»; en celular se apilan, con la búsqueda arriba y el botón de fechas debajo a todo el ancho, y no hay botón «Filtros».
 - **Chips principales:** uno o dos filtros, con 7 opciones como máximo, a la vista (el rol en Usuarios, el estado en
   fichas). **Popover:** los demás (estado, vigencia). Los aplicados muestran solo lo del popover.
 - **Orden:** desde la cabecera; el plan declara el orden por defecto (`ordenamiento: ['nombre:ASC']`).

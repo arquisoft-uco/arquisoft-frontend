@@ -142,4 +142,33 @@ describe('artefactosService', () => {
       expect(resultado).toEqual([]);
     });
   });
+  describe('consultas de HU-112', () => {
+    it('consultarVersionesArtefactoAsesor hace POST a /versiones-artefacto/asesor y devuelve data', async () => {
+      // Arrange
+      const req = { pagina: 0, tamanio: 10, ordenamiento: ['fechaCreacion:DESC'] };
+      const pagina = { content: [], totalElements: 0 };
+      post.mockResolvedValue({ data: pagina });
+
+      // Act
+      const resultado = await artefactosService.consultarVersionesArtefactoAsesor(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/versiones-artefacto/asesor', req);
+      expect(resultado).toBe(pagina);
+    });
+
+    it('consultarArtefactosAsesor hace POST a /artefactos/asesor y devuelve data', async () => {
+      // Arrange
+      const req = { pagina: 0, tamanio: 100 };
+      const pagina = { content: [], totalElements: 0 };
+      post.mockResolvedValue({ data: pagina });
+
+      // Act
+      const resultado = await artefactosService.consultarArtefactosAsesor(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/artefactos/asesor', req);
+      expect(resultado).toBe(pagina);
+    });
+  });
 });

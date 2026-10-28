@@ -18,6 +18,26 @@ vi.mock('./services/artefactosService', () => ({
       last: true,
       empty: true,
     }),
+    consultarVersionesArtefactoAsesor: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
+    consultarArtefactosAsesor: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
     consultarRevisionesAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -100,6 +120,22 @@ describe('Artefactos', () => {
       'page',
     );
     expect(screen.getByRole('link', { name: 'Revisiones realizadas' })).toBeInTheDocument();
+  });
+
+  it('con ?vista=versiones-artefactos el asesor ve la pestaña de versiones de artefactos', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar('/artefactos?vista=versiones-artefactos');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('sin rol activo redirige a /seleccionar-rol', () => {

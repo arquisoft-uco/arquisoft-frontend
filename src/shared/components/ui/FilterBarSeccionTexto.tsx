@@ -1,8 +1,6 @@
 import { useId } from 'react';
 import { useTextoConRetardo } from '../../hooks/useTextoConRetardo';
-
-const SECCION = 'flex flex-col gap-2.5 sm:gap-2';
-const ETIQUETA = 'text-sm font-semibold text-on-surface sm:font-medium';
+import { ETIQUETA, SECCION } from './filter-bar-estilos';
 
 interface Props {
   etiqueta: string;

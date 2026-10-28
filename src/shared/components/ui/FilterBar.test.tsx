@@ -527,4 +527,88 @@ describe('FilterBar', () => {
     expect(screen.queryByRole('dialog', { name: 'Filtros' })).not.toBeInTheDocument();
     expect(boton).toHaveFocus();
   });
+
+  it('con fechas el botón muestra la etiqueta o el rango, y el diálogo cruza Desde y Hasta y avisa', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCambiarDesde = vi.fn();
+    const fechas = {
+      etiqueta: 'Fecha de creación',
+      desde: '',
+      hasta: '',
+      onCambiarDesde,
+      onCambiarHasta: vi.fn(),
+    };
+    const { rerender } = render(<FilterBar {...crearProps({ fechas })} />);
+
+    // Assert
+    const boton = screen.getByRole('button', { name: 'Fecha de creación' });
+    expect(boton).toHaveAttribute('aria-expanded', 'false');
+
+    // Act
+    await user.click(boton);
+    const dialogo = within(screen.getByRole('dialog', { name: 'Fecha de creación' }));
+    await user.type(dialogo.getByLabelText('Desde'), '2026-10-01');
+
+    // Assert
+    expect(onCambiarDesde).toHaveBeenCalled();
+    expect(dialogo.getByLabelText('Hasta')).toBeInTheDocument();
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Fecha de creación' })).not.toBeInTheDocument();
+    expect(boton).toHaveFocus();
+
+    // Act
+    rerender(
+      <FilterBar
+        {...crearProps({ fechas: { ...fechas, desde: '2026-10-01', hasta: '2026-10-27' } })}
+      />,
+    );
+
+    // Assert
+    expect(
+      screen.getByRole('button', { name: 'Fecha de creación: 01/10/2026 – 27/10/2026' }),
+    ).toBeInTheDocument();
+  });
+
+  it('con texto y fechas activos aparece "Limpiar todo" y llama a onLimpiar; sin popover no hay botón Filtros', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onLimpiar = vi.fn();
+    render(
+      <FilterBar
+        {...crearProps({
+          busqueda: crearBusqueda({ valor: 'acta' }),
+          fechas: {
+            etiqueta: 'Fecha de creación',
+            desde: '2026-10-01',
+            hasta: '',
+            onCambiarDesde: vi.fn(),
+            onCambiarHasta: vi.fn(),
+          },
+          onLimpiar,
+        })}
+      />,
+    );
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /^filtros/i })).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Limpiar todo' }));
+
+    // Assert
+    expect(onLimpiar).toHaveBeenCalledTimes(1);
+  });
+
+  it('busqueda.deshabilitada deshabilita el campo', () => {
+    // Act
+    render(<FilterBar {...crearProps({ busqueda: crearBusqueda({ deshabilitada: true }) })} />);
+
+    // Assert
+    expect(screen.getByRole('textbox', { name: 'Buscar usuarios' })).toBeDisabled();
+  });
 });

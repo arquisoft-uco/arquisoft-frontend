@@ -37,6 +37,8 @@ interface Props {
   orden?: OrdenFiltro;
   totalResultados?: number;
   hayAplicados: boolean;
+  titulo?: string;
+  etiqueta?: string;
   onCerrar: () => void;
 }
 
@@ -49,6 +51,8 @@ export default function FilterBarPanel({
   orden,
   totalResultados,
   hayAplicados,
+  titulo = 'Filtros y orden',
+  etiqueta = 'Filtros',
   onCerrar,
 }: Props) {
   const telon = useRef<HTMLDivElement>(null);
@@ -70,13 +74,13 @@ export default function FilterBarPanel({
         ref={ref}
         id={id}
         role="dialog"
-        aria-label="Filtros"
+        aria-label={etiqueta}
         tabIndex={-1}
         className={`${PANEL} ${ANCLAJE[alineacion]}`}
       >
         <div className={CABECERA}>
-          <h2 className={TITULO}>Filtros y orden</h2>
-          <IconButton etiqueta="Cerrar filtros" icono={X} onClick={onCerrar} />
+          <h2 className={TITULO}>{titulo}</h2>
+          <IconButton etiqueta={`Cerrar ${etiqueta.toLowerCase()}`} icono={X} onClick={onCerrar} />
         </div>
         <div className={CUERPO}>
           {secciones.map((seccion) => (
