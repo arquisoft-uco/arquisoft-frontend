@@ -4,12 +4,12 @@ import { Route, Routes } from 'react-router';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import RegistrarEvaluacionesCualitativas from './RegistrarEvaluacionesCualitativas';
-import { useEvaluacionesAsignadasJurado } from './hooks/useEvaluacionesAsignadasJurado';
+import { useEvaluacionAsignadaJurado } from './hooks/useEvaluacionAsignadaJurado';
 import { Rol } from '../../shared/models/rol';
 import type { EvaluacionAsignadaJurado } from './models/EvaluacionAsignadaJurado';
 
-vi.mock('./hooks/useEvaluacionesAsignadasJurado', () => ({
-  useEvaluacionesAsignadasJurado: vi.fn(),
+vi.mock('./hooks/useEvaluacionAsignadaJurado', () => ({
+  useEvaluacionAsignadaJurado: vi.fn(),
 }));
 vi.mock('./components/jurado/RegistrarEvaluacionesCualitativasForm', () => ({
   default: ({ asignacion }: { asignacion: EvaluacionAsignadaJurado }) => (
@@ -19,17 +19,24 @@ vi.mock('./components/jurado/RegistrarEvaluacionesCualitativasForm', () => ({
 
 const PENDIENTE: EvaluacionAsignadaJurado = {
   id: 'ej-1',
+  estado: { id: 'PENDIENTE_POR_EVALUAR', nombre: 'Pendiente por evaluar' },
   evaluacion: { id: 'e-1', estado: { id: 'PENDIENTE', nombre: 'Pendiente' } },
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
 };
 
 const FINALIZADA: EvaluacionAsignadaJurado = {
   id: 'ej-2',
+  estado: { id: 'EVALUADA', nombre: 'Evaluada' },
   evaluacion: { id: 'e-2', estado: { id: 'FINALIZADA', nombre: 'Finalizada' } },
   entregable: { id: 'en-2', proyecto: 'Plataforma de riego', version: 1 },
 };
 
-function mockLista(parcial: Partial<ReturnType<typeof useEvaluacionesAsignadasJurado>> = {}) {
+type HookAsignacion = ReturnType<typeof useEvaluacionAsignadaJurado>;
+
+function mockLista({
+  data,
+  ...parcial
+}: Partial<Omit<HookAsignacion, 'data'>> & { data?: EvaluacionAsignadaJurado[] } = {}) {
   const hook = {
     data: undefined,
     error: null,
@@ -37,8 +44,14 @@ function mockLista(parcial: Partial<ReturnType<typeof useEvaluacionesAsignadasJu
     isError: false,
     refetch: vi.fn(),
     ...parcial,
-  } as ReturnType<typeof useEvaluacionesAsignadasJurado>;
-  vi.mocked(useEvaluacionesAsignadasJurado).mockReturnValue(hook);
+  } as HookAsignacion;
+  vi.mocked(useEvaluacionAsignadaJurado).mockImplementation(
+    (id) =>
+      ({
+        ...hook,
+        data: data ? (data.find((a) => a.id === id) ?? null) : undefined,
+      }) as HookAsignacion,
+  );
   return hook;
 }
 

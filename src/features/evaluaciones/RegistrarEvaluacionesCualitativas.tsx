@@ -10,7 +10,7 @@ import Skeleton from '../../shared/components/ui/Skeleton';
 import { Rol } from '../../shared/models/rol';
 import { getApiErrorMessage } from '../../shared/utils/api-error';
 import RegistrarEvaluacionesCualitativasForm from './components/jurado/RegistrarEvaluacionesCualitativasForm';
-import { useEvaluacionesAsignadasJurado } from './hooks/useEvaluacionesAsignadasJurado';
+import { useEvaluacionAsignadaJurado } from './hooks/useEvaluacionAsignadaJurado';
 import { ESTADO_FINALIZADA } from './utils/estados-evaluacion';
 
 const ROLES_REGISTRAN = [Rol.Jurado];
@@ -22,11 +22,12 @@ export default function RegistrarEvaluacionesCualitativas() {
   const { evaluacionJuradoId } = useParams();
   const esJurado = useHasRole(ROLES_REGISTRAN);
   const navigate = useNavigate();
-  const { data, isLoading, isError, error, refetch } = useEvaluacionesAsignadasJurado();
+  const { data, isLoading, isError, error, refetch } =
+    useEvaluacionAsignadaJurado(evaluacionJuradoId);
 
   if (!esJurado) return <Navigate to="/forbidden" replace />;
 
-  const asignacion = data?.find((a) => a.id === evaluacionJuradoId);
+  const asignacion = data ?? undefined;
   const descripcion = asignacion
     ? `${asignacion.entregable.proyecto} · versión ${asignacion.entregable.version}`
     : 'Registra las valoraciones del proyecto.';
