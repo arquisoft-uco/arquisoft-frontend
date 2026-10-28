@@ -6,6 +6,7 @@ import { toast } from '../../../../shared/hooks/useToast';
 import type { ApiError, Page } from '../../../../shared/models/api-response';
 import { useEliminarRespuestaAmpliacionPlazo } from '../../hooks/useEliminarRespuestaAmpliacionPlazo';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
+import { useModificarEstadoRespuestaAmpliacionPlazo } from '../../hooks/useModificarEstadoRespuestaAmpliacionPlazo';
 import { useRespuestasAmpliacionPlazoEnviadas } from '../../hooks/useRespuestasAmpliacionPlazoEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA_AMPLIACION_PLAZO } from '../../../../test-utils/respuestas';
@@ -17,6 +18,10 @@ vi.mock('../../hooks/useEstadosRespuesta', () => ({
 
 vi.mock('../../hooks/useRespuestasAmpliacionPlazoEnviadas', () => ({
   useRespuestasAmpliacionPlazoEnviadas: vi.fn(),
+}));
+
+vi.mock('../../hooks/useModificarEstadoRespuestaAmpliacionPlazo', () => ({
+  useModificarEstadoRespuestaAmpliacionPlazo: vi.fn(),
 }));
 
 vi.mock('../../hooks/useEliminarRespuestaAmpliacionPlazo', () => ({
@@ -43,6 +48,7 @@ function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuest
 }
 
 type HookRespuestas = ReturnType<typeof useRespuestasAmpliacionPlazoEnviadas>;
+type HookModificar = ReturnType<typeof useModificarEstadoRespuestaAmpliacionPlazo>;
 type HookEliminar = ReturnType<typeof useEliminarRespuestaAmpliacionPlazo>;
 
 type OpcionesMutate = {
@@ -64,6 +70,28 @@ function crearErrorApi(cuerpo: ApiError) {
     headers: {},
     config: { headers: new AxiosHeaders() },
   });
+}
+
+function mockearModificar(mutate = vi.fn()) {
+  vi.mocked(useModificarEstadoRespuestaAmpliacionPlazo).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookModificar);
+  return mutate;
 }
 
 function mockearEliminar(mutate = vi.fn()) {
@@ -126,6 +154,7 @@ function mockearHook(parcial: Partial<HookRespuestas> = {}) {
 describe('RespuestasAmpliacionPlazoEnviadasPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockearModificar();
     mockearEliminar();
   });
 
@@ -195,18 +224,66 @@ describe('RespuestasAmpliacionPlazoEnviadasPanel', () => {
     expect(within(tabla).queryByRole('button', { name: /acciones/i })).not.toBeInTheDocument();
   });
 
-  it('ofrece el menú de eliminar solo en la fila En revisión', () => {
+  it('ofrece el menú solo en la fila En revisión con aprobar, no aprobar y eliminar', async () => {
     // Arrange
+    const user = userEvent.setup();
     mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION, RESPUESTA_AMPLIACION_PLAZO]) });
+    render(<RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros()} />);
+    const tabla = screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' });
 
     // Act
-    render(<RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros()} />);
+    const botones = within(tabla).getAllByRole('button', {
+      name: 'Acciones de la respuesta a Luis Gómez',
+    });
+    await user.click(botones[0]);
 
     // Assert
-    const tabla = screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' });
-    expect(
-      within(tabla).getAllByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
-    ).toHaveLength(1);
+    expect(botones).toHaveLength(1);
+    expect(screen.getByRole('menuitem', { name: 'Aprobar respuesta' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Eliminar respuesta' })).toBeInTheDocument();
+  });
+
+  it('cada decisión abre su diálogo y confirmar envía el estado elegido', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearModificar();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasAmpliacionPlazoEnviadasPanel filtros={crearFiltros()} />);
+    const abrirMenu = () =>
+      user.click(
+        within(
+          screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' }),
+        ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+      );
+
+    // Act
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Aprobar respuesta?');
+    expect(screen.getByRole('dialog')).toHaveTextContent('Luis Gómez');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await abrirMenu();
+    await user.click(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Marcar como no aprobada?');
+    expect(mutate).not.toHaveBeenCalled();
+
+    // Act
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Marcar como no aprobada' }),
+    );
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith(
+      { solicitudId: 's-4', nuevoEstado: 'NO_APROBADA' },
+      expect.any(Object),
+    );
   });
 
   it('al elegir eliminar abre el diálogo y cancelar lo cierra sin eliminar', async () => {

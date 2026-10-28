@@ -1,14 +1,21 @@
 import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { CheckCircle2, Trash2, XCircle } from 'lucide-react';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEliminarRespuestaAmpliacionPlazo } from '../../hooks/useEliminarRespuestaAmpliacionPlazo';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
+import { useModificarEstadoRespuestaAmpliacionPlazo } from '../../hooks/useModificarEstadoRespuestaAmpliacionPlazo';
 import { useRespuestasAmpliacionPlazoEnviadas } from '../../hooks/useRespuestasAmpliacionPlazoEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
-import { ESTADO_RESPUESTA_EN_REVISION } from '../../utils/decisiones-respuesta';
+import {
+  ESTADO_RESPUESTA_APROBADA,
+  ESTADO_RESPUESTA_EN_REVISION,
+  ESTADO_RESPUESTA_NO_APROBADA,
+  TEXTOS_DECISION,
+} from '../../utils/decisiones-respuesta';
+import ModificarEstadoRespuestaDialog from '../ModificarEstadoRespuestaDialog';
 import RespuestasPanel, { type TablaRespuestasProps } from '../RespuestasPanel';
 import RespuestasEnviadasTable from './RespuestasEnviadasTable';
 
@@ -28,6 +35,11 @@ interface Props {
 
 export default function RespuestasAmpliacionPlazoEnviadasPanel({ filtros }: Props) {
   const consulta = useRespuestasAmpliacionPlazoEnviadas(filtros);
+  const modificarEstado = useModificarEstadoRespuestaAmpliacionPlazo();
+  const [pendienteDecision, setPendienteDecision] = useState<{
+    respuesta: RespuestaSolicitud;
+    nuevoEstado: string;
+  } | null>(null);
   const { mutate: eliminar, isPending: eliminando } = useEliminarRespuestaAmpliacionPlazo();
   const [pendienteEliminar, setPendienteEliminar] = useState<RespuestaSolicitud | null>(null);
 
@@ -37,6 +49,18 @@ export default function RespuestasAmpliacionPlazoEnviadasPanel({ filtros }: Prop
       <RowMenu
         etiqueta={`Acciones de la respuesta a ${respuesta.solicitud.remitente.nombre}`}
         acciones={[
+          {
+            etiqueta: TEXTOS_DECISION[ESTADO_RESPUESTA_APROBADA].etiquetaAccion,
+            icono: CheckCircle2,
+            onSeleccionar: () =>
+              setPendienteDecision({ respuesta, nuevoEstado: ESTADO_RESPUESTA_APROBADA }),
+          },
+          {
+            etiqueta: TEXTOS_DECISION[ESTADO_RESPUESTA_NO_APROBADA].etiquetaAccion,
+            icono: XCircle,
+            onSeleccionar: () =>
+              setPendienteDecision({ respuesta, nuevoEstado: ESTADO_RESPUESTA_NO_APROBADA }),
+          },
           {
             etiqueta: 'Eliminar respuesta',
             icono: Trash2,
@@ -82,6 +106,14 @@ export default function RespuestasAmpliacionPlazoEnviadasPanel({ filtros }: Prop
         Tabla={TablaAmpliacionPlazo}
         acciones={acciones}
       />
+      {pendienteDecision && (
+        <ModificarEstadoRespuestaDialog
+          respuesta={pendienteDecision.respuesta}
+          nuevoEstado={pendienteDecision.nuevoEstado}
+          mutacion={modificarEstado}
+          onCerrar={() => setPendienteDecision(null)}
+        />
+      )}
       {pendienteEliminar && (
         <ConfirmDialog
           variante="peligro"
