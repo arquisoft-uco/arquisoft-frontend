@@ -67,4 +67,25 @@ describe('MapasRutaTable', () => {
     expect(screen.getAllByText('Sistema A').length).toBeGreaterThan(0);
     expect(onOrdenar).toHaveBeenCalledWith('fechaFin', 'ASC');
   });
+
+  it('con onCambiarFechaFin el menú de la fila llama al callback con el mapa', async () => {
+    // Arrange
+    const onCambiarFechaFin = vi.fn();
+    renderizar({ mapas: [MAPA], onCambiarFechaFin });
+
+    // Act
+    await userEvent.click(screen.getAllByRole('button', { name: 'Acciones de Sistema A' })[0]);
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Cambiar fecha de fin' }));
+
+    // Assert
+    expect(onCambiarFechaFin).toHaveBeenCalledWith(MAPA);
+  });
+
+  it('sin onCambiarFechaFin no hay menú de acciones', () => {
+    // Arrange / Act
+    renderizar({ mapas: [MAPA] });
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Acciones de Sistema A' })).not.toBeInTheDocument();
+  });
 });

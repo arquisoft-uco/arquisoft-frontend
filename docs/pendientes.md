@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-25.
+Última revisión: 2026-10-27.
 
 ## Bloqueados por el backend
 
@@ -107,6 +107,7 @@ Client roles a confirmar en el realm desplegado:
 - `evaluaciones:evaluacion-cualitativa-jurado:create` para el jurado (registrar evaluaciones cualitativas, HU-215), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `mapas-ruta:mapa-ruta-coordinador:view` para el coordinador (listado de sus mapas de ruta según fechas, HU-173), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota. Además, la réplica `proyecto_grado` de `mapas_ruta` no tiene productor en el backend, así que con login real el listado puede salir vacío.
 - `mapas-ruta:mapa-ruta:create` para el coordinador (crear un mapa de ruta con sus fechas importantes, HU-172). Se crea a mano en el Keycloak desplegado: si falta, con login real «Crear mapa de ruta» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
+- `mapas-ruta:mapa-ruta:update-fecha-fin` para el coordinador (cambiar la fecha de fin de un mapa de ruta, HU-174), sin verificar en el realm desplegado. Si falta, con login real «Guardar cambios» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend
 

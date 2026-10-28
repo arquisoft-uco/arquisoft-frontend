@@ -1,4 +1,4 @@
-import { Map, Plus, SearchX } from 'lucide-react';
+import { CalendarClock, Map, Plus, SearchX } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type {
@@ -7,6 +7,7 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { MapaRuta } from '../../models/MapaRuta';
 import type { OrdenCampoMapaRuta } from '../../models/OrdenCampoMapaRuta';
 import { formatearFechaCivil } from '../../utils/formato-fecha';
@@ -26,6 +27,7 @@ interface Props {
   onOrdenar: (campo: OrdenCampoMapaRuta, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
   onNuevoMapa: () => void;
+  onCambiarFechaFin?: (mapa: MapaRuta) => void;
 }
 
 const COLUMNAS: ColumnaTabla<MapaRuta>[] = [
@@ -58,6 +60,7 @@ export default function MapasRutaTable({
   onOrdenar,
   onLimpiarFiltros,
   onNuevoMapa,
+  onCambiarFechaFin,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -95,6 +98,21 @@ export default function MapasRutaTable({
       idDeFila={(mapa) => mapa.id}
       orden={orden}
       onOrdenar={ordenar}
+      acciones={
+        onCambiarFechaFin &&
+        ((mapa) => (
+          <RowMenu
+            etiqueta={`Acciones de ${mapa.titulo}`}
+            acciones={[
+              {
+                etiqueta: 'Cambiar fecha de fin',
+                icono: CalendarClock,
+                onSeleccionar: () => onCambiarFechaFin(mapa),
+              },
+            ]}
+          />
+        ))
+      }
       cargando={cargando}
       vacio={vacio}
       tarjeta={(mapa) => (
