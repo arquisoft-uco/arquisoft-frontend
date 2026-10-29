@@ -7,6 +7,7 @@ import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
+import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
 import type { RevisionAsesor } from '../models/RevisionAsesor';
 import type { RevisionAsesorResponse } from '../models/RevisionAsesorResponse';
 import type { VersionArtefactoAsesor } from '../models/VersionArtefactoAsesor';
@@ -78,6 +79,11 @@ export const artefactosService = {
 
   consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
     apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', req).then((r) => r.data),
+
+  getParticipacionesEstudiante: (): Promise<ParticipacionArtefacto[]> =>
+    apiClient
+      .get<ParticipacionArtefacto[]>('/artefactos/estudiante/participaciones')
+      .then((r) => r.data),
 
   consultarArtefactosEstudiante: (
     req: ConsultaCriteriaRequest,

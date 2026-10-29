@@ -171,4 +171,19 @@ describe('artefactosService', () => {
       expect(resultado).toBe(pagina);
     });
   });
+
+  describe('consultas de HU-042', () => {
+    it('getParticipacionesEstudiante hace GET a /artefactos/estudiante/participaciones y devuelve data', async () => {
+      // Arrange
+      const lista = [{ id: 'a-1' }];
+      get.mockResolvedValue({ data: lista });
+
+      // Act
+      const resultado = await artefactosService.getParticipacionesEstudiante();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/artefactos/estudiante/participaciones');
+      expect(resultado).toBe(lista);
+    });
+  });
 });
