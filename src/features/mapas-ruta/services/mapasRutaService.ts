@@ -12,6 +12,16 @@ import type { ProyectoElegibleResponse } from '../models/ProyectoElegibleRespons
 const TAMANIO_PAGINA_PROYECTOS = 20;
 const ESTADO_EN_PROCESO = 'EN_PROCESO';
 
+function aMapaRuta(dto: MapaRutaResponse): MapaRuta {
+  return {
+    id: dto.id,
+    proyectoGradoId: dto.proyectoGrado,
+    titulo: dto.tituloProyecto,
+    fechaInicio: dto.fechaInicio,
+    fechaFin: dto.fechaFin,
+  };
+}
+
 export const mapasRutaService = {
   agregarMapaRuta(req: AgregarMapaRutaRequest): Promise<AgregarMapaRutaResponse> {
     return apiClient
@@ -46,15 +56,14 @@ export const mapasRutaService = {
   consultarMapasRutaCoordinador(req: ConsultaCriteriaRequest): Promise<Page<MapaRuta>> {
     return apiClient.post<Page<MapaRutaResponse>>('/mapas-ruta/coordinador', req).then((r) => ({
       ...r.data,
-      content: r.data.content.map((dto) => ({
-        id: dto.id,
-        proyectoGradoId: dto.proyectoGrado,
-        titulo: dto.tituloProyecto,
-        fechaInicio: dto.fechaInicio,
-        fechaFin: dto.fechaFin,
-      })),
+      content: r.data.content.map(aMapaRuta),
     }));
   },
+
+  consultarMapaRutaEstudiante(): Promise<MapaRuta> {
+    return apiClient.get<MapaRutaResponse>('/mapas-ruta/estudiante').then((r) => aMapaRuta(r.data));
+  },
+
   cambiarFechaFin(mapaRutaId: string, req: CambiarFechaFinMapaRutaRequest): Promise<void> {
     return apiClient
       .patch(`/mapas-ruta/${mapaRutaId}/fecha-fin`, { fechaFin: req.fechaFin })

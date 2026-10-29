@@ -68,6 +68,7 @@ describe('Sidebar', () => {
       '/fichas-perfil',
       '/proyectos-grado',
       '/evaluaciones',
+      '/mapas-ruta',
       '/solicitudes',
     ]);
     const proximamente = screen.getByRole('list', { name: 'Próximamente' });
