@@ -6,8 +6,11 @@ import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse'
 import type { CambiarFechaFinMapaRutaRequest } from '../models/CambiarFechaFinMapaRutaRequest';
 import type { MapaRuta } from '../models/MapaRuta';
 import type { MapaRutaResponse } from '../models/MapaRutaResponse';
+import type { EstadoTarea } from '../models/mapas-ruta';
 import type { PaginaProyectosElegibles } from '../models/PaginaProyectosElegibles';
 import type { ProyectoElegibleResponse } from '../models/ProyectoElegibleResponse';
+import type { Tarea } from '../models/Tarea';
+import type { TareaResponse } from '../models/TareaResponse';
 
 const TAMANIO_PAGINA_PROYECTOS = 20;
 const ESTADO_EN_PROCESO = 'EN_PROCESO';
@@ -19,6 +22,16 @@ function aMapaRuta(dto: MapaRutaResponse): MapaRuta {
     titulo: dto.tituloProyecto,
     fechaInicio: dto.fechaInicio,
     fechaFin: dto.fechaFin,
+  };
+}
+
+function aTarea(dto: TareaResponse): Tarea {
+  return {
+    id: dto.id,
+    descripcion: dto.descripcion,
+    mapaRutaId: dto.mapaRuta,
+    estado: { id: dto.estadoItem, nombre: dto.nombreEstadoItem },
+    asesor: { id: dto.asesor, nombre: dto.nombreAsesor, email: dto.emailAsesor },
   };
 }
 
@@ -68,5 +81,15 @@ export const mapasRutaService = {
     return apiClient
       .patch(`/mapas-ruta/${mapaRutaId}/fecha-fin`, { fechaFin: req.fechaFin })
       .then(() => undefined);
+  },
+
+  consultarTareasMapaRuta(mapaRutaId: string, req: ConsultaCriteriaRequest): Promise<Page<Tarea>> {
+    return apiClient
+      .post<Page<TareaResponse>>(`/mapas-ruta/${mapaRutaId}/tareas/estudiante`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
+  },
+
+  consultarEstadosTarea(): Promise<EstadoTarea[]> {
+    return apiClient.get<EstadoTarea[]>('/estados-item').then((r) => r.data);
   },
 };
