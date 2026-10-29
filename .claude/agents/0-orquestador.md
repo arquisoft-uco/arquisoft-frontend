@@ -34,8 +34,8 @@ apunta al `.out.md` de 4a (los bloqueantes viven ahí), luego 3 y 4a otra vez. T
 seguidos, para y pregunta al usuario.
 
 **Paso 4c.** No hay corte ni pregunta: con el reporte `✅ APROBADO`, `4c-commit` hace commit + push + PR
-hacia `develop` y publica el plan y el reporte en `arquisoft-docs`. El usuario revisa y aprueba el PR a
-mano en GitHub. Solo sube `PREGUNTA` ante una condición objetiva (archivo prohibido en `git status`,
+hacia `develop` y publica el plan y el reporte en `arquisoft-docs` con un commit directo a su `main`
+(sin PR). El usuario revisa y aprueba el PR del frontend a mano en GitHub. Solo sube `PREGUNTA` ante una condición objetiva (archivo prohibido en `git status`,
 comando bloqueado por el hook, `gh` sin sesión): trátala como cualquier otra `PREGUNTA`.
 
 Al reanudar, dile a `4c-commit` que compruebe el estado real de git y de GitHub antes de repetir un
