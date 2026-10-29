@@ -5,6 +5,7 @@ import ConsultarEntregablesAsesor from './ConsultarEntregablesAsesor';
 import { useEntregablesAsesor } from '../../hooks/useEntregablesAsesor';
 import { useEstadosEntregable } from '../../hooks/useEstadosEntregable';
 import { useCambiarEstadoEntregable } from '../../hooks/useCambiarEstadoEntregable';
+import { useArtefactosEntregable } from '../../hooks/useArtefactosEntregable';
 import type { Page } from '../../../../shared/models/api-response';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 
@@ -16,6 +17,9 @@ vi.mock('../../hooks/useEstadosEntregable', () => ({
 }));
 vi.mock('../../hooks/useCambiarEstadoEntregable', () => ({
   useCambiarEstadoEntregable: vi.fn(),
+}));
+vi.mock('../../hooks/useArtefactosEntregable', () => ({
+  useArtefactosEntregable: vi.fn(),
 }));
 
 const ENTREGABLE: EntregableProyectoGrado = {
@@ -83,6 +87,13 @@ describe('ConsultarEntregablesAsesor', () => {
     vi.mocked(useCambiarEstadoEntregable).mockReturnValue({
       mutate: vi.fn(),
       isPending: false,
+    } as never);
+    vi.mocked(useArtefactosEntregable).mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
     } as never);
   });
 
@@ -187,5 +198,30 @@ describe('ConsultarEntregablesAsesor', () => {
 
     // Assert
     expect(screen.queryByText('Cambiar estado del entregable')).not.toBeInTheDocument();
+  });
+
+  it('"Ver artefactos" abre el panel del entregable elegido y cerrarlo lo quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([ENTREGABLE]) });
+    render(<ConsultarEntregablesAsesor />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Entregables' })).getByRole('button', {
+        name: /Acciones del entregable de Sistema de riego/,
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver artefactos' }));
+
+    // Assert
+    expect(useArtefactosEntregable).toHaveBeenCalledWith('e-1');
+    expect(screen.getByText('Este entregable aún no tiene artefactos')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByText('Este entregable aún no tiene artefactos')).not.toBeInTheDocument();
   });
 });
