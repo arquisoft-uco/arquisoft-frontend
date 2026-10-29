@@ -10,7 +10,7 @@ import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionR
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
 import type { RevisionAsesor } from '../models/RevisionAsesor';
 import type { RevisionAsesorResponse } from '../models/RevisionAsesorResponse';
-import type { VersionArtefactoAsesor } from '../models/VersionArtefactoAsesor';
+import type { VersionArtefacto } from '../models/VersionArtefacto';
 import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
 
 function aObservacionRevision({
@@ -72,9 +72,14 @@ export const artefactosService = {
 
   consultarVersionesArtefactoAsesor: (
     req: ConsultaCriteriaRequest,
-  ): Promise<Page<VersionArtefactoAsesor>> =>
+  ): Promise<Page<VersionArtefacto>> =>
+    apiClient.post<Page<VersionArtefacto>>('/versiones-artefacto/asesor', req).then((r) => r.data),
+
+  consultarVersionesArtefactoEstudiante: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<VersionArtefacto>> =>
     apiClient
-      .post<Page<VersionArtefactoAsesor>>('/versiones-artefacto/asesor', req)
+      .post<Page<VersionArtefacto>>('/artefactos/versiones/estudiante', req)
       .then((r) => r.data),
 
   consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
