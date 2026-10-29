@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  varianteEstadoEntregable,
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
   varianteEstadoObservacion,
@@ -147,5 +148,30 @@ describe('varianteEstadoObservacionArtefacto', () => {
     expect(varianteEstadoObservacionArtefacto('REABIERTA')).toBe('peligro');
     expect(varianteEstadoObservacionArtefacto('ESTADO_INEXISTENTE')).toBe('neutro');
     expect(varianteEstadoObservacionArtefacto('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoEntregable', () => {
+  it('asigna su variante a cada estado del catálogo y deja en neutro lo desconocido', () => {
+    // Arrange
+    const esperadas = {
+      DISPONIBLE_EVALUACION: 'advertencia',
+      EN_EVALUACION: 'info',
+      APROBADO_CON_OBSERVACIONES: 'advertencia',
+      APROBADO: 'exito',
+      RECHAZADO: 'peligro',
+      CANCELADO: 'neutro',
+      CERRADO: 'neutro',
+    };
+
+    // Act
+    const obtenidas = Object.fromEntries(
+      Object.keys(esperadas).map((id) => [id, varianteEstadoEntregable(id)]),
+    );
+
+    // Assert
+    expect(obtenidas).toEqual(esperadas);
+    expect(varianteEstadoEntregable('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoEntregable('constructor')).toBe('neutro');
   });
 });

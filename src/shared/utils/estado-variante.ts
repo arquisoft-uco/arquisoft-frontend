@@ -79,6 +79,16 @@ const VARIANTE_OBSERVACION_ARTEFACTO: TablaDeVariantes = {
   REABIERTA: 'peligro',
 };
 
+const VARIANTE_ENTREGABLE: TablaDeVariantes = {
+  DISPONIBLE_EVALUACION: 'advertencia',
+  EN_EVALUACION: 'info',
+  APROBADO_CON_OBSERVACIONES: 'advertencia',
+  APROBADO: 'exito',
+  RECHAZADO: 'peligro',
+  CANCELADO: 'neutro',
+  CERRADO: 'neutro',
+};
+
 function buscarVariante(tabla: TablaDeVariantes, id: string): VarianteBadge {
   return Object.prototype.hasOwnProperty.call(tabla, id) ? tabla[id] : 'neutro';
 }
@@ -126,4 +136,8 @@ export function varianteEstadoRevisionAsesor(id: string): VarianteBadge {
 
 export function varianteEstadoObservacionArtefacto(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_OBSERVACION_ARTEFACTO, id);
+}
+
+export function varianteEstadoEntregable(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_ENTREGABLE, id);
 }
