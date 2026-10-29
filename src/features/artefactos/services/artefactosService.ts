@@ -2,6 +2,7 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
+import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
@@ -77,4 +78,9 @@ export const artefactosService = {
 
   consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
     apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', req).then((r) => r.data),
+
+  consultarArtefactosEstudiante: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ArtefactoEstudiante>> =>
+    apiClient.post<Page<ArtefactoEstudiante>>('/artefactos/estudiante', req).then((r) => r.data),
 };
