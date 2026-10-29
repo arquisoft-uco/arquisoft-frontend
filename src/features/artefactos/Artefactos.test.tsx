@@ -28,6 +28,16 @@ vi.mock('./services/artefactosService', () => ({
       last: true,
       empty: true,
     }),
+    consultarArtefactosEstudiante: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
     consultarArtefactosAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -149,10 +159,23 @@ describe('Artefactos', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('el estudiante ve el listado de artefactos de sus proyectos', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
+  });
+
+  it('un rol sin vista redirige a /forbidden', () => {
+    // Arrange
+    entrarComo(Rol.Coordinador);
+    setActiveRole(Rol.Coordinador);
 
     // Act
     renderizar();

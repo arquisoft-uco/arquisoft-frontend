@@ -55,7 +55,7 @@ describe('nav-items', () => {
     });
   });
 
-  it('Artefactos está disponible solo para el asesor', () => {
+  it('Artefactos está disponible para el asesor y el estudiante', () => {
     // Act
     const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/artefactos');
     const delEstudiante = navItemsDelRol(Rol.Estudiante).find((i) => i.path === '/artefactos');
@@ -63,6 +63,7 @@ describe('nav-items', () => {
     // Assert
     expect(delAsesor).toBeDefined();
     expect(estaDisponible(delAsesor!)).toBe(true);
-    expect(delEstudiante).toBeUndefined();
+    expect(delEstudiante).toBeDefined();
+    expect(estaDisponible(delEstudiante!)).toBe(true);
   });
 });
