@@ -3,9 +3,10 @@ import apiClient from '../../../api/axiosInstance';
 import { mapasRutaService } from './mapasRutaService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { post: vi.fn(), patch: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() },
 }));
 
+const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
 const patch = vi.mocked(apiClient.patch);
 
@@ -119,6 +120,34 @@ describe('mapasRutaService', () => {
         page: 0,
         totalElements: 1,
         last: true,
+      });
+    });
+  });
+
+  describe('consultarMapaRutaEstudiante', () => {
+    it('hace GET /mapas-ruta/estudiante sin parámetros y traduce los campos del mapa', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        data: {
+          id: 'm-1',
+          proyectoGrado: 'p-1',
+          tituloProyecto: 'Sistema A',
+          fechaInicio: '2026-03-05',
+          fechaFin: '2026-08-01',
+        },
+      });
+
+      // Act
+      const resultado = await mapasRutaService.consultarMapaRutaEstudiante();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/mapas-ruta/estudiante');
+      expect(resultado).toEqual({
+        id: 'm-1',
+        proyectoGradoId: 'p-1',
+        titulo: 'Sistema A',
+        fechaInicio: '2026-03-05',
+        fechaFin: '2026-08-01',
       });
     });
   });
