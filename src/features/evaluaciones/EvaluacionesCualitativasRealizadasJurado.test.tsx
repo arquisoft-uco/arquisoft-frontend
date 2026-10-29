@@ -11,6 +11,9 @@ import { useNavegacionCualitativasRealizadasJurado } from './hooks/useNavegacion
 vi.mock('./hooks/useEvaluacionesCualitativasRealizadasJurado', () => ({
   useEvaluacionesCualitativasRealizadasJurado: vi.fn(),
 }));
+vi.mock('./hooks/useOmitirEvaluacionesCualitativasJurado', () => ({
+  useOmitirEvaluacionesCualitativasJurado: () => ({ mutate: vi.fn(), isPending: false }),
+}));
 vi.mock('./hooks/useNavegacionCualitativasRealizadasJurado', () => ({
   useNavegacionCualitativasRealizadasJurado: vi.fn(),
 }));
@@ -60,6 +63,7 @@ describe('EvaluacionesCualitativasRealizadasJurado', () => {
     vi.mocked(useNavegacionCualitativasRealizadasJurado).mockReturnValue({
       evaluacionJuradoId: 'ej-1',
       search: '?q=sis',
+      evaluacionFinalizada: false,
       resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
     });
   });

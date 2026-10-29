@@ -7,6 +7,7 @@ import {
   EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO,
 } from '../utils/codigos-error-evaluaciones';
 import EvaluacionesCualitativasJuradoTable from './EvaluacionesCualitativasJuradoTable';
+import type { SeleccionCualitativas } from './EvaluacionesCualitativasJuradoTable';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -29,12 +30,14 @@ interface Props {
   consulta: ConsultaCualitativas;
   etiquetaVolver: string;
   onVolver: () => void;
+  seleccion?: SeleccionCualitativas;
 }
 
 export default function ConsultarEvaluacionesCualitativasJurado({
   consulta,
   etiquetaVolver,
   onVolver,
+  seleccion,
 }: Props) {
   const { data, isLoading, isError, error, refetch } = consulta;
 
@@ -83,7 +86,11 @@ export default function ConsultarEvaluacionesCualitativasJurado({
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.length)}
       </p>
-      <EvaluacionesCualitativasJuradoTable evaluaciones={data ?? []} cargando={isLoading} />
+      <EvaluacionesCualitativasJuradoTable
+        evaluaciones={data ?? []}
+        cargando={isLoading}
+        seleccion={seleccion}
+      />
     </div>
   );
 }

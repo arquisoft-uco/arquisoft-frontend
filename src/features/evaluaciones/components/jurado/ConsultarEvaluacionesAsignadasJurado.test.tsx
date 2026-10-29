@@ -271,6 +271,7 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
       expect(estado).toEqual({
         evaluacionJuradoId: 'ej-2',
         search: '',
+        evaluacionFinalizada: true,
         resumen: { proyecto: 'Plataforma de riego', version: 1 },
       });
     });

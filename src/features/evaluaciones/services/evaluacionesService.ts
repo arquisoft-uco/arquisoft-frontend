@@ -16,6 +16,7 @@ import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoResponse } from '../models/RegistrarItemCualitativoJuradoResponse';
@@ -219,6 +220,16 @@ export const evaluacionesService = {
           item: itemId,
           criterio: criterioId,
         })),
+      })
+      .then(() => undefined),
+
+  omitirEvaluacionesCualitativasJurado: ({
+    evaluacionJuradoId,
+    evaluaciones,
+  }: OmitirEvaluacionesCualitativasJuradoRequest): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cualitativas`, {
+        data: { evaluaciones },
       })
       .then(() => undefined),
 };

@@ -3,6 +3,7 @@ import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
+import CasillaEvaluacionCualitativa from './CasillaEvaluacionCualitativa';
 
 const NOMBRE = 'font-medium text-on-surface';
 const DESCRIPCION = 'text-[13px] text-on-surface-secondary';
@@ -33,16 +34,38 @@ const COLUMNAS: ColumnaTabla<EvaluacionCualitativaJurado>[] = [
   },
 ];
 
+export interface SeleccionCualitativas {
+  seleccionados: ReadonlySet<string>;
+  onAlternar: (id: string) => void;
+}
+
 interface Props {
   evaluaciones: EvaluacionCualitativaJurado[];
   cargando: boolean;
+  seleccion?: SeleccionCualitativas;
 }
 
-export default function EvaluacionesCualitativasJuradoTable({ evaluaciones, cargando }: Props) {
+export default function EvaluacionesCualitativasJuradoTable({
+  evaluaciones,
+  cargando,
+  seleccion,
+}: Props) {
+  const casilla = (fila: EvaluacionCualitativaJurado) =>
+    seleccion ? (
+      <CasillaEvaluacionCualitativa
+        fila={fila}
+        marcada={seleccion.seleccionados.has(fila.id)}
+        onAlternar={seleccion.onAlternar}
+      />
+    ) : null;
+  const columnas: ColumnaTabla<EvaluacionCualitativaJurado>[] = seleccion
+    ? [{ id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla }, ...COLUMNAS]
+    : COLUMNAS;
+
   return (
     <DataTable
       etiqueta="Evaluaciones cualitativas del jurado"
-      columnas={COLUMNAS}
+      columnas={columnas}
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
@@ -55,6 +78,7 @@ export default function EvaluacionesCualitativasJuradoTable({ evaluaciones, carg
       }
       tarjeta={(fila) => (
         <>
+          {casilla(fila)}
           <span className={ROTULO}>Ítem</span>
           <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />
           <span className={ROTULO}>Criterio</span>

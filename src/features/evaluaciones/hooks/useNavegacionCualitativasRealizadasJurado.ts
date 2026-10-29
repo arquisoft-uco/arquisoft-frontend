@@ -29,7 +29,12 @@ function leerNavegacion(
   }
   const resumen = leerResumen(state.resumen);
   if (resumen === undefined) return null;
-  return { evaluacionJuradoId, search: state.search, resumen };
+  return {
+    evaluacionJuradoId,
+    search: state.search,
+    evaluacionFinalizada: state.evaluacionFinalizada === true,
+    resumen,
+  };
 }
 
 export function useNavegacionCualitativasRealizadasJurado(

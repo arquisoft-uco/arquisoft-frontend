@@ -22,6 +22,7 @@ function montar(state: unknown) {
 const VALIDO = {
   evaluacionJuradoId: 'ej-1',
   search: '?q=sis',
+  evaluacionFinalizada: true,
   resumen: { proyecto: 'Sistema de monitoreo', version: 3 },
 };
 
@@ -30,6 +31,14 @@ describe('useNavegacionCualitativasRealizadasJurado', () => {
     // Act & Assert
     expect(montar(VALIDO)).toEqual(VALIDO);
     expect(montar({ ...VALIDO, resumen: null })).toEqual({ ...VALIDO, resumen: null });
+  });
+
+  it('asume evaluacionFinalizada false cuando el state no la trae', () => {
+    // Arrange
+    const { evaluacionFinalizada: _omitida, ...sinCampo } = VALIDO;
+
+    // Act & Assert
+    expect(montar(sinCampo)).toEqual({ ...sinCampo, evaluacionFinalizada: false });
   });
 
   it('devuelve null con state ausente, de otra evaluación o malformado', () => {
