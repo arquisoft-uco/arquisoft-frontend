@@ -119,6 +119,7 @@ Client roles a confirmar en el realm desplegado:
 - `mapas-ruta:mapa-ruta-estudiante:view` para el estudiante (consulta de su mapa de ruta, HU-052), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `entregables:entregable-proyecto-grado-estudiante:view` para el estudiante (entregables de su proyecto, HU-049), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `entregables:entregable-proyecto-grado-jurado:view` para el jurado (entregables a evaluar, HU-210), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `entregables:entregable-proyecto-grado:create` para el asesor (generar el entregable de un proyecto de grado, HU-147), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend
 
