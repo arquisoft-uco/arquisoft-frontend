@@ -66,7 +66,7 @@ describe('nav-items', () => {
     expect(delEstudiante).toBeUndefined();
   });
 
-  it('Entregables está disponible solo para el asesor', () => {
+  it('Entregables está disponible para el asesor y el estudiante', () => {
     // Act
     const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/entregables');
     const delEstudiante = navItemsDelRol(Rol.Estudiante).find((i) => i.path === '/entregables');
@@ -74,6 +74,7 @@ describe('nav-items', () => {
     // Assert
     expect(delAsesor).toBeDefined();
     expect(estaDisponible(delAsesor!)).toBe(true);
-    expect(delEstudiante).toBeUndefined();
+    expect(delEstudiante).toBeDefined();
+    expect(estaDisponible(delEstudiante!)).toBe(true);
   });
 });

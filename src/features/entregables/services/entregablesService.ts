@@ -14,4 +14,14 @@ export const entregablesService = {
     apiClient
       .post<Page<EntregableProyectoGrado>>('/entregables-proyecto-grado/asesor', req)
       .then((r) => r.data),
+
+  consultarEntregablesEstudiante: (
+    proyectoGradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<EntregableProyectoGrado>> =>
+    apiClient
+      .post<
+        Page<EntregableProyectoGrado>
+      >(`/proyectos-grado/${proyectoGradoId}/entregables/estudiante`, req)
+      .then((r) => r.data),
 };
