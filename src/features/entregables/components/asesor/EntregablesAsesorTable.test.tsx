@@ -28,6 +28,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof EntregablesAses
     orden: { clave: 'proyectoGradoNombre', direccion: 'ASC' as const },
     onOrdenar: vi.fn(),
     onLimpiarFiltros: vi.fn(),
+    onCambiarEstado: vi.fn(),
     ...parcial,
   };
   render(<EntregablesAsesorTable {...props} />);
@@ -86,5 +87,34 @@ describe('EntregablesAsesorTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('ofrece "Cambiar estado" en un entregable activo y lo deshabilita en uno terminal', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const cerrado: EntregableProyectoGrado = {
+      ...ENTREGABLE_2,
+      id: 'e-3',
+      proyectoGrado: { id: 'p-3', nombre: 'Proyecto cerrado' },
+      estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+    };
+    const { onCambiarEstado } = renderizar({ entregables: [ENTREGABLE_1, cerrado] });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: /Acciones del entregable de Sistema de riego/ }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(onCambiarEstado).toHaveBeenCalledWith(ENTREGABLE_1);
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: /Acciones del entregable de Proyecto cerrado/ }),
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Cambiar estado' })).toBeDisabled();
   });
 });

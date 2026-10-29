@@ -1,4 +1,4 @@
-import { SearchX, Send } from 'lucide-react';
+import { RefreshCw, SearchX, Send } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -8,9 +8,11 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { varianteEstadoEntregable } from '../../../../shared/utils/estado-variante';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 import type { OrdenCampoEntregable } from '../../models/OrdenCampoEntregable';
+import { puedeCambiarEstado } from '../../utils/estados-entregable';
 
 const TARJETA_DATOS = 'flex flex-wrap items-center gap-1.5';
 const NOMBRE = 'font-medium text-on-surface';
@@ -27,6 +29,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoEntregable, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onCambiarEstado: (entregable: EntregableProyectoGrado) => void;
 }
 
 function InsigniaEstado({ entregable }: { entregable: EntregableProyectoGrado }) {
@@ -66,6 +69,7 @@ export default function EntregablesAsesorTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onCambiarEstado,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -100,6 +104,19 @@ export default function EntregablesAsesorTable({
       onOrdenar={ordenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(entregable) => (
+        <RowMenu
+          etiqueta={`Acciones del entregable de ${entregable.proyectoGrado.nombre}, versión ${entregable.versionEntregable}`}
+          acciones={[
+            {
+              etiqueta: 'Cambiar estado',
+              icono: RefreshCw,
+              onSeleccionar: () => onCambiarEstado(entregable),
+              deshabilitada: !puedeCambiarEstado(entregable.estadoEntregable.id),
+            },
+          ]}
+        />
+      )}
       tarjeta={(entregable) => (
         <>
           <span className={NOMBRE}>{entregable.proyectoGrado.nombre}</span>
