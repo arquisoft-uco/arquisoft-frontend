@@ -79,6 +79,12 @@ const VARIANTE_OBSERVACION_ARTEFACTO: TablaDeVariantes = {
   REABIERTA: 'peligro',
 };
 
+const VARIANTE_TAREA: TablaDeVariantes = {
+  NUEVA: 'info',
+  EN_PROGRESO: 'advertencia',
+  FINALIZADA: 'exito',
+};
+
 function buscarVariante(tabla: TablaDeVariantes, id: string): VarianteBadge {
   return Object.prototype.hasOwnProperty.call(tabla, id) ? tabla[id] : 'neutro';
 }
@@ -126,4 +132,8 @@ export function varianteEstadoRevisionAsesor(id: string): VarianteBadge {
 
 export function varianteEstadoObservacionArtefacto(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_OBSERVACION_ARTEFACTO, id);
+}
+
+export function varianteEstadoTarea(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_TAREA, id);
 }
