@@ -66,15 +66,18 @@ describe('nav-items', () => {
     expect(delEstudiante).toBeUndefined();
   });
 
-  it('Entregables está disponible para el asesor y el estudiante', () => {
+  it('Entregables está disponible para el asesor, el estudiante y el jurado', () => {
     // Act
     const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/entregables');
     const delEstudiante = navItemsDelRol(Rol.Estudiante).find((i) => i.path === '/entregables');
+    const delJurado = navItemsDelRol(Rol.Jurado).find((i) => i.path === '/entregables');
 
     // Assert
     expect(delAsesor).toBeDefined();
     expect(estaDisponible(delAsesor!)).toBe(true);
     expect(delEstudiante).toBeDefined();
     expect(estaDisponible(delEstudiante!)).toBe(true);
+    expect(delJurado).toBeDefined();
+    expect(estaDisponible(delJurado!)).toBe(true);
   });
 });

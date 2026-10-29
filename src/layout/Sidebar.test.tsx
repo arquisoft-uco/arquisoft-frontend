@@ -82,6 +82,18 @@ describe('Sidebar', () => {
     });
   });
 
+  it('el jurado ve «Entregables» en «Trabajo», antes de «Evaluaciones»', () => {
+    entrarComo(Rol.Jurado);
+
+    renderizar();
+
+    const hrefs = within(screen.getByRole('list', { name: 'Trabajo' }))
+      .getAllByRole('link')
+      .map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/entregables');
+    expect(hrefs.indexOf('/entregables')).toBeLessThan(hrefs.indexOf('/evaluaciones'));
+  });
+
   it('no pinta «Próximamente» si el rol no tiene ítems pendientes', () => {
     entrarComo(Rol.Estudiante);
     vi.mocked(navItemsDelRol).mockReturnValueOnce(NAV_ITEMS.filter((item) => estaDisponible(item)));

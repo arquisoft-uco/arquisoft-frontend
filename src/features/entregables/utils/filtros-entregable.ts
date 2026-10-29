@@ -1,6 +1,10 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 
-export function construirFiltros(texto: string, estadoIds: string[]): NodoFiltroDTO | undefined {
+export function construirFiltros(
+  texto: string,
+  estadoIds: string[],
+  asesor = '',
+): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
   const recortado = texto.trim();
   if (recortado) {
@@ -9,6 +13,15 @@ export function construirFiltros(texto: string, estadoIds: string[]): NodoFiltro
       campo: 'proyectoGradoNombre',
       operador: 'CONTIENE',
       valor: recortado,
+    });
+  }
+  const asesorRecortado = asesor.trim();
+  if (asesorRecortado) {
+    nodos.push({
+      tipo: 'PREDICADO',
+      campo: 'asesorNombre',
+      operador: 'CONTIENE',
+      valor: asesorRecortado,
     });
   }
   if (estadoIds.length > 0) {
