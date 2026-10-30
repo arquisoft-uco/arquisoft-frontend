@@ -186,12 +186,23 @@ El clon vive en la ruta fija `.workspace/arquisoft-docs` (ignorada por git) y to
 **literal, nunca con una variable**: el hook resuelve esa ruta para leer su `origin` y solo así permite
 el commit y el push a `main`. Con `-C "$TMP"` el push se bloquea.
 
+**Dos llamadas de Bash, nunca una.** El hook evalúa el comando antes de ejecutarlo y lee el `origin` del
+clon en ese momento: si el clon y el push van en el mismo comando, el clon aún no existe y el push a
+`main` se bloquea.
+
+Llamada 1 — clonar y copiar:
+
 ```bash
 rm -rf .workspace/arquisoft-docs
 gh repo clone arquisoft-uco/arquisoft-docs .workspace/arquisoft-docs -- --depth 1 --branch main
 mkdir -p .workspace/arquisoft-docs/docs/hus/planes/frontend .workspace/arquisoft-docs/docs/hus/validaciones/frontend
 cp .workspace/h-plan/PLAN-{HU|HT}-{ID}.md .workspace/arquisoft-docs/docs/hus/planes/frontend/
 cp .workspace/validator/validator-{HU|HT}-{ID}.md .workspace/arquisoft-docs/docs/hus/validaciones/frontend/VALIDATOR-{HU|HT}-{ID}.md
+```
+
+Llamada 2 — con el clon ya en disco:
+
+```bash
 git -C .workspace/arquisoft-docs add docs/hus
 if ! git -C .workspace/arquisoft-docs diff --cached --quiet; then
   git -C .workspace/arquisoft-docs commit -m "docs(hus): publicar plan y validación de {HU|HT}-{ID} (frontend)" \

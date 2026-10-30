@@ -8,6 +8,7 @@ import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEs
 import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarEstadoAsesorProyectoGradoRequest';
 import type { CompaneroProyectoGrado } from '../models/CompaneroProyectoGrado';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
+import type { EstadoAsesorProyectoGrado } from '../models/EstadoAsesorProyectoGrado';
 import type { EstadoProyectoGradoResponse } from '../models/EstadoProyectoGradoResponse';
 import type { EstudianteAsesoradoProyectoGrado } from '../models/EstudianteAsesoradoProyectoGrado';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
@@ -80,6 +81,12 @@ export const proyectosGradoService = {
     return apiClient
       .get<EstadoProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/estados`)
       .then((r) => r.data.map(aHistorialEstadoProyectoGrado));
+  },
+
+  getEstadosAsesor(): Promise<EstadoAsesorProyectoGrado[]> {
+    return apiClient
+      .get<EstadoAsesorProyectoGrado[]>('/proyectos-grado/estados-asesor')
+      .then((r) => r.data);
   },
 
   asignarAsesor(req: AsignarAsesorProyectoGradoRequest): Promise<void> {
