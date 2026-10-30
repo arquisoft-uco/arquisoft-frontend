@@ -28,6 +28,27 @@ vi.mock('./services/artefactosService', () => ({
       last: true,
       empty: true,
     }),
+    consultarArtefactosEstudiante: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
+    consultarVersionesArtefactoEstudiante: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
+    getParticipacionesEstudiante: vi.fn().mockResolvedValue([]),
     consultarArtefactosAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -149,10 +170,56 @@ describe('Artefactos', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('el estudiante ve el listado de artefactos de sus proyectos', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
+  });
+
+  it('con ?vista=participacion el estudiante ve la pestaña de participación', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=participacion');
+
+    // Assert
+    expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Participación' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('con ?vista=versiones-artefactos el estudiante ve la pestaña de versiones de artefactos', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=versiones-artefactos');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Mis artefactos' })).toBeInTheDocument();
+  });
+
+  it('un rol sin vista redirige a /forbidden', () => {
+    // Arrange
+    entrarComo(Rol.Coordinador);
+    setActiveRole(Rol.Coordinador);
 
     // Act
     renderizar();
