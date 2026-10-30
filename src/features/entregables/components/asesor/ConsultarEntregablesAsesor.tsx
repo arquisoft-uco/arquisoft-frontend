@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEntregablesAsesor } from '../../hooks/useEntregablesAsesor';
 import { useEstadosEntregable } from '../../hooks/useEstadosEntregable';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
+import ArtefactosEntregablePanel from './ArtefactosEntregablePanel';
 import CambiarEstadoEntregablePanel from './CambiarEstadoEntregablePanel';
 import EntregablesAsesorTable from './EntregablesAsesorTable';
 
@@ -21,6 +22,7 @@ export default function ConsultarEntregablesAsesor() {
   const listado = useEntregablesAsesor();
   const { data: estados } = useEstadosEntregable();
   const [enEdicion, setEnEdicion] = useState<EntregableProyectoGrado | null>(null);
+  const [enArtefactos, setEnArtefactos] = useState<EntregableProyectoGrado | null>(null);
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const entregables = data?.content ?? [];
@@ -70,6 +72,7 @@ export default function ConsultarEntregablesAsesor() {
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
             onCambiarEstado={setEnEdicion}
+            onVerArtefactos={setEnArtefactos}
           />
         )}
       </div>
@@ -88,6 +91,13 @@ export default function ConsultarEntregablesAsesor() {
 
       {enEdicion && (
         <CambiarEstadoEntregablePanel entregable={enEdicion} onCerrar={() => setEnEdicion(null)} />
+      )}
+
+      {enArtefactos && (
+        <ArtefactosEntregablePanel
+          entregable={enArtefactos}
+          onCerrar={() => setEnArtefactos(null)}
+        />
       )}
     </div>
   );
