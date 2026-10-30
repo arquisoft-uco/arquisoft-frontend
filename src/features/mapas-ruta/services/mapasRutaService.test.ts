@@ -188,10 +188,47 @@ describe('mapasRutaService', () => {
           id: 't-1',
           descripcion: 'Entregar informe',
           mapaRutaId: 'm-1',
+          fechaInicioMapaRuta: '2026-03-05',
+          fechaFinMapaRuta: '2026-08-01',
           estado: { id: 'NUEVA', nombre: 'Nueva' },
           asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
         },
       ]);
+    });
+  });
+
+  describe('consultarTarea', () => {
+    it('hace GET a /tareas/{id} y traduce el DTO plano a Tarea anidada con las fechas', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        data: {
+          id: 't-1',
+          descripcion: 'Entregar informe',
+          mapaRuta: 'm-1',
+          fechaInicioMapaRuta: '2026-03-05',
+          fechaFinMapaRuta: '2026-08-01',
+          estadoItem: 'NUEVA',
+          nombreEstadoItem: 'Nueva',
+          asesor: 'a-1',
+          nombreAsesor: 'Ana Ruiz',
+          emailAsesor: 'ana@uco.edu.co',
+        },
+      });
+
+      // Act
+      const tarea = await mapasRutaService.consultarTarea('t-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/tareas/t-1');
+      expect(tarea).toEqual({
+        id: 't-1',
+        descripcion: 'Entregar informe',
+        mapaRutaId: 'm-1',
+        fechaInicioMapaRuta: '2026-03-05',
+        fechaFinMapaRuta: '2026-08-01',
+        estado: { id: 'NUEVA', nombre: 'Nueva' },
+        asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
+      });
     });
   });
 

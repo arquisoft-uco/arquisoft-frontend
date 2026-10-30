@@ -30,6 +30,8 @@ function aTarea(dto: TareaResponse): Tarea {
     id: dto.id,
     descripcion: dto.descripcion,
     mapaRutaId: dto.mapaRuta,
+    fechaInicioMapaRuta: dto.fechaInicioMapaRuta,
+    fechaFinMapaRuta: dto.fechaFinMapaRuta,
     estado: { id: dto.estadoItem, nombre: dto.nombreEstadoItem },
     asesor: { id: dto.asesor, nombre: dto.nombreAsesor, email: dto.emailAsesor },
   };
@@ -87,6 +89,10 @@ export const mapasRutaService = {
     return apiClient
       .post<Page<TareaResponse>>(`/mapas-ruta/${mapaRutaId}/tareas/estudiante`, req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
+  },
+
+  consultarTarea(tareaId: string): Promise<Tarea> {
+    return apiClient.get<TareaResponse>(`/tareas/${tareaId}`).then((r) => aTarea(r.data));
   },
 
   consultarEstadosTarea(): Promise<EstadoTarea[]> {
