@@ -4,6 +4,7 @@ import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import { useMapaRutaEstudiante } from '../hooks/useMapaRutaEstudiante';
+import ConsultarTareasMapaRuta from './estudiante/ConsultarTareasMapaRuta';
 import MapaRutaEstudianteCard from './estudiante/MapaRutaEstudianteCard';
 
 export default function EstudianteView() {
@@ -13,7 +14,7 @@ export default function EstudianteView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Mi mapa de ruta"
-        descripcion="Consulta las fechas importantes de tu proyecto de grado."
+        descripcion="Consulta las fechas importantes y las tareas de tu proyecto de grado."
       />
       {cargando && <Skeleton variante="tarjetas" etiqueta="Cargando tu mapa de ruta…" />}
       {sinMapa && (
@@ -31,6 +32,7 @@ export default function EstudianteView() {
         />
       )}
       {mapa && <MapaRutaEstudianteCard mapa={mapa} />}
+      {mapa && <ConsultarTareasMapaRuta mapaRutaId={mapa.id} />}
     </div>
   );
 }

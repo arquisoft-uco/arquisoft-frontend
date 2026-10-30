@@ -1,7 +1,7 @@
 import { normalizarTexto } from '../../../shared/hooks/useCombobox';
-import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
+import type { ArtefactoConNombre } from '../models/ArtefactoConNombre';
 
-export function buscarArtefactos(artefactos: ArtefactoAsesor[], texto: string): string[] {
+export function buscarArtefactos(artefactos: ArtefactoConNombre[], texto: string): string[] {
   const buscado = normalizarTexto(texto.trim());
   if (buscado === '') return [];
   return artefactos
