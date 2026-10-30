@@ -109,6 +109,26 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('enviarSolicitudRegistroModificacionUsuarios', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios con { destinatario, mensajeSolicitud } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 's-5' } });
+
+      // Act
+      const resultado = await solicitudesService.enviarSolicitudRegistroModificacionUsuarios({
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Registrar un usuario nuevo.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/registro-modificacion-usuarios', {
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Registrar un usuario nuevo.',
+      });
+      expect(resultado).toEqual({ id: 's-5' });
+    });
+  });
+
   describe('consultarSolicitudesNovedadCoordinadorEnviadas', () => {
     const pagina = {
       content: [],
