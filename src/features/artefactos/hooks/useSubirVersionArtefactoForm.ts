@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from '../../../shared/hooks/useToast';
-import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
+import type { ArtefactoParaVersion } from '../models/ArtefactoParaVersion';
 import {
   aplicarErrorDeVersionArtefacto,
   mensajeDeErrorDeVersionArtefacto,
@@ -15,7 +15,7 @@ import {
 import { useSubirVersionArtefacto } from './useSubirVersionArtefacto';
 
 interface Opciones {
-  artefacto: ArtefactoEstudiante;
+  artefacto: ArtefactoParaVersion;
   onCerrar: () => void;
 }
 

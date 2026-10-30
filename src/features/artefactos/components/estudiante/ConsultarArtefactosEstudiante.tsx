@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosEstudiante } from '../../hooks/useArtefactosEstudiante';
-import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
 import ArtefactosEstudianteTable from './ArtefactosEstudianteTable';
 import FiltrosArtefactosEstudiante from './FiltrosArtefactosEstudiante';
-import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -18,7 +15,6 @@ function textoResumen(total?: number): string {
 
 export default function ConsultarArtefactosEstudiante() {
   const listado = useArtefactosEstudiante();
-  const [artefactoElegido, setArtefactoElegido] = useState<ArtefactoEstudiante | null>(null);
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
 
@@ -45,7 +41,6 @@ export default function ConsultarArtefactosEstudiante() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
-            onSubirVersion={setArtefactoElegido}
           />
         )}
       </div>
@@ -59,13 +54,6 @@ export default function ConsultarArtefactosEstudiante() {
           cantidadEnPagina={artefactos.length}
           etiquetaPlural="artefactos"
           onPageChange={listado.goToPage}
-        />
-      )}
-
-      {artefactoElegido && (
-        <SubirVersionArtefactoPanel
-          artefacto={artefactoElegido}
-          onCerrar={() => setArtefactoElegido(null)}
         />
       )}
     </div>

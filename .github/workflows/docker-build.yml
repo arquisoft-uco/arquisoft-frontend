@@ -3,7 +3,7 @@
 # ==============================================================================
 # Construye imagen Docker multi-arquitectura (amd64 + arm64) y la publica en
 # GitHub Container Registry (GHCR). Se dispara solo cuando "CI Frontend"
-# termina en éxito sobre main. El deploy a Oracle Cloud vive en un workflow
+# termina en éxito sobre develop. El deploy a Oracle Cloud vive en un workflow
 # separado (deploy.yml) que se encadena vía workflow_run sobre este.
 # Runner: GitHub-hosted (ubuntu-latest) — gratis
 # ==============================================================================
@@ -13,7 +13,7 @@ name: Docker Build & Push
 on:
   workflow_run:
     workflows: ['CI Frontend']
-    branches: [main]
+    branches: [develop]
     types: [completed]
 
 env:

@@ -7,7 +7,7 @@ import SelectorArchivo from '../../../../shared/components/ui/SelectorArchivo';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { textoDeAvanceSubida } from '../../../../shared/utils/avance-subida';
 import { useSubirVersionArtefactoForm } from '../../hooks/useSubirVersionArtefactoForm';
-import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
+import type { ArtefactoParaVersion } from '../../models/ArtefactoParaVersion';
 import { ACEPTA_VERSION_ARTEFACTO } from '../../utils/tipos-archivo-version-artefacto';
 import { ETIQUETAS_CAMPO_VERSION_ARTEFACTO } from '../../utils/version-artefacto-schema';
 
@@ -18,7 +18,7 @@ const CONTEXTO_NOMBRE = 'font-medium text-on-surface';
 const AVANCE = 'text-sm text-on-surface-secondary';
 
 interface Props {
-  artefacto: ArtefactoEstudiante;
+  artefacto: ArtefactoParaVersion;
   onCerrar: () => void;
 }
 

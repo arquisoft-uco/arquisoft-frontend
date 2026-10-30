@@ -1,4 +1,4 @@
-import { FileStack, SearchX, Upload } from 'lucide-react';
+import { FileStack, SearchX } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -8,7 +8,6 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
@@ -65,7 +64,6 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
-  onSubirVersion: (artefacto: ArtefactoEstudiante) => void;
 }
 
 export default function ArtefactosEstudianteTable({
@@ -75,7 +73,6 @@ export default function ArtefactosEstudianteTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
-  onSubirVersion,
 }: Props) {
   const vacio = hayFiltros ? (
     <EmptyState
@@ -104,19 +101,6 @@ export default function ArtefactosEstudianteTable({
       idDeFila={(artefacto) => artefacto.id}
       orden={orden}
       onOrdenar={onOrdenar}
-      acciones={(artefacto) => (
-        <RowMenu
-          etiqueta={`Acciones del artefacto ${artefacto.nombreDocumento}`}
-          acciones={[
-            {
-              etiqueta: 'Subir nueva versión',
-              icono: Upload,
-              onSeleccionar: () => onSubirVersion(artefacto),
-            },
-          ]}
-        />
-      )}
-      encabezadoAcciones="Acciones"
       cargando={cargando}
       vacio={vacio}
       tarjeta={(artefacto) => (
