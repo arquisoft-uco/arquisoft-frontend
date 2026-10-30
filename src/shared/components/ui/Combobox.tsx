@@ -2,7 +2,7 @@ import { useEffect, useRef, type FocusEventHandler, type Ref } from 'react';
 import { Search } from 'lucide-react';
 import { useCombobox, type OpcionCombobox } from '../../hooks/useCombobox';
 import ComboboxElegidos, { TarjetaElegida } from './ComboboxElegidos';
-import ComboboxLista from './ComboboxLista';
+import ComboboxLista, { type CargarMas } from './ComboboxLista';
 export type { OpcionCombobox } from '../../hooks/useCombobox';
 
 const ICONO =
@@ -14,6 +14,7 @@ interface Comunes {
   id?: string;
   placeholder?: string;
   deshabilitado?: boolean;
+  cargarMas?: CargarMas;
   onBlur?: FocusEventHandler<HTMLInputElement>;
   ref?: Ref<HTMLInputElement>;
   'aria-invalid'?: boolean;
@@ -35,7 +36,6 @@ interface Multiple extends Comunes {
 }
 
 type Props = Unica | Multiple;
-
 export default function Combobox(props: Props) {
   const { opciones, id, ref } = props;
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -87,12 +87,11 @@ export default function Combobox(props: Props) {
 
   const unico = props.multiple ? undefined : elegidos[0];
   if (unico) {
-    const describedby = props['aria-describedby'];
     return (
       <TarjetaElegida
         id={id}
         opcion={unico}
-        aria-describedby={describedby}
+        aria-describedby={props['aria-describedby']}
         deshabilitado={props.deshabilitado}
         onCambiar={() => quitar(unico.id)}
       />
@@ -131,6 +130,7 @@ export default function Combobox(props: Props) {
             opciones={combo.opcionesVisibles}
             textoVacio={props.textoVacio}
             onElegir={combo.elegir}
+            cargarMas={props.cargarMas}
           />
         )}
       </div>

@@ -15,6 +15,9 @@ import {
   soloDigitosEntre,
   enteroEntre,
   validarParDeNombres,
+  fechaIso,
+  validarFechaFinPosterior,
+  archivoPermitido,
 } from './validadores-zod';
 
 describe('límites alineados al backend', () => {
@@ -41,8 +44,14 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MIN).toBe(0);
     expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MAX).toBe(500);
     expect(LIMITES.CATEGORIA_ITEM_CUANTITATIVO_NOMBRE_FILTRO_MAX).toBe(100);
+    expect(LIMITES.REPOSITORIO_NOMBRE_MAX).toBe(100);
+    expect(LIMITES.REPOSITORIO_DESCRIPCION_MAX).toBe(300);
     expect(LIMITES.OBSERVACION_EVALUACION_MAX).toBe(200);
     expect(LIMITES.OBSERVACION_ITEM_MAX).toBe(200);
+    expect(LIMITES.VERSION_NOMBRE_DOCUMENTO_MAX).toBe(100);
+    expect(LIMITES.VERSION_NOMBRE_ARCHIVO_MAX).toBe(255);
+    expect(LIMITES.VERSION_ARCHIVO_TAMANO_MAX_BYTES).toBe(5_242_880);
+    expect(LIMITES.TAREA_DESCRIPCION_MAX).toBe(200);
   });
 });
 
@@ -316,5 +325,68 @@ describe('validarParDeNombres', () => {
     expect(errores(largo, 'b')).toEqual([`nombres:${longitud}`, `apellidos:${longitud}`]);
     expect(errores('Ana1', 'Gómez')).toEqual([`nombres:${MENSAJES_VALIDACION.formatoNombre}`]);
     expect(errores('Ana', 'G0mez')).toEqual([`apellidos:${MENSAJES_VALIDACION.formatoNombre}`]);
+  });
+});
+
+describe('fechaIso', () => {
+  it('exige la fecha, el formato yyyy-MM-dd y que sea una fecha real', () => {
+    const mensaje = (v: string) => {
+      const r = fechaIso().safeParse(v);
+      return r.success ? null : r.error.issues[0].message;
+    };
+    expect(mensaje('')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('22/10/2026')).toBe(MENSAJES_VALIDACION.fechaInvalida);
+    expect(mensaje('2026-02-30')).toBe(MENSAJES_VALIDACION.fechaInvalida);
+    expect(mensaje('2026-10-22')).toBeNull();
+  });
+});
+
+describe('validarFechaFinPosterior', () => {
+  const esquema = z
+    .object({ fechaInicio: z.string(), fechaFin: z.string() })
+    .superRefine(validarFechaFinPosterior);
+
+  function errores(fechaInicio: string, fechaFin: string) {
+    const r = esquema.safeParse({ fechaInicio, fechaFin });
+    return r.success ? [] : r.error.issues.map((i) => `${i.path.join('.')}:${i.message}`);
+  }
+
+  it('rechaza un fin igual o anterior al inicio y acepta uno posterior', () => {
+    const mensaje = `fechaFin:${MENSAJES_VALIDACION.fechaFinPosterior}`;
+    expect(errores('2026-10-22', '2026-10-22')).toEqual([mensaje]);
+    expect(errores('2026-10-22', '2026-10-21')).toEqual([mensaje]);
+    expect(errores('2026-10-22', '2026-10-23')).toEqual([]);
+    expect(errores('2026-02-30', '2026-01-01')).toEqual([]);
+  });
+});
+
+describe('archivoPermitido', () => {
+  const esquema = archivoPermitido({
+    extensiones: ['pdf', 'docx'],
+    tamanoMaxBytes: 10,
+    nombreMax: 20,
+  });
+  const formato = MENSAJES_VALIDACION.formatoArchivo(['pdf', 'docx']);
+
+  function mensaje(archivo: File | null) {
+    const r = esquema.safeParse(archivo);
+    return r.success ? null : r.error.issues[0].message;
+  }
+
+  function archivo(nombre: string, tamano: number) {
+    return new File([new Uint8Array(tamano)], nombre);
+  }
+
+  it('exige archivo, nombre válido, extensión permitida y tamaño entre 1 byte y el máximo', () => {
+    expect(mensaje(null)).toBe(MENSAJES_VALIDACION.archivoRequerido);
+    expect(mensaje(archivo(`${'a'.repeat(20)}.pdf`, 1))).toBe(
+      MENSAJES_VALIDACION.longitudMaxima(20),
+    );
+    expect(mensaje(archivo('a/b.pdf', 1))).toBe(MENSAJES_VALIDACION.nombreArchivoInvalido);
+    expect(mensaje(archivo('nota.txt', 1))).toBe(formato);
+    expect(mensaje(archivo('sin-extension', 1))).toBe(formato);
+    expect(mensaje(archivo('a.pdf', 0))).toBe(MENSAJES_VALIDACION.archivoVacio);
+    expect(mensaje(archivo('a.pdf', 11))).toBe(MENSAJES_VALIDACION.archivoMuyGrande(10));
+    expect(mensaje(archivo('A.PDF', 10))).toBeNull();
   });
 });

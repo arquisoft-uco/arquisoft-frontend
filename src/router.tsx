@@ -20,12 +20,25 @@ const PestanaProyectoGrado = lazy(
 const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
 const Evaluaciones = lazy(() => import('./features/evaluaciones/Evaluaciones'));
+const JuradosEvaluacion = lazy(() => import('./features/evaluaciones/JuradosEvaluacion'));
+const EvaluacionesCualitativasJurado = lazy(
+  () => import('./features/evaluaciones/EvaluacionesCualitativasJurado'),
+);
+const EvaluacionesCuantitativasJurado = lazy(
+  () => import('./features/evaluaciones/EvaluacionesCuantitativasJurado'),
+);
+const EvaluacionesCualitativasRealizadasJurado = lazy(
+  () => import('./features/evaluaciones/EvaluacionesCualitativasRealizadasJurado'),
+);
 const RegistrarEvaluacionesCualitativas = lazy(
   () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
 );
 const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
 const RepositorioArtefactos = lazy(
   () => import('./features/repositorio-artefactos/RepositorioArtefactos'),
+);
+const VersionesRepositorio = lazy(
+  () => import('./features/repositorio-artefactos/VersionesRepositorio'),
 );
 const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
@@ -96,12 +109,29 @@ export const router = createBrowserRouter([
                 path: ':evaluacionJuradoId/evaluar',
                 element: <RegistrarEvaluacionesCualitativas />,
               },
+              { path: ':evaluacionId/jurados', element: <JuradosEvaluacion /> },
+              {
+                path: ':evaluacionJuradoId/cualitativas',
+                element: <EvaluacionesCualitativasJurado />,
+              },
+              {
+                path: ':evaluacionJuradoId/cualitativas-realizadas',
+                element: <EvaluacionesCualitativasRealizadasJurado />,
+              },
+              {
+                path: ':evaluacionJuradoId/cuantitativas',
+                element: <EvaluacionesCuantitativasJurado />,
+              },
             ],
           },
           { path: 'mapas-ruta', element: guarded('mapas-ruta', <MapasRuta />) },
           {
             path: 'repositorio-artefactos',
-            element: guarded('repositorio-artefactos', <RepositorioArtefactos />),
+            element: guarded('repositorio-artefactos', <Outlet />),
+            children: [
+              { index: true, element: <RepositorioArtefactos /> },
+              { path: ':repositorioId/versiones', element: <VersionesRepositorio /> },
+            ],
           },
           { path: 'biblioteca', element: guarded('biblioteca', <Biblioteca />) },
           { path: 'solicitudes', element: guarded('solicitudes', <Solicitudes />) },

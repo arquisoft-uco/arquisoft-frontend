@@ -89,6 +89,26 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('enviarSolicitudAmpliacionPlazo', () => {
+    it('llama POST /solicitudes/ampliacion-plazo con { destinatario, mensajeSolicitud } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 's-4' } });
+
+      // Act
+      const resultado = await solicitudesService.enviarSolicitudAmpliacionPlazo({
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Necesito más plazo.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo', {
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Necesito más plazo.',
+      });
+      expect(resultado).toEqual({ id: 's-4' });
+    });
+  });
+
   describe('consultarSolicitudesNovedadCoordinadorEnviadas', () => {
     const pagina = {
       content: [],
@@ -113,6 +133,34 @@ describe('solicitudesService', () => {
 
       // Assert
       expect(post).toHaveBeenCalledWith('/solicitudes/novedad-coordinador/enviadas', {
+        pagina: 2,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('consultarSolicitudesAmpliacionPlazoEnviadas', () => {
+    const pagina = {
+      content: [],
+      page: 2,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: false,
+      last: true,
+      empty: true,
+    };
+
+    it('llama POST /solicitudes/ampliacion-plazo/enviadas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await solicitudesService.consultarSolicitudesAmpliacionPlazoEnviadas(2, 10);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/enviadas', {
         pagina: 2,
         tamanio: 10,
       });
@@ -262,6 +310,34 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarRespuestasAmpliacionPlazoRecibidas', () => {
+    it('llama POST /solicitudes/ampliacion-plazo/respuestas/recibidas con el criterio recibido tal cual y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarRespuestasAmpliacionPlazoRecibidas(CRITERIO);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/ampliacion-plazo/respuestas/recibidas',
+        CRITERIO,
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('consultarRespuestasNovedadAsesorEnviadas', () => {
     it('llama POST /solicitudes/novedad-asesor/respuestas/enviadas con el criterio recibido tal cual y resuelve la página', async () => {
       // Arrange
@@ -346,6 +422,20 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('eliminarSolicitudAmpliacionPlazo', () => {
+    it('llama DELETE /solicitudes/ampliacion-plazo/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarSolicitudAmpliacionPlazo('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/s-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('eliminarRespuestaCambioAsesor', () => {
     it('llama DELETE /solicitudes/cambio-asesor/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
       // Arrange
@@ -356,6 +446,20 @@ describe('solicitudesService', () => {
 
       // Assert
       expect(eliminar).toHaveBeenCalledWith('/solicitudes/cambio-asesor/s-1/respuesta');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarRespuestaAmpliacionPlazo', () => {
+    it('llama DELETE /solicitudes/ampliacion-plazo/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.eliminarRespuestaAmpliacionPlazo('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/s-1/respuesta');
       expect(resultado).toBeUndefined();
     });
   });
@@ -423,6 +527,25 @@ describe('solicitudesService', () => {
         contenido: 'Revisemos tu avance el lunes.',
       });
       expect(resultado).toEqual({ id: 'r-2' });
+    });
+  });
+
+  describe('responderSolicitudAmpliacionPlazo', () => {
+    it('llama POST /solicitudes/ampliacion-plazo/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-4' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudAmpliacionPlazo({
+        solicitudId: 's-4',
+        contenido: 'Plazo ampliado.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/s-4/respuesta', {
+        contenido: 'Plazo ampliado.',
+      });
+      expect(resultado).toEqual({ id: 'r-4' });
     });
   });
 
@@ -496,6 +619,25 @@ describe('solicitudesService', () => {
 
       // Assert
       expect(patch).toHaveBeenCalledWith('/solicitudes/cambio-asesor/abc/respuesta/estado', {
+        nuevoEstado: 'APROBADA',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('modificarEstadoRespuestaAmpliacionPlazo', () => {
+    it('llama PATCH /solicitudes/ampliacion-plazo/{solicitudId}/respuesta/estado con solo { nuevoEstado } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await solicitudesService.modificarEstadoRespuestaAmpliacionPlazo({
+        solicitudId: 'abc',
+        nuevoEstado: 'APROBADA',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/abc/respuesta/estado', {
         nuevoEstado: 'APROBADA',
       });
       expect(resultado).toBeUndefined();

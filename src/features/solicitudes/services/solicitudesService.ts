@@ -1,13 +1,16 @@
 import apiClient from '../../../api/axiosInstance';
+import type { EnviarSolicitudAmpliacionPlazoRequest } from '../models/EnviarSolicitudAmpliacionPlazoRequest';
 import type { EnviarSolicitudCambioAsesorRequest } from '../models/EnviarSolicitudCambioAsesorRequest';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
 import type { EstadoRespuesta } from '../models/EstadoRespuesta';
+import type { ModificarEstadoRespuestaAmpliacionPlazoRequest } from '../models/ModificarEstadoRespuestaAmpliacionPlazoRequest';
 import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
+import type { ResponderSolicitudAmpliacionPlazoRequest } from '../models/ResponderSolicitudAmpliacionPlazoRequest';
 import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
@@ -45,6 +48,17 @@ export const solicitudesService = {
         mensajeSolicitud: req.mensajeSolicitud,
       })
       .then((r) => r.data),
+
+  enviarSolicitudAmpliacionPlazo: (
+    req: EnviarSolicitudAmpliacionPlazoRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>('/solicitudes/ampliacion-plazo', {
+        destinatario: req.destinatario,
+        mensajeSolicitud: req.mensajeSolicitud,
+      })
+      .then((r) => r.data),
+
   consultarSolicitudesNovedadCoordinadorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/enviadas', {
@@ -69,6 +83,14 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  consultarSolicitudesAmpliacionPlazoEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/ampliacion-plazo/enviadas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
   consultarSolicitudesNovedadCoordinadorRecibidas: (
     page = 0,
     size = 10,
@@ -83,6 +105,14 @@ export const solicitudesService = {
   consultarSolicitudesCambioAsesorRecibidas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/cambio-asesor/recibidas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarSolicitudesAmpliacionPlazoRecibidas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/ampliacion-plazo/recibidas', {
         pagina: page,
         tamanio: size,
       })
@@ -128,6 +158,22 @@ export const solicitudesService = {
       .post<Page<RespuestaSolicitud>>('/solicitudes/cambio-asesor/respuestas/enviadas', criterio)
       .then((r) => r.data),
 
+  consultarRespuestasAmpliacionPlazoEnviadas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<Page<RespuestaSolicitud>>('/solicitudes/ampliacion-plazo/respuestas/enviadas', criterio)
+      .then((r) => r.data),
+
+  consultarRespuestasAmpliacionPlazoRecibidas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/ampliacion-plazo/respuestas/recibidas', criterio)
+      .then((r) => r.data),
+
   consultarRespuestasCambioAsesorRecibidas: (
     criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>
@@ -153,6 +199,9 @@ export const solicitudesService = {
 
   eliminarSolicitudCambioAsesor: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/cambio-asesor/${solicitudId}`).then(() => undefined),
+
+  eliminarSolicitudAmpliacionPlazo: (solicitudId: string): Promise<void> =>
+    apiClient.delete(`/solicitudes/ampliacion-plazo/${solicitudId}`).then(() => undefined),
 
   responderSolicitudNovedadCoordinador: (
     req: ResponderSolicitudNovedadCoordinadorRequest,
@@ -182,8 +231,22 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  responderSolicitudAmpliacionPlazo: (
+    req: ResponderSolicitudAmpliacionPlazoRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta`, {
+        contenido: req.contenido,
+      })
+      .then((r) => r.data),
+
   eliminarRespuestaCambioAsesor: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/cambio-asesor/${solicitudId}/respuesta`).then(() => undefined),
+
+  eliminarRespuestaAmpliacionPlazo: (solicitudId: string): Promise<void> =>
+    apiClient
+      .delete(`/solicitudes/ampliacion-plazo/${solicitudId}/respuesta`)
+      .then(() => undefined),
 
   eliminarRespuestaNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient
@@ -215,6 +278,14 @@ export const solicitudesService = {
   ): Promise<void> =>
     apiClient
       .patch(`/solicitudes/cambio-asesor/${req.solicitudId}/respuesta/estado`, {
+        nuevoEstado: req.nuevoEstado,
+      })
+      .then(() => undefined),
+  modificarEstadoRespuestaAmpliacionPlazo: (
+    req: ModificarEstadoRespuestaAmpliacionPlazoRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta/estado`, {
         nuevoEstado: req.nuevoEstado,
       })
       .then(() => undefined),

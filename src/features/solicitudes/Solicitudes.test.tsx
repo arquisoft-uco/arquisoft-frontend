@@ -6,23 +6,34 @@ import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-
 import Solicitudes from './Solicitudes';
 import { Rol } from '../../shared/models/rol';
 import type { Page } from '../../shared/models/api-response';
-import { RESPUESTA, RESPUESTA_ASESOR, RESPUESTA_CAMBIO_ASESOR } from '../../test-utils/respuestas';
+import {
+  RESPUESTA,
+  RESPUESTA_AMPLIACION_PLAZO,
+  RESPUESTA_ASESOR,
+  RESPUESTA_CAMBIO_ASESOR,
+} from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
+import { useEnviarSolicitudAmpliacionPlazo } from './hooks/useEnviarSolicitudAmpliacionPlazo';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import { useResponderSolicitudAmpliacionPlazo } from './hooks/useResponderSolicitudAmpliacionPlazo';
 import { useResponderSolicitudCambioAsesor } from './hooks/useResponderSolicitudCambioAsesor';
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
 import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSolicitudNovedadCoordinador';
 import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNovedadAsesorRecibidas';
 import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedadAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
+import { useRespuestasAmpliacionPlazoEnviadas } from './hooks/useRespuestasAmpliacionPlazoEnviadas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
+import { useRespuestasAmpliacionPlazoRecibidas } from './hooks/useRespuestasAmpliacionPlazoRecibidas';
 import { useModificarEstadoRespuestaCambioAsesor } from './hooks/useModificarEstadoRespuestaCambioAsesor';
+import { useModificarEstadoRespuestaAmpliacionPlazo } from './hooks/useModificarEstadoRespuestaAmpliacionPlazo';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaCambioAsesor } from './hooks/useEliminarRespuestaCambioAsesor';
+import { useEliminarRespuestaAmpliacionPlazo } from './hooks/useEliminarRespuestaAmpliacionPlazo';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
 import { useModificarEstadoRespuestaNovedadAsesor } from './hooks/useModificarEstadoRespuestaNovedadAsesor';
 import { useModificarEstadoRespuestaNovedadCoordinador } from './hooks/useModificarEstadoRespuestaNovedadCoordinador';
@@ -44,6 +55,10 @@ vi.mock('./hooks/useEnviarSolicitudCambioAsesor', () => ({
   useEnviarSolicitudCambioAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useEnviarSolicitudAmpliacionPlazo', () => ({
+  useEnviarSolicitudAmpliacionPlazo: vi.fn(),
+}));
+
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
   useSolicitudesNovedadCoordinadorEnviadas: vi.fn(),
 }));
@@ -53,6 +68,10 @@ vi.mock('./hooks/useSolicitudesNovedadAsesorEnviadas', () => ({
 }));
 vi.mock('./hooks/useSolicitudesCambioAsesorEnviadas', () => ({
   useSolicitudesCambioAsesorEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesAmpliacionPlazoEnviadas', () => ({
+  useSolicitudesAmpliacionPlazoEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useEliminarSolicitudNovedadCoordinador', () => ({
@@ -67,12 +86,20 @@ vi.mock('./hooks/useEliminarSolicitudCambioAsesor', () => ({
   useEliminarSolicitudCambioAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useEliminarSolicitudAmpliacionPlazo', () => ({
+  useEliminarSolicitudAmpliacionPlazo: vi.fn(),
+}));
+
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
   useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesCambioAsesorRecibidas', () => ({
   useSolicitudesCambioAsesorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesAmpliacionPlazoRecibidas', () => ({
+  useSolicitudesAmpliacionPlazoRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesNovedadAsesorRecibidas', () => ({
@@ -91,8 +118,16 @@ vi.mock('./hooks/useRespuestasCambioAsesorEnviadas', () => ({
   useRespuestasCambioAsesorEnviadas: vi.fn(),
 }));
 
+vi.mock('./hooks/useRespuestasAmpliacionPlazoEnviadas', () => ({
+  useRespuestasAmpliacionPlazoEnviadas: vi.fn(),
+}));
+
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
   useRespuestasNovedadAsesorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasAmpliacionPlazoRecibidas', () => ({
+  useRespuestasAmpliacionPlazoRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasCambioAsesorRecibidas', () => ({
@@ -111,6 +146,10 @@ vi.mock('./hooks/useEliminarRespuestaCambioAsesor', () => ({
   useEliminarRespuestaCambioAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useEliminarRespuestaAmpliacionPlazo', () => ({
+  useEliminarRespuestaAmpliacionPlazo: vi.fn(),
+}));
+
 vi.mock('./hooks/useEliminarRespuestaNovedadCoordinador', () => ({
   useEliminarRespuestaNovedadCoordinador: vi.fn(),
 }));
@@ -127,8 +166,16 @@ vi.mock('./hooks/useModificarEstadoRespuestaCambioAsesor', () => ({
   useModificarEstadoRespuestaCambioAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useModificarEstadoRespuestaAmpliacionPlazo', () => ({
+  useModificarEstadoRespuestaAmpliacionPlazo: vi.fn(),
+}));
+
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
   useResponderSolicitudNovedadCoordinador: vi.fn(),
+}));
+
+vi.mock('./hooks/useResponderSolicitudAmpliacionPlazo', () => ({
+  useResponderSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudCambioAsesor', () => ({
@@ -285,6 +332,7 @@ describe('Solicitudes', () => {
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,
@@ -292,6 +340,7 @@ describe('Solicitudes', () => {
     vi.mocked(useEliminarRespuestaNovedadAsesor).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaCambioAsesor).mockReturnValue(crearMutacionEliminarMock());
+    vi.mocked(useEliminarRespuestaAmpliacionPlazo).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useModificarEstadoRespuestaNovedadAsesor).mockReturnValue(
       crearMutacionModificarMock(),
     );
@@ -301,11 +350,17 @@ describe('Solicitudes', () => {
     vi.mocked(useModificarEstadoRespuestaCambioAsesor).mockReturnValue(
       crearMutacionModificarMock(),
     );
+    vi.mocked(useModificarEstadoRespuestaAmpliacionPlazo).mockReturnValue(
+      crearMutacionModificarMock(),
+    );
     vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue(
       crearMutacionResponderCoordinadorMock(),
     );
     vi.mocked(useResponderSolicitudNovedadAsesor).mockReturnValue(
       crearMutacionResponderAsesorMock(),
+    );
+    vi.mocked(useResponderSolicitudAmpliacionPlazo).mockReturnValue(
+      crearMutacionResponderCoordinadorMock(),
     );
     vi.mocked(useResponderSolicitudCambioAsesor).mockReturnValue(
       crearMutacionResponderCoordinadorMock(),
@@ -410,6 +465,39 @@ describe('Solicitudes', () => {
     expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
   });
 
+  it('en Respuestas enviadas el coordinador cambia a Ampliación de plazo y ve ese listado', async () => {
+    // Arrange
+    autenticarCon(Rol.Coordinador);
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
+    vi.mocked(useRespuestasAmpliacionPlazoEnviadas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_AMPLIACION_PLAZO],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasAmpliacionPlazoEnviadas>,
+    );
+    const user = userEvent.setup();
+
+    // Act
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' });
+    expect(within(tabla).getByText('Aprobamos la ampliación de plazo.')).toBeInTheDocument();
+  });
+
   it('en Cambio de asesor el coordinador abre el diálogo para aprobar una respuesta En revisión', async () => {
     // Arrange
     autenticarCon(Rol.Coordinador);
@@ -440,6 +528,44 @@ describe('Solicitudes', () => {
     await user.click(
       within(
         screen.getByRole('table', { name: 'Respuestas de cambio de asesor enviadas' }),
+      ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toHaveTextContent('¿Aprobar respuesta?');
+  });
+
+  it('en Ampliación de plazo el coordinador abre el diálogo para aprobar una respuesta En revisión', async () => {
+    // Arrange
+    autenticarCon(Rol.Coordinador);
+    vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
+    );
+    vi.mocked(useRespuestasAmpliacionPlazoEnviadas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [{ ...RESPUESTA_AMPLIACION_PLAZO, estadoRespuestaId: 'EN_REVISION' }],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasAmpliacionPlazoEnviadas>,
+    );
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Act
+    await user.click(
+      within(
+        screen.getByRole('table', { name: 'Respuestas de ampliación de plazo enviadas' }),
       ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
     );
     await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
@@ -573,6 +699,38 @@ describe('Solicitudes', () => {
     // Assert
     const tabla = screen.getByRole('table', { name: 'Respuestas de cambio de asesor recibidas' });
     expect(within(tabla).getByText('Aprobamos el cambio de asesor.')).toBeInTheDocument();
+  });
+
+  it('en Respuestas el estudiante cambia a Ampliación de plazo y ve ese listado', async () => {
+    // Arrange
+    autenticarCon(Rol.Estudiante);
+    vi.mocked(useRespuestasNovedadCoordinadorRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorRecibidas>,
+    );
+    vi.mocked(useRespuestasAmpliacionPlazoRecibidas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_AMPLIACION_PLAZO],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasAmpliacionPlazoRecibidas>,
+    );
+    const user = userEvent.setup();
+
+    // Act
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+    await user.click(screen.getByRole('tab', { name: 'Respuestas' }));
+    await user.selectOptions(
+      screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
+      'ampliacion-plazo',
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', {
+      name: 'Respuestas de ampliación de plazo recibidas',
+    });
+    expect(within(tabla).getByText('Aprobamos la ampliación de plazo.')).toBeInTheDocument();
   });
 
   it('conserva el estado elegido en Respuestas enviadas al ir a Recibidas y volver', async () => {

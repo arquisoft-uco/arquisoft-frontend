@@ -116,6 +116,28 @@ describe('construirFiltro', () => {
     });
   });
 
+  it('mapea el jurado a esJurado, solo o combinado en OR con otro rol', () => {
+    // Act
+    const solo = construirFiltro([Rol.Jurado], undefined, undefined);
+    const combinado = construirFiltro([Rol.Jurado, Rol.Estudiante], undefined, undefined);
+
+    // Assert
+    expect(solo).toEqual({
+      tipo: 'PREDICADO',
+      campo: 'esJurado',
+      operador: 'ES',
+      valor: 'true',
+    });
+    expect(combinado).toEqual({
+      tipo: 'GRUPO',
+      conector: 'OR',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'esJurado', operador: 'ES', valor: 'true' },
+        { tipo: 'PREDICADO', campo: 'esEstudiante', operador: 'ES', valor: 'true' },
+      ],
+    });
+  });
+
   it('con roles múltiples más estado y vigencia anida el GRUPO OR en un GRUPO AND', () => {
     // Act
     const filtro = construirFiltro([Rol.Estudiante, Rol.Asesor], 'ACTIVO', true);

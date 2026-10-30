@@ -89,7 +89,68 @@ const PERMITIDOS = [
   ],
 ];
 
+const FRONTEND = 'C:/workspace/Arquisoft/arquisoft-frontend';
+const DOCS = 'C:/workspace/Arquisoft/arquisoft-docs';
+const CLON_DOCS = '.workspace/arquisoft-docs';
+const REPOSITORIOS = {
+  [FRONTEND]: { nombre: 'arquisoft-frontend', rama: 'develop' },
+  [DOCS]: { nombre: 'arquisoft-docs', rama: 'main' },
+  '/c/workspace/Arquisoft/arquisoft-docs': { nombre: 'arquisoft-docs', rama: 'main' },
+  [`${FRONTEND}/../arquisoft-docs`]: { nombre: 'arquisoft-docs', rama: 'main' },
+  [CLON_DOCS]: { nombre: 'arquisoft-docs', rama: 'main' },
+};
+const repositorioEn = (directorio) => REPOSITORIOS[directorio ?? FRONTEND];
+const ramaPorDirectorio = (directorio) => repositorioEn(directorio)?.rama ?? null;
+const nombrePorDirectorio = (directorio) => repositorioEn(directorio)?.nombre ?? null;
+
+const PROHIBIDOS_POR_REPOSITORIO = [
+  ['commit sobre develop del frontend sin cd', 'git commit -m "feat: x"'],
+  [
+    'commit tras volver al frontend con cd',
+    `cd ${DOCS} && cd ${FRONTEND} && git commit -m "feat: x"`,
+  ],
+  ['push a main del frontend', 'git push origin main'],
+  ['push forzado en arquisoft-docs', `cd ${DOCS} && git push --force origin main`],
+  ['push forzado por refspec en arquisoft-docs', `git -C ${DOCS} push origin +main`],
+  ['borrar una rama remota de arquisoft-docs', `cd ${DOCS} && git push origin --delete vieja`],
+  ['add de .workspace en arquisoft-docs', `cd ${DOCS} && git add .workspace/notas.md`],
+  ['push a main del clon de docs sin ruta literal', 'git -C "$TMP" push origin main'],
+];
+
+const PERMITIDOS_POR_REPOSITORIO = [
+  ['commit sobre main de arquisoft-docs con cd', `cd ${DOCS} && git commit -m "docs(hus): x"`],
+  ['commit sobre main de arquisoft-docs con -C', `git -C ${DOCS} commit -m "docs(hus): x"`],
+  [
+    'commit con cd en ruta MSYS de Git Bash',
+    'cd /c/workspace/Arquisoft/arquisoft-docs && git add docs/hus && git commit -m "docs: x"',
+  ],
+  ['commit con cd entre comillas', `cd "${DOCS}" && git commit -m "docs: x"`],
+  ['commit con Set-Location de PowerShell', `Set-Location ${DOCS}; git commit -m "docs: x"`],
+  ['commit con cd relativo', `cd ${FRONTEND} && cd ../arquisoft-docs && git commit -m "docs: x"`],
+  ['push a main de arquisoft-docs', `cd ${DOCS} && git push origin main`],
+  ['push sin destino desde main de arquisoft-docs', `cd ${DOCS} && git pull --ff-only && git push`],
+  ['add en el clon de docs', `git -C ${CLON_DOCS} add docs/hus`],
+  ['commit en el clon de docs', `git -C ${CLON_DOCS} commit -m "docs(hus): x"`],
+  ['push a main del clon de docs', `git -C ${CLON_DOCS} push origin main`],
+];
+
 describe('guardia-bash', () => {
+  it.each(PROHIBIDOS_POR_REPOSITORIO)('rechaza %s', (_nombre, comando) => {
+    // Act
+    const veredicto = evaluarComando(comando, ramaPorDirectorio, nombrePorDirectorio);
+
+    // Assert
+    expect(veredicto?.decision).toBe('deny');
+  });
+
+  it.each(PERMITIDOS_POR_REPOSITORIO)('permite %s', (_nombre, comando) => {
+    // Act
+    const veredicto = evaluarComando(comando, ramaPorDirectorio, nombrePorDirectorio);
+
+    // Assert
+    expect(veredicto).toBeNull();
+  });
+
   it.each(PROHIBIDOS)('rechaza %s', (_nombre, comando, rama) => {
     // Act
     const veredicto = evaluarComando(comando, enRama(rama));

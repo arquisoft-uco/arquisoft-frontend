@@ -162,4 +162,38 @@ describe('SolicitudesRecibidasTable', () => {
     expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
     expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
   });
+
+  it('con tipo ampliacion-plazo usa su etiqueta y su vacío, y sin onResponder no hay acciones', () => {
+    // Arrange / Act
+    const { rerender } = render(
+      <SolicitudesRecibidasTable
+        solicitudes={[]}
+        cargando={false}
+        receptor="coordinador"
+        tipo="ampliacion-plazo"
+      />,
+    );
+
+    // Assert
+    expect(
+      screen.getByText('Cuando un estudiante solicite una ampliación de plazo, aparecerá aquí.'),
+    ).toBeInTheDocument();
+
+    // Act
+    rerender(
+      <SolicitudesRecibidasTable
+        solicitudes={SOLICITUDES}
+        cargando={false}
+        receptor="coordinador"
+        tipo="ampliacion-plazo"
+      />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', {
+      name: 'Solicitudes de ampliación de plazo recibidas',
+    });
+    expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
+    expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
+  });
 });

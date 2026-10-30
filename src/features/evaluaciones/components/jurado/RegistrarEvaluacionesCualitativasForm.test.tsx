@@ -27,8 +27,11 @@ const ID_SUFICIENTE = '33333333-3333-4333-8333-333333333333';
 
 const ASIGNACION: EvaluacionAsignadaJurado = {
   id: 'ej-1',
+  estado: { id: 'PENDIENTE_POR_EVALUAR', nombre: 'Pendiente por evaluar' },
   evaluacion: { id: 'e-1', estado: { id: 'PENDIENTE', nombre: 'Pendiente' } },
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
+  tieneEvaluacionesCualitativas: false,
+  tieneEvaluacionesCuantitativas: false,
 };
 
 const ITEMS = [

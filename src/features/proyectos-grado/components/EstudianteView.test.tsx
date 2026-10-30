@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
 import EstudianteView from './EstudianteView';
-import { useMisProyectosGrado } from '../hooks/useMisProyectosGrado';
+import { useMisProyectosGrado } from '../../../shared/hooks/useMisProyectosGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
 
-vi.mock('../hooks/useMisProyectosGrado', () => ({ useMisProyectosGrado: vi.fn() }));
+vi.mock('../../../shared/hooks/useMisProyectosGrado', () => ({ useMisProyectosGrado: vi.fn() }));
 vi.mock('./estudiante/HistorialEstadosProyectoPanel', () => ({
   default: ({ proyectoGradoId }: { proyectoGradoId: string }) => (
     <p>Historial de {proyectoGradoId}</p>

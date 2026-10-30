@@ -17,7 +17,8 @@ export const LIMITES = {
   // con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
   // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear, ResponderSolicitudNovedadAsesorCommand.crear
-  // y ResponderSolicitudCambioAsesorCommand.crear (ValidatorLongitud.longitudEntre(1, 100)),
+  // ResponderSolicitudCambioAsesorCommand.crear y ResponderSolicitudAmpliacionPlazoCommand.crear
+  // (ValidatorLongitud.longitudEntre(1, 100)),
   // SolicitudesLimits.Respuesta.CONTENIDO_MAX.
   RESPUESTA_CONTENIDO_MAX: 100,
   USUARIO_IDENTIFICADOR_MIN: 4,
@@ -38,4 +39,14 @@ export const LIMITES = {
   ITEM_CUANTITATIVO_VALOR_MAX: 500,
   // EvaluacionesLimits.CategoriaItemCuantitativoJurado.NOMBRE_MAX
   CATEGORIA_ITEM_CUANTITATIVO_NOMBRE_FILTRO_MAX: 100,
+  // Espejo de RepositorioArtefactosLimits.RepositorioArtefacto (NOMBRE_MAX, DESCRIPCION_MAX) del backend.
+  REPOSITORIO_NOMBRE_MAX: 100,
+  REPOSITORIO_DESCRIPCION_MAX: 300,
+  // Espejo de RepositorioArtefactosLimits.VersionRepositorioArtefacto (NOMBRE_DOCUMENTO_MAX, NOMBRE_ARCHIVO_MAX).
+  VERSION_NOMBRE_DOCUMENTO_MAX: 100,
+  VERSION_NOMBRE_ARCHIVO_MAX: 255,
+  // repositorio-artefactos.almacenamiento.tamano-maximo-bytes (application.yml del backend).
+  VERSION_ARCHIVO_TAMANO_MAX_BYTES: 5_242_880,
+  // MapasRutaLimits.Tarea.DESCRIPCION_MAX (tarea.descripcion VARCHAR(200)).
+  TAREA_DESCRIPCION_MAX: 200,
 } as const;

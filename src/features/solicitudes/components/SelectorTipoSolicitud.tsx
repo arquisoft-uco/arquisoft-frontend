@@ -1,9 +1,13 @@
-import { GraduationCap, UserCog, Users, type LucideIcon } from 'lucide-react';
+import { CalendarClock, GraduationCap, UserCog, Users, type LucideIcon } from 'lucide-react';
 import Field from '../../../shared/components/ui/Field';
 
 export type TipoSolicitudUi = 'coordinador' | 'asesor';
 export type TipoSolicitudEnviableUi = TipoSolicitudUi | 'cambio-asesor';
-export type TipoSolicitudRecibidaUi = 'novedad' | 'cambio-asesor';
+export type TipoSolicitudNuevaUi = TipoSolicitudEnviableUi | 'ampliacion-plazo';
+export type TipoSolicitudEnviadaUi = TipoSolicitudNuevaUi;
+export type TipoRespuestaRecibidaEstudianteUi = TipoSolicitudNuevaUi;
+export type TipoRespuestaEnviadaCoordinadorUi = 'novedad' | 'cambio-asesor' | 'ampliacion-plazo';
+export type TipoSolicitudRecibidaUi = TipoRespuestaEnviadaCoordinadorUi;
 
 interface OpcionTipo<T extends string> {
   value: T;
@@ -21,10 +25,24 @@ export const TIPOS_SOLICITUD_ENVIABLE: OpcionTipo<TipoSolicitudEnviableUi>[] = [
   { value: 'cambio-asesor', label: 'Cambio de asesor', icono: UserCog },
 ];
 
-export const TIPOS_SOLICITUD_RECIBIDA: OpcionTipo<TipoSolicitudRecibidaUi>[] = [
-  { value: 'novedad', label: 'Novedad', icono: Users },
-  { value: 'cambio-asesor', label: 'Cambio de asesor', icono: UserCog },
+export const TIPOS_SOLICITUD_NUEVA: OpcionTipo<TipoSolicitudNuevaUi>[] = [
+  ...TIPOS_SOLICITUD_ENVIABLE,
+  { value: 'ampliacion-plazo', label: 'Ampliación de plazo', icono: CalendarClock },
 ];
+
+export const TIPOS_SOLICITUD_ENVIADA = TIPOS_SOLICITUD_NUEVA;
+
+export const TIPOS_RESPUESTA_RECIBIDA_ESTUDIANTE = TIPOS_SOLICITUD_NUEVA;
+
+export const TIPOS_RESPUESTA_ENVIADA_COORDINADOR: OpcionTipo<TipoRespuestaEnviadaCoordinadorUi>[] =
+  [
+    { value: 'novedad', label: 'Novedad', icono: Users },
+    { value: 'cambio-asesor', label: 'Cambio de asesor', icono: UserCog },
+    { value: 'ampliacion-plazo', label: 'Ampliación de plazo', icono: CalendarClock },
+  ];
+
+export const TIPOS_SOLICITUD_RECIBIDA: OpcionTipo<TipoSolicitudRecibidaUi>[] =
+  TIPOS_RESPUESTA_ENVIADA_COORDINADOR;
 
 const ICONO_DEL_TIPO =
   'pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary';

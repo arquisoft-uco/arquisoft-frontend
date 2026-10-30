@@ -16,6 +16,12 @@ export interface EstadoEvaluacion {
   descripcion: string;
 }
 
+export interface EstadoObservacionRevision {
+  id: string;
+  nombre: string;
+  descripcion: string;
+}
+
 export interface TipoItem {
   id: string;
   nombre: string;

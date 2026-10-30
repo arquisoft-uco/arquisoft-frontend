@@ -1,12 +1,22 @@
-import { Folder } from 'lucide-react';
-import ComingSoon from '../../shared/components/ComingSoon';
+import { Navigate } from 'react-router';
+import { useRolActivo } from '../../hooks/useAuth';
+import { Rol } from '../../shared/models/rol';
+import AsesorView from './components/AsesorView';
+import EstudianteView from './components/EstudianteView';
+
+const VIEW_POR_ROL: Record<string, React.ComponentType> = {
+  [Rol.Asesor]: AsesorView,
+  [Rol.Estudiante]: EstudianteView,
+};
 
 export default function Artefactos() {
-  return (
-    <ComingSoon
-      title="Artefactos"
-      description="Gestión de arquitecturas, diagramas y diseños técnicos"
-      icon={Folder}
-    />
-  );
+  const rolActivo = useRolActivo();
+
+  if (!rolActivo) return <Navigate to="/seleccionar-rol" replace />;
+
+  const View = VIEW_POR_ROL[rolActivo];
+
+  if (!View) return <Navigate to="/forbidden" replace />;
+
+  return <View />;
 }

@@ -6,6 +6,9 @@ import type { AsignarJuradosEvaluacionRequest } from '../models/AsignarJuradosEv
 import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosEvaluacionResponse';
 import type { Evaluacion } from '../models/Evaluacion';
 import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
+import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
+import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
+import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
@@ -13,6 +16,7 @@ import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoResponse } from '../models/RegistrarItemCualitativoJuradoResponse';
@@ -128,9 +132,46 @@ export const evaluacionesService = {
   getEvaluacionesEstudiante: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
     apiClient.post<Page<Evaluacion>>('/evaluaciones/estudiante', req).then((r) => r.data),
 
-  getEvaluacionesAsignadasJurado: (): Promise<EvaluacionAsignadaJurado[]> =>
+  getJuradosEvaluacion: (
+    evaluacionId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<EvaluacionJurado>> =>
     apiClient
-      .get<EvaluacionAsignadaJurado[]>('/evaluaciones/evaluaciones-jurado/jurado')
+      .post<Page<EvaluacionJurado>>(`/evaluaciones/${evaluacionId}/evaluaciones-jurado`, req)
+      .then((r) => r.data),
+
+  getEvaluacionesCualitativasJurado: (
+    evaluacionJuradoId: string,
+  ): Promise<EvaluacionCualitativaJurado[]> =>
+    apiClient
+      .get<
+        EvaluacionCualitativaJurado[]
+      >(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cualitativas`)
+      .then((r) => r.data),
+
+  getEvaluacionesCualitativasRealizadasJurado: (
+    evaluacionJuradoId: string,
+  ): Promise<EvaluacionCualitativaJurado[]> =>
+    apiClient
+      .get<
+        EvaluacionCualitativaJurado[]
+      >(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cualitativas/jurado`)
+      .then((r) => r.data),
+
+  getEvaluacionesCuantitativasJurado: (
+    evaluacionJuradoId: string,
+  ): Promise<EvaluacionCuantitativaJurado[]> =>
+    apiClient
+      .get<
+        EvaluacionCuantitativaJurado[]
+      >(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cuantitativas`)
+      .then((r) => r.data),
+
+  getEvaluacionesAsignadasJurado: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<EvaluacionAsignadaJurado>> =>
+    apiClient
+      .post<Page<EvaluacionAsignadaJurado>>('/evaluaciones/evaluaciones-jurado/jurado', req)
       .then((r) => r.data),
 
   getEstadosEvaluacion: (): Promise<EstadoEvaluacion[]> =>
@@ -179,6 +220,16 @@ export const evaluacionesService = {
           item: itemId,
           criterio: criterioId,
         })),
+      })
+      .then(() => undefined),
+
+  omitirEvaluacionesCualitativasJurado: ({
+    evaluacionJuradoId,
+    evaluaciones,
+  }: OmitirEvaluacionesCualitativasJuradoRequest): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cualitativas`, {
+        data: { evaluaciones },
       })
       .then(() => undefined),
 };

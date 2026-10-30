@@ -1,12 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import {
+  varianteEstadoEntregable,
   varianteEstadoEvaluacion,
   varianteEstadoFicha,
   varianteEstadoObservacion,
+  varianteEstadoObservacionArtefacto,
+  varianteEstadoTarea,
   varianteEstadoAsesorProyecto,
   varianteEstadoProyecto,
   varianteEstadoRespuesta,
   varianteEstadoRevision,
+  varianteEstadoRevisionAsesor,
   varianteEstadoUsuario,
 } from './estado-variante';
 
@@ -120,5 +124,66 @@ describe('varianteEstadoAsesorProyecto', () => {
     expect(varianteEstadoAsesorProyecto('ASIGNADO')).toBe('exito');
     expect(varianteEstadoAsesorProyecto('FINALIZADO')).toBe('neutro');
     expect(varianteEstadoAsesorProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoRevisionAsesor', () => {
+  it('asigna su variante a cada estado de la revisión del asesor y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteEstadoRevisionAsesor('PENDIENTE')).toBe('advertencia');
+    expect(varianteEstadoRevisionAsesor('EN_PROGRESO')).toBe('info');
+    expect(varianteEstadoRevisionAsesor('RESUELTA')).toBe('exito');
+    expect(varianteEstadoRevisionAsesor('CERRADA')).toBe('neutro');
+    expect(varianteEstadoRevisionAsesor('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoRevisionAsesor('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoObservacionArtefacto', () => {
+  it('asigna su variante a cada estado de la observación de revisión y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteEstadoObservacionArtefacto('NUEVA')).toBe('info');
+    expect(varianteEstadoObservacionArtefacto('EN_PROGRESO')).toBe('advertencia');
+    expect(varianteEstadoObservacionArtefacto('SOLUCIONADA')).toBe('exito');
+    expect(varianteEstadoObservacionArtefacto('CERRADA')).toBe('neutro');
+    expect(varianteEstadoObservacionArtefacto('REABIERTA')).toBe('peligro');
+    expect(varianteEstadoObservacionArtefacto('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoObservacionArtefacto('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoEntregable', () => {
+  it('asigna su variante a cada estado del catálogo y deja en neutro lo desconocido', () => {
+    // Arrange
+    const esperadas = {
+      DISPONIBLE_EVALUACION: 'advertencia',
+      EN_EVALUACION: 'info',
+      APROBADO_CON_OBSERVACIONES: 'advertencia',
+      APROBADO: 'exito',
+      RECHAZADO: 'peligro',
+      CANCELADO: 'neutro',
+      CERRADO: 'neutro',
+    };
+
+    // Act
+    const obtenidas = Object.fromEntries(
+      Object.keys(esperadas).map((id) => [id, varianteEstadoEntregable(id)]),
+    );
+
+    // Assert
+    expect(obtenidas).toEqual(esperadas);
+    expect(varianteEstadoEntregable('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoEntregable('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoTarea', () => {
+  it('asigna su variante a cada estado de la tarea y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteEstadoTarea('NUEVA')).toBe('info');
+    expect(varianteEstadoTarea('EN_PROGRESO')).toBe('advertencia');
+    expect(varianteEstadoTarea('FINALIZADA')).toBe('exito');
+    expect(varianteEstadoTarea('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoTarea('constructor')).toBe('neutro');
   });
 });

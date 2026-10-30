@@ -67,7 +67,10 @@ describe('Sidebar', () => {
       '/dashboard',
       '/fichas-perfil',
       '/proyectos-grado',
+      '/artefactos',
+      '/entregables',
       '/evaluaciones',
+      '/mapas-ruta',
       '/solicitudes',
     ]);
     const proximamente = screen.getByRole('list', { name: 'Próximamente' });
@@ -78,6 +81,18 @@ describe('Sidebar', () => {
       expect(p).not.toHaveAttribute('href');
       expect(p).toHaveTextContent('Próximamente');
     });
+  });
+
+  it('el jurado ve «Entregables» en «Trabajo», antes de «Evaluaciones»', () => {
+    entrarComo(Rol.Jurado);
+
+    renderizar();
+
+    const hrefs = within(screen.getByRole('list', { name: 'Trabajo' }))
+      .getAllByRole('link')
+      .map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/entregables');
+    expect(hrefs.indexOf('/entregables')).toBeLessThan(hrefs.indexOf('/evaluaciones'));
   });
 
   it('no pinta «Próximamente» si el rol no tiene ítems pendientes', () => {

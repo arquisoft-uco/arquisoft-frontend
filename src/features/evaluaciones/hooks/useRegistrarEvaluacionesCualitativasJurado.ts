@@ -19,6 +19,11 @@ export function useRegistrarEvaluacionesCualitativasJurado(evaluacionJuradoId: s
         evaluacionJuradoId,
         evaluaciones,
       }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['evaluaciones', 'jurado', evaluacionJuradoId, 'cualitativas'],
+      });
+    },
     onError: (err) => {
       if (hasApiErrorCode(err, EVALUACION_CUALITATIVA_JURADO_ITEMS_NO_ENCONTRADOS)) {
         queryClient.invalidateQueries({ queryKey: ITEMS_KEY });
