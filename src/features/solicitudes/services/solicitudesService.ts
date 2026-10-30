@@ -5,6 +5,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
+import type { EnviarSolicitudRegistroModificacionUsuariosRequest } from '../models/EnviarSolicitudRegistroModificacionUsuariosRequest';
 import type { EstadoRespuesta } from '../models/EstadoRespuesta';
 import type { ModificarEstadoRespuestaAmpliacionPlazoRequest } from '../models/ModificarEstadoRespuestaAmpliacionPlazoRequest';
 import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
@@ -54,6 +55,16 @@ export const solicitudesService = {
   ): Promise<SolicitudCreadaResponse> =>
     apiClient
       .post<SolicitudCreadaResponse>('/solicitudes/ampliacion-plazo', {
+        destinatario: req.destinatario,
+        mensajeSolicitud: req.mensajeSolicitud,
+      })
+      .then((r) => r.data),
+
+  enviarSolicitudRegistroModificacionUsuarios: (
+    req: EnviarSolicitudRegistroModificacionUsuariosRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>('/solicitudes/registro-modificacion-usuarios', {
         destinatario: req.destinatario,
         mensajeSolicitud: req.mensajeSolicitud,
       })

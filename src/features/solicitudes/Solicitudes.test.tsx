@@ -16,6 +16,7 @@ import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitud
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
 import { useEnviarSolicitudAmpliacionPlazo } from './hooks/useEnviarSolicitudAmpliacionPlazo';
+import { useEnviarSolicitudRegistroModificacionUsuarios } from './hooks/useEnviarSolicitudRegistroModificacionUsuarios';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import { useResponderSolicitudAmpliacionPlazo } from './hooks/useResponderSolicitudAmpliacionPlazo';
 import { useResponderSolicitudCambioAsesor } from './hooks/useResponderSolicitudCambioAsesor';
@@ -57,6 +58,10 @@ vi.mock('./hooks/useEnviarSolicitudCambioAsesor', () => ({
 
 vi.mock('./hooks/useEnviarSolicitudAmpliacionPlazo', () => ({
   useEnviarSolicitudAmpliacionPlazo: vi.fn(),
+}));
+
+vi.mock('./hooks/useEnviarSolicitudRegistroModificacionUsuarios', () => ({
+  useEnviarSolicitudRegistroModificacionUsuarios: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
@@ -333,6 +338,7 @@ describe('Solicitudes', () => {
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudRegistroModificacionUsuarios).mockReturnValue(crearMutacionMock());
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,
@@ -407,7 +413,7 @@ describe('Solicitudes', () => {
     expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 
-  it('renderiza CoordinadorView con dos pestañas, arranca en Recibidas y abre Respuestas enviadas', async () => {
+  it('renderiza CoordinadorView con tres pestañas, arranca en Recibidas y abre Respuestas enviadas', async () => {
     autenticarCon(Rol.Coordinador);
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
       crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
@@ -422,6 +428,7 @@ describe('Solicitudes', () => {
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
       'Recibidas',
       'Respuestas enviadas',
+      'Nueva solicitud',
     ]);
     expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
@@ -430,6 +437,14 @@ describe('Solicitudes', () => {
 
     expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'Enviar solicitud de registro y modificación de usuarios',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('en Respuestas enviadas el coordinador cambia a Cambio de asesor y ve ese listado', async () => {

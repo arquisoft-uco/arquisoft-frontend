@@ -1,19 +1,22 @@
 import { useState } from 'react';
+import { Plus, type LucideIcon } from 'lucide-react';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useFiltrosRespuestas, type FiltrosRespuestas } from '../hooks/useFiltrosRespuestas';
 import RespuestasEnviadasPorTipoPanel from './coordinador/RespuestasEnviadasPorTipoPanel';
 import RecibidasPanel from './coordinador/RecibidasPanel';
+import RegistroModificacionUsuariosForm from './coordinador/RegistroModificacionUsuariosForm';
 import type {
   TipoRespuestaEnviadaCoordinadorUi,
   TipoSolicitudRecibidaUi,
 } from './SelectorTipoSolicitud';
 
-type Pestana = 'recibidas' | 'respuestas-enviadas';
+type Pestana = 'recibidas' | 'respuestas-enviadas' | 'nueva';
 
-const PESTANAS: { id: Pestana; etiqueta: string }[] = [
+const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
   { id: 'recibidas', etiqueta: 'Recibidas' },
   { id: 'respuestas-enviadas', etiqueta: 'Respuestas enviadas' },
+  { id: 'nueva', etiqueta: 'Nueva solicitud', icono: Plus },
 ];
 
 export default function CoordinadorView() {
@@ -41,13 +44,14 @@ export default function CoordinadorView() {
       />
     ),
     'respuestas-enviadas': <RespuestasEnviadasPorTipoPanel filtros={filtrosRespuestasEnviadas} />,
+    nueva: <RegistroModificacionUsuariosForm />,
   };
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Solicitudes"
-        descripcion="Consulta y responde las solicitudes que te han enviado, y revisa las respuestas que diste."
+        descripcion="Consulta y responde las solicitudes que te han enviado, revisa las respuestas que diste y envía solicitudes nuevas."
       />
 
       <Tabs
