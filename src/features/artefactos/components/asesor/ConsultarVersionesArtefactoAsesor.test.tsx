@@ -7,7 +7,6 @@ import {
   usarTemporizadoresFalsos,
 } from '../../../../test-utils/temporizadores';
 import type { Page } from '../../../../shared/models/api-response';
-import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoAsesor from './ConsultarVersionesArtefactoAsesor';
@@ -15,28 +14,21 @@ import ConsultarVersionesArtefactoAsesor from './ConsultarVersionesArtefactoAses
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoAsesor: vi.fn(),
-    consultarArtefactosAsesor: vi.fn(),
   },
 }));
 
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
-const consultarArtefactos = vi.mocked(artefactosService.consultarArtefactosAsesor);
 
 const VERSION: VersionArtefacto = {
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
   fechaCreacion: '2026-03-10T15:30:00Z',
-};
-
-const ARTEFACTO: ArtefactoAsesor = {
-  id: 'a-1',
-  proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',
-  versionRepositorioArtefacto: 'r-1',
   nombreDocumento: 'Acta de inicio',
   versionDocumento: 2,
   nombreRepositorio: 'Repositorio base',
+  nombreAsesor: 'Marta Gómez',
 };
 
 function pagina<T>(content: T[]): Page<T> {
@@ -60,7 +52,6 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
-    consultarArtefactos.mockResolvedValue(pagina([ARTEFACTO]));
   });
 
   it('mientras carga muestra el estado de carga accesible', () => {
@@ -74,15 +65,21 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('con datos muestra las filas con el artefacto nombrado y el resumen', async () => {
+  it('con datos muestra proyecto, documento y repositorio sin la columna Asesor y con la búsqueda habilitada', async () => {
     // Act
     render(<ConsultarVersionesArtefactoAsesor />);
 
     // Assert
     const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
     expect(await within(tabla).findByText('Acta de inicio')).toBeInTheDocument();
+    expect(within(tabla).getByText('Sistema de riego')).toBeInTheDocument();
+    expect(within(tabla).getByText('Versión 2 del documento')).toBeInTheDocument();
+    expect(within(tabla).getByText('Repositorio base')).toBeInTheDocument();
     expect(within(tabla).getByText('Versión 4')).toBeInTheDocument();
+    expect(within(tabla).queryByText('Marta Gómez')).not.toBeInTheDocument();
+    expect(within(tabla).queryByRole('columnheader', { name: 'Asesor' })).not.toBeInTheDocument();
     expect(screen.getByText('1 versión')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });
 
   it('sin versiones muestra el vacío informativo', async () => {
@@ -114,20 +111,6 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(consultarVersiones).toHaveBeenCalledTimes(2);
   });
 
-  it('si el catálogo falla, la búsqueda se deshabilita con aviso y la tabla sigue con "Artefacto sin nombre"', async () => {
-    // Arrange
-    consultarArtefactos.mockRejectedValue(new Error('fallo'));
-
-    // Act
-    render(<ConsultarVersionesArtefactoAsesor />);
-    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
-
-    // Assert
-    expect(await within(tabla).findByText('Artefacto sin nombre')).toBeInTheDocument();
-    expect(await screen.findByText(/No se pudo cargar la lista de artefactos/)).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeDisabled();
-  });
-
   it('elegir un rango desde el botón de fechas consulta con el criterio y el botón muestra el rango', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -152,7 +135,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     ).toBeInTheDocument();
   });
 
-  it('escribir en "Buscar artefactos" consulta con IN sobre los artefactos que coinciden', async () => {
+  it('escribir en "Buscar artefactos" consulta con CONTIENE sobre documento y proyecto', async () => {
     // Arrange
     const user = usarTemporizadoresFalsos();
     render(<ConsultarVersionesArtefactoAsesor />);
@@ -166,32 +149,29 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     await waitFor(() =>
       expect(consultarVersiones).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filtros: {
-            tipo: 'PREDICADO_MULTIVALOR',
-            campo: 'artefacto',
-            operador: 'IN',
-            valores: ['a-1'],
-          },
+          filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'OR' }),
         }),
       ),
     );
   });
 
-  it('un texto sin coincidencias muestra "Sin resultados" sin consultar y "Limpiar filtros" restablece', async () => {
+  it('un texto sin coincidencias consulta al backend, muestra "Sin resultados" y "Limpiar filtros" restablece', async () => {
     // Arrange
     const user = userEvent.setup();
+    consultarVersiones.mockImplementation(({ filtros }) =>
+      Promise.resolve(pagina(filtros ? [] : [VERSION])),
+    );
     render(<ConsultarVersionesArtefactoAsesor />, { initialPath: '/artefactos?q=zzz' });
 
     // Assert
     expect(await screen.findByText('Sin resultados')).toBeInTheDocument();
-    expect(consultarVersiones).not.toHaveBeenCalled();
+    expect(consultarVersiones).toHaveBeenCalled();
 
     // Act
     await user.click(screen.getByRole('button', { name: /limpiar filtros/i }));
 
     // Assert
-    expect(
-      await screen.findByRole('table', { name: 'Versiones de artefactos' }),
-    ).toBeInTheDocument();
+    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+    expect(await within(tabla).findByText('Acta de inicio')).toBeInTheDocument();
   });
 });

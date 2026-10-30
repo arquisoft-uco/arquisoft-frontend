@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
-import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoEstudiante from './ConsultarVersionesArtefactoEstudiante';
@@ -10,25 +9,22 @@ import ConsultarVersionesArtefactoEstudiante from './ConsultarVersionesArtefacto
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoEstudiante: vi.fn(),
-    consultarArtefactosEstudiante: vi.fn(),
   },
 }));
 
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
-const consultarArtefactos = vi.mocked(artefactosService.consultarArtefactosEstudiante);
 
 const VERSION: VersionArtefacto = {
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
   fechaCreacion: '2026-03-10T15:30:00Z',
-};
-
-const ARTEFACTO = {
-  id: 'a-1',
-  nombreDocumento: 'Acta de inicio',
   nombreProyecto: 'Sistema de riego',
-} as ArtefactoEstudiante;
+  nombreDocumento: 'Acta de inicio',
+  versionDocumento: 2,
+  nombreRepositorio: 'Repositorio base',
+  nombreAsesor: 'Marta Gómez',
+};
 
 function pagina<T>(content: T[]): Page<T> {
   return {
@@ -46,10 +42,9 @@ function pagina<T>(content: T[]): Page<T> {
 describe('ConsultarVersionesArtefactoEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    consultarArtefactos.mockResolvedValue(pagina([ARTEFACTO]));
   });
 
-  it('muestra las versiones con el nombre del artefacto resuelto por el catálogo', async () => {
+  it('muestra proyecto, documento, repositorio y la columna Asesor, con la búsqueda habilitada', async () => {
     // Arrange
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
 
@@ -60,8 +55,13 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     const tabla = within(await screen.findByRole('table', { name: 'Versiones de artefactos' }));
     expect(await tabla.findByText('Acta de inicio')).toBeInTheDocument();
     expect(tabla.getByText('Sistema de riego')).toBeInTheDocument();
+    expect(tabla.getByText('Versión 2 del documento')).toBeInTheDocument();
+    expect(tabla.getByText('Repositorio base')).toBeInTheDocument();
+    expect(tabla.getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
+    expect(tabla.getByText('Marta Gómez')).toBeInTheDocument();
     expect(tabla.getByText('Versión 4')).toBeInTheDocument();
     expect(screen.getByText('1 versión')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });
 
   it('sin versiones muestra el vacío con el texto del estudiante', async () => {
@@ -89,21 +89,5 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     // Assert
     expect(aviso).toHaveTextContent('No se pudieron cargar las versiones');
     await waitFor(() => expect(consultarVersiones).toHaveBeenCalledTimes(2));
-  });
-
-  it('si el catálogo falla avisa y deshabilita la búsqueda sin bloquear el listado', async () => {
-    // Arrange
-    consultarArtefactos.mockRejectedValue(new Error('falla'));
-    consultarVersiones.mockResolvedValue(pagina([VERSION]));
-
-    // Act
-    render(<ConsultarVersionesArtefactoEstudiante />);
-
-    // Assert
-    expect(
-      await screen.findByText(/La búsqueda por nombre no está disponible/),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeDisabled();
-    expect(await screen.findByText('Versión 4')).toBeInTheDocument();
   });
 });

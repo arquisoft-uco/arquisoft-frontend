@@ -1,10 +1,7 @@
 import PaginadorListado from '../../../shared/components/PaginadorListado';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
-import type {
-  CatalogoArtefactos,
-  ListadoVersionesArtefacto,
-} from '../hooks/useListadoVersionesArtefacto';
+import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
 import FiltrosVersionesArtefacto from './FiltrosVersionesArtefacto';
 import VersionesArtefactoTable from './VersionesArtefactoTable';
 
@@ -18,14 +15,14 @@ function textoResumen(total?: number): string {
 
 interface Props {
   listado: ListadoVersionesArtefacto;
-  catalogo: CatalogoArtefactos;
   descripcionVacio: string;
+  mostrarAsesor?: boolean;
 }
 
 export default function ConsultarVersionesArtefacto({
   listado,
-  catalogo,
   descripcionVacio,
+  mostrarAsesor = false,
 }: Props) {
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const versiones = data?.content ?? [];
@@ -48,9 +45,8 @@ export default function ConsultarVersionesArtefacto({
         ) : (
           <VersionesArtefactoTable
             versiones={versiones}
-            artefactoDe={catalogo.artefactoDe}
-            nombresCargando={catalogo.isLoading}
             descripcionVacio={descripcionVacio}
+            mostrarAsesor={mostrarAsesor}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}

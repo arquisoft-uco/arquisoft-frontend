@@ -4,4 +4,9 @@ export interface VersionArtefacto {
   version: number;
   fechaCreacion: string;
   uriArchivo?: string;
+  nombreProyecto: string;
+  nombreDocumento: string;
+  versionDocumento: number;
+  nombreRepositorio: string;
+  nombreAsesor: string;
 }
