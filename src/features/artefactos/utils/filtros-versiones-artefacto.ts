@@ -32,19 +32,26 @@ export function inicioDelDiaSiguienteUtc(fecha: string): string {
 }
 
 interface Filtros {
-  artefactos: string[];
+  texto: string;
   desde: string;
   hasta: string;
 }
 
-export function construirFiltros({ artefactos, desde, hasta }: Filtros): NodoFiltroDTO | undefined {
+const CAMPOS_BUSQUEDA = ['nombreDocumento', 'nombreProyecto'] as const;
+
+export function construirFiltros({ texto, desde, hasta }: Filtros): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
-  if (artefactos.length > 0) {
+  const recortado = texto.trim();
+  if (recortado !== '') {
     nodos.push({
-      tipo: 'PREDICADO_MULTIVALOR',
-      campo: 'artefacto',
-      operador: 'IN',
-      valores: artefactos,
+      tipo: 'GRUPO',
+      conector: 'OR',
+      nodos: CAMPOS_BUSQUEDA.map((campo) => ({
+        tipo: 'PREDICADO' as const,
+        campo,
+        operador: 'CONTIENE',
+        valor: recortado,
+      })),
     });
   }
   if (desde) {

@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
-import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
 import { artefactosService } from '../services/artefactosService';
 import { construirFiltros } from '../utils/filtros-versiones-artefacto';
 import { useVersionesArtefactoEstudiante } from './useVersionesArtefactoEstudiante';
@@ -11,30 +10,10 @@ import { useVersionesArtefactoEstudiante } from './useVersionesArtefactoEstudian
 vi.mock('../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoEstudiante: vi.fn(),
-    consultarArtefactosEstudiante: vi.fn(),
   },
 }));
 
 const consultar = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
-const consultarCatalogo = vi.mocked(artefactosService.consultarArtefactosEstudiante);
-
-function artefacto(
-  id: string,
-  nombreDocumento: string,
-  nombreProyecto: string,
-): ArtefactoEstudiante {
-  return {
-    id,
-    proyectoGrado: 'p-1',
-    nombreProyecto,
-    versionRepositorioArtefacto: 'r-1',
-    nombreDocumento,
-    versionDocumento: 1,
-    nombreRepositorio: 'Repo',
-    asesor: 'as-1',
-    nombreAsesor: 'Ana Pérez',
-  };
-}
 
 const PAGINA_VACIA = {
   content: [],
@@ -63,13 +42,6 @@ describe('useVersionesArtefactoEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockResolvedValue(PAGINA_VACIA);
-    consultarCatalogo.mockResolvedValue({
-      ...PAGINA_VACIA,
-      content: [
-        artefacto('a-1', 'Acta de inicio', 'Sistema de riego'),
-        artefacto('a-2', 'Cronograma', 'Huerta urbana'),
-      ],
-    });
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
@@ -99,14 +71,14 @@ describe('useVersionesArtefactoEstudiante', () => {
       'versiones-artefacto',
       'estudiante',
       0,
-      [],
+      '',
       '',
       '',
       'fechaCreacion:DESC',
     ]);
   });
 
-  it('traduce q, desde, hasta y orden de la URL a filtros con IN sobre el catálogo', async () => {
+  it('traduce q, desde, hasta y orden de la URL a filtros con el texto en CONTIENE', async () => {
     // Act
     const { result } = renderHook(() => useVersionesArtefactoEstudiante(), {
       wrapper: crearWrapper(
@@ -121,38 +93,10 @@ describe('useVersionesArtefactoEstudiante', () => {
       pagina: 0,
       tamanio: 10,
       ordenamiento: ['version:ASC'],
-      filtros: construirFiltros({ artefactos: ['a-1'], desde: '2026-10-01', hasta: '2026-10-15' }),
+      filtros: construirFiltros({ texto: 'acta', desde: '2026-10-01', hasta: '2026-10-15' }),
     });
     expect(result.current.hayFiltros).toBe(true);
     expect(result.current.ordenCampo).toBe('version');
-  });
-
-  it('un texto sin coincidencias devuelve página vacía sin consultar', async () => {
-    // Act
-    const { result } = renderHook(() => useVersionesArtefactoEstudiante(), {
-      wrapper: crearWrapper(queryClient, '/artefactos?q=inexistente'),
-    });
-    await waitFor(() => expect(result.current.data?.empty).toBe(true));
-
-    // Assert
-    expect(consultar).not.toHaveBeenCalled();
-  });
-
-  it('con el catálogo caído la búsqueda se deshabilita y la consulta no se bloquea', async () => {
-    // Arrange
-    consultarCatalogo.mockRejectedValue(new Error('fallo'));
-
-    // Act
-    const { result } = renderHook(() => useVersionesArtefactoEstudiante(), {
-      wrapper: crearWrapper(queryClient, '/artefactos?q=acta'),
-    });
-    await waitFor(() => expect(result.current.busquedaDisponible).toBe(false));
-    await waitFor(() => expect(consultar).toHaveBeenCalled());
-
-    // Assert
-    expect(consultar).toHaveBeenCalledWith(
-      expect.objectContaining({ filtros: undefined, ordenamiento: ['fechaCreacion:DESC'] }),
-    );
   });
 
   it('setOrden cambia la petición y limpiarFiltros quita los filtros', async () => {

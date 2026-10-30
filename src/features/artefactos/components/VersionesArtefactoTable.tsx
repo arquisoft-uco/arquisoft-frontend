@@ -9,8 +9,6 @@ import type {
 } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
-import type { ArtefactoConNombre } from '../models/ArtefactoConNombre';
-import { nombreArtefacto } from '../utils/nombre-artefacto';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
@@ -18,58 +16,42 @@ const NOMBRE = 'font-medium text-on-surface';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
-const SIN_NOMBRE = 'Artefacto sin nombre';
 
 function etiquetaVersion(version: VersionArtefacto): string {
   return `Versión ${version.version}`;
 }
 
-const CARGANDO_NOMBRE = 'Cargando…';
-
-interface Props {
-  versiones: VersionArtefacto[];
-  artefactoDe: (id: string) => ArtefactoConNombre | undefined;
-  nombresCargando?: boolean;
-  descripcionVacio: string;
-  cargando: boolean;
-  hayFiltros: boolean;
-  orden: OrdenTabla;
-  onOrdenar: (clave: string, direccion: DireccionOrden) => void;
-  onLimpiarFiltros: () => void;
-}
-
-export default function VersionesArtefactoTable({
-  versiones,
-  artefactoDe,
-  nombresCargando = false,
-  descripcionVacio,
-  cargando,
-  hayFiltros,
-  orden,
-  onOrdenar,
-  onLimpiarFiltros,
-}: Props) {
-  const textoSinNombre = nombresCargando ? CARGANDO_NOMBRE : SIN_NOMBRE;
-  function nombreDeFila(version: VersionArtefacto): string {
-    const artefacto = artefactoDe(version.artefacto);
-    return artefacto ? nombreArtefacto(artefacto) : textoSinNombre;
-  }
-
+function construirColumnas(mostrarAsesor: boolean): ColumnaTabla<VersionArtefacto>[] {
   const columnas: ColumnaTabla<VersionArtefacto>[] = [
     {
-      id: 'artefacto',
-      encabezado: 'Artefacto',
-      celda: (version) => {
-        const artefacto = artefactoDe(version.artefacto);
-        if (!artefacto) return <span className={DATO_SECUNDARIO}>{textoSinNombre}</span>;
-        return (
-          <>
-            <span className={NOMBRE}>{artefacto.nombreDocumento}</span>
-            <span className={DETALLE}>{artefacto.nombreProyecto}</span>
-          </>
-        );
-      },
+      id: 'proyecto',
+      encabezado: 'Proyecto',
+      celda: (version) => <span className={NOMBRE}>{version.nombreProyecto}</span>,
     },
+    {
+      id: 'documento',
+      encabezado: 'Documento',
+      celda: (version) => (
+        <>
+          <span className={NOMBRE}>{version.nombreDocumento}</span>
+          <span className={DETALLE}>Versión {version.versionDocumento} del documento</span>
+        </>
+      ),
+    },
+    {
+      id: 'repositorio',
+      encabezado: 'Repositorio',
+      celda: (version) => <span className={DATO_SECUNDARIO}>{version.nombreRepositorio}</span>,
+    },
+  ];
+  if (mostrarAsesor) {
+    columnas.push({
+      id: 'asesor',
+      encabezado: 'Asesor',
+      celda: (version) => <span className={DATO_SECUNDARIO}>{version.nombreAsesor}</span>,
+    });
+  }
+  columnas.push(
     {
       id: 'version',
       encabezado: 'Versión',
@@ -86,7 +68,32 @@ export default function VersionesArtefactoTable({
         <span className={DATO_SECUNDARIO}>{formatearFechaCreacion(version.fechaCreacion)}</span>
       ),
     },
-  ];
+  );
+  return columnas;
+}
+
+interface Props {
+  versiones: VersionArtefacto[];
+  descripcionVacio: string;
+  cargando: boolean;
+  hayFiltros: boolean;
+  orden: OrdenTabla;
+  onOrdenar: (clave: string, direccion: DireccionOrden) => void;
+  onLimpiarFiltros: () => void;
+  mostrarAsesor?: boolean;
+}
+
+export default function VersionesArtefactoTable({
+  versiones,
+  descripcionVacio,
+  cargando,
+  hayFiltros,
+  orden,
+  onOrdenar,
+  onLimpiarFiltros,
+  mostrarAsesor = false,
+}: Props) {
+  const columnas = construirColumnas(mostrarAsesor);
 
   const vacio = hayFiltros ? (
     <EmptyState
@@ -119,10 +126,14 @@ export default function VersionesArtefactoTable({
       vacio={vacio}
       tarjeta={(version) => (
         <>
-          <p className={TARJETA_NOMBRE}>{nombreDeFila(version)}</p>
+          <p className={TARJETA_NOMBRE}>{version.nombreDocumento}</p>
+          <p className={TARJETA_DATO}>
+            {version.nombreProyecto} · {version.nombreRepositorio}
+          </p>
           <p className={TARJETA_DATO}>
             {etiquetaVersion(version)} · {formatearFechaCreacion(version.fechaCreacion)}
           </p>
+          {mostrarAsesor && <p className={TARJETA_DATO}>{version.nombreAsesor}</p>}
         </>
       )}
     />

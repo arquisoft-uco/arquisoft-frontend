@@ -53,16 +53,6 @@ vi.mock('./services/artefactosService', () => ({
       empty: true,
     }),
     getParticipacionesEstudiante: vi.fn().mockResolvedValue([]),
-    consultarArtefactosAsesor: vi.fn().mockResolvedValue({
-      content: [],
-      totalElements: 0,
-      totalPages: 0,
-      page: 0,
-      size: 10,
-      first: true,
-      last: true,
-      empty: true,
-    }),
     consultarRevisionesAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,

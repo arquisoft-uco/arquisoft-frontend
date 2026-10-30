@@ -2,21 +2,11 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
-import type { ArtefactoConNombre } from '../models/ArtefactoConNombre';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
-import { buscarArtefactos } from '../utils/buscar-artefactos';
 import { construirFiltros, leerFecha } from '../utils/filtros-versiones-artefacto';
-
-export interface CatalogoArtefactos {
-  artefactos: ArtefactoConNombre[];
-  artefactoDe: (id: string) => ArtefactoConNombre | undefined;
-  isLoading: boolean;
-  isError: boolean;
-}
 
 interface Opciones {
   rol: 'asesor' | 'estudiante';
-  catalogo: CatalogoArtefactos;
   consultar: (req: ConsultaCriteriaRequest) => Promise<Page<VersionArtefacto>>;
 }
 
@@ -26,20 +16,9 @@ const ORDENES = ['version:ASC', 'version:DESC', 'fechaCreacion:ASC', 'fechaCreac
 
 const ORDEN_POR_DEFECTO = 'fechaCreacion:DESC';
 
-const PAGINA_VACIA: Page<VersionArtefacto> = {
-  content: [],
-  page: 0,
-  size: PAGE_SIZE,
-  totalElements: 0,
-  totalPages: 0,
-  first: true,
-  last: true,
-  empty: true,
-};
-
 type DireccionOrden = 'ASC' | 'DESC';
 
-export function useListadoVersionesArtefacto({ rol, catalogo, consultar }: Opciones) {
+export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
   const texto = parametros.texto('q');
@@ -48,11 +27,6 @@ export function useListadoVersionesArtefacto({ rol, catalogo, consultar }: Opcio
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [ordenCampo, ordenDireccion] = orden.split(':') as [string, DireccionOrden];
   const hayFiltros = texto !== '' || desde !== '' || hasta !== '';
-
-  const textoEfectivo = catalogo.isError ? '' : texto;
-  const esperandoCatalogo = textoEfectivo !== '' && catalogo.isLoading;
-  const ids = buscarArtefactos(catalogo.artefactos, textoEfectivo);
-  const sinCoincidencias = !esperandoCatalogo && textoEfectivo.trim() !== '' && ids.length === 0;
 
   function setTexto(valor: string) {
     parametros.cambiar({ q: valor || undefined });
@@ -76,22 +50,19 @@ export function useListadoVersionesArtefacto({ rol, catalogo, consultar }: Opcio
   }
 
   const query = useQuery({
-    queryKey: ['artefactos', 'versiones-artefacto', rol, page, ids, desde, hasta, orden],
+    queryKey: ['artefactos', 'versiones-artefacto', rol, page, texto.trim(), desde, hasta, orden],
     queryFn: () =>
       consultar({
         pagina: page,
         tamanio: PAGE_SIZE,
         ordenamiento: [orden],
-        filtros: construirFiltros({ artefactos: ids, desde, hasta }),
+        filtros: construirFiltros({ texto, desde, hasta }),
       }),
     placeholderData: keepPreviousData,
-    enabled: !sinCoincidencias && !esperandoCatalogo,
   });
 
   return {
     ...query,
-    data: sinCoincidencias ? PAGINA_VACIA : query.data,
-    isLoading: query.isLoading || esperandoCatalogo,
     page,
     pageSize: PAGE_SIZE,
     goToPage: parametros.irAPagina,
@@ -106,7 +77,6 @@ export function useListadoVersionesArtefacto({ rol, catalogo, consultar }: Opcio
     setOrden,
     hayFiltros,
     limpiarFiltros,
-    busquedaDisponible: !catalogo.isError,
   };
 }
 

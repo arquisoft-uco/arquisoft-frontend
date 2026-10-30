@@ -11,24 +11,34 @@ function utcDeDiaLocal(anio: number, mes: number, dia: number): string {
 }
 
 describe('filtros de versiones de artefactos', () => {
-  it('sin filtros devuelve undefined y con solo el artefacto un predicado IN', () => {
+  it('sin texto ni fechas devuelve undefined y con solo espacios también', () => {
     // Act
-    const vacio = construirFiltros({ artefactos: [], desde: '', hasta: '' });
-    const soloArtefacto = construirFiltros({ artefactos: ['a-1'], desde: '', hasta: '' });
+    const vacio = construirFiltros({ texto: '', desde: '', hasta: '' });
+    const espacios = construirFiltros({ texto: '   ', desde: '', hasta: '' });
 
     // Assert
     expect(vacio).toBeUndefined();
-    expect(soloArtefacto).toEqual({
-      tipo: 'PREDICADO_MULTIVALOR',
-      campo: 'artefacto',
-      operador: 'IN',
-      valores: ['a-1'],
+    expect(espacios).toBeUndefined();
+  });
+
+  it('el texto arma un GRUPO OR de CONTIENE sobre documento y proyecto con el valor recortado', () => {
+    // Act
+    const filtros = construirFiltros({ texto: '  acta ', desde: '', hasta: '' });
+
+    // Assert
+    expect(filtros).toEqual({
+      tipo: 'GRUPO',
+      conector: 'OR',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'nombreDocumento', operador: 'CONTIENE', valor: 'acta' },
+        { tipo: 'PREDICADO', campo: 'nombreProyecto', operador: 'CONTIENE', valor: 'acta' },
+      ],
     });
   });
 
   it('desde y hasta usan el límite del día en hora local convertido a UTC sin zona', () => {
     // Act
-    const filtros = construirFiltros({ artefactos: [], desde: '2026-10-27', hasta: '2026-10-31' });
+    const filtros = construirFiltros({ texto: '', desde: '2026-10-27', hasta: '2026-10-31' });
 
     // Assert
     expect(filtros).toEqual({
@@ -53,17 +63,15 @@ describe('filtros de versiones de artefactos', () => {
     expect(inicioDelDiaSiguienteUtc('2026-12-31')).toBe(utcDeDiaLocal(2027, 1, 1));
   });
 
-  it('con artefacto y fechas arma un GRUPO AND de tres predicados', () => {
+  it('con texto y fechas arma un GRUPO AND con el grupo del texto y los dos predicados', () => {
     // Act
-    const filtros = construirFiltros({
-      artefactos: ['a-1'],
-      desde: '2026-10-01',
-      hasta: '2026-10-02',
-    });
+    const filtros = construirFiltros({ texto: 'acta', desde: '2026-10-01', hasta: '2026-10-02' });
 
     // Assert
     expect(filtros).toMatchObject({ tipo: 'GRUPO', conector: 'AND' });
-    expect(filtros && 'nodos' in filtros ? filtros.nodos : []).toHaveLength(3);
+    const nodos = filtros && 'nodos' in filtros ? filtros.nodos : [];
+    expect(nodos).toHaveLength(3);
+    expect(nodos[0]).toMatchObject({ tipo: 'GRUPO', conector: 'OR' });
   });
 
   it('leerFecha descarta formatos inválidos y fechas imposibles', () => {
