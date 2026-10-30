@@ -66,4 +66,15 @@ describe('nav-items', () => {
     expect(delEstudiante).toBeDefined();
     expect(estaDisponible(delEstudiante!)).toBe(true);
   });
+
+  it('Entregables está disponible solo para el asesor', () => {
+    // Act
+    const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/entregables');
+    const delEstudiante = navItemsDelRol(Rol.Estudiante).find((i) => i.path === '/entregables');
+
+    // Assert
+    expect(delAsesor).toBeDefined();
+    expect(estaDisponible(delAsesor!)).toBe(true);
+    expect(delEstudiante).toBeUndefined();
+  });
 });
