@@ -29,6 +29,8 @@ function participacion(
     versionRepositorioArtefacto: `v-${id}`,
     versionDocumento: 2,
     nombreRepositorio: 'Repositorio base',
+    asesor: 'u-1',
+    nombreAsesor: 'Laura Gómez',
   };
 }
 
@@ -52,9 +54,11 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(await screen.findByText('3 artefactos en 2 proyectos')).toBeInTheDocument();
     expect(screen.getByText('Sistema de riego')).toBeInTheDocument();
     expect(screen.getByText('Domótica')).toBeInTheDocument();
-    expect(
-      screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' }),
-    ).toBeInTheDocument();
+    const tabla = screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' });
+    expect(tabla).toBeInTheDocument();
+    expect(within(tabla).getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
+    expect(within(tabla).getAllByText('Laura Gómez').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Laura Gómez · Versión 2').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Anteproyecto').length).toBeGreaterThan(0);
   });
 
