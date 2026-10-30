@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Route, Routes } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
@@ -20,6 +21,7 @@ vi.mock('../../shared/hooks/useMisProyectosGrado', () => ({
 vi.mock('./services/entregablesService', () => ({
   entregablesService: {
     getEstadosEntregable: vi.fn().mockResolvedValue([]),
+    consultarProyectosAsesor: vi.fn().mockResolvedValue([]),
     consultarEntregablesJurado: vi.fn().mockResolvedValue({
       content: [],
       page: 0,
@@ -109,6 +111,33 @@ describe('Entregables', () => {
 
     // Assert
     expect(await screen.findByText('Aún no tienes entregables generados')).toBeInTheDocument();
+  });
+
+  it('solo el asesor ofrece «Generar entregable» y al pulsarlo abre el panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+    const { unmount } = renderizar();
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Generar entregable' }));
+
+    // Assert
+    expect(await screen.findByText('Aún no tienes proyectos de grado')).toBeInTheDocument();
+    unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.Jurado);
+    setActiveRole(Rol.Jurado);
+
+    // Act
+    renderizar();
+
+    // Assert
+    await screen.findByRole('heading', { level: 1, name: 'Entregables' });
+    expect(screen.queryByRole('button', { name: 'Generar entregable' })).not.toBeInTheDocument();
   });
 
   it('el estudiante ve su vista de entregables', async () => {

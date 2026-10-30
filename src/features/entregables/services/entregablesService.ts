@@ -1,6 +1,8 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
+import type { GenerarEntregableResponse } from '../models/GenerarEntregableResponse';
+import type { ProyectoGradoAsesor } from '../models/ProyectoGradoAsesor';
 import type { EntregableProyectoGrado } from '../models/EntregableProyectoGrado';
 import type { EstadoEntregable } from '../models/entregables';
 
@@ -31,4 +33,20 @@ export const entregablesService = {
     apiClient
       .post<Page<EntregableProyectoGrado>>('/entregables-proyecto-grado/jurado', req)
       .then((r) => r.data),
+
+  generarEntregable: (proyectoGradoId: string): Promise<GenerarEntregableResponse> =>
+    apiClient
+      .post<GenerarEntregableResponse>(`/proyectos-grado/${proyectoGradoId}/entregables`)
+      .then((r) => r.data),
+
+  consultarProyectosAsesor: (): Promise<ProyectoGradoAsesor[]> => {
+    const req: ConsultaCriteriaRequest = {
+      pagina: 0,
+      tamanio: 100,
+      ordenamiento: ['tituloProyecto:ASC'],
+    };
+    return apiClient
+      .post<Page<ProyectoGradoAsesor>>('/proyectos-grado/asesor', req)
+      .then((r) => r.data.content);
+  },
 };
