@@ -1,6 +1,5 @@
-import type { ControlDeCampo } from '../../../../shared/components/ui/Field';
-import { formatearTamano } from '../../../../shared/utils/formato-version';
-import { ACEPTA_VERSION } from '../../utils/tipos-archivo-version';
+import { formatearTamano } from '../../utils/formato-version';
+import type { ControlDeCampo } from './Field';
 
 const RAIZ = 'flex min-w-0 flex-col gap-2';
 const RESUMEN = 'truncate text-[13px] text-on-surface-secondary';
@@ -9,13 +8,15 @@ interface Props {
   control: ControlDeCampo;
   archivo: File | null;
   onElegir: (archivo: File | null) => void;
+  acepta: string;
   deshabilitado: boolean;
 }
 
-export default function SelectorArchivoVersion({
+export default function SelectorArchivo({
   control,
   archivo,
   onElegir,
+  acepta,
   deshabilitado,
 }: Props) {
   return (
@@ -23,7 +24,7 @@ export default function SelectorArchivoVersion({
       <input
         {...control}
         type="file"
-        accept={ACEPTA_VERSION}
+        accept={acepta}
         disabled={deshabilitado}
         className="field-input"
         onChange={(evento) => onElegir(evento.target.files?.[0] ?? null)}

@@ -5,6 +5,10 @@ import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-
 import { Rol } from '../../shared/models/rol';
 import Artefactos from './Artefactos';
 
+vi.mock('../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
+}));
+
 vi.mock('./services/artefactosService', () => ({
   artefactosService: {
     getEstadosRevisionAsesor: vi.fn().mockResolvedValue([]),
@@ -183,17 +187,17 @@ describe('Artefactos', () => {
     expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
   });
 
-  it('con ?vista=participacion el estudiante ve la pestaña de participación', async () => {
+  it('con ?vista=mis-artefactos el estudiante ve la pestaña de sus artefactos', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
 
     // Act
-    renderizar('/artefactos?vista=participacion');
+    renderizar('/artefactos?vista=mis-artefactos');
 
     // Assert
     expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Participación' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Mis artefactos' })).toHaveAttribute(
       'aria-current',
       'page',
     );
@@ -213,7 +217,7 @@ describe('Artefactos', () => {
       'aria-current',
       'page',
     );
-    expect(screen.getByRole('link', { name: 'Mis artefactos' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Participación' })).not.toBeInTheDocument();
   });
 
   it('un rol sin vista redirige a /forbidden', () => {

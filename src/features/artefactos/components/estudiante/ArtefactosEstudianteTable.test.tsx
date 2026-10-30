@@ -84,4 +84,14 @@ describe('ArtefactosEstudianteTable', () => {
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
+
+  it('la fila es solo de consulta: no ofrece acciones', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      screen.queryByRole('button', { name: 'Acciones del artefacto Acta de inicio' }),
+    ).not.toBeInTheDocument();
+  });
 });

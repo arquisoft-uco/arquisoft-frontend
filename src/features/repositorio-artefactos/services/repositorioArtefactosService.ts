@@ -48,25 +48,6 @@ export const repositorioArtefactosService = {
       )
       .then((r) => r.data),
 
-  cargarArchivoVersion: (
-    carga: SolicitarCargaVersionResponse,
-    archivo: File,
-    onProgreso?: (porcentaje: number) => void,
-  ): Promise<void> => {
-    const formData = new FormData();
-    for (const [nombre, valor] of Object.entries(carga.campos)) formData.append(nombre, valor);
-    formData.append('file', archivo);
-    return apiClient
-      .post<void>(carga.url, formData, {
-        _sinCredenciales: true,
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: ({ loaded, total }) => {
-          if (total) onProgreso?.(Math.round((loaded / total) * 100));
-        },
-      })
-      .then(() => undefined);
-  },
-
   subirVersion: (repositorioId: string, req: SubirVersionRequest): Promise<SubirVersionResponse> =>
     apiClient
       .post<SubirVersionResponse>(`/repositorio-artefactos/${repositorioId}/versiones`, req)

@@ -3,9 +3,10 @@ import Combobox from '../../../../shared/components/ui/Combobox';
 import Field from '../../../../shared/components/ui/Field';
 import FormSection from '../../../../shared/components/ui/FormSection';
 import OpcionRadio from '../../../../shared/components/ui/OpcionRadio';
+import SelectorArchivo from '../../../../shared/components/ui/SelectorArchivo';
 import { LIMITES } from '../../../../shared/validation';
+import { ACEPTA_VERSION } from '../../utils/tipos-archivo-version';
 import { ETIQUETAS_CAMPO_VERSION, type VersionValues } from '../../utils/version-schema';
-import SelectorArchivoVersion from './SelectorArchivoVersion';
 
 const NOMBRE_OPCIONES = 'modo-subida-version';
 const OPCIONES = 'flex flex-col gap-2';
@@ -105,10 +106,11 @@ export default function SubirVersionCampos({
           error={errors.archivo?.message}
         >
           {(control) => (
-            <SelectorArchivoVersion
+            <SelectorArchivo
               control={control}
               archivo={archivo}
               onElegir={onElegirArchivo}
+              acepta={ACEPTA_VERSION}
               deshabilitado={enviando}
             />
           )}

@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from '../../../../test-utils/render';
+import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarParticipacionesEstudiante from './ConsultarParticipacionesEstudiante';
+
+vi.mock('../../../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
+}));
 
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: { getParticipacionesEstudiante: vi.fn() },
@@ -54,6 +58,29 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(screen.getAllByText('Anteproyecto').length).toBeGreaterThan(0);
   });
 
+  it('al pulsar el nombre de un documento abre el panel para subir versión y Cerrar panel lo cierra', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    getParticipaciones.mockResolvedValue([
+      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+    ]);
+    render(<ConsultarParticipacionesEstudiante />);
+    const tabla = await screen.findByRole('table', {
+      name: 'Artefactos del proyecto Sistema de riego',
+    });
+
+    // Act
+    await user.click(
+      within(tabla).getByRole('button', { name: 'Subir nueva versión de Acta de inicio' }),
+    );
+
+    // Assert
+    const panel = await screen.findByRole('dialog');
+    expect(within(panel).getByText('Acta de inicio')).toBeInTheDocument();
+    expect(within(panel).getByText('Sistema de riego')).toBeInTheDocument();
+    await user.click(within(panel).getByRole('button', { name: 'Cerrar panel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
   it('muestra el estado de carga mientras llega la lista', () => {
     // Arrange
     getParticipaciones.mockReturnValue(new Promise(() => undefined));

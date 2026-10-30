@@ -1,3 +1,8 @@
+import {
+  aceptaDe,
+  tipoContenidoDe as tipoContenidoPorTabla,
+} from '../../../shared/utils/tipo-archivo';
+
 // Espejo de TipoArchivoPlantilla del backend: extensión → tipoContenido canónico.
 export const TIPOS_ARCHIVO_VERSION: Record<string, string> = {
   pdf: 'application/pdf',
@@ -8,10 +13,8 @@ export const TIPOS_ARCHIVO_VERSION: Record<string, string> = {
 
 export const EXTENSIONES_VERSION = Object.keys(TIPOS_ARCHIVO_VERSION);
 
-export const ACEPTA_VERSION = EXTENSIONES_VERSION.map((e) => `.${e}`).join(',');
+export const ACEPTA_VERSION = aceptaDe(TIPOS_ARCHIVO_VERSION);
 
 export function tipoContenidoDe(archivo: File): string {
-  const nombre = archivo.name.trim();
-  const extension = nombre.slice(nombre.lastIndexOf('.') + 1).toLowerCase();
-  return TIPOS_ARCHIVO_VERSION[extension] ?? '';
+  return tipoContenidoPorTabla(archivo, TIPOS_ARCHIVO_VERSION);
 }
