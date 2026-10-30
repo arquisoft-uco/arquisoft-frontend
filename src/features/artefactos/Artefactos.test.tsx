@@ -38,6 +38,7 @@ vi.mock('./services/artefactosService', () => ({
       last: true,
       empty: true,
     }),
+    getParticipacionesEstudiante: vi.fn().mockResolvedValue([]),
     consultarArtefactosAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -170,6 +171,22 @@ describe('Artefactos', () => {
     // Assert
     expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
+  });
+
+  it('con ?vista=participacion el estudiante ve la pestaña de participación', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=participacion');
+
+    // Assert
+    expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Participación' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('un rol sin vista redirige a /forbidden', () => {
