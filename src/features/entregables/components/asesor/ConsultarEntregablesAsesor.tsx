@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEntregablesAsesor } from '../../hooks/useEntregablesAsesor';
 import { useEstadosEntregable } from '../../hooks/useEstadosEntregable';
+import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
+import CambiarEstadoEntregablePanel from './CambiarEstadoEntregablePanel';
 import EntregablesAsesorTable from './EntregablesAsesorTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -17,6 +20,7 @@ function textoResumen(total?: number): string {
 export default function ConsultarEntregablesAsesor() {
   const listado = useEntregablesAsesor();
   const { data: estados } = useEstadosEntregable();
+  const [enEdicion, setEnEdicion] = useState<EntregableProyectoGrado | null>(null);
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const entregables = data?.content ?? [];
@@ -65,6 +69,7 @@ export default function ConsultarEntregablesAsesor() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onCambiarEstado={setEnEdicion}
           />
         )}
       </div>
@@ -79,6 +84,10 @@ export default function ConsultarEntregablesAsesor() {
           etiquetaPlural="entregables"
           onPageChange={listado.goToPage}
         />
+      )}
+
+      {enEdicion && (
+        <CambiarEstadoEntregablePanel entregable={enEdicion} onCerrar={() => setEnEdicion(null)} />
       )}
     </div>
   );

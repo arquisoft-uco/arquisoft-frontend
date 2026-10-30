@@ -4,6 +4,7 @@ import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarEntregablesAsesor from './ConsultarEntregablesAsesor';
 import { useEntregablesAsesor } from '../../hooks/useEntregablesAsesor';
 import { useEstadosEntregable } from '../../hooks/useEstadosEntregable';
+import { useCambiarEstadoEntregable } from '../../hooks/useCambiarEstadoEntregable';
 import type { Page } from '../../../../shared/models/api-response';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 
@@ -12,6 +13,9 @@ vi.mock('../../hooks/useEntregablesAsesor', () => ({
 }));
 vi.mock('../../hooks/useEstadosEntregable', () => ({
   useEstadosEntregable: vi.fn(),
+}));
+vi.mock('../../hooks/useCambiarEstadoEntregable', () => ({
+  useCambiarEstadoEntregable: vi.fn(),
 }));
 
 const ENTREGABLE: EntregableProyectoGrado = {
@@ -76,6 +80,10 @@ describe('ConsultarEntregablesAsesor', () => {
     vi.mocked(useEntregablesAsesor).mockReset();
     vi.mocked(useEstadosEntregable).mockReset();
     mockCatalogo(undefined);
+    vi.mocked(useCambiarEstadoEntregable).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    } as never);
   });
 
   it('muestra un estado de carga accesible mientras llega la primera página', () => {
@@ -151,5 +159,33 @@ describe('ConsultarEntregablesAsesor', () => {
     // Assert
     expect(screen.queryByRole('button', { name: 'Cerrado' })).not.toBeInTheDocument();
     expect(screen.getByRole('table', { name: 'Entregables' })).toBeInTheDocument();
+  });
+
+  it('"Cambiar estado" abre el panel del entregable elegido y cancelar lo cierra', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockCatalogo([
+      { id: 'CANCELADO', nombre: 'Cancelado', descripcion: '' },
+      { id: 'CERRADO', nombre: 'Cerrado', descripcion: '' },
+    ]);
+    mockHook({ data: crearPagina([ENTREGABLE]) });
+    render(<ConsultarEntregablesAsesor />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Entregables' })).getByRole('button', {
+        name: /Acciones del entregable de Sistema de riego/,
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(screen.getByText('Cambiar estado del entregable')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByText('Cambiar estado del entregable')).not.toBeInTheDocument();
   });
 });

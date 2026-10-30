@@ -24,6 +24,7 @@ Al resolver un pendiente, se borra de aquí.
 | B14 | **Sin catálogo de asesores del mapa para el estudiante** | HU-050: el listado de tareas muestra el asesor como columna y no ofrece filtro por asesor porque el Estudiante no tiene un catálogo de asesores del mapa; el backend sí filtra por `asesor` (UUID) | Backend |
 | B15 | **Estudiante y jurado sin lectura del catálogo de estados de entregable** | `GET /estados-entregable` exige `entregables:estado-entregable:view`, que `estudiante` y `jurado` no tienen (403), por eso las vistas del estudiante (HU-049) y del jurado (HU-210) no ofrecen filtro por estado ni la pestaña de catálogo. Si se concede, el filtro se añade como chips con `useEstadosEntregable` | Backend / infra |
 | B16 | **Entregables del jurado sin restricción por asignación** | `POST /entregables-proyecto-grado/jurado` filtra solo por estado (`DISPONIBLE_EVALUACION`, `EN_EVALUACION`): no usa el JWT ni las asignaciones, así que todo jurado ve los entregables a evaluar de todos los proyectos, aunque la historia (HU-210) dice «proyectos asignados» | Backend |
+| B17 | **Cambiar estado de entregable sin verificar propiedad** | `PATCH /entregables-proyecto-grado/{id}/estado` (HU-148) no recibe la identidad: cualquier asesor con el client role puede cancelar o cerrar el entregable de otro conociendo su id. La UI solo lo mitiga porque el listado del asesor ya se filtra por su identidad | Backend |
 
 Client roles a confirmar en el realm desplegado:
 
@@ -122,6 +123,7 @@ Client roles a confirmar en el realm desplegado:
 - `entregables:entregable-proyecto-grado-estudiante:view` para el estudiante (entregables de su proyecto, HU-049), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `entregables:entregable-proyecto-grado-jurado:view` para el jurado (entregables a evaluar, HU-210), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `entregables:entregable-proyecto-grado:create` para el asesor (generar el entregable de un proyecto de grado, HU-147), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `entregables:entregable-proyecto-grado-estado:update` para el asesor (cambiar el estado de un entregable a Cancelado o Cerrado, HU-148), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `mapas-ruta:tarea-mapa-ruta-estudiante:view` para el estudiante (consulta de las tareas de su mapa de ruta, HU-050) y `mapas-ruta:estado-item:view` (catálogo de estados de tarea), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 
 ## Del frontend
