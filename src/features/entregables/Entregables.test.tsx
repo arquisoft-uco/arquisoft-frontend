@@ -20,6 +20,16 @@ vi.mock('../../shared/hooks/useMisProyectosGrado', () => ({
 vi.mock('./services/entregablesService', () => ({
   entregablesService: {
     getEstadosEntregable: vi.fn().mockResolvedValue([]),
+    consultarEntregablesJurado: vi.fn().mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    }),
     consultarEntregablesAsesor: vi.fn().mockResolvedValue({
       content: [],
       page: 0,
@@ -111,6 +121,21 @@ describe('Entregables', () => {
 
     // Assert
     expect(await screen.findByText('Aún no perteneces a un proyecto de grado')).toBeInTheDocument();
+  });
+
+  it('el jurado ve su listado de entregables por evaluar', async () => {
+    // Arrange
+    entrarComo(Rol.Jurado);
+    setActiveRole(Rol.Jurado);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Entregables' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('Aún no hay entregables por evaluar')).toBeInTheDocument();
   });
 
   it('sin rol activo redirige a /seleccionar-rol', () => {

@@ -3,10 +3,12 @@ import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
 import AsesorView from './components/AsesorView';
 import EstudianteView from './components/EstudianteView';
+import JuradoView from './components/JuradoView';
 
 const VIEW_POR_ROL: Record<string, React.ComponentType> = {
   [Rol.Asesor]: AsesorView,
   [Rol.Estudiante]: EstudianteView,
+  [Rol.Jurado]: JuradoView,
 };
 
 export default function Entregables() {

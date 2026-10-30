@@ -31,4 +31,22 @@ describe('construirFiltros', () => {
       ],
     });
   });
+
+  it('incluye el asesor recortado, después del proyecto', () => {
+    // Assert
+    expect(construirFiltros('', [], '  Ana ')).toEqual({
+      tipo: 'PREDICADO',
+      campo: 'asesorNombre',
+      operador: 'CONTIENE',
+      valor: 'Ana',
+    });
+    expect(construirFiltros('riego', [], 'Ana')).toEqual({
+      tipo: 'GRUPO',
+      conector: 'AND',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'proyectoGradoNombre', operador: 'CONTIENE', valor: 'riego' },
+        { tipo: 'PREDICADO', campo: 'asesorNombre', operador: 'CONTIENE', valor: 'Ana' },
+      ],
+    });
+  });
 });

@@ -61,7 +61,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Send,
     path: '/entregables',
     order: 4,
-    roles: [Rol.Asesor, Rol.Estudiante],
+    roles: [Rol.Asesor, Rol.Estudiante, Rol.Jurado],
   },
   {
     label: 'Evaluaciones',
