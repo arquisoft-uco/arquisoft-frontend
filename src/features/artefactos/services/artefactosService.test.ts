@@ -202,4 +202,29 @@ describe('artefactosService', () => {
       expect(resultado).toBe(lista);
     });
   });
+
+  describe('subida de versión (HU-043)', () => {
+    it('solicitarCargaVersionArtefacto y generarVersionArtefacto llaman a su ruta con su body y devuelven data', async () => {
+      // Arrange
+      const solicitud = { nombreArchivo: 'a.md', tipoContenido: 'text/markdown', tamanoBytes: 3 };
+      const carga = { carga: 'c-1', url: 'http://minio.test', campos: {}, expiraEn: 'x' };
+      const version = { id: 'v-1', version: 2 };
+      post.mockResolvedValueOnce({ data: carga }).mockResolvedValueOnce({ data: version });
+
+      // Act
+      const cargaObtenida = await artefactosService.solicitarCargaVersionArtefacto(
+        'a-1',
+        solicitud,
+      );
+      const versionObtenida = await artefactosService.generarVersionArtefacto('a-1', {
+        carga: 'c-1',
+      });
+
+      // Assert
+      expect(post).toHaveBeenNthCalledWith(1, '/artefactos/a-1/versiones/cargas', solicitud);
+      expect(post).toHaveBeenNthCalledWith(2, '/artefactos/a-1/versiones', { carga: 'c-1' });
+      expect(cargaObtenida).toBe(carga);
+      expect(versionObtenida).toBe(version);
+    });
+  });
 });

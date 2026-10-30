@@ -6,55 +6,22 @@ vi.mock('../../../api/axiosInstance', () => ({ default: { post: vi.fn() } }));
 
 const post = vi.mocked(apiClient.post);
 
-const CARGA = {
-  carga: 'c-1',
-  url: 'http://minio.test/bucket',
-  campos: { key: 'abc', policy: 'p', 'Content-Type': 'application/pdf' },
-  expiraEn: '2026-10-26T12:00:00Z',
-};
-
-describe('repositorioArtefactosService.cargarArchivoVersion', () => {
+describe('repositorioArtefactosService.solicitarCargaVersion', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    post.mockResolvedValue({ data: undefined });
   });
 
-  it('envía los campos firmados en orden y el archivo al final, sin credenciales', async () => {
+  it('pide la carga a POST /repositorio-artefactos/{id}/versiones/cargas y devuelve el cuerpo', async () => {
     // Arrange
-    const archivo = new File(['x'], 'manual.pdf');
+    const req = { nombreArchivo: 'a.pdf', tipoContenido: 'application/pdf', tamanoBytes: 1 };
+    const carga = { carga: 'c-1', url: 'http://minio.test', campos: {}, expiraEn: 'x' };
+    post.mockResolvedValue({ data: carga });
 
     // Act
-    await repositorioArtefactosService.cargarArchivoVersion(CARGA, archivo);
+    const resultado = await repositorioArtefactosService.solicitarCargaVersion('r-1', req);
 
     // Assert
-    const [url, cuerpo, opciones] = post.mock.calls[0];
-    const formData = cuerpo as FormData;
-    expect(url).toBe(CARGA.url);
-    expect([...formData.keys()]).toEqual(['key', 'policy', 'Content-Type', 'file']);
-    expect(formData.get('policy')).toBe('p');
-    expect((formData.get('file') as File).name).toBe('manual.pdf');
-    expect(opciones).toMatchObject({
-      _sinCredenciales: true,
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  });
-
-  it('reporta el porcentaje redondeado solo cuando el total es conocido', async () => {
-    // Arrange
-    const onProgreso = vi.fn();
-    await repositorioArtefactosService.cargarArchivoVersion(
-      CARGA,
-      new File(['x'], 'a.pdf'),
-      onProgreso,
-    );
-    const alProgresar = post.mock.calls[0][2]!.onUploadProgress!;
-
-    // Act
-    alProgresar({ loaded: 1, total: 3, bytes: 1, lengthComputable: true });
-    alProgresar({ loaded: 5, bytes: 5, lengthComputable: false });
-
-    // Assert
-    expect(onProgreso).toHaveBeenCalledTimes(1);
-    expect(onProgreso).toHaveBeenCalledWith(33);
+    expect(post).toHaveBeenCalledWith('/repositorio-artefactos/r-1/versiones/cargas', req);
+    expect(resultado).toEqual(carga);
   });
 });

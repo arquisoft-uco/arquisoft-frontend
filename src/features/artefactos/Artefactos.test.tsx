@@ -5,6 +5,10 @@ import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-
 import { Rol } from '../../shared/models/rol';
 import Artefactos from './Artefactos';
 
+vi.mock('../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
+}));
+
 vi.mock('./services/artefactosService', () => ({
   artefactosService: {
     getEstadosRevisionAsesor: vi.fn().mockResolvedValue([]),

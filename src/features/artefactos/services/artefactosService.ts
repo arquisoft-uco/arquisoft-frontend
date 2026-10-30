@@ -4,12 +4,16 @@ import type { ConsultaCriteriaRequest } from '../../../shared/models/query-crite
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
+import type { GenerarVersionArtefactoRequest } from '../models/GenerarVersionArtefactoRequest';
+import type { GenerarVersionArtefactoResponse } from '../models/GenerarVersionArtefactoResponse';
 import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
 import type { RevisionAsesor } from '../models/RevisionAsesor';
 import type { RevisionAsesorResponse } from '../models/RevisionAsesorResponse';
+import type { SolicitarCargaVersionArtefactoRequest } from '../models/SolicitarCargaVersionArtefactoRequest';
+import type { SolicitarCargaVersionArtefactoResponse } from '../models/SolicitarCargaVersionArtefactoResponse';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
 
@@ -94,4 +98,24 @@ export const artefactosService = {
     req: ConsultaCriteriaRequest,
   ): Promise<Page<ArtefactoEstudiante>> =>
     apiClient.post<Page<ArtefactoEstudiante>>('/artefactos/estudiante', req).then((r) => r.data),
+
+  // Subida de una versión nueva del artefacto del estudiante, en dos pasos del backend
+  solicitarCargaVersionArtefacto: (
+    artefactoId: string,
+    req: SolicitarCargaVersionArtefactoRequest,
+  ): Promise<SolicitarCargaVersionArtefactoResponse> =>
+    apiClient
+      .post<SolicitarCargaVersionArtefactoResponse>(
+        `/artefactos/${artefactoId}/versiones/cargas`,
+        req,
+      )
+      .then((r) => r.data),
+
+  generarVersionArtefacto: (
+    artefactoId: string,
+    req: GenerarVersionArtefactoRequest,
+  ): Promise<GenerarVersionArtefactoResponse> =>
+    apiClient
+      .post<GenerarVersionArtefactoResponse>(`/artefactos/${artefactoId}/versiones`, req)
+      .then((r) => r.data),
 };

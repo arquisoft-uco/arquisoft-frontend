@@ -15,6 +15,10 @@ vi.mock('../../services/artefactosService', () => ({
   artefactosService: { consultarArtefactosEstudiante: vi.fn() },
 }));
 
+vi.mock('../../../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
+}));
+
 const consultar = vi.mocked(artefactosService.consultarArtefactosEstudiante);
 
 const ARTEFACTO: ArtefactoEstudiante = {

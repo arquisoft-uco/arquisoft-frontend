@@ -10,9 +10,12 @@ vi.mock('./services/repositorioArtefactosService', () => ({
   repositorioArtefactosService: {
     consultarVersionesRepositorio: vi.fn().mockResolvedValue([]),
     solicitarCargaVersion: vi.fn(),
-    cargarArchivoVersion: vi.fn(),
     subirVersion: vi.fn(),
   },
+}));
+
+vi.mock('../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
 }));
 
 const RUTA = '/repositorio-artefactos/r-1/versiones';

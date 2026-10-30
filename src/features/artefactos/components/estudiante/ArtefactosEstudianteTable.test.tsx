@@ -24,6 +24,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosEstud
     orden: { clave: 'nombreProyecto', direccion: 'ASC' as const },
     onOrdenar: vi.fn(),
     onLimpiarFiltros: vi.fn(),
+    onSubirVersion: vi.fn(),
     ...parcial,
   };
   render(<ArtefactosEstudianteTable {...props} />);
@@ -83,5 +84,20 @@ describe('ArtefactosEstudianteTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('la acción de la fila "Subir nueva versión" notifica el artefacto de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onSubirVersion } = renderizar();
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones del artefacto Acta de inicio' }),
+    );
+    await user.click(await screen.findByRole('menuitem', { name: 'Subir nueva versión' }));
+
+    // Assert
+    expect(onSubirVersion).toHaveBeenCalledWith(ARTEFACTO);
   });
 });
