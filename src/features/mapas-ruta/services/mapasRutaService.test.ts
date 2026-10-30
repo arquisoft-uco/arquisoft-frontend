@@ -152,6 +152,64 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('consultarTareasMapaRuta', () => {
+    it('hace POST a la ruta del mapa y traduce el DTO plano a Tarea anidada conservando la página', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [
+            {
+              id: 't-1',
+              descripcion: 'Entregar informe',
+              mapaRuta: 'm-1',
+              fechaInicioMapaRuta: '2026-03-05',
+              fechaFinMapaRuta: '2026-08-01',
+              estadoItem: 'NUEVA',
+              nombreEstadoItem: 'Nueva',
+              asesor: 'a-1',
+              nombreAsesor: 'Ana Ruiz',
+              emailAsesor: 'ana@uco.edu.co',
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10, ordenamiento: ['descripcion:ASC'] };
+
+      // Act
+      const pagina = await mapasRutaService.consultarTareasMapaRuta('m-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/mapas-ruta/m-1/tareas/estudiante', req);
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        {
+          id: 't-1',
+          descripcion: 'Entregar informe',
+          mapaRutaId: 'm-1',
+          estado: { id: 'NUEVA', nombre: 'Nueva' },
+          asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
+        },
+      ]);
+    });
+  });
+
+  describe('consultarEstadosTarea', () => {
+    it('hace GET a /estados-item y devuelve el catálogo', async () => {
+      // Arrange
+      const catalogo = [{ id: 'NUEVA', nombre: 'Nueva', descripcion: 'd' }];
+      get.mockResolvedValue({ data: catalogo });
+
+      // Act
+      const resultado = await mapasRutaService.consultarEstadosTarea();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/estados-item');
+      expect(resultado).toEqual(catalogo);
+    });
+  });
+
   describe('cambiarFechaFin', () => {
     it('hace PATCH /mapas-ruta/{id}/fecha-fin solo con fechaFin y resuelve undefined', async () => {
       // Arrange

@@ -1,14 +1,14 @@
-import FilterBar from '../../../../shared/components/ui/FilterBar';
-import Notice from '../../../../shared/components/ui/Notice';
-import type { useVersionesArtefactoAsesor } from '../../hooks/useVersionesArtefactoAsesor';
+import FilterBar from '../../../shared/components/ui/FilterBar';
+import Notice from '../../../shared/components/ui/Notice';
+import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
 
 const RAIZ = 'flex flex-col gap-3';
 
 interface Props {
-  listado: ReturnType<typeof useVersionesArtefactoAsesor>;
+  listado: ListadoVersionesArtefacto;
 }
 
-export default function FiltrosVersionesArtefactoAsesor({ listado }: Props) {
+export default function FiltrosVersionesArtefacto({ listado }: Props) {
   return (
     <div className={RAIZ}>
       <FilterBar
