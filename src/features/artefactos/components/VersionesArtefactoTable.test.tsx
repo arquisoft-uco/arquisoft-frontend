@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, within } from '../../../../test-utils/render';
-import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
-import type { VersionArtefactoAsesor } from '../../models/VersionArtefactoAsesor';
-import VersionesArtefactoAsesorTable from './VersionesArtefactoAsesorTable';
+import { render, screen, within } from '../../../test-utils/render';
+import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
+import type { VersionArtefacto } from '../models/VersionArtefacto';
+import VersionesArtefactoTable from './VersionesArtefactoTable';
 
-const VERSION: VersionArtefactoAsesor = {
+const VERSION: VersionArtefacto = {
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
@@ -23,12 +23,11 @@ const ARTEFACTO: ArtefactoAsesor = {
   nombreRepositorio: 'Repositorio base',
 };
 
-function renderizar(
-  parcial: Partial<React.ComponentProps<typeof VersionesArtefactoAsesorTable>> = {},
-) {
+function renderizar(parcial: Partial<React.ComponentProps<typeof VersionesArtefactoTable>> = {}) {
   const props = {
     versiones: [VERSION],
     artefactoDe: (id: string) => (id === ARTEFACTO.id ? ARTEFACTO : undefined),
+    descripcionVacio: 'Aparecerán aquí tus versiones.',
     cargando: false,
     hayFiltros: false,
     orden: { clave: 'fechaCreacion', direccion: 'DESC' as const },
@@ -36,7 +35,7 @@ function renderizar(
     onLimpiarFiltros: vi.fn(),
     ...parcial,
   };
-  render(<VersionesArtefactoAsesorTable {...props} />);
+  render(<VersionesArtefactoTable {...props} />);
   return props;
 }
 
@@ -44,7 +43,7 @@ function tabla() {
   return within(screen.getByRole('table', { name: 'Versiones de artefactos' }));
 }
 
-describe('VersionesArtefactoAsesorTable', () => {
+describe('VersionesArtefactoTable', () => {
   it('muestra documento, proyecto, "Versión N" y la fecha, sin pintar uriArchivo', () => {
     // Act
     renderizar();
@@ -86,6 +85,7 @@ describe('VersionesArtefactoAsesorTable', () => {
 
     // Assert
     expect(screen.getByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
+    expect(screen.getByText('Aparecerán aquí tus versiones.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument();
   });
 
