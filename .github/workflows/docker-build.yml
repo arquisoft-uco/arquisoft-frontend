@@ -59,7 +59,7 @@ jobs:
       #     Dockerfile fuerza --platform=$BUILDPLATFORM así que NO compila
       #     bajo emulación, solo la etapa runtime nginx la usa) ──
       - name: Configurar QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       # ── Setup Buildx ──
       - name: Configurar Docker Buildx
