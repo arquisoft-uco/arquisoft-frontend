@@ -171,4 +171,35 @@ describe('artefactosService', () => {
       expect(resultado).toBe(pagina);
     });
   });
+
+  describe('consultas de HU-044', () => {
+    it('consultarVersionesArtefactoEstudiante hace POST a /artefactos/versiones/estudiante y devuelve data', async () => {
+      // Arrange
+      const req = { pagina: 0, tamanio: 10, ordenamiento: ['fechaCreacion:DESC'] };
+      const pagina = { content: [], totalElements: 0 };
+      post.mockResolvedValue({ data: pagina });
+
+      // Act
+      const resultado = await artefactosService.consultarVersionesArtefactoEstudiante(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/artefactos/versiones/estudiante', req);
+      expect(resultado).toBe(pagina);
+    });
+  });
+
+  describe('consultas de HU-042', () => {
+    it('getParticipacionesEstudiante hace GET a /artefactos/estudiante/participaciones y devuelve data', async () => {
+      // Arrange
+      const lista = [{ id: 'a-1' }];
+      get.mockResolvedValue({ data: lista });
+
+      // Act
+      const resultado = await artefactosService.getParticipacionesEstudiante();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/artefactos/estudiante/participaciones');
+      expect(resultado).toBe(lista);
+    });
+  });
 });
