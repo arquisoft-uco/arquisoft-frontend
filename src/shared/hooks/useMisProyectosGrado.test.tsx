@@ -3,14 +3,14 @@ import type { ReactNode } from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor, act } from '@testing-library/react';
-import { proyectosGradoService } from '../services/proyectosGradoService';
+import { misProyectosGradoService } from '../services/misProyectosGradoService';
 import { useMisProyectosGrado } from './useMisProyectosGrado';
 
-vi.mock('../services/proyectosGradoService', () => ({
-  proyectosGradoService: { getMisProyectos: vi.fn() },
+vi.mock('../services/misProyectosGradoService', () => ({
+  misProyectosGradoService: { consultar: vi.fn() },
 }));
 
-const consultar = vi.mocked(proyectosGradoService.getMisProyectos);
+const consultar = vi.mocked(misProyectosGradoService.consultar);
 
 function crearProyecto(id: string) {
   return {
@@ -53,7 +53,7 @@ describe('useMisProyectosGrado', () => {
       wrapper: crearWrapper('/proyectos-grado?proyecto=zzz'),
     });
     const sinParam = renderHook(usarConUbicacion, {
-      wrapper: crearWrapper('/proyectos-grado?otro=1'),
+      wrapper: crearWrapper('/proyectos-grado?otro=1&pagina=3'),
     });
     await waitFor(() => expect(sinParam.result.current.proyectos).toHaveLength(2));
     expect(sinParam.result.current.proyecto?.id).toBe('p-1');

@@ -1,8 +1,8 @@
-import Field from '../../../../shared/components/ui/Field';
-import type { ProyectoGrado } from '../../models/ProyectoGrado';
+import type { ProyectoGradoEstudiante } from '../models/ProyectoGradoEstudiante';
+import Field from './ui/Field';
 
 interface Props {
-  proyectos: ProyectoGrado[];
+  proyectos: ProyectoGradoEstudiante[];
   proyectoActivoId: string | null;
   onSeleccionar: (id: string) => void;
 }

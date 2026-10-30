@@ -1,19 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
-import { proyectosGradoService } from '../services/proyectosGradoService';
-
-export const MIS_PROYECTOS_GRADO_QUERY_KEY = [
-  'proyectos-grado',
-  'estudiante',
-  'mis-proyectos',
-] as const;
+import { misProyectosGradoService } from '../services/misProyectosGradoService';
 
 const PARAM_PROYECTO = 'proyecto';
 
 export function useMisProyectosGrado() {
   const query = useQuery({
-    queryKey: MIS_PROYECTOS_GRADO_QUERY_KEY,
-    queryFn: proyectosGradoService.getMisProyectos,
+    queryKey: ['proyectos-grado', 'estudiante', 'mis-proyectos'],
+    queryFn: misProyectosGradoService.consultar,
   });
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -26,6 +20,7 @@ export function useMisProyectosGrado() {
       (prev) => {
         const siguiente = new URLSearchParams(prev);
         siguiente.set(PARAM_PROYECTO, id);
+        siguiente.delete('pagina');
         return siguiente;
       },
       { replace: true },

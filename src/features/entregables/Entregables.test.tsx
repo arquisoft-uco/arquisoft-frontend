@@ -5,6 +5,18 @@ import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-
 import { Rol } from '../../shared/models/rol';
 import Entregables from './Entregables';
 
+vi.mock('../../shared/hooks/useMisProyectosGrado', () => ({
+  useMisProyectosGrado: vi.fn().mockReturnValue({
+    proyecto: null,
+    proyectos: [],
+    seleccionarProyecto: vi.fn(),
+    cargado: true,
+    sinProyecto: true,
+    hayError: false,
+    reintentar: vi.fn(),
+  }),
+}));
+
 vi.mock('./services/entregablesService', () => ({
   entregablesService: {
     getEstadosEntregable: vi.fn().mockResolvedValue([]),
@@ -89,6 +101,18 @@ describe('Entregables', () => {
     expect(await screen.findByText('Aún no tienes entregables generados')).toBeInTheDocument();
   });
 
+  it('el estudiante ve su vista de entregables', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(await screen.findByText('Aún no perteneces a un proyecto de grado')).toBeInTheDocument();
+  });
+
   it('sin rol activo redirige a /seleccionar-rol', () => {
     // Arrange
     entrarComo(Rol.Asesor, Rol.Coordinador);
@@ -102,8 +126,8 @@ describe('Entregables', () => {
 
   it('un rol sin vista redirige a /forbidden', () => {
     // Arrange
-    entrarComo(Rol.Estudiante);
-    setActiveRole(Rol.Estudiante);
+    entrarComo(Rol.Coordinador);
+    setActiveRole(Rol.Coordinador);
 
     // Act
     renderizar();
