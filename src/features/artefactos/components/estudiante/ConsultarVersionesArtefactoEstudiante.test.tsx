@@ -9,8 +9,11 @@ import ConsultarVersionesArtefactoEstudiante from './ConsultarVersionesArtefacto
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoEstudiante: vi.fn(),
+    getEstadosRevisionAsesor: vi.fn(),
   },
 }));
+
+const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
 
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
 
@@ -24,6 +27,9 @@ const VERSION: VersionArtefacto = {
   versionDocumento: 2,
   nombreRepositorio: 'Repositorio base',
   nombreAsesor: 'Marta Gómez',
+  revisionAsesor: null,
+  estadoRevision: null,
+  nombreEstadoRevision: null,
 };
 
 function pagina<T>(content: T[]): Page<T> {
@@ -42,6 +48,7 @@ function pagina<T>(content: T[]): Page<T> {
 describe('ConsultarVersionesArtefactoEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    getEstados.mockResolvedValue([]);
   });
 
   it('muestra proyecto, documento, repositorio y la columna Asesor, con la búsqueda habilitada', async () => {
@@ -89,5 +96,28 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     // Assert
     expect(aviso).toHaveTextContent('No se pudieron cargar las versiones');
     await waitFor(() => expect(consultarVersiones).toHaveBeenCalledTimes(2));
+  });
+
+  it('muestra el estado de revisión de la versión y los chips del catálogo', async () => {
+    // Arrange
+    getEstados.mockResolvedValue([{ id: 'PENDIENTE', nombre: 'Pendiente', descripcion: '' }]);
+    consultarVersiones.mockResolvedValue(
+      pagina([
+        {
+          ...VERSION,
+          revisionAsesor: 'r-1',
+          estadoRevision: 'PENDIENTE',
+          nombreEstadoRevision: 'Pendiente',
+        },
+      ]),
+    );
+
+    // Act
+    render(<ConsultarVersionesArtefactoEstudiante />);
+
+    // Assert
+    const tabla = within(await screen.findByRole('table', { name: 'Versiones de artefactos' }));
+    expect(await tabla.findByText('Pendiente')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Sin revisión' })).toBeInTheDocument();
   });
 });

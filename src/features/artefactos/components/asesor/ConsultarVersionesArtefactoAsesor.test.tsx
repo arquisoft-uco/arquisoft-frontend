@@ -14,8 +14,11 @@ import ConsultarVersionesArtefactoAsesor from './ConsultarVersionesArtefactoAses
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoAsesor: vi.fn(),
+    getEstadosRevisionAsesor: vi.fn(),
   },
 }));
+
+const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
 
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
 
@@ -29,6 +32,9 @@ const VERSION: VersionArtefacto = {
   versionDocumento: 2,
   nombreRepositorio: 'Repositorio base',
   nombreAsesor: 'Marta Gómez',
+  revisionAsesor: null,
+  estadoRevision: null,
+  nombreEstadoRevision: null,
 };
 
 function pagina<T>(content: T[]): Page<T> {
@@ -52,6 +58,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
+    getEstados.mockResolvedValue([]);
   });
 
   it('mientras carga muestra el estado de carga accesible', () => {
@@ -173,5 +180,59 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     // Assert
     const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
     expect(await within(tabla).findByText('Acta de inicio')).toBeInTheDocument();
+  });
+
+  it('con el catálogo muestra los chips "Sin revisión" y estados, y alternar uno consulta con el filtro', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    getEstados.mockResolvedValue([
+      { id: 'PENDIENTE', nombre: 'Pendiente', descripcion: '' },
+      { id: 'RESUELTA', nombre: 'Resuelta', descripcion: '' },
+    ]);
+    render(<ConsultarVersionesArtefactoAsesor />);
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Sin revisión' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Pendiente' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resuelta' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(consultarVersiones).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filtros: expect.objectContaining({ tipo: 'PREDICADO', campo: 'estadoRevision' }),
+        }),
+      ),
+    );
+  });
+
+  it('sin catálogo no hay chips de estado y la tabla funciona igual', async () => {
+    // Arrange
+    getEstados.mockRejectedValue(new Error('falla'));
+
+    // Act
+    render(<ConsultarVersionesArtefactoAsesor />);
+
+    // Assert
+    expect(
+      await screen.findByRole('table', { name: 'Versiones de artefactos' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sin revisión' })).not.toBeInTheDocument();
+  });
+
+  it('con ?artefacto=<uuid> muestra la insignia "Artefacto: …" y se puede quitar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarVersionesArtefactoAsesor />, {
+      initialPath: '/artefactos?artefacto=3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
+    });
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: /Artefacto: Acta de inicio/ }));
+
+    // Assert
+    expect(
+      screen.queryByRole('button', { name: /Artefacto: Acta de inicio/ }),
+    ).not.toBeInTheDocument();
   });
 });

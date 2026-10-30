@@ -1,10 +1,17 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
+import { UUID_REGEX } from '../../../shared/validation';
+
+export const SIN_REVISION = 'SIN_REVISION';
 
 const FORMATO_FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 function aDiaLocal(fecha: string, dias = 0): Date {
   const [anio, mes, dia] = fecha.split('-').map(Number);
   return new Date(anio, mes - 1, dia + dias);
+}
+
+export function leerArtefacto(valor: string): string {
+  return UUID_REGEX.test(valor) ? valor : '';
 }
 
 export function leerFecha(valor: string): string {
@@ -35,11 +42,37 @@ interface Filtros {
   texto: string;
   desde: string;
   hasta: string;
+  estadoIds: string[];
+  artefacto: string;
 }
 
 const CAMPOS_BUSQUEDA = ['nombreDocumento', 'nombreProyecto'] as const;
 
-export function construirFiltros({ texto, desde, hasta }: Filtros): NodoFiltroDTO | undefined {
+function filtroEstado(estadoIds: string[]): NodoFiltroDTO | undefined {
+  const sinRevision = estadoIds.includes(SIN_REVISION);
+  const codigos = estadoIds.filter((id) => id !== SIN_REVISION);
+  const esNulo: NodoFiltroDTO = { tipo: 'PREDICADO', campo: 'estadoRevision', operador: 'ES_NULO' };
+  const enCodigos: NodoFiltroDTO = {
+    tipo: 'PREDICADO_MULTIVALOR',
+    campo: 'estadoRevision',
+    operador: 'IN',
+    valores: codigos,
+  };
+  if (sinRevision && codigos.length > 0) {
+    return { tipo: 'GRUPO', conector: 'OR', nodos: [esNulo, enCodigos] };
+  }
+  if (sinRevision) return esNulo;
+  if (codigos.length > 0) return enCodigos;
+  return undefined;
+}
+
+export function construirFiltros({
+  texto,
+  desde,
+  hasta,
+  estadoIds,
+  artefacto,
+}: Filtros): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
   const recortado = texto.trim();
   if (recortado !== '') {
@@ -70,6 +103,11 @@ export function construirFiltros({ texto, desde, hasta }: Filtros): NodoFiltroDT
       valor: inicioDelDiaSiguienteUtc(hasta),
     });
   }
+  if (artefacto) {
+    nodos.push({ tipo: 'PREDICADO', campo: 'artefacto', operador: 'ES', valor: artefacto });
+  }
+  const estado = filtroEstado(estadoIds);
+  if (estado) nodos.push(estado);
   if (nodos.length === 0) return undefined;
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };

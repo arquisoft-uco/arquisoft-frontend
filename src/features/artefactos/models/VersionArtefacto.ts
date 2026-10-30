@@ -9,4 +9,7 @@ export interface VersionArtefacto {
   versionDocumento: number;
   nombreRepositorio: string;
   nombreAsesor: string;
+  revisionAsesor: string | null;
+  estadoRevision: string | null;
+  nombreEstadoRevision: string | null;
 }

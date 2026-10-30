@@ -21,7 +21,7 @@ const DESCRIPCION_POR_VISTA: Record<Vista, string> = {
   'mis-artefactos':
     'Los artefactos en los que estás asignado, agrupados por proyecto de grado. Elige uno para subir una nueva versión.',
   'versiones-artefactos':
-    'El historial de versiones subidas a los artefactos en los que estás asignado, con su proyecto, documento, repositorio, asesor y fecha de creación.',
+    'El historial de versiones subidas a los artefactos en los que estás asignado, con su proyecto, documento, repositorio, asesor, estado de la revisión y fecha de creación.',
 };
 
 function leerVista(valor: string): Vista {
