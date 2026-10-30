@@ -1,4 +1,4 @@
-export interface VersionArtefactoAsesor {
+export interface VersionArtefacto {
   id: string;
   artefacto: string;
   version: number;

@@ -8,7 +8,7 @@ import {
 } from '../../../../test-utils/temporizadores';
 import type { Page } from '../../../../shared/models/api-response';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
-import type { VersionArtefactoAsesor } from '../../models/VersionArtefactoAsesor';
+import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoAsesor from './ConsultarVersionesArtefactoAsesor';
 
@@ -22,7 +22,7 @@ vi.mock('../../services/artefactosService', () => ({
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
 const consultarArtefactos = vi.mocked(artefactosService.consultarArtefactosAsesor);
 
-const VERSION: VersionArtefactoAsesor = {
+const VERSION: VersionArtefacto = {
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,

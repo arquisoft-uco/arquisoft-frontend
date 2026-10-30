@@ -89,6 +89,12 @@ const VARIANTE_ENTREGABLE: TablaDeVariantes = {
   CERRADO: 'neutro',
 };
 
+const VARIANTE_TAREA: TablaDeVariantes = {
+  NUEVA: 'info',
+  EN_PROGRESO: 'advertencia',
+  FINALIZADA: 'exito',
+};
+
 function buscarVariante(tabla: TablaDeVariantes, id: string): VarianteBadge {
   return Object.prototype.hasOwnProperty.call(tabla, id) ? tabla[id] : 'neutro';
 }
@@ -140,4 +146,8 @@ export function varianteEstadoObservacionArtefacto(id: string): VarianteBadge {
 
 export function varianteEstadoEntregable(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_ENTREGABLE, id);
+}
+
+export function varianteEstadoTarea(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_TAREA, id);
 }

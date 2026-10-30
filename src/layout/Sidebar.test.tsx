@@ -67,6 +67,7 @@ describe('Sidebar', () => {
       '/dashboard',
       '/fichas-perfil',
       '/proyectos-grado',
+      '/artefactos',
       '/evaluaciones',
       '/mapas-ruta',
       '/solicitudes',

@@ -5,6 +5,9 @@ import { useMapaRutaEstudiante } from '../hooks/useMapaRutaEstudiante';
 import EstudianteView from './EstudianteView';
 
 vi.mock('../hooks/useMapaRutaEstudiante', () => ({ useMapaRutaEstudiante: vi.fn() }));
+vi.mock('./estudiante/ConsultarTareasMapaRuta', () => ({
+  default: ({ mapaRutaId }: { mapaRutaId: string }) => <div>Listado de tareas {mapaRutaId}</div>,
+}));
 
 const useHook = vi.mocked(useMapaRutaEstudiante);
 
@@ -48,6 +51,7 @@ describe('EstudianteView', () => {
     // Assert
     expect(screen.getByText('Aún no tienes un mapa de ruta')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Listado de tareas/)).not.toBeInTheDocument();
   });
 
   it('con error muestra el aviso y Reintentar vuelve a consultar', async () => {
@@ -85,5 +89,6 @@ describe('EstudianteView', () => {
     expect(screen.getByText('Fecha de inicio').nextElementSibling).toHaveTextContent('2026');
     expect(screen.getByText('Fecha de fin').nextElementSibling).toHaveTextContent('2026');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByText('Listado de tareas m-1')).toBeInTheDocument();
   });
 });

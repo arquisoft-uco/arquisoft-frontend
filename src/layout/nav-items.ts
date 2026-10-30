@@ -54,7 +54,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Folder,
     path: '/artefactos',
     order: 3,
-    roles: [Rol.Asesor],
+    roles: [Rol.Asesor, Rol.Estudiante],
   },
   {
     label: 'Entregables',
