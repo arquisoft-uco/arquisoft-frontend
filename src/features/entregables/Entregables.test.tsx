@@ -8,17 +8,27 @@ import Entregables from './Entregables';
 vi.mock('./services/entregablesService', () => ({
   entregablesService: {
     getEstadosEntregable: vi.fn().mockResolvedValue([]),
+    consultarEntregablesAsesor: vi.fn().mockResolvedValue({
+      content: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: true,
+      last: true,
+      empty: true,
+    }),
   },
 }));
 
-function renderizar() {
+function renderizar(ruta = '/entregables') {
   return render(
     <Routes>
       <Route path="/entregables" element={<Entregables />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
       <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
-    { initialPath: '/entregables' },
+    { initialPath: ruta },
   );
 }
 
@@ -43,6 +53,40 @@ describe('Entregables', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Entregables' }),
     ).toBeInTheDocument();
+  });
+
+  it('por defecto muestra el listado y ?vista=estados muestra el catálogo', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    const { unmount } = renderizar();
+
+    // Assert
+    expect(await screen.findByText('Aún no tienes entregables generados')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('table', { name: 'Estados de un entregable' }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    // Act
+    renderizar('/entregables?vista=estados');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay estados de entregable')).toBeInTheDocument();
+  });
+
+  it('una vista desconocida cae al listado', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar('/entregables?vista=otra');
+
+    // Assert
+    expect(await screen.findByText('Aún no tienes entregables generados')).toBeInTheDocument();
   });
 
   it('sin rol activo redirige a /seleccionar-rol', () => {
