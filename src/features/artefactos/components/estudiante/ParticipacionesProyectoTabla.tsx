@@ -60,6 +60,14 @@ function columnasDe(onAbrir: AlAbrir): ColumnaTabla<ParticipacionArtefacto>[] {
         <span className={DATO_SECUNDARIO}>{participacion.nombreRepositorio}</span>
       ),
     },
+    {
+      id: 'asesor',
+      encabezado: 'Asesor',
+      clave: 'nombreAsesor',
+      celda: (participacion) => (
+        <span className={DATO_SECUNDARIO}>{participacion.nombreAsesor}</span>
+      ),
+    },
   ];
 }
 
@@ -86,7 +94,9 @@ export default function ParticipacionesProyectoTabla({ proyecto, onAbrir }: Prop
           <>
             <BotonNombre participacion={participacion} onAbrir={onAbrir} />
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
-            <p className={TARJETA_DATO}>{etiquetaVersion(participacion)}</p>
+            <p className={TARJETA_DATO}>
+              {participacion.nombreAsesor} · {etiquetaVersion(participacion)}
+            </p>
           </>
         )}
       />
