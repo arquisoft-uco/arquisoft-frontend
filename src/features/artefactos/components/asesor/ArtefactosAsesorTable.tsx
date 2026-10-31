@@ -82,7 +82,7 @@ export default function ArtefactosAsesorTable({
     <EmptyState
       icono={SearchX}
       titulo="Sin resultados"
-      descripcion="No hay artefactos que coincidan con la búsqueda."
+      descripcion="No hay artefactos que coincidan con los filtros aplicados."
       accion={
         <Button variante="secundario" onClick={onLimpiarFiltros}>
           Limpiar filtros

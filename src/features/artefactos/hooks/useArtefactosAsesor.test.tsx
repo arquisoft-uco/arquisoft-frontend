@@ -67,7 +67,18 @@ describe('useArtefactosAsesor', () => {
         .getAll()
         .map((q) => q.queryKey)
         .find((k) => k[1] === 'asesor'),
-    ).toEqual(['artefactos', 'asesor', 'artefactos-asignados', 0, '', 'nombreProyecto:ASC']);
+    ).toEqual([
+      'artefactos',
+      'asesor',
+      'artefactos-asignados',
+      0,
+      '',
+      '',
+      '',
+      '',
+      '',
+      'nombreProyecto:ASC',
+    ]);
   });
 
   it('la búsqueda cambia el body y vuelve a la página 0', async () => {
@@ -111,5 +122,56 @@ describe('useArtefactosAsesor', () => {
     await waitFor(() =>
       expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 1 })),
     );
+  });
+
+  it('lee los filtros de la URL, los envía al service y limpiarFiltros los borra', async () => {
+    // Arrange
+    const { result } = renderHook(usarHookConUbicacion, {
+      wrapper: crearWrapper(
+        queryClient,
+        '/artefactos?pagina=2&proyecto=riego&documento=acta&repositorio=base&version=2',
+      ),
+    });
+    await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.listado.filtros).toEqual({
+      texto: '',
+      proyecto: 'riego',
+      documento: 'acta',
+      repositorio: 'base',
+      version: '2',
+    });
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'AND' }),
+      }),
+    );
+
+    // Act
+    act(() => result.current.listado.limpiarFiltros());
+
+    // Assert
+    await waitFor(() => expect(result.current.listado.hayFiltros).toBe(false));
+    expect(result.current.ubicacion.search).toBe('');
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined })),
+    );
+  });
+
+  it('cambiar un filtro vuelve a la página 0', async () => {
+    // Arrange
+    const { result } = renderHook(usarHookConUbicacion, {
+      wrapper: crearWrapper(queryClient, '/artefactos?pagina=3'),
+    });
+    await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
+
+    // Act
+    act(() => result.current.listado.setVersion('4'));
+
+    // Assert
+    await waitFor(() => expect(result.current.listado.filtros.version).toBe('4'));
+    expect(result.current.listado.page).toBe(0);
+    expect(result.current.ubicacion.search).not.toContain('pagina');
   });
 });
