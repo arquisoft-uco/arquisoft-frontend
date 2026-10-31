@@ -15,9 +15,11 @@ vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoAsesor: vi.fn(),
     getEstadosRevisionAsesor: vi.fn(),
+    getVersionArtefacto: vi.fn(),
   },
 }));
 
+const getVersion = vi.mocked(artefactosService.getVersionArtefacto);
 const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
 
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
@@ -234,5 +236,33 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(
       screen.queryByRole('button', { name: /Artefacto: Acta de inicio/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it('"Ver información" abre el panel con los datos de la versión y cerrarlo conserva la lista', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultarVersiones.mockResolvedValue(pagina([VERSION]));
+    getVersion.mockResolvedValue({ ...VERSION, uriArchivo: 'almacen/acta-v4.pdf' });
+    render(<ConsultarVersionesArtefactoAsesor />);
+    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', {
+        name: 'Acciones de la versión 4 de Acta de inicio',
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver información' }));
+
+    // Assert
+    expect(await screen.findByText('almacen/acta-v4.pdf')).toBeInTheDocument();
+    expect(getVersion).toHaveBeenCalledWith('v-1');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+
+    // Assert
+    await waitFor(() => expect(screen.queryByText('almacen/acta-v4.pdf')).not.toBeInTheDocument());
+    expect(screen.getByRole('table', { name: 'Versiones de artefactos' })).toBeInTheDocument();
   });
 });

@@ -63,6 +63,9 @@ export const artefactosService = {
       .post<Page<VersionArtefacto>>('/artefactos/versiones/estudiante', req)
       .then((r) => r.data),
 
+  getVersionArtefacto: (versionId: string): Promise<VersionArtefacto> =>
+    apiClient.get<VersionArtefacto>(`/artefactos/versiones/${versionId}`).then((r) => r.data),
+
   getParticipacionesEstudiante: (): Promise<ParticipacionArtefacto[]> =>
     apiClient
       .get<ParticipacionArtefacto[]>('/artefactos/estudiante/participaciones')

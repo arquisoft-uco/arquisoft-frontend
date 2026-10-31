@@ -147,6 +147,21 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('getVersionArtefacto', () => {
+    it('hace GET a /artefactos/versiones/{id} y devuelve data', async () => {
+      // Arrange
+      const version = { id: 'v-1', version: 2 };
+      get.mockResolvedValue({ data: version });
+
+      // Act
+      const resultado = await artefactosService.getVersionArtefacto('v-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/artefactos/versiones/v-1');
+      expect(resultado).toBe(version);
+    });
+  });
+
   describe('consultas de HU-042', () => {
     it('getParticipacionesEstudiante hace GET a /artefactos/estudiante/participaciones y devuelve data', async () => {
       // Arrange

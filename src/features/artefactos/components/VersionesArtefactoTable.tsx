@@ -1,84 +1,16 @@
-import { FileStack, SearchX } from 'lucide-react';
-import Badge from '../../../shared/components/ui/Badge';
+import { FileStack, Info, SearchX } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import DataTable from '../../../shared/components/ui/DataTable';
-import type {
-  ColumnaTabla,
-  DireccionOrden,
-  OrdenTabla,
-} from '../../../shared/components/ui/DataTable';
+import type { DireccionOrden, OrdenTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../shared/components/ui/RowMenu';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
+import { construirColumnas, etiquetaVersion } from './columnasVersionesArtefacto';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
 
-const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const NOMBRE = 'font-medium text-on-surface';
-const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
-
-function etiquetaVersion(version: VersionArtefacto): string {
-  return `Versión ${version.version}`;
-}
-
-function construirColumnas(mostrarAsesor: boolean): ColumnaTabla<VersionArtefacto>[] {
-  const columnas: ColumnaTabla<VersionArtefacto>[] = [
-    {
-      id: 'proyecto',
-      encabezado: 'Proyecto',
-      celda: (version) => <span className={NOMBRE}>{version.nombreProyecto}</span>,
-    },
-    {
-      id: 'documento',
-      encabezado: 'Documento',
-      celda: (version) => (
-        <>
-          <span className={NOMBRE}>{version.nombreDocumento}</span>
-          <span className={DETALLE}>Versión {version.versionDocumento} del documento</span>
-        </>
-      ),
-    },
-    {
-      id: 'repositorio',
-      encabezado: 'Repositorio',
-      celda: (version) => <span className={DATO_SECUNDARIO}>{version.nombreRepositorio}</span>,
-    },
-  ];
-  if (mostrarAsesor) {
-    columnas.push({
-      id: 'asesor',
-      encabezado: 'Asesor',
-      celda: (version) => <span className={DATO_SECUNDARIO}>{version.nombreAsesor}</span>,
-    });
-  }
-  columnas.push(
-    {
-      id: 'version',
-      encabezado: 'Versión',
-      clave: 'version',
-      ordenable: true,
-      celda: (version) => <Badge variante="neutro">{etiquetaVersion(version)}</Badge>,
-    },
-    {
-      id: 'estado',
-      encabezado: 'Estado de revisión',
-      clave: 'estadoRevision',
-      ordenable: true,
-      celda: (version) => <InsigniaEstadoRevision version={version} />,
-    },
-    {
-      id: 'fecha',
-      encabezado: 'Fecha de creación',
-      clave: 'fechaCreacion',
-      ordenable: true,
-      celda: (version) => (
-        <span className={DATO_SECUNDARIO}>{formatearFechaCreacion(version.fechaCreacion)}</span>
-      ),
-    },
-  );
-  return columnas;
-}
 
 interface Props {
   versiones: VersionArtefacto[];
@@ -88,6 +20,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onVerInformacion: (version: VersionArtefacto) => void;
   mostrarAsesor?: boolean;
 }
 
@@ -99,6 +32,7 @@ export default function VersionesArtefactoTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onVerInformacion,
   mostrarAsesor = false,
 }: Props) {
   const columnas = construirColumnas(mostrarAsesor);
@@ -132,6 +66,18 @@ export default function VersionesArtefactoTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(version) => (
+        <RowMenu
+          etiqueta={`Acciones de la versión ${version.version} de ${version.nombreDocumento}`}
+          acciones={[
+            {
+              etiqueta: 'Ver información',
+              icono: Info,
+              onSeleccionar: () => onVerInformacion(version),
+            },
+          ]}
+        />
+      )}
       tarjeta={(version) => (
         <>
           <p className={TARJETA_NOMBRE}>{version.nombreDocumento}</p>
