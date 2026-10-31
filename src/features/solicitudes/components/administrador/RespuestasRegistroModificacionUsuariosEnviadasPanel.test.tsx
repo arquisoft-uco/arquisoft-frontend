@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
+import { useModificarEstadoRespuestaRegistroModificacionUsuarios } from '../../hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios';
 import { useRespuestasRegistroModificacionUsuariosEnviadas } from '../../hooks/useRespuestasRegistroModificacionUsuariosEnviadas';
 import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
 import { RESPUESTA_REGISTRO_MODIFICACION_USUARIOS } from '../../../../test-utils/respuestas';
@@ -15,6 +16,40 @@ vi.mock('../../hooks/useEstadosRespuesta', () => ({
 vi.mock('../../hooks/useRespuestasRegistroModificacionUsuariosEnviadas', () => ({
   useRespuestasRegistroModificacionUsuariosEnviadas: vi.fn(),
 }));
+
+vi.mock('../../hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios', () => ({
+  useModificarEstadoRespuestaRegistroModificacionUsuarios: vi.fn(),
+}));
+
+type HookModificar = ReturnType<typeof useModificarEstadoRespuestaRegistroModificacionUsuarios>;
+
+const RESPUESTA_EN_REVISION: RespuestaSolicitud = {
+  ...RESPUESTA_REGISTRO_MODIFICACION_USUARIOS,
+  estadoRespuestaId: 'EN_REVISION',
+  estadoRespuestaNombre: 'En revisión',
+};
+
+function mockearModificar(mutate = vi.fn()) {
+  vi.mocked(useModificarEstadoRespuestaRegistroModificacionUsuarios).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookModificar);
+  return mutate;
+}
 
 function crearFiltros(parcial: Partial<FiltrosRespuestas> = {}): FiltrosRespuestas {
   return {
@@ -63,6 +98,7 @@ function mockearHook(parcial: Partial<HookRespuestas> = {}) {
 describe('RespuestasRegistroModificacionUsuariosEnviadasPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockearModificar();
   });
 
   it('muestra el esqueleto de carga y no la tabla', () => {
@@ -145,5 +181,60 @@ describe('RespuestasRegistroModificacionUsuariosEnviadasPanel', () => {
     expect(within(tabla).getByText('Aprobamos el registro del usuario.')).toBeInTheDocument();
     expect(within(tabla).getByText('Aprobada')).toBeInTheDocument();
     expect(within(tabla).queryByRole('button', { name: /acciones/i })).not.toBeInTheDocument();
+  });
+  it('ofrece el menú solo en la fila En revisión con aprobar y no aprobar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearHook({
+      data: crearPagina([RESPUESTA_EN_REVISION, RESPUESTA_REGISTRO_MODIFICACION_USUARIOS]),
+    });
+    render(<RespuestasRegistroModificacionUsuariosEnviadasPanel filtros={crearFiltros()} />);
+    const tabla = screen.getByRole('table', {
+      name: 'Respuestas de registro y modificación de usuarios enviadas',
+    });
+
+    // Act
+    const botones = within(tabla).getAllByRole('button', {
+      name: 'Acciones de la respuesta a Luis Gómez',
+    });
+    await user.click(botones[0]);
+
+    // Assert
+    expect(botones).toHaveLength(1);
+    expect(screen.getByRole('menuitem', { name: 'Aprobar respuesta' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' })).toBeInTheDocument();
+  });
+
+  it('elegir aprobar abre el diálogo del coordinador y confirmar envía el estado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearModificar();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasRegistroModificacionUsuariosEnviadasPanel filtros={crearFiltros()} />);
+
+    // Act
+    await user.click(
+      within(
+        screen.getByRole('table', {
+          name: 'Respuestas de registro y modificación de usuarios enviadas',
+        }),
+      ).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Aprobar respuesta' }));
+
+    // Assert
+    const dialogo = screen.getByRole('dialog');
+    expect(dialogo).toHaveTextContent('¿Aprobar respuesta?');
+    expect(dialogo).toHaveTextContent('El coordinador recibirá un aviso por correo.');
+    expect(mutate).not.toHaveBeenCalled();
+
+    // Act
+    await user.click(within(dialogo).getByRole('button', { name: 'Aprobar' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith(
+      { solicitudId: 's-5', nuevoEstado: 'APROBADA' },
+      expect.any(Object),
+    );
   });
 });
