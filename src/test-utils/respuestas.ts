@@ -70,3 +70,16 @@ export const RESPUESTA_AMPLIACION_PLAZO: RespuestaSolicitud = {
     tipoSolicitudNombre: 'AMPLIACION_DE_PLAZO',
   },
 };
+
+export const RESPUESTA_REGISTRO_MODIFICACION_USUARIOS: RespuestaSolicitud = {
+  ...RESPUESTA,
+  id: 'r-5',
+  contenido: 'Aprobamos el registro del usuario.',
+  solicitud: {
+    ...RESPUESTA.solicitud,
+    id: 's-5',
+    mensajeSolicitud: 'Solicito el registro de un nuevo usuario en la plataforma.',
+    tipoSolicitudId: 't-5',
+    tipoSolicitudNombre: 'REGISTRO_Y_MODIFICACION_DE_USUARIOS',
+  },
+};
