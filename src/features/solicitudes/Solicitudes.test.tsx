@@ -37,6 +37,7 @@ import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioA
 import { useRespuestasAmpliacionPlazoRecibidas } from './hooks/useRespuestasAmpliacionPlazoRecibidas';
 import { useModificarEstadoRespuestaCambioAsesor } from './hooks/useModificarEstadoRespuestaCambioAsesor';
 import { useModificarEstadoRespuestaAmpliacionPlazo } from './hooks/useModificarEstadoRespuestaAmpliacionPlazo';
+import { useModificarEstadoRespuestaRegistroModificacionUsuarios } from './hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaCambioAsesor } from './hooks/useEliminarRespuestaCambioAsesor';
 import { useEliminarRespuestaAmpliacionPlazo } from './hooks/useEliminarRespuestaAmpliacionPlazo';
@@ -194,6 +195,10 @@ vi.mock('./hooks/useModificarEstadoRespuestaCambioAsesor', () => ({
 
 vi.mock('./hooks/useModificarEstadoRespuestaAmpliacionPlazo', () => ({
   useModificarEstadoRespuestaAmpliacionPlazo: vi.fn(),
+}));
+
+vi.mock('./hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios', () => ({
+  useModificarEstadoRespuestaRegistroModificacionUsuarios: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
@@ -394,6 +399,9 @@ describe('Solicitudes', () => {
       crearMutacionModificarMock(),
     );
     vi.mocked(useModificarEstadoRespuestaAmpliacionPlazo).mockReturnValue(
+      crearMutacionModificarMock(),
+    );
+    vi.mocked(useModificarEstadoRespuestaRegistroModificacionUsuarios).mockReturnValue(
       crearMutacionModificarMock(),
     );
     vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue(

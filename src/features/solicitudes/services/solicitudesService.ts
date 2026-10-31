@@ -11,6 +11,7 @@ import type { ModificarEstadoRespuestaAmpliacionPlazoRequest } from '../models/M
 import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
+import type { ModificarEstadoRespuestaRegistroModificacionUsuariosRequest } from '../models/ModificarEstadoRespuestaRegistroModificacionUsuariosRequest';
 import type { ResponderSolicitudAmpliacionPlazoRequest } from '../models/ResponderSolicitudAmpliacionPlazoRequest';
 import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
@@ -344,6 +345,14 @@ export const solicitudesService = {
   ): Promise<void> =>
     apiClient
       .patch(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta/estado`, {
+        nuevoEstado: req.nuevoEstado,
+      })
+      .then(() => undefined),
+  modificarEstadoRespuestaRegistroModificacionUsuarios: (
+    req: ModificarEstadoRespuestaRegistroModificacionUsuariosRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/solicitudes/registro-modificacion-usuarios/${req.solicitudId}/respuesta/estado`, {
         nuevoEstado: req.nuevoEstado,
       })
       .then(() => undefined),
