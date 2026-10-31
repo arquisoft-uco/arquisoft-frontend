@@ -7,9 +7,13 @@ import type { Solicitud } from '../models/Solicitud';
 import FechaSolicitud from './FechaSolicitud';
 import FechaTarjeta from './FechaTarjeta';
 import ParticipanteCelda from './ParticipanteCelda';
-import type { TipoSolicitudRecibidaUi } from './SelectorTipoSolicitud';
+import type {
+  TipoSolicitudListadoRecibidoUi,
+  TipoSolicitudRecibidaUi,
+} from './SelectorTipoSolicitud';
 
-export type ReceptorSolicitud = 'coordinador' | 'asesor';
+type ReceptorConRespuesta = 'coordinador' | 'asesor';
+export type ReceptorSolicitud = ReceptorConRespuesta | 'administrador';
 
 const DESCRIPCION_VACIO_CAMBIO_ASESOR =
   'Cuando un estudiante solicite un cambio de asesor, aparecerá aquí.';
@@ -17,7 +21,7 @@ const DESCRIPCION_VACIO_CAMBIO_ASESOR =
 const DESCRIPCION_VACIO_AMPLIACION_PLAZO =
   'Cuando un estudiante solicite una ampliación de plazo, aparecerá aquí.';
 
-const DESCRIPCION_VACIO: Record<TipoSolicitudRecibidaUi, Record<ReceptorSolicitud, string>> = {
+const DESCRIPCION_VACIO: Record<TipoSolicitudRecibidaUi, Record<ReceptorConRespuesta, string>> = {
   novedad: {
     coordinador: 'Cuando alguien te envíe una novedad, aparecerá aquí.',
     asesor: 'Cuando un estudiante te envíe una novedad, aparecerá aquí.',
@@ -32,10 +36,21 @@ const DESCRIPCION_VACIO: Record<TipoSolicitudRecibidaUi, Record<ReceptorSolicitu
   },
 };
 
-const ETIQUETA_TABLA: Record<TipoSolicitudRecibidaUi, string> = {
+const DESCRIPCION_VACIO_REGISTRO_MODIFICACION_USUARIOS =
+  'Cuando un coordinador solicite registrar o modificar usuarios, aparecerá aquí.';
+
+function descripcionVacio(tipo: TipoSolicitudListadoRecibidoUi, receptor: ReceptorSolicitud) {
+  if (tipo === 'registro-modificacion-usuarios') {
+    return DESCRIPCION_VACIO_REGISTRO_MODIFICACION_USUARIOS;
+  }
+  return DESCRIPCION_VACIO[tipo][receptor === 'asesor' ? 'asesor' : 'coordinador'];
+}
+
+const ETIQUETA_TABLA: Record<TipoSolicitudListadoRecibidoUi, string> = {
   novedad: 'Solicitudes de novedad recibidas',
   'cambio-asesor': 'Solicitudes de cambio de asesor recibidas',
   'ampliacion-plazo': 'Solicitudes de ampliación de plazo recibidas',
+  'registro-modificacion-usuarios': 'Solicitudes de registro y modificación de usuarios recibidas',
 };
 
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
@@ -67,7 +82,7 @@ interface Props {
   solicitudes: Solicitud[];
   cargando: boolean;
   receptor: ReceptorSolicitud;
-  tipo?: TipoSolicitudRecibidaUi;
+  tipo?: TipoSolicitudListadoRecibidoUi;
   onResponder?: (solicitud: Solicitud) => void;
 }
 
@@ -103,7 +118,7 @@ export default function SolicitudesRecibidasTable({
         <EmptyState
           icono={Inbox}
           titulo="Aún no has recibido solicitudes"
-          descripcion={DESCRIPCION_VACIO[tipo][receptor]}
+          descripcion={descripcionVacio(tipo, receptor)}
         />
       }
       tarjeta={(solicitud) => (

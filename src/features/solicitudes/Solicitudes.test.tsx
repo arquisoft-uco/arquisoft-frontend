@@ -20,6 +20,7 @@ import { useEnviarSolicitudRegistroModificacionUsuarios } from './hooks/useEnvia
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
 import { useEliminarSolicitudRegistroModificacionUsuarios } from './hooks/useEliminarSolicitudRegistroModificacionUsuarios';
 import { useSolicitudesRegistroModificacionUsuariosEnviadas } from './hooks/useSolicitudesRegistroModificacionUsuariosEnviadas';
+import { useSolicitudesRegistroModificacionUsuariosRecibidas } from './hooks/useSolicitudesRegistroModificacionUsuariosRecibidas';
 import { useResponderSolicitudAmpliacionPlazo } from './hooks/useResponderSolicitudAmpliacionPlazo';
 import { useResponderSolicitudCambioAsesor } from './hooks/useResponderSolicitudCambioAsesor';
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
@@ -107,6 +108,10 @@ vi.mock('./hooks/useEliminarSolicitudAmpliacionPlazo', () => ({
 
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
   useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesRegistroModificacionUsuariosRecibidas', () => ({
+  useSolicitudesRegistroModificacionUsuariosRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesCambioAsesorRecibidas', () => ({
@@ -344,6 +349,11 @@ function crearConsulta<T>(data: Page<T>): Partial<UseQueryResult<Page<T>>> & { p
 describe('Solicitudes', () => {
   beforeEach(() => {
     resetAllStores();
+    vi.mocked(useSolicitudesRegistroModificacionUsuariosRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<
+        typeof useSolicitudesRegistroModificacionUsuariosRecibidas
+      >,
+    );
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
@@ -396,7 +406,7 @@ describe('Solicitudes', () => {
   });
 
   it('muestra ComingSoon cuando el rol activo no tiene vista real de solicitudes', () => {
-    autenticarCon(Rol.Administrador);
+    autenticarCon(Rol.Jurado);
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
@@ -404,6 +414,15 @@ describe('Solicitudes', () => {
     expect(
       screen.queryByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('renderiza AdministradorView con el listado de solicitudes recibidas y sin ComingSoon', () => {
+    autenticarCon(Rol.Administrador);
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
+    expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
   it('renderiza EstudianteView con tres pestañas y el formulario de coordinador cuando el rol activo es Estudiante', () => {

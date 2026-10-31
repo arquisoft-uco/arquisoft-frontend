@@ -3,6 +3,7 @@ import { ClipboardList } from 'lucide-react';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
 import ComingSoon from '../../shared/components/ComingSoon';
+import AdministradorView from './components/AdministradorView';
 import AsesorView from './components/AsesorView';
 import CoordinadorView from './components/CoordinadorView';
 import EstudianteView from './components/EstudianteView';
@@ -11,6 +12,7 @@ const VIEW_POR_ROL: Record<string, React.ComponentType> = {
   [Rol.Estudiante]: EstudianteView,
   [Rol.Coordinador]: CoordinadorView,
   [Rol.Asesor]: AsesorView,
+  [Rol.Administrador]: AdministradorView,
 };
 
 export default function Solicitudes() {

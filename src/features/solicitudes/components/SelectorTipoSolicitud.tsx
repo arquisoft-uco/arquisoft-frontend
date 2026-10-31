@@ -12,6 +12,10 @@ export type TipoSolicitudListadoEnviadoUi =
 export type TipoRespuestaRecibidaEstudianteUi = TipoSolicitudNuevaUi;
 export type TipoRespuestaEnviadaCoordinadorUi = 'novedad' | 'cambio-asesor' | 'ampliacion-plazo';
 export type TipoSolicitudRecibidaUi = TipoRespuestaEnviadaCoordinadorUi;
+export type TipoSolicitudRecibidaAdministradorUi = 'registro-modificacion-usuarios';
+export type TipoSolicitudListadoRecibidoUi =
+  | TipoSolicitudRecibidaUi
+  | TipoSolicitudRecibidaAdministradorUi;
 
 interface OpcionTipo<T extends string> {
   value: T;
