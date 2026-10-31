@@ -15,6 +15,7 @@ import type { ResponderSolicitudAmpliacionPlazoRequest } from '../models/Respond
 import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
+import type { ResponderSolicitudRegistroModificacionUsuariosRequest } from '../models/ResponderSolicitudRegistroModificacionUsuariosRequest';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import type { Solicitud } from '../models/Solicitud';
 import type { SolicitudCreadaResponse } from '../models/SolicitudCreadaResponse';
@@ -276,6 +277,16 @@ export const solicitudesService = {
       .post<SolicitudCreadaResponse>(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta`, {
         contenido: req.contenido,
       })
+      .then((r) => r.data),
+
+  responderSolicitudRegistroModificacionUsuarios: (
+    req: ResponderSolicitudRegistroModificacionUsuariosRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(
+        `/solicitudes/registro-modificacion-usuarios/${req.solicitudId}/respuesta`,
+        { contenido: req.contenido },
+      )
       .then((r) => r.data),
 
   eliminarRespuestaCambioAsesor: (solicitudId: string): Promise<void> =>
