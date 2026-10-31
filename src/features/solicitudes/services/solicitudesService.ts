@@ -199,6 +199,15 @@ export const solicitudesService = {
       .post<Page<RespuestaSolicitud>>('/solicitudes/ampliacion-plazo/respuestas/enviadas', criterio)
       .then((r) => r.data),
 
+  consultarRespuestasRegistroModificacionUsuariosEnviadas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/registro-modificacion-usuarios/respuestas/enviadas', criterio)
+      .then((r) => r.data),
+
   consultarRespuestasAmpliacionPlazoRecibidas: (
     criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>

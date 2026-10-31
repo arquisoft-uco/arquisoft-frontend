@@ -416,6 +416,34 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarRespuestasRegistroModificacionUsuariosEnviadas', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios/respuestas/enviadas con el criterio recibido tal cual y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValueOnce({ data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarRespuestasRegistroModificacionUsuariosEnviadas(CRITERIO);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/respuestas/enviadas',
+        CRITERIO,
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('consultarRespuestasNovedadAsesorEnviadas', () => {
     it('llama POST /solicitudes/novedad-asesor/respuestas/enviadas con el criterio recibido tal cual y resuelve la página', async () => {
       // Arrange

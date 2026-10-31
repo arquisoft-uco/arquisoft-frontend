@@ -30,6 +30,7 @@ import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNove
 import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedadAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasAmpliacionPlazoEnviadas } from './hooks/useRespuestasAmpliacionPlazoEnviadas';
+import { useRespuestasRegistroModificacionUsuariosEnviadas } from './hooks/useRespuestasRegistroModificacionUsuariosEnviadas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
@@ -141,6 +142,10 @@ vi.mock('./hooks/useRespuestasCambioAsesorEnviadas', () => ({
 
 vi.mock('./hooks/useRespuestasAmpliacionPlazoEnviadas', () => ({
   useRespuestasAmpliacionPlazoEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasRegistroModificacionUsuariosEnviadas', () => ({
+  useRespuestasRegistroModificacionUsuariosEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
@@ -358,6 +363,11 @@ describe('Solicitudes', () => {
         typeof useSolicitudesRegistroModificacionUsuariosRecibidas
       >,
     );
+    vi.mocked(useRespuestasRegistroModificacionUsuariosEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<
+        typeof useRespuestasRegistroModificacionUsuariosEnviadas
+      >,
+    );
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
@@ -423,12 +433,22 @@ describe('Solicitudes', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('renderiza AdministradorView con el listado de solicitudes recibidas y sin ComingSoon', () => {
+  it('renderiza AdministradorView con las pestañas Recibidas y Respuestas enviadas y sin ComingSoon', async () => {
     autenticarCon(Rol.Administrador);
+    const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Recibidas',
+      'Respuestas enviadas',
+    ]);
+    expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+
+    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
