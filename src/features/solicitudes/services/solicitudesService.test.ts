@@ -661,6 +661,26 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('responderSolicitudRegistroModificacionUsuarios', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-5' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudRegistroModificacionUsuarios({
+        solicitudId: 's-5',
+        contenido: 'Usuario registrado.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/s-5/respuesta',
+        { contenido: 'Usuario registrado.' },
+      );
+      expect(resultado).toEqual({ id: 'r-5' });
+    });
+  });
+
   describe('modificarEstadoRespuestaNovedadCoordinador', () => {
     it('llama PATCH /solicitudes/novedad-coordinador/{solicitudId}/respuesta/estado con solo { nuevoEstado } y resuelve undefined', async () => {
       // Arrange

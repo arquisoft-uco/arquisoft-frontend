@@ -9,7 +9,7 @@ export default function AdministradorView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Solicitudes"
-        descripcion="Consulta las solicitudes de registro y modificación de usuarios que te enviaron los coordinadores."
+        descripcion="Consulta y responde las solicitudes de registro y modificación de usuarios que te enviaron los coordinadores."
       />
       <SolicitudesRegistroModificacionUsuariosRecibidasPanel
         page={paginaRecibidas}
