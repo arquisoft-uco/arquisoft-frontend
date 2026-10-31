@@ -1,41 +1,53 @@
 import FilterBar from '../../../shared/components/ui/FilterBar';
-import Notice from '../../../shared/components/ui/Notice';
+import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
 import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
-
-const RAIZ = 'flex flex-col gap-3';
 
 interface Props {
   listado: ListadoVersionesArtefacto;
+  opcionesEstado?: OpcionFiltro[];
 }
 
-export default function FiltrosVersionesArtefacto({ listado }: Props) {
+export default function FiltrosVersionesArtefacto({ listado, opcionesEstado }: Props) {
+  const nombreArtefacto = listado.data?.content[0]?.nombreDocumento ?? 'seleccionado';
+  const aplicados = listado.artefacto
+    ? [
+        {
+          id: 'artefacto',
+          etiqueta: `Artefacto: ${nombreArtefacto}`,
+          onQuitar: listado.quitarArtefacto,
+        },
+      ]
+    : [];
+
   return (
-    <div className={RAIZ}>
-      <FilterBar
-        busqueda={{
-          valor: listado.texto,
-          onCambiar: listado.setTexto,
-          etiqueta: 'Buscar artefactos',
-          placeholder: 'Buscar por documento o proyecto',
-          deshabilitada: !listado.busquedaDisponible,
-        }}
-        fechas={{
-          etiqueta: 'Fecha de creación',
-          desde: listado.desde,
-          hasta: listado.hasta,
-          onCambiarDesde: listado.setDesde,
-          onCambiarHasta: listado.setHasta,
-        }}
-        aplicados={[]}
-        onLimpiar={listado.limpiarFiltros}
-        totalResultados={listado.data?.totalElements}
-      />
-      {!listado.busquedaDisponible && (
-        <Notice variante="advertencia">
-          No se pudo cargar la lista de artefactos. La búsqueda por nombre no está disponible; las
-          fechas siguen funcionando.
-        </Notice>
-      )}
-    </div>
+    <FilterBar
+      busqueda={{
+        valor: listado.texto,
+        onCambiar: listado.setTexto,
+        etiqueta: 'Buscar artefactos',
+        placeholder: 'Buscar por documento o proyecto',
+      }}
+      chips={
+        opcionesEstado
+          ? {
+              etiqueta: 'Estado',
+              opciones: opcionesEstado,
+              seleccionados: listado.estadoIds,
+              onAlternar: listado.toggleEstado,
+              onTodos: listado.limpiarEstados,
+            }
+          : undefined
+      }
+      fechas={{
+        etiqueta: 'Fecha de creación',
+        desde: listado.desde,
+        hasta: listado.hasta,
+        onCambiarDesde: listado.setDesde,
+        onCambiarHasta: listado.setHasta,
+      }}
+      aplicados={aplicados}
+      onLimpiar={listado.limpiarFiltros}
+      totalResultados={listado.data?.totalElements}
+    />
   );
 }

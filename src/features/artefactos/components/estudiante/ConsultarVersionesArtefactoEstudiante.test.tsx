@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
-import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoEstudiante from './ConsultarVersionesArtefactoEstudiante';
@@ -10,25 +9,30 @@ import ConsultarVersionesArtefactoEstudiante from './ConsultarVersionesArtefacto
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoEstudiante: vi.fn(),
-    consultarArtefactosEstudiante: vi.fn(),
+    getEstadosRevisionAsesor: vi.fn(),
+    getVersionArtefacto: vi.fn(),
   },
 }));
 
+const getVersion = vi.mocked(artefactosService.getVersionArtefacto);
+const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
+
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
-const consultarArtefactos = vi.mocked(artefactosService.consultarArtefactosEstudiante);
 
 const VERSION: VersionArtefacto = {
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
   fechaCreacion: '2026-03-10T15:30:00Z',
-};
-
-const ARTEFACTO = {
-  id: 'a-1',
-  nombreDocumento: 'Acta de inicio',
   nombreProyecto: 'Sistema de riego',
-} as ArtefactoEstudiante;
+  nombreDocumento: 'Acta de inicio',
+  versionDocumento: 2,
+  nombreRepositorio: 'Repositorio base',
+  nombreAsesor: 'Marta Gómez',
+  revisionAsesor: null,
+  estadoRevision: null,
+  nombreEstadoRevision: null,
+};
 
 function pagina<T>(content: T[]): Page<T> {
   return {
@@ -46,10 +50,10 @@ function pagina<T>(content: T[]): Page<T> {
 describe('ConsultarVersionesArtefactoEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    consultarArtefactos.mockResolvedValue(pagina([ARTEFACTO]));
+    getEstados.mockResolvedValue([]);
   });
 
-  it('muestra las versiones con el nombre del artefacto resuelto por el catálogo', async () => {
+  it('muestra proyecto, documento, repositorio y la columna Asesor, con la búsqueda habilitada', async () => {
     // Arrange
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
 
@@ -60,8 +64,13 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     const tabla = within(await screen.findByRole('table', { name: 'Versiones de artefactos' }));
     expect(await tabla.findByText('Acta de inicio')).toBeInTheDocument();
     expect(tabla.getByText('Sistema de riego')).toBeInTheDocument();
+    expect(tabla.getByText('Versión 2 del documento')).toBeInTheDocument();
+    expect(tabla.getByText('Repositorio base')).toBeInTheDocument();
+    expect(tabla.getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
+    expect(tabla.getByText('Marta Gómez')).toBeInTheDocument();
     expect(tabla.getByText('Versión 4')).toBeInTheDocument();
     expect(screen.getByText('1 versión')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });
 
   it('sin versiones muestra el vacío con el texto del estudiante', async () => {
@@ -91,19 +100,54 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     await waitFor(() => expect(consultarVersiones).toHaveBeenCalledTimes(2));
   });
 
-  it('si el catálogo falla avisa y deshabilita la búsqueda sin bloquear el listado', async () => {
+  it('muestra el estado de revisión de la versión y los chips del catálogo', async () => {
     // Arrange
-    consultarArtefactos.mockRejectedValue(new Error('falla'));
-    consultarVersiones.mockResolvedValue(pagina([VERSION]));
+    getEstados.mockResolvedValue([{ id: 'PENDIENTE', nombre: 'Pendiente', descripcion: '' }]);
+    consultarVersiones.mockResolvedValue(
+      pagina([
+        {
+          ...VERSION,
+          revisionAsesor: 'r-1',
+          estadoRevision: 'PENDIENTE',
+          nombreEstadoRevision: 'Pendiente',
+        },
+      ]),
+    );
 
     // Act
     render(<ConsultarVersionesArtefactoEstudiante />);
 
     // Assert
-    expect(
-      await screen.findByText(/La búsqueda por nombre no está disponible/),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeDisabled();
-    expect(await screen.findByText('Versión 4')).toBeInTheDocument();
+    const tabla = within(await screen.findByRole('table', { name: 'Versiones de artefactos' }));
+    expect(await tabla.findByText('Pendiente')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Sin revisión' })).toBeInTheDocument();
+  });
+
+  it('"Ver información" abre el panel con los datos de la versión y cerrarlo conserva la lista', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultarVersiones.mockResolvedValue(pagina([VERSION]));
+    getVersion.mockResolvedValue({ ...VERSION, uriArchivo: 'almacen/acta-v4.pdf' });
+    render(<ConsultarVersionesArtefactoEstudiante />);
+    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', {
+        name: 'Acciones de la versión 4 de Acta de inicio',
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver información' }));
+
+    // Assert
+    expect(await screen.findByText('almacen/acta-v4.pdf')).toBeInTheDocument();
+    expect(getVersion).toHaveBeenCalledWith('v-1');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+
+    // Assert
+    await waitFor(() => expect(screen.queryByText('almacen/acta-v4.pdf')).not.toBeInTheDocument());
+    expect(screen.getByRole('table', { name: 'Versiones de artefactos' })).toBeInTheDocument();
   });
 });

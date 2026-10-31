@@ -109,6 +109,26 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('enviarSolicitudRegistroModificacionUsuarios', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios con { destinatario, mensajeSolicitud } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 's-5' } });
+
+      // Act
+      const resultado = await solicitudesService.enviarSolicitudRegistroModificacionUsuarios({
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Registrar un usuario nuevo.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/registro-modificacion-usuarios', {
+        destinatario: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+        mensajeSolicitud: 'Registrar un usuario nuevo.',
+      });
+      expect(resultado).toEqual({ id: 's-5' });
+    });
+  });
+
   describe('consultarSolicitudesNovedadCoordinadorEnviadas', () => {
     const pagina = {
       content: [],
@@ -161,6 +181,64 @@ describe('solicitudesService', () => {
 
       // Assert
       expect(post).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/enviadas', {
+        pagina: 2,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('consultarSolicitudesRegistroModificacionUsuariosEnviadas', () => {
+    const pagina = {
+      content: [],
+      page: 2,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: false,
+      last: true,
+      empty: true,
+    };
+
+    it('llama POST /solicitudes/registro-modificacion-usuarios/enviadas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarSolicitudesRegistroModificacionUsuariosEnviadas(2, 10);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/registro-modificacion-usuarios/enviadas', {
+        pagina: 2,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('consultarSolicitudesRegistroModificacionUsuariosRecibidas', () => {
+    const pagina = {
+      content: [],
+      page: 2,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: false,
+      last: true,
+      empty: true,
+    };
+
+    it('llama POST /solicitudes/registro-modificacion-usuarios/recibidas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarSolicitudesRegistroModificacionUsuariosRecibidas(2, 10);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/registro-modificacion-usuarios/recibidas', {
         pagina: 2,
         tamanio: 10,
       });
@@ -338,6 +416,34 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarRespuestasRegistroModificacionUsuariosEnviadas', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios/respuestas/enviadas con el criterio recibido tal cual y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValueOnce({ data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarRespuestasRegistroModificacionUsuariosEnviadas(CRITERIO);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/respuestas/enviadas',
+        CRITERIO,
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('consultarRespuestasNovedadAsesorEnviadas', () => {
     it('llama POST /solicitudes/novedad-asesor/respuestas/enviadas con el criterio recibido tal cual y resuelve la página', async () => {
       // Arrange
@@ -432,6 +538,21 @@ describe('solicitudesService', () => {
 
       // Assert
       expect(eliminar).toHaveBeenCalledWith('/solicitudes/ampliacion-plazo/s-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarSolicitudRegistroModificacionUsuarios', () => {
+    it('llama DELETE /solicitudes/registro-modificacion-usuarios/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado =
+        await solicitudesService.eliminarSolicitudRegistroModificacionUsuarios('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/solicitudes/registro-modificacion-usuarios/s-1');
       expect(resultado).toBeUndefined();
     });
   });
@@ -565,6 +686,26 @@ describe('solicitudesService', () => {
         contenido: 'Revisemos el cambio.',
       });
       expect(resultado).toEqual({ id: 'r-3' });
+    });
+  });
+
+  describe('responderSolicitudRegistroModificacionUsuarios', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'r-5' } });
+
+      // Act
+      const resultado = await solicitudesService.responderSolicitudRegistroModificacionUsuarios({
+        solicitudId: 's-5',
+        contenido: 'Usuario registrado.',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/s-5/respuesta',
+        { contenido: 'Usuario registrado.' },
+      );
+      expect(resultado).toEqual({ id: 'r-5' });
     });
   });
 

@@ -10,8 +10,6 @@ import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
-import type { RevisionAsesor } from '../models/RevisionAsesor';
-import type { RevisionAsesorResponse } from '../models/RevisionAsesorResponse';
 import type { SolicitarCargaVersionArtefactoRequest } from '../models/SolicitarCargaVersionArtefactoRequest';
 import type { SolicitarCargaVersionArtefactoResponse } from '../models/SolicitarCargaVersionArtefactoResponse';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
@@ -23,22 +21,6 @@ function aObservacionRevision({
   ...resto
 }: ObservacionRevisionResponse): ObservacionRevision {
   return { ...resto, revisionAsesorId: revisionAsesor, estadoId: estado };
-}
-
-function aRevisionAsesor({
-  versionArtefacto,
-  artefacto,
-  estadoRevisionAsesor,
-  estadoRevisionAsesorNombre,
-  ...resto
-}: RevisionAsesorResponse): RevisionAsesor {
-  return {
-    ...resto,
-    versionArtefactoId: versionArtefacto,
-    artefactoId: artefacto,
-    estadoId: estadoRevisionAsesor,
-    estadoNombre: estadoRevisionAsesorNombre,
-  };
 }
 
 export const artefactosService = {
@@ -62,11 +44,6 @@ export const artefactosService = {
       >(`/revisiones-asesor/${revisionAsesorId}/observaciones/estudiante`)
       .then((r) => r.data.map(aObservacionRevision)),
 
-  consultarRevisionesAsesor: (req: ConsultaCriteriaRequest): Promise<Page<RevisionAsesor>> =>
-    apiClient
-      .post<Page<RevisionAsesorResponse>>('/revisiones-asesor/asesor', req)
-      .then((r) => ({ ...r.data, content: r.data.content.map(aRevisionAsesor) })),
-
   consultarVersionesRepositorioAsesor: (
     req: ConsultaCriteriaRequest,
   ): Promise<Page<VersionRepositorioAsesor>> =>
@@ -86,13 +63,16 @@ export const artefactosService = {
       .post<Page<VersionArtefacto>>('/artefactos/versiones/estudiante', req)
       .then((r) => r.data),
 
-  consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
-    apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', req).then((r) => r.data),
+  getVersionArtefacto: (versionId: string): Promise<VersionArtefacto> =>
+    apiClient.get<VersionArtefacto>(`/artefactos/versiones/${versionId}`).then((r) => r.data),
 
   getParticipacionesEstudiante: (): Promise<ParticipacionArtefacto[]> =>
     apiClient
       .get<ParticipacionArtefacto[]>('/artefactos/estudiante/participaciones')
       .then((r) => r.data),
+
+  consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
+    apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', req).then((r) => r.data),
 
   consultarArtefactosEstudiante: (
     req: ConsultaCriteriaRequest,

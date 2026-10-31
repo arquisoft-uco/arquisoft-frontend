@@ -7,7 +7,6 @@ import {
   usarTemporizadoresFalsos,
 } from '../../../../test-utils/temporizadores';
 import type { Page } from '../../../../shared/models/api-response';
-import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoAsesor from './ConsultarVersionesArtefactoAsesor';
@@ -15,28 +14,29 @@ import ConsultarVersionesArtefactoAsesor from './ConsultarVersionesArtefactoAses
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoAsesor: vi.fn(),
-    consultarArtefactosAsesor: vi.fn(),
+    getEstadosRevisionAsesor: vi.fn(),
+    getVersionArtefacto: vi.fn(),
   },
 }));
 
+const getVersion = vi.mocked(artefactosService.getVersionArtefacto);
+const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
+
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
-const consultarArtefactos = vi.mocked(artefactosService.consultarArtefactosAsesor);
 
 const VERSION: VersionArtefacto = {
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
   fechaCreacion: '2026-03-10T15:30:00Z',
-};
-
-const ARTEFACTO: ArtefactoAsesor = {
-  id: 'a-1',
-  proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',
-  versionRepositorioArtefacto: 'r-1',
   nombreDocumento: 'Acta de inicio',
   versionDocumento: 2,
   nombreRepositorio: 'Repositorio base',
+  nombreAsesor: 'Marta Gómez',
+  revisionAsesor: null,
+  estadoRevision: null,
+  nombreEstadoRevision: null,
 };
 
 function pagina<T>(content: T[]): Page<T> {
@@ -60,7 +60,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
-    consultarArtefactos.mockResolvedValue(pagina([ARTEFACTO]));
+    getEstados.mockResolvedValue([]);
   });
 
   it('mientras carga muestra el estado de carga accesible', () => {
@@ -74,15 +74,21 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('con datos muestra las filas con el artefacto nombrado y el resumen', async () => {
+  it('con datos muestra proyecto, documento y repositorio sin la columna Asesor y con la búsqueda habilitada', async () => {
     // Act
     render(<ConsultarVersionesArtefactoAsesor />);
 
     // Assert
     const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
     expect(await within(tabla).findByText('Acta de inicio')).toBeInTheDocument();
+    expect(within(tabla).getByText('Sistema de riego')).toBeInTheDocument();
+    expect(within(tabla).getByText('Versión 2 del documento')).toBeInTheDocument();
+    expect(within(tabla).getByText('Repositorio base')).toBeInTheDocument();
     expect(within(tabla).getByText('Versión 4')).toBeInTheDocument();
+    expect(within(tabla).queryByText('Marta Gómez')).not.toBeInTheDocument();
+    expect(within(tabla).queryByRole('columnheader', { name: 'Asesor' })).not.toBeInTheDocument();
     expect(screen.getByText('1 versión')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });
 
   it('sin versiones muestra el vacío informativo', async () => {
@@ -114,20 +120,6 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(consultarVersiones).toHaveBeenCalledTimes(2);
   });
 
-  it('si el catálogo falla, la búsqueda se deshabilita con aviso y la tabla sigue con "Artefacto sin nombre"', async () => {
-    // Arrange
-    consultarArtefactos.mockRejectedValue(new Error('fallo'));
-
-    // Act
-    render(<ConsultarVersionesArtefactoAsesor />);
-    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
-
-    // Assert
-    expect(await within(tabla).findByText('Artefacto sin nombre')).toBeInTheDocument();
-    expect(await screen.findByText(/No se pudo cargar la lista de artefactos/)).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeDisabled();
-  });
-
   it('elegir un rango desde el botón de fechas consulta con el criterio y el botón muestra el rango', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -152,7 +144,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     ).toBeInTheDocument();
   });
 
-  it('escribir en "Buscar artefactos" consulta con IN sobre los artefactos que coinciden', async () => {
+  it('escribir en "Buscar artefactos" consulta con CONTIENE sobre documento y proyecto', async () => {
     // Arrange
     const user = usarTemporizadoresFalsos();
     render(<ConsultarVersionesArtefactoAsesor />);
@@ -166,32 +158,111 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     await waitFor(() =>
       expect(consultarVersiones).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filtros: {
-            tipo: 'PREDICADO_MULTIVALOR',
-            campo: 'artefacto',
-            operador: 'IN',
-            valores: ['a-1'],
-          },
+          filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'OR' }),
         }),
       ),
     );
   });
 
-  it('un texto sin coincidencias muestra "Sin resultados" sin consultar y "Limpiar filtros" restablece', async () => {
+  it('un texto sin coincidencias consulta al backend, muestra "Sin resultados" y "Limpiar filtros" restablece', async () => {
     // Arrange
     const user = userEvent.setup();
+    consultarVersiones.mockImplementation(({ filtros }) =>
+      Promise.resolve(pagina(filtros ? [] : [VERSION])),
+    );
     render(<ConsultarVersionesArtefactoAsesor />, { initialPath: '/artefactos?q=zzz' });
 
     // Assert
     expect(await screen.findByText('Sin resultados')).toBeInTheDocument();
-    expect(consultarVersiones).not.toHaveBeenCalled();
+    expect(consultarVersiones).toHaveBeenCalled();
 
     // Act
     await user.click(screen.getByRole('button', { name: /limpiar filtros/i }));
 
     // Assert
+    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+    expect(await within(tabla).findByText('Acta de inicio')).toBeInTheDocument();
+  });
+
+  it('con el catálogo muestra los chips "Sin revisión" y estados, y alternar uno consulta con el filtro', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    getEstados.mockResolvedValue([
+      { id: 'PENDIENTE', nombre: 'Pendiente', descripcion: '' },
+      { id: 'RESUELTA', nombre: 'Resuelta', descripcion: '' },
+    ]);
+    render(<ConsultarVersionesArtefactoAsesor />);
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Sin revisión' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Pendiente' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Resuelta' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(consultarVersiones).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filtros: expect.objectContaining({ tipo: 'PREDICADO', campo: 'estadoRevision' }),
+        }),
+      ),
+    );
+  });
+
+  it('sin catálogo no hay chips de estado y la tabla funciona igual', async () => {
+    // Arrange
+    getEstados.mockRejectedValue(new Error('falla'));
+
+    // Act
+    render(<ConsultarVersionesArtefactoAsesor />);
+
+    // Assert
     expect(
       await screen.findByRole('table', { name: 'Versiones de artefactos' }),
     ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sin revisión' })).not.toBeInTheDocument();
+  });
+
+  it('con ?artefacto=<uuid> muestra la insignia "Artefacto: …" y se puede quitar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarVersionesArtefactoAsesor />, {
+      initialPath: '/artefactos?artefacto=3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
+    });
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: /Artefacto: Acta de inicio/ }));
+
+    // Assert
+    expect(
+      screen.queryByRole('button', { name: /Artefacto: Acta de inicio/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('"Ver información" abre el panel con los datos de la versión y cerrarlo conserva la lista', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultarVersiones.mockResolvedValue(pagina([VERSION]));
+    getVersion.mockResolvedValue({ ...VERSION, uriArchivo: 'almacen/acta-v4.pdf' });
+    render(<ConsultarVersionesArtefactoAsesor />);
+    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', {
+        name: 'Acciones de la versión 4 de Acta de inicio',
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver información' }));
+
+    // Assert
+    expect(await screen.findByText('almacen/acta-v4.pdf')).toBeInTheDocument();
+    expect(getVersion).toHaveBeenCalledWith('v-1');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+
+    // Assert
+    await waitFor(() => expect(screen.queryByText('almacen/acta-v4.pdf')).not.toBeInTheDocument());
+    expect(screen.getByRole('table', { name: 'Versiones de artefactos' })).toBeInTheDocument();
   });
 });

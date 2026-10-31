@@ -196,4 +196,40 @@ describe('SolicitudesRecibidasTable', () => {
     expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
     expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
   });
+
+  it('con receptor administrador y tipo registro-modificacion-usuarios usa su etiqueta y su vacío, y sin onResponder no hay acciones', () => {
+    // Arrange / Act
+    const { rerender } = render(
+      <SolicitudesRecibidasTable
+        solicitudes={[]}
+        cargando={false}
+        receptor="administrador"
+        tipo="registro-modificacion-usuarios"
+      />,
+    );
+
+    // Assert
+    expect(
+      screen.getByText(
+        'Cuando un coordinador solicite registrar o modificar usuarios, aparecerá aquí.',
+      ),
+    ).toBeInTheDocument();
+
+    // Act
+    rerender(
+      <SolicitudesRecibidasTable
+        solicitudes={SOLICITUDES}
+        cargando={false}
+        receptor="administrador"
+        tipo="registro-modificacion-usuarios"
+      />,
+    );
+
+    // Assert
+    const tabla = screen.getByRole('table', {
+      name: 'Solicitudes de registro y modificación de usuarios recibidas',
+    });
+    expect(within(tabla).getByText('Luis Gómez')).toBeInTheDocument();
+    expect(within(tabla).queryByRole('button')).not.toBeInTheDocument();
+  });
 });

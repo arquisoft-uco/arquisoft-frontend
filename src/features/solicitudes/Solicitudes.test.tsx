@@ -16,8 +16,13 @@ import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitud
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
 import { useEnviarSolicitudAmpliacionPlazo } from './hooks/useEnviarSolicitudAmpliacionPlazo';
+import { useEnviarSolicitudRegistroModificacionUsuarios } from './hooks/useEnviarSolicitudRegistroModificacionUsuarios';
 import { useSolicitudesNovedadCoordinadorRecibidas } from './hooks/useSolicitudesNovedadCoordinadorRecibidas';
+import { useEliminarSolicitudRegistroModificacionUsuarios } from './hooks/useEliminarSolicitudRegistroModificacionUsuarios';
+import { useSolicitudesRegistroModificacionUsuariosEnviadas } from './hooks/useSolicitudesRegistroModificacionUsuariosEnviadas';
+import { useSolicitudesRegistroModificacionUsuariosRecibidas } from './hooks/useSolicitudesRegistroModificacionUsuariosRecibidas';
 import { useResponderSolicitudAmpliacionPlazo } from './hooks/useResponderSolicitudAmpliacionPlazo';
+import { useResponderSolicitudRegistroModificacionUsuarios } from './hooks/useResponderSolicitudRegistroModificacionUsuarios';
 import { useResponderSolicitudCambioAsesor } from './hooks/useResponderSolicitudCambioAsesor';
 import { useResponderSolicitudNovedadAsesor } from './hooks/useResponderSolicitudNovedadAsesor';
 import { useResponderSolicitudNovedadCoordinador } from './hooks/useResponderSolicitudNovedadCoordinador';
@@ -25,6 +30,7 @@ import { useSolicitudesNovedadAsesorRecibidas } from './hooks/useSolicitudesNove
 import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedadAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasAmpliacionPlazoEnviadas } from './hooks/useRespuestasAmpliacionPlazoEnviadas';
+import { useRespuestasRegistroModificacionUsuariosEnviadas } from './hooks/useRespuestasRegistroModificacionUsuariosEnviadas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
@@ -59,6 +65,10 @@ vi.mock('./hooks/useEnviarSolicitudAmpliacionPlazo', () => ({
   useEnviarSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
+vi.mock('./hooks/useEnviarSolicitudRegistroModificacionUsuarios', () => ({
+  useEnviarSolicitudRegistroModificacionUsuarios: vi.fn(),
+}));
+
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorEnviadas', () => ({
   useSolicitudesNovedadCoordinadorEnviadas: vi.fn(),
 }));
@@ -68,6 +78,10 @@ vi.mock('./hooks/useSolicitudesNovedadAsesorEnviadas', () => ({
 }));
 vi.mock('./hooks/useSolicitudesCambioAsesorEnviadas', () => ({
   useSolicitudesCambioAsesorEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesRegistroModificacionUsuariosEnviadas', () => ({
+  useSolicitudesRegistroModificacionUsuariosEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesAmpliacionPlazoEnviadas', () => ({
@@ -86,12 +100,20 @@ vi.mock('./hooks/useEliminarSolicitudCambioAsesor', () => ({
   useEliminarSolicitudCambioAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useEliminarSolicitudRegistroModificacionUsuarios', () => ({
+  useEliminarSolicitudRegistroModificacionUsuarios: vi.fn(),
+}));
+
 vi.mock('./hooks/useEliminarSolicitudAmpliacionPlazo', () => ({
   useEliminarSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesNovedadCoordinadorRecibidas', () => ({
   useSolicitudesNovedadCoordinadorRecibidas: vi.fn(),
+}));
+
+vi.mock('./hooks/useSolicitudesRegistroModificacionUsuariosRecibidas', () => ({
+  useSolicitudesRegistroModificacionUsuariosRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useSolicitudesCambioAsesorRecibidas', () => ({
@@ -120,6 +142,10 @@ vi.mock('./hooks/useRespuestasCambioAsesorEnviadas', () => ({
 
 vi.mock('./hooks/useRespuestasAmpliacionPlazoEnviadas', () => ({
   useRespuestasAmpliacionPlazoEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasRegistroModificacionUsuariosEnviadas', () => ({
+  useRespuestasRegistroModificacionUsuariosEnviadas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
@@ -176,6 +202,9 @@ vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
 
 vi.mock('./hooks/useResponderSolicitudAmpliacionPlazo', () => ({
   useResponderSolicitudAmpliacionPlazo: vi.fn(),
+}));
+vi.mock('./hooks/useResponderSolicitudRegistroModificacionUsuarios', () => ({
+  useResponderSolicitudRegistroModificacionUsuarios: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudCambioAsesor', () => ({
@@ -329,14 +358,28 @@ function crearConsulta<T>(data: Page<T>): Partial<UseQueryResult<Page<T>>> & { p
 describe('Solicitudes', () => {
   beforeEach(() => {
     resetAllStores();
+    vi.mocked(useSolicitudesRegistroModificacionUsuariosRecibidas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<
+        typeof useSolicitudesRegistroModificacionUsuariosRecibidas
+      >,
+    );
+    vi.mocked(useRespuestasRegistroModificacionUsuariosEnviadas).mockReturnValue(
+      crearConsulta(PAGINA_VACIA) as ReturnType<
+        typeof useRespuestasRegistroModificacionUsuariosEnviadas
+      >,
+    );
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
+    vi.mocked(useEnviarSolicitudRegistroModificacionUsuarios).mockReturnValue(crearMutacionMock());
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,
     } as ReturnType<typeof useEstadosRespuesta>);
+    vi.mocked(useEliminarSolicitudRegistroModificacionUsuarios).mockReturnValue(
+      crearMutacionEliminarMock(),
+    );
     vi.mocked(useEliminarRespuestaNovedadAsesor).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaCambioAsesor).mockReturnValue(crearMutacionEliminarMock());
@@ -365,6 +408,9 @@ describe('Solicitudes', () => {
     vi.mocked(useResponderSolicitudCambioAsesor).mockReturnValue(
       crearMutacionResponderCoordinadorMock(),
     );
+    vi.mocked(useResponderSolicitudRegistroModificacionUsuarios).mockReturnValue(
+      crearMutacionResponderCoordinadorMock(),
+    );
   });
 
   it('redirige a seleccionar-rol cuando no hay rol activo', () => {
@@ -377,7 +423,7 @@ describe('Solicitudes', () => {
   });
 
   it('muestra ComingSoon cuando el rol activo no tiene vista real de solicitudes', () => {
-    autenticarCon(Rol.Administrador);
+    autenticarCon(Rol.Jurado);
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
     expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
@@ -385,6 +431,25 @@ describe('Solicitudes', () => {
     expect(
       screen.queryByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('renderiza AdministradorView con las pestañas Recibidas y Respuestas enviadas y sin ComingSoon', async () => {
+    autenticarCon(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<Solicitudes />, { initialPath: '/solicitudes' });
+
+    expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Recibidas',
+      'Respuestas enviadas',
+    ]);
+    expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas enviadas' }));
+
+    expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
+    expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
   it('renderiza EstudianteView con tres pestañas y el formulario de coordinador cuando el rol activo es Estudiante', () => {
@@ -407,7 +472,7 @@ describe('Solicitudes', () => {
     expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 
-  it('renderiza CoordinadorView con dos pestañas, arranca en Recibidas y abre Respuestas enviadas', async () => {
+  it('renderiza CoordinadorView con cuatro pestañas, arranca en Recibidas y abre Respuestas enviadas, Solicitudes enviadas y Nueva solicitud', async () => {
     autenticarCon(Rol.Coordinador);
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
       crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
@@ -415,6 +480,11 @@ describe('Solicitudes', () => {
     vi.mocked(useRespuestasNovedadCoordinadorEnviadas).mockReturnValue(
       crearConsulta(PAGINA_VACIA) as ReturnType<typeof useRespuestasNovedadCoordinadorEnviadas>,
     );
+    vi.mocked(useSolicitudesRegistroModificacionUsuariosEnviadas).mockReturnValue({
+      ...crearConsulta(PAGINA_VACIA),
+      page: 0,
+      goToPage: vi.fn(),
+    } as ReturnType<typeof useSolicitudesRegistroModificacionUsuariosEnviadas>);
     const user = userEvent.setup();
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
@@ -422,6 +492,8 @@ describe('Solicitudes', () => {
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
       'Recibidas',
       'Respuestas enviadas',
+      'Solicitudes enviadas',
+      'Nueva solicitud',
     ]);
     expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Aún no has recibido solicitudes')).toBeInTheDocument();
@@ -430,6 +502,19 @@ describe('Solicitudes', () => {
 
     expect(screen.getByText('Aún no has enviado respuestas')).toBeInTheDocument();
     expect(screen.queryByText('Aún no has recibido solicitudes')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Solicitudes enviadas' }));
+
+    expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
+    expect(screen.queryByText('Aún no has enviado respuestas')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'Enviar solicitud de registro y modificación de usuarios',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('en Respuestas enviadas el coordinador cambia a Cambio de asesor y ve ese listado', async () => {

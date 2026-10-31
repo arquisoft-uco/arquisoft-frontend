@@ -1,4 +1,4 @@
-import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
+import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision';
 import { useVersionesArtefactoAsesor } from '../../hooks/useVersionesArtefactoAsesor';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
 
@@ -7,13 +7,13 @@ const DESCRIPCION_VACIO =
 
 export default function ConsultarVersionesArtefactoAsesor() {
   const listado = useVersionesArtefactoAsesor();
-  const catalogo = useArtefactosAsesor();
+  const opcionesEstado = useOpcionesEstadoRevision();
 
   return (
     <ConsultarVersionesArtefacto
       listado={listado}
-      catalogo={catalogo}
       descripcionVacio={DESCRIPCION_VACIO}
+      opcionesEstado={opcionesEstado}
     />
   );
 }

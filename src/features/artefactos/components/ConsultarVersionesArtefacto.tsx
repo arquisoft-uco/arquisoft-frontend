@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../shared/components/PaginadorListado';
+import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
-import type {
-  CatalogoArtefactos,
-  ListadoVersionesArtefacto,
-} from '../hooks/useListadoVersionesArtefacto';
+import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
+import type { VersionArtefacto } from '../models/VersionArtefacto';
+import DetalleVersionArtefactoPanel from './DetalleVersionArtefactoPanel';
 import FiltrosVersionesArtefacto from './FiltrosVersionesArtefacto';
 import VersionesArtefactoTable from './VersionesArtefactoTable';
 
@@ -18,21 +19,24 @@ function textoResumen(total?: number): string {
 
 interface Props {
   listado: ListadoVersionesArtefacto;
-  catalogo: CatalogoArtefactos;
   descripcionVacio: string;
+  mostrarAsesor?: boolean;
+  opcionesEstado?: OpcionFiltro[];
 }
 
 export default function ConsultarVersionesArtefacto({
   listado,
-  catalogo,
   descripcionVacio,
+  mostrarAsesor = false,
+  opcionesEstado,
 }: Props) {
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const versiones = data?.content ?? [];
+  const [versionAbierta, setVersionAbierta] = useState<VersionArtefacto | null>(null);
 
   return (
     <div className={RAIZ}>
-      <FiltrosVersionesArtefacto listado={listado} />
+      <FiltrosVersionesArtefacto listado={listado} opcionesEstado={opcionesEstado} />
 
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.totalElements)}
@@ -48,14 +52,14 @@ export default function ConsultarVersionesArtefacto({
         ) : (
           <VersionesArtefactoTable
             versiones={versiones}
-            artefactoDe={catalogo.artefactoDe}
-            nombresCargando={catalogo.isLoading}
             descripcionVacio={descripcionVacio}
+            mostrarAsesor={mostrarAsesor}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onVerInformacion={setVersionAbierta}
           />
         )}
       </div>
@@ -69,6 +73,13 @@ export default function ConsultarVersionesArtefacto({
           cantidadEnPagina={versiones.length}
           etiquetaPlural="versiones"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {versionAbierta && (
+        <DetalleVersionArtefactoPanel
+          version={versionAbierta}
+          onCerrar={() => setVersionAbierta(null)}
         />
       )}
     </div>

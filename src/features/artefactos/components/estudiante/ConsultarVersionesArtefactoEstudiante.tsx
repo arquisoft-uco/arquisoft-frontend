@@ -1,4 +1,4 @@
-import { useCatalogoArtefactosEstudiante } from '../../hooks/useCatalogoArtefactosEstudiante';
+import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision';
 import { useVersionesArtefactoEstudiante } from '../../hooks/useVersionesArtefactoEstudiante';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
 
@@ -6,13 +6,14 @@ const DESCRIPCION_VACIO = 'Aparecerán aquí cuando se genere una versión de un
 
 export default function ConsultarVersionesArtefactoEstudiante() {
   const listado = useVersionesArtefactoEstudiante();
-  const catalogo = useCatalogoArtefactosEstudiante();
+  const opcionesEstado = useOpcionesEstadoRevision();
 
   return (
     <ConsultarVersionesArtefacto
       listado={listado}
-      catalogo={catalogo}
       descripcionVacio={DESCRIPCION_VACIO}
+      opcionesEstado={opcionesEstado}
+      mostrarAsesor
     />
   );
 }

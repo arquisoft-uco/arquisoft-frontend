@@ -6,4 +6,6 @@ export interface ParticipacionArtefacto {
   nombreDocumento: string;
   versionDocumento: number;
   nombreRepositorio: string;
+  asesor: string;
+  nombreAsesor: string;
 }

@@ -1,52 +1,59 @@
 import type { ComponentType } from 'react';
-import { useLocation } from 'react-router';
+import { Navigate, useLocation } from 'react-router';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
-import ConsultarEstadosRevisionAsesor from './asesor/ConsultarEstadosRevisionAsesor';
-import ConsultarRevisionesRealizadas from './asesor/ConsultarRevisionesRealizadas';
+import ConsultarArtefactosAsignadosAsesor from './asesor/ConsultarArtefactosAsignadosAsesor';
 import ConsultarVersionesArtefactoAsesor from './asesor/ConsultarVersionesArtefactoAsesor';
 import ConsultarVersionesRepositorioAsesor from './asesor/ConsultarVersionesRepositorioAsesor';
 
-type Vista = 'revisiones' | 'estados' | 'versiones' | 'versiones-artefactos';
+type Vista = 'artefactos' | 'versiones-artefactos' | 'versiones';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
-  revisiones: ConsultarRevisionesRealizadas,
-  estados: ConsultarEstadosRevisionAsesor,
-  versiones: ConsultarVersionesRepositorioAsesor,
+  artefactos: ConsultarArtefactosAsignadosAsesor,
   'versiones-artefactos': ConsultarVersionesArtefactoAsesor,
+  versiones: ConsultarVersionesRepositorioAsesor,
+};
+
+const VISTAS_RETIRADAS: Record<string, Vista> = {
+  revisiones: 'versiones-artefactos',
+  estados: 'versiones-artefactos',
 };
 
 function leerVista(valor: string): Vista {
-  return Object.keys(CONTENIDO_POR_VISTA).includes(valor) ? (valor as Vista) : 'revisiones';
+  return Object.keys(CONTENIDO_POR_VISTA).includes(valor) ? (valor as Vista) : 'artefactos';
 }
 
 export default function AsesorView() {
   const { pathname } = useLocation();
-  const vista = leerVista(useParametrosListado().texto('vista'));
+  const valorVista = useParametrosListado().texto('vista');
+  const vista = leerVista(valorVista);
   const Contenido = CONTENIDO_POR_VISTA[vista];
+
+  if (Object.keys(VISTAS_RETIRADAS).includes(valorVista)) {
+    return <Navigate to={`${pathname}?vista=${VISTAS_RETIRADAS[valorVista]}`} replace />;
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Artefactos"
-        descripcion="Consulta tus revisiones realizadas, sus estados, las versiones de repositorio disponibles para asignar y las versiones de los artefactos que tienes asignados."
+        descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones y las versiones de repositorio disponibles para asignar."
       />
       <Tabs
         etiqueta="Secciones de artefactos"
         valor={vista}
         items={[
-          { id: 'revisiones', etiqueta: 'Revisiones realizadas', to: pathname },
-          { id: 'estados', etiqueta: 'Estados de revisión', to: `${pathname}?vista=estados` },
-          {
-            id: 'versiones',
-            etiqueta: 'Versiones de repositorio',
-            to: `${pathname}?vista=versiones`,
-          },
+          { id: 'artefactos', etiqueta: 'Artefactos asignados', to: pathname },
           {
             id: 'versiones-artefactos',
             etiqueta: 'Versiones de artefactos',
             to: `${pathname}?vista=versiones-artefactos`,
+          },
+          {
+            id: 'versiones',
+            etiqueta: 'Versiones de repositorio',
+            to: `${pathname}?vista=versiones`,
           },
         ]}
       />
