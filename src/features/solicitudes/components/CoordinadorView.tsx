@@ -6,16 +6,18 @@ import { useFiltrosRespuestas, type FiltrosRespuestas } from '../hooks/useFiltro
 import RespuestasEnviadasPorTipoPanel from './coordinador/RespuestasEnviadasPorTipoPanel';
 import RecibidasPanel from './coordinador/RecibidasPanel';
 import RegistroModificacionUsuariosForm from './coordinador/RegistroModificacionUsuariosForm';
+import SolicitudesRegistroModificacionUsuariosEnviadasPanel from './coordinador/SolicitudesRegistroModificacionUsuariosEnviadasPanel';
 import type {
   TipoRespuestaEnviadaCoordinadorUi,
   TipoSolicitudRecibidaUi,
 } from './SelectorTipoSolicitud';
 
-type Pestana = 'recibidas' | 'respuestas-enviadas' | 'nueva';
+type Pestana = 'recibidas' | 'respuestas-enviadas' | 'enviadas' | 'nueva';
 
 const PESTANAS: { id: Pestana; etiqueta: string; icono?: LucideIcon }[] = [
   { id: 'recibidas', etiqueta: 'Recibidas' },
   { id: 'respuestas-enviadas', etiqueta: 'Respuestas enviadas' },
+  { id: 'enviadas', etiqueta: 'Solicitudes enviadas' },
   { id: 'nueva', etiqueta: 'Nueva solicitud', icono: Plus },
 ];
 
@@ -44,6 +46,7 @@ export default function CoordinadorView() {
       />
     ),
     'respuestas-enviadas': <RespuestasEnviadasPorTipoPanel filtros={filtrosRespuestasEnviadas} />,
+    enviadas: <SolicitudesRegistroModificacionUsuariosEnviadasPanel />,
     nueva: <RegistroModificacionUsuariosForm />,
   };
 
@@ -51,7 +54,7 @@ export default function CoordinadorView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Solicitudes"
-        descripcion="Consulta y responde las solicitudes que te han enviado, revisa las respuestas que diste y envía solicitudes nuevas."
+        descripcion="Consulta y responde las solicitudes que te han enviado, revisa las respuestas que diste, consulta las solicitudes que enviaste y envía solicitudes nuevas."
       />
 
       <Tabs
