@@ -1,8 +1,8 @@
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
-import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
+import FiltrosArtefactosAsesor from './FiltrosArtefactosAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -20,17 +20,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
 
   return (
     <div className={RAIZ}>
-      <FilterBar
-        busqueda={{
-          valor: listado.texto,
-          onCambiar: listado.setTexto,
-          etiqueta: 'Buscar artefactos',
-          placeholder: 'Buscar por documento, proyecto o repositorio',
-        }}
-        aplicados={[]}
-        onLimpiar={listado.limpiarFiltros}
-        totalResultados={data?.totalElements}
-      />
+      <FiltrosArtefactosAsesor listado={listado} />
 
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.totalElements)}

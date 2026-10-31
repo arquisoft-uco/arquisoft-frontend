@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, within } from '../../../../test-utils/render';
+import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import { artefactosService } from '../../services/artefactosService';
@@ -69,5 +69,48 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     // Assert
     expect(await screen.findByRole('table', { name: 'Artefactos asignados' })).toBeInTheDocument();
     expect(consultar).toHaveBeenCalledTimes(2);
+  });
+
+  it('con filtros en la URL envía el criterio, muestra los chips y quitar uno actualiza la consulta', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarArtefactosAsignadosAsesor />, {
+      initialPath: '/artefactos?proyecto=riego&version=2',
+    });
+    await screen.findByRole('table', { name: 'Artefactos asignados' });
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'AND' }),
+      }),
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar filtro Proyecto: riego' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filtros: expect.objectContaining({ campo: 'versionDocumento', operador: 'ES' }),
+        }),
+      ),
+    );
+    expect(screen.queryByRole('button', { name: 'Quitar filtro Proyecto: riego' })).toBeNull();
+  });
+
+  it('sin coincidencias bajo filtros muestra "Sin resultados" y "Limpiar filtros" los quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultar.mockResolvedValue(pagina([]));
+    render(<ConsultarArtefactosAsignadosAsesor />, { initialPath: '/artefactos?documento=zzz' });
+
+    // Act
+    expect(await screen.findByText('Sin resultados')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined })),
+    );
   });
 });
