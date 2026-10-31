@@ -6,6 +6,9 @@ import { useTarea } from '../hooks/useTarea';
 import DetalleTareaEstudianteView from './DetalleTareaEstudianteView';
 
 vi.mock('../hooks/useTarea', () => ({ useTarea: vi.fn() }));
+vi.mock('./estudiante/CambiarEstadoTareaPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de cambio de estado" />,
+}));
 
 const useDetalle = vi.mocked(useTarea);
 
@@ -126,5 +129,35 @@ describe('DetalleTareaEstudianteView', () => {
     // Assert
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(base.reintentar).toHaveBeenCalled();
+  });
+
+  it('Cambiar estado abre el panel con una tarea que admite cambios', async () => {
+    // Arrange
+    simular();
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de cambio de estado' })).toBeInTheDocument();
+  });
+
+  it('no ofrece Cambiar estado con tarea finalizada, cargando ni con error', () => {
+    // Arrange / Act / Assert
+    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+    const finalizada = renderizar();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+    finalizada.unmount();
+
+    simular({ tarea: undefined, cargando: true });
+    const cargando = renderizar();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+    cargando.unmount();
+
+    simular({ tarea: undefined, hayError: true });
+    renderizar();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
 import {
   campoDeErrorMapaRuta,
+  mensajeErrorCambioEstadoTarea,
   mensajeErrorCambioFechaFin,
   mensajeErrorMapaRuta,
 } from './errores-mapa-ruta';
@@ -57,6 +58,20 @@ describe('errores-mapa-ruta', () => {
   ])('cambio de fecha de fin: %s se traduce a texto propio', (codigo, texto) => {
     // Act / Assert
     expect(mensajeErrorCambioFechaFin(errorApi(codigo))).toContain(texto);
+  });
+
+  it.each([
+    ['TRANSICION_ESTADO_ITEM_NO_PERMITIDA', 'ya no admite ese cambio de estado'],
+    ['TAREA_NO_ENCONTRADA', 'ya no está disponible'],
+  ])('cambio de estado de tarea: %s se traduce a texto propio', (codigo, texto) => {
+    // Act / Assert
+    expect(mensajeErrorCambioEstadoTarea(errorApi(codigo))).toContain(texto);
+  });
+
+  it('cambio de estado de tarea: código desconocido usa el message y sin payload el respaldo', () => {
+    // Act / Assert
+    expect(mensajeErrorCambioEstadoTarea(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorCambioEstadoTarea(new Error('red'))).toBe('Inténtalo nuevamente.');
   });
 
   it('cambio de fecha de fin: código desconocido usa el message y sin payload el respaldo', () => {
