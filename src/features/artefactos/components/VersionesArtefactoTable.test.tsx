@@ -29,6 +29,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof VersionesArtefa
     orden: { clave: 'fechaCreacion', direccion: 'DESC' as const },
     onOrdenar: vi.fn(),
     onLimpiarFiltros: vi.fn(),
+    onVerInformacion: vi.fn(),
     ...parcial,
   };
   render(<VersionesArtefactoTable {...props} />);
@@ -112,6 +113,21 @@ describe('VersionesArtefactoTable', () => {
     for (const nombre of ['Proyecto', 'Documento', 'Repositorio', 'Asesor']) {
       expect(tabla().queryByRole('button', { name: nombre })).not.toBeInTheDocument();
     }
+  });
+
+  it('la acción "Ver información" de la fila entrega esa versión', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onVerInformacion } = renderizar();
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la versión 4 de Acta de inicio' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver información' }));
+
+    // Assert
+    expect(onVerInformacion).toHaveBeenCalledWith(VERSION);
   });
 
   it('sin versiones y sin filtros muestra el vacío informativo sin acción', () => {
