@@ -102,6 +102,17 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  consultarSolicitudesRegistroModificacionUsuariosEnviadas: (
+    page = 0,
+    size = 10,
+  ): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/registro-modificacion-usuarios/enviadas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
   consultarSolicitudesNovedadCoordinadorRecibidas: (
     page = 0,
     size = 10,

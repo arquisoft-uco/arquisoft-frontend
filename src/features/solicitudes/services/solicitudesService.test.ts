@@ -188,6 +188,35 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarSolicitudesRegistroModificacionUsuariosEnviadas', () => {
+    const pagina = {
+      content: [],
+      page: 2,
+      size: 10,
+      totalElements: 0,
+      totalPages: 0,
+      first: false,
+      last: true,
+      empty: true,
+    };
+
+    it('llama POST /solicitudes/registro-modificacion-usuarios/enviadas con { pagina, tamanio } y resuelve la página', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarSolicitudesRegistroModificacionUsuariosEnviadas(2, 10);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/solicitudes/registro-modificacion-usuarios/enviadas', {
+        pagina: 2,
+        tamanio: 10,
+      });
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('consultarSolicitudesNovedadCoordinadorRecibidas', () => {
     const pagina = {
       content: [],

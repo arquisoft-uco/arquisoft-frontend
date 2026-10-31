@@ -4,14 +4,14 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import type { ConsultaListadoSolicitudes } from '../../models/ConsultaListadoSolicitudes';
 import type { Solicitud } from '../../models/Solicitud';
 import ResumenListado from '../ResumenListado';
-import type { TipoSolicitudEnviadaUi } from '../SelectorTipoSolicitud';
+import type { TipoSolicitudListadoEnviadoUi } from '../SelectorTipoSolicitud';
 import SolicitudesEnviadasTable from './SolicitudesEnviadasTable';
 
 const RAIZ = 'flex flex-col gap-4';
 
 interface Props {
   consulta: ConsultaListadoSolicitudes;
-  tipo: TipoSolicitudEnviadaUi;
+  tipo: TipoSolicitudListadoEnviadoUi;
   eliminando?: boolean;
   onEliminar?: (solicitud: Solicitud) => void;
 }

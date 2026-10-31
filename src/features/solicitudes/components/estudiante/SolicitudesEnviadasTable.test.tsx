@@ -197,6 +197,33 @@ describe('SolicitudesEnviadasTable', () => {
     ).toBeInTheDocument();
   });
 
+  it('con tipo registro-modificacion-usuarios usa la columna Administrador y no muestra acciones', () => {
+    // Act
+    renderizar({ tipo: 'registro-modificacion-usuarios', onEliminar: undefined });
+
+    // Assert
+    const tablaRegistro = screen.getByRole('table', {
+      name: 'Solicitudes de registro y modificación de usuarios enviadas',
+    });
+    expect(
+      within(tablaRegistro).getByRole('columnheader', { name: 'Administrador' }),
+    ).toBeInTheDocument();
+    expect(within(tablaRegistro).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaRegistro).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo registro-modificacion-usuarios y sin solicitudes el vacío menciona el registro y modificación de usuarios', () => {
+    // Act
+    renderizar({ tipo: 'registro-modificacion-usuarios', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText(
+        'Cuando envíes una solicitud de registro y modificación de usuarios, aparecerá aquí.',
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('deshabilita todos los botones de eliminar mientras se elimina', () => {
     // Arrange / Act
     renderizar({ eliminando: true });

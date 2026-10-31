@@ -5,6 +5,10 @@ export type TipoSolicitudUi = 'coordinador' | 'asesor';
 export type TipoSolicitudEnviableUi = TipoSolicitudUi | 'cambio-asesor';
 export type TipoSolicitudNuevaUi = TipoSolicitudEnviableUi | 'ampliacion-plazo';
 export type TipoSolicitudEnviadaUi = TipoSolicitudNuevaUi;
+export type TipoSolicitudEnviadaCoordinadorUi = 'registro-modificacion-usuarios';
+export type TipoSolicitudListadoEnviadoUi =
+  | TipoSolicitudEnviadaUi
+  | TipoSolicitudEnviadaCoordinadorUi;
 export type TipoRespuestaRecibidaEstudianteUi = TipoSolicitudNuevaUi;
 export type TipoRespuestaEnviadaCoordinadorUi = 'novedad' | 'cambio-asesor' | 'ampliacion-plazo';
 export type TipoSolicitudRecibidaUi = TipoRespuestaEnviadaCoordinadorUi;

@@ -62,4 +62,20 @@ describe('useEnviarSolicitudRegistroModificacionUsuarios', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
+
+  it('al enviar con éxito invalida las enviadas de registro y modificación de usuarios por prefijo', async () => {
+    enviarSolicitudRegistroModificacionUsuarios.mockResolvedValue({ id: 's-5' });
+    const { Wrapper, queryClient } = crearContexto();
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useEnviarSolicitudRegistroModificacionUsuarios(), {
+      wrapper: Wrapper,
+    });
+
+    act(() => result.current.mutate(REQUEST));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['solicitudes', 'registro-modificacion-usuarios', 'enviadas'],
+    });
+  });
 });
