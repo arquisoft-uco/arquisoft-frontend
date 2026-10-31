@@ -10,6 +10,7 @@ import type {
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
+import InsigniaEstadoRevision from './InsigniaEstadoRevision';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
@@ -58,6 +59,13 @@ function construirColumnas(mostrarAsesor: boolean): ColumnaTabla<VersionArtefact
       clave: 'version',
       ordenable: true,
       celda: (version) => <Badge variante="neutro">{etiquetaVersion(version)}</Badge>,
+    },
+    {
+      id: 'estado',
+      encabezado: 'Estado de revisión',
+      clave: 'estadoRevision',
+      ordenable: true,
+      celda: (version) => <InsigniaEstadoRevision version={version} />,
     },
     {
       id: 'fecha',
@@ -134,6 +142,7 @@ export default function VersionesArtefactoTable({
             {etiquetaVersion(version)} · {formatearFechaCreacion(version.fechaCreacion)}
           </p>
           {mostrarAsesor && <p className={TARJETA_DATO}>{version.nombreAsesor}</p>}
+          <InsigniaEstadoRevision version={version} />
         </>
       )}
     />

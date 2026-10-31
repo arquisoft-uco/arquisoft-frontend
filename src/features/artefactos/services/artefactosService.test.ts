@@ -57,49 +57,6 @@ describe('artefactosService', () => {
     });
   });
 
-  describe('consultarRevisionesAsesor', () => {
-    it('hace POST /revisiones-asesor/asesor con el criterio y traduce los nombres conservando la página', async () => {
-      // Arrange
-      const criterio = { pagina: 0, tamanio: 10, ordenamiento: ['estadoRevisionAsesor:ASC'] };
-      post.mockResolvedValue({
-        data: {
-          content: [
-            {
-              id: 'r-1',
-              versionArtefacto: 'v-1',
-              artefacto: 'a-1',
-              version: 2,
-              estadoRevisionAsesor: 'PENDIENTE',
-              estadoRevisionAsesorNombre: 'Pendiente',
-            },
-          ],
-          totalElements: 1,
-          totalPages: 1,
-        },
-      });
-
-      // Act
-      const resultado = await artefactosService.consultarRevisionesAsesor(criterio);
-
-      // Assert
-      expect(post).toHaveBeenCalledWith('/revisiones-asesor/asesor', criterio);
-      expect(resultado).toEqual({
-        content: [
-          {
-            id: 'r-1',
-            versionArtefactoId: 'v-1',
-            artefactoId: 'a-1',
-            version: 2,
-            estadoId: 'PENDIENTE',
-            estadoNombre: 'Pendiente',
-          },
-        ],
-        totalElements: 1,
-        totalPages: 1,
-      });
-    });
-  });
-
   describe('getObservacionesRevisionEstudiante', () => {
     it('consulta GET /revisiones-asesor/{id}/observaciones/estudiante y traduce revisionAsesor y estado', async () => {
       // Arrange
@@ -154,6 +111,22 @@ describe('artefactosService', () => {
 
       // Assert
       expect(post).toHaveBeenCalledWith('/versiones-artefacto/asesor', req);
+      expect(resultado).toBe(pagina);
+    });
+  });
+
+  describe('consultas de HU-112-AJ3', () => {
+    it('consultarArtefactosAsesor hace POST a /artefactos/asesor y devuelve data', async () => {
+      // Arrange
+      const req = { pagina: 0, tamanio: 10, ordenamiento: ['nombreProyecto:ASC'] };
+      const pagina = { content: [], totalElements: 0 };
+      post.mockResolvedValue({ data: pagina });
+
+      // Act
+      const resultado = await artefactosService.consultarArtefactosAsesor(req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/artefactos/asesor', req);
       expect(resultado).toBe(pagina);
     });
   });

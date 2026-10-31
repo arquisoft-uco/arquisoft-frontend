@@ -75,6 +75,8 @@ describe('useVersionesArtefactoEstudiante', () => {
       '',
       '',
       'fechaCreacion:DESC',
+      [],
+      '',
     ]);
   });
 
@@ -93,7 +95,13 @@ describe('useVersionesArtefactoEstudiante', () => {
       pagina: 0,
       tamanio: 10,
       ordenamiento: ['version:ASC'],
-      filtros: construirFiltros({ texto: 'acta', desde: '2026-10-01', hasta: '2026-10-15' }),
+      filtros: construirFiltros({
+        texto: 'acta',
+        desde: '2026-10-01',
+        hasta: '2026-10-15',
+        estadoIds: [],
+        artefacto: '',
+      }),
     });
     expect(result.current.hayFiltros).toBe(true);
     expect(result.current.ordenCampo).toBe('version');

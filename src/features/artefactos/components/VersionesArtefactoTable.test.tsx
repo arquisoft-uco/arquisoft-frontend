@@ -15,6 +15,9 @@ const VERSION: VersionArtefacto = {
   versionDocumento: 2,
   nombreRepositorio: 'Repositorio base',
   nombreAsesor: 'Marta Gómez',
+  revisionAsesor: null,
+  estadoRevision: null,
+  nombreEstadoRevision: null,
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof VersionesArtefactoTable>> = {}) {
@@ -69,7 +72,32 @@ describe('VersionesArtefactoTable', () => {
     expect(tabla().getByText('Marta Gómez')).toBeInTheDocument();
   });
 
-  it('solo Versión y Fecha de creación ordenan y entregan su clave', async () => {
+  it('muestra la insignia del estado de revisión o "Sin revisión" y ordena por estado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onOrdenar } = renderizar({
+      versiones: [
+        VERSION,
+        {
+          ...VERSION,
+          id: 'v-2',
+          revisionAsesor: 'r-1',
+          estadoRevision: 'EN_PROGRESO',
+          nombreEstadoRevision: 'En progreso',
+        },
+      ],
+    });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Estado de revisión' }));
+
+    // Assert
+    expect(tabla().getByText('Sin revisión')).toBeInTheDocument();
+    expect(tabla().getByText('En progreso')).toBeInTheDocument();
+    expect(onOrdenar).toHaveBeenCalledWith('estadoRevision', expect.any(String));
+  });
+
+  it('solo Versión, Estado de revisión y Fecha de creación ordenan y entregan su clave', async () => {
     // Arrange
     const user = userEvent.setup();
     const { onOrdenar } = renderizar({ mostrarAsesor: true });

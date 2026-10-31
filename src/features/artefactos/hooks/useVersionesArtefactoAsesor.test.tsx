@@ -66,7 +66,18 @@ describe('useVersionesArtefactoAsesor', () => {
         .getAll()
         .map((q) => q.queryKey)
         .find((k) => k[1] === 'versiones-artefacto'),
-    ).toEqual(['artefactos', 'versiones-artefacto', 'asesor', 0, '', '', '', 'fechaCreacion:DESC']);
+    ).toEqual([
+      'artefactos',
+      'versiones-artefacto',
+      'asesor',
+      0,
+      '',
+      '',
+      '',
+      'fechaCreacion:DESC',
+      [],
+      '',
+    ]);
   });
 
   it('lee q, desde, hasta y orden de la URL y los traduce a filtros con el texto en CONTIENE', async () => {
@@ -84,7 +95,13 @@ describe('useVersionesArtefactoAsesor', () => {
       pagina: 0,
       tamanio: 10,
       ordenamiento: ['version:ASC'],
-      filtros: construirFiltros({ texto: 'acta', desde: '2026-10-01', hasta: '2026-10-15' }),
+      filtros: construirFiltros({
+        texto: 'acta',
+        desde: '2026-10-01',
+        hasta: '2026-10-15',
+        estadoIds: [],
+        artefacto: '',
+      }),
     });
     expect(result.current.hayFiltros).toBe(true);
     expect(result.current.ordenCampo).toBe('version');
@@ -126,5 +143,54 @@ describe('useVersionesArtefactoAsesor', () => {
     // Assert
     await waitFor(() => expect(result.current.hayFiltros).toBe(false));
     expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined }));
+  });
+
+  it('lee estado y artefacto de la URL, envía el orden por estado y descarta un artefacto que no es UUID', async () => {
+    // Arrange
+    const uuid = '3f2b8c1e-9d4a-4e6b-8a1c-0b5d7e9f1a2c';
+
+    // Act
+    const { result } = renderHook(() => useVersionesArtefactoAsesor(), {
+      wrapper: crearWrapper(
+        queryClient,
+        `/artefactos?estado=SIN_REVISION&estado=PENDIENTE&artefacto=${uuid}&orden=estadoRevision:DESC`,
+      ),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenLastCalledWith({
+      pagina: 0,
+      tamanio: 10,
+      ordenamiento: ['estadoRevision:DESC'],
+      filtros: construirFiltros({
+        texto: '',
+        desde: '',
+        hasta: '',
+        estadoIds: ['SIN_REVISION', 'PENDIENTE'],
+        artefacto: uuid,
+      }),
+    });
+    expect(result.current.estadoIds).toEqual(['SIN_REVISION', 'PENDIENTE']);
+
+    // Act
+    act(() => result.current.toggleEstado('PENDIENTE'));
+    act(() => result.current.quitarArtefacto());
+
+    // Assert
+    await waitFor(() => expect(result.current.estadoIds).toEqual(['SIN_REVISION']));
+    expect(result.current.artefacto).toBe('');
+  });
+
+  it('un artefacto que no es UUID se ignora', async () => {
+    // Act
+    const { result } = renderHook(() => useVersionesArtefactoAsesor(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?artefacto=abc'),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.artefacto).toBe('');
+    expect(consultar).toHaveBeenCalledWith(expect.objectContaining({ filtros: undefined }));
   });
 });

@@ -53,7 +53,7 @@ vi.mock('./services/artefactosService', () => ({
       empty: true,
     }),
     getParticipacionesEstudiante: vi.fn().mockResolvedValue([]),
-    consultarRevisionesAsesor: vi.fn().mockResolvedValue({
+    consultarArtefactosAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
       totalPages: 0,
@@ -100,24 +100,55 @@ describe('Artefactos', () => {
     ).toBeInTheDocument();
   });
 
-  it('el asesor ve por defecto las revisiones realizadas y con ?vista=estados el catálogo', async () => {
+  it('el asesor ve por defecto "Artefactos asignados" y sus tres pestañas, sin las retiradas', async () => {
     // Arrange
     entrarComo(Rol.Asesor);
     setActiveRole(Rol.Asesor);
 
     // Act
-    const { unmount } = renderizar();
-    const porDefecto = await screen.findByRole('link', { name: 'Revisiones realizadas' });
-    unmount();
-    renderizar('/artefactos?vista=estados');
+    renderizar();
 
     // Assert
-    expect(porDefecto).toHaveAttribute('aria-current', 'page');
-    expect(await screen.findByText('Aún no hay estados de revisión')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Estados de revisión' })).toHaveAttribute(
+    expect(await screen.findByText('Aún no tienes artefactos asignados')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Artefactos asignados' })).toHaveAttribute(
       'aria-current',
       'page',
     );
+    expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones de repositorio' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Estados de revisión' })).not.toBeInTheDocument();
+  });
+
+  it('?vista=estados y ?vista=revisiones terminan en "Versiones de artefactos"', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    for (const vista of ['estados', 'revisiones']) {
+      // Act
+      const { unmount } = renderizar(`/artefactos?vista=${vista}`);
+
+      // Assert
+      expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+      unmount();
+    }
+  });
+
+  it('una vista desconocida cae a "Artefactos asignados"', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar('/artefactos?vista=desconocida');
+
+    // Assert
+    expect(await screen.findByText('Aún no tienes artefactos asignados')).toBeInTheDocument();
   });
 
   it('con ?vista=versiones el asesor ve la pestaña de versiones de repositorio', async () => {
@@ -134,7 +165,7 @@ describe('Artefactos', () => {
       'aria-current',
       'page',
     );
-    expect(screen.getByRole('link', { name: 'Revisiones realizadas' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Artefactos asignados' })).toBeInTheDocument();
   });
 
   it('con ?vista=versiones-artefactos el asesor ve la pestaña de versiones de artefactos', async () => {

@@ -1,4 +1,5 @@
 import PaginadorListado from '../../../shared/components/PaginadorListado';
+import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
@@ -17,19 +18,21 @@ interface Props {
   listado: ListadoVersionesArtefacto;
   descripcionVacio: string;
   mostrarAsesor?: boolean;
+  opcionesEstado?: OpcionFiltro[];
 }
 
 export default function ConsultarVersionesArtefacto({
   listado,
   descripcionVacio,
   mostrarAsesor = false,
+  opcionesEstado,
 }: Props) {
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const versiones = data?.content ?? [];
 
   return (
     <div className={RAIZ}>
-      <FiltrosVersionesArtefacto listado={listado} />
+      <FiltrosVersionesArtefacto listado={listado} opcionesEstado={opcionesEstado} />
 
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.totalElements)}
