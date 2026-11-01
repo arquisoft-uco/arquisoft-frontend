@@ -16,11 +16,15 @@ vi.mock('../../services/artefactosService', () => ({
     consultarVersionesArtefactoAsesor: vi.fn(),
     getEstadosRevisionAsesor: vi.fn(),
     getVersionArtefacto: vi.fn(),
+    getIdsArtefactosOmitidosAsesor: vi.fn(),
+    registrarRevision: vi.fn(),
   },
 }));
 
 const getVersion = vi.mocked(artefactosService.getVersionArtefacto);
 const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
+const getOmitidos = vi.mocked(artefactosService.getIdsArtefactosOmitidosAsesor);
+const registrarRevision = vi.mocked(artefactosService.registrarRevision);
 
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
 
@@ -61,6 +65,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     vi.clearAllMocks();
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
     getEstados.mockResolvedValue([]);
+    getOmitidos.mockResolvedValue([]);
   });
 
   it('mientras carga muestra el estado de carga accesible', () => {
@@ -117,7 +122,8 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(
       await screen.findByRole('table', { name: 'Versiones de artefactos' }),
     ).toBeInTheDocument();
-    expect(consultarVersiones).toHaveBeenCalledTimes(2);
+    const consultasDelListado = consultarVersiones.mock.calls.filter(([req]) => req.tamanio !== 1);
+    expect(consultasDelListado).toHaveLength(2);
   });
 
   it('elegir un rango desde el botón de fechas consulta con el criterio y el botón muestra el rango', async () => {
@@ -264,5 +270,99 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     // Assert
     await waitFor(() => expect(screen.queryByText('almacen/acta-v4.pdf')).not.toBeInTheDocument());
     expect(screen.getByRole('table', { name: 'Versiones de artefactos' })).toBeInTheDocument();
+  });
+
+  describe('registrar revisión (HU-114)', () => {
+    const ANTERIOR: VersionArtefacto = { ...VERSION, id: 'v-0', version: 3 };
+
+    function listarConUltima(filas: VersionArtefacto[]) {
+      consultarVersiones.mockImplementation(({ tamanio }) =>
+        Promise.resolve(pagina(tamanio === 1 ? [VERSION] : filas)),
+      );
+    }
+
+    async function abrirMenu(version: number) {
+      const user = userEvent.setup();
+      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        await within(tabla).findByRole('button', {
+          name: `Acciones de la versión ${version} de Acta de inicio`,
+        }),
+      );
+      return user;
+    }
+
+    it('la ofrece en la última versión sin revisión y confirmar registra por el id de la fila', async () => {
+      // Arrange
+      listarConUltima([VERSION, ANTERIOR]);
+      registrarRevision.mockResolvedValue({ id: 'r-1' });
+      render(<ConsultarVersionesArtefactoAsesor />);
+
+      // Act
+      const user = await abrirMenu(4);
+      await user.click(await screen.findByRole('menuitem', { name: 'Registrar revisión' }));
+      await user.click(
+        within(screen.getByRole('dialog', { name: '¿Registrar revisión?' })).getByRole('button', {
+          name: 'Registrar revisión',
+        }),
+      );
+
+      // Assert
+      await waitFor(() => expect(registrarRevision).toHaveBeenCalledWith('v-1'));
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: '¿Registrar revisión?' }),
+        ).not.toBeInTheDocument(),
+      );
+    });
+
+    it('no la ofrece en una versión anterior', async () => {
+      // Arrange
+      listarConUltima([VERSION, ANTERIOR]);
+      render(<ConsultarVersionesArtefactoAsesor />);
+
+      // Act
+      await abrirMenu(3);
+
+      // Assert
+      await waitFor(() => expect(getOmitidos).toHaveBeenCalled());
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('no la ofrece con una revisión pendiente', async () => {
+      // Arrange
+      listarConUltima([{ ...VERSION, revisionAsesor: 'r-1', estadoRevision: 'PENDIENTE' }]);
+      render(<ConsultarVersionesArtefactoAsesor />);
+
+      // Act
+      await abrirMenu(4);
+
+      // Assert
+      await waitFor(() => expect(getOmitidos).toHaveBeenCalled());
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('no la ofrece en un artefacto omitido', async () => {
+      // Arrange
+      listarConUltima([VERSION]);
+      getOmitidos.mockResolvedValue([VERSION.artefacto]);
+      render(<ConsultarVersionesArtefactoAsesor />);
+
+      // Act
+      await abrirMenu(4);
+
+      // Assert
+      await waitFor(() => expect(getOmitidos).toHaveBeenCalled());
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+    });
   });
 });

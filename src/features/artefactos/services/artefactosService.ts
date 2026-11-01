@@ -14,6 +14,7 @@ import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
+import type { RegistrarRevisionResponse } from '../models/RegistrarRevisionResponse';
 import type { SolicitarCargaVersionArtefactoRequest } from '../models/SolicitarCargaVersionArtefactoRequest';
 import type { SolicitarCargaVersionArtefactoResponse } from '../models/SolicitarCargaVersionArtefactoResponse';
 import type { VincularEstudiantesArtefactoRequest } from '../models/VincularEstudiantesArtefactoRequest';
@@ -21,10 +22,29 @@ import type { VersionArtefacto } from '../models/VersionArtefacto';
 import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
 
 const TAMANIO_PAGINA_PROYECTOS = 100;
+const TAMANIO_PAGINA_ARTEFACTOS = 100;
 
 interface ProyectoAsesorResponse {
   id: string;
   tituloProyecto: string;
+}
+
+// `omitido` no es filtrable en el criterio del backend: se recorre el catálogo completo
+async function getIdsArtefactosOmitidosAsesor(): Promise<string[]> {
+  const omitidos: string[] = [];
+  let pagina = 0;
+  let ultima = false;
+  while (!ultima) {
+    const { data } = await apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', {
+      pagina,
+      tamanio: TAMANIO_PAGINA_ARTEFACTOS,
+      ordenamiento: ['nombreProyecto:ASC'],
+    });
+    omitidos.push(...data.content.filter((artefacto) => artefacto.omitido).map((a) => a.id));
+    ultima = data.last;
+    pagina += 1;
+  }
+  return omitidos;
 }
 
 function aObservacionRevision({
@@ -135,6 +155,13 @@ export const artefactosService = {
 
   omitirArtefacto: (artefactoId: string): Promise<void> =>
     apiClient.delete(`/artefactos/${artefactoId}`).then(() => undefined),
+
+  registrarRevision: (versionArtefactoId: string): Promise<RegistrarRevisionResponse> =>
+    apiClient
+      .post<RegistrarRevisionResponse>(`/artefactos/versiones/${versionArtefactoId}/revisiones`)
+      .then((r) => r.data),
+
+  getIdsArtefactosOmitidosAsesor,
 
   consultarProyectosAsignables: (pagina: number): Promise<PaginaProyectosAsignables> =>
     apiClient

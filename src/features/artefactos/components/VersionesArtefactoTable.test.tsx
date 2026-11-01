@@ -130,6 +130,26 @@ describe('VersionesArtefactoTable', () => {
     expect(onVerInformacion).toHaveBeenCalledWith(VERSION);
   });
 
+  it('las acciones adicionales aparecen en el menú de la fila y entregan esa versión', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const alSeleccionar = vi.fn();
+    renderizar({
+      accionesAdicionales: (version) => [
+        { etiqueta: 'Registrar revisión', onSeleccionar: () => alSeleccionar(version) },
+      ],
+    });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la versión 4 de Acta de inicio' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Registrar revisión' }));
+
+    // Assert
+    expect(alSeleccionar).toHaveBeenCalledWith(VERSION);
+  });
+
   it('sin versiones y sin filtros muestra el vacío informativo sin acción', () => {
     // Act
     renderizar({ versiones: [] });

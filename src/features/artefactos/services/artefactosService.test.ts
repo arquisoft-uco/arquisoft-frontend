@@ -235,6 +235,51 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('registrar revisión (HU-114)', () => {
+    it('registrarRevision envía POST sin body a la ruta de revisiones de la versión y devuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ data: { id: 'r-1' } });
+
+      // Act
+      const resultado = await artefactosService.registrarRevision('v-1');
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/artefactos/versiones/v-1/revisiones');
+      expect(resultado).toEqual({ id: 'r-1' });
+    });
+
+    it('getIdsArtefactosOmitidosAsesor recorre las páginas hasta la última y devuelve solo los omitidos', async () => {
+      // Arrange
+      post
+        .mockResolvedValueOnce({
+          data: {
+            content: [
+              { id: 'a-1', omitido: true },
+              { id: 'a-2', omitido: false },
+            ],
+            last: false,
+          },
+        })
+        .mockResolvedValueOnce({ data: { content: [{ id: 'a-3', omitido: true }], last: true } });
+
+      // Act
+      const ids = await artefactosService.getIdsArtefactosOmitidosAsesor();
+
+      // Assert
+      expect(post).toHaveBeenNthCalledWith(1, '/artefactos/asesor', {
+        pagina: 0,
+        tamanio: 100,
+        ordenamiento: ['nombreProyecto:ASC'],
+      });
+      expect(post).toHaveBeenNthCalledWith(
+        2,
+        '/artefactos/asesor',
+        expect.objectContaining({ pagina: 1 }),
+      );
+      expect(ids).toEqual(['a-1', 'a-3']);
+    });
+  });
+
   describe('subida de versión (HU-043)', () => {
     it('solicitarCargaVersionArtefacto y generarVersionArtefacto llaman a su ruta con su body y devuelven data', async () => {
       // Arrange
