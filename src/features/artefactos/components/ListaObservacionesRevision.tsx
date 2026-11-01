@@ -5,8 +5,8 @@ import type { ObservacionRevision } from '../models/ObservacionRevision';
 
 const LISTA = 'flex flex-col gap-3';
 const TARJETA =
-  'flex flex-col items-start gap-3 rounded-xl border border-border bg-surface-secondary p-4 text-sm text-on-surface';
-const FILA = 'flex w-full items-start justify-between gap-3';
+  'flex items-start justify-between gap-3 rounded-xl border border-border bg-surface-secondary p-4 text-sm text-on-surface';
+const CONTENIDO = 'flex min-w-0 flex-col items-start gap-3';
 const DESCRIPCION = 'min-w-0 break-words';
 
 interface Props {
@@ -19,17 +19,13 @@ export default function ListaObservacionesRevision({ observaciones, acciones }: 
     <ul aria-label="Observaciones de la revisión" className={LISTA}>
       {observaciones.map((observacion) => (
         <li key={observacion.id} className={TARJETA}>
-          {acciones ? (
-            <div className={FILA}>
-              <span className={DESCRIPCION}>{observacion.descripcion}</span>
-              {acciones(observacion)}
-            </div>
-          ) : (
+          <div className={CONTENIDO}>
             <span className={DESCRIPCION}>{observacion.descripcion}</span>
-          )}
-          <Badge variante={varianteEstadoObservacionArtefacto(observacion.estadoId)}>
-            {observacion.estadoNombre}
-          </Badge>
+            <Badge variante={varianteEstadoObservacionArtefacto(observacion.estadoId)}>
+              {observacion.estadoNombre}
+            </Badge>
+          </div>
+          {acciones?.(observacion)}
         </li>
       ))}
     </ul>

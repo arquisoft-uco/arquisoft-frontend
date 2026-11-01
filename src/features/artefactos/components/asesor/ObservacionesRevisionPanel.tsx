@@ -117,7 +117,10 @@ export default function ObservacionesRevisionPanel({
         acciones={accionesDe}
       />
       {aEliminar && (
-        <EliminarObservacionDialog observacion={aEliminar} onCerrar={() => setAEliminar(null)} />
+        <EliminarObservacionDialog
+          observacionId={aEliminar.id}
+          onCerrar={() => setAEliminar(null)}
+        />
       )}
       {decision && (
         <CambiarEstadoObservacionDialog

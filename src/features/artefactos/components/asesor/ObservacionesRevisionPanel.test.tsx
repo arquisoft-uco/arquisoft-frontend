@@ -8,6 +8,7 @@ import { useRegistrarObservacion } from '../../hooks/useRegistrarObservacion';
 import { useEliminarObservacion } from '../../hooks/useEliminarObservacion';
 import { useUltimaVersionArtefacto } from '../../hooks/useUltimaVersionArtefacto';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import { toast } from '../../../../shared/hooks/useToast';
 import ObservacionesRevisionPanel from './ObservacionesRevisionPanel';
 
 vi.mock('../../hooks/useObservacionesRevision', () => ({
@@ -19,6 +20,9 @@ vi.mock('../../hooks/usePuedeGestionarObservaciones', () => ({
 }));
 vi.mock('../../hooks/useRegistrarObservacion', () => ({ useRegistrarObservacion: vi.fn() }));
 vi.mock('../../hooks/useEliminarObservacion', () => ({ useEliminarObservacion: vi.fn() }));
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+}));
 vi.mock('../../hooks/useUltimaVersionArtefacto', () => ({
   useUltimaVersionArtefacto: vi.fn(() => ({
     ultimaVersion: undefined,
@@ -34,6 +38,7 @@ vi.mock('../../hooks/useEnviarRevision', () => ({
 }));
 
 const hook = vi.mocked(useObservacionesRevision);
+const mutate = vi.fn();
 
 type Resultado = ReturnType<typeof useObservacionesRevision>;
 
@@ -100,11 +105,73 @@ describe('ObservacionesRevisionPanel', () => {
       typeof useRegistrarObservacion
     >);
     vi.mocked(useEliminarObservacion).mockReturnValue({
-      mutate: vi.fn(),
+      mutate,
       isPending: false,
     } as Partial<ReturnType<typeof useEliminarObservacion>> as ReturnType<
       typeof useEliminarObservacion
     >);
+  });
+
+  async function pedirEliminar(user: ReturnType<typeof userEvent.setup>) {
+    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    const menus = screen.getAllByRole('button', { name: 'Acciones de la observación' });
+    await user.click(menus[1]);
+    await user.click(await screen.findByRole('menuitem', { name: 'Eliminar observación' }));
+  }
+
+  it('confirma y elimina la observación de la fila elegida con aviso de éxito', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+    mutate.mockImplementation((_id: string, opciones: { onSuccess: () => void }) =>
+      opciones.onSuccess(),
+    );
+    const user = userEvent.setup();
+
+    // Act
+    await pedirEliminar(user);
+    const dialogo = await screen.findByRole('alertdialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Eliminar observación' }));
+
+    // Assert
+    expect(mutate.mock.calls[0][0]).toBe('o-2');
+    expect(toast.success).toHaveBeenCalledWith('Observación eliminada');
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  });
+
+  it('al cancelar el diálogo no elimina nada', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+    const user = userEvent.setup();
+
+    // Act
+    await pedirEliminar(user);
+    const dialogo = await screen.findByRole('alertdialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(mutate).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  });
+
+  it('si el servidor rechaza la eliminación avisa con el motivo y cierra el diálogo', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+    mutate.mockImplementation((_id: string, opciones: { onError: (e: unknown) => void }) =>
+      opciones.onError(new Error('422')),
+    );
+    const user = userEvent.setup();
+
+    // Act
+    await pedirEliminar(user);
+    const dialogo = await screen.findByRole('alertdialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Eliminar observación' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo eliminar la observación',
+      expect.any(String),
+    );
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 
   it('muestra el estado de carga accesible mientras consulta', () => {
@@ -178,7 +245,7 @@ describe('ObservacionesRevisionPanel', () => {
     await waitFor(() => expect(onCerrar).toHaveBeenCalled());
   });
 
-  it('editable muestra Agregar observación y un Eliminar por tarjeta, sin aviso', () => {
+  it('editable muestra Agregar observación y un menú de acciones por tarjeta, sin aviso', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
 
@@ -187,7 +254,7 @@ describe('ObservacionesRevisionPanel', () => {
 
     // Assert
     expect(screen.getByRole('button', { name: 'Agregar observación' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /^Eliminar observación:/ })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Acciones de la observación' })).toHaveLength(2);
     expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });
 
@@ -239,7 +306,7 @@ describe('ObservacionesRevisionPanel', () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Agregar observación' })).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /^Eliminar observación:/ }),
+      screen.queryByRole('button', { name: 'Acciones de la observación' }),
     ).not.toBeInTheDocument();
   });
 
@@ -271,20 +338,13 @@ describe('ObservacionesRevisionPanel', () => {
     expect(screen.queryByRole('button', { name: 'Agregar observación' })).not.toBeInTheDocument();
   });
 
-  it('Agregar observación abre el formulario y Eliminar abre la confirmación', async () => {
+  it('Agregar observación abre el formulario', async () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [nueva] }));
     const user = userEvent.setup();
     render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: /^Eliminar observación:/ }));
-
-    // Assert
-    expect(screen.getByRole('alertdialog', { name: '¿Eliminar observación?' })).toBeInTheDocument();
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
     await user.click(screen.getByRole('button', { name: 'Agregar observación' }));
 
     // Assert

@@ -1,5 +1,4 @@
 import { LockKeyhole, RotateCcw, Trash2 } from 'lucide-react';
-import IconButton from '../../../../shared/components/ui/IconButton';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { ObservacionRevision } from '../../models/ObservacionRevision';
 
@@ -24,17 +23,22 @@ export default function AccionesObservacionMenu({
   onEliminar,
   onDecidir,
 }: Props) {
-  const resumen = resumir(observacion.descripcion);
   if (modo === 'eliminar') {
     return (
-      <IconButton
-        tono="peligro"
-        icono={Trash2}
-        etiqueta={`Eliminar observación: ${resumen}`}
-        onClick={() => onEliminar(observacion)}
+      <RowMenu
+        etiqueta="Acciones de la observación"
+        acciones={[
+          {
+            etiqueta: 'Eliminar observación',
+            icono: Trash2,
+            peligro: true,
+            onSeleccionar: () => onEliminar(observacion),
+          },
+        ]}
       />
     );
   }
+  const resumen = resumir(observacion.descripcion);
   return (
     <RowMenu
       etiqueta={`Acciones de la observación: ${resumen}`}

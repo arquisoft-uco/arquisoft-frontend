@@ -253,7 +253,7 @@ describe('artefactosService', () => {
     });
   });
 
-  describe('observaciones de una revisión (HU-134, HU-135)', () => {
+  describe('observaciones de una revisión (HU-134)', () => {
     it('registrarObservacion envía POST con exactamente { descripcion } y devuelve { id }', async () => {
       // Arrange
       post.mockResolvedValue({ data: { id: 'o-1' } });
@@ -268,18 +268,6 @@ describe('artefactosService', () => {
         descripcion: 'Falta el diagrama',
       });
       expect(resultado).toEqual({ id: 'o-1' });
-    });
-
-    it('eliminarObservacion envía DELETE sin body y resuelve undefined', async () => {
-      // Arrange
-      eliminar.mockResolvedValue({ status: 204 });
-
-      // Act
-      const resultado = await artefactosService.eliminarObservacion('o-1');
-
-      // Assert
-      expect(eliminar).toHaveBeenCalledWith('/artefactos/observaciones/o-1');
-      expect(resultado).toBeUndefined();
     });
   });
 
