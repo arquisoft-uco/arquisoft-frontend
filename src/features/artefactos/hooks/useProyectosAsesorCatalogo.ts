@@ -1,9 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { artefactosService } from '../services/artefactosService';
 
-export function useProyectosAsesorCatalogo() {
+export function useProyectosAsesorCatalogo(habilitado = true) {
   const query = useInfiniteQuery({
     queryKey: ['artefactos', 'catalogos', 'proyectos-asesor'],
+    enabled: habilitado,
     initialPageParam: 0,
     queryFn: ({ pageParam }) => artefactosService.consultarProyectosAsignables(pageParam),
     getNextPageParam: (ultima) => ultima.siguientePagina ?? undefined,

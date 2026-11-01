@@ -218,6 +218,55 @@ describe('AsignarArtefactoPanel', () => {
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
+  it('al reactivar no pide proyectos ni versiones, fija el destino y envía solo los estudiantes elegidos', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    mutate.mockImplementation((_req, opciones: OpcionesMutate) =>
+      opciones.onSuccess({ id: 'a-1' }),
+    );
+    render(
+      <AsignarArtefactoPanel
+        onCerrar={onCerrar}
+        onAsignado={vi.fn()}
+        reactivar={{
+          proyectoGrado: PROYECTO_ID,
+          versionRepositorioArtefacto: VERSION_ID,
+          nombreProyecto: 'Sistema de riego',
+          nombreDocumento: 'Acta de inicio',
+          versionDocumento: 2,
+        }}
+      />,
+    );
+
+    // Assert
+    expect(vi.mocked(useProyectosAsesorCatalogo)).toHaveBeenCalledWith(false);
+    expect(vi.mocked(useVersionesRepositorioCatalogo)).toHaveBeenCalledWith(false);
+    expect(screen.queryByRole('combobox', { name: /Proyecto de grado/ })).toBeNull();
+    expect(screen.getByText(/Este artefacto está omitido/)).toBeInTheDocument();
+
+    // Act
+    await elegir(user, /Estudiantes/, /Luis Gómez/);
+    await user.click(screen.getByRole('button', { name: 'Reactivar artefacto' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(mutate).toHaveBeenCalledWith(
+        {
+          proyectoGrado: PROYECTO_ID,
+          versionRepositorioArtefacto: VERSION_ID,
+          estudiantes: [ESTUDIANTE_ID],
+        },
+        expect.any(Object),
+      ),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Artefacto reactivado',
+      '«Acta de inicio» volvió a estar activo en «Sistema de riego».',
+    );
+    expect(onCerrar).toHaveBeenCalled();
+  }, 15000);
+
   it('con el catálogo de proyectos caído muestra el aviso y deshabilita el envío', () => {
     // Arrange
     simular({ proyectosError: true });

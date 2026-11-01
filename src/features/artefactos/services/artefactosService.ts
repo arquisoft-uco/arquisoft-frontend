@@ -119,6 +119,9 @@ export const artefactosService = {
       })
       .then((r) => r.data),
 
+  omitirArtefacto: (artefactoId: string): Promise<void> =>
+    apiClient.delete(`/artefactos/${artefactoId}`).then(() => undefined),
+
   consultarProyectosAsignables: (pagina: number): Promise<PaginaProyectosAsignables> =>
     apiClient
       .post<Page<ProyectoAsesorResponse>>('/proyectos-grado/asesor', {

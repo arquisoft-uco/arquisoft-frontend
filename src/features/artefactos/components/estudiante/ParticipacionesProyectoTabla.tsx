@@ -3,6 +3,7 @@ import Badge from '../../../../shared/components/ui/Badge';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
+import InsigniaOmitido from '../InsigniaOmitido';
 import type { ProyectoConParticipaciones } from '../../utils/agrupar-participaciones';
 
 const SECCION = 'flex flex-col gap-3';
@@ -10,6 +11,7 @@ const TITULO = 'text-base font-semibold text-on-surface';
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE_BOTON =
   'block truncate text-left font-medium text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
+const NOMBRE_TEXTO = 'block truncate font-medium text-on-surface';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
 type AlAbrir = (participacion: ParticipacionArtefacto) => void;
@@ -25,6 +27,17 @@ function BotonNombre({
   participacion: ParticipacionArtefacto;
   onAbrir: AlAbrir;
 }) {
+  if (participacion.omitido) {
+    return (
+      <>
+        <span title={participacion.nombreDocumento} className={NOMBRE_TEXTO}>
+          {participacion.nombreDocumento}
+        </span>
+        <InsigniaOmitido />
+      </>
+    );
+  }
+
   return (
     <button
       type="button"

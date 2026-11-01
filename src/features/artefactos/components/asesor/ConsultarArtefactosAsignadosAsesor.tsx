@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
+import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import AsignarArtefactoPanel from './AsignarArtefactoPanel';
 import FiltrosArtefactosAsesor from './FiltrosArtefactosAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
+import OmitirArtefactoDialog from './OmitirArtefactoDialog';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -15,6 +19,8 @@ function textoResumen(total?: number): string {
 
 export default function ConsultarArtefactosAsignadosAsesor() {
   const listado = useArtefactosAsesor();
+  const [aOmitir, setAOmitir] = useState<ArtefactoAsesor | null>(null);
+  const [aReactivar, setAReactivar] = useState<ArtefactoAsesor | null>(null);
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
 
@@ -41,6 +47,8 @@ export default function ConsultarArtefactosAsignadosAsesor() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onOmitir={setAOmitir}
+            onReactivar={setAReactivar}
           />
         )}
       </div>
@@ -54,6 +62,21 @@ export default function ConsultarArtefactosAsignadosAsesor() {
           cantidadEnPagina={artefactos.length}
           etiquetaPlural="artefactos"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {aOmitir && <OmitirArtefactoDialog artefacto={aOmitir} onCerrar={() => setAOmitir(null)} />}
+      {aReactivar && (
+        <AsignarArtefactoPanel
+          reactivar={{
+            proyectoGrado: aReactivar.proyectoGrado,
+            versionRepositorioArtefacto: aReactivar.versionRepositorioArtefacto,
+            nombreProyecto: aReactivar.nombreProyecto,
+            nombreDocumento: aReactivar.nombreDocumento,
+            versionDocumento: aReactivar.versionDocumento,
+          }}
+          onCerrar={() => setAReactivar(null)}
+          onAsignado={() => undefined}
         />
       )}
     </div>

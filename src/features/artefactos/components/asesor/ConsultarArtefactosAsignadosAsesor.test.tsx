@@ -11,6 +11,20 @@ vi.mock('../../services/artefactosService', () => ({
     consultarArtefactosAsesor: vi.fn(),
   },
 }));
+vi.mock('./OmitirArtefactoDialog', () => ({
+  default: ({ artefacto }: { artefacto: { nombreDocumento: string } }) => (
+    <div role="dialog" aria-label="Omitir">
+      {artefacto.nombreDocumento}
+    </div>
+  ),
+}));
+vi.mock('./AsignarArtefactoPanel', () => ({
+  default: ({ reactivar }: { reactivar?: { nombreDocumento: string } }) => (
+    <div role="dialog" aria-label="Reactivar artefacto">
+      {reactivar?.nombreDocumento}
+    </div>
+  ),
+}));
 
 const consultar = vi.mocked(artefactosService.consultarArtefactosAsesor);
 
@@ -53,6 +67,37 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     expect(await within(tabla).findByText('Sistema de riego')).toBeInTheDocument();
     expect(screen.getByText('1 artefacto')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
+  });
+
+  it('"Omitir artefacto" abre la confirmación y "Reactivar artefacto" abre el panel de la fila omitida', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultar.mockResolvedValue(
+      pagina([
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true },
+      ]),
+    );
+    render(<ConsultarArtefactosAsignadosAsesor />);
+    const tabla = await screen.findByRole('table', { name: 'Artefactos asignados' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', { name: 'Acciones de Acta de inicio' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Omitir artefacto' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Omitir' })).toHaveTextContent('Acta de inicio');
+
+    // Act
+    await user.click(within(tabla).getByRole('button', { name: 'Acciones de Anteproyecto' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Reactivar artefacto' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Reactivar artefacto' })).toHaveTextContent(
+      'Anteproyecto',
+    );
   });
 
   it('ante un error muestra el aviso y "Reintentar" vuelve a consultar', async () => {

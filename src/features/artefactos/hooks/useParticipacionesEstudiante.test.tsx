@@ -23,6 +23,7 @@ const LISTA: ParticipacionArtefacto[] = [
     nombreRepositorio: 'Base',
     asesor: 'u-1',
     nombreAsesor: 'Laura Gómez',
+    omitido: false,
   },
   {
     id: 'a-2',
@@ -34,6 +35,7 @@ const LISTA: ParticipacionArtefacto[] = [
     nombreRepositorio: 'Base',
     asesor: 'u-1',
     nombreAsesor: 'Laura Gómez',
+    omitido: false,
   },
 ];
 

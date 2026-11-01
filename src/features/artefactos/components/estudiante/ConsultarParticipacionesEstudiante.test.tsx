@@ -31,6 +31,7 @@ function participacion(
     nombreRepositorio: 'Repositorio base',
     asesor: 'u-1',
     nombreAsesor: 'Laura Gómez',
+    omitido: false,
   };
 }
 
@@ -85,6 +86,27 @@ describe('ConsultarParticipacionesEstudiante', () => {
     await user.click(within(panel).getByRole('button', { name: 'Cerrar panel' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
+  it('una participación omitida no abre el panel de subir versión y lleva "Omitido"', async () => {
+    // Arrange
+    getParticipaciones.mockResolvedValue([
+      { ...participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'), omitido: true },
+      participacion('a-2', 'p-1', 'Sistema de riego', 'Anteproyecto'),
+    ]);
+    render(<ConsultarParticipacionesEstudiante />);
+    const tabla = await screen.findByRole('table', {
+      name: 'Artefactos del proyecto Sistema de riego',
+    });
+
+    // Assert
+    expect(
+      within(tabla).queryByRole('button', { name: 'Subir nueva versión de Acta de inicio' }),
+    ).toBeNull();
+    expect(within(tabla).getByText('Omitido')).toBeInTheDocument();
+    expect(
+      within(tabla).getByRole('button', { name: 'Subir nueva versión de Anteproyecto' }),
+    ).toBeInTheDocument();
+  });
+
   it('muestra el estado de carga mientras llega la lista', () => {
     // Arrange
     getParticipaciones.mockReturnValue(new Promise(() => undefined));

@@ -5,6 +5,7 @@ import { useAsignarArtefacto } from './useAsignarArtefacto';
 import { useEstudiantesProyectoCatalogo } from './useEstudiantesProyectoCatalogo';
 import { useProyectosAsesorCatalogo } from './useProyectosAsesorCatalogo';
 import { useVersionesRepositorioCatalogo } from './useVersionesRepositorioCatalogo';
+import type { ArtefactoAReactivar } from '../models/ArtefactoAReactivar';
 import { toast } from '../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,
@@ -26,26 +27,32 @@ const MENSAJE_ERROR_POR_DEFECTO = 'Verifica los datos e inténtalo nuevamente.';
 interface Opciones {
   onCerrar: () => void;
   onAsignado: () => void;
+  reactivar?: ArtefactoAReactivar;
 }
 
-export function useAsignarArtefactoForm({ onCerrar, onAsignado }: Opciones) {
+export function useAsignarArtefactoForm({ onCerrar, onAsignado, reactivar }: Opciones) {
   const [resumenVisible, setResumenVisible] = useState(false);
   const form = useForm<AsignarArtefactoValues>({
     resolver: zodResolver(asignarArtefactoSchema),
-    defaultValues: { proyectoGrado: '', versionRepositorioArtefacto: '', estudiantes: [] },
+    defaultValues: {
+      proyectoGrado: reactivar?.proyectoGrado ?? '',
+      versionRepositorioArtefacto: reactivar?.versionRepositorioArtefacto ?? '',
+      estudiantes: [],
+    },
     mode: 'onTouched',
   });
   const { errors, isDirty } = form.formState;
 
   const proyectoGrado = useWatch({ control: form.control, name: 'proyectoGrado' });
 
-  const proyectos = useProyectosAsesorCatalogo();
-  const versiones = useVersionesRepositorioCatalogo();
+  const proyectos = useProyectosAsesorCatalogo(!reactivar);
+  const versiones = useVersionesRepositorioCatalogo(!reactivar);
   const estudiantes = useEstudiantesProyectoCatalogo(proyectoGrado);
   const { mutate, isPending, reset: reiniciarMutacion } = useAsignarArtefacto();
 
-  const catalogoNoDisponible =
-    proyectos.isError || versiones.isError || (!!proyectoGrado && estudiantes.isError);
+  const catalogoNoDisponible = reactivar
+    ? !!proyectoGrado && estudiantes.isError
+    : proyectos.isError || versiones.isError || (!!proyectoGrado && estudiantes.isError);
 
   const errores = resumenVisible
     ? CAMPOS.flatMap((campo) => {
@@ -73,6 +80,15 @@ export function useAsignarArtefactoForm({ onCerrar, onAsignado }: Opciones) {
       },
       {
         onSuccess: () => {
+          if (reactivar) {
+            toast.success(
+              'Artefacto reactivado',
+              `«${reactivar.nombreDocumento}» volvió a estar activo en «${reactivar.nombreProyecto}».`,
+            );
+            onAsignado();
+            onCerrar();
+            return;
+          }
           const version = versiones.versiones.find(
             (v) => v.id === valores.versionRepositorioArtefacto,
           );

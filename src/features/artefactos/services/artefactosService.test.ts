@@ -3,11 +3,12 @@ import apiClient from '../../../api/axiosInstance';
 import { artefactosService } from './artefactosService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), post: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
+const eliminar = vi.mocked(apiClient.delete);
 
 describe('artefactosService', () => {
   beforeEach(() => {
@@ -217,6 +218,20 @@ describe('artefactosService', () => {
       });
       expect(primera).toEqual({ proyectos: [{ id: 'p-1', titulo: 'Riego' }], siguientePagina: 1 });
       expect(ultima.siguientePagina).toBeNull();
+    });
+  });
+
+  describe('omisión de artefacto (HU-103)', () => {
+    it('omitirArtefacto envía DELETE /artefactos/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ data: undefined, status: 204 });
+
+      // Act
+      const resultado = await artefactosService.omitirArtefacto('a-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/a-1');
+      expect(resultado).toBeUndefined();
     });
   });
 

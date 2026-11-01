@@ -5,9 +5,10 @@ const TAMANIO_PAGINA = 100;
 
 const ORDENAMIENTO = ['nombreRepositorio:ASC', 'nombreDocumento:ASC', 'numeroVersion:DESC'];
 
-export function useVersionesRepositorioCatalogo() {
+export function useVersionesRepositorioCatalogo(habilitado = true) {
   const query = useInfiniteQuery({
     queryKey: ['artefactos', 'catalogos', 'versiones-repositorio'],
+    enabled: habilitado,
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       artefactosService.consultarVersionesRepositorioAsesor({

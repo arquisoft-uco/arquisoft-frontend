@@ -1,6 +1,5 @@
-import { FileStack, SearchX } from 'lucide-react';
+import { EyeOff, FileStack, RotateCcw, SearchX } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
-import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type {
@@ -9,7 +8,9 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import InsigniaOmitido from '../InsigniaOmitido';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const ENLACE =
@@ -24,6 +25,8 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onOmitir: (artefacto: ArtefactoAsesor) => void;
+  onReactivar: (artefacto: ArtefactoAsesor) => void;
 }
 
 export default function ArtefactosAsesorTable({
@@ -33,6 +36,8 @@ export default function ArtefactosAsesorTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onOmitir,
+  onReactivar,
 }: Props) {
   const { pathname } = useLocation();
 
@@ -46,6 +51,21 @@ export default function ArtefactosAsesorTable({
         {artefacto.nombreDocumento}
       </Link>
     );
+  }
+
+  function menuDeFila(artefacto: ArtefactoAsesor) {
+    const accion = artefacto.omitido
+      ? {
+          etiqueta: 'Reactivar artefacto',
+          icono: RotateCcw,
+          onSeleccionar: () => onReactivar(artefacto),
+        }
+      : {
+          etiqueta: 'Omitir artefacto',
+          icono: EyeOff,
+          onSeleccionar: () => onOmitir(artefacto),
+        };
+    return <RowMenu etiqueta={`Acciones de ${artefacto.nombreDocumento}`} acciones={[accion]} />;
   }
 
   const columnas: ColumnaTabla<ArtefactoAsesor>[] = [
@@ -65,7 +85,7 @@ export default function ArtefactosAsesorTable({
         <>
           {enlaceVersiones(artefacto)}
           <span className={DETALLE}>Versión {artefacto.versionDocumento} del documento</span>
-          {artefacto.omitido && <Badge variante="neutro">Omitido</Badge>}
+          {artefacto.omitido && <InsigniaOmitido />}
         </>
       ),
     },
@@ -107,13 +127,14 @@ export default function ArtefactosAsesorTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={menuDeFila}
       tarjeta={(artefacto) => (
         <>
           <p className="font-semibold">{enlaceVersiones(artefacto)}</p>
           <p className={TARJETA_DATO}>{artefacto.nombreProyecto}</p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>Versión {artefacto.versionDocumento} del documento</p>
-          {artefacto.omitido && <Badge variante="neutro">Omitido</Badge>}
+          {artefacto.omitido && <InsigniaOmitido />}
         </>
       )}
     />
