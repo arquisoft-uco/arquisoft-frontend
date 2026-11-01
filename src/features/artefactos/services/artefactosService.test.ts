@@ -3,16 +3,34 @@ import apiClient from '../../../api/axiosInstance';
 import { artefactosService } from './artefactosService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), delete: vi.fn(), patch: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
 const eliminar = vi.mocked(apiClient.delete);
+const patch = vi.mocked(apiClient.patch);
 
 describe('artefactosService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('cambiarAsesorArtefacto', () => {
+    it('hace PATCH /artefactos/{id}/asesor traduciendo asesorId a asesor y resuelve sin valor', async () => {
+      // Arrange
+      patch.mockResolvedValue({ data: undefined });
+
+      // Act
+      const resultado = await artefactosService.cambiarAsesorArtefacto({
+        artefactoId: 'art-1',
+        asesorId: 'a-2',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/artefactos/art-1/asesor', { asesor: 'a-2' });
+      expect(resultado).toBeUndefined();
+    });
   });
 
   describe('getObservacionesRevision', () => {

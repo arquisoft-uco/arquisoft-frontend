@@ -10,6 +10,10 @@ vi.mock('../../shared/services/cargaPrefirmadaService', () => ({
   cargaPrefirmadaService: { cargarArchivo: vi.fn() },
 }));
 
+vi.mock('../../shared/hooks/useAsesoresVigentes', () => ({
+  useAsesoresVigentes: vi.fn(() => ({ data: [], isLoading: false, isError: false })),
+}));
+
 vi.mock('./services/artefactosService', () => ({
   artefactosService: {
     getEstadosRevisionAsesor: vi.fn().mockResolvedValue([]),

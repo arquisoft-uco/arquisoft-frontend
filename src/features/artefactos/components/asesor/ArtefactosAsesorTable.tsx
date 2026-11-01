@@ -1,4 +1,4 @@
-import { EyeOff, FileStack, RotateCcw, SearchX, Users } from 'lucide-react';
+import { FileStack, SearchX } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -8,7 +8,7 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import RowMenu from '../../../../shared/components/ui/RowMenu';
+import ArtefactoAsesorRowMenu from './ArtefactoAsesorRowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import InsigniaOmitido from '../InsigniaOmitido';
 
@@ -28,6 +28,7 @@ interface Props {
   onOmitir: (artefacto: ArtefactoAsesor) => void;
   onReactivar: (artefacto: ArtefactoAsesor) => void;
   onGestionarEstudiantes: (artefacto: ArtefactoAsesor) => void;
+  onCambiarAsesor: (artefacto: ArtefactoAsesor) => void;
 }
 
 export default function ArtefactosAsesorTable({
@@ -40,6 +41,7 @@ export default function ArtefactosAsesorTable({
   onOmitir,
   onReactivar,
   onGestionarEstudiantes,
+  onCambiarAsesor,
 }: Props) {
   const { pathname } = useLocation();
 
@@ -53,23 +55,6 @@ export default function ArtefactosAsesorTable({
         {artefacto.nombreDocumento}
       </Link>
     );
-  }
-
-  function menuDeFila(artefacto: ArtefactoAsesor) {
-    const { omitido } = artefacto;
-    const acciones = [
-      {
-        etiqueta: omitido ? 'Ver estudiantes' : 'Gestionar estudiantes',
-        icono: Users,
-        onSeleccionar: () => onGestionarEstudiantes(artefacto),
-      },
-      {
-        etiqueta: omitido ? 'Reactivar artefacto' : 'Omitir artefacto',
-        icono: omitido ? RotateCcw : EyeOff,
-        onSeleccionar: () => (omitido ? onReactivar(artefacto) : onOmitir(artefacto)),
-      },
-    ];
-    return <RowMenu etiqueta={`Acciones de ${artefacto.nombreDocumento}`} acciones={acciones} />;
   }
 
   const columnas: ColumnaTabla<ArtefactoAsesor>[] = [
@@ -131,7 +116,15 @@ export default function ArtefactosAsesorTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={vacio}
-      acciones={menuDeFila}
+      acciones={(artefacto) => (
+        <ArtefactoAsesorRowMenu
+          artefacto={artefacto}
+          onCambiarAsesor={onCambiarAsesor}
+          onGestionarEstudiantes={onGestionarEstudiantes}
+          onOmitir={onOmitir}
+          onReactivar={onReactivar}
+        />
+      )}
       tarjeta={(artefacto) => (
         <>
           <p className="font-semibold">{enlaceVersiones(artefacto)}</p>

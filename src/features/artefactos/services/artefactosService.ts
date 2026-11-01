@@ -7,6 +7,7 @@ import type { EstudianteAsignable } from '../models/EstudianteAsignable';
 import type { PaginaProyectosAsignables } from '../models/PaginaProyectosAsignables';
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
+import type { CambiarAsesorArtefactoRequest } from '../models/CambiarAsesorArtefactoRequest';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { GenerarVersionArtefactoRequest } from '../models/GenerarVersionArtefactoRequest';
 import type { GenerarVersionArtefactoResponse } from '../models/GenerarVersionArtefactoResponse';
@@ -125,6 +126,11 @@ export const artefactosService = {
     req: ConsultaCriteriaRequest,
   ): Promise<Page<ArtefactoEstudiante>> =>
     apiClient.post<Page<ArtefactoEstudiante>>('/artefactos/estudiante', req).then((r) => r.data),
+
+  cambiarAsesorArtefacto: (req: CambiarAsesorArtefactoRequest): Promise<void> =>
+    apiClient
+      .patch(`/artefactos/${req.artefactoId}/asesor`, { asesor: req.asesorId })
+      .then(() => undefined),
 
   // Subida de una versión nueva del artefacto del estudiante, en dos pasos del backend
   solicitarCargaVersionArtefacto: (

@@ -34,6 +34,10 @@ vi.mock('./EstudiantesArtefactoPanel', () => ({
   ),
 }));
 
+vi.mock('../../../../shared/hooks/useAsesoresVigentes', () => ({
+  useAsesoresVigentes: vi.fn(() => ({ data: [], isLoading: false, isError: false })),
+}));
+
 const consultar = vi.mocked(artefactosService.consultarArtefactosAsesor);
 
 const ARTEFACTO: ArtefactoAsesor = {
@@ -183,5 +187,28 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     await waitFor(() =>
       expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined })),
     );
+  });
+
+  it('"Cambiar asesor" en una fila abre el panel de ese artefacto y cerrarlo lo quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarArtefactosAsignadosAsesor />);
+    const tabla = await screen.findByRole('table', { name: 'Artefactos asignados' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', { name: 'Acciones de Acta de inicio' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar asesor' }));
+
+    // Assert
+    const panel = screen.getByRole('dialog', { name: 'Cambiar asesor' });
+    expect(within(panel).getByText('Acta de inicio · Sistema de riego')).toBeInTheDocument();
+
+    // Act
+    await user.click(within(panel).getByRole('button', { name: 'Cerrar' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog', { name: 'Cambiar asesor' })).not.toBeInTheDocument();
   });
 });

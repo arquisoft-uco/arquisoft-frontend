@@ -26,6 +26,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosAseso
     onOmitir: vi.fn(),
     onReactivar: vi.fn(),
     onGestionarEstudiantes: vi.fn(),
+    onCambiarAsesor: vi.fn(),
     ...parcial,
   };
   render(<ArtefactosAsesorTable {...props} />, { initialPath: '/artefactos' });
@@ -133,5 +134,18 @@ describe('ArtefactosAsesorTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('el menú de la fila ofrece "Cambiar asesor" y entrega el artefacto de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onCambiarAsesor } = renderizar();
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar asesor' }));
+
+    // Assert
+    expect(onCambiarAsesor).toHaveBeenCalledWith(ARTEFACTO);
   });
 });

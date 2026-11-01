@@ -6,6 +6,7 @@ import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import AsignarArtefactoPanel from './AsignarArtefactoPanel';
 import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
+import CambiarAsesorArtefactoPanel from './CambiarAsesorArtefactoPanel';
 import FiltrosArtefactosAsesor from './FiltrosArtefactosAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 import OmitirArtefactoDialog from './OmitirArtefactoDialog';
@@ -19,6 +20,7 @@ function textoResumen(total?: number): string {
 }
 
 export default function ConsultarArtefactosAsignadosAsesor() {
+  const [enCambio, setEnCambio] = useState<ArtefactoAsesor | null>(null);
   const listado = useArtefactosAsesor();
   const [aOmitir, setAOmitir] = useState<ArtefactoAsesor | null>(null);
   const [aReactivar, setAReactivar] = useState<ArtefactoAsesor | null>(null);
@@ -52,6 +54,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
             onOmitir={setAOmitir}
             onReactivar={setAReactivar}
             onGestionarEstudiantes={setAGestionarEstudiantes}
+            onCambiarAsesor={setEnCambio}
           />
         )}
       </div>
@@ -86,6 +89,9 @@ export default function ConsultarArtefactosAsignadosAsesor() {
           artefacto={aGestionarEstudiantes}
           onCerrar={() => setAGestionarEstudiantes(null)}
         />
+      )}
+      {enCambio && (
+        <CambiarAsesorArtefactoPanel artefacto={enCambio} onCerrar={() => setEnCambio(null)} />
       )}
     </div>
   );
