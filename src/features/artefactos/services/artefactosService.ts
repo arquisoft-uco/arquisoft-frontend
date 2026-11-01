@@ -45,6 +45,9 @@ export const artefactosService = {
       >(`/revisiones-asesor/${revisionAsesorId}/observaciones/estudiante`)
       .then((r) => r.data.map(aObservacionRevision)),
 
+  eliminarObservacion: (observacionId: string): Promise<void> =>
+    apiClient.delete(`/artefactos/observaciones/${observacionId}`).then(() => undefined),
+
   consultarVersionesRepositorioAsesor: (
     req: ConsultaCriteriaRequest,
   ): Promise<Page<VersionRepositorioAsesor>> =>

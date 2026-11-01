@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { MessageSquare } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
@@ -17,6 +18,7 @@ interface Props {
   error: unknown;
   onReintentar: () => void;
   onCerrar: () => void;
+  acciones?: (observacion: ObservacionRevision) => ReactNode;
 }
 
 export default function ObservacionesRevisionPanelBase({
@@ -28,6 +30,7 @@ export default function ObservacionesRevisionPanelBase({
   error,
   onReintentar,
   onCerrar,
+  acciones,
 }: Props) {
   return (
     <SidePanel
@@ -60,7 +63,7 @@ export default function ObservacionesRevisionPanelBase({
           descripcion={descripcionVacia}
         />
       ) : (
-        <ListaObservacionesRevision observaciones={observaciones} />
+        <ListaObservacionesRevision observaciones={observaciones} acciones={acciones} />
       )}
     </SidePanel>
   );
