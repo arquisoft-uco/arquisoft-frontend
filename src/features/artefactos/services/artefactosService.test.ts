@@ -283,6 +283,24 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('cambiar estado de una observación (HU-137)', () => {
+    it('cambiarEstadoObservacion envía PATCH con { estado } a la ruta de estado-asesor y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204 });
+
+      // Act
+      const resultado = await artefactosService.cambiarEstadoObservacion('o-1', {
+        estado: 'REABIERTA',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/artefactos/observaciones/o-1/estado-asesor', {
+        estado: 'REABIERTA',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('enviar revisión (HU-292)', () => {
     it('enviarRevision envía PATCH sin body a la ruta de envío y resuelve undefined', async () => {
       // Arrange

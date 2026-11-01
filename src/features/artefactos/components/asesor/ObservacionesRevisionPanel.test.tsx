@@ -6,6 +6,7 @@ import { useObservacionesRevision } from '../../hooks/useObservacionesRevision';
 import { usePuedeGestionarObservaciones } from '../../hooks/usePuedeGestionarObservaciones';
 import { useRegistrarObservacion } from '../../hooks/useRegistrarObservacion';
 import { useEliminarObservacion } from '../../hooks/useEliminarObservacion';
+import { useUltimaVersionArtefacto } from '../../hooks/useUltimaVersionArtefacto';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import ObservacionesRevisionPanel from './ObservacionesRevisionPanel';
 
@@ -18,6 +19,16 @@ vi.mock('../../hooks/usePuedeGestionarObservaciones', () => ({
 }));
 vi.mock('../../hooks/useRegistrarObservacion', () => ({ useRegistrarObservacion: vi.fn() }));
 vi.mock('../../hooks/useEliminarObservacion', () => ({ useEliminarObservacion: vi.fn() }));
+vi.mock('../../hooks/useUltimaVersionArtefacto', () => ({
+  useUltimaVersionArtefacto: vi.fn(() => ({
+    ultimaVersion: undefined,
+    isLoading: false,
+    isError: false,
+  })),
+}));
+vi.mock('../../hooks/useCambiarEstadoObservacion', () => ({
+  useCambiarEstadoObservacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
 vi.mock('../../hooks/useEnviarRevision', () => ({
   useEnviarRevision: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
@@ -217,7 +228,7 @@ describe('ObservacionesRevisionPanel', () => {
   it('con una revisión que ya no está pendiente explica que es de solo lectura y no ofrece cambios', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [nueva] }));
-    const version = { ...VERSION, estadoRevision: 'RESUELTA' };
+    const version = { ...VERSION, estadoRevision: 'EN_PROGRESO' };
 
     // Act
     render(<ObservacionesRevisionPanel {...PROPS} version={version} onCerrar={vi.fn()} />);
@@ -278,5 +289,79 @@ describe('ObservacionesRevisionPanel', () => {
 
     // Assert
     expect(await screen.findByRole('textbox', { name: /Descripción/ })).toBeInTheDocument();
+  });
+
+  describe('decisión sobre observaciones solucionadas (HU-137)', () => {
+    const RESUELTA = { ...VERSION, estadoRevision: 'RESUELTA', nombreEstadoRevision: 'Resuelta' };
+    const SIGUIENTE = { ...RESUELTA, version: 5, revisionAsesor: 'r-5' };
+
+    function simularUltima(ultimaVersion: VersionArtefacto | undefined) {
+      vi.mocked(useUltimaVersionArtefacto).mockReturnValue({
+        ultimaVersion,
+        isLoading: false,
+        isError: false,
+      });
+    }
+
+    it('solo la observación solucionada tiene menú y reabrir se habilita con la versión siguiente pendiente', async () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+      simularUltima({ ...SIGUIENTE, estadoRevision: 'PENDIENTE' });
+      const user = userEvent.setup();
+      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+
+      // Act
+      await user.click(
+        screen.getByRole('button', { name: /^Acciones de la observación: Corregir la portada/ }),
+      );
+
+      // Assert
+      expect(screen.getAllByRole('button', { name: /^Acciones de la observación:/ })).toHaveLength(
+        1,
+      );
+      expect(screen.getByRole('menuitem', { name: 'Cerrar observación' })).toBeEnabled();
+      expect(screen.getByRole('menuitem', { name: 'Reabrir observación' })).toBeEnabled();
+      expect(screen.queryByRole('note')).not.toBeInTheDocument();
+
+      // Act
+      await user.click(screen.getByRole('menuitem', { name: 'Cerrar observación' }));
+
+      // Assert
+      expect(screen.getByText('¿Cerrar observación?')).toBeInTheDocument();
+    });
+
+    it('con la revisión de la versión siguiente ya enviada deshabilita reabrir y explica el motivo', async () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [solucionada] }));
+      simularUltima({ ...SIGUIENTE, estadoRevision: 'EN_PROGRESO' });
+      const user = userEvent.setup();
+      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+
+      // Act
+      await user.click(screen.getByRole('button', { name: /^Acciones de la observación:/ }));
+
+      // Assert
+      expect(screen.getByText(/La revisión de la versión 5 ya se envió/)).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Reabrir observación' })).toBeDisabled();
+      expect(screen.getByRole('menuitem', { name: 'Cerrar observación' })).toBeEnabled();
+    });
+
+    it('con artefacto omitido no hay menú de decisión y se explica el motivo', () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [solucionada] }));
+      simularOmitidos(new Set(['a-1']));
+      simularUltima(undefined);
+
+      // Act
+      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+
+      // Assert
+      expect(
+        screen.queryByRole('button', { name: /^Acciones de la observación:/ }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Este artefacto está omitido y no admite cambios.'),
+      ).toBeInTheDocument();
+    });
   });
 });

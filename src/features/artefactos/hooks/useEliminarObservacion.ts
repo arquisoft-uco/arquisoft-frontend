@@ -20,10 +20,8 @@ export function useEliminarObservacion() {
   return useMutation({
     mutationFn: ({ observacionId }: Variables) =>
       artefactosService.eliminarObservacion(observacionId),
-    onSuccess: (_data, { revisionAsesorId }) =>
-      queryClient.invalidateQueries({
-        queryKey: ['artefactos', 'revisiones-asesor', revisionAsesorId, 'observaciones'],
-      }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['artefactos', 'revisiones-asesor'] }),
     onError: (err, { revisionAsesorId }) => {
       const claveObservaciones = [
         'artefactos',

@@ -8,6 +8,7 @@ import type { PaginaProyectosAsignables } from '../models/PaginaProyectosAsignab
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
 import type { CambiarAsesorArtefactoRequest } from '../models/CambiarAsesorArtefactoRequest';
+import type { CambiarEstadoObservacionRequest } from '../models/CambiarEstadoObservacionRequest';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { GenerarVersionArtefactoRequest } from '../models/GenerarVersionArtefactoRequest';
 import type { GenerarVersionArtefactoResponse } from '../models/GenerarVersionArtefactoResponse';
@@ -187,6 +188,14 @@ export const artefactosService = {
 
   eliminarObservacion: (observacionId: string): Promise<void> =>
     apiClient.delete(`/artefactos/observaciones/${observacionId}`).then(() => undefined),
+
+  cambiarEstadoObservacion: (
+    observacionId: string,
+    req: CambiarEstadoObservacionRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/artefactos/observaciones/${observacionId}/estado-asesor`, { estado: req.estado })
+      .then(() => undefined),
 
   getIdsArtefactosOmitidosAsesor,
 

@@ -7,6 +7,7 @@ import {
   puedeGestionarObservaciones,
   puedeRegistrarRevision,
   reabreArtefacto,
+  revisionAdmiteDecisionObservacion,
   tieneRevision,
 } from './revision-version';
 
@@ -118,5 +119,19 @@ describe('reabreArtefacto', () => {
     expect(reabreArtefacto(con(ESTADO_REVISION_CERRADA))).toBe(true);
     expect(reabreArtefacto(con(null))).toBe(false);
     expect(reabreArtefacto(con('PENDIENTE'))).toBe(false);
+  });
+});
+
+describe('revisionAdmiteDecisionObservacion', () => {
+  it('solo admite la decisión con la revisión resuelta y el artefacto no omitido', () => {
+    // Assert
+    const admite = (estado: string | null, artefactoOmitido = false) =>
+      revisionAdmiteDecisionObservacion({ version: con(estado), artefactoOmitido });
+    expect(admite('RESUELTA')).toBe(true);
+    expect(admite('RESUELTA', true)).toBe(false);
+    expect(admite('PENDIENTE')).toBe(false);
+    expect(admite('EN_PROGRESO')).toBe(false);
+    expect(admite(ESTADO_REVISION_CERRADA)).toBe(false);
+    expect(admite(null)).toBe(false);
   });
 });

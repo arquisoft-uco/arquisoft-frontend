@@ -1,25 +1,28 @@
 import { useState } from 'react';
-import { MessageSquarePlus, Send, Trash2 } from 'lucide-react';
+import { MessageSquarePlus, Send } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
-import IconButton from '../../../../shared/components/ui/IconButton';
 import Notice from '../../../../shared/components/ui/Notice';
 import { useObservacionesRevision } from '../../hooks/useObservacionesRevision';
 import { usePuedeGestionarObservaciones } from '../../hooks/usePuedeGestionarObservaciones';
+import { useUltimaVersionArtefacto } from '../../hooks/useUltimaVersionArtefacto';
 import type { ObservacionRevision } from '../../models/ObservacionRevision';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
-import { estadoPermiteGestionarObservaciones } from '../../utils/revision-version';
+import { textoAvisoObservaciones } from '../../utils/aviso-observaciones';
+import {
+  ESTADO_OBSERVACION_SOLUCIONADA,
+  situacionReapertura,
+} from '../../utils/decision-observacion';
+import { revisionAdmiteDecisionObservacion } from '../../utils/revision-version';
 import ObservacionesRevisionPanelBase from '../ObservacionesRevisionPanelBase';
+import AccionesObservacionMenu from './AccionesObservacionMenu';
 import AgregarObservacionPanel from './AgregarObservacionPanel';
+import CambiarEstadoObservacionDialog from './CambiarEstadoObservacionDialog';
 import EliminarObservacionDialog from './EliminarObservacionDialog';
 import EnviarRevisionDialog from './EnviarRevisionDialog';
 
-const LONGITUD_ETIQUETA = 40;
-const AVISO_NO_PENDIENTE =
-  'Esta revisión ya no está pendiente: sus observaciones no se pueden cambiar.';
-const AVISO_OMITIDO = 'Este artefacto está omitido y no admite cambios.';
-
-function resumir(texto: string) {
-  return texto.length > LONGITUD_ETIQUETA ? `${texto.slice(0, LONGITUD_ETIQUETA)}…` : texto;
+interface Decision {
+  observacion: ObservacionRevision;
+  estado: 'CERRADA' | 'REABIERTA';
 }
 
 interface Props {
@@ -40,6 +43,12 @@ export default function ObservacionesRevisionPanel({
   const [agregando, setAgregando] = useState(false);
   const [aEliminar, setAEliminar] = useState<ObservacionRevision | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [decision, setDecision] = useState<Decision | null>(null);
+  const omitido = omitidos?.has(version.artefacto) ?? false;
+  const puedeDecidir =
+    !editable && revisionAdmiteDecisionObservacion({ version, artefactoOmitido: omitido });
+  const { ultimaVersion } = useUltimaVersionArtefacto(version.artefacto, puedeDecidir);
+  const situacion = situacionReapertura({ version, ultimaVersion });
 
   if (agregando) {
     return (
@@ -52,10 +61,29 @@ export default function ObservacionesRevisionPanel({
     );
   }
 
-  let textoAviso: string | null = null;
-  if (!editable) {
-    if (!estadoPermiteGestionarObservaciones(version)) textoAviso = AVISO_NO_PENDIENTE;
-    else if (omitidos?.has(version.artefacto)) textoAviso = AVISO_OMITIDO;
+  const textoAviso = textoAvisoObservaciones({
+    editable,
+    version,
+    omitido,
+    puedeDecidir,
+    haySolucionadas: data?.some((o) => o.estadoId === ESTADO_OBSERVACION_SOLUCIONADA) ?? false,
+    situacion,
+  });
+
+  function accionesDe(observacion: ObservacionRevision) {
+    const modo = editable ? 'eliminar' : 'decidir';
+    if (!editable && !(puedeDecidir && observacion.estadoId === ESTADO_OBSERVACION_SOLUCIONADA)) {
+      return undefined;
+    }
+    return (
+      <AccionesObservacionMenu
+        observacion={observacion}
+        modo={modo}
+        puedeReabrir={situacion === 'disponible'}
+        onEliminar={setAEliminar}
+        onDecidir={(o, estado) => setDecision({ observacion: o, estado })}
+      />
+    );
   }
 
   return (
@@ -86,21 +114,20 @@ export default function ObservacionesRevisionPanel({
             </div>
           )
         }
-        acciones={
-          editable
-            ? (observacion) => (
-                <IconButton
-                  tono="peligro"
-                  icono={Trash2}
-                  etiqueta={`Eliminar observación: ${resumir(observacion.descripcion)}`}
-                  onClick={() => setAEliminar(observacion)}
-                />
-              )
-            : undefined
-        }
+        acciones={accionesDe}
       />
       {aEliminar && (
         <EliminarObservacionDialog observacion={aEliminar} onCerrar={() => setAEliminar(null)} />
+      )}
+      {decision && (
+        <CambiarEstadoObservacionDialog
+          observacion={decision.observacion}
+          estado={decision.estado}
+          version={version}
+          revisionAsesorId={revisionAsesorId}
+          onCerrar={() => setDecision(null)}
+          onSalir={onCerrar}
+        />
       )}
       {enviando && (
         <EnviarRevisionDialog

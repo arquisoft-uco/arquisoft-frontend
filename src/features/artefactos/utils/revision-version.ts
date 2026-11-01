@@ -2,6 +2,7 @@ import type { VersionArtefacto } from '../models/VersionArtefacto';
 
 export const ESTADO_REVISION_CERRADA = 'CERRADA';
 export const ESTADO_REVISION_PENDIENTE = 'PENDIENTE';
+export const ESTADO_REVISION_RESUELTA = 'RESUELTA';
 
 export function tieneRevision(version: VersionArtefacto): boolean {
   return version.revisionAsesor !== null;
@@ -19,6 +20,16 @@ export function puedeGestionarObservaciones({
   artefactoOmitido: boolean;
 }): boolean {
   return !artefactoOmitido && estadoPermiteGestionarObservaciones(version);
+}
+
+export function revisionAdmiteDecisionObservacion({
+  version,
+  artefactoOmitido,
+}: {
+  version: VersionArtefacto;
+  artefactoOmitido: boolean;
+}): boolean {
+  return !artefactoOmitido && version.estadoRevision === ESTADO_REVISION_RESUELTA;
 }
 
 export function estudianteVeObservaciones(version: VersionArtefacto): boolean {

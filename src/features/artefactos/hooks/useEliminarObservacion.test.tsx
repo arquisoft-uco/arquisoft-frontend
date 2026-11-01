@@ -13,6 +13,7 @@ vi.mock('../services/artefactosService', () => ({
 
 const eliminar = vi.mocked(artefactosService.eliminarObservacion);
 
+const CLAVE_REVISIONES = ['artefactos', 'revisiones-asesor'];
 const CLAVE_OBSERVACIONES = ['artefactos', 'revisiones-asesor', 'r-1', 'observaciones'];
 const CLAVE_VERSIONES = ['artefactos', 'versiones-artefacto'];
 const CLAVE_ASESOR = ['artefactos', 'asesor'];
@@ -40,7 +41,7 @@ describe('useEliminarObservacion', () => {
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
-  it('en éxito elimina por id de observación e invalida solo las observaciones de la revisión', async () => {
+  it('en éxito elimina por id de observación e invalida el prefijo de revisiones', async () => {
     // Arrange
     eliminar.mockResolvedValue(undefined);
     const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
@@ -55,7 +56,7 @@ describe('useEliminarObservacion', () => {
 
     // Assert
     expect(eliminar).toHaveBeenCalledWith('o-1');
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: CLAVE_OBSERVACIONES });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: CLAVE_REVISIONES });
     expect(invalidar).not.toHaveBeenCalledWith({ queryKey: CLAVE_VERSIONES });
   });
 
