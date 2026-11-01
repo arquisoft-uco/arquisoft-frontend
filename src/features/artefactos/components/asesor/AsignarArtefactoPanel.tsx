@@ -11,7 +11,7 @@ const DESCRIPCION_REACTIVAR = 'Elige los estudiantes que recibirán el artefacto
 
 interface Props {
   onCerrar: () => void;
-  onAsignado: () => void;
+  onAsignado?: () => void;
   reactivar?: ArtefactoAReactivar;
 }
 

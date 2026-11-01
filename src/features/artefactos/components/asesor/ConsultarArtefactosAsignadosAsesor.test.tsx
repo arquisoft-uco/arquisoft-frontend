@@ -26,6 +26,14 @@ vi.mock('./AsignarArtefactoPanel', () => ({
   ),
 }));
 
+vi.mock('./EstudiantesArtefactoPanel', () => ({
+  default: ({ artefacto }: { artefacto: { nombreDocumento: string } }) => (
+    <div role="dialog" aria-label="Estudiantes del artefacto">
+      {artefacto.nombreDocumento}
+    </div>
+  ),
+}));
+
 const consultar = vi.mocked(artefactosService.consultarArtefactosAsesor);
 
 const ARTEFACTO: ArtefactoAsesor = {
@@ -97,6 +105,24 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     // Assert
     expect(screen.getByRole('dialog', { name: 'Reactivar artefacto' })).toHaveTextContent(
       'Anteproyecto',
+    );
+  });
+
+  it('"Gestionar estudiantes" abre el panel de estudiantes del artefacto', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarArtefactosAsignadosAsesor />);
+    const tabla = await screen.findByRole('table', { name: 'Artefactos asignados' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', { name: 'Acciones de Acta de inicio' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Gestionar estudiantes' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Estudiantes del artefacto' })).toHaveTextContent(
+      'Acta de inicio',
     );
   });
 

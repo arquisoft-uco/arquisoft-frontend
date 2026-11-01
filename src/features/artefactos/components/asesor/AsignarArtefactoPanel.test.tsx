@@ -267,6 +267,63 @@ describe('AsignarArtefactoPanel', () => {
     expect(onCerrar).toHaveBeenCalled();
   }, 15000);
 
+  it('la reactivación funciona sin onAsignado y cierra el panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    mutate.mockImplementation((_req, opciones: OpcionesMutate) => {
+      opciones.onSuccess({ id: 'a-1' });
+    });
+    render(
+      <AsignarArtefactoPanel
+        onCerrar={onCerrar}
+        reactivar={{
+          proyectoGrado: PROYECTO_ID,
+          versionRepositorioArtefacto: VERSION_ID,
+          nombreProyecto: 'Sistema de riego',
+          nombreDocumento: 'Acta de inicio',
+          versionDocumento: 2,
+        }}
+      />,
+    );
+    await elegir(user, /Estudiantes/, /Luis Gómez/);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reactivar artefacto' }));
+
+    // Assert
+    await waitFor(() => expect(onCerrar).toHaveBeenCalled());
+  }, 15000);
+
+  it('al reactivar, un 422 muestra el toast "No se pudo reactivar el artefacto"', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mutate.mockImplementation((_req, opciones: OpcionesMutate) =>
+      opciones.onError(errorApi(422, { status: 422, errorCode: 'OTRO', message: 'Falló' })),
+    );
+    render(
+      <AsignarArtefactoPanel
+        onCerrar={vi.fn()}
+        reactivar={{
+          proyectoGrado: PROYECTO_ID,
+          versionRepositorioArtefacto: VERSION_ID,
+          nombreProyecto: 'Sistema de riego',
+          nombreDocumento: 'Acta de inicio',
+          versionDocumento: 2,
+        }}
+      />,
+    );
+    await elegir(user, /Estudiantes/, /Luis Gómez/);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reactivar artefacto' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('No se pudo reactivar el artefacto', 'Falló'),
+    );
+  }, 15000);
+
   it('con el catálogo de proyectos caído muestra el aviso y deshabilita el envío', () => {
     // Arrange
     simular({ proyectosError: true });

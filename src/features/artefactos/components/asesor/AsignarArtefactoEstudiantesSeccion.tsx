@@ -1,11 +1,10 @@
 import { Controller, useWatch, type Control } from 'react-hook-form';
 import AvisoNoDisponible from '../../../../shared/components/AvisoNoDisponible';
-import Combobox from '../../../../shared/components/ui/Combobox';
-import Field from '../../../../shared/components/ui/Field';
 import FormSection from '../../../../shared/components/ui/FormSection';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import type { useEstudiantesProyectoCatalogo } from '../../hooks/useEstudiantesProyectoCatalogo';
 import type { AsignarArtefactoValues } from '../../utils/asignar-artefacto-schema';
+import SelectorEstudiantesField from './SelectorEstudiantesField';
 
 interface Props {
   control: Control<AsignarArtefactoValues>;
@@ -15,11 +14,6 @@ interface Props {
 export default function AsignarArtefactoEstudiantesSeccion({ control, catalogo }: Props) {
   const proyectoGrado = useWatch({ control, name: 'proyectoGrado' });
   const sinProyecto = !proyectoGrado;
-  const opciones = catalogo.estudiantes.map((e) => ({
-    id: e.estudianteId,
-    etiqueta: e.nombre,
-    descripcion: e.email,
-  }));
   const cargando = !sinProyecto && catalogo.isLoading;
   const fallo = !sinProyecto && catalogo.isError;
 
@@ -32,25 +26,17 @@ export default function AsignarArtefactoEstudiantesSeccion({ control, catalogo }
           name="estudiantes"
           control={control}
           render={({ field, fieldState }) => (
-            <Field etiqueta="Estudiantes" error={fieldState.error?.message}>
-              {(campo) => (
-                <Combobox
-                  {...campo}
-                  multiple
-                  ref={field.ref}
-                  onBlur={field.onBlur}
-                  valor={field.value}
-                  onCambiar={field.onChange}
-                  opciones={opciones}
-                  deshabilitado={sinProyecto}
-                  etiquetaElegidos="Estudiantes elegidos"
-                  textoVacio="Este proyecto no tiene estudiantes vigentes"
-                  placeholder={
-                    sinProyecto ? 'Elige primero un proyecto' : 'Busca por nombre o correo'
-                  }
-                />
-              )}
-            </Field>
+            <SelectorEstudiantesField
+              opciones={catalogo.estudiantes}
+              valor={field.value}
+              onCambiar={field.onChange}
+              onBlur={field.onBlur}
+              refCampo={field.ref}
+              error={fieldState.error?.message}
+              deshabilitado={sinProyecto}
+              textoVacio="Este proyecto no tiene estudiantes vigentes"
+              placeholder={sinProyecto ? 'Elige primero un proyecto' : 'Busca por nombre o correo'}
+            />
           )}
         />
       )}

@@ -1,4 +1,4 @@
-import { EyeOff, FileStack, RotateCcw, SearchX } from 'lucide-react';
+import { EyeOff, FileStack, RotateCcw, SearchX, Users } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -27,6 +27,7 @@ interface Props {
   onLimpiarFiltros: () => void;
   onOmitir: (artefacto: ArtefactoAsesor) => void;
   onReactivar: (artefacto: ArtefactoAsesor) => void;
+  onGestionarEstudiantes: (artefacto: ArtefactoAsesor) => void;
 }
 
 export default function ArtefactosAsesorTable({
@@ -38,6 +39,7 @@ export default function ArtefactosAsesorTable({
   onLimpiarFiltros,
   onOmitir,
   onReactivar,
+  onGestionarEstudiantes,
 }: Props) {
   const { pathname } = useLocation();
 
@@ -54,18 +56,20 @@ export default function ArtefactosAsesorTable({
   }
 
   function menuDeFila(artefacto: ArtefactoAsesor) {
-    const accion = artefacto.omitido
-      ? {
-          etiqueta: 'Reactivar artefacto',
-          icono: RotateCcw,
-          onSeleccionar: () => onReactivar(artefacto),
-        }
-      : {
-          etiqueta: 'Omitir artefacto',
-          icono: EyeOff,
-          onSeleccionar: () => onOmitir(artefacto),
-        };
-    return <RowMenu etiqueta={`Acciones de ${artefacto.nombreDocumento}`} acciones={[accion]} />;
+    const { omitido } = artefacto;
+    const acciones = [
+      {
+        etiqueta: omitido ? 'Ver estudiantes' : 'Gestionar estudiantes',
+        icono: Users,
+        onSeleccionar: () => onGestionarEstudiantes(artefacto),
+      },
+      {
+        etiqueta: omitido ? 'Reactivar artefacto' : 'Omitir artefacto',
+        icono: omitido ? RotateCcw : EyeOff,
+        onSeleccionar: () => (omitido ? onReactivar(artefacto) : onOmitir(artefacto)),
+      },
+    ];
+    return <RowMenu etiqueta={`Acciones de ${artefacto.nombreDocumento}`} acciones={acciones} />;
   }
 
   const columnas: ColumnaTabla<ArtefactoAsesor>[] = [

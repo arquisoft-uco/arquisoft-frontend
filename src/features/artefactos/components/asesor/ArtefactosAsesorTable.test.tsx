@@ -25,6 +25,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosAseso
     onLimpiarFiltros: vi.fn(),
     onOmitir: vi.fn(),
     onReactivar: vi.fn(),
+    onGestionarEstudiantes: vi.fn(),
     ...parcial,
   };
   render(<ArtefactosAsesorTable {...props} />, { initialPath: '/artefactos' });
@@ -53,6 +54,25 @@ describe('ArtefactosAsesorTable', () => {
     // Assert
     expect(onOmitir).toHaveBeenCalledWith(ARTEFACTO);
     expect(onReactivar).toHaveBeenCalledWith(omitido);
+  });
+
+  it('la fila activa ofrece "Gestionar estudiantes" y la omitida "Ver estudiantes", cada una con la fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const omitido = { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true };
+    const { onGestionarEstudiantes } = renderizar({ artefactos: [ARTEFACTO, omitido] });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' }));
+    expect(screen.queryByRole('menuitem', { name: 'Ver estudiantes' })).toBeNull();
+    await user.click(screen.getByRole('menuitem', { name: 'Gestionar estudiantes' }));
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Anteproyecto' }));
+    expect(screen.queryByRole('menuitem', { name: 'Gestionar estudiantes' })).toBeNull();
+    await user.click(screen.getByRole('menuitem', { name: 'Ver estudiantes' }));
+
+    // Assert
+    expect(onGestionarEstudiantes).toHaveBeenNthCalledWith(1, ARTEFACTO);
+    expect(onGestionarEstudiantes).toHaveBeenNthCalledWith(2, omitido);
   });
 
   it('muestra proyecto, documento con su versión y repositorio, con el documento como enlace a sus versiones', () => {

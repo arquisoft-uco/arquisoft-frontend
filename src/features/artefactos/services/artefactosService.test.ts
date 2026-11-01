@@ -259,4 +259,26 @@ describe('artefactosService', () => {
       expect(versionObtenida).toBe(version);
     });
   });
+
+  describe('vincular y quitar estudiantes (HU-106, HU-107)', () => {
+    it('vincularEstudiantes envía solo { estudiantes } a la ruta del artefacto y removerEstudiante borra por estudianteId', async () => {
+      // Arrange
+      post.mockResolvedValue({ data: 'ignorado' });
+      eliminar.mockResolvedValue({ data: undefined });
+
+      // Act
+      const vinculado = await artefactosService.vincularEstudiantes('a-1', {
+        estudiantes: ['e-1', 'e-2'],
+      });
+      const quitado = await artefactosService.removerEstudiante('a-1', 'e-1');
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/artefactos/a-1/estudiantes', {
+        estudiantes: ['e-1', 'e-2'],
+      });
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/a-1/estudiantes/e-1');
+      expect(vinculado).toBeUndefined();
+      expect(quitado).toBeUndefined();
+    });
+  });
 });

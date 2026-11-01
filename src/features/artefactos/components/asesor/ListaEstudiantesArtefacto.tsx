@@ -1,8 +1,11 @@
+import { UserMinus } from 'lucide-react';
 import Avatar from '../../../../shared/components/ui/Avatar';
 import Badge from '../../../../shared/components/ui/Badge';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EstudianteArtefacto } from '../../models/EstudianteArtefacto';
 
 const LISTA = 'flex flex-col gap-3';
+const FILA = 'flex min-w-0 items-center justify-between gap-3';
 const IDENTIDAD = 'flex min-w-0 items-center gap-3';
 const TEXTOS = 'flex min-w-0 flex-col';
 const NOMBRE = 'block truncate font-semibold text-on-surface';
@@ -12,29 +15,40 @@ const FILA_NOMBRE = 'flex min-w-0 flex-wrap items-center gap-2';
 interface Props {
   estudiantes: EstudianteArtefacto[];
   etiqueta: string;
+  onQuitar?: (estudiante: EstudianteArtefacto) => void;
 }
 
-export default function ListaEstudiantesArtefacto({ estudiantes, etiqueta }: Props) {
+export default function ListaEstudiantesArtefacto({ estudiantes, etiqueta, onQuitar }: Props) {
   return (
     <ul aria-label={etiqueta} className={LISTA}>
       {estudiantes.map((estudiante) => (
         <li key={estudiante.id} className="min-w-0">
-          <div className={IDENTIDAD}>
-            <Avatar nombre={estudiante.nombre} />
-            <div className={TEXTOS}>
-              <div className={FILA_NOMBRE}>
-                <span title={estudiante.nombre} className={NOMBRE}>
-                  {estudiante.nombre}
+          <div className={FILA}>
+            <div className={IDENTIDAD}>
+              <Avatar nombre={estudiante.nombre} />
+              <div className={TEXTOS}>
+                <div className={FILA_NOMBRE}>
+                  <span title={estudiante.nombre} className={NOMBRE}>
+                    {estudiante.nombre}
+                  </span>
+                  {!estudiante.vigente && <Badge variante="neutro">No vigente</Badge>}
+                </div>
+                <span title={estudiante.identificador} className={SUBTEXTO}>
+                  {estudiante.identificador}
                 </span>
-                {!estudiante.vigente && <Badge variante="neutro">No vigente</Badge>}
+                <span title={estudiante.email} className={SUBTEXTO}>
+                  {estudiante.email}
+                </span>
               </div>
-              <span title={estudiante.identificador} className={SUBTEXTO}>
-                {estudiante.identificador}
-              </span>
-              <span title={estudiante.email} className={SUBTEXTO}>
-                {estudiante.email}
-              </span>
             </div>
+            {onQuitar && (
+              <IconButton
+                etiqueta={`Quitar a ${estudiante.nombre}`}
+                icono={UserMinus}
+                tono="peligro"
+                onClick={() => onQuitar(estudiante)}
+              />
+            )}
           </div>
         </li>
       ))}

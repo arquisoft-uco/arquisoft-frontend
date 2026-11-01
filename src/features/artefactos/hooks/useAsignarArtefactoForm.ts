@@ -26,7 +26,7 @@ const MENSAJE_ERROR_POR_DEFECTO = 'Verifica los datos e inténtalo nuevamente.';
 
 interface Opciones {
   onCerrar: () => void;
-  onAsignado: () => void;
+  onAsignado?: () => void;
   reactivar?: ArtefactoAReactivar;
 }
 
@@ -85,7 +85,7 @@ export function useAsignarArtefactoForm({ onCerrar, onAsignado, reactivar }: Opc
               'Artefacto reactivado',
               `«${reactivar.nombreDocumento}» volvió a estar activo en «${reactivar.nombreProyecto}».`,
             );
-            onAsignado();
+            onAsignado?.();
             onCerrar();
             return;
           }
@@ -97,12 +97,15 @@ export function useAsignarArtefactoForm({ onCerrar, onAsignado, reactivar }: Opc
             'Artefacto asignado',
             `«${version?.nombreDocumento ?? 'El artefacto'} v${version?.numeroVersion ?? ''}» quedó asignado a «${proyecto?.titulo ?? 'el proyecto'}».`,
           );
-          onAsignado();
+          onAsignado?.();
           onCerrar();
         },
         onError: (err) => {
           const mensaje = getApiErrorMessage(err, MENSAJE_ERROR_POR_DEFECTO);
-          toast.error('No se pudo asignar el artefacto', mensaje);
+          toast.error(
+            reactivar ? 'No se pudo reactivar el artefacto' : 'No se pudo asignar el artefacto',
+            mensaje,
+          );
           const codigo = CODIGOS_ASIGNAR_ARTEFACTO.find((c) => hasApiErrorCode(err, c));
           const campo = codigo ? campoDeCodigoAsignarArtefacto(codigo) : undefined;
           if (campo) form.setError(campo, { message: mensaje });

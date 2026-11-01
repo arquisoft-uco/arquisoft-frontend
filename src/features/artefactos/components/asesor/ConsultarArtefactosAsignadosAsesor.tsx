@@ -5,6 +5,7 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import AsignarArtefactoPanel from './AsignarArtefactoPanel';
+import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
 import FiltrosArtefactosAsesor from './FiltrosArtefactosAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 import OmitirArtefactoDialog from './OmitirArtefactoDialog';
@@ -21,6 +22,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
   const listado = useArtefactosAsesor();
   const [aOmitir, setAOmitir] = useState<ArtefactoAsesor | null>(null);
   const [aReactivar, setAReactivar] = useState<ArtefactoAsesor | null>(null);
+  const [aGestionarEstudiantes, setAGestionarEstudiantes] = useState<ArtefactoAsesor | null>(null);
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
 
@@ -49,6 +51,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
             onLimpiarFiltros={listado.limpiarFiltros}
             onOmitir={setAOmitir}
             onReactivar={setAReactivar}
+            onGestionarEstudiantes={setAGestionarEstudiantes}
           />
         )}
       </div>
@@ -76,7 +79,12 @@ export default function ConsultarArtefactosAsignadosAsesor() {
             versionDocumento: aReactivar.versionDocumento,
           }}
           onCerrar={() => setAReactivar(null)}
-          onAsignado={() => undefined}
+        />
+      )}
+      {aGestionarEstudiantes && (
+        <EstudiantesArtefactoPanel
+          artefacto={aGestionarEstudiantes}
+          onCerrar={() => setAGestionarEstudiantes(null)}
         />
       )}
     </div>

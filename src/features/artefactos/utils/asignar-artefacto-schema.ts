@@ -1,10 +1,14 @@
 import { z } from 'zod';
-import { listaNoVaciaSinDuplicados, opcionRequerida, uuidValido } from '../../../shared/validation';
+import { opcionRequerida, uuidValido } from '../../../shared/validation';
+import {
+  CODIGOS_ESTUDIANTES_COMUNES,
+  estudiantesArtefactoSchema,
+} from './estudiantes-artefacto-schema';
 
 export const asignarArtefactoSchema = z.object({
   proyectoGrado: opcionRequerida().pipe(uuidValido()),
   versionRepositorioArtefacto: opcionRequerida().pipe(uuidValido()),
-  estudiantes: listaNoVaciaSinDuplicados(uuidValido(), (id) => id),
+  estudiantes: estudiantesArtefactoSchema,
 });
 
 export type AsignarArtefactoValues = z.infer<typeof asignarArtefactoSchema>;
@@ -20,11 +24,7 @@ const CAMPO_POR_CODIGO: Record<string, keyof AsignarArtefactoValues> = {
   ARTEFACTOS_ASESOR_PROYECTO_GRADO_NO_ASIGNADO: 'proyectoGrado',
   ARTEFACTOS_VERSION_REPOSITORIO_ARTEFACTO_VERSION_NO_ENCONTRADA: 'versionRepositorioArtefacto',
   ARTEFACTOS_ARTEFACTO_REPOSITORIO_YA_ASIGNADO: 'versionRepositorioArtefacto',
-  ESTUDIANTE_ARTEFACTO_ESTUDIANTES_REQUERIDOS: 'estudiantes',
-  ESTUDIANTE_ARTEFACTO_ESTUDIANTES_DUPLICADOS: 'estudiantes',
-  ARTEFACTOS_ESTUDIANTES_NO_ENCONTRADOS: 'estudiantes',
-  ARTEFACTOS_ESTUDIANTE_NO_VIGENTE: 'estudiantes',
-  ESTUDIANTE_ARTEFACTO_ESTUDIANTE_NO_VINCULADO_PROYECTO_GRADO: 'estudiantes',
+  ...Object.fromEntries(CODIGOS_ESTUDIANTES_COMUNES.map((c) => [c, 'estudiantes' as const])),
   ESTUDIANTE_ARTEFACTO_ESTUDIANTES_SUPERAN_PROYECTO: 'estudiantes',
 };
 
