@@ -18,6 +18,7 @@ vi.mock('../../services/artefactosService', () => ({
     getVersionArtefacto: vi.fn(),
     getIdsArtefactosOmitidosAsesor: vi.fn(),
     registrarRevision: vi.fn(),
+    enviarRevision: vi.fn(),
     getObservacionesRevision: vi.fn(),
     registrarObservacion: vi.fn(),
     eliminarObservacion: vi.fn(),
@@ -28,6 +29,7 @@ const getVersion = vi.mocked(artefactosService.getVersionArtefacto);
 const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
 const getOmitidos = vi.mocked(artefactosService.getIdsArtefactosOmitidosAsesor);
 const registrarRevision = vi.mocked(artefactosService.registrarRevision);
+const enviarRevision = vi.mocked(artefactosService.enviarRevision);
 const getObservaciones = vi.mocked(artefactosService.getObservacionesRevision);
 const registrarObservacion = vi.mocked(artefactosService.registrarObservacion);
 
@@ -386,6 +388,79 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       expect(
         screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('enviar revisión (HU-292)', () => {
+    const PENDIENTE: VersionArtefacto = {
+      ...VERSION,
+      revisionAsesor: 'r-1',
+      estadoRevision: 'PENDIENTE',
+      nombreEstadoRevision: 'Pendiente',
+    };
+    const CONTROL: VersionArtefacto = {
+      ...PENDIENTE,
+      id: 'v-9',
+      artefacto: 'a-2',
+      revisionAsesor: 'r-9',
+      nombreDocumento: 'Plano',
+    };
+
+    async function abrirMenu(user: UserEvent, documento: string) {
+      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        await within(tabla).findByRole('button', {
+          name: `Acciones de la versión 4 de ${documento}`,
+        }),
+      );
+    }
+
+    async function comprobarControlPositivo(user: UserEvent) {
+      await abrirMenu(user, 'Plano');
+      expect(await screen.findByRole('menuitem', { name: 'Enviar revisión' })).toBeVisible();
+      await user.keyboard('{Escape}');
+      await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+    }
+
+    it.each([
+      ['revisión en progreso', { estadoRevision: 'EN_PROGRESO', revisionAsesor: 'r-1' }, []],
+      ['ninguna revisión', {}, []],
+      ['el artefacto omitido', { revisionAsesor: 'r-1', estadoRevision: 'PENDIENTE' }, ['a-1']],
+    ])('no la ofrece con %s aunque sí en otra fila elegible', async (_caso, cambios, omitidos) => {
+      // Arrange
+      consultarVersiones.mockResolvedValue(pagina([{ ...VERSION, ...cambios }, CONTROL]));
+      getOmitidos.mockResolvedValue(omitidos);
+      const user = userEvent.setup();
+      render(<ConsultarVersionesArtefactoAsesor />);
+      await comprobarControlPositivo(user);
+
+      // Act
+      await abrirMenu(user, 'Acta de inicio');
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Enviar revisión' })).not.toBeInTheDocument();
+    });
+
+    it('de punta a punta: la ofrece con revisión pendiente y confirmar envía con el id de la revisión de la fila', async () => {
+      // Arrange
+      consultarVersiones.mockResolvedValue(pagina([PENDIENTE]));
+      enviarRevision.mockResolvedValue(undefined);
+      const user = userEvent.setup();
+      render(<ConsultarVersionesArtefactoAsesor />);
+      await abrirMenu(user, 'Acta de inicio');
+      await user.click(await screen.findByRole('menuitem', { name: 'Enviar revisión' }));
+      const dialogo = screen.getByRole('dialog', { name: '¿Enviar revisión?' });
+      expect(within(dialogo).getByText(/Se envía un correo a los estudiantes/)).toBeInTheDocument();
+
+      // Act
+      await user.click(within(dialogo).getByRole('button', { name: 'Enviar revisión' }));
+
+      // Assert
+      await waitFor(() => expect(enviarRevision).toHaveBeenCalledWith('r-1'));
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog', { name: '¿Enviar revisión?' })).toBeNull(),
+      );
     });
   });
 

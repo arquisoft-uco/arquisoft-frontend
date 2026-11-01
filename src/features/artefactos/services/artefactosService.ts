@@ -169,6 +169,9 @@ export const artefactosService = {
       .post<RegistrarRevisionResponse>(`/artefactos/versiones/${versionArtefactoId}/revisiones`)
       .then((r) => r.data),
 
+  enviarRevision: (revisionAsesorId: string): Promise<void> =>
+    apiClient.patch(`/artefactos/revisiones/${revisionAsesorId}/envio`).then(() => undefined),
+
   registrarObservacion: (
     revisionAsesorId: string,
     req: RegistrarObservacionRequest,

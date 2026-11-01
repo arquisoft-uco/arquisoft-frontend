@@ -19,11 +19,15 @@ export default function ArtefactoAsesorRowMenu({
 }: Props) {
   const { omitido } = artefacto;
   const acciones = [
-    {
-      etiqueta: 'Cambiar asesor',
-      icono: UserRoundPen,
-      onSeleccionar: () => onCambiarAsesor(artefacto),
-    },
+    ...(omitido
+      ? []
+      : [
+          {
+            etiqueta: 'Cambiar asesor',
+            icono: UserRoundPen,
+            onSeleccionar: () => onCambiarAsesor(artefacto),
+          },
+        ]),
     {
       etiqueta: omitido ? 'Ver estudiantes' : 'Gestionar estudiantes',
       icono: Users,

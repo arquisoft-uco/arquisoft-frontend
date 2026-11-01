@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquarePlus, Trash2 } from 'lucide-react';
+import { MessageSquarePlus, Send, Trash2 } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import IconButton from '../../../../shared/components/ui/IconButton';
 import Notice from '../../../../shared/components/ui/Notice';
@@ -11,6 +11,7 @@ import { estadoPermiteGestionarObservaciones } from '../../utils/revision-versio
 import ObservacionesRevisionPanelBase from '../ObservacionesRevisionPanelBase';
 import AgregarObservacionPanel from './AgregarObservacionPanel';
 import EliminarObservacionDialog from './EliminarObservacionDialog';
+import EnviarRevisionDialog from './EnviarRevisionDialog';
 
 const LONGITUD_ETIQUETA = 40;
 const AVISO_NO_PENDIENTE =
@@ -38,6 +39,7 @@ export default function ObservacionesRevisionPanel({
   const { omitidos } = usePuedeGestionarObservaciones();
   const [agregando, setAgregando] = useState(false);
   const [aEliminar, setAEliminar] = useState<ObservacionRevision | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   if (agregando) {
     return (
@@ -78,6 +80,9 @@ export default function ObservacionesRevisionPanel({
               <Button icono={MessageSquarePlus} onClick={() => setAgregando(true)}>
                 Agregar observación
               </Button>
+              <Button variante="secundario" icono={Send} onClick={() => setEnviando(true)}>
+                Enviar revisión
+              </Button>
             </div>
           )
         }
@@ -96,6 +101,14 @@ export default function ObservacionesRevisionPanel({
       />
       {aEliminar && (
         <EliminarObservacionDialog observacion={aEliminar} onCerrar={() => setAEliminar(null)} />
+      )}
+      {enviando && (
+        <EnviarRevisionDialog
+          version={version}
+          revisionAsesorId={revisionAsesorId}
+          onCerrar={() => setEnviando(false)}
+          onSalir={onCerrar}
+        />
       )}
     </>
   );

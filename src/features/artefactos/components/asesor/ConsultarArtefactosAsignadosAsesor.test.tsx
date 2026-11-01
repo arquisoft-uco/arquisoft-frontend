@@ -112,6 +112,32 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     );
   });
 
+  it('un artefacto omitido no ofrece "Cambiar asesor" y uno no omitido de la misma lista sí', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultar.mockResolvedValue(
+      pagina([
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true },
+      ]),
+    );
+    render(<ConsultarArtefactosAsignadosAsesor />);
+    const tabla = await screen.findByRole('table', { name: 'Artefactos asignados' });
+    await user.click(
+      await within(tabla).findByRole('button', { name: 'Acciones de Acta de inicio' }),
+    );
+    expect(screen.getByRole('menuitem', { name: 'Cambiar asesor' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+
+    // Act
+    await user.click(within(tabla).getByRole('button', { name: 'Acciones de Anteproyecto' }));
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Ver estudiantes' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Reactivar artefacto' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Cambiar asesor' })).not.toBeInTheDocument();
+  });
+
   it('"Gestionar estudiantes" abre el panel de estudiantes del artefacto', async () => {
     // Arrange
     const user = userEvent.setup();

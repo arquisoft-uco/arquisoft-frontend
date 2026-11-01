@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
 import type { ApiError } from '../../../shared/models/api-response';
-import { aplicarErrorDeVersionArtefacto, esErrorDeArchivo } from './errores-version-artefacto';
+import {
+  aplicarErrorDeVersionArtefacto,
+  esBloqueoDeSubida,
+  esErrorDeArchivo,
+  mensajeDeErrorDeVersionArtefacto,
+} from './errores-version-artefacto';
 
 function crearErrorApi(cuerpo: ApiError) {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
@@ -54,7 +59,7 @@ describe('errores-version-artefacto', () => {
 
     // Act
     const negocio = aplicarErrorDeVersionArtefacto(
-      porCodigo('REVISION_ASESOR_VERSION_ANTERIOR_NO_EN_PROGRESO'),
+      porCodigo('ARTEFACTOS_ARTEFACTO_OMITIDO'),
       'solicitando',
       setError,
     );
@@ -65,5 +70,23 @@ describe('errores-version-artefacto', () => {
     expect(sinRed).toBe('El almacenamiento no aceptó el archivo. Vuelve a intentarlo.');
     expect(setError).not.toHaveBeenCalled();
     expect(esErrorDeArchivo(porCodigo('ARTEFACTOS_ARTEFACTO_OMITIDO'))).toBe(false);
+  });
+
+  it('los tres 422 de bloqueo tienen mensaje propio y esBloqueoDeSubida los reconoce', () => {
+    // Act
+    const mensajes = [
+      'REVISION_ASESOR_VERSION_ANTERIOR_SIN_REVISION',
+      'REVISION_ASESOR_VERSION_ANTERIOR_NO_EN_PROGRESO',
+      'ARTEFACTOS_ARTEFACTO_CERRADO',
+    ].map((codigo) => mensajeDeErrorDeVersionArtefacto(porCodigo(codigo), 'solicitando'));
+
+    // Assert
+    expect(mensajes).toEqual([
+      'Aún no puedes subir otra versión: el asesor debe revisar la versión actual.',
+      'Aún no puedes subir otra versión: el asesor debe enviarte primero su revisión.',
+      'El asesor cerró este artefacto: ya no admite nuevas versiones.',
+    ]);
+    expect(esBloqueoDeSubida(porCodigo('ARTEFACTOS_ARTEFACTO_CERRADO'))).toBe(true);
+    expect(esBloqueoDeSubida(porCodigo('ARTEFACTOS_ARTEFACTO_OMITIDO'))).toBe(false);
   });
 });

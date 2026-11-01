@@ -18,6 +18,9 @@ vi.mock('../../hooks/usePuedeGestionarObservaciones', () => ({
 }));
 vi.mock('../../hooks/useRegistrarObservacion', () => ({ useRegistrarObservacion: vi.fn() }));
 vi.mock('../../hooks/useEliminarObservacion', () => ({ useEliminarObservacion: vi.fn() }));
+vi.mock('../../hooks/useEnviarRevision', () => ({
+  useEnviarRevision: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
 
 const hook = vi.mocked(useObservacionesRevision);
 
@@ -175,6 +178,28 @@ describe('ObservacionesRevisionPanel', () => {
     expect(screen.getByRole('button', { name: 'Agregar observación' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^Eliminar observación:/ })).toHaveLength(2);
     expect(screen.queryByRole('note')).not.toBeInTheDocument();
+  });
+
+  it('editable ofrece Enviar revisión y abre su confirmación; no editable no la ofrece', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Enviar revisión' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: '¿Enviar revisión?' })).toBeInTheDocument();
+
+    // Act
+    unmount();
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Enviar revisión' })).not.toBeInTheDocument();
   });
 
   it('editable con la lista vacía invita a agregar la primera y deja la acción visible', () => {

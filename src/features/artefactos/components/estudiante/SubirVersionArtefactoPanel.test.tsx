@@ -114,7 +114,7 @@ describe('SubirVersionArtefactoPanel', () => {
     );
   });
 
-  it('un error de negocio muestra el aviso con el mensaje del servidor y deja el panel abierto', async () => {
+  it('un error de negocio muestra el aviso con el mensaje propio y deja el panel abierto', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
@@ -136,10 +136,37 @@ describe('SubirVersionArtefactoPanel', () => {
 
     // Assert
     expect(
-      await screen.findByText('No puede subir una nueva versión: la revisión está pendiente.'),
+      await screen.findByText(
+        'Aún no puedes subir otra versión: el asesor debe enviarte primero su revisión.',
+      ),
     ).toBeInTheDocument();
     expect(toast.error).toHaveBeenCalledTimes(1);
     expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('con el artefacto cerrado el aviso dice que ya no admite nuevas versiones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mutate.mockImplementation((_datos: unknown, opciones: OpcionesMutate) =>
+      opciones.onError(
+        crearErrorApi({
+          error: 'Unprocessable Entity',
+          errorCode: 'ARTEFACTOS_ARTEFACTO_CERRADO',
+          message: 'del servidor',
+          status: 422,
+        }),
+      ),
+    );
+    render(<SubirVersionArtefactoPanel artefacto={ARTEFACTO} onCerrar={vi.fn()} />);
+
+    // Act
+    await user.upload(screen.getByLabelText('Archivo', CAMPO), markdown());
+    await user.click(screen.getByRole('button', { name: 'Subir versión' }));
+
+    // Assert
+    expect(
+      await screen.findByText('El asesor cerró este artefacto: ya no admite nuevas versiones.'),
+    ).toBeInTheDocument();
   });
 
   it('un error de archivo del servidor se pinta junto al campo', async () => {

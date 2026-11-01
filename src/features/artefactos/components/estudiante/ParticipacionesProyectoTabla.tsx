@@ -12,9 +12,11 @@ const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE_BOTON =
   'block truncate text-left font-medium text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
 const NOMBRE_TEXTO = 'block truncate font-medium text-on-surface';
+const MOTIVO = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
 type AlAbrir = (participacion: ParticipacionArtefacto) => void;
+type MotivoBloqueo = (participacion: ParticipacionArtefacto) => string | null | undefined;
 
 function etiquetaVersion(participacion: ParticipacionArtefacto): string {
   return `Versión ${participacion.versionDocumento}`;
@@ -23,9 +25,11 @@ function etiquetaVersion(participacion: ParticipacionArtefacto): string {
 function BotonNombre({
   participacion,
   onAbrir,
+  motivoBloqueo,
 }: {
   participacion: ParticipacionArtefacto;
   onAbrir: AlAbrir;
+  motivoBloqueo: MotivoBloqueo;
 }) {
   if (participacion.omitido) {
     return (
@@ -34,6 +38,18 @@ function BotonNombre({
           {participacion.nombreDocumento}
         </span>
         <InsigniaOmitido />
+      </>
+    );
+  }
+
+  const motivo = motivoBloqueo(participacion);
+  if (motivo !== null) {
+    return (
+      <>
+        <span title={participacion.nombreDocumento} className={NOMBRE_TEXTO}>
+          {participacion.nombreDocumento}
+        </span>
+        {motivo !== undefined && <span className={MOTIVO}>{motivo}</span>}
       </>
     );
   }
@@ -51,13 +67,22 @@ function BotonNombre({
   );
 }
 
-function columnasDe(onAbrir: AlAbrir): ColumnaTabla<ParticipacionArtefacto>[] {
+function columnasDe(
+  onAbrir: AlAbrir,
+  motivoBloqueo: MotivoBloqueo,
+): ColumnaTabla<ParticipacionArtefacto>[] {
   return [
     {
       id: 'documento',
       encabezado: 'Documento',
       clave: 'nombreDocumento',
-      celda: (participacion) => <BotonNombre participacion={participacion} onAbrir={onAbrir} />,
+      celda: (participacion) => (
+        <BotonNombre
+          participacion={participacion}
+          onAbrir={onAbrir}
+          motivoBloqueo={motivoBloqueo}
+        />
+      ),
     },
     {
       id: 'version',
@@ -87,11 +112,12 @@ function columnasDe(onAbrir: AlAbrir): ColumnaTabla<ParticipacionArtefacto>[] {
 interface Props {
   proyecto: ProyectoConParticipaciones;
   onAbrir: AlAbrir;
+  motivoBloqueo: MotivoBloqueo;
 }
 
-export default function ParticipacionesProyectoTabla({ proyecto, onAbrir }: Props) {
+export default function ParticipacionesProyectoTabla({ proyecto, onAbrir, motivoBloqueo }: Props) {
   const idTitulo = useId();
-  const columnas = useMemo(() => columnasDe(onAbrir), [onAbrir]);
+  const columnas = useMemo(() => columnasDe(onAbrir, motivoBloqueo), [onAbrir, motivoBloqueo]);
 
   return (
     <section aria-labelledby={idTitulo} className={SECCION}>
@@ -105,7 +131,11 @@ export default function ParticipacionesProyectoTabla({ proyecto, onAbrir }: Prop
         idDeFila={(participacion) => participacion.id}
         tarjeta={(participacion) => (
           <>
-            <BotonNombre participacion={participacion} onAbrir={onAbrir} />
+            <BotonNombre
+              participacion={participacion}
+              onAbrir={onAbrir}
+              motivoBloqueo={motivoBloqueo}
+            />
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
             <p className={TARJETA_DATO}>
               {participacion.nombreAsesor} · {etiquetaVersion(participacion)}
