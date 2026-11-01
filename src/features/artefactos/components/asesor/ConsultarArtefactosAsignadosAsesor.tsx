@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
+import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import CambiarAsesorArtefactoPanel from './CambiarAsesorArtefactoPanel';
 import FiltrosArtefactosAsesor from './FiltrosArtefactosAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 
@@ -14,6 +17,7 @@ function textoResumen(total?: number): string {
 }
 
 export default function ConsultarArtefactosAsignadosAsesor() {
+  const [enCambio, setEnCambio] = useState<ArtefactoAsesor | null>(null);
   const listado = useArtefactosAsesor();
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
@@ -41,6 +45,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onCambiarAsesor={setEnCambio}
           />
         )}
       </div>
@@ -55,6 +60,10 @@ export default function ConsultarArtefactosAsignadosAsesor() {
           etiquetaPlural="artefactos"
           onPageChange={listado.goToPage}
         />
+      )}
+
+      {enCambio && (
+        <CambiarAsesorArtefactoPanel artefacto={enCambio} onCerrar={() => setEnCambio(null)} />
       )}
     </div>
   );

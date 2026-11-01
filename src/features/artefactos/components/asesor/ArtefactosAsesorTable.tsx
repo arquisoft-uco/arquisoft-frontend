@@ -1,4 +1,4 @@
-import { FileStack, SearchX } from 'lucide-react';
+import { FileStack, SearchX, UserRoundPen } from 'lucide-react';
 import { Link, useLocation } from 'react-router';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
@@ -9,6 +9,7 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
@@ -24,6 +25,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onCambiarAsesor: (artefacto: ArtefactoAsesor) => void;
 }
 
 export default function ArtefactosAsesorTable({
@@ -33,6 +35,7 @@ export default function ArtefactosAsesorTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onCambiarAsesor,
 }: Props) {
   const { pathname } = useLocation();
 
@@ -107,6 +110,18 @@ export default function ArtefactosAsesorTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(artefacto) => (
+        <RowMenu
+          etiqueta={`Acciones del artefacto ${artefacto.nombreDocumento}`}
+          acciones={[
+            {
+              etiqueta: 'Cambiar asesor',
+              icono: UserRoundPen,
+              onSeleccionar: () => onCambiarAsesor(artefacto),
+            },
+          ]}
+        />
+      )}
       tarjeta={(artefacto) => (
         <>
           <p className="font-semibold">{enlaceVersiones(artefacto)}</p>
