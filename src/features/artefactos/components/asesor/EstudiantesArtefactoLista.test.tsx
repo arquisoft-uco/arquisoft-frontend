@@ -80,22 +80,6 @@ describe('EstudiantesArtefactoLista', () => {
     expect(within(items[1]).getByText('No vigente')).toBeInTheDocument();
   });
 
-  it('"Quitar" solo aparece con onQuitar y entrega al estudiante de la fila', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onQuitar = vi.fn();
-    hook.mockReturnValue(estado({ data: [vigente] }));
-    const { rerender } = render(<EstudiantesArtefactoLista artefactoId="a-1" />);
-    expect(screen.queryByRole('button', { name: 'Quitar a Luis Gómez' })).toBeNull();
-
-    // Act
-    rerender(<EstudiantesArtefactoLista artefactoId="a-1" onQuitar={onQuitar} />);
-    await user.click(screen.getByRole('button', { name: 'Quitar a Luis Gómez' }));
-
-    // Assert
-    expect(onQuitar).toHaveBeenCalledWith(vigente);
-  });
-
   it('muestra el mensaje de vacío y no un error cuando no hay vínculos', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [] }));

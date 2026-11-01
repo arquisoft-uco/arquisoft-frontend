@@ -76,11 +76,6 @@ export const artefactosService = {
       .post(`/artefactos/${artefactoId}/estudiantes`, { estudiantes: req.estudiantes })
       .then(() => undefined),
 
-  removerEstudiante: (artefactoId: string, estudianteId: string): Promise<void> =>
-    apiClient
-      .delete(`/artefactos/${artefactoId}/estudiantes/${estudianteId}`)
-      .then(() => undefined),
-
   getObservacionesRevision: (revisionAsesorId: string): Promise<ObservacionRevision[]> =>
     apiClient
       .get<ObservacionRevisionResponse[]>(`/revisiones-asesor/${revisionAsesorId}/observaciones`)

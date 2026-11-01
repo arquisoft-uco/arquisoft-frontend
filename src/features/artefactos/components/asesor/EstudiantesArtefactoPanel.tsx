@@ -4,9 +4,7 @@ import Button from '../../../../shared/components/ui/Button';
 import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
-import type { EstudianteArtefacto } from '../../models/EstudianteArtefacto';
 import EstudiantesArtefactoLista from './EstudiantesArtefactoLista';
-import RemoverEstudianteDialog from './RemoverEstudianteDialog';
 import VincularEstudiantesPanel from './VincularEstudiantesPanel';
 
 const BARRA = 'mb-4 flex justify-end';
@@ -20,7 +18,6 @@ interface Props {
 
 export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props) {
   const [vinculando, setVinculando] = useState(false);
-  const [aQuitar, setAQuitar] = useState<EstudianteArtefacto | null>(null);
 
   if (vinculando) {
     return (
@@ -33,35 +30,23 @@ export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props
   }
 
   return (
-    <>
-      <SidePanel
-        titulo="Estudiantes del artefacto"
-        descripcion={`«${artefacto.nombreDocumento}» · ${artefacto.nombreProyecto}`}
-        onCerrar={onCerrar}
-      >
-        {artefacto.omitido ? (
-          <Notice variante="info" className="mb-4">
-            {AVISO_OMITIDO}
-          </Notice>
-        ) : (
-          <div className={BARRA}>
-            <Button icono={UserPlus} onClick={() => setVinculando(true)}>
-              Vincular estudiantes
-            </Button>
-          </div>
-        )}
-        <EstudiantesArtefactoLista
-          artefactoId={artefacto.id}
-          onQuitar={artefacto.omitido ? undefined : setAQuitar}
-        />
-      </SidePanel>
-      {aQuitar && (
-        <RemoverEstudianteDialog
-          artefacto={artefacto}
-          estudiante={aQuitar}
-          onCerrar={() => setAQuitar(null)}
-        />
+    <SidePanel
+      titulo="Estudiantes del artefacto"
+      descripcion={`«${artefacto.nombreDocumento}» · ${artefacto.nombreProyecto}`}
+      onCerrar={onCerrar}
+    >
+      {artefacto.omitido ? (
+        <Notice variante="info" className="mb-4">
+          {AVISO_OMITIDO}
+        </Notice>
+      ) : (
+        <div className={BARRA}>
+          <Button icono={UserPlus} onClick={() => setVinculando(true)}>
+            Vincular estudiantes
+          </Button>
+        </div>
       )}
-    </>
+      <EstudiantesArtefactoLista artefactoId={artefacto.id} />
+    </SidePanel>
   );
 }

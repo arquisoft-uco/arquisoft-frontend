@@ -4,18 +4,13 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstudiantesArtefacto } from '../../hooks/useEstudiantesArtefacto';
-import type { EstudianteArtefacto } from '../../models/EstudianteArtefacto';
 import ListaEstudiantesArtefacto from './ListaEstudiantesArtefacto';
-
-const VACIO_EDITABLE = 'Vincula estudiantes para que reciban el artefacto.';
-const VACIO_SOLO_LECTURA = 'Cuando se vinculen estudiantes al artefacto, aparecerán aquí.';
 
 interface Props {
   artefactoId: string;
-  onQuitar?: (estudiante: EstudianteArtefacto) => void;
 }
 
-export default function EstudiantesArtefactoLista({ artefactoId, onQuitar }: Props) {
+export default function EstudiantesArtefactoLista({ artefactoId }: Props) {
   const { data, isLoading, isError, error, refetch } = useEstudiantesArtefacto(artefactoId);
 
   if (isLoading) {
@@ -35,15 +30,9 @@ export default function EstudiantesArtefactoLista({ artefactoId, onQuitar }: Pro
       <EmptyState
         icono={Users}
         titulo="Este artefacto no tiene estudiantes vinculados"
-        descripcion={onQuitar ? VACIO_EDITABLE : VACIO_SOLO_LECTURA}
+        descripcion="Cuando se vinculen estudiantes al artefacto, aparecerán aquí."
       />
     );
   }
-  return (
-    <ListaEstudiantesArtefacto
-      estudiantes={data}
-      etiqueta="Estudiantes del artefacto"
-      onQuitar={onQuitar}
-    />
-  );
+  return <ListaEstudiantesArtefacto estudiantes={data} etiqueta="Estudiantes del artefacto" />;
 }

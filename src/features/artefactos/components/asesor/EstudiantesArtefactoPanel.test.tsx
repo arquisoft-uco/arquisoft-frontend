@@ -6,13 +6,6 @@ import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
 
 vi.mock('../../hooks/useEstudiantesArtefacto', () => ({ useEstudiantesArtefacto: vi.fn() }));
-vi.mock('./RemoverEstudianteDialog', () => ({
-  default: ({ estudiante }: { estudiante: { nombre: string } }) => (
-    <div role="dialog" aria-label="Quitar">
-      {estudiante.nombre}
-    </div>
-  ),
-}));
 vi.mock('./VincularEstudiantesPanel', () => ({
   default: ({ onVolver }: { onVolver: () => void }) => (
     <div role="dialog" aria-label="Formulario de vincular">
@@ -58,20 +51,7 @@ describe('EstudiantesArtefactoPanel', () => {
     >);
   });
 
-  it('un artefacto activo ofrece vincular y quitar; quitar abre la confirmación', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    render(<EstudiantesArtefactoPanel artefacto={ARTEFACTO} onCerrar={vi.fn()} />);
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Quitar a Luis Gómez' }));
-
-    // Assert
-    expect(screen.getByRole('button', { name: 'Vincular estudiantes' })).toBeInTheDocument();
-    expect(screen.getByRole('dialog', { name: 'Quitar' })).toHaveTextContent('Luis Gómez');
-  });
-
-  it('un artefacto omitido muestra el aviso y no ofrece vincular ni quitar', () => {
+  it('un artefacto omitido muestra el aviso y no ofrece vincular', () => {
     // Act
     render(
       <EstudiantesArtefactoPanel artefacto={{ ...ARTEFACTO, omitido: true }} onCerrar={vi.fn()} />,
@@ -81,7 +61,6 @@ describe('EstudiantesArtefactoPanel', () => {
     expect(screen.getByText(/Este artefacto está omitido/)).toBeInTheDocument();
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Vincular estudiantes' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Quitar a Luis Gómez' })).toBeNull();
   });
 
   it('vincular abre el formulario y cancelar vuelve a la lista', async () => {
