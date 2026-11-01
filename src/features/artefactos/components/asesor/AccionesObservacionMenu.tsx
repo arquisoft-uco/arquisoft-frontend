@@ -1,5 +1,6 @@
 import { LockKeyhole, RotateCcw, Trash2 } from 'lucide-react';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
+import { useObservacionEnEliminacion } from '../../hooks/useObservacionEnEliminacion';
 import type { ObservacionRevision } from '../../models/ObservacionRevision';
 
 const LONGITUD_ETIQUETA = 40;
@@ -23,6 +24,8 @@ export default function AccionesObservacionMenu({
   onEliminar,
   onDecidir,
 }: Props) {
+  const eliminando = useObservacionEnEliminacion(observacion.id);
+
   if (modo === 'eliminar') {
     return (
       <RowMenu
@@ -33,6 +36,7 @@ export default function AccionesObservacionMenu({
             icono: Trash2,
             peligro: true,
             onSeleccionar: () => onEliminar(observacion),
+            deshabilitada: eliminando,
           },
         ]}
       />

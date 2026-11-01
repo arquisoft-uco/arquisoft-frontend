@@ -7,6 +7,7 @@ import { usePuedeGestionarObservaciones } from '../../hooks/usePuedeGestionarObs
 import { useRegistrarObservacion } from '../../hooks/useRegistrarObservacion';
 import { useEliminarObservacion } from '../../hooks/useEliminarObservacion';
 import { useUltimaVersionArtefacto } from '../../hooks/useUltimaVersionArtefacto';
+import { useObservacionEnEliminacion } from '../../hooks/useObservacionEnEliminacion';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { toast } from '../../../../shared/hooks/useToast';
 import ObservacionesRevisionPanel from './ObservacionesRevisionPanel';
@@ -20,6 +21,9 @@ vi.mock('../../hooks/usePuedeGestionarObservaciones', () => ({
 }));
 vi.mock('../../hooks/useRegistrarObservacion', () => ({ useRegistrarObservacion: vi.fn() }));
 vi.mock('../../hooks/useEliminarObservacion', () => ({ useEliminarObservacion: vi.fn() }));
+vi.mock('../../hooks/useObservacionEnEliminacion', () => ({
+  useObservacionEnEliminacion: vi.fn(() => false),
+}));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
@@ -97,6 +101,7 @@ describe('ObservacionesRevisionPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     simularOmitidos(new Set());
+    vi.mocked(useObservacionEnEliminacion).mockReturnValue(false);
     vi.mocked(useRegistrarObservacion).mockReturnValue({
       mutate: vi.fn(),
       reset: vi.fn(),
@@ -136,6 +141,28 @@ describe('ObservacionesRevisionPanel', () => {
     expect(mutate.mock.calls[0][0]).toBe('o-2');
     expect(toast.success).toHaveBeenCalledWith('Observación eliminada');
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+  });
+
+  it('deshabilita Eliminar observación solo en la fila cuya eliminación está en curso', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+    vi.mocked(useObservacionEnEliminacion).mockImplementation((id) => id === 'o-2');
+    const user = userEvent.setup();
+    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    const menus = screen.getAllByRole('button', { name: 'Acciones de la observación' });
+
+    // Act
+    await user.click(menus[1]);
+
+    // Assert
+    expect(await screen.findByRole('menuitem', { name: 'Eliminar observación' })).toBeDisabled();
+
+    // Act
+    await user.keyboard('{Escape}');
+    await user.click(menus[0]);
+
+    // Assert
+    expect(await screen.findByRole('menuitem', { name: 'Eliminar observación' })).toBeEnabled();
   });
 
   it('al cancelar el diálogo no elimina nada', async () => {
