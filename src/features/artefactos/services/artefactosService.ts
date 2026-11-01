@@ -14,6 +14,8 @@ import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
+import type { RegistrarObservacionRequest } from '../models/RegistrarObservacionRequest';
+import type { RegistrarObservacionResponse } from '../models/RegistrarObservacionResponse';
 import type { RegistrarRevisionResponse } from '../models/RegistrarRevisionResponse';
 import type { SolicitarCargaVersionArtefactoRequest } from '../models/SolicitarCargaVersionArtefactoRequest';
 import type { SolicitarCargaVersionArtefactoResponse } from '../models/SolicitarCargaVersionArtefactoResponse';
@@ -160,6 +162,22 @@ export const artefactosService = {
     apiClient
       .post<RegistrarRevisionResponse>(`/artefactos/versiones/${versionArtefactoId}/revisiones`)
       .then((r) => r.data),
+
+  registrarObservacion: (
+    revisionAsesorId: string,
+    req: RegistrarObservacionRequest,
+  ): Promise<RegistrarObservacionResponse> =>
+    apiClient
+      .post<RegistrarObservacionResponse>(
+        `/artefactos/revisiones/${revisionAsesorId}/observaciones`,
+        {
+          descripcion: req.descripcion,
+        },
+      )
+      .then((r) => r.data),
+
+  eliminarObservacion: (observacionId: string): Promise<void> =>
+    apiClient.delete(`/artefactos/observaciones/${observacionId}`).then(() => undefined),
 
   getIdsArtefactosOmitidosAsesor,
 

@@ -235,6 +235,36 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('observaciones de una revisión (HU-134, HU-135)', () => {
+    it('registrarObservacion envía POST con exactamente { descripcion } y devuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ data: { id: 'o-1' } });
+
+      // Act
+      const resultado = await artefactosService.registrarObservacion('r-1', {
+        descripcion: 'Falta el diagrama',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/artefactos/revisiones/r-1/observaciones', {
+        descripcion: 'Falta el diagrama',
+      });
+      expect(resultado).toEqual({ id: 'o-1' });
+    });
+
+    it('eliminarObservacion envía DELETE sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204 });
+
+      // Act
+      const resultado = await artefactosService.eliminarObservacion('o-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/observaciones/o-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrar revisión (HU-114)', () => {
     it('registrarRevision envía POST sin body a la ruta de revisiones de la versión y devuelve { id }', async () => {
       // Arrange

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { MessageSquare } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
@@ -17,6 +18,9 @@ interface Props {
   error: unknown;
   onReintentar: () => void;
   onCerrar: () => void;
+  aviso?: ReactNode;
+  barra?: ReactNode;
+  acciones?: (observacion: ObservacionRevision) => ReactNode;
 }
 
 export default function ObservacionesRevisionPanelBase({
@@ -28,6 +32,9 @@ export default function ObservacionesRevisionPanelBase({
   error,
   onReintentar,
   onCerrar,
+  aviso,
+  barra,
+  acciones,
 }: Props) {
   return (
     <SidePanel
@@ -44,24 +51,28 @@ export default function ObservacionesRevisionPanelBase({
         </div>
       )}
     >
-      {isError ? (
-        <ErrorState
-          titulo="No pudimos cargar las observaciones"
-          descripcion="Inténtalo nuevamente."
-          detalle={getApiErrorMessage(error, 'No se pudieron cargar las observaciones.')}
-          onReintentar={onReintentar}
-        />
-      ) : isLoading || !observaciones ? (
-        <Skeleton variante="lineas" etiqueta="Cargando observaciones…" />
-      ) : observaciones.length === 0 ? (
-        <EmptyState
-          icono={MessageSquare}
-          titulo="Esta revisión aún no tiene observaciones"
-          descripcion={descripcionVacia}
-        />
-      ) : (
-        <ListaObservacionesRevision observaciones={observaciones} />
-      )}
+      <div className="flex flex-col gap-4">
+        {aviso}
+        {!isError && barra}
+        {isError ? (
+          <ErrorState
+            titulo="No pudimos cargar las observaciones"
+            descripcion="Inténtalo nuevamente."
+            detalle={getApiErrorMessage(error, 'No se pudieron cargar las observaciones.')}
+            onReintentar={onReintentar}
+          />
+        ) : isLoading || !observaciones ? (
+          <Skeleton variante="lineas" etiqueta="Cargando observaciones…" />
+        ) : observaciones.length === 0 ? (
+          <EmptyState
+            icono={MessageSquare}
+            titulo="Esta revisión aún no tiene observaciones"
+            descripcion={descripcionVacia}
+          />
+        ) : (
+          <ListaObservacionesRevision observaciones={observaciones} acciones={acciones} />
+        )}
+      </div>
     </SidePanel>
   );
 }

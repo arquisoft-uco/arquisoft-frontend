@@ -3,11 +3,21 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { ObservacionRevision } from '../../models/ObservacionRevision';
 import { useObservacionesRevision } from '../../hooks/useObservacionesRevision';
+import { usePuedeGestionarObservaciones } from '../../hooks/usePuedeGestionarObservaciones';
+import { useRegistrarObservacion } from '../../hooks/useRegistrarObservacion';
+import { useEliminarObservacion } from '../../hooks/useEliminarObservacion';
+import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import ObservacionesRevisionPanel from './ObservacionesRevisionPanel';
 
 vi.mock('../../hooks/useObservacionesRevision', () => ({
   useObservacionesRevision: vi.fn(),
 }));
+
+vi.mock('../../hooks/usePuedeGestionarObservaciones', () => ({
+  usePuedeGestionarObservaciones: vi.fn(),
+}));
+vi.mock('../../hooks/useRegistrarObservacion', () => ({ useRegistrarObservacion: vi.fn() }));
+vi.mock('../../hooks/useEliminarObservacion', () => ({ useEliminarObservacion: vi.fn() }));
 
 const hook = vi.mocked(useObservacionesRevision);
 
@@ -40,9 +50,47 @@ const solucionada: ObservacionRevision = {
   estadoNombre: 'Solucionada',
 };
 
+const VERSION: VersionArtefacto = {
+  id: 'v-1',
+  artefacto: 'a-1',
+  version: 4,
+  fechaCreacion: '2026-03-10T15:30:00Z',
+  nombreProyecto: 'Sistema de riego',
+  nombreDocumento: 'Acta de inicio',
+  versionDocumento: 2,
+  nombreRepositorio: 'Repositorio base',
+  nombreAsesor: 'Marta Gómez',
+  revisionAsesor: 'r-1',
+  estadoRevision: 'PENDIENTE',
+  nombreEstadoRevision: 'Pendiente',
+};
+
+const PROPS = { revisionAsesorId: 'r-1', version: VERSION, editable: false };
+
+function simularOmitidos(omitidos: Set<string> | undefined) {
+  vi.mocked(usePuedeGestionarObservaciones).mockReturnValue({
+    puedeGestionar: vi.fn(),
+    omitidos,
+  });
+}
+
 describe('ObservacionesRevisionPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    simularOmitidos(new Set());
+    vi.mocked(useRegistrarObservacion).mockReturnValue({
+      mutate: vi.fn(),
+      reset: vi.fn(),
+      isPending: false,
+    } as Partial<ReturnType<typeof useRegistrarObservacion>> as ReturnType<
+      typeof useRegistrarObservacion
+    >);
+    vi.mocked(useEliminarObservacion).mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    } as Partial<ReturnType<typeof useEliminarObservacion>> as ReturnType<
+      typeof useEliminarObservacion
+    >);
   });
 
   it('muestra el estado de carga accesible mientras consulta', () => {
@@ -50,7 +98,7 @@ describe('ObservacionesRevisionPanel', () => {
     hook.mockReturnValue(estado({ isLoading: true }));
 
     // Act
-    render(<ObservacionesRevisionPanel revisionAsesorId="r-1" onCerrar={vi.fn()} />);
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     expect(hook).toHaveBeenCalledWith('r-1');
@@ -62,7 +110,7 @@ describe('ObservacionesRevisionPanel', () => {
     hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
 
     // Act
-    render(<ObservacionesRevisionPanel revisionAsesorId="r-1" onCerrar={vi.fn()} />);
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     const lista = screen.getByRole('list', { name: 'Observaciones de la revisión' });
@@ -79,7 +127,7 @@ describe('ObservacionesRevisionPanel', () => {
     hook.mockReturnValue(estado({ data: [] }));
 
     // Act
-    render(<ObservacionesRevisionPanel revisionAsesorId="r-1" onCerrar={vi.fn()} />);
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('Esta revisión aún no tiene observaciones')).toBeInTheDocument();
@@ -93,7 +141,7 @@ describe('ObservacionesRevisionPanel', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ObservacionesRevisionPanel revisionAsesorId="r-1" onCerrar={vi.fn()} />);
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     // Assert
@@ -109,10 +157,101 @@ describe('ObservacionesRevisionPanel', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ObservacionesRevisionPanel revisionAsesorId="r-1" onCerrar={onCerrar} />);
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={onCerrar} />);
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
     await waitFor(() => expect(onCerrar).toHaveBeenCalled());
+  });
+
+  it('editable muestra Agregar observación y un Eliminar por tarjeta, sin aviso', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+
+    // Act
+    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Agregar observación' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^Eliminar observación:/ })).toHaveLength(2);
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
+  });
+
+  it('editable con la lista vacía invita a agregar la primera y deja la acción visible', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [] }));
+
+    // Act
+    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.getByText('Agrega la primera observación de esta revisión.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Agregar observación' })).toBeInTheDocument();
+  });
+
+  it('con una revisión que ya no está pendiente explica que es de solo lectura y no ofrece cambios', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    const version = { ...VERSION, estadoRevision: 'RESUELTA' };
+
+    // Act
+    render(<ObservacionesRevisionPanel {...PROPS} version={version} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(
+      screen.getByText(/ya no está pendiente: sus observaciones no se pueden cambiar/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agregar observación' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /^Eliminar observación:/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('con un artefacto omitido explica el motivo y no ofrece cambios', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    simularOmitidos(new Set(['a-1']));
+
+    // Act
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(
+      screen.getByText('Este artefacto está omitido y no admite cambios.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agregar observación' })).not.toBeInTheDocument();
+  });
+
+  it('mientras el catálogo de omitidos no responde no muestra aviso pero tampoco ofrece cambios', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    simularOmitidos(undefined);
+
+    // Act
+    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agregar observación' })).not.toBeInTheDocument();
+  });
+
+  it('Agregar observación abre el formulario y Eliminar abre la confirmación', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    const user = userEvent.setup();
+    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: /^Eliminar observación:/ }));
+
+    // Assert
+    expect(screen.getByRole('alertdialog', { name: '¿Eliminar observación?' })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Agregar observación' }));
+
+    // Assert
+    expect(await screen.findByRole('textbox', { name: /Descripción/ })).toBeInTheDocument();
   });
 });

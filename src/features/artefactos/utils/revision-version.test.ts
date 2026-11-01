@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import {
   ESTADO_REVISION_CERRADA,
+  ESTADO_REVISION_PENDIENTE,
+  estudianteVeObservaciones,
+  puedeGestionarObservaciones,
   puedeRegistrarRevision,
   reabreArtefacto,
+  tieneRevision,
 } from './revision-version';
 
 const VERSION: VersionArtefacto = {
@@ -62,6 +66,49 @@ describe('puedeRegistrarRevision', () => {
       ultimaDesconocida: false,
       omitido: false,
     });
+  });
+});
+
+describe('puedeGestionarObservaciones', () => {
+  it('solo con revisión pendiente y artefacto no omitido', () => {
+    // Act
+    const gestionar = (estado: string | null, artefactoOmitido = false) =>
+      puedeGestionarObservaciones({ version: con(estado), artefactoOmitido });
+
+    // Assert
+    expect({
+      pendiente: gestionar(ESTADO_REVISION_PENDIENTE),
+      enProgreso: gestionar('EN_PROGRESO'),
+      resuelta: gestionar('RESUELTA'),
+      cerrada: gestionar(ESTADO_REVISION_CERRADA),
+      sinRevision: gestionar(null),
+      omitido: gestionar(ESTADO_REVISION_PENDIENTE, true),
+    }).toEqual({
+      pendiente: true,
+      enProgreso: false,
+      resuelta: false,
+      cerrada: false,
+      sinRevision: false,
+      omitido: false,
+    });
+  });
+});
+
+describe('estudianteVeObservaciones y tieneRevision', () => {
+  it('el estudiante ve las observaciones solo con revisión no pendiente', () => {
+    // Arrange
+    const conRevision = (estadoRevision: string | null) => ({
+      ...con(estadoRevision),
+      revisionAsesor: 'r-1',
+    });
+
+    // Assert
+    expect(estudianteVeObservaciones(conRevision('EN_PROGRESO'))).toBe(true);
+    expect(estudianteVeObservaciones(conRevision(ESTADO_REVISION_CERRADA))).toBe(true);
+    expect(estudianteVeObservaciones(conRevision(ESTADO_REVISION_PENDIENTE))).toBe(false);
+    expect(estudianteVeObservaciones(con(null))).toBe(false);
+    expect(tieneRevision(conRevision('RESUELTA'))).toBe(true);
+    expect(tieneRevision(con(null))).toBe(false);
   });
 });
 
