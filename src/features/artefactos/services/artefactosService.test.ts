@@ -3,12 +3,13 @@ import apiClient from '../../../api/axiosInstance';
 import { artefactosService } from './artefactosService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
 const patch = vi.mocked(apiClient.patch);
+const eliminar = vi.mocked(apiClient.delete);
 
 describe('artefactosService', () => {
   beforeEach(() => {
@@ -28,6 +29,23 @@ describe('artefactosService', () => {
 
       // Assert
       expect(patch).toHaveBeenCalledWith('/artefactos/art-1/asesor', { asesor: 'a-2' });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('removerEstudianteArtefacto', () => {
+    it('hace DELETE /artefactos/{artefactoId}/estudiantes/{estudianteId} sin body y resuelve sin valor', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ data: undefined });
+
+      // Act
+      const resultado = await artefactosService.removerEstudianteArtefacto({
+        artefactoId: 'art-1',
+        estudianteId: 'est-1',
+      });
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/art-1/estudiantes/est-1');
       expect(resultado).toBeUndefined();
     });
   });
