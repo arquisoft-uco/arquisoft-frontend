@@ -1,6 +1,10 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
+import type { AsignarArtefactoRequest } from '../models/AsignarArtefactoRequest';
+import type { AsignarArtefactoResponse } from '../models/AsignarArtefactoResponse';
+import type { EstudianteAsignable } from '../models/EstudianteAsignable';
+import type { PaginaProyectosAsignables } from '../models/PaginaProyectosAsignables';
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
@@ -14,6 +18,13 @@ import type { SolicitarCargaVersionArtefactoRequest } from '../models/SolicitarC
 import type { SolicitarCargaVersionArtefactoResponse } from '../models/SolicitarCargaVersionArtefactoResponse';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
+
+const TAMANIO_PAGINA_PROYECTOS = 100;
+
+interface ProyectoAsesorResponse {
+  id: string;
+  tituloProyecto: string;
+}
 
 function aObservacionRevision({
   revisionAsesor,
@@ -97,5 +108,31 @@ export const artefactosService = {
   ): Promise<GenerarVersionArtefactoResponse> =>
     apiClient
       .post<GenerarVersionArtefactoResponse>(`/artefactos/${artefactoId}/versiones`, req)
+      .then((r) => r.data),
+
+  asignarArtefacto: (req: AsignarArtefactoRequest): Promise<AsignarArtefactoResponse> =>
+    apiClient
+      .post<AsignarArtefactoResponse>('/artefactos', {
+        proyectoGrado: req.proyectoGrado,
+        versionRepositorioArtefacto: req.versionRepositorioArtefacto,
+        estudiantes: req.estudiantes,
+      })
+      .then((r) => r.data),
+
+  consultarProyectosAsignables: (pagina: number): Promise<PaginaProyectosAsignables> =>
+    apiClient
+      .post<Page<ProyectoAsesorResponse>>('/proyectos-grado/asesor', {
+        pagina,
+        tamanio: TAMANIO_PAGINA_PROYECTOS,
+        ordenamiento: ['tituloProyecto:ASC'],
+      })
+      .then((r) => ({
+        proyectos: r.data.content.map((dto) => ({ id: dto.id, titulo: dto.tituloProyecto })),
+        siguientePagina: r.data.last ? null : r.data.page + 1,
+      })),
+
+  getEstudiantesProyectoAsesorado: (proyectoGradoId: string): Promise<EstudianteAsignable[]> =>
+    apiClient
+      .get<EstudianteAsignable[]>(`/proyectos-grado/${proyectoGradoId}/estudiantes-asesorados`)
       .then((r) => r.data),
 };

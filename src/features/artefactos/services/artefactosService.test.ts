@@ -177,6 +177,49 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('asignación de artefacto (HU-102)', () => {
+    it('asignarArtefacto envía POST /artefactos con los tres nombres del DTO', async () => {
+      // Arrange
+      post.mockResolvedValue({ data: { id: 'a-1' } });
+
+      // Act
+      const resultado = await artefactosService.asignarArtefacto({
+        proyectoGrado: 'p-1',
+        versionRepositorioArtefacto: 'v-1',
+        estudiantes: ['e-1'],
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/artefactos', {
+        proyectoGrado: 'p-1',
+        versionRepositorioArtefacto: 'v-1',
+        estudiantes: ['e-1'],
+      });
+      expect(resultado).toEqual({ id: 'a-1' });
+    });
+
+    it('consultarProyectosAsignables traduce tituloProyecto a titulo y calcula la página siguiente', async () => {
+      // Arrange
+      post.mockResolvedValueOnce({
+        data: { content: [{ id: 'p-1', tituloProyecto: 'Riego' }], page: 0, last: false },
+      });
+      post.mockResolvedValueOnce({ data: { content: [], page: 1, last: true } });
+
+      // Act
+      const primera = await artefactosService.consultarProyectosAsignables(0);
+      const ultima = await artefactosService.consultarProyectosAsignables(1);
+
+      // Assert
+      expect(post).toHaveBeenNthCalledWith(1, '/proyectos-grado/asesor', {
+        pagina: 0,
+        tamanio: 100,
+        ordenamiento: ['tituloProyecto:ASC'],
+      });
+      expect(primera).toEqual({ proyectos: [{ id: 'p-1', titulo: 'Riego' }], siguientePagina: 1 });
+      expect(ultima.siguientePagina).toBeNull();
+    });
+  });
+
   describe('subida de versión (HU-043)', () => {
     it('solicitarCargaVersionArtefacto y generarVersionArtefacto llaman a su ruta con su body y devuelven data', async () => {
       // Arrange
