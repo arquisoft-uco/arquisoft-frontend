@@ -4,6 +4,7 @@ import DataTable from '../../../shared/components/ui/DataTable';
 import type { DireccionOrden, OrdenTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import RowMenu from '../../../shared/components/ui/RowMenu';
+import type { AccionMenu } from '../../../shared/components/ui/RowMenu';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import { construirColumnas, etiquetaVersion } from './columnasVersionesArtefacto';
@@ -22,6 +23,7 @@ interface Props {
   onLimpiarFiltros: () => void;
   onVerInformacion: (version: VersionArtefacto) => void;
   mostrarAsesor?: boolean;
+  accionesAdicionales?: (version: VersionArtefacto) => AccionMenu[];
 }
 
 export default function VersionesArtefactoTable({
@@ -34,6 +36,7 @@ export default function VersionesArtefactoTable({
   onLimpiarFiltros,
   onVerInformacion,
   mostrarAsesor = false,
+  accionesAdicionales,
 }: Props) {
   const columnas = construirColumnas(mostrarAsesor);
 
@@ -75,6 +78,7 @@ export default function VersionesArtefactoTable({
               icono: Info,
               onSeleccionar: () => onVerInformacion(version),
             },
+            ...(accionesAdicionales?.(version) ?? []),
           ]}
         />
       )}

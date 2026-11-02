@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PaginadorListado from '../../../shared/components/PaginadorListado';
 import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
 import ErrorState from '../../../shared/components/ui/ErrorState';
+import type { AccionMenu } from '../../../shared/components/ui/RowMenu';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
@@ -22,6 +23,7 @@ interface Props {
   descripcionVacio: string;
   mostrarAsesor?: boolean;
   opcionesEstado?: OpcionFiltro[];
+  accionesAdicionales?: (version: VersionArtefacto) => AccionMenu[];
 }
 
 export default function ConsultarVersionesArtefacto({
@@ -29,6 +31,7 @@ export default function ConsultarVersionesArtefacto({
   descripcionVacio,
   mostrarAsesor = false,
   opcionesEstado,
+  accionesAdicionales,
 }: Props) {
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const versiones = data?.content ?? [];
@@ -60,6 +63,7 @@ export default function ConsultarVersionesArtefacto({
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
             onVerInformacion={setVersionAbierta}
+            accionesAdicionales={accionesAdicionales}
           />
         )}
       </div>

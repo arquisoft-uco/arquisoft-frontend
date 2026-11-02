@@ -130,6 +130,28 @@ describe('VersionesArtefactoTable', () => {
     expect(onVerInformacion).toHaveBeenCalledWith(VERSION);
   });
 
+  it('accionesAdicionales aparecen tras "Ver información"', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onSeleccionar = vi.fn();
+    renderizar({
+      accionesAdicionales: (version) => [
+        { etiqueta: `Acción extra ${version.version}`, onSeleccionar },
+      ],
+    });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la versión 4 de Acta de inicio' }),
+    );
+
+    // Assert
+    const items = screen.getAllByRole('menuitem').map((item) => item.textContent);
+    expect(items).toEqual(['Ver información', 'Acción extra 4']);
+    await user.click(screen.getByRole('menuitem', { name: 'Acción extra 4' }));
+    expect(onSeleccionar).toHaveBeenCalledTimes(1);
+  });
+
   it('sin versiones y sin filtros muestra el vacío informativo sin acción', () => {
     // Act
     renderizar({ versiones: [] });

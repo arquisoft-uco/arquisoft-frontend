@@ -32,6 +32,22 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('marcarRevisionResuelta', () => {
+    it('hace PATCH /artefactos/revisiones/{id}/estado con el estado RESUELTA y resuelve sin valor', async () => {
+      // Arrange
+      patch.mockResolvedValue({ data: undefined });
+
+      // Act
+      const resultado = await artefactosService.marcarRevisionResuelta({ revisionAsesorId: 'r-1' });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/artefactos/revisiones/r-1/estado', {
+        estado: 'RESUELTA',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('getObservacionesRevision', () => {
     it('consulta GET /revisiones-asesor/{id}/observaciones y traduce revisionAsesor y estado', async () => {
       // Arrange
