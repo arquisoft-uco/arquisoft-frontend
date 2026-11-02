@@ -8,6 +8,7 @@ import type { PaginaProyectosAsignables } from '../models/PaginaProyectosAsignab
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
 import type { CambiarAsesorArtefactoRequest } from '../models/CambiarAsesorArtefactoRequest';
+import type { CambiarVersionRepositorioArtefactoRequest } from '../models/CambiarVersionRepositorioArtefactoRequest';
 import type { CambiarEstadoObservacionRequest } from '../models/CambiarEstadoObservacionRequest';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { GenerarVersionArtefactoRequest } from '../models/GenerarVersionArtefactoRequest';
@@ -131,6 +132,15 @@ export const artefactosService = {
   cambiarAsesorArtefacto: (req: CambiarAsesorArtefactoRequest): Promise<void> =>
     apiClient
       .patch(`/artefactos/${req.artefactoId}/asesor`, { asesor: req.asesorId })
+      .then(() => undefined),
+
+  cambiarVersionRepositorioArtefacto: (
+    req: CambiarVersionRepositorioArtefactoRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/artefactos/${req.artefactoId}/version-repositorio`, {
+        versionRepositorioArtefacto: req.versionRepositorioId,
+      })
       .then(() => undefined),
 
   marcarRevisionResuelta: (req: MarcarRevisionResueltaRequest): Promise<void> =>

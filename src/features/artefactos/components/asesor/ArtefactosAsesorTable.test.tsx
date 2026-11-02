@@ -27,6 +27,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosAseso
     onReactivar: vi.fn(),
     onGestionarEstudiantes: vi.fn(),
     onCambiarAsesor: vi.fn(),
+    onCambiarVersionRepositorio: vi.fn(),
     ...parcial,
   };
   render(<ArtefactosAsesorTable {...props} />, { initialPath: '/artefactos' });
@@ -74,6 +75,23 @@ describe('ArtefactosAsesorTable', () => {
     // Assert
     expect(onGestionarEstudiantes).toHaveBeenNthCalledWith(1, ARTEFACTO);
     expect(onGestionarEstudiantes).toHaveBeenNthCalledWith(2, omitido);
+  });
+
+  it('la fila activa ofrece "Cambiar versión del repositorio" con la fila y la omitida no', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const omitido = { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true };
+    const { onCambiarVersionRepositorio } = renderizar({ artefactos: [ARTEFACTO, omitido] });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Anteproyecto' }));
+    expect(screen.queryByRole('menuitem', { name: 'Cambiar versión del repositorio' })).toBeNull();
+    await user.keyboard('{Escape}');
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Cambiar versión del repositorio' }));
+
+    // Assert
+    expect(onCambiarVersionRepositorio).toHaveBeenCalledWith(ARTEFACTO);
   });
 
   it('muestra proyecto, documento con su versión y repositorio, con el documento como enlace a sus versiones', () => {

@@ -36,6 +36,7 @@ vi.mock('../../hooks/useUltimaVersionArtefacto', () => ({
     ultimaVersion: undefined,
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
   })),
 }));
 vi.mock('../../hooks/useCambiarEstadoObservacion', () => ({
@@ -528,6 +529,7 @@ describe('GestionarRevisionPanel', () => {
         ultimaVersion,
         isLoading: false,
         isError: false,
+        refetch: vi.fn(),
       });
     }
 

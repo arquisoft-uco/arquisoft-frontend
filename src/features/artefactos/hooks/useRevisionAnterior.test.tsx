@@ -53,6 +53,7 @@ function prepararUltima(ultimaVersion: VersionArtefacto | undefined) {
     ultimaVersion,
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
   });
 }
 
