@@ -143,6 +143,30 @@ describe('ObservacionesRevisionPanel', () => {
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 
+  it('el menú de una observación queda dentro del panel con el foco en Eliminar y abre la confirmación', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+    const user = userEvent.setup();
+    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    const panel = screen.getAllByRole('dialog')[0];
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Acciones de la observación' })[1]);
+
+    // Assert
+    const menu = screen.getByRole('menu', { name: 'Acciones de la observación' });
+    expect(panel).toContainElement(menu);
+    const eliminar = within(menu).getByRole('menuitem', { name: 'Eliminar observación' });
+    expect(eliminar).toHaveFocus();
+
+    // Act
+    await user.click(eliminar);
+
+    // Assert
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
   it('deshabilita Eliminar observación solo en la fila cuya eliminación está en curso', async () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
@@ -415,6 +439,31 @@ describe('ObservacionesRevisionPanel', () => {
 
       // Assert
       expect(screen.getByText('¿Cerrar observación?')).toBeInTheDocument();
+    });
+
+    it('el menú de decisión queda dentro del panel con el foco en Cerrar y abre su confirmación', async () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [solucionada] }));
+      simularUltima({ ...SIGUIENTE, estadoRevision: 'PENDIENTE' });
+      const user = userEvent.setup();
+      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+      const panel = screen.getAllByRole('dialog')[0];
+
+      // Act
+      await user.click(screen.getByRole('button', { name: /^Acciones de la observación:/ }));
+
+      // Assert
+      const menu = screen.getByRole('menu');
+      expect(panel).toContainElement(menu);
+      const cerrar = within(menu).getByRole('menuitem', { name: 'Cerrar observación' });
+      expect(cerrar).toHaveFocus();
+
+      // Act
+      await user.click(cerrar);
+
+      // Assert
+      expect(await screen.findByText('¿Cerrar observación?')).toBeInTheDocument();
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     });
 
     it('con la revisión de la versión siguiente ya enviada deshabilita reabrir y explica el motivo', async () => {

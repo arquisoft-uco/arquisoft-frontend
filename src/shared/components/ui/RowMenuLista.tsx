@@ -49,6 +49,7 @@ interface Props {
   etiqueta: string;
   acciones: AccionMenu[];
   ancla: DOMRect;
+  contenedor: HTMLElement;
   disparador: RefObject<HTMLButtonElement | null>;
   onCerrar: (devolverFoco: boolean) => void;
 }
@@ -58,6 +59,7 @@ export default function RowMenuLista({
   etiqueta,
   acciones,
   ancla,
+  contenedor,
   disparador,
   onCerrar,
 }: Props) {
@@ -139,6 +141,6 @@ export default function RowMenuLista({
         );
       })}
     </div>,
-    document.body,
+    contenedor,
   );
 }
