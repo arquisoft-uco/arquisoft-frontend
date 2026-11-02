@@ -324,6 +324,24 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('cambiar estado de una observación del estudiante (HU-021)', () => {
+    it('cambiarEstadoObservacionEstudiante envía PATCH con { estado } a estado-estudiante y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204 });
+
+      // Act
+      const resultado = await artefactosService.cambiarEstadoObservacionEstudiante('o-1', {
+        estado: 'SOLUCIONADA',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/artefactos/observaciones/o-1/estado-estudiante', {
+        estado: 'SOLUCIONADA',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('enviar revisión (HU-292)', () => {
     it('enviarRevision envía PATCH sin body a la ruta de envío y resuelve undefined', async () => {
       // Arrange

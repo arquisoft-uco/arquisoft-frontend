@@ -32,6 +32,7 @@ interface Props {
   labelCancelar?: string;
   variante?: Variante;
   cargando?: boolean;
+  confirmarDeshabilitado?: boolean;
   onConfirmar: () => void;
   onCancelar: () => void;
 }
@@ -45,6 +46,7 @@ export default function ConfirmDialog({
   labelCancelar = 'Cancelar',
   variante = 'peligro',
   cargando = false,
+  confirmarDeshabilitado = false,
   onConfirmar,
   onCancelar,
 }: Props) {
@@ -103,6 +105,7 @@ export default function ConfirmDialog({
             variante={variante === 'peligro' ? 'peligro' : 'primario'}
             onClick={onConfirmar}
             cargando={cargando}
+            disabled={confirmarDeshabilitado}
           >
             {cargando ? 'Procesando...' : labelConfirmar}
           </Button>

@@ -216,4 +216,19 @@ describe('ConfirmDialog', () => {
     expect(onCancelar).not.toHaveBeenCalled();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
+
+  it('con confirmarDeshabilitado el botón de confirmar no se puede accionar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onConfirmar = vi.fn();
+    render(<Pantalla labelConfirmar="Quitar" confirmarDeshabilitado onConfirmar={onConfirmar} />);
+    await user.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Quitar' })).toBeDisabled();
+    expect(onConfirmar).not.toHaveBeenCalled();
+  });
 });

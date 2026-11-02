@@ -15,8 +15,10 @@ const DESCRIPCION_VACIO = 'Aparecerán aquí cuando se genere una versión de un
 export default function ConsultarVersionesArtefactoEstudiante() {
   const listado = useVersionesArtefactoEstudiante();
   const opcionesEstado = useOpcionesEstadoRevision();
-  const [revisionAbierta, setRevisionAbierta] = useState<string | null>(null);
+  const [versionEnPanelId, setVersionEnPanelId] = useState<string | null>(null);
   const [porResolver, setPorResolver] = useState<VersionArtefacto | null>(null);
+
+  const versionEnPanel = listado.data?.content.find((v) => v.id === versionEnPanelId) ?? null;
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const acciones: AccionMenu[] = [];
@@ -25,7 +27,7 @@ export default function ConsultarVersionesArtefactoEstudiante() {
       acciones.push({
         etiqueta: 'Ver observaciones',
         icono: MessageSquare,
-        onSeleccionar: () => setRevisionAbierta(revisionAsesorId),
+        onSeleccionar: () => setVersionEnPanelId(version.id),
       });
     }
     if (esRevisionResoluble(version)) {
@@ -47,10 +49,11 @@ export default function ConsultarVersionesArtefactoEstudiante() {
         accionesAdicionales={accionesAdicionales}
         mostrarAsesor
       />
-      {revisionAbierta && (
+      {versionEnPanel?.revisionAsesor && (
         <ObservacionesRevisionEstudiantePanel
-          revisionAsesorId={revisionAbierta}
-          onCerrar={() => setRevisionAbierta(null)}
+          revisionAsesorId={versionEnPanel.revisionAsesor}
+          editable={esRevisionResoluble(versionEnPanel)}
+          onCerrar={() => setVersionEnPanelId(null)}
         />
       )}
       {porResolver && (
