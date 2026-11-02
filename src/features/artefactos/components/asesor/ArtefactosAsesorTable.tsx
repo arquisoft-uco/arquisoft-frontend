@@ -29,6 +29,7 @@ interface Props {
   onReactivar: (artefacto: ArtefactoAsesor) => void;
   onGestionarEstudiantes: (artefacto: ArtefactoAsesor) => void;
   onCambiarAsesor: (artefacto: ArtefactoAsesor) => void;
+  onCambiarVersionRepositorio: (artefacto: ArtefactoAsesor) => void;
 }
 
 export default function ArtefactosAsesorTable({
@@ -42,6 +43,7 @@ export default function ArtefactosAsesorTable({
   onReactivar,
   onGestionarEstudiantes,
   onCambiarAsesor,
+  onCambiarVersionRepositorio,
 }: Props) {
   const { pathname } = useLocation();
 
@@ -120,6 +122,7 @@ export default function ArtefactosAsesorTable({
         <ArtefactoAsesorRowMenu
           artefacto={artefacto}
           onCambiarAsesor={onCambiarAsesor}
+          onCambiarVersionRepositorio={onCambiarVersionRepositorio}
           onGestionarEstudiantes={onGestionarEstudiantes}
           onOmitir={onOmitir}
           onReactivar={onReactivar}

@@ -16,6 +16,25 @@ describe('artefactosService', () => {
     vi.clearAllMocks();
   });
 
+  describe('cambiarVersionRepositorioArtefacto', () => {
+    it('hace PATCH /artefactos/{id}/version-repositorio traduciendo versionRepositorioId y resuelve sin valor', async () => {
+      // Arrange
+      patch.mockResolvedValue({ data: undefined });
+
+      // Act
+      const resultado = await artefactosService.cambiarVersionRepositorioArtefacto({
+        artefactoId: 'art-1',
+        versionRepositorioId: 'v-9',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/artefactos/art-1/version-repositorio', {
+        versionRepositorioArtefacto: 'v-9',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('cambiarAsesorArtefacto', () => {
     it('hace PATCH /artefactos/{id}/asesor traduciendo asesorId a asesor y resuelve sin valor', async () => {
       // Arrange

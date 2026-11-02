@@ -50,6 +50,7 @@ function preparar({
     ultimaVersion: undefined,
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
   });
 }
 

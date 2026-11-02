@@ -1,10 +1,11 @@
-import { EyeOff, RotateCcw, UserRoundPen, Users } from 'lucide-react';
+import { EyeOff, GitCompareArrows, RotateCcw, UserRoundPen, Users } from 'lucide-react';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 
 interface Props {
   artefacto: ArtefactoAsesor;
   onCambiarAsesor: (artefacto: ArtefactoAsesor) => void;
+  onCambiarVersionRepositorio: (artefacto: ArtefactoAsesor) => void;
   onGestionarEstudiantes: (artefacto: ArtefactoAsesor) => void;
   onOmitir: (artefacto: ArtefactoAsesor) => void;
   onReactivar: (artefacto: ArtefactoAsesor) => void;
@@ -13,6 +14,7 @@ interface Props {
 export default function ArtefactoAsesorRowMenu({
   artefacto,
   onCambiarAsesor,
+  onCambiarVersionRepositorio,
   onGestionarEstudiantes,
   onOmitir,
   onReactivar,
@@ -26,6 +28,11 @@ export default function ArtefactoAsesorRowMenu({
             etiqueta: 'Cambiar asesor',
             icono: UserRoundPen,
             onSeleccionar: () => onCambiarAsesor(artefacto),
+          },
+          {
+            etiqueta: 'Cambiar versión del repositorio',
+            icono: GitCompareArrows,
+            onSeleccionar: () => onCambiarVersionRepositorio(artefacto),
           },
         ]),
     {

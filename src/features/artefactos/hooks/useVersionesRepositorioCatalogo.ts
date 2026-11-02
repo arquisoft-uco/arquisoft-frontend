@@ -1,13 +1,24 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { artefactosService } from '../services/artefactosService';
+import {
+  construirFiltroDocumento,
+  type DocumentoDeRepositorio,
+} from '../utils/cambio-version-repositorio';
 
 const TAMANIO_PAGINA = 100;
 
 const ORDENAMIENTO = ['nombreRepositorio:ASC', 'nombreDocumento:ASC', 'numeroVersion:DESC'];
 
-export function useVersionesRepositorioCatalogo(habilitado = true) {
+const CLAVE_BASE = ['artefactos', 'catalogos', 'versiones-repositorio'];
+
+export function useVersionesRepositorioCatalogo(
+  habilitado = true,
+  documento?: DocumentoDeRepositorio,
+) {
   const query = useInfiniteQuery({
-    queryKey: ['artefactos', 'catalogos', 'versiones-repositorio'],
+    queryKey: documento
+      ? [...CLAVE_BASE, documento.nombreRepositorio, documento.nombreDocumento]
+      : CLAVE_BASE,
     enabled: habilitado,
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
@@ -15,6 +26,7 @@ export function useVersionesRepositorioCatalogo(habilitado = true) {
         pagina: pageParam,
         tamanio: TAMANIO_PAGINA,
         ordenamiento: ORDENAMIENTO,
+        ...(documento && { filtros: construirFiltroDocumento(documento) }),
       }),
     getNextPageParam: (ultima) => (ultima.last ? undefined : ultima.page + 1),
   });
