@@ -4,18 +4,22 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import ConsultarArtefactosEstudiante from './estudiante/ConsultarArtefactosEstudiante';
-import MisArtefactosEstudiante from './estudiante/MisArtefactosEstudiante';
+import ConsultarParticipacionesEstudiante from './estudiante/ConsultarParticipacionesEstudiante';
+import ConsultarVersionesArtefactoEstudiante from './estudiante/ConsultarVersionesArtefactoEstudiante';
 
-type Vista = 'mis-artefactos' | 'artefactos-proyecto';
+type Vista = 'mis-artefactos' | 'versiones-revisiones' | 'artefactos-proyecto';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
-  'mis-artefactos': MisArtefactosEstudiante,
+  'mis-artefactos': ConsultarParticipacionesEstudiante,
+  'versiones-revisiones': ConsultarVersionesArtefactoEstudiante,
   'artefactos-proyecto': ConsultarArtefactosEstudiante,
 };
 
 const DESCRIPCION_POR_VISTA: Record<Vista, string> = {
   'mis-artefactos':
-    'Tus artefactos con sus acciones, y debajo el historial de versiones con el estado de su revisión.',
+    'Tus artefactos con sus acciones. Pulsa el nombre de un documento para ver sus versiones y revisiones.',
+  'versiones-revisiones':
+    'Historial de las versiones que has subido, con el estado de su revisión.',
   'artefactos-proyecto':
     'Todos los artefactos de los proyectos de grado a los que perteneces, aunque no estés asignado a cada uno.',
 };
@@ -40,6 +44,11 @@ export default function EstudianteView() {
         valor={vista}
         items={[
           { id: 'mis-artefactos', etiqueta: 'Mis artefactos', to: pathname },
+          {
+            id: 'versiones-revisiones',
+            etiqueta: 'Versiones y revisiones',
+            to: `${pathname}?vista=versiones-revisiones`,
+          },
           {
             id: 'artefactos-proyecto',
             etiqueta: 'Artefactos proyecto',

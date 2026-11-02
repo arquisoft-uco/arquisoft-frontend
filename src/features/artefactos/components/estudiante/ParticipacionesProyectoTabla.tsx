@@ -3,6 +3,7 @@ import Badge from '../../../../shared/components/ui/Badge';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
+import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
 import InsigniaOmitido from '../InsigniaOmitido';
 import MenuArtefactoEstudiante from './MenuArtefactoEstudiante';
 import type { ProyectoConParticipaciones } from '../../utils/agrupar-participaciones';
@@ -10,7 +11,6 @@ import type { ProyectoConParticipaciones } from '../../utils/agrupar-participaci
 const SECCION = 'flex flex-col gap-3';
 const TITULO = 'text-base font-semibold text-on-surface';
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const NOMBRE_TEXTO = 'block truncate font-medium text-on-surface';
 const MOTIVO = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
@@ -20,7 +20,6 @@ type MotivoBloqueo = (participacion: ParticipacionArtefacto) => string | null | 
 interface Acciones {
   onGestionarRevision: AlElegir;
   onSubirVersion: AlElegir;
-  onVerVersiones: AlElegir;
 }
 
 function etiquetaVersion(participacion: ParticipacionArtefacto): string {
@@ -38,9 +37,11 @@ function NombreArtefacto({
 
   return (
     <>
-      <span title={participacion.nombreDocumento} className={NOMBRE_TEXTO}>
-        {participacion.nombreDocumento}
-      </span>
+      <EnlaceVersionesArtefacto
+        artefactoId={participacion.id}
+        nombreDocumento={participacion.nombreDocumento}
+        vista="versiones-revisiones"
+      />
       {participacion.omitido && <InsigniaOmitido />}
       {motivo && <span className={MOTIVO}>{motivo}</span>}
     </>
@@ -92,17 +93,16 @@ export default function ParticipacionesProyectoTabla({
   motivoBloqueo,
   onGestionarRevision,
   onSubirVersion,
-  onVerVersiones,
 }: Props) {
   const idTitulo = useId();
   const columnas = useMemo(() => columnasDe(motivoBloqueo), [motivoBloqueo]);
-  const acciones = { onGestionarRevision, onSubirVersion, onVerVersiones };
+  const acciones = { onGestionarRevision, onSubirVersion };
 
   return (
     <section aria-labelledby={idTitulo} className={SECCION}>
-      <h3 id={idTitulo} className={TITULO}>
+      <h2 id={idTitulo} className={TITULO}>
         {proyecto.nombreProyecto}
-      </h3>
+      </h2>
       <DataTable
         etiqueta={`Artefactos del proyecto ${proyecto.nombreProyecto}`}
         columnas={columnas}

@@ -93,7 +93,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     consultarVersiones.mockResolvedValue(paginaCon([]));
   });
 
-  it('el nombre del documento es texto: la acción sale del menú de la fila', async () => {
+  it('el nombre del documento es un enlace a sus versiones y las acciones salen del menú de la fila', async () => {
     // Arrange
     getParticipaciones.mockResolvedValue([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
@@ -101,15 +101,18 @@ describe('ConsultarParticipacionesEstudiante', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
     await abrirMenu(user, 'Acta de inicio');
 
     // Assert
     expect(
+      screen.getAllByRole('link', { name: 'Ver versiones de Acta de inicio' })[0],
+    ).toHaveAttribute('href', '/?vista=versiones-revisiones&artefacto=a-1');
+    expect(
       screen.queryByRole('button', { name: /Subir nueva versión de/ }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Gestionar revisión' })).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Ver versiones' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Ver versiones' })).not.toBeInTheDocument();
   });
 
   it('ofrece Subir nueva versión solo cuando la última versión lo permite y muestra el motivo si no', async () => {
@@ -128,7 +131,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
       'a-4': ultima('a-4', 'EN_PROGRESO'),
     });
     const user = userEvent.setup();
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
     const tabla = await screen.findByRole('table', {
       name: 'Artefactos del proyecto Sistema de riego',
     });
@@ -157,7 +160,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
     // Assert
     expect(screen.queryByRole('menuitem', { name: 'Subir nueva versión' })).not.toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Ver versiones' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Ver versiones' })).not.toBeInTheDocument();
   });
 
   it('si falla la consulta de la última versión deja ofrecer la subida y el servidor decide', async () => {
@@ -169,7 +172,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
     await abrirMenu(user, 'Acta de inicio');
 
     // Assert
@@ -187,11 +190,11 @@ describe('ConsultarParticipacionesEstudiante', () => {
     ]);
 
     // Act
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
 
     // Assert
     expect(await screen.findByText('3 artefactos en 2 proyectos')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 3, name: 'Sistema de riego' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Sistema de riego' })).toBeInTheDocument();
     expect(screen.getByText('Domótica')).toBeInTheDocument();
     const tabla = screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' });
     expect(within(tabla).getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
@@ -206,7 +209,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     getParticipaciones.mockResolvedValue([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
     ]);
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
 
     // Act
     await abrirMenu(user, 'Acta de inicio');
@@ -225,7 +228,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     getParticipaciones.mockResolvedValue([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
     ]);
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
 
     // Act
     await abrirMenu(user, 'Acta de inicio');
@@ -237,30 +240,13 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(within(panel).getByText('Sistema de riego')).toBeInTheDocument();
   });
 
-  it('Ver versiones avisa con el id del artefacto', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onVerVersiones = vi.fn();
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
-    ]);
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={onVerVersiones} />);
-
-    // Act
-    await abrirMenu(user, 'Acta de inicio');
-    await user.click(screen.getByRole('menuitem', { name: 'Ver versiones' }));
-
-    // Assert
-    expect(onVerVersiones).toHaveBeenCalledWith('a-1');
-  });
-
   it('una participación omitida lleva "Omitido" y no tiene menú', async () => {
     // Arrange
     getParticipaciones.mockResolvedValue([
       { ...participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'), omitido: true },
       participacion('a-2', 'p-1', 'Sistema de riego', 'Anteproyecto'),
     ]);
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
     const tabla = await screen.findByRole('table', {
       name: 'Artefactos del proyecto Sistema de riego',
     });
@@ -280,7 +266,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     getParticipaciones.mockReturnValue(new Promise(() => undefined));
 
     // Act
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
 
     // Assert
     expect(screen.getByRole('status')).toBeInTheDocument();
@@ -291,7 +277,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     getParticipaciones.mockResolvedValue([]);
 
     // Act
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
 
     // Assert
     expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
@@ -303,7 +289,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ConsultarParticipacionesEstudiante onVerVersiones={vi.fn()} />);
+    render(<ConsultarParticipacionesEstudiante />);
     const aviso = await screen.findByRole('alert');
     await user.click(screen.getByRole('button', { name: /reintentar/i }));
 

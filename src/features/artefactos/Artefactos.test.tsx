@@ -5,6 +5,7 @@ import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
 import Artefactos from './Artefactos';
+import { artefactosService } from './services/artefactosService';
 
 vi.mock('../../shared/services/cargaPrefirmadaService', () => ({
   cargaPrefirmadaService: { cargarArchivo: vi.fn() },
@@ -225,7 +226,7 @@ describe('Artefactos', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('el estudiante entra por Mis artefactos con sus dos secciones y solo dos pestañas', async () => {
+  it('el estudiante entra por Mis artefactos, solo con la tabla, y ve tres pestañas en orden', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
@@ -235,18 +236,71 @@ describe('Artefactos', () => {
 
     // Assert
     expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
-    expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Mis artefactos' })).toBeInTheDocument();
+    expect(screen.queryByText('Aún no hay versiones de artefactos')).not.toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Versiones y revisiones' }),
-    ).toBeInTheDocument();
+      screen.queryByRole('heading', { name: 'Versiones y revisiones' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link').map((enlace) => enlace.textContent)).toEqual(
+      expect.arrayContaining(['Mis artefactos', 'Versiones y revisiones', 'Artefactos proyecto']),
+    );
     expect(screen.getByRole('link', { name: 'Mis artefactos' })).toHaveAttribute(
       'aria-current',
       'page',
     );
-    expect(screen.getByRole('link', { name: 'Artefactos proyecto' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Revisiones' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Versiones de artefactos' })).not.toBeInTheDocument();
+  });
+
+  it('con ?vista=versiones-revisiones el estudiante ve su historial de versiones', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=versiones-revisiones');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones y revisiones' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('el nombre del documento lleva a Versiones y revisiones filtrada y el chip la limpia', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(artefactosService.getParticipacionesEstudiante).mockResolvedValueOnce([
+      {
+        id: '3f2b8c1e-5d4a-4b7e-9c6d-1a2b3c4d5e6f',
+        proyectoGrado: 'p-1',
+        nombreProyecto: 'Sistema de riego',
+        nombreDocumento: 'Acta de inicio',
+        versionRepositorioArtefacto: 'v-1',
+        versionDocumento: 1,
+        nombreRepositorio: 'Repositorio base',
+        asesor: 'u-1',
+        nombreAsesor: 'Laura Gómez',
+        omitido: false,
+      },
+    ]);
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+    renderizar();
+
+    // Act
+    await user.click(
+      (await screen.findAllByRole('link', { name: 'Ver versiones de Acta de inicio' }))[0],
+    );
+
+    // Assert
+    expect(await screen.findByText('Artefacto: seleccionado')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones y revisiones' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await user.click(screen.getByRole('button', { name: /Quitar/ }));
+    expect(screen.queryByText('Artefacto: seleccionado')).not.toBeInTheDocument();
   });
 
   it('con ?vista=artefactos-proyecto el estudiante ve el listado de artefactos de sus proyectos', async () => {

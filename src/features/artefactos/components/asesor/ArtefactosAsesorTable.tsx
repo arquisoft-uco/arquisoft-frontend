@@ -1,5 +1,4 @@
 import { FileStack, SearchX } from 'lucide-react';
-import { Link, useLocation } from 'react-router';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type {
@@ -10,11 +9,10 @@ import type {
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ArtefactoAsesorRowMenu from './ArtefactoAsesorRowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
 import InsigniaOmitido from '../InsigniaOmitido';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const ENLACE =
-  'font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
@@ -45,17 +43,13 @@ export default function ArtefactosAsesorTable({
   onCambiarAsesor,
   onCambiarVersionRepositorio,
 }: Props) {
-  const { pathname } = useLocation();
-
   function enlaceVersiones(artefacto: ArtefactoAsesor) {
     return (
-      <Link
-        to={`${pathname}?vista=versiones-artefactos&artefacto=${artefacto.id}`}
-        aria-label={`Ver versiones de ${artefacto.nombreDocumento}`}
-        className={ENLACE}
-      >
-        {artefacto.nombreDocumento}
-      </Link>
+      <EnlaceVersionesArtefacto
+        artefactoId={artefacto.id}
+        nombreDocumento={artefacto.nombreDocumento}
+        vista="versiones-artefactos"
+      />
     );
   }
 

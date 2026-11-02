@@ -1,4 +1,4 @@
-import { History, MessageSquare, Upload } from 'lucide-react';
+import { MessageSquare, Upload } from 'lucide-react';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
@@ -10,7 +10,6 @@ interface Props {
   puedeSubir: boolean;
   onGestionarRevision: AlElegir;
   onSubirVersion: AlElegir;
-  onVerVersiones: AlElegir;
 }
 
 export default function MenuArtefactoEstudiante({
@@ -18,7 +17,6 @@ export default function MenuArtefactoEstudiante({
   puedeSubir,
   onGestionarRevision,
   onSubirVersion,
-  onVerVersiones,
 }: Props) {
   if (participacion.omitido) return null;
 
@@ -36,11 +34,6 @@ export default function MenuArtefactoEstudiante({
       onSeleccionar: () => onSubirVersion(participacion),
     });
   }
-  acciones.push({
-    etiqueta: 'Ver versiones',
-    icono: History,
-    onSeleccionar: () => onVerVersiones(participacion),
-  });
 
   return <RowMenu etiqueta={`Acciones de ${participacion.nombreDocumento}`} acciones={acciones} />;
 }

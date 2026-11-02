@@ -28,10 +28,6 @@ interface PanelAbierto {
   modo: 'gestionar' | 'subir';
 }
 
-interface Props {
-  onVerVersiones: (artefactoId: string) => void;
-}
-
 function aArtefacto(participacion: ParticipacionArtefacto): ArtefactoParaVersion {
   return {
     id: participacion.id,
@@ -41,7 +37,7 @@ function aArtefacto(participacion: ParticipacionArtefacto): ArtefactoParaVersion
   };
 }
 
-export default function ConsultarParticipacionesEstudiante({ onVerVersiones }: Props) {
+export default function ConsultarParticipacionesEstudiante() {
   const { proyectos, totalArtefactos, isLoading, isError, error, refetch, isFetching } =
     useParticipacionesEstudiante();
   const idsArtefactos = proyectos.flatMap((proyecto) =>
@@ -94,7 +90,6 @@ export default function ConsultarParticipacionesEstudiante({ onVerVersiones }: P
                   setPanel({ artefacto: aArtefacto(p), modo: 'gestionar' })
                 }
                 onSubirVersion={(p) => setPanel({ artefacto: aArtefacto(p), modo: 'subir' })}
-                onVerVersiones={(p) => onVerVersiones(p.id)}
               />
             ))}
           </div>
