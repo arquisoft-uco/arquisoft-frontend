@@ -337,6 +337,32 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       );
     });
 
+    it('con la revisión cerrada ofrece «Reabrir revisión» en vez de «Registrar revisión» y abre el diálogo de reapertura', async () => {
+      // Arrange
+      const cerrada = {
+        ...VERSION,
+        revisionAsesor: 'r-1',
+        estadoRevision: 'CERRADA',
+        nombreEstadoRevision: 'Cerrada',
+      };
+      listarConUltimas([cerrada], [cerrada]);
+      const user = userEvent.setup();
+      render(<ConsultarVersionesArtefactoAsesor />);
+
+      // Act
+      await abrirMenu(user, 4);
+      const accion = await screen.findByRole('menuitem', { name: 'Reabrir revisión' });
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+      await user.click(accion);
+
+      // Assert
+      expect(
+        screen.getByRole('dialog', { name: '¿Reabrir la revisión de esta versión?' }),
+      ).toBeInTheDocument();
+    });
+
     it('no la ofrece en una versión anterior aunque sí en la última', async () => {
       // Arrange
       listarConUltimas([VERSION, ANTERIOR], [VERSION]);

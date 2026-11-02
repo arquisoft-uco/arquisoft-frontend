@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ClipboardPlus, MessageSquare, Send } from 'lucide-react';
+import { ClipboardPlus, MessageSquare, RotateCcw, Send } from 'lucide-react';
 import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision';
 import { usePuedeGestionarObservaciones } from '../../hooks/usePuedeGestionarObservaciones';
 import { usePuedeRegistrarRevision } from '../../hooks/usePuedeRegistrarRevision';
 import { useVersionesArtefactoAsesor } from '../../hooks/useVersionesArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import { reabreArtefacto } from '../../utils/revision-version';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
 import EnviarRevisionDialog from './EnviarRevisionDialog';
 import ObservacionesRevisionPanel from './ObservacionesRevisionPanel';
@@ -31,9 +32,10 @@ export default function ConsultarVersionesArtefactoAsesor() {
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const acciones: AccionMenu[] = [];
     if (puedeRegistrar(version)) {
+      const reabre = reabreArtefacto(version);
       acciones.push({
-        etiqueta: 'Registrar revisión',
-        icono: ClipboardPlus,
+        etiqueta: reabre ? 'Reabrir revisión' : 'Registrar revisión',
+        icono: reabre ? RotateCcw : ClipboardPlus,
         onSeleccionar: () => setVersionARegistrar(version),
       });
     }

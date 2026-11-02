@@ -898,7 +898,7 @@ SidePanel.pie | shrink-0
 
 ### ConfirmDialog (se actualiza en su sitio)
 
-Conserva su API (`titulo`, `descripcion?`, `labelConfirmar?`, `labelCancelar?`, `variante?`, `cargando?`, `onConfirmar`,
+Conserva su API (`titulo`, `descripcion?`, `aviso?`, `labelConfirmar?`, `labelCancelar?`, `variante?`, `cargando?`, `onConfirmar`,
 `onCancelar`) y gana `consecuencias?: string[]` (lo que pasa al confirmar, en una lista). Lo que cambió:
 
 - **Foco:** usa `useTrampaDeFoco` (ver «useTrampaDeFoco») con el botón «Cancelar» como `focoInicial` y `alEscape` = cancelar: el
@@ -906,6 +906,9 @@ Conserva su API (`titulo`, `descripcion?`, `labelConfirmar?`, `labelCancelar?`, 
   no se enfoca nada. Desde el menú de fila el disparador es el ⋯, porque `RowMenu` le devuelve ahí el foco antes de llamar a
   `onSeleccionar`. **El foco inicial es «Cancelar» en las dos variantes**, no solo en `peligro` (desvío de la receta anterior):
   con `advertencia` el primer control del DOM ya es ese botón, y un Enter repetido al abrirlo cancela en lugar de confirmar.
+- **Aviso destacado (`aviso?: string`):** va dentro del bloque `detalle`, entre la descripción y las consecuencias, como `Notice`
+  `advertencia`. Se usa solo cuando la acción **va por encima de un ciclo de vida o regla normal** (excepción deliberada, p. ej.
+  reabrir una revisión cerrada), no para repetir una consecuencia: esas siguen en la lista. Sin clases nuevas en `clases`.
 - **Teclado:** Esc y el clic en el fondo cancelan, salvo mientras `cargando`.
 - **Semántica:** `role="alertdialog"` en `peligro` y `dialog` en `advertencia`, puesto en el panel y no en el contenedor de
   pantalla completa; `aria-modal="true"`, `aria-labelledby` hacia el `<h2>` y, si hay descripción o consecuencias,

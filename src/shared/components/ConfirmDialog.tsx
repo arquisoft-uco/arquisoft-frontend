@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { TriangleAlert } from 'lucide-react';
 import { useTrampaDeFoco } from '../hooks/useTrampaDeFoco';
 import Button from './ui/Button';
+import Notice from './ui/Notice';
 
 type Variante = 'peligro' | 'advertencia';
 
@@ -25,6 +26,7 @@ const ACCIONES = 'mt-5 flex flex-wrap justify-end gap-2';
 interface Props {
   titulo: string;
   descripcion?: string;
+  aviso?: string;
   consecuencias?: string[];
   labelConfirmar?: string;
   labelCancelar?: string;
@@ -37,6 +39,7 @@ interface Props {
 export default function ConfirmDialog({
   titulo,
   descripcion,
+  aviso,
   consecuencias = [],
   labelConfirmar = 'Confirmar',
   labelCancelar = 'Cancelar',
@@ -49,7 +52,7 @@ export default function ConfirmDialog({
   const idDetalle = useId();
   const panel = useRef<HTMLDivElement>(null);
   const cancelar = useRef<HTMLButtonElement>(null);
-  const tieneDetalle = Boolean(descripcion) || consecuencias.length > 0;
+  const tieneDetalle = Boolean(descripcion) || Boolean(aviso) || consecuencias.length > 0;
 
   function cancelarSiNoProcesa() {
     if (!cargando) onCancelar();
@@ -81,6 +84,7 @@ export default function ConfirmDialog({
         {tieneDetalle && (
           <div id={idDetalle} className={DETALLE}>
             {descripcion && <p className={DESCRIPCION}>{descripcion}</p>}
+            {aviso && <Notice variante="advertencia">{aviso}</Notice>}
             {consecuencias.length > 0 && (
               <ul className={CONSECUENCIAS}>
                 {consecuencias.map((consecuencia) => (

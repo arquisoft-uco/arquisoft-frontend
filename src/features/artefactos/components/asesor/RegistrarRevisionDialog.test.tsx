@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import { errorApi } from '../../../../test-utils/errores-api';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useRegistrarRevision } from '../../hooks/useRegistrarRevision';
@@ -32,6 +32,13 @@ const VERSION: VersionArtefacto = {
   nombreEstadoRevision: null,
 };
 
+const VERSION_CERRADA: VersionArtefacto = {
+  ...VERSION,
+  revisionAsesor: 'r-3',
+  estadoRevision: 'CERRADA',
+  nombreEstadoRevision: 'Cerrada',
+};
+
 function simular(mutate = vi.fn()) {
   vi.mocked(useRegistrarRevision).mockReturnValue({
     mutate,
@@ -55,6 +62,7 @@ describe('RegistrarRevisionDialog', () => {
     expect(screen.getByText(/no se notifica a los estudiantes/)).toBeInTheDocument();
     expect(screen.getByText(/no podrán subir versiones nuevas/)).toBeInTheDocument();
     expect(screen.queryByText(/reabre el artefacto/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Registrar revisión' }));
@@ -68,20 +76,64 @@ describe('RegistrarRevisionDialog', () => {
     expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
-  it('con la revisión más reciente cerrada advierte que registrar reabre el artefacto', () => {
+  it('con la revisión más reciente cerrada pide reabrir con aviso y consecuencias, y al confirmar reabre, avisa y cierra', async () => {
     // Arrange
-    simular();
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    const mutate = simular(vi.fn((_id: string, o?: OpcionesMutate) => o?.onSuccess?.()));
+    render(<RegistrarRevisionDialog version={VERSION_CERRADA} onCerrar={onCerrar} />);
+    const dialogo = screen.getByRole('dialog', { name: '¿Reabrir la revisión de esta versión?' });
+    expect(within(dialogo).getByRole('note')).toHaveTextContent(/va por encima del ciclo de vida/);
+    expect(
+      within(dialogo)
+        .getAllByRole('listitem')
+        .map((consecuencia) => consecuencia.textContent),
+    ).toEqual([
+      'Se crea una nueva revisión en estado pendiente sobre esta misma versión.',
+      'El artefacto se reabre.',
+      'Mientras esté pendiente, los estudiantes no podrán subir versiones nuevas.',
+      'No se notifica a los estudiantes.',
+    ]);
+    expect(screen.queryByRole('button', { name: 'Registrar revisión' })).not.toBeInTheDocument();
 
     // Act
-    render(
-      <RegistrarRevisionDialog
-        version={{ ...VERSION, estadoRevision: 'CERRADA', nombreEstadoRevision: 'Cerrada' }}
-        onCerrar={vi.fn()}
-      />,
-    );
+    await user.click(within(dialogo).getByRole('button', { name: 'Reabrir revisión' }));
 
     // Assert
-    expect(screen.getByText(/registrar una nueva reabre el artefacto/)).toBeInTheDocument();
+    expect(mutate).toHaveBeenCalledWith('v-4', expect.any(Object));
+    expect(toast.success).toHaveBeenCalledWith(
+      'Revisión reabierta',
+      'Quedó pendiente una nueva revisión de la versión 4 de «Acta de inicio».',
+    );
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('ante un error al reabrir avisa con el título de reapertura y cierra', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrar = vi.fn();
+    simular(
+      vi.fn((_id: string, o?: OpcionesMutate) =>
+        o?.onError?.(
+          errorApi(422, {
+            status: 422,
+            errorCode: 'VERSION_ARTEFACTO_NO_ES_ULTIMA',
+            message: 'del backend',
+          }),
+        ),
+      ),
+    );
+    render(<RegistrarRevisionDialog version={VERSION_CERRADA} onCerrar={onCerrar} />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reabrir revisión' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo reabrir la revisión',
+      'Hay una versión más reciente: registra la revisión sobre ella.',
+    );
+    expect(onCerrar).toHaveBeenCalledTimes(1);
   });
 
   it('ante un error avisa con el mensaje claro y cierra', async () => {
