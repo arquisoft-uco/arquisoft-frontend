@@ -10,15 +10,9 @@ import ObservacionesRevisionPanelBase from '../ObservacionesRevisionPanelBase';
 import AccionesObservacionMenu from './AccionesObservacionMenu';
 import AccionesRevision from './AccionesRevision';
 import AgregarObservacionPanel from './AgregarObservacionPanel';
-import CambiarEstadoObservacionDialog from './CambiarEstadoObservacionDialog';
-import EliminarObservacionDialog from './EliminarObservacionDialog';
+import DialogosGestionRevision, { type Decision } from './DialogosGestionRevision';
 import EncabezadoRevision from './EncabezadoRevision';
-import EnviarRevisionDialog from './EnviarRevisionDialog';
-
-interface Decision {
-  observacion: ObservacionRevision;
-  estado: 'CERRADA' | 'REABIERTA';
-}
+import ObservacionesRevisionAnteriorSeccion from './ObservacionesRevisionAnteriorSeccion';
 
 interface Props {
   revisionAsesorId: string;
@@ -55,7 +49,7 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
         modo={editable ? 'eliminar' : 'decidir'}
         puedeReabrir={situacion === 'disponible'}
         onEliminar={setAEliminar}
-        onDecidir={(o, estado) => setDecision({ observacion: o, estado })}
+        onDecidir={(o, estado) => setDecision({ observacion: o, estado, version })}
       />
     );
   }
@@ -101,31 +95,24 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
           )
         }
         acciones={accionesDe}
+        seccionAnterior={
+          <ObservacionesRevisionAnteriorSeccion
+            anterior={revision.anterior}
+            onDecidir={(v, observacion, estado) => setDecision({ observacion, estado, version: v })}
+          />
+        }
       />
-      {aEliminar && (
-        <EliminarObservacionDialog
-          observacionId={aEliminar.id}
-          onCerrar={() => setAEliminar(null)}
-        />
-      )}
-      {decision && (
-        <CambiarEstadoObservacionDialog
-          observacion={decision.observacion}
-          estado={decision.estado}
-          version={version}
-          revisionAsesorId={revisionAsesorId}
-          onCerrar={() => setDecision(null)}
-          onSalir={onCerrar}
-        />
-      )}
-      {enviando && (
-        <EnviarRevisionDialog
-          version={version}
-          revisionAsesorId={revisionAsesorId}
-          onCerrar={() => setEnviando(false)}
-          onSalir={onCerrar}
-        />
-      )}
+      <DialogosGestionRevision
+        version={version}
+        revisionAsesorId={revisionAsesorId}
+        aEliminar={aEliminar}
+        decision={decision}
+        enviando={enviando}
+        onCerrarEliminar={() => setAEliminar(null)}
+        onCerrarDecision={() => setDecision(null)}
+        onCerrarEnvio={() => setEnviando(false)}
+        onSalir={onCerrar}
+      />
     </>
   );
 }

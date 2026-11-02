@@ -12,11 +12,16 @@ const DESCRIPCION = 'min-w-0 break-words';
 interface Props {
   observaciones: ObservacionRevision[];
   acciones?: (observacion: ObservacionRevision) => ReactNode;
+  etiqueta?: string;
 }
 
-export default function ListaObservacionesRevision({ observaciones, acciones }: Props) {
+export default function ListaObservacionesRevision({
+  observaciones,
+  acciones,
+  etiqueta = 'Observaciones de la revisión',
+}: Props) {
   return (
-    <ul aria-label="Observaciones de la revisión" className={LISTA}>
+    <ul aria-label={etiqueta} className={LISTA}>
       {observaciones.map((observacion) => (
         <li key={observacion.id} className={TARJETA}>
           <div className={CONTENIDO}>

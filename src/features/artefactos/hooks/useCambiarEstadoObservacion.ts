@@ -18,13 +18,7 @@ export function useCambiarEstadoObservacion() {
   return useMutation<void, unknown, Variables>({
     mutationFn: ({ observacionId, estado }) =>
       artefactosService.cambiarEstadoObservacion(observacionId, { estado }),
-    onSuccess: (_data, { estado, revisionAsesorId }) =>
-      queryClient.invalidateQueries({
-        queryKey:
-          estado === 'REABIERTA'
-            ? CLAVE_REVISIONES
-            : [...CLAVE_REVISIONES, revisionAsesorId, 'observaciones'],
-      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: CLAVE_REVISIONES }),
     onError: (err, { revisionAsesorId }) => {
       if (decisionObservacionYaNoAplica(err)) {
         return Promise.all([

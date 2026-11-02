@@ -13,7 +13,7 @@ interface Props {
   observacion: ObservacionRevision;
   modo: 'eliminar' | 'decidir';
   puedeReabrir: boolean;
-  onEliminar: (observacion: ObservacionRevision) => void;
+  onEliminar?: (observacion: ObservacionRevision) => void;
   onDecidir: (observacion: ObservacionRevision, estado: 'CERRADA' | 'REABIERTA') => void;
 }
 
@@ -35,7 +35,7 @@ export default function AccionesObservacionMenu({
             etiqueta: 'Eliminar observación',
             icono: Trash2,
             peligro: true,
-            onSeleccionar: () => onEliminar(observacion),
+            onSeleccionar: () => onEliminar?.(observacion),
             deshabilitada: eliminando,
           },
         ]}

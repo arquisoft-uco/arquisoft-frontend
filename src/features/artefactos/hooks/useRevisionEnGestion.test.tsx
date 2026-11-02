@@ -3,11 +3,13 @@ import { renderHook } from '../../../test-utils/render';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import { useObservacionesRevision } from './useObservacionesRevision';
 import { usePuedeGestionarObservaciones } from './usePuedeGestionarObservaciones';
+import { useRevisionAnterior } from './useRevisionAnterior';
 import { useRevisionEnGestion } from './useRevisionEnGestion';
 import { useUltimaVersionArtefacto } from './useUltimaVersionArtefacto';
 
 vi.mock('./useObservacionesRevision', () => ({ useObservacionesRevision: vi.fn() }));
 vi.mock('./usePuedeGestionarObservaciones', () => ({ usePuedeGestionarObservaciones: vi.fn() }));
+vi.mock('./useRevisionAnterior', () => ({ useRevisionAnterior: vi.fn() }));
 vi.mock('./useUltimaVersionArtefacto', () => ({ useUltimaVersionArtefacto: vi.fn() }));
 
 const VERSION = {
@@ -41,6 +43,9 @@ function preparar({
     puedeGestionar: () => editable,
     omitidos,
   });
+  vi.mocked(useRevisionAnterior).mockReturnValue({
+    visible: false,
+  } as Partial<ReturnType<typeof useRevisionAnterior>> as ReturnType<typeof useRevisionAnterior>);
   vi.mocked(useUltimaVersionArtefacto).mockReturnValue({
     ultimaVersion: undefined,
     isLoading: false,
@@ -99,5 +104,27 @@ describe('useRevisionEnGestion', () => {
     // Assert
     expect(resultado.puedeDecidir).toBe(true);
     expect(useUltimaVersionArtefacto).toHaveBeenCalledWith('a-1', true);
+  });
+
+  it('entrega omitido indefinido a la revisión anterior mientras el catálogo carga', () => {
+    // Arrange
+    preparar({ observaciones: [], editable: false });
+    vi.mocked(usePuedeGestionarObservaciones).mockReturnValue({
+      puedeGestionar: () => false,
+      omitidos: undefined,
+    });
+
+    // Act
+    usar();
+    vi.mocked(usePuedeGestionarObservaciones).mockReturnValue({
+      puedeGestionar: () => false,
+      omitidos: new Set(['a-1']),
+    });
+    usar();
+
+    // Assert
+    const llamadas = vi.mocked(useRevisionAnterior);
+    expect(llamadas).toHaveBeenNthCalledWith(1, expect.objectContaining({ omitido: undefined }));
+    expect(llamadas).toHaveBeenLastCalledWith(expect.objectContaining({ omitido: true }));
   });
 });

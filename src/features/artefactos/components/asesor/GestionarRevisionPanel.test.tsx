@@ -11,6 +11,8 @@ import { useObservacionEnEliminacion } from '../../hooks/useObservacionEnElimina
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useEnviarRevision } from '../../hooks/useEnviarRevision';
+import { useCambiarEstadoObservacion } from '../../hooks/useCambiarEstadoObservacion';
+import { useRevisionAnterior } from '../../hooks/useRevisionAnterior';
 import { errorApi } from '../../../../test-utils/errores-api';
 import GestionarRevisionPanel from './GestionarRevisionPanel';
 
@@ -38,6 +40,9 @@ vi.mock('../../hooks/useUltimaVersionArtefacto', () => ({
 }));
 vi.mock('../../hooks/useCambiarEstadoObservacion', () => ({
   useCambiarEstadoObservacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
+vi.mock('../../hooks/useRevisionAnterior', () => ({
+  useRevisionAnterior: vi.fn(() => ({ visible: false })),
 }));
 vi.mock('../../hooks/useEnviarRevision', () => ({
   useEnviarRevision: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
@@ -610,6 +615,80 @@ describe('GestionarRevisionPanel', () => {
       expect(
         screen.getByText('Este artefacto está omitido y no admite cambios.'),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('observaciones de la revisión anterior (HU-292-AJ2)', () => {
+    const ANTERIOR_V = { ...VERSION, id: 'v-0', version: 3, revisionAsesor: 'r-0' };
+    const previa: ObservacionRevision = {
+      ...solucionada,
+      id: 'o-9',
+      revisionAsesorId: 'r-0',
+      descripcion: 'Ajustar el cronograma anterior',
+    };
+
+    function simularAnterior() {
+      vi.mocked(useRevisionAnterior).mockReturnValue({
+        visible: true,
+        versionAnterior: ANTERIOR_V,
+        observaciones: [previa],
+        isLoading: false,
+        isError: false,
+        error: null,
+        refetch: vi.fn(),
+        total: 1,
+        sinCerrar: 1,
+        puedeDecidir: true,
+        situacion: 'disponible',
+        textoAviso: null,
+      } as Partial<ReturnType<typeof useRevisionAnterior>> as ReturnType<
+        typeof useRevisionAnterior
+      >);
+    }
+
+    it('muestra la sección con su contador junto a la lista actual', () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [nueva] }));
+      simularAnterior();
+
+      // Act
+      renderEditable();
+
+      // Assert
+      expect(
+        screen.getByRole('heading', { name: 'Observaciones de la revisión anterior' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText('1 de 1 sin cerrar')).toBeInTheDocument();
+      expect(screen.getByText('Ajustar el cronograma anterior')).toBeInTheDocument();
+    });
+
+    it('cerrar una observación anterior confirma con su id y la revisión anterior', async () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [nueva] }));
+      simularAnterior();
+      const mutateEstado = vi.fn();
+      vi.mocked(useCambiarEstadoObservacion).mockReturnValue({
+        mutate: mutateEstado,
+        isPending: false,
+      } as Partial<ReturnType<typeof useCambiarEstadoObservacion>> as ReturnType<
+        typeof useCambiarEstadoObservacion
+      >);
+      const user = userEvent.setup();
+      renderEditable();
+
+      // Act
+      await user.click(
+        screen.getByRole('button', { name: /^Acciones de la observación: Ajustar el cronograma/ }),
+      );
+      await user.click(screen.getByRole('menuitem', { name: 'Cerrar observación' }));
+      const dialogo = await screen.findByRole('dialog', { name: '¿Cerrar observación?' });
+      await user.click(within(dialogo).getByRole('button', { name: 'Cerrar observación' }));
+
+      // Assert
+      expect(mutateEstado).toHaveBeenCalledWith(
+        { observacionId: 'o-9', revisionAsesorId: 'r-0', estado: 'CERRADA' },
+        expect.any(Object),
+      );
     });
   });
 });

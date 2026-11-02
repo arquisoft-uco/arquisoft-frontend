@@ -33,7 +33,7 @@ describe('useCambiarEstadoObservacion', () => {
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
-  it('cerrar invalida solo las observaciones de la revisión y reabrir el prefijo de revisiones', async () => {
+  it('cerrar y reabrir invalidan el prefijo de revisiones', async () => {
     // Arrange
     cambiar.mockResolvedValue(undefined);
     const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
@@ -52,7 +52,7 @@ describe('useCambiarEstadoObservacion', () => {
 
     // Assert
     expect(cambiar).toHaveBeenCalledWith('o-1', { estado: 'CERRADA' });
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: CLAVE_OBSERVACIONES });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'revisiones-asesor'] });
 
     // Act
     invalidar.mockClear();

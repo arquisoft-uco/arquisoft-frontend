@@ -24,6 +24,7 @@ interface Props {
   notaPie?: string;
   accionesPie?: ReactNode;
   acciones?: (observacion: ObservacionRevision) => ReactNode;
+  seccionAnterior?: ReactNode;
 }
 
 export default function ObservacionesRevisionPanelBase({
@@ -41,6 +42,7 @@ export default function ObservacionesRevisionPanelBase({
   notaPie,
   accionesPie,
   acciones,
+  seccionAnterior,
 }: Props) {
   return (
     <SidePanel
@@ -74,6 +76,7 @@ export default function ObservacionesRevisionPanelBase({
         ) : (
           <ListaObservacionesRevision observaciones={observaciones} acciones={acciones} />
         )}
+        {seccionAnterior}
       </div>
     </SidePanel>
   );

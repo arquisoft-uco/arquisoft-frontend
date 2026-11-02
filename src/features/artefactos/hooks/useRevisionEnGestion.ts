@@ -2,6 +2,7 @@ import type { VersionArtefacto } from '../models/VersionArtefacto';
 import { textoAvisoObservaciones } from '../utils/aviso-observaciones';
 import { ESTADO_OBSERVACION_SOLUCIONADA, situacionReapertura } from '../utils/decision-observacion';
 import { revisionAdmiteDecisionObservacion } from '../utils/revision-version';
+import { useRevisionAnterior } from './useRevisionAnterior';
 import { useObservacionesRevision } from './useObservacionesRevision';
 import { usePuedeGestionarObservaciones } from './usePuedeGestionarObservaciones';
 import { useUltimaVersionArtefacto } from './useUltimaVersionArtefacto';
@@ -20,7 +21,9 @@ export function useRevisionEnGestion({ revisionAsesorId, version }: Entrada) {
     refetch,
   } = useObservacionesRevision(revisionAsesorId);
   const { puedeGestionar, omitidos } = usePuedeGestionarObservaciones();
-  const omitido = omitidos?.has(version.artefacto) ?? false;
+  const omitidoConocido = omitidos ? omitidos.has(version.artefacto) : undefined;
+  const omitido = omitidoConocido ?? false;
+  const anterior = useRevisionAnterior({ version, omitido: omitidoConocido });
   const editable = puedeGestionar(version);
   const puedeDecidir =
     !editable && revisionAdmiteDecisionObservacion({ version, artefactoOmitido: omitido });
@@ -51,5 +54,6 @@ export function useRevisionEnGestion({ revisionAsesorId, version }: Entrada) {
     textoAviso,
     hayObservaciones,
     mostrarNotaEnvio,
+    anterior,
   };
 }
