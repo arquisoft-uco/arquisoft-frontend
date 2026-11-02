@@ -3,6 +3,7 @@ import { Eye, MessageSquare } from 'lucide-react';
 import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision';
 import { useVersionesArtefactoEstudiante } from '../../hooks/useVersionesArtefactoEstudiante';
+import type { ArtefactoParaVersion } from '../../models/ArtefactoParaVersion';
 import type { RevisionGestionable } from '../../models/RevisionGestionable';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { desVersion } from '../../utils/revision-gestionable';
@@ -15,7 +16,10 @@ const DESCRIPCION_VACIO = 'Aparecerán aquí cuando se genere una versión de un
 export default function ConsultarVersionesArtefactoEstudiante() {
   const listado = useVersionesArtefactoEstudiante();
   const opcionesEstado = useOpcionesEstadoRevision();
-  const [revisionAbierta, setRevisionAbierta] = useState<RevisionGestionable | null>(null);
+  const [abierta, setAbierta] = useState<{
+    artefacto: ArtefactoParaVersion;
+    revision: RevisionGestionable;
+  } | null>(null);
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const revision = desVersion(version);
@@ -25,7 +29,16 @@ export default function ConsultarVersionesArtefactoEstudiante() {
       {
         etiqueta: enProgreso ? 'Gestionar revisión' : 'Ver revisión',
         icono: enProgreso ? MessageSquare : Eye,
-        onSeleccionar: () => setRevisionAbierta(revision),
+        onSeleccionar: () =>
+          setAbierta({
+            artefacto: {
+              id: version.artefacto,
+              nombreProyecto: version.nombreProyecto,
+              nombreDocumento: version.nombreDocumento,
+              versionDocumento: version.versionDocumento,
+            },
+            revision,
+          }),
       },
     ];
   }
@@ -37,12 +50,14 @@ export default function ConsultarVersionesArtefactoEstudiante() {
         descripcionVacio={DESCRIPCION_VACIO}
         opcionesEstado={opcionesEstado}
         accionesAdicionales={accionesAdicionales}
-        mostrarAsesor
+        mostrarRepositorio={false}
+        etiquetaFecha="Fecha de subida"
       />
-      {revisionAbierta && (
+      {abierta && (
         <GestionarRevisionEstudiantePanel
-          revision={revisionAbierta}
-          onCerrar={() => setRevisionAbierta(null)}
+          artefacto={abierta.artefacto}
+          revision={abierta.revision}
+          onCerrar={() => setAbierta(null)}
         />
       )}
     </>

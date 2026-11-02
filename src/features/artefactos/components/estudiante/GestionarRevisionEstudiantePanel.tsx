@@ -1,75 +1,54 @@
 import { useState } from 'react';
-import { useGestionarRevisionEstudiante } from '../../hooks/useGestionarRevisionEstudiante';
+import { useUltimaRevisionArtefacto } from '../../hooks/useUltimaRevisionArtefacto';
+import type { ArtefactoParaVersion } from '../../models/ArtefactoParaVersion';
 import type { RevisionGestionable } from '../../models/RevisionGestionable';
-import { puedeAvanzarObservacion } from '../../utils/avance-observacion';
-import ObservacionesRevisionPanelBase from '../ObservacionesRevisionPanelBase';
-import AccionesRevisionEstudiante from './AccionesRevisionEstudiante';
-import CasillaAvanceObservacion from './CasillaAvanceObservacion';
-import EncabezadoRevisionEstudiante from './EncabezadoRevisionEstudiante';
+import DetalleRevisionEstudianteContenido from './DetalleRevisionEstudianteContenido';
 import MarcarRevisionResueltaDialog from './MarcarRevisionResueltaDialog';
+import SinRevisionArtefactoPanel from './SinRevisionArtefactoPanel';
 import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
 
 interface Props {
-  revision: RevisionGestionable;
+  artefacto: ArtefactoParaVersion;
+  revision?: RevisionGestionable;
   onCerrar: () => void;
 }
 
-export default function GestionarRevisionEstudiantePanel({ revision, onCerrar }: Props) {
-  const gestion = useGestionarRevisionEstudiante(revision);
-  const { editable } = gestion;
+export default function GestionarRevisionEstudiantePanel({ artefacto, revision, onCerrar }: Props) {
+  const ultima = useUltimaRevisionArtefacto(artefacto.id);
   const [subiendo, setSubiendo] = useState(false);
   const [resolviendo, setResolviendo] = useState(false);
+  const revisionActiva = revision ?? ultima.revision;
 
   return (
     <>
-      <ObservacionesRevisionPanelBase
-        titulo={editable ? 'Gestionar revisión' : 'Ver revisión'}
-        descripcion={`«${revision.nombreDocumento}» · Versión ${revision.version}`}
-        descripcionVacia="Tu asesor aún no ha registrado observaciones en esta revisión."
-        observaciones={gestion.observaciones}
-        isLoading={gestion.isLoading}
-        isError={gestion.isError}
-        error={gestion.error}
-        onReintentar={() => void gestion.refetch()}
-        onCerrar={onCerrar}
-        encabezado={<EncabezadoRevisionEstudiante revision={revision} />}
-        notaPie={gestion.notaPie}
-        accionesPie={
-          editable && (
-            <AccionesRevisionEstudiante
-              puedeSubir={gestion.puedeSubir}
-              puedeResolver={gestion.puedeResolver}
-              motivoSubida={gestion.motivoSubida}
-              onSubir={() => setSubiendo(true)}
-              onResolver={() => setResolviendo(true)}
-            />
-          )
-        }
-        acciones={
-          editable
-            ? (o) =>
-                puedeAvanzarObservacion(o.estadoId) ? (
-                  <CasillaAvanceObservacion observacion={o} revisionAsesorId={revision.id} />
-                ) : null
-            : undefined
-        }
-      />
-      {subiendo && (
-        <SubirVersionArtefactoPanel
-          artefacto={{
-            id: revision.artefactoId,
-            nombreProyecto: revision.nombreProyecto,
-            nombreDocumento: revision.nombreDocumento,
-            versionDocumento: revision.versionDocumento,
-          }}
-          onCerrar={() => setSubiendo(false)}
+      {revisionActiva ? (
+        <DetalleRevisionEstudianteContenido
+          revision={revisionActiva}
+          onSubir={() => setSubiendo(true)}
+          onResolver={() => setResolviendo(true)}
+          onCerrar={onCerrar}
+        />
+      ) : (
+        <SinRevisionArtefactoPanel
+          artefacto={artefacto}
+          ultima={ultima.ultima}
+          isLoading={ultima.isLoading}
+          isError={ultima.isError}
+          onReintentar={() => void ultima.refetch()}
+          puedeSubir={ultima.puedeSubir}
+          motivoSubida={ultima.motivoSubida}
+          onSubir={() => setSubiendo(true)}
+          onCerrar={onCerrar}
         />
       )}
-      {resolviendo && (
+      {subiendo && (
+        <SubirVersionArtefactoPanel artefacto={artefacto} onCerrar={() => setSubiendo(false)} />
+      )}
+      {resolviendo && revisionActiva && (
         <MarcarRevisionResueltaDialog
-          revisionAsesorId={revision.id}
-          nombreDocumento={revision.nombreDocumento}
-          version={revision.version}
+          revisionAsesorId={revisionActiva.id}
+          nombreDocumento={revisionActiva.nombreDocumento}
+          version={revisionActiva.version}
           onCerrar={() => setResolviendo(false)}
           onResuelta={onCerrar}
         />

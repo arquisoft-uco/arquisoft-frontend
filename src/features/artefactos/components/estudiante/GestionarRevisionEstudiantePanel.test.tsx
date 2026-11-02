@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import { useCambiarEstadoObservacionEstudiante } from '../../hooks/useCambiarEstadoObservacionEstudiante';
 import { useGestionarRevisionEstudiante } from '../../hooks/useGestionarRevisionEstudiante';
+import { useUltimaRevisionArtefacto } from '../../hooks/useUltimaRevisionArtefacto';
+import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import type { ObservacionRevision } from '../../models/ObservacionRevision';
 import type { RevisionGestionable } from '../../models/RevisionGestionable';
 import GestionarRevisionEstudiantePanel from './GestionarRevisionEstudiantePanel';
@@ -13,6 +15,9 @@ vi.mock('../../hooks/useCambiarEstadoObservacionEstudiante', () => ({
 vi.mock('../../hooks/useGestionarRevisionEstudiante', () => ({
   useGestionarRevisionEstudiante: vi.fn(),
 }));
+vi.mock('../../hooks/useUltimaRevisionArtefacto', () => ({
+  useUltimaRevisionArtefacto: vi.fn(),
+}));
 vi.mock('./SubirVersionArtefactoPanel', () => ({
   default: () => <div>Panel de subida</div>,
 }));
@@ -21,6 +26,7 @@ vi.mock('./MarcarRevisionResueltaDialog', () => ({
 }));
 
 const hook = vi.mocked(useGestionarRevisionEstudiante);
+const hookUltima = vi.mocked(useUltimaRevisionArtefacto);
 
 type Resultado = ReturnType<typeof useGestionarRevisionEstudiante>;
 
@@ -69,13 +75,62 @@ const solucionada: ObservacionRevision = {
   estadoNombre: 'Solucionada',
 };
 
+const ARTEFACTO = {
+  id: 'a-1',
+  nombreProyecto: 'Sistema de riego',
+  nombreDocumento: 'Acta de inicio',
+  versionDocumento: 3,
+};
+
+const VERSION: VersionArtefacto = {
+  id: 'v-2',
+  artefacto: 'a-1',
+  version: 2,
+  fechaCreacion: '2026-03-10T15:30:00Z',
+  nombreProyecto: 'Sistema de riego',
+  nombreDocumento: 'Acta de inicio',
+  versionDocumento: 3,
+  nombreRepositorio: 'Repositorio base',
+  nombreAsesor: 'Laura Gómez',
+  revisionAsesor: null,
+  estadoRevision: null,
+  nombreEstadoRevision: null,
+  fechaCreacionRevision: null,
+};
+
+type ResultadoUltima = ReturnType<typeof useUltimaRevisionArtefacto>;
+
+function ultimaRevision(parcial: Partial<ResultadoUltima>): ResultadoUltima {
+  const base: ResultadoUltima = {
+    ultima: undefined,
+    revision: null,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    motivoSubida: null,
+    puedeSubir: true,
+  };
+  return { ...base, ...parcial };
+}
+
+function montarDesdeArtefacto() {
+  return render(<GestionarRevisionEstudiantePanel artefacto={ARTEFACTO} onCerrar={vi.fn()} />);
+}
+
 function montar(revision = REVISION, onCerrar = vi.fn()) {
-  return render(<GestionarRevisionEstudiantePanel revision={revision} onCerrar={onCerrar} />);
+  return render(
+    <GestionarRevisionEstudiantePanel
+      artefacto={ARTEFACTO}
+      revision={revision}
+      onCerrar={onCerrar}
+    />,
+  );
 }
 
 describe('GestionarRevisionEstudiantePanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    hookUltima.mockReturnValue(ultimaRevision({ ultima: null }));
     const base: Partial<ReturnType<typeof useCambiarEstadoObservacionEstudiante>> = {
       mutate: vi.fn(),
       isPending: false,
@@ -276,5 +331,105 @@ describe('GestionarRevisionEstudiantePanel', () => {
 
     // Assert
     expect(screen.getByText('Diálogo de resolución')).toBeInTheDocument();
+  });
+
+  describe('desde un artefacto, sin revisión explícita', () => {
+    it('sin versiones avisa y deja subir la primera', async () => {
+      // Arrange
+      hookUltima.mockReturnValue(ultimaRevision({ ultima: null }));
+      const user = userEvent.setup();
+
+      // Act
+      montarDesdeArtefacto();
+
+      // Assert
+      expect(screen.getByText('Aún no has subido versiones')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Marcar como resuelta' }),
+      ).not.toBeInTheDocument();
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Subir nueva versión' }));
+
+      // Assert
+      expect(screen.getByText('Panel de subida')).toBeInTheDocument();
+    });
+
+    it('con la última versión sin revisión avisa y deshabilita subir con su motivo', () => {
+      // Arrange
+      hookUltima.mockReturnValue(
+        ultimaRevision({
+          ultima: VERSION,
+          puedeSubir: false,
+          motivoSubida: 'Esperando la revisión del asesor.',
+        }),
+      );
+
+      // Act
+      montarDesdeArtefacto();
+
+      // Assert
+      expect(screen.getByText('Aún no tiene revisión')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Subir nueva versión' })).toBeDisabled();
+      expect(screen.getByText('Esperando la revisión del asesor.')).toBeInTheDocument();
+    });
+
+    it('muestra la carga y, si falla, reintenta la consulta de la última versión', async () => {
+      // Arrange
+      const refetch = vi.fn();
+      hookUltima.mockReturnValue(ultimaRevision({ ultima: undefined, isLoading: true }));
+      const { unmount } = montarDesdeArtefacto();
+
+      // Assert
+      expect(screen.getByRole('status')).toBeInTheDocument();
+      unmount();
+
+      // Arrange
+      hookUltima.mockReturnValue(ultimaRevision({ isError: true, refetch }));
+      const user = userEvent.setup();
+
+      // Act
+      montarDesdeArtefacto();
+      await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+      // Assert
+      expect(refetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('con la revisión en progreso de la última versión muestra las casillas', () => {
+      // Arrange
+      hookUltima.mockReturnValue(ultimaRevision({ ultima: VERSION, revision: REVISION }));
+      hook.mockReturnValue(estado({ editable: true, observaciones: [nueva], puedeSubir: true }));
+
+      // Act
+      montarDesdeArtefacto();
+
+      // Assert
+      expect(hook).toHaveBeenCalledWith(REVISION);
+      expect(screen.getByRole('checkbox')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Marcar como resuelta' })).toBeInTheDocument();
+    });
+
+    it('con la revisión cerrada queda en solo lectura con la nota del estado', () => {
+      // Arrange
+      const cerrada = { ...REVISION, estadoId: 'CERRADA', estadoNombre: 'Cerrada' };
+      hookUltima.mockReturnValue(ultimaRevision({ ultima: VERSION, revision: cerrada }));
+      hook.mockReturnValue(
+        estado({
+          editable: false,
+          observaciones: [nueva],
+          notaPie:
+            'El asesor dio por completado este artefacto, por eso no admite nuevas versiones.',
+        }),
+      );
+
+      // Act
+      montarDesdeArtefacto();
+
+      // Assert
+      expect(screen.getByRole('heading', { name: 'Ver revisión' })).toBeInTheDocument();
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+      expect(screen.getByText(/por eso no admite nuevas versiones/)).toBeInTheDocument();
+    });
   });
 });

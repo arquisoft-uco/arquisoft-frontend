@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
-import { desRevision, desVersion, haySubidaPosterior } from './revision-gestionable';
+import { desVersion, haySubidaPosterior } from './revision-gestionable';
 
 const VERSION: VersionArtefacto = {
   id: 'v-1',
@@ -19,27 +19,6 @@ const VERSION: VersionArtefacto = {
 };
 
 describe('revision-gestionable', () => {
-  it('proyecta una revisión del listado de revisiones', () => {
-    // Act
-    const revision = desRevision({
-      id: 'r-9',
-      versionArtefacto: 'v-9',
-      artefacto: 'a-9',
-      version: 4,
-      estadoRevisionAsesor: 'RESUELTA',
-      estadoRevisionAsesorNombre: 'Resuelta',
-      fechaCreacion: '2026-03-05T10:00:00',
-      nombreProyecto: 'P',
-      nombreDocumento: 'D',
-      versionDocumento: 1,
-      observacionesAbiertas: 0,
-      totalObservaciones: 2,
-    });
-
-    // Assert
-    expect(revision).toMatchObject({ id: 'r-9', artefactoId: 'a-9', estadoId: 'RESUELTA' });
-  });
-
   it('proyecta una versión con revisión visible y descarta pendiente o sin revisión', () => {
     // Assert
     expect(desVersion(VERSION)).toMatchObject({

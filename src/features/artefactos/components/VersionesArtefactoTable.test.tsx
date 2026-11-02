@@ -42,6 +42,16 @@ function tabla() {
 }
 
 describe('VersionesArtefactoTable', () => {
+  it('con mostrarRepositorio en falso oculta la columna y la etiqueta de fecha es configurable', () => {
+    // Act
+    renderizar({ mostrarRepositorio: false, etiquetaFecha: 'Fecha de subida' });
+
+    // Assert
+    expect(tabla().queryByRole('columnheader', { name: 'Repositorio' })).not.toBeInTheDocument();
+    expect(tabla().queryByText('Repositorio base')).not.toBeInTheDocument();
+    expect(tabla().getByRole('columnheader', { name: /Fecha de subida/ })).toBeInTheDocument();
+  });
+
   it('muestra proyecto, documento con su versión, repositorio, versión generada y fecha, sin pintar uriArchivo', () => {
     // Act
     renderizar();

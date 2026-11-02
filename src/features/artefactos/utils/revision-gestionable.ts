@@ -1,21 +1,6 @@
-import type { RevisionAsesorEstudiante } from '../models/RevisionAsesorEstudiante';
 import type { RevisionGestionable } from '../models/RevisionGestionable';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import { estudianteVeObservaciones } from './revision-version';
-
-export function desRevision(revision: RevisionAsesorEstudiante): RevisionGestionable {
-  return {
-    id: revision.id,
-    artefactoId: revision.artefacto,
-    version: revision.version,
-    estadoId: revision.estadoRevisionAsesor,
-    estadoNombre: revision.estadoRevisionAsesorNombre,
-    nombreProyecto: revision.nombreProyecto,
-    nombreDocumento: revision.nombreDocumento,
-    versionDocumento: revision.versionDocumento,
-    fechaCreacion: revision.fechaCreacion,
-  };
-}
 
 export function desVersion(version: VersionArtefacto): RevisionGestionable | null {
   if (

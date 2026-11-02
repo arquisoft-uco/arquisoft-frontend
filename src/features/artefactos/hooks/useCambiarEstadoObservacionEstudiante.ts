@@ -8,7 +8,6 @@ import {
   mensajeErrorAvanceObservacion,
 } from '../utils/errores-avance-observacion';
 import { claveObservacionesRevisionEstudiante } from './useObservacionesRevisionEstudiante';
-import { CLAVE_REVISIONES_ESTUDIANTE } from './useRevisionesEstudiante';
 
 interface Variables extends CambiarEstadoObservacionEstudianteRequest {
   observacionId: string;
@@ -31,7 +30,6 @@ export function useCambiarEstadoObservacionEstudiante() {
         queryClient.invalidateQueries({
           queryKey: claveObservacionesRevisionEstudiante(revisionAsesorId),
         }),
-        queryClient.invalidateQueries({ queryKey: CLAVE_REVISIONES_ESTUDIANTE }),
       ]);
     },
     onError: (err, { revisionAsesorId }) => {
@@ -46,7 +44,6 @@ export function useCambiarEstadoObservacionEstudiante() {
           }),
           queryClient.invalidateQueries({ queryKey: ['artefactos', 'versiones-artefacto'] }),
           queryClient.invalidateQueries({ queryKey: ['artefactos', 'estudiante'] }),
-          queryClient.invalidateQueries({ queryKey: CLAVE_REVISIONES_ESTUDIANTE }),
         ]);
       }
     },

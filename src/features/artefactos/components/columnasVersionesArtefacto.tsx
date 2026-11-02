@@ -15,7 +15,17 @@ export function etiquetaVersion(version: VersionArtefacto): string {
   return `Versión ${version.version}`;
 }
 
-export function construirColumnas(mostrarAsesor: boolean): ColumnaTabla<VersionArtefacto>[] {
+export interface OpcionesColumnas {
+  mostrarAsesor?: boolean;
+  mostrarRepositorio?: boolean;
+  etiquetaFecha?: string;
+}
+
+export function construirColumnas({
+  mostrarAsesor = false,
+  mostrarRepositorio = true,
+  etiquetaFecha = 'Fecha de creación',
+}: OpcionesColumnas = {}): ColumnaTabla<VersionArtefacto>[] {
   const columnas: ColumnaTabla<VersionArtefacto>[] = [
     {
       id: 'proyecto',
@@ -32,12 +42,14 @@ export function construirColumnas(mostrarAsesor: boolean): ColumnaTabla<VersionA
         </>
       ),
     },
-    {
+  ];
+  if (mostrarRepositorio) {
+    columnas.push({
       id: 'repositorio',
       encabezado: 'Repositorio',
       celda: (version) => <span className={DATO_SECUNDARIO}>{version.nombreRepositorio}</span>,
-    },
-  ];
+    });
+  }
   if (mostrarAsesor) {
     columnas.push({
       id: 'asesor',
@@ -73,7 +85,7 @@ export function construirColumnas(mostrarAsesor: boolean): ColumnaTabla<VersionA
     },
     {
       id: 'fecha',
-      encabezado: 'Fecha de creación',
+      encabezado: etiquetaFecha,
       clave: 'fechaCreacion',
       ordenable: true,
       celda: (version) => (

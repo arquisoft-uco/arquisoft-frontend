@@ -60,7 +60,7 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     getEstados.mockResolvedValue([]);
   });
 
-  it('muestra proyecto, documento, repositorio y la columna Asesor, con la búsqueda habilitada', async () => {
+  it('muestra las versiones sin revisión con el resumen de columnas del estudiante y la búsqueda habilitada', async () => {
     // Arrange
     consultarVersiones.mockResolvedValue(pagina([VERSION]));
 
@@ -72,10 +72,12 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     expect(await tabla.findByText('Acta de inicio')).toBeInTheDocument();
     expect(tabla.getByText('Sistema de riego')).toBeInTheDocument();
     expect(tabla.getByText('Versión 2 del documento')).toBeInTheDocument();
-    expect(tabla.getByText('Repositorio base')).toBeInTheDocument();
-    expect(tabla.getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
-    expect(tabla.getByText('Marta Gómez')).toBeInTheDocument();
     expect(tabla.getByText('Versión 4')).toBeInTheDocument();
+    expect(tabla.getByText('Sin revisión')).toBeInTheDocument();
+    expect(tabla.queryByRole('columnheader', { name: 'Repositorio' })).not.toBeInTheDocument();
+    expect(tabla.queryByRole('columnheader', { name: 'Asesor' })).not.toBeInTheDocument();
+    expect(tabla.getByRole('columnheader', { name: /Fecha de subida/ })).toBeInTheDocument();
+    expect(tabla.getByText('—')).toBeInTheDocument();
     expect(screen.getByText('1 versión')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });

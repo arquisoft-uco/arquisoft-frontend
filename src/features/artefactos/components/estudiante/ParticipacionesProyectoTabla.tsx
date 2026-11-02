@@ -4,84 +4,57 @@ import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
 import InsigniaOmitido from '../InsigniaOmitido';
+import MenuArtefactoEstudiante from './MenuArtefactoEstudiante';
 import type { ProyectoConParticipaciones } from '../../utils/agrupar-participaciones';
 
 const SECCION = 'flex flex-col gap-3';
 const TITULO = 'text-base font-semibold text-on-surface';
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const NOMBRE_BOTON =
-  'block truncate text-left font-medium text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
 const NOMBRE_TEXTO = 'block truncate font-medium text-on-surface';
 const MOTIVO = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
-type AlAbrir = (participacion: ParticipacionArtefacto) => void;
+type AlElegir = (participacion: ParticipacionArtefacto) => void;
 type MotivoBloqueo = (participacion: ParticipacionArtefacto) => string | null | undefined;
+
+interface Acciones {
+  onGestionarRevision: AlElegir;
+  onSubirVersion: AlElegir;
+  onVerVersiones: AlElegir;
+}
 
 function etiquetaVersion(participacion: ParticipacionArtefacto): string {
   return `Versión ${participacion.versionDocumento}`;
 }
 
-function BotonNombre({
+function NombreArtefacto({
   participacion,
-  onAbrir,
   motivoBloqueo,
 }: {
   participacion: ParticipacionArtefacto;
-  onAbrir: AlAbrir;
   motivoBloqueo: MotivoBloqueo;
 }) {
-  if (participacion.omitido) {
-    return (
-      <>
-        <span title={participacion.nombreDocumento} className={NOMBRE_TEXTO}>
-          {participacion.nombreDocumento}
-        </span>
-        <InsigniaOmitido />
-      </>
-    );
-  }
-
-  const motivo = motivoBloqueo(participacion);
-  if (motivo !== null) {
-    return (
-      <>
-        <span title={participacion.nombreDocumento} className={NOMBRE_TEXTO}>
-          {participacion.nombreDocumento}
-        </span>
-        {motivo !== undefined && <span className={MOTIVO}>{motivo}</span>}
-      </>
-    );
-  }
+  const motivo = participacion.omitido ? undefined : motivoBloqueo(participacion);
 
   return (
-    <button
-      type="button"
-      aria-label={`Subir nueva versión de ${participacion.nombreDocumento}`}
-      title={participacion.nombreDocumento}
-      onClick={() => onAbrir(participacion)}
-      className={NOMBRE_BOTON}
-    >
-      {participacion.nombreDocumento}
-    </button>
+    <>
+      <span title={participacion.nombreDocumento} className={NOMBRE_TEXTO}>
+        {participacion.nombreDocumento}
+      </span>
+      {participacion.omitido && <InsigniaOmitido />}
+      {motivo && <span className={MOTIVO}>{motivo}</span>}
+    </>
   );
 }
 
-function columnasDe(
-  onAbrir: AlAbrir,
-  motivoBloqueo: MotivoBloqueo,
-): ColumnaTabla<ParticipacionArtefacto>[] {
+function columnasDe(motivoBloqueo: MotivoBloqueo): ColumnaTabla<ParticipacionArtefacto>[] {
   return [
     {
       id: 'documento',
       encabezado: 'Documento',
       clave: 'nombreDocumento',
       celda: (participacion) => (
-        <BotonNombre
-          participacion={participacion}
-          onAbrir={onAbrir}
-          motivoBloqueo={motivoBloqueo}
-        />
+        <NombreArtefacto participacion={participacion} motivoBloqueo={motivoBloqueo} />
       ),
     },
     {
@@ -109,33 +82,42 @@ function columnasDe(
   ];
 }
 
-interface Props {
+interface Props extends Acciones {
   proyecto: ProyectoConParticipaciones;
-  onAbrir: AlAbrir;
   motivoBloqueo: MotivoBloqueo;
 }
 
-export default function ParticipacionesProyectoTabla({ proyecto, onAbrir, motivoBloqueo }: Props) {
+export default function ParticipacionesProyectoTabla({
+  proyecto,
+  motivoBloqueo,
+  onGestionarRevision,
+  onSubirVersion,
+  onVerVersiones,
+}: Props) {
   const idTitulo = useId();
-  const columnas = useMemo(() => columnasDe(onAbrir, motivoBloqueo), [onAbrir, motivoBloqueo]);
+  const columnas = useMemo(() => columnasDe(motivoBloqueo), [motivoBloqueo]);
+  const acciones = { onGestionarRevision, onSubirVersion, onVerVersiones };
 
   return (
     <section aria-labelledby={idTitulo} className={SECCION}>
-      <h2 id={idTitulo} className={TITULO}>
+      <h3 id={idTitulo} className={TITULO}>
         {proyecto.nombreProyecto}
-      </h2>
+      </h3>
       <DataTable
         etiqueta={`Artefactos del proyecto ${proyecto.nombreProyecto}`}
         columnas={columnas}
         filas={proyecto.participaciones}
         idDeFila={(participacion) => participacion.id}
+        acciones={(participacion) => (
+          <MenuArtefactoEstudiante
+            participacion={participacion}
+            puedeSubir={motivoBloqueo(participacion) === null}
+            {...acciones}
+          />
+        )}
         tarjeta={(participacion) => (
           <>
-            <BotonNombre
-              participacion={participacion}
-              onAbrir={onAbrir}
-              motivoBloqueo={motivoBloqueo}
-            />
+            <NombreArtefacto participacion={participacion} motivoBloqueo={motivoBloqueo} />
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
             <p className={TARJETA_DATO}>
               {participacion.nombreAsesor} · {etiquetaVersion(participacion)}

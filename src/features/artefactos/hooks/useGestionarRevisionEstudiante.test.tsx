@@ -54,6 +54,7 @@ function preparar(
     ultimaVersion: () => ultima as VersionArtefacto | null | undefined,
     isLoading: false,
     isError: false,
+    refetch: vi.fn(),
   });
 }
 
@@ -133,6 +134,24 @@ describe('useGestionarRevisionEstudiante', () => {
     expect(result.current.editable).toBe(false);
     expect(result.current.puedeResolver).toBe(false);
     expect(result.current.puedeSubir).toBe(false);
-    expect(result.current.notaPie).toBe('Esta revisión ya no admite cambios.');
+    expect(result.current.notaPie).toBe(
+      'Marcaste esta revisión como resuelta. Esperando la siguiente revisión del asesor.',
+    );
+  });
+
+  it('una revisión cerrada explica que el artefacto está completado', () => {
+    // Arrange
+    preparar([observacion('NUEVA')], null);
+
+    // Act
+    const { result } = renderHook(() =>
+      useGestionarRevisionEstudiante({ ...REVISION, estadoId: 'CERRADA' }),
+    );
+
+    // Assert
+    expect(result.current.editable).toBe(false);
+    expect(result.current.notaPie).toBe(
+      'El asesor dio por completado este artefacto, por eso no admite nuevas versiones.',
+    );
   });
 });

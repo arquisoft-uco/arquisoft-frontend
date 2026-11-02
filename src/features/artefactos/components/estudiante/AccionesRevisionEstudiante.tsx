@@ -6,15 +6,15 @@ const ID_MOTIVO_SUBIDA = 'motivo-subida-version';
 
 interface Props {
   puedeSubir: boolean;
-  puedeResolver: boolean;
+  puedeResolver?: boolean;
   motivoSubida: string | null | undefined;
   onSubir: () => void;
-  onResolver: () => void;
+  onResolver?: () => void;
 }
 
 export default function AccionesRevisionEstudiante({
   puedeSubir,
-  puedeResolver,
+  puedeResolver = false,
   motivoSubida,
   onSubir,
   onResolver,
@@ -39,14 +39,16 @@ export default function AccionesRevisionEstudiante({
           </p>
         )}
       </div>
-      <Button
-        icono={CheckCheck}
-        disabled={!puedeResolver}
-        aria-describedby={!puedeResolver ? ID_NOTA_PIE_REVISION : undefined}
-        onClick={onResolver}
-      >
-        Marcar como resuelta
-      </Button>
+      {onResolver && (
+        <Button
+          icono={CheckCheck}
+          disabled={!puedeResolver}
+          aria-describedby={!puedeResolver ? ID_NOTA_PIE_REVISION : undefined}
+          onClick={onResolver}
+        >
+          Marcar como resuelta
+        </Button>
+      )}
     </>
   );
 }

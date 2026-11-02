@@ -22,7 +22,6 @@ import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
 import type { RegistrarObservacionRequest } from '../models/RegistrarObservacionRequest';
 import type { RegistrarObservacionResponse } from '../models/RegistrarObservacionResponse';
 import type { RegistrarRevisionResponse } from '../models/RegistrarRevisionResponse';
-import type { RevisionAsesorEstudiante } from '../models/RevisionAsesorEstudiante';
 import type { SolicitarCargaVersionArtefactoRequest } from '../models/SolicitarCargaVersionArtefactoRequest';
 import type { SolicitarCargaVersionArtefactoResponse } from '../models/SolicitarCargaVersionArtefactoResponse';
 import type { VincularEstudiantesArtefactoRequest } from '../models/VincularEstudiantesArtefactoRequest';
@@ -113,13 +112,6 @@ export const artefactosService = {
   ): Promise<Page<VersionArtefacto>> =>
     apiClient
       .post<Page<VersionArtefacto>>('/artefactos/versiones/estudiante', req)
-      .then((r) => r.data),
-
-  consultarRevisionesEstudiante: (
-    req: ConsultaCriteriaRequest,
-  ): Promise<Page<RevisionAsesorEstudiante>> =>
-    apiClient
-      .post<Page<RevisionAsesorEstudiante>>('/revisiones-asesor/estudiante', req)
       .then((r) => r.data),
 
   getVersionArtefacto: (versionId: string): Promise<VersionArtefacto> =>

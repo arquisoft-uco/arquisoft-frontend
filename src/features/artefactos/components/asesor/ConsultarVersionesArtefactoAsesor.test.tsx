@@ -313,7 +313,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
     }
 
-    it('la ofrece en la última versión sin revisión y confirmar registra por el id de la fila', async () => {
+    it('la ofrece en la última versión sin revisión; confirmar registra por el id de la fila y abre el panel de la revisión creada', async () => {
       // Arrange
       listarConUltimas([VERSION, ANTERIOR], [VERSION]);
       registrarRevision.mockResolvedValue({ id: 'r-1' });
@@ -336,6 +336,10 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
           screen.queryByRole('dialog', { name: '¿Registrar revisión?' }),
         ).not.toBeInTheDocument(),
       );
+      expect(
+        await screen.findByRole('heading', { name: 'Gestionar revisión' }),
+      ).toBeInTheDocument();
+      await waitFor(() => expect(getObservaciones).toHaveBeenCalledWith('r-1'));
     });
 
     it('con la revisión cerrada ofrece «Reabrir revisión» en vez de «Registrar revisión» y abre el diálogo de reapertura', async () => {
