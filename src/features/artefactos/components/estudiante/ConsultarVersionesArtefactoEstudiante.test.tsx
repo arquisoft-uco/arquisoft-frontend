@@ -217,4 +217,51 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
       expect(screen.queryByRole('menuitem', { name: 'Ver observaciones' })).not.toBeInTheDocument();
     });
   });
+
+  it('ofrece "Marcar como resuelta" solo en filas EN_PROGRESO y abre el diálogo de confirmación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consultarVersiones.mockResolvedValue(
+      pagina([
+        {
+          ...VERSION,
+          revisionAsesor: 'r-1',
+          estadoRevision: 'EN_PROGRESO',
+          nombreEstadoRevision: 'En progreso',
+        },
+        {
+          ...VERSION,
+          id: 'v-2',
+          version: 5,
+          revisionAsesor: 'r-2',
+          estadoRevision: 'RESUELTA',
+          nombreEstadoRevision: 'Resuelta',
+        },
+      ]),
+    );
+    render(<ConsultarVersionesArtefactoEstudiante />);
+    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', {
+        name: 'Acciones de la versión 5 de Acta de inicio',
+      }),
+    );
+
+    // Assert
+    expect(
+      screen.queryByRole('menuitem', { name: 'Marcar como resuelta' }),
+    ).not.toBeInTheDocument();
+    await user.keyboard('{Escape}');
+
+    // Act
+    await user.click(
+      within(tabla).getByRole('button', { name: 'Acciones de la versión 4 de Acta de inicio' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Marcar como resuelta' }));
+
+    // Assert
+    expect(await screen.findByText('¿Marcar la revisión como resuelta?')).toBeInTheDocument();
+  });
 });

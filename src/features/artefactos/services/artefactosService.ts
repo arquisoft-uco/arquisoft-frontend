@@ -13,6 +13,7 @@ import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { GenerarVersionArtefactoRequest } from '../models/GenerarVersionArtefactoRequest';
 import type { GenerarVersionArtefactoResponse } from '../models/GenerarVersionArtefactoResponse';
 import type { EstudianteArtefacto } from '../models/EstudianteArtefacto';
+import type { MarcarRevisionResueltaRequest } from '../models/MarcarRevisionResueltaRequest';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
@@ -24,6 +25,7 @@ import type { SolicitarCargaVersionArtefactoResponse } from '../models/Solicitar
 import type { VincularEstudiantesArtefactoRequest } from '../models/VincularEstudiantesArtefactoRequest';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
+import { ESTADO_REVISION_RESUELTA } from '../utils/revision-resoluble';
 
 const TAMANIO_PAGINA_PROYECTOS = 100;
 const TAMANIO_PAGINA_ARTEFACTOS = 100;
@@ -129,6 +131,13 @@ export const artefactosService = {
   cambiarAsesorArtefacto: (req: CambiarAsesorArtefactoRequest): Promise<void> =>
     apiClient
       .patch(`/artefactos/${req.artefactoId}/asesor`, { asesor: req.asesorId })
+      .then(() => undefined),
+
+  marcarRevisionResuelta: (req: MarcarRevisionResueltaRequest): Promise<void> =>
+    apiClient
+      .patch(`/artefactos/revisiones/${req.revisionAsesorId}/estado`, {
+        estado: ESTADO_REVISION_RESUELTA,
+      })
       .then(() => undefined),
 
   // Subida de una versión nueva del artefacto del estudiante, en dos pasos del backend
