@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import { artefactosService } from '../services/artefactosService';
+import { errorApi } from '../../../test-utils/errores-api';
 import { useEliminarObservacion } from './useEliminarObservacion';
 
 vi.mock('../services/artefactosService', () => ({
@@ -53,5 +54,47 @@ describe('useEliminarObservacion', () => {
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'revisiones-asesor'] });
+    expect(invalidar).not.toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
+    expect(invalidar).not.toHaveBeenCalledWith({ queryKey: ['artefactos', 'asesor'] });
+  });
+
+  it('si la revisión ya no admite eliminar también invalida versiones y artefactos del asesor', async () => {
+    // Arrange
+    eliminar.mockRejectedValue(
+      errorApi(422, {
+        status: 422,
+        errorCode: 'REVISION_ASESOR_NO_ADMITE_ELIMINAR_OBSERVACIONES',
+        message: 'x',
+      }),
+    );
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useEliminarObservacion(), { wrapper: Wrapper });
+
+    // Act
+    act(() => result.current.mutate('o-1'));
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'revisiones-asesor'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'asesor'] });
+  });
+
+  it('si la observación no existe solo invalida el prefijo de revisiones', async () => {
+    // Arrange
+    eliminar.mockRejectedValue(
+      errorApi(404, { status: 404, errorCode: 'OBSERVACION_NO_ENCONTRADA', message: 'x' }),
+    );
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useEliminarObservacion(), { wrapper: Wrapper });
+
+    // Act
+    act(() => result.current.mutate('o-1'));
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'revisiones-asesor'] });
+    expect(invalidar).not.toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
+    expect(invalidar).not.toHaveBeenCalledWith({ queryKey: ['artefactos', 'asesor'] });
   });
 });

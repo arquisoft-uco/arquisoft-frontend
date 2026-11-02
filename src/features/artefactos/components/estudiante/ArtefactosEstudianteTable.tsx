@@ -9,6 +9,7 @@ import type {
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
+import InsigniaOmitido from '../InsigniaOmitido';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
@@ -32,7 +33,12 @@ const COLUMNAS: ColumnaTabla<ArtefactoEstudiante>[] = [
     encabezado: 'Documento',
     clave: 'nombreDocumento',
     ordenable: true,
-    celda: (artefacto) => <span className={NOMBRE}>{artefacto.nombreDocumento}</span>,
+    celda: (artefacto) => (
+      <>
+        <span className={NOMBRE}>{artefacto.nombreDocumento}</span>
+        {artefacto.omitido && <InsigniaOmitido />}
+      </>
+    ),
   },
   {
     id: 'version',
@@ -106,6 +112,7 @@ export default function ArtefactosEstudianteTable({
       tarjeta={(artefacto) => (
         <>
           <p className={TARJETA_NOMBRE}>{artefacto.nombreDocumento}</p>
+          {artefacto.omitido && <InsigniaOmitido />}
           <p className={TARJETA_DATO}>{artefacto.nombreProyecto}</p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>

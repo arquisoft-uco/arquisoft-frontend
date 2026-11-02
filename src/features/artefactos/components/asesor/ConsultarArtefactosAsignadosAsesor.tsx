@@ -4,9 +4,12 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import AsignarArtefactoPanel from './AsignarArtefactoPanel';
+import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
 import CambiarAsesorArtefactoPanel from './CambiarAsesorArtefactoPanel';
 import FiltrosArtefactosAsesor from './FiltrosArtefactosAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
+import OmitirArtefactoDialog from './OmitirArtefactoDialog';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -19,6 +22,9 @@ function textoResumen(total?: number): string {
 export default function ConsultarArtefactosAsignadosAsesor() {
   const [enCambio, setEnCambio] = useState<ArtefactoAsesor | null>(null);
   const listado = useArtefactosAsesor();
+  const [aOmitir, setAOmitir] = useState<ArtefactoAsesor | null>(null);
+  const [aReactivar, setAReactivar] = useState<ArtefactoAsesor | null>(null);
+  const [aGestionarEstudiantes, setAGestionarEstudiantes] = useState<ArtefactoAsesor | null>(null);
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
 
@@ -45,6 +51,9 @@ export default function ConsultarArtefactosAsignadosAsesor() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onOmitir={setAOmitir}
+            onReactivar={setAReactivar}
+            onGestionarEstudiantes={setAGestionarEstudiantes}
             onCambiarAsesor={setEnCambio}
           />
         )}
@@ -62,6 +71,25 @@ export default function ConsultarArtefactosAsignadosAsesor() {
         />
       )}
 
+      {aOmitir && <OmitirArtefactoDialog artefacto={aOmitir} onCerrar={() => setAOmitir(null)} />}
+      {aReactivar && (
+        <AsignarArtefactoPanel
+          reactivar={{
+            proyectoGrado: aReactivar.proyectoGrado,
+            versionRepositorioArtefacto: aReactivar.versionRepositorioArtefacto,
+            nombreProyecto: aReactivar.nombreProyecto,
+            nombreDocumento: aReactivar.nombreDocumento,
+            versionDocumento: aReactivar.versionDocumento,
+          }}
+          onCerrar={() => setAReactivar(null)}
+        />
+      )}
+      {aGestionarEstudiantes && (
+        <EstudiantesArtefactoPanel
+          artefacto={aGestionarEstudiantes}
+          onCerrar={() => setAGestionarEstudiantes(null)}
+        />
+      )}
       {enCambio && (
         <CambiarAsesorArtefactoPanel artefacto={enCambio} onCerrar={() => setEnCambio(null)} />
       )}

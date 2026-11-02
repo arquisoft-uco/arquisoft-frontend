@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import userEvent from '@testing-library/user-event';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
@@ -11,10 +11,12 @@ vi.mock('../../services/artefactosService', () => ({
     consultarVersionesArtefactoEstudiante: vi.fn(),
     getEstadosRevisionAsesor: vi.fn(),
     getVersionArtefacto: vi.fn(),
+    getObservacionesRevisionEstudiante: vi.fn(),
   },
 }));
 
 const getVersion = vi.mocked(artefactosService.getVersionArtefacto);
+const getObservaciones = vi.mocked(artefactosService.getObservacionesRevisionEstudiante);
 const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
 
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
@@ -149,6 +151,71 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     // Assert
     await waitFor(() => expect(screen.queryByText('almacen/acta-v4.pdf')).not.toBeInTheDocument());
     expect(screen.getByRole('table', { name: 'Versiones de artefactos' })).toBeInTheDocument();
+  });
+
+  describe('observaciones de la revisión (HU-134)', () => {
+    const REVISADA: VersionArtefacto = {
+      ...VERSION,
+      revisionAsesor: 'r-7',
+      estadoRevision: 'EN_PROGRESO',
+      nombreEstadoRevision: 'En progreso',
+    };
+
+    async function abrirMenu(user: UserEvent) {
+      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        await within(tabla).findByRole('button', {
+          name: 'Acciones de la versión 4 de Acta de inicio',
+        }),
+      );
+    }
+
+    it('con la revisión enviada ofrece "Ver observaciones" y abre el panel con el id de la revisión', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      consultarVersiones.mockResolvedValue(pagina([REVISADA]));
+      getObservaciones.mockResolvedValue([]);
+      render(<ConsultarVersionesArtefactoEstudiante />);
+
+      // Act
+      await abrirMenu(user);
+      await user.click(screen.getByRole('menuitem', { name: 'Ver observaciones' }));
+
+      // Assert
+      expect(await screen.findByText(/Tu asesor aún no ha registrado/)).toBeInTheDocument();
+      expect(getObservaciones).toHaveBeenCalledWith('r-7');
+    });
+
+    it('no la ofrece sin revisión ni con la revisión pendiente', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const pendiente: VersionArtefacto = {
+        ...REVISADA,
+        id: 'v-2',
+        nombreDocumento: 'Plano',
+        estadoRevision: 'PENDIENTE',
+      };
+      consultarVersiones.mockResolvedValue(pagina([VERSION, pendiente]));
+      render(<ConsultarVersionesArtefactoEstudiante />);
+
+      // Act
+      await abrirMenu(user);
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Ver observaciones' })).not.toBeInTheDocument();
+
+      // Act
+      await user.keyboard('{Escape}');
+      const tabla = screen.getByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        within(tabla).getByRole('button', { name: 'Acciones de la versión 4 de Plano' }),
+      );
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Ver observaciones' })).not.toBeInTheDocument();
+    });
   });
 
   it('ofrece "Marcar como resuelta" solo en filas EN_PROGRESO y abre el diálogo de confirmación', async () => {

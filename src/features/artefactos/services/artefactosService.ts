@@ -1,9 +1,14 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
+import type { AsignarArtefactoRequest } from '../models/AsignarArtefactoRequest';
+import type { AsignarArtefactoResponse } from '../models/AsignarArtefactoResponse';
+import type { EstudianteAsignable } from '../models/EstudianteAsignable';
+import type { PaginaProyectosAsignables } from '../models/PaginaProyectosAsignables';
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
 import type { CambiarAsesorArtefactoRequest } from '../models/CambiarAsesorArtefactoRequest';
+import type { CambiarEstadoObservacionRequest } from '../models/CambiarEstadoObservacionRequest';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { GenerarVersionArtefactoRequest } from '../models/GenerarVersionArtefactoRequest';
 import type { GenerarVersionArtefactoResponse } from '../models/GenerarVersionArtefactoResponse';
@@ -12,11 +17,41 @@ import type { MarcarRevisionResueltaRequest } from '../models/MarcarRevisionResu
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
+import type { RegistrarObservacionRequest } from '../models/RegistrarObservacionRequest';
+import type { RegistrarObservacionResponse } from '../models/RegistrarObservacionResponse';
+import type { RegistrarRevisionResponse } from '../models/RegistrarRevisionResponse';
 import type { SolicitarCargaVersionArtefactoRequest } from '../models/SolicitarCargaVersionArtefactoRequest';
 import type { SolicitarCargaVersionArtefactoResponse } from '../models/SolicitarCargaVersionArtefactoResponse';
+import type { VincularEstudiantesArtefactoRequest } from '../models/VincularEstudiantesArtefactoRequest';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAsesor';
 import { ESTADO_REVISION_RESUELTA } from '../utils/revision-resoluble';
+
+const TAMANIO_PAGINA_PROYECTOS = 100;
+const TAMANIO_PAGINA_ARTEFACTOS = 100;
+
+interface ProyectoAsesorResponse {
+  id: string;
+  tituloProyecto: string;
+}
+
+// `omitido` no es filtrable en el criterio del backend: se recorre el catálogo completo
+async function getIdsArtefactosOmitidosAsesor(): Promise<string[]> {
+  const omitidos: string[] = [];
+  let pagina = 0;
+  let ultima = false;
+  while (!ultima) {
+    const { data } = await apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', {
+      pagina,
+      tamanio: TAMANIO_PAGINA_ARTEFACTOS,
+      ordenamiento: ['nombreProyecto:ASC'],
+    });
+    omitidos.push(...data.content.filter((artefacto) => artefacto.omitido).map((a) => a.id));
+    ultima = data.last;
+    pagina += 1;
+  }
+  return omitidos;
+}
 
 function aObservacionRevision({
   revisionAsesor,
@@ -34,6 +69,14 @@ export const artefactosService = {
     apiClient
       .get<EstudianteArtefacto[]>(`/artefactos/${artefactoId}/estudiantes`)
       .then((r) => r.data),
+
+  vincularEstudiantes: (
+    artefactoId: string,
+    req: VincularEstudiantesArtefactoRequest,
+  ): Promise<void> =>
+    apiClient
+      .post(`/artefactos/${artefactoId}/estudiantes`, { estudiantes: req.estudiantes })
+      .then(() => undefined),
 
   getObservacionesRevision: (revisionAsesorId: string): Promise<ObservacionRevision[]> =>
     apiClient
@@ -115,5 +158,65 @@ export const artefactosService = {
   ): Promise<GenerarVersionArtefactoResponse> =>
     apiClient
       .post<GenerarVersionArtefactoResponse>(`/artefactos/${artefactoId}/versiones`, req)
+      .then((r) => r.data),
+
+  asignarArtefacto: (req: AsignarArtefactoRequest): Promise<AsignarArtefactoResponse> =>
+    apiClient
+      .post<AsignarArtefactoResponse>('/artefactos', {
+        proyectoGrado: req.proyectoGrado,
+        versionRepositorioArtefacto: req.versionRepositorioArtefacto,
+        estudiantes: req.estudiantes,
+      })
+      .then((r) => r.data),
+
+  omitirArtefacto: (artefactoId: string): Promise<void> =>
+    apiClient.delete(`/artefactos/${artefactoId}`).then(() => undefined),
+
+  registrarRevision: (versionArtefactoId: string): Promise<RegistrarRevisionResponse> =>
+    apiClient
+      .post<RegistrarRevisionResponse>(`/artefactos/versiones/${versionArtefactoId}/revisiones`)
+      .then((r) => r.data),
+
+  enviarRevision: (revisionAsesorId: string): Promise<void> =>
+    apiClient.patch(`/artefactos/revisiones/${revisionAsesorId}/envio`).then(() => undefined),
+
+  registrarObservacion: (
+    revisionAsesorId: string,
+    req: RegistrarObservacionRequest,
+  ): Promise<RegistrarObservacionResponse> =>
+    apiClient
+      .post<RegistrarObservacionResponse>(
+        `/artefactos/revisiones/${revisionAsesorId}/observaciones`,
+        {
+          descripcion: req.descripcion,
+        },
+      )
+      .then((r) => r.data),
+
+  cambiarEstadoObservacion: (
+    observacionId: string,
+    req: CambiarEstadoObservacionRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/artefactos/observaciones/${observacionId}/estado-asesor`, { estado: req.estado })
+      .then(() => undefined),
+
+  getIdsArtefactosOmitidosAsesor,
+
+  consultarProyectosAsignables: (pagina: number): Promise<PaginaProyectosAsignables> =>
+    apiClient
+      .post<Page<ProyectoAsesorResponse>>('/proyectos-grado/asesor', {
+        pagina,
+        tamanio: TAMANIO_PAGINA_PROYECTOS,
+        ordenamiento: ['tituloProyecto:ASC'],
+      })
+      .then((r) => ({
+        proyectos: r.data.content.map((dto) => ({ id: dto.id, titulo: dto.tituloProyecto })),
+        siguientePagina: r.data.last ? null : r.data.page + 1,
+      })),
+
+  getEstudiantesProyectoAsesorado: (proyectoGradoId: string): Promise<EstudianteAsignable[]> =>
+    apiClient
+      .get<EstudianteAsignable[]>(`/proyectos-grado/${proyectoGradoId}/estudiantes-asesorados`)
       .then((r) => r.data),
 };

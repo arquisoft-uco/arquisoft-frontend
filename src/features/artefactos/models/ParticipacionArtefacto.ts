@@ -8,4 +8,5 @@ export interface ParticipacionArtefacto {
   nombreRepositorio: string;
   asesor: string;
   nombreAsesor: string;
+  omitido: boolean;
 }

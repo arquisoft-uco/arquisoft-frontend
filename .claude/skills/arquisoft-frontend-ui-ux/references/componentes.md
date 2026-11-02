@@ -612,8 +612,9 @@ FilterBar.panelCierre | grow sm:grow-0
   `IconButton` con `Ellipsis`.
 - **Reglas:** la fila abre el detalle o el panel con su título; el menú ⋯ agrupa las acciones secundarias **con etiqueta**. La
   acción que da de baja o elimina (`peligro`) va al final, en rojo, y un `role="separator"` la separa de las demás (no se dibuja si
-  es la primera). Se dibuja en un portal (`createPortal` en `document.body`, como `ConfirmDialog`) con posición calculada, para que
-  el `overflow-x-auto` de la tabla no lo recorte; las coordenadas calculadas son el único `style={{}}` admitido. El borde derecho del
+  es la primera). Se dibuja en un portal (`createPortal`) hacia el modal abierto más cercano al disparador (`[aria-modal="true"]`) o, si no hay, a
+  `document.body`: dentro de un `SidePanel` o diálogo el menú debe estar en su contexto de apilamiento, en su trampa de foco y en su
+  árbol accesible. La posición se calcula para que el `overflow-x-auto` de la tabla no lo recorte; las coordenadas calculadas son el único `style={{}}` admitido. El borde derecho del
   menú (`w-56`, 224 px) se alinea con el del disparador, 4 px debajo y con 8 px de margen al borde del viewport; si no cabe debajo,
   se abre encima.
 - **A11y y teclado:** disparador con `aria-haspopup="menu"`, `aria-expanded` y, mientras está abierto, `aria-controls` hacia el menú;
@@ -634,7 +635,7 @@ RowMenu.separador | my-1.5 h-px bg-border
 - **Composición:** el ítem es `item` más exactamente una de `itemNormal` o `itemPeligro`. El hover va con `enabled:` y `item` trae el
   estado deshabilitado: una acción deshabilitada («Dar de baja…» de quien ya no está vigente) se ve atenuada y no se ilumina al pasar el
   cursor (la receta anterior no tenía estado deshabilitado y su `hover:` iluminaba cualquier ítem).
-- **Pruebas:** abrir, moverse con flechas, seleccionar y Esc con retorno del foco.
+- **Pruebas:** abrir, moverse con flechas, seleccionar y Esc con retorno del foco; dentro de un `SidePanel`: visible en el diálogo y operable con teclado.
 
 ### DataTable
 
@@ -897,7 +898,7 @@ SidePanel.pie | shrink-0
 
 ### ConfirmDialog (se actualiza en su sitio)
 
-Conserva su API (`titulo`, `descripcion?`, `labelConfirmar?`, `labelCancelar?`, `variante?`, `cargando?`, `onConfirmar`,
+Conserva su API (`titulo`, `descripcion?`, `aviso?`, `labelConfirmar?`, `labelCancelar?`, `variante?`, `cargando?`, `onConfirmar`,
 `onCancelar`) y gana `consecuencias?: string[]` (lo que pasa al confirmar, en una lista). Lo que cambió:
 
 - **Foco:** usa `useTrampaDeFoco` (ver «useTrampaDeFoco») con el botón «Cancelar» como `focoInicial` y `alEscape` = cancelar: el
@@ -905,6 +906,9 @@ Conserva su API (`titulo`, `descripcion?`, `labelConfirmar?`, `labelCancelar?`, 
   no se enfoca nada. Desde el menú de fila el disparador es el ⋯, porque `RowMenu` le devuelve ahí el foco antes de llamar a
   `onSeleccionar`. **El foco inicial es «Cancelar» en las dos variantes**, no solo en `peligro` (desvío de la receta anterior):
   con `advertencia` el primer control del DOM ya es ese botón, y un Enter repetido al abrirlo cancela en lugar de confirmar.
+- **Aviso destacado (`aviso?: string`):** va dentro del bloque `detalle`, entre la descripción y las consecuencias, como `Notice`
+  `advertencia`. Se usa solo cuando la acción **va por encima de un ciclo de vida o regla normal** (excepción deliberada, p. ej.
+  reabrir una revisión cerrada), no para repetir una consecuencia: esas siguen en la lista. Sin clases nuevas en `clases`.
 - **Teclado:** Esc y el clic en el fondo cancelan, salvo mientras `cargando`.
 - **Semántica:** `role="alertdialog"` en `peligro` y `dialog` en `advertencia`, puesto en el panel y no en el contenedor de
   pantalla completa; `aria-modal="true"`, `aria-labelledby` hacia el `<h2>` y, si hay descripción o consecuencias,

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
@@ -16,6 +17,10 @@ vi.mock('../../shared/hooks/useAsesoresVigentes', () => ({
 vi.mock('./services/artefactosService', () => ({
   artefactosService: {
     getEstadosRevisionAsesor: vi.fn().mockResolvedValue([]),
+    consultarProyectosAsignables: vi
+      .fn()
+      .mockResolvedValue({ proyectos: [], siguientePagina: null }),
+    getEstudiantesProyectoAsesorado: vi.fn().mockResolvedValue([]),
     consultarVersionesRepositorioAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -122,6 +127,27 @@ describe('Artefactos', () => {
     expect(screen.getByRole('link', { name: 'Versiones de repositorio' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Estados de revisión' })).not.toBeInTheDocument();
+  });
+
+  it('el asesor ve "Asignar artefacto" y al pulsarlo se abre el panel; el estudiante no lo ve', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+    const { unmount } = renderizar();
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Asignar artefacto' }));
+
+    // Assert
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    unmount();
+    resetAllStores();
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+    renderizar();
+    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Asignar artefacto' })).not.toBeInTheDocument();
   });
 
   it('?vista=estados y ?vista=revisiones terminan en "Versiones de artefactos"', async () => {

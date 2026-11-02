@@ -181,6 +181,25 @@ describe('ConfirmDialog', () => {
     expect(confirmar).toHaveFocus();
   });
 
+  it('con aviso lo muestra como nota dentro del diálogo y sin aviso no hay nota', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const aviso = 'Esta acción va por encima del ciclo normal.';
+    const { rerender } = render(<Pantalla variante="advertencia" aviso={aviso} />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    // Assert
+    expect(within(screen.getByRole('dialog')).getByRole('note')).toHaveTextContent(aviso);
+
+    // Act
+    rerender(<Pantalla variante="advertencia" />);
+
+    // Assert
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
+  });
+
   it('confirmar llama a onConfirmar sin cancelar', async () => {
     // Arrange
     const user = userEvent.setup();

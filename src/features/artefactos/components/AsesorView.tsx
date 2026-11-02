@@ -1,8 +1,11 @@
-import type { ComponentType } from 'react';
-import { Navigate, useLocation } from 'react-router';
+import { useState, type ComponentType } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router';
+import { Plus } from 'lucide-react';
+import Button from '../../../shared/components/ui/Button';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
+import AsignarArtefactoPanel from './asesor/AsignarArtefactoPanel';
 import ConsultarArtefactosAsignadosAsesor from './asesor/ConsultarArtefactosAsignadosAsesor';
 import ConsultarVersionesArtefactoAsesor from './asesor/ConsultarVersionesArtefactoAsesor';
 import ConsultarVersionesRepositorioAsesor from './asesor/ConsultarVersionesRepositorioAsesor';
@@ -26,6 +29,8 @@ function leerVista(valor: string): Vista {
 
 export default function AsesorView() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [asignando, setAsignando] = useState(false);
   const valorVista = useParametrosListado().texto('vista');
   const vista = leerVista(valorVista);
   const Contenido = CONTENIDO_POR_VISTA[vista];
@@ -34,9 +39,18 @@ export default function AsesorView() {
     return <Navigate to={`${pathname}?vista=${VISTAS_RETIRADAS[valorVista]}`} replace />;
   }
 
+  function alAsignar() {
+    if (vista !== 'artefactos') navigate(pathname);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        acciones={
+          <Button icono={Plus} onClick={() => setAsignando(true)}>
+            Asignar artefacto
+          </Button>
+        }
         titulo="Artefactos"
         descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones y las versiones de repositorio disponibles para asignar."
       />
@@ -58,6 +72,9 @@ export default function AsesorView() {
         ]}
       />
       <Contenido />
+      {asignando && (
+        <AsignarArtefactoPanel onCerrar={() => setAsignando(false)} onAsignado={alAsignar} />
+      )}
     </div>
   );
 }
