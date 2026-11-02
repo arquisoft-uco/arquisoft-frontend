@@ -92,6 +92,11 @@ export default function VersionesArtefactoTable({
             {etiquetaVersion(version)} · {formatearFechaCreacion(version.fechaCreacion)}
           </p>
           {mostrarAsesor && <p className={TARJETA_DATO}>{version.nombreAsesor}</p>}
+          {version.fechaCreacionRevision !== null && (
+            <p className={TARJETA_DATO}>
+              Revisión: {formatearFechaCreacion(version.fechaCreacionRevision)}
+            </p>
+          )}
           <InsigniaEstadoRevision version={version} />
         </>
       )}

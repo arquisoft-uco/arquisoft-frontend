@@ -4,18 +4,22 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import ConsultarArtefactosEstudiante from './estudiante/ConsultarArtefactosEstudiante';
+import ConsultarRevisionesEstudiante from './estudiante/ConsultarRevisionesEstudiante';
 import ConsultarParticipacionesEstudiante from './estudiante/ConsultarParticipacionesEstudiante';
 import ConsultarVersionesArtefactoEstudiante from './estudiante/ConsultarVersionesArtefactoEstudiante';
 
-type Vista = 'artefactos-proyecto' | 'mis-artefactos' | 'versiones-artefactos';
+type Vista = 'revisiones' | 'artefactos-proyecto' | 'mis-artefactos' | 'versiones-artefactos';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
+  revisiones: ConsultarRevisionesEstudiante,
   'artefactos-proyecto': ConsultarArtefactosEstudiante,
   'mis-artefactos': ConsultarParticipacionesEstudiante,
   'versiones-artefactos': ConsultarVersionesArtefactoEstudiante,
 };
 
 const DESCRIPCION_POR_VISTA: Record<Vista, string> = {
+  revisiones:
+    'Las revisiones que tu asesor te ha enviado. Marca las observaciones como solucionadas, sube la versión siguiente y marca la revisión como resuelta.',
   'artefactos-proyecto':
     'Todos los artefactos de los proyectos de grado a los que perteneces, aunque no estés asignado a cada uno.',
   'mis-artefactos':
@@ -25,9 +29,7 @@ const DESCRIPCION_POR_VISTA: Record<Vista, string> = {
 };
 
 function leerVista(valor: string): Vista {
-  return Object.keys(CONTENIDO_POR_VISTA).includes(valor)
-    ? (valor as Vista)
-    : 'artefactos-proyecto';
+  return Object.keys(CONTENIDO_POR_VISTA).includes(valor) ? (valor as Vista) : 'revisiones';
 }
 
 export default function EstudianteView() {
@@ -45,7 +47,7 @@ export default function EstudianteView() {
         etiqueta="Secciones de artefactos"
         valor={vista}
         items={[
-          { id: 'artefactos-proyecto', etiqueta: 'Artefactos proyecto', to: pathname },
+          { id: 'revisiones', etiqueta: 'Revisiones', to: pathname },
           {
             id: 'mis-artefactos',
             etiqueta: 'Mis artefactos',
@@ -55,6 +57,11 @@ export default function EstudianteView() {
             id: 'versiones-artefactos',
             etiqueta: 'Versiones de artefactos',
             to: `${pathname}?vista=versiones-artefactos`,
+          },
+          {
+            id: 'artefactos-proyecto',
+            etiqueta: 'Artefactos proyecto',
+            to: `${pathname}?vista=artefactos-proyecto`,
           },
         ]}
       />

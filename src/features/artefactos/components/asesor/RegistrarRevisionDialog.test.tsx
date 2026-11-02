@@ -30,6 +30,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: null,
   estadoRevision: null,
   nombreEstadoRevision: null,
+  fechaCreacionRevision: null,
 };
 
 const VERSION_CERRADA: VersionArtefacto = {

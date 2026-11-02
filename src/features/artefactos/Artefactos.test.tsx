@@ -41,6 +41,16 @@ vi.mock('./services/artefactosService', () => ({
       last: true,
       empty: true,
     }),
+    consultarRevisionesEstudiante: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
     consultarArtefactosEstudiante: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -146,7 +156,7 @@ describe('Artefactos', () => {
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
     renderizar();
-    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
+    expect(await screen.findByText('Aún no tienes revisiones')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Asignar artefacto' })).not.toBeInTheDocument();
   });
 
@@ -225,7 +235,7 @@ describe('Artefactos', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('el estudiante ve el listado de artefactos de sus proyectos', async () => {
+  it('el estudiante entra por Revisiones y las cuatro pestañas están disponibles', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
@@ -234,8 +244,25 @@ describe('Artefactos', () => {
     renderizar();
 
     // Assert
-    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
+    expect(await screen.findByText('Aún no tienes revisiones')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Revisiones' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.getByRole('link', { name: 'Artefactos proyecto' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
+  });
+
+  it('con ?vista=artefactos-proyecto el estudiante ve el listado de artefactos de sus proyectos', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=artefactos-proyecto');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
   });
 
   it('con ?vista=mis-artefactos el estudiante ve la pestaña de sus artefactos', async () => {

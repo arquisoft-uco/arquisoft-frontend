@@ -60,6 +60,9 @@ describe('useCambiarEstadoObservacionEstudiante', () => {
     // Assert
     expect(cambiar).toHaveBeenCalledWith('o-1', { estado: 'SOLUCIONADA' });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: CLAVE_OBSERVACIONES });
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['artefactos', 'revisiones-asesor', 'estudiante'],
+    });
     expect(toast.success).toHaveBeenCalledWith('Observación marcada como solucionada');
   });
 

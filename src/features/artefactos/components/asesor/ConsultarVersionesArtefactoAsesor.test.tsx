@@ -48,6 +48,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: null,
   estadoRevision: null,
   nombreEstadoRevision: null,
+  fechaCreacionRevision: null,
 };
 
 function pagina<T>(content: T[]): Page<T> {

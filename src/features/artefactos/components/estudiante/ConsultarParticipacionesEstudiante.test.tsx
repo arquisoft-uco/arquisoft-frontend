@@ -48,6 +48,7 @@ function ultima(artefacto: string, estadoRevision: string | null): VersionArtefa
     revisionAsesor: estadoRevision ? `r-${artefacto}` : null,
     estadoRevision,
     nombreEstadoRevision: estadoRevision,
+    fechaCreacionRevision: null,
   };
 }
 

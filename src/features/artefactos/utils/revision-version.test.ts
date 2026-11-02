@@ -24,6 +24,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: null,
   estadoRevision: null,
   nombreEstadoRevision: null,
+  fechaCreacionRevision: null,
 };
 
 function con(estadoRevision: string | null): VersionArtefacto {

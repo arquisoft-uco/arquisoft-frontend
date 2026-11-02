@@ -1,6 +1,9 @@
 import Badge from '../../../shared/components/ui/Badge';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
-import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
+import {
+  formatearFechaCreacion,
+  formatearFechaOpcional,
+} from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
 
@@ -56,6 +59,17 @@ export function construirColumnas(mostrarAsesor: boolean): ColumnaTabla<VersionA
       clave: 'estadoRevision',
       ordenable: true,
       celda: (version) => <InsigniaEstadoRevision version={version} />,
+    },
+    {
+      id: 'fecha-revision',
+      encabezado: 'Fecha de la revisión',
+      clave: 'fechaCreacionRevision',
+      ordenable: true,
+      celda: (version) => (
+        <span className={DATO_SECUNDARIO}>
+          {formatearFechaOpcional(version.fechaCreacionRevision)}
+        </span>
+      ),
     },
     {
       id: 'fecha',

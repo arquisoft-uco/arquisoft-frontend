@@ -40,6 +40,9 @@ describe('useMarcarRevisionResuelta', () => {
     // Assert
     expect(marcar.mock.calls[0][0]).toEqual({ revisionAsesorId: 'r-1' });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['artefactos', 'revisiones-asesor', 'estudiante'],
+    });
   });
 
   it('ante sin versión posterior no invalida nada', async () => {
@@ -71,6 +74,9 @@ describe('useMarcarRevisionResuelta', () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'estudiante'] });
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['artefactos', 'revisiones-asesor', 'estudiante'],
+    });
   });
 
   it('ante observaciones abiertas invalida solo las observaciones de la revisión', async () => {

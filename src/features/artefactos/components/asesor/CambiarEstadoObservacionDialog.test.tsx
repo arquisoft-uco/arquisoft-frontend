@@ -41,6 +41,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: 'r-1',
   estadoRevision: 'RESUELTA',
   nombreEstadoRevision: 'Resuelta',
+  fechaCreacionRevision: null,
 };
 
 function simular(mutate = vi.fn()) {

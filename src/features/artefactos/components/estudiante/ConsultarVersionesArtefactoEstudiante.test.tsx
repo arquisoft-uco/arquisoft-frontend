@@ -6,6 +6,10 @@ import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoEstudiante from './ConsultarVersionesArtefactoEstudiante';
 
+vi.mock('../../../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
+}));
+
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesArtefactoEstudiante: vi.fn(),
@@ -34,6 +38,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: null,
   estadoRevision: null,
   nombreEstadoRevision: null,
+  fechaCreacionRevision: null,
 };
 
 function pagina<T>(content: T[]): Page<T> {
@@ -153,171 +158,119 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     expect(screen.getByRole('table', { name: 'Versiones de artefactos' })).toBeInTheDocument();
   });
 
-  describe('observaciones de la revisión (HU-134)', () => {
-    const REVISADA: VersionArtefacto = {
+  describe('gestión de la revisión', () => {
+    const EN_PROGRESO: VersionArtefacto = {
       ...VERSION,
-      revisionAsesor: 'r-7',
+      revisionAsesor: 'r-1',
       estadoRevision: 'EN_PROGRESO',
       nombreEstadoRevision: 'En progreso',
+      fechaCreacionRevision: '2026-03-12T10:00:00Z',
+    };
+    const RESUELTA: VersionArtefacto = {
+      ...VERSION,
+      id: 'v-2',
+      version: 5,
+      revisionAsesor: 'r-2',
+      estadoRevision: 'RESUELTA',
+      nombreEstadoRevision: 'Resuelta',
+      fechaCreacionRevision: '2026-03-13T10:00:00Z',
     };
 
-    async function abrirMenu(user: UserEvent) {
+    async function abrirMenu(user: UserEvent, version: number) {
       const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
       await user.click(
         await within(tabla).findByRole('button', {
-          name: 'Acciones de la versión 4 de Acta de inicio',
+          name: `Acciones de la versión ${version} de Acta de inicio`,
         }),
       );
     }
 
-    it('con la revisión enviada ofrece "Ver observaciones" y abre el panel con el id de la revisión', async () => {
+    it('ofrece una sola acción de revisión: Gestionar si está en progreso, Ver si no', async () => {
       // Arrange
       const user = userEvent.setup();
-      consultarVersiones.mockResolvedValue(pagina([REVISADA]));
-      getObservaciones.mockResolvedValue([]);
+      consultarVersiones.mockResolvedValue(pagina([EN_PROGRESO, RESUELTA]));
       render(<ConsultarVersionesArtefactoEstudiante />);
 
       // Act
-      await abrirMenu(user);
-      await user.click(screen.getByRole('menuitem', { name: 'Ver observaciones' }));
+      await abrirMenu(user, 4);
 
       // Assert
-      expect(await screen.findByText(/Tu asesor aún no ha registrado/)).toBeInTheDocument();
-      expect(getObservaciones).toHaveBeenCalledWith('r-7');
+      expect(screen.getByRole('menuitem', { name: 'Gestionar revisión' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Ver observaciones' })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Marcar como resuelta' }),
+      ).not.toBeInTheDocument();
+
+      // Act
+      await user.keyboard('{Escape}');
+      await abrirMenu(user, 5);
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Ver revisión' })).toBeInTheDocument();
     });
 
     it('no la ofrece sin revisión ni con la revisión pendiente', async () => {
       // Arrange
       const user = userEvent.setup();
       const pendiente: VersionArtefacto = {
-        ...REVISADA,
-        id: 'v-2',
-        nombreDocumento: 'Plano',
+        ...EN_PROGRESO,
+        id: 'v-3',
+        version: 6,
         estadoRevision: 'PENDIENTE',
       };
       consultarVersiones.mockResolvedValue(pagina([VERSION, pendiente]));
       render(<ConsultarVersionesArtefactoEstudiante />);
 
       // Act
-      await abrirMenu(user);
+      await abrirMenu(user, 4);
 
       // Assert
       expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
-      expect(screen.queryByRole('menuitem', { name: 'Ver observaciones' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /revisión/ })).not.toBeInTheDocument();
 
       // Act
       await user.keyboard('{Escape}');
-      const tabla = screen.getByRole('table', { name: 'Versiones de artefactos' });
-      await user.click(
-        within(tabla).getByRole('button', { name: 'Acciones de la versión 4 de Plano' }),
-      );
+      await abrirMenu(user, 6);
 
       // Assert
-      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
-      expect(screen.queryByRole('menuitem', { name: 'Ver observaciones' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: /revisión/ })).not.toBeInTheDocument();
     });
-  });
 
-  it('ofrece "Marcar como resuelta" solo en filas EN_PROGRESO y abre el diálogo de confirmación', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    consultarVersiones.mockResolvedValue(
-      pagina([
+    it('abre el panel con las observaciones de la revisión: editable en progreso, solo lectura si no', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      getObservaciones.mockResolvedValue([
         {
-          ...VERSION,
-          revisionAsesor: 'r-1',
-          estadoRevision: 'EN_PROGRESO',
-          nombreEstadoRevision: 'En progreso',
+          id: 'o-1',
+          revisionAsesorId: 'r-1',
+          descripcion: 'Falta el diagrama',
+          estadoId: 'NUEVA',
+          estadoNombre: 'Nueva',
         },
-        {
-          ...VERSION,
-          id: 'v-2',
-          version: 5,
-          revisionAsesor: 'r-2',
-          estadoRevision: 'RESUELTA',
-          nombreEstadoRevision: 'Resuelta',
-        },
-      ]),
-    );
-    render(<ConsultarVersionesArtefactoEstudiante />);
-    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      ]);
+      consultarVersiones.mockResolvedValue(pagina([EN_PROGRESO, RESUELTA]));
+      render(<ConsultarVersionesArtefactoEstudiante />);
 
-    // Act
-    await user.click(
-      await within(tabla).findByRole('button', {
-        name: 'Acciones de la versión 5 de Acta de inicio',
-      }),
-    );
+      // Act
+      await abrirMenu(user, 4);
+      await user.click(screen.getByRole('menuitem', { name: 'Gestionar revisión' }));
 
-    // Assert
-    expect(
-      screen.queryByRole('menuitem', { name: 'Marcar como resuelta' }),
-    ).not.toBeInTheDocument();
-    await user.keyboard('{Escape}');
+      // Assert
+      expect(await screen.findByRole('checkbox')).toBeInTheDocument();
+      expect(getObservaciones).toHaveBeenCalledWith('r-1');
+      expect(screen.getByRole('button', { name: 'Marcar como resuelta' })).toBeInTheDocument();
 
-    // Act
-    await user.click(
-      within(tabla).getByRole('button', { name: 'Acciones de la versión 4 de Acta de inicio' }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Marcar como resuelta' }));
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+      await abrirMenu(user, 5);
+      await user.click(screen.getByRole('menuitem', { name: 'Ver revisión' }));
 
-    // Assert
-    expect(await screen.findByText('¿Marcar la revisión como resuelta?')).toBeInTheDocument();
-  });
-
-  it('el panel de observaciones es editable solo desde una fila con revisión EN_PROGRESO', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    getObservaciones.mockResolvedValue([
-      {
-        id: 'o-1',
-        revisionAsesorId: 'r-1',
-        descripcion: 'Falta el diagrama',
-        estadoId: 'NUEVA',
-        estadoNombre: 'Nueva',
-      },
-    ]);
-    consultarVersiones.mockResolvedValue(
-      pagina([
-        {
-          ...VERSION,
-          revisionAsesor: 'r-1',
-          estadoRevision: 'EN_PROGRESO',
-          nombreEstadoRevision: 'En progreso',
-        },
-        {
-          ...VERSION,
-          id: 'v-2',
-          version: 5,
-          revisionAsesor: 'r-2',
-          estadoRevision: 'RESUELTA',
-          nombreEstadoRevision: 'Resuelta',
-        },
-      ]),
-    );
-    render(<ConsultarVersionesArtefactoEstudiante />);
-    const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
-
-    // Act
-    await user.click(
-      await within(tabla).findByRole('button', {
-        name: 'Acciones de la versión 4 de Acta de inicio',
-      }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Ver observaciones' }));
-
-    // Assert
-    expect(await screen.findByRole('checkbox')).toBeInTheDocument();
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
-    await user.click(
-      within(tabla).getByRole('button', { name: 'Acciones de la versión 5 de Acta de inicio' }),
-    );
-    await user.click(screen.getByRole('menuitem', { name: 'Ver observaciones' }));
-
-    // Assert
-    expect(await screen.findByText('Falta el diagrama')).toBeInTheDocument();
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+      // Assert
+      expect(await screen.findByText('Falta el diagrama')).toBeInTheDocument();
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Marcar como resuelta' }),
+      ).not.toBeInTheDocument();
+    });
   });
 });

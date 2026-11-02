@@ -1,43 +1,33 @@
 import { useState } from 'react';
-import { CircleCheck, MessageSquare } from 'lucide-react';
+import { Eye, MessageSquare } from 'lucide-react';
 import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision';
 import { useVersionesArtefactoEstudiante } from '../../hooks/useVersionesArtefactoEstudiante';
+import type { RevisionGestionable } from '../../models/RevisionGestionable';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
-import { esRevisionResoluble } from '../../utils/revision-resoluble';
-import { estudianteVeObservaciones } from '../../utils/revision-version';
+import { desVersion } from '../../utils/revision-gestionable';
+import { ESTADO_REVISION_EN_PROGRESO } from '../../utils/revision-resoluble';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
-import MarcarRevisionResueltaDialog from './MarcarRevisionResueltaDialog';
-import ObservacionesRevisionEstudiantePanel from './ObservacionesRevisionEstudiantePanel';
+import GestionarRevisionEstudiantePanel from './GestionarRevisionEstudiantePanel';
 
 const DESCRIPCION_VACIO = 'Aparecerán aquí cuando se genere una versión de uno de tus artefactos.';
 
 export default function ConsultarVersionesArtefactoEstudiante() {
   const listado = useVersionesArtefactoEstudiante();
   const opcionesEstado = useOpcionesEstadoRevision();
-  const [versionEnPanelId, setVersionEnPanelId] = useState<string | null>(null);
-  const [porResolver, setPorResolver] = useState<VersionArtefacto | null>(null);
-
-  const versionEnPanel = listado.data?.content.find((v) => v.id === versionEnPanelId) ?? null;
+  const [revisionAbierta, setRevisionAbierta] = useState<RevisionGestionable | null>(null);
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
-    const acciones: AccionMenu[] = [];
-    const revisionAsesorId = version.revisionAsesor;
-    if (revisionAsesorId !== null && estudianteVeObservaciones(version)) {
-      acciones.push({
-        etiqueta: 'Ver observaciones',
-        icono: MessageSquare,
-        onSeleccionar: () => setVersionEnPanelId(version.id),
-      });
-    }
-    if (esRevisionResoluble(version)) {
-      acciones.push({
-        etiqueta: 'Marcar como resuelta',
-        icono: CircleCheck,
-        onSeleccionar: () => setPorResolver(version),
-      });
-    }
-    return acciones;
+    const revision = desVersion(version);
+    if (revision === null) return [];
+    const enProgreso = revision.estadoId === ESTADO_REVISION_EN_PROGRESO;
+    return [
+      {
+        etiqueta: enProgreso ? 'Gestionar revisión' : 'Ver revisión',
+        icono: enProgreso ? MessageSquare : Eye,
+        onSeleccionar: () => setRevisionAbierta(revision),
+      },
+    ];
   }
 
   return (
@@ -49,15 +39,11 @@ export default function ConsultarVersionesArtefactoEstudiante() {
         accionesAdicionales={accionesAdicionales}
         mostrarAsesor
       />
-      {versionEnPanel?.revisionAsesor && (
-        <ObservacionesRevisionEstudiantePanel
-          revisionAsesorId={versionEnPanel.revisionAsesor}
-          editable={esRevisionResoluble(versionEnPanel)}
-          onCerrar={() => setVersionEnPanelId(null)}
+      {revisionAbierta && (
+        <GestionarRevisionEstudiantePanel
+          revision={revisionAbierta}
+          onCerrar={() => setRevisionAbierta(null)}
         />
-      )}
-      {porResolver && (
-        <MarcarRevisionResueltaDialog version={porResolver} onCerrar={() => setPorResolver(null)} />
       )}
     </>
   );

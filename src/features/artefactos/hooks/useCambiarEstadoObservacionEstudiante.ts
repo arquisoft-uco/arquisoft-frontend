@@ -8,6 +8,7 @@ import {
   mensajeErrorAvanceObservacion,
 } from '../utils/errores-avance-observacion';
 import { claveObservacionesRevisionEstudiante } from './useObservacionesRevisionEstudiante';
+import { CLAVE_REVISIONES_ESTUDIANTE } from './useRevisionesEstudiante';
 
 interface Variables extends CambiarEstadoObservacionEstudianteRequest {
   observacionId: string;
@@ -26,9 +27,12 @@ export function useCambiarEstadoObservacionEstudiante() {
           ? 'Observación marcada como solucionada'
           : 'Observación marcada como en progreso',
       );
-      return queryClient.invalidateQueries({
-        queryKey: claveObservacionesRevisionEstudiante(revisionAsesorId),
-      });
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: claveObservacionesRevisionEstudiante(revisionAsesorId),
+        }),
+        queryClient.invalidateQueries({ queryKey: CLAVE_REVISIONES_ESTUDIANTE }),
+      ]);
     },
     onError: (err, { revisionAsesorId }) => {
       toast.error(
@@ -42,6 +46,7 @@ export function useCambiarEstadoObservacionEstudiante() {
           }),
           queryClient.invalidateQueries({ queryKey: ['artefactos', 'versiones-artefacto'] }),
           queryClient.invalidateQueries({ queryKey: ['artefactos', 'estudiante'] }),
+          queryClient.invalidateQueries({ queryKey: CLAVE_REVISIONES_ESTUDIANTE }),
         ]);
       }
     },

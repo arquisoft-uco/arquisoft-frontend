@@ -6,6 +6,7 @@ import {
   esSinVersionPosterior,
 } from '../utils/errores-marcar-revision-resuelta';
 import { claveObservacionesRevisionEstudiante } from './useObservacionesRevisionEstudiante';
+import { CLAVE_REVISIONES_ESTUDIANTE } from './useRevisionesEstudiante';
 
 export function useMarcarRevisionResuelta() {
   const queryClient = useQueryClient();
@@ -13,7 +14,10 @@ export function useMarcarRevisionResuelta() {
   return useMutation<void, unknown, MarcarRevisionResueltaRequest>({
     mutationFn: artefactosService.marcarRevisionResuelta,
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['artefactos', 'versiones-artefacto'] }),
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['artefactos', 'versiones-artefacto'] }),
+        queryClient.invalidateQueries({ queryKey: CLAVE_REVISIONES_ESTUDIANTE }),
+      ]),
     onError: (err, { revisionAsesorId }) => {
       if (esSinVersionPosterior(err)) return;
       if (esConObservacionesAbiertas(err)) {
@@ -23,6 +27,7 @@ export function useMarcarRevisionResuelta() {
       }
       queryClient.invalidateQueries({ queryKey: ['artefactos', 'versiones-artefacto'] });
       queryClient.invalidateQueries({ queryKey: ['artefactos', 'estudiante'] });
+      queryClient.invalidateQueries({ queryKey: CLAVE_REVISIONES_ESTUDIANTE });
     },
   });
 }
