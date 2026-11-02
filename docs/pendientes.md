@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-10-27.
+Última revisión: 2026-11-02.
 
 ## Bloqueados por el backend
 
@@ -27,7 +27,6 @@ Al resolver un pendiente, se borra de aquí.
 | B19 | **Participaciones del estudiante sin estado de la última revisión ni indicador de «cerrado»** | HU-292: el endpoint de enviar la revisión ya existe, pero `ParticipacionArtefacto` y `ArtefactoEstudiante` no traen el estado de la revisión más reciente de la última versión ni un indicador de artefacto cerrado. «Mis artefactos» deduce si se puede subir una versión con una consulta de última versión por artefacto (`useUltimasVersionesEstudiante`). Pedir `estadoRevision` de la última versión y un indicador de cerrado en las participaciones eliminaría esas consultas | Backend |
 | B20 | **Versión de artefacto sin `esUltima` ni `omitido`** | HU-114: `VersionArtefactoResponseDTO` no trae `esUltima` ni `omitido`, por lo que «Registrar revisión» deduce ambos con una consulta de última versión por artefacto y un recorrido del catálogo de omitidos. Pedir ambos campos en la fila eliminaría esas consultas. | Backend |
 | B21 | **El estudiante recibe las observaciones de una revisión pendiente** | HU-134: `ObservacionEstudianteJpaQueryEntity` (`POST /revisiones-asesor/{id}/observaciones/estudiante`, HU-022) no filtra por el estado de la revisión: mientras está `PENDIENTE` el estudiante recibiría los borradores del asesor. El cliente oculta «Ver observaciones» con la revisión pendiente; se pide el filtro en el backend | Backend |
-| B22 | **`POL-14` no aplicada al marcar una revisión como resuelta** | `PATCH /artefactos/revisiones/{id}/estado` (HU-023) no rechaza con 422 marcar como resuelta una revisión con observaciones `NUEVA`/`EN_PROGRESO`/`REABIERTA`, aunque el Event Storming y fase-3 dicen que lo implementa HU021. La UI no la anticipa y mostrará el 422 con el mensaje del servidor si algún día llega | Backend |
 
 ## Del frontend
 

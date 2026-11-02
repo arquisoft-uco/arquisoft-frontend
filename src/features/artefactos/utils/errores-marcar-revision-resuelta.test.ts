@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { errorApi } from '../../../test-utils/errores-api';
 import {
+  esConObservacionesAbiertas,
   esSinVersionPosterior,
   mensajeErrorMarcarRevisionResuelta,
 } from './errores-marcar-revision-resuelta';
@@ -25,5 +26,20 @@ describe('errores de marcar revisión resuelta', () => {
     );
     expect(mensajeErrorMarcarRevisionResuelta(cerrada, 'Respaldo')).toBe('Está cerrada');
     expect(mensajeErrorMarcarRevisionResuelta(new Error('red'), 'Respaldo')).toBe('Respaldo');
+  });
+
+  it('reconoce el 422 de observaciones abiertas y mapea su mensaje', () => {
+    // Arrange
+    const abiertas = errorApi(422, {
+      errorCode: 'REVISION_ASESOR_CON_OBSERVACIONES_ABIERTAS',
+      message: 'x',
+    });
+
+    // Assert
+    expect(esConObservacionesAbiertas(abiertas)).toBe(true);
+    expect(esConObservacionesAbiertas(new Error('red'))).toBe(false);
+    expect(mensajeErrorMarcarRevisionResuelta(abiertas, 'Respaldo')).toContain(
+      'observaciones sin solucionar',
+    );
   });
 });

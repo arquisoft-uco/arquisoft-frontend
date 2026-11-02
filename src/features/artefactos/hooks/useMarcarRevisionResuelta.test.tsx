@@ -72,4 +72,23 @@ describe('useMarcarRevisionResuelta', () => {
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'estudiante'] });
   });
+
+  it('ante observaciones abiertas invalida solo las observaciones de la revisión', async () => {
+    // Arrange
+    marcar.mockRejectedValue(
+      errorApi(422, { errorCode: 'REVISION_ASESOR_CON_OBSERVACIONES_ABIERTAS', message: 'x' }),
+    );
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useMarcarRevisionResuelta(), { wrapper: Wrapper });
+
+    // Act
+    act(() => result.current.mutate({ revisionAsesorId: 'r-1' }));
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['artefactos', 'revisiones-asesor', 'r-1', 'observaciones', 'estudiante'],
+    });
+    expect(invalidar).not.toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
+  });
 });
