@@ -29,7 +29,7 @@ const BASE = {
 describe('textoAvisoObservaciones', () => {
   it('elige el aviso según edición, decisión, omisión y estado de la revisión', () => {
     // Assert
-    expect(textoAvisoObservaciones({ ...BASE, editable: true })).toBeNull();
+    expect(textoAvisoObservaciones({ ...BASE, editable: true })).toContain('está pendiente');
     expect(
       textoAvisoObservaciones({ ...BASE, puedeDecidir: true, haySolucionadas: true }),
     ).toBeNull();

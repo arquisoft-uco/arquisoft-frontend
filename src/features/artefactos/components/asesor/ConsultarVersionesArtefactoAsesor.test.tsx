@@ -417,80 +417,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     });
   });
 
-  describe('enviar revisión (HU-292)', () => {
-    const PENDIENTE: VersionArtefacto = {
-      ...VERSION,
-      revisionAsesor: 'r-1',
-      estadoRevision: 'PENDIENTE',
-      nombreEstadoRevision: 'Pendiente',
-    };
-    const CONTROL: VersionArtefacto = {
-      ...PENDIENTE,
-      id: 'v-9',
-      artefacto: 'a-2',
-      revisionAsesor: 'r-9',
-      nombreDocumento: 'Plano',
-    };
-
-    async function abrirMenu(user: UserEvent, documento: string) {
-      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
-      await user.click(
-        await within(tabla).findByRole('button', {
-          name: `Acciones de la versión 4 de ${documento}`,
-        }),
-      );
-    }
-
-    async function comprobarControlPositivo(user: UserEvent) {
-      await abrirMenu(user, 'Plano');
-      expect(await screen.findByRole('menuitem', { name: 'Enviar revisión' })).toBeVisible();
-      await user.keyboard('{Escape}');
-      await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
-    }
-
-    it.each([
-      ['revisión en progreso', { estadoRevision: 'EN_PROGRESO', revisionAsesor: 'r-1' }, []],
-      ['ninguna revisión', {}, []],
-      ['el artefacto omitido', { revisionAsesor: 'r-1', estadoRevision: 'PENDIENTE' }, ['a-1']],
-    ])('no la ofrece con %s aunque sí en otra fila elegible', async (_caso, cambios, omitidos) => {
-      // Arrange
-      consultarVersiones.mockResolvedValue(pagina([{ ...VERSION, ...cambios }, CONTROL]));
-      getOmitidos.mockResolvedValue(omitidos);
-      const user = userEvent.setup();
-      render(<ConsultarVersionesArtefactoAsesor />);
-      await comprobarControlPositivo(user);
-
-      // Act
-      await abrirMenu(user, 'Acta de inicio');
-
-      // Assert
-      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
-      expect(screen.queryByRole('menuitem', { name: 'Enviar revisión' })).not.toBeInTheDocument();
-    });
-
-    it('de punta a punta: la ofrece con revisión pendiente y confirmar envía con el id de la revisión de la fila', async () => {
-      // Arrange
-      consultarVersiones.mockResolvedValue(pagina([PENDIENTE]));
-      enviarRevision.mockResolvedValue(undefined);
-      const user = userEvent.setup();
-      render(<ConsultarVersionesArtefactoAsesor />);
-      await abrirMenu(user, 'Acta de inicio');
-      await user.click(await screen.findByRole('menuitem', { name: 'Enviar revisión' }));
-      const dialogo = screen.getByRole('dialog', { name: '¿Enviar revisión?' });
-      expect(within(dialogo).getByText(/Se envía un correo a los estudiantes/)).toBeInTheDocument();
-
-      // Act
-      await user.click(within(dialogo).getByRole('button', { name: 'Enviar revisión' }));
-
-      // Assert
-      await waitFor(() => expect(enviarRevision).toHaveBeenCalledWith('r-1'));
-      await waitFor(() =>
-        expect(screen.queryByRole('dialog', { name: '¿Enviar revisión?' })).toBeNull(),
-      );
-    });
-  });
-
-  describe('observaciones de la revisión (HU-134)', () => {
+  describe('gestionar revisión (HU-292-AJ1)', () => {
     const PENDIENTE: VersionArtefacto = {
       ...VERSION,
       revisionAsesor: 'r-1',
@@ -506,6 +433,12 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       estadoRevision: 'RESUELTA',
       nombreEstadoRevision: 'Resuelta',
     };
+    const SIN_REVISION: VersionArtefacto = {
+      ...VERSION,
+      id: 'v-9',
+      artefacto: 'a-2',
+      nombreDocumento: 'Plano',
+    };
 
     async function abrirMenu(user: UserEvent, documento: string) {
       const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
@@ -520,76 +453,55 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       getObservaciones.mockResolvedValue([]);
     });
 
-    it('con la revisión pendiente ofrece "Gestionar observaciones" y con otro estado "Ver observaciones"', async () => {
+    it('ofrece una sola acción «Gestionar revisión» en cualquier estado, también con el artefacto omitido, y nunca las anteriores', async () => {
       // Arrange
       consultarVersiones.mockResolvedValue(pagina([PENDIENTE, RESUELTA]));
-      const user = userEvent.setup();
-      render(<ConsultarVersionesArtefactoAsesor />);
-
-      // Act
-      await abrirMenu(user, 'Acta de inicio');
-
-      // Assert
-      expect(
-        await screen.findByRole('menuitem', { name: 'Gestionar observaciones' }),
-      ).toBeInTheDocument();
-
-      // Act
-      await user.keyboard('{Escape}');
-      await abrirMenu(user, 'Informe');
-
-      // Assert
-      expect(screen.getByRole('menuitem', { name: 'Ver observaciones' })).toBeInTheDocument();
-      expect(
-        screen.queryByRole('menuitem', { name: 'Gestionar observaciones' }),
-      ).not.toBeInTheDocument();
-    });
-
-    it('con la revisión pendiente de un artefacto omitido solo ofrece "Ver observaciones"', async () => {
-      // Arrange
-      const otra = { ...PENDIENTE, id: 'v-9', artefacto: 'a-2', nombreDocumento: 'Plano' };
-      consultarVersiones.mockResolvedValue(pagina([PENDIENTE, otra]));
       getOmitidos.mockResolvedValue(['a-1']);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
-      await abrirMenu(user, 'Plano');
-      expect(
-        await screen.findByRole('menuitem', { name: 'Gestionar observaciones' }),
-      ).toBeInTheDocument();
+
+      for (const documento of ['Acta de inicio', 'Informe']) {
+        // Act
+        await abrirMenu(user, documento);
+
+        // Assert
+        expect(
+          await screen.findByRole('menuitem', { name: 'Gestionar revisión' }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: /observaciones/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: 'Enviar revisión' })).not.toBeInTheDocument();
+        await user.keyboard('{Escape}');
+      }
+    });
+
+    it('sin revisión no hay «Gestionar revisión» aunque sí en otra fila con revisión', async () => {
+      // Arrange
+      consultarVersiones.mockResolvedValue(pagina([SIN_REVISION, PENDIENTE]));
+      const user = userEvent.setup();
+      render(<ConsultarVersionesArtefactoAsesor />);
+      await abrirMenu(user, 'Acta de inicio');
+      expect(await screen.findByRole('menuitem', { name: 'Gestionar revisión' })).toBeVisible();
       await user.keyboard('{Escape}');
 
       // Act
-      await abrirMenu(user, 'Acta de inicio');
-
-      // Assert
-      expect(screen.getByRole('menuitem', { name: 'Ver observaciones' })).toBeInTheDocument();
-      expect(
-        screen.queryByRole('menuitem', { name: 'Gestionar observaciones' }),
-      ).not.toBeInTheDocument();
-    });
-
-    it('sin revisión no hay entrada de observaciones', async () => {
-      // Arrange
-      consultarVersiones.mockResolvedValue(pagina([VERSION]));
-      const user = userEvent.setup();
-      render(<ConsultarVersionesArtefactoAsesor />);
-
-      // Act
-      await abrirMenu(user, 'Acta de inicio');
+      await abrirMenu(user, 'Plano');
 
       // Assert
       expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
-      expect(screen.queryByRole('menuitem', { name: /observaciones/ })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Gestionar revisión' }),
+      ).not.toBeInTheDocument();
     });
 
-    it('de punta a punta: abre el panel, agrega una observación y registra con el id de la revisión de la fila', async () => {
+    it('de punta a punta: abre el panel, agrega una observación con el id de la revisión de la fila', async () => {
       // Arrange
       consultarVersiones.mockResolvedValue(pagina([PENDIENTE]));
       registrarObservacion.mockResolvedValue({ id: 'o-1' });
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
       await abrirMenu(user, 'Acta de inicio');
-      await user.click(await screen.findByRole('menuitem', { name: 'Gestionar observaciones' }));
+      await user.click(await screen.findByRole('menuitem', { name: 'Gestionar revisión' }));
 
       // Act
       await user.click(await screen.findByRole('button', { name: 'Agregar observación' }));
@@ -603,6 +515,38 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
         }),
       );
       expect(getObservaciones).toHaveBeenCalledWith('r-1');
+    });
+
+    it('de punta a punta: desde el panel enviar abre la confirmación y confirmar envía por el id de la revisión', async () => {
+      // Arrange
+      consultarVersiones.mockResolvedValue(pagina([PENDIENTE]));
+      getObservaciones.mockResolvedValue([
+        {
+          id: 'o-1',
+          revisionAsesorId: 'r-1',
+          descripcion: 'Falta el diagrama',
+          estadoId: 'NUEVA',
+          estadoNombre: 'Nueva',
+        },
+      ]);
+      enviarRevision.mockResolvedValue(undefined);
+      const user = userEvent.setup();
+      render(<ConsultarVersionesArtefactoAsesor />);
+      await abrirMenu(user, 'Acta de inicio');
+      await user.click(await screen.findByRole('menuitem', { name: 'Gestionar revisión' }));
+      const enviar = await screen.findByRole('button', { name: 'Enviar revisión' });
+      await waitFor(() => expect(enviar).toBeEnabled());
+
+      // Act
+      await user.click(enviar);
+      const dialogo = screen.getByRole('dialog', { name: '¿Enviar revisión?' });
+      await user.click(within(dialogo).getByRole('button', { name: 'Enviar revisión' }));
+
+      // Assert
+      await waitFor(() => expect(enviarRevision).toHaveBeenCalledWith('r-1'));
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog', { name: 'Gestionar revisión' })).toBeNull(),
+      );
     });
   });
 });

@@ -10,7 +10,9 @@ import { useUltimaVersionArtefacto } from '../../hooks/useUltimaVersionArtefacto
 import { useObservacionEnEliminacion } from '../../hooks/useObservacionEnEliminacion';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { toast } from '../../../../shared/hooks/useToast';
-import ObservacionesRevisionPanel from './ObservacionesRevisionPanel';
+import { useEnviarRevision } from '../../hooks/useEnviarRevision';
+import { errorApi } from '../../../../test-utils/errores-api';
+import GestionarRevisionPanel from './GestionarRevisionPanel';
 
 vi.mock('../../hooks/useObservacionesRevision', () => ({
   useObservacionesRevision: vi.fn(),
@@ -88,16 +90,21 @@ const VERSION: VersionArtefacto = {
   nombreEstadoRevision: 'Pendiente',
 };
 
-const PROPS = { revisionAsesorId: 'r-1', version: VERSION, editable: false };
+const PROPS = { revisionAsesorId: 'r-1', version: VERSION };
 
-function simularOmitidos(omitidos: Set<string> | undefined) {
+function simularOmitidos(omitidos: Set<string> | undefined, puede = false) {
   vi.mocked(usePuedeGestionarObservaciones).mockReturnValue({
-    puedeGestionar: vi.fn(),
+    puedeGestionar: vi.fn(() => puede),
     omitidos,
   });
 }
 
-describe('ObservacionesRevisionPanel', () => {
+function renderEditable() {
+  simularOmitidos(new Set(), true);
+  return render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+}
+
+describe('GestionarRevisionPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     simularOmitidos(new Set());
@@ -118,7 +125,7 @@ describe('ObservacionesRevisionPanel', () => {
   });
 
   async function pedirEliminar(user: ReturnType<typeof userEvent.setup>) {
-    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    renderEditable();
     const menus = screen.getAllByRole('button', { name: 'Acciones de la observación' });
     await user.click(menus[1]);
     await user.click(await screen.findByRole('menuitem', { name: 'Eliminar observación' }));
@@ -147,7 +154,7 @@ describe('ObservacionesRevisionPanel', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
     const user = userEvent.setup();
-    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    renderEditable();
     const panel = screen.getAllByRole('dialog')[0];
 
     // Act
@@ -172,7 +179,7 @@ describe('ObservacionesRevisionPanel', () => {
     hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
     vi.mocked(useObservacionEnEliminacion).mockImplementation((id) => id === 'o-2');
     const user = userEvent.setup();
-    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    renderEditable();
     const menus = screen.getAllByRole('button', { name: 'Acciones de la observación' });
 
     // Act
@@ -230,7 +237,7 @@ describe('ObservacionesRevisionPanel', () => {
     hook.mockReturnValue(estado({ isLoading: true }));
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     expect(hook).toHaveBeenCalledWith('r-1');
@@ -242,7 +249,7 @@ describe('ObservacionesRevisionPanel', () => {
     hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     const lista = screen.getByRole('list', { name: 'Observaciones de la revisión' });
@@ -259,7 +266,7 @@ describe('ObservacionesRevisionPanel', () => {
     hook.mockReturnValue(estado({ data: [] }));
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('Esta revisión aún no tiene observaciones')).toBeInTheDocument();
@@ -273,7 +280,7 @@ describe('ObservacionesRevisionPanel', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     // Assert
@@ -289,54 +296,159 @@ describe('ObservacionesRevisionPanel', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={onCerrar} />);
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={onCerrar} />);
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));
 
     // Assert
     await waitFor(() => expect(onCerrar).toHaveBeenCalled());
   });
 
-  it('editable muestra Agregar observación y un menú de acciones por tarjeta, sin aviso', () => {
+  it('muestra el título, la versión, el estado de la revisión y el aviso de pendiente', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    renderEditable();
+
+    // Assert
+    expect(screen.getAllByRole('dialog')[0]).toHaveAccessibleName('Gestionar revisión');
+    expect(screen.getByText('«Acta de inicio» · Versión 4')).toBeInTheDocument();
+    expect(screen.getByText('Estado de la revisión')).toBeInTheDocument();
+    expect(screen.getByText('Pendiente')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Esta revisión está pendiente: agrega las observaciones/),
+    ).toBeVisible();
+  });
+
+  it('pendiente muestra Agregar observación y un menú de acciones por tarjeta', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
+
+    // Act
+    renderEditable();
 
     // Assert
     expect(screen.getByRole('button', { name: 'Agregar observación' })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Acciones de la observación' })).toHaveLength(2);
-    expect(screen.queryByRole('note')).not.toBeInTheDocument();
   });
 
-  it('editable ofrece Enviar revisión y abre su confirmación; no editable no la ofrece', async () => {
-    // Arrange
-    hook.mockReturnValue(estado({ data: [nueva] }));
-    const user = userEvent.setup();
-    const { unmount } = render(
-      <ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />,
-    );
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Enviar revisión' }));
-
-    // Assert
-    expect(screen.getByRole('dialog', { name: '¿Enviar revisión?' })).toBeInTheDocument();
-
-    // Act
-    unmount();
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
-
-    // Assert
-    expect(screen.queryByRole('button', { name: 'Enviar revisión' })).not.toBeInTheDocument();
-  });
-
-  it('editable con la lista vacía invita a agregar la primera y deja la acción visible', () => {
+  it('Enviar revisión queda deshabilitado con la nota visible mientras no haya observaciones', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [] }));
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    renderEditable();
+
+    // Assert
+    const enviar = screen.getByRole('button', { name: 'Enviar revisión' });
+    expect(enviar).toBeDisabled();
+    expect(enviar).toHaveAccessibleDescription(
+      'Agrega al menos una observación para enviar la revisión.',
+    );
+  });
+
+  it.each([
+    ['cargando', { isLoading: true }],
+    ['con error', { isError: true, error: new Error('red') }],
+  ] as [string, Partial<Resultado>][])(
+    'con la lista %s Enviar revisión queda deshabilitado y sin nota',
+    (_caso, parcial) => {
+      // Arrange
+      hook.mockReturnValue(estado(parcial));
+
+      // Act
+      renderEditable();
+
+      // Assert
+      expect(screen.getByRole('button', { name: 'Enviar revisión' })).toBeDisabled();
+      expect(
+        screen.queryByText('Agrega al menos una observación para enviar la revisión.'),
+      ).not.toBeInTheDocument();
+    },
+  );
+
+  it('con observaciones Enviar revisión se habilita, sin nota, y confirmar llama la mutación', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    const mutateEnvio = vi.fn();
+    vi.mocked(useEnviarRevision).mockReturnValue({
+      mutate: mutateEnvio,
+      isPending: false,
+    } as Partial<ReturnType<typeof useEnviarRevision>> as ReturnType<typeof useEnviarRevision>);
+    const user = userEvent.setup();
+    renderEditable();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Enviar revisión' }));
+    const dialogo = screen.getByRole('dialog', { name: '¿Enviar revisión?' });
+    await user.click(within(dialogo).getByRole('button', { name: 'Enviar revisión' }));
+
+    // Assert
+    expect(
+      screen.queryByText('Agrega al menos una observación para enviar la revisión.'),
+    ).not.toBeInTheDocument();
+    expect(mutateEnvio).toHaveBeenCalledWith({ revisionAsesorId: 'r-1' }, expect.any(Object));
+  });
+
+  it('si el backend rechaza el envío por falta de observaciones avisa y el panel sigue abierto', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    const onCerrar = vi.fn();
+    vi.mocked(useEnviarRevision).mockReturnValue({
+      mutate: vi.fn((_v: unknown, o?: { onError?: (e: unknown) => void }) =>
+        o?.onError?.(
+          errorApi(422, {
+            status: 422,
+            errorCode: 'REVISION_ASESOR_SIN_OBSERVACIONES',
+            message: 'del backend',
+          }),
+        ),
+      ),
+      isPending: false,
+    } as Partial<ReturnType<typeof useEnviarRevision>> as ReturnType<typeof useEnviarRevision>);
+    simularOmitidos(new Set(), true);
+    const user = userEvent.setup();
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={onCerrar} />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Enviar revisión' }));
+    await user.click(
+      within(screen.getByRole('dialog', { name: '¿Enviar revisión?' })).getByRole('button', {
+        name: 'Enviar revisión',
+      }),
+    );
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo enviar la revisión',
+      'La revisión no tiene observaciones. Agrega al menos una para poder enviarla.',
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: '¿Enviar revisión?' })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole('dialog', { name: 'Gestionar revisión' })).toBeInTheDocument();
+    expect(onCerrar).not.toHaveBeenCalled();
+  });
+
+  it('en solo lectura no ofrece enviar y el pie conserva Cerrar', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [nueva] }));
+    simularOmitidos(new Set(['a-1']));
+
+    // Act
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Enviar revisión' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument();
+  });
+
+  it('pendiente con la lista vacía invita a agregar la primera y deja la acción visible', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [] }));
+
+    // Act
+    renderEditable();
 
     // Assert
     expect(screen.getByText('Agrega la primera observación de esta revisión.')).toBeInTheDocument();
@@ -349,7 +461,7 @@ describe('ObservacionesRevisionPanel', () => {
     const version = { ...VERSION, estadoRevision: 'EN_PROGRESO' };
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} version={version} onCerrar={vi.fn()} />);
+    render(<GestionarRevisionPanel {...PROPS} version={version} onCerrar={vi.fn()} />);
 
     // Assert
     expect(
@@ -367,7 +479,7 @@ describe('ObservacionesRevisionPanel', () => {
     simularOmitidos(new Set(['a-1']));
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     expect(
@@ -382,7 +494,7 @@ describe('ObservacionesRevisionPanel', () => {
     simularOmitidos(undefined);
 
     // Act
-    render(<ObservacionesRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+    render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
     expect(screen.queryByRole('note')).not.toBeInTheDocument();
@@ -393,7 +505,7 @@ describe('ObservacionesRevisionPanel', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [nueva] }));
     const user = userEvent.setup();
-    render(<ObservacionesRevisionPanel {...PROPS} editable onCerrar={vi.fn()} />);
+    renderEditable();
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Agregar observación' }));
@@ -419,7 +531,7 @@ describe('ObservacionesRevisionPanel', () => {
       hook.mockReturnValue(estado({ data: [nueva, solucionada] }));
       simularUltima({ ...SIGUIENTE, estadoRevision: 'PENDIENTE' });
       const user = userEvent.setup();
-      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+      render(<GestionarRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
 
       // Act
       await user.click(
@@ -446,7 +558,7 @@ describe('ObservacionesRevisionPanel', () => {
       hook.mockReturnValue(estado({ data: [solucionada] }));
       simularUltima({ ...SIGUIENTE, estadoRevision: 'PENDIENTE' });
       const user = userEvent.setup();
-      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+      render(<GestionarRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
       const panel = screen.getAllByRole('dialog')[0];
 
       // Act
@@ -471,7 +583,7 @@ describe('ObservacionesRevisionPanel', () => {
       hook.mockReturnValue(estado({ data: [solucionada] }));
       simularUltima({ ...SIGUIENTE, estadoRevision: 'EN_PROGRESO' });
       const user = userEvent.setup();
-      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+      render(<GestionarRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
 
       // Act
       await user.click(screen.getByRole('button', { name: /^Acciones de la observación:/ }));
@@ -489,7 +601,7 @@ describe('ObservacionesRevisionPanel', () => {
       simularUltima(undefined);
 
       // Act
-      render(<ObservacionesRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
+      render(<GestionarRevisionPanel {...PROPS} version={RESUELTA} onCerrar={vi.fn()} />);
 
       // Assert
       expect(

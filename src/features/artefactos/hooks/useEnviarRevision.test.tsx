@@ -79,4 +79,26 @@ describe('useEnviarRevision', () => {
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'versiones-artefacto'] });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: CLAVE_OBSERVACIONES });
   });
+
+  it('un 422 sin observaciones invalida solo las observaciones de la revisión', async () => {
+    // Arrange
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useEnviarRevision(), {
+      wrapper: crearWrapper(queryClient),
+    });
+    enviar.mockRejectedValueOnce(
+      errorApi(422, {
+        status: 422,
+        errorCode: 'REVISION_ASESOR_SIN_OBSERVACIONES',
+        message: 'x',
+      }),
+    );
+
+    // Act
+    act(() => result.current.mutate({ revisionAsesorId: 'r-1' }));
+    await waitFor(() => expect(invalidar).toHaveBeenCalledWith({ queryKey: CLAVE_OBSERVACIONES }));
+
+    // Assert
+    expect(invalidar).toHaveBeenCalledTimes(1);
+  });
 });

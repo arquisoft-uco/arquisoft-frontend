@@ -17,7 +17,7 @@ interface Props {
   version: VersionArtefacto;
   revisionAsesorId: string;
   onCerrar: () => void;
-  onSalir?: () => void;
+  onSalir: () => void;
 }
 
 export default function EnviarRevisionDialog({
@@ -38,12 +38,12 @@ export default function EnviarRevisionDialog({
             `Los estudiantes recibirán un correo con las observaciones de la versión ${version.version} de «${version.nombreDocumento}».`,
           );
           onCerrar();
-          onSalir?.();
+          onSalir();
         },
         onError: (err) => {
           toast.error('No se pudo enviar la revisión', mensajeDeErrorEnviarRevision(err));
           onCerrar();
-          if (revisionYaNoEnviable(err)) onSalir?.();
+          if (revisionYaNoEnviable(err)) onSalir();
         },
       },
     );

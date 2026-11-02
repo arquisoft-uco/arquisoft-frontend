@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { errorApi } from '../../../test-utils/errores-api';
 import {
   REVISION_NO_ENVIABLE,
+  REVISION_SIN_OBSERVACIONES,
   mensajeDeErrorEnviarRevision,
+  revisionSinObservaciones,
   revisionYaNoEnviable,
 } from './errores-enviar-revision';
 
@@ -20,6 +22,7 @@ describe('errores-enviar-revision', () => {
       'ARTEFACTOS_ARTEFACTO_ASESOR_NO_PROPIETARIO',
       'ARTEFACTOS_ARTEFACTO_OMITIDO',
       REVISION_NO_ENVIABLE,
+      REVISION_SIN_OBSERVACIONES,
     ].map((codigo) => mensajeDeErrorEnviarRevision(porCodigo(codigo)));
 
     // Assert
@@ -30,10 +33,14 @@ describe('errores-enviar-revision', () => {
       'Ya no eres el asesor responsable de este artefacto.',
       'El artefacto está omitido y no admite cambios.',
       'Esta revisión ya no está pendiente: ya se envió.',
+      'La revisión no tiene observaciones. Agrega al menos una para poder enviarla.',
     ]);
     expect(mensajeDeErrorEnviarRevision(porCodigo('OTRO'))).toBe('del backend');
     expect(mensajeDeErrorEnviarRevision(new Error('Network Error'))).toBe('Inténtalo nuevamente.');
     expect(revisionYaNoEnviable(porCodigo(REVISION_NO_ENVIABLE))).toBe(true);
+    expect(revisionYaNoEnviable(porCodigo(REVISION_SIN_OBSERVACIONES))).toBe(false);
+    expect(revisionSinObservaciones(porCodigo(REVISION_SIN_OBSERVACIONES))).toBe(true);
+    expect(revisionSinObservaciones(porCodigo(REVISION_NO_ENVIABLE))).toBe(false);
     expect(revisionYaNoEnviable(porCodigo('OTRO'))).toBe(false);
     expect(revisionYaNoEnviable(new Error('fallo'))).toBe(false);
   });

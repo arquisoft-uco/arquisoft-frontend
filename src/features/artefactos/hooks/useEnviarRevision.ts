@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { artefactosService } from '../services/artefactosService';
-import { revisionYaNoEnviable } from '../utils/errores-enviar-revision';
+import { revisionSinObservaciones, revisionYaNoEnviable } from '../utils/errores-enviar-revision';
 
 interface Variables {
   revisionAsesorId: string;
@@ -30,6 +30,9 @@ export function useEnviarRevision() {
           queryClient.invalidateQueries({ queryKey: claveObservaciones(revisionAsesorId) }),
           queryClient.invalidateQueries({ queryKey: CLAVE_ASESOR }),
         ]);
+      }
+      if (revisionSinObservaciones(err)) {
+        return queryClient.invalidateQueries({ queryKey: claveObservaciones(revisionAsesorId) });
       }
     },
   });

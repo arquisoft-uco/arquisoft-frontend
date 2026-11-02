@@ -7,6 +7,7 @@ import {
 } from './errores-registrar-revision';
 
 export const REVISION_NO_ENVIABLE = 'REVISION_ASESOR_NO_ENVIABLE';
+export const REVISION_SIN_OBSERVACIONES = 'REVISION_ASESOR_SIN_OBSERVACIONES';
 
 const MENSAJES_POR_CODIGO: [string, string][] = [
   [REVISION_NO_ENCONTRADA, 'La revisión ya no existe.'],
@@ -15,6 +16,10 @@ const MENSAJES_POR_CODIGO: [string, string][] = [
   [ARTEFACTO_ASESOR_NO_PROPIETARIO, 'Ya no eres el asesor responsable de este artefacto.'],
   [ARTEFACTO_OMITIDO, 'El artefacto está omitido y no admite cambios.'],
   [REVISION_NO_ENVIABLE, 'Esta revisión ya no está pendiente: ya se envió.'],
+  [
+    REVISION_SIN_OBSERVACIONES,
+    'La revisión no tiene observaciones. Agrega al menos una para poder enviarla.',
+  ],
 ];
 
 export function mensajeDeErrorEnviarRevision(err: unknown): string {
@@ -23,5 +28,11 @@ export function mensajeDeErrorEnviarRevision(err: unknown): string {
 }
 
 export function revisionYaNoEnviable(err: unknown): boolean {
-  return MENSAJES_POR_CODIGO.some(([codigo]) => hasApiErrorCode(err, codigo));
+  return MENSAJES_POR_CODIGO.some(
+    ([codigo]) => codigo !== REVISION_SIN_OBSERVACIONES && hasApiErrorCode(err, codigo),
+  );
+}
+
+export function revisionSinObservaciones(err: unknown): boolean {
+  return hasApiErrorCode(err, REVISION_SIN_OBSERVACIONES);
 }

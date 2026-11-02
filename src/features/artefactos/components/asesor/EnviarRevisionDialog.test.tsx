@@ -107,6 +107,34 @@ describe('EnviarRevisionDialog', () => {
     expect(onSalir).toHaveBeenCalledTimes(1);
   });
 
+  it('con el 422 de revisión sin observaciones avisa, cierra la confirmación y no sale del panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    simular(
+      vi.fn((_v: unknown, o?: OpcionesMutate) =>
+        o?.onError?.(
+          errorApi(422, {
+            status: 422,
+            errorCode: 'REVISION_ASESOR_SIN_OBSERVACIONES',
+            message: 'del backend',
+          }),
+        ),
+      ),
+    );
+    const { onCerrar, onSalir } = montar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Enviar revisión' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo enviar la revisión',
+      'La revisión no tiene observaciones. Agrega al menos una para poder enviarla.',
+    );
+    expect(onCerrar).toHaveBeenCalledTimes(1);
+    expect(onSalir).not.toHaveBeenCalled();
+  });
+
   it('con otro error avisa y cierra sin salir', async () => {
     // Arrange
     const user = userEvent.setup();

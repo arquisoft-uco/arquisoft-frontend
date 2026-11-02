@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { MessageSquare } from 'lucide-react';
-import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import SidePanel from '../../../shared/components/ui/SidePanel';
@@ -8,8 +7,10 @@ import Skeleton from '../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import ListaObservacionesRevision from './ListaObservacionesRevision';
+import PieRevision from './PieRevision';
 
 interface Props {
+  titulo?: string;
   descripcion: string;
   descripcionVacia: string;
   observaciones: ObservacionRevision[] | undefined;
@@ -18,12 +19,15 @@ interface Props {
   error: unknown;
   onReintentar: () => void;
   onCerrar: () => void;
-  aviso?: ReactNode;
+  encabezado?: ReactNode;
   barra?: ReactNode;
+  notaPie?: string;
+  accionesPie?: ReactNode;
   acciones?: (observacion: ObservacionRevision) => ReactNode;
 }
 
 export default function ObservacionesRevisionPanelBase({
+  titulo = 'Observaciones de la revisión',
   descripcion,
   descripcionVacia,
   observaciones,
@@ -32,27 +36,25 @@ export default function ObservacionesRevisionPanelBase({
   error,
   onReintentar,
   onCerrar,
-  aviso,
+  encabezado,
   barra,
+  notaPie,
+  accionesPie,
   acciones,
 }: Props) {
   return (
     <SidePanel
-      titulo="Observaciones de la revisión"
+      titulo={titulo}
       descripcion={descripcion}
       onCerrar={onCerrar}
       pie={(solicitarCierre) => (
-        <div className="sticky bottom-0 z-10 border-t border-border bg-surface p-4 sm:px-6">
-          <div className="actions-row">
-            <Button variante="secundario" onClick={solicitarCierre}>
-              Cerrar
-            </Button>
-          </div>
-        </div>
+        <PieRevision nota={notaPie} onCerrar={solicitarCierre}>
+          {accionesPie}
+        </PieRevision>
       )}
     >
       <div className="flex flex-col gap-4">
-        {aviso}
+        {encabezado}
         {!isError && barra}
         {isError ? (
           <ErrorState

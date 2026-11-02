@@ -1,23 +1,18 @@
 import { useState } from 'react';
-import { MessageSquarePlus, Send } from 'lucide-react';
+import { MessageSquarePlus } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
-import Notice from '../../../../shared/components/ui/Notice';
-import { useObservacionesRevision } from '../../hooks/useObservacionesRevision';
-import { usePuedeGestionarObservaciones } from '../../hooks/usePuedeGestionarObservaciones';
-import { useUltimaVersionArtefacto } from '../../hooks/useUltimaVersionArtefacto';
+import { useRevisionEnGestion } from '../../hooks/useRevisionEnGestion';
 import type { ObservacionRevision } from '../../models/ObservacionRevision';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
-import { textoAvisoObservaciones } from '../../utils/aviso-observaciones';
-import {
-  ESTADO_OBSERVACION_SOLUCIONADA,
-  situacionReapertura,
-} from '../../utils/decision-observacion';
-import { revisionAdmiteDecisionObservacion } from '../../utils/revision-version';
+import { TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES } from '../../utils/aviso-observaciones';
+import { ESTADO_OBSERVACION_SOLUCIONADA } from '../../utils/decision-observacion';
 import ObservacionesRevisionPanelBase from '../ObservacionesRevisionPanelBase';
 import AccionesObservacionMenu from './AccionesObservacionMenu';
+import AccionesRevision from './AccionesRevision';
 import AgregarObservacionPanel from './AgregarObservacionPanel';
 import CambiarEstadoObservacionDialog from './CambiarEstadoObservacionDialog';
 import EliminarObservacionDialog from './EliminarObservacionDialog';
+import EncabezadoRevision from './EncabezadoRevision';
 import EnviarRevisionDialog from './EnviarRevisionDialog';
 
 interface Decision {
@@ -28,27 +23,16 @@ interface Decision {
 interface Props {
   revisionAsesorId: string;
   version: VersionArtefacto;
-  editable: boolean;
   onCerrar: () => void;
 }
 
-export default function ObservacionesRevisionPanel({
-  revisionAsesorId,
-  version,
-  editable,
-  onCerrar,
-}: Props) {
-  const { data, isLoading, isError, error, refetch } = useObservacionesRevision(revisionAsesorId);
-  const { omitidos } = usePuedeGestionarObservaciones();
+export default function GestionarRevisionPanel({ revisionAsesorId, version, onCerrar }: Props) {
+  const revision = useRevisionEnGestion({ revisionAsesorId, version });
+  const { editable, puedeDecidir, situacion } = revision;
   const [agregando, setAgregando] = useState(false);
   const [aEliminar, setAEliminar] = useState<ObservacionRevision | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [decision, setDecision] = useState<Decision | null>(null);
-  const omitido = omitidos?.has(version.artefacto) ?? false;
-  const puedeDecidir =
-    !editable && revisionAdmiteDecisionObservacion({ version, artefactoOmitido: omitido });
-  const { ultimaVersion } = useUltimaVersionArtefacto(version.artefacto, puedeDecidir);
-  const situacion = situacionReapertura({ version, ultimaVersion });
 
   if (agregando) {
     return (
@@ -61,24 +45,14 @@ export default function ObservacionesRevisionPanel({
     );
   }
 
-  const textoAviso = textoAvisoObservaciones({
-    editable,
-    version,
-    omitido,
-    puedeDecidir,
-    haySolucionadas: data?.some((o) => o.estadoId === ESTADO_OBSERVACION_SOLUCIONADA) ?? false,
-    situacion,
-  });
-
   function accionesDe(observacion: ObservacionRevision) {
-    const modo = editable ? 'eliminar' : 'decidir';
     if (!editable && !(puedeDecidir && observacion.estadoId === ESTADO_OBSERVACION_SOLUCIONADA)) {
       return undefined;
     }
     return (
       <AccionesObservacionMenu
         observacion={observacion}
-        modo={modo}
+        modo={editable ? 'eliminar' : 'decidir'}
         puedeReabrir={situacion === 'disponible'}
         onEliminar={setAEliminar}
         onDecidir={(o, estado) => setDecision({ observacion: o, estado })}
@@ -89,29 +63,41 @@ export default function ObservacionesRevisionPanel({
   return (
     <>
       <ObservacionesRevisionPanelBase
+        titulo="Gestionar revisión"
         descripcion={`«${version.nombreDocumento}» · Versión ${version.version}`}
         descripcionVacia={
           editable
             ? 'Agrega la primera observación de esta revisión.'
             : 'Aún no hay observaciones registradas en esta revisión.'
         }
-        observaciones={data}
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        onReintentar={() => void refetch()}
+        observaciones={revision.observaciones}
+        isLoading={revision.isLoading}
+        isError={revision.isError}
+        error={revision.error}
+        onReintentar={() => void revision.refetch()}
         onCerrar={onCerrar}
-        aviso={textoAviso && <Notice variante="info">{textoAviso}</Notice>}
+        encabezado={<EncabezadoRevision version={version} aviso={revision.textoAviso} />}
         barra={
           editable && (
             <div className="actions-row">
-              <Button icono={MessageSquarePlus} onClick={() => setAgregando(true)}>
+              <Button
+                variante="secundario"
+                icono={MessageSquarePlus}
+                onClick={() => setAgregando(true)}
+              >
                 Agregar observación
               </Button>
-              <Button variante="secundario" icono={Send} onClick={() => setEnviando(true)}>
-                Enviar revisión
-              </Button>
             </div>
+          )
+        }
+        notaPie={revision.mostrarNotaEnvio ? TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES : undefined}
+        accionesPie={
+          editable && (
+            <AccionesRevision
+              habilitado={revision.hayObservaciones}
+              mostrarNota={revision.mostrarNotaEnvio}
+              onEnviar={() => setEnviando(true)}
+            />
           )
         }
         acciones={accionesDe}
