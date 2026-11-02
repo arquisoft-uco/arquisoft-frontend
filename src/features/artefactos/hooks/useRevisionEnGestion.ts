@@ -1,5 +1,9 @@
 import type { VersionArtefacto } from '../models/VersionArtefacto';
-import { textoAvisoObservaciones } from '../utils/aviso-observaciones';
+import {
+  TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES,
+  textoAvisoObservaciones,
+} from '../utils/aviso-observaciones';
+import { evaluarCierre } from '../utils/cierre-revision';
 import { ESTADO_OBSERVACION_SOLUCIONADA, situacionReapertura } from '../utils/decision-observacion';
 import { revisionAdmiteDecisionObservacion } from '../utils/revision-version';
 import { useRevisionAnterior } from './useRevisionAnterior';
@@ -40,6 +44,11 @@ export function useRevisionEnGestion({ revisionAsesorId, version }: Entrada) {
     situacion,
   });
   const mostrarNotaEnvio = editable && observaciones !== undefined && !hayObservaciones;
+  const cierre = evaluarCierre({ version, observaciones, anterior });
+  const notaPie =
+    [mostrarNotaEnvio ? TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES : null, editable ? cierre.motivo : null]
+      .filter(Boolean)
+      .join(' ') || undefined;
 
   return {
     observaciones,
@@ -55,5 +64,7 @@ export function useRevisionEnGestion({ revisionAsesorId, version }: Entrada) {
     hayObservaciones,
     mostrarNotaEnvio,
     anterior,
+    cierre,
+    notaPie,
   };
 }
