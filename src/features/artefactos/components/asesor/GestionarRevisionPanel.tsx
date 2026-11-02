@@ -4,7 +4,6 @@ import Button from '../../../../shared/components/ui/Button';
 import { useRevisionEnGestion } from '../../hooks/useRevisionEnGestion';
 import type { ObservacionRevision } from '../../models/ObservacionRevision';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
-import { TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES } from '../../utils/aviso-observaciones';
 import { ESTADO_OBSERVACION_SOLUCIONADA } from '../../utils/decision-observacion';
 import ObservacionesRevisionPanelBase from '../ObservacionesRevisionPanelBase';
 import AccionesObservacionMenu from './AccionesObservacionMenu';
@@ -26,6 +25,7 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
   const [agregando, setAgregando] = useState(false);
   const [aEliminar, setAEliminar] = useState<ObservacionRevision | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [cerrando, setCerrando] = useState(false);
   const [decision, setDecision] = useState<Decision | null>(null);
 
   if (agregando) {
@@ -84,13 +84,16 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
             </div>
           )
         }
-        notaPie={revision.mostrarNotaEnvio ? TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES : undefined}
+        notaPie={revision.notaPie}
         accionesPie={
           editable && (
             <AccionesRevision
               habilitado={revision.hayObservaciones}
               mostrarNota={revision.mostrarNotaEnvio}
+              puedeCerrar={revision.cierre.puedeCerrar}
+              hayNotaCierre={!!revision.cierre.motivo}
               onEnviar={() => setEnviando(true)}
+              onCerrarRevision={() => setCerrando(true)}
             />
           )
         }
@@ -108,9 +111,11 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
         aEliminar={aEliminar}
         decision={decision}
         enviando={enviando}
+        cerrando={cerrando}
         onCerrarEliminar={() => setAEliminar(null)}
         onCerrarDecision={() => setDecision(null)}
         onCerrarEnvio={() => setEnviando(false)}
+        onCerrarCierre={() => setCerrando(false)}
         onSalir={onCerrar}
       />
     </>

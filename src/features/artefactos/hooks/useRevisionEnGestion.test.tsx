@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '../../../test-utils/render';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
+import { TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES } from '../utils/aviso-observaciones';
+import {
+  TEXTO_CIERRE_CON_OBSERVACIONES,
+  textoCierreAnteriorSinCerrar,
+} from '../utils/cierre-revision';
 import { useObservacionesRevision } from './useObservacionesRevision';
 import { usePuedeGestionarObservaciones } from './usePuedeGestionarObservaciones';
 import { useRevisionAnterior } from './useRevisionAnterior';
@@ -25,10 +30,12 @@ function preparar({
   observaciones,
   editable,
   omitidos = new Set<string>(),
+  anteriorSinCerrar = 0,
 }: {
   observaciones: { id: string; estadoId: string }[] | undefined;
   editable: boolean;
   omitidos?: Set<string>;
+  anteriorSinCerrar?: number;
 }) {
   vi.mocked(useObservacionesRevision).mockReturnValue({
     data: observaciones,
@@ -45,6 +52,11 @@ function preparar({
   });
   vi.mocked(useRevisionAnterior).mockReturnValue({
     visible: false,
+    versionAnterior: anteriorSinCerrar > 0 ? { revisionAsesor: 'r-0' } : null,
+    observaciones: [],
+    isLoading: false,
+    isError: false,
+    sinCerrar: anteriorSinCerrar,
   } as Partial<ReturnType<typeof useRevisionAnterior>> as ReturnType<typeof useRevisionAnterior>);
   vi.mocked(useUltimaVersionArtefacto).mockReturnValue({
     ultimaVersion: undefined,
@@ -81,6 +93,28 @@ describe('useRevisionEnGestion', () => {
     });
     expect(conLista).toMatchObject({ hayObservaciones: true, mostrarNotaEnvio: false });
     expect(cargando).toMatchObject({ hayObservaciones: false, mostrarNotaEnvio: false });
+  });
+
+  it('compone cierre y nota del pie según observaciones propias y versión anterior', () => {
+    // Arrange / Act
+    preparar({ observaciones: [], editable: true });
+    const sinObservaciones = usar();
+    preparar({ observaciones: [{ id: 'o-1', estadoId: 'NUEVA' }], editable: true });
+    const conObservaciones = usar();
+    preparar({ observaciones: [], editable: true, anteriorSinCerrar: 2 });
+    const anteriorAbierta = usar({ ...VERSION, version: 2 });
+    preparar({ observaciones: [{ id: 'o-1', estadoId: 'NUEVA' }], editable: false });
+    const soloLectura = usar();
+
+    // Assert
+    expect(sinObservaciones.cierre).toEqual({ puedeCerrar: true, motivo: null });
+    expect(sinObservaciones.notaPie).toBe(TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES);
+    expect(conObservaciones.cierre.puedeCerrar).toBe(false);
+    expect(conObservaciones.notaPie).toBe(TEXTO_CIERRE_CON_OBSERVACIONES);
+    expect(anteriorAbierta.notaPie).toBe(
+      `${TEXTO_NOTA_ENVIO_SIN_OBSERVACIONES} ${textoCierreAnteriorSinCerrar(2)}`,
+    );
+    expect(soloLectura.notaPie).toBeUndefined();
   });
 
   it('omitido o no pendiente no es editable y no ofrece nota de envío', () => {

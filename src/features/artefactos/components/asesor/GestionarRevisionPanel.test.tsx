@@ -10,6 +10,7 @@ import { useUltimaVersionArtefacto } from '../../hooks/useUltimaVersionArtefacto
 import { useObservacionEnEliminacion } from '../../hooks/useObservacionEnEliminacion';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { toast } from '../../../../shared/hooks/useToast';
+import { useCerrarRevision } from '../../hooks/useCerrarRevision';
 import { useEnviarRevision } from '../../hooks/useEnviarRevision';
 import { useCambiarEstadoObservacion } from '../../hooks/useCambiarEstadoObservacion';
 import { useRevisionAnterior } from '../../hooks/useRevisionAnterior';
@@ -44,6 +45,9 @@ vi.mock('../../hooks/useCambiarEstadoObservacion', () => ({
 }));
 vi.mock('../../hooks/useRevisionAnterior', () => ({
   useRevisionAnterior: vi.fn(() => ({ visible: false })),
+}));
+vi.mock('../../hooks/useCerrarRevision', () => ({
+  useCerrarRevision: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
 vi.mock('../../hooks/useEnviarRevision', () => ({
   useEnviarRevision: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
@@ -691,6 +695,96 @@ describe('GestionarRevisionPanel', () => {
         { observacionId: 'o-9', revisionAsesorId: 'r-0', estado: 'CERRADA' },
         expect.any(Object),
       );
+    });
+  });
+
+  describe('Dar por completado', () => {
+    const PRIMERA = { ...PROPS, version: { ...VERSION, version: 1 } };
+
+    function simularAnteriorSinCerrar() {
+      vi.mocked(useRevisionAnterior).mockReturnValue({
+        visible: true,
+        versionAnterior: { ...VERSION, id: 'v-0', version: 3, revisionAsesor: 'r-0' },
+        observaciones: [{ ...solucionada, id: 'o-9', revisionAsesorId: 'r-0' }],
+        isLoading: false,
+        isError: false,
+        error: null,
+        refetch: vi.fn(),
+        total: 2,
+        sinCerrar: 2,
+        puedeDecidir: false,
+        situacion: 'disponible',
+        textoAviso: null,
+      } as Partial<ReturnType<typeof useRevisionAnterior>> as ReturnType<
+        typeof useRevisionAnterior
+      >);
+    }
+
+    it('con la primera versión sin observaciones se habilita y abre el diálogo', async () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [] }));
+      const mutateCierre = vi.fn();
+      vi.mocked(useCerrarRevision).mockReturnValue({
+        mutate: mutateCierre,
+        isPending: false,
+      } as Partial<ReturnType<typeof useCerrarRevision>> as ReturnType<typeof useCerrarRevision>);
+      const user = userEvent.setup();
+      simularOmitidos(new Set(), true);
+      render(<GestionarRevisionPanel {...PRIMERA} onCerrar={vi.fn()} />);
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Dar por completado' }));
+      const dialogo = screen.getByRole('dialog', { name: '¿Dar por completado este artefacto?' });
+      await user.click(within(dialogo).getByRole('button', { name: 'Dar por completado' }));
+
+      // Assert
+      expect(mutateCierre).toHaveBeenCalledWith({ revisionAsesorId: 'r-1' }, expect.any(Object));
+    });
+
+    it('con observaciones se deshabilita, la nota lo explica y Enviar revisión se habilita', () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [nueva] }));
+
+      // Act
+      renderEditable();
+
+      // Assert
+      const cerrar = screen.getByRole('button', { name: 'Dar por completado' });
+      expect(cerrar).toBeDisabled();
+      expect(cerrar).toHaveAccessibleDescription(
+        'Para dar por completado, elimina primero las observaciones de esta revisión.',
+      );
+      expect(screen.getByRole('button', { name: 'Enviar revisión' })).toBeEnabled();
+    });
+
+    it('con observaciones sin cerrar en la versión anterior se deshabilita con el conteo', () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [] }));
+      simularAnteriorSinCerrar();
+
+      // Act
+      renderEditable();
+
+      // Assert
+      const cerrar = screen.getByRole('button', { name: 'Dar por completado' });
+      expect(cerrar).toBeDisabled();
+      expect(cerrar).toHaveAccessibleDescription(
+        expect.stringContaining(
+          'cierra primero las observaciones de la versión anterior (2 sin cerrar)',
+        ),
+      );
+    });
+
+    it('en solo lectura no se ofrece', () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [] }));
+      simularOmitidos(new Set(['a-1']));
+
+      // Act
+      render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+
+      // Assert
+      expect(screen.queryByRole('button', { name: 'Dar por completado' })).not.toBeInTheDocument();
     });
   });
 });
