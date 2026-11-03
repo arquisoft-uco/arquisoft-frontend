@@ -52,4 +52,8 @@ export const repositorioArtefactosService = {
     apiClient
       .post<SubirVersionResponse>(`/repositorio-artefactos/${repositorioId}/versiones`, req)
       .then((r) => r.data),
+
+  // La ruta cuelga del contexto `artefactos` del backend, no de `/repositorio-artefactos`.
+  eliminarVersion: (versionId: string): Promise<void> =>
+    apiClient.delete(`/artefactos/versiones-repositorio/${versionId}`).then(() => undefined),
 };
