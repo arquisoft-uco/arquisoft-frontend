@@ -52,6 +52,23 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('removerEstudianteArtefacto', () => {
+    it('hace DELETE /artefactos/{artefactoId}/estudiantes/{estudianteId} sin body y resuelve sin valor', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ data: undefined });
+
+      // Act
+      const resultado = await artefactosService.removerEstudianteArtefacto({
+        artefactoId: 'art-1',
+        estudianteId: 'est-1',
+      });
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/art-1/estudiantes/est-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('marcarRevisionResuelta', () => {
     it('hace PATCH /artefactos/revisiones/{id}/estado con el estado RESUELTA y resuelve sin valor', async () => {
       // Arrange

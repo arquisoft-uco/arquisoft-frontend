@@ -6,7 +6,7 @@ import { toast } from '../../../../shared/hooks/useToast';
 import { useEstudiantesVinculables } from '../../hooks/useEstudiantesVinculables';
 import { useVincularEstudiantes } from '../../hooks/useVincularEstudiantes';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
-import VincularEstudiantesPanel from './VincularEstudiantesPanel';
+import VincularEstudiantesForm from './VincularEstudiantesForm';
 
 vi.mock('../../hooks/useEstudiantesVinculables', () => ({ useEstudiantesVinculables: vi.fn() }));
 vi.mock('../../hooks/useVincularEstudiantes', () => ({ useVincularEstudiantes: vi.fn() }));
@@ -63,46 +63,36 @@ async function elegirLuis(user: ReturnType<typeof userEvent.setup>) {
   await user.click(await screen.findByRole('option', { name: /Luis Gómez/ }));
 }
 
-function montar(props: Partial<React.ComponentProps<typeof VincularEstudiantesPanel>> = {}) {
-  render(
-    <VincularEstudiantesPanel
-      artefacto={ARTEFACTO}
-      onVolver={vi.fn()}
-      onSalir={vi.fn()}
-      {...props}
-    />,
-  );
+function montar(props: Partial<React.ComponentProps<typeof VincularEstudiantesForm>> = {}) {
+  render(<VincularEstudiantesForm artefacto={ARTEFACTO} onSalir={vi.fn()} {...props} />);
 }
 
-describe('VincularEstudiantesPanel', () => {
+describe('VincularEstudiantesForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     simular();
   });
 
-  it('enviar sin elegir estudiantes muestra el error de lista vacía y no llama al servicio', async () => {
-    // Arrange
-    const user = userEvent.setup();
+  it('sin elegir estudiantes el envío queda deshabilitado', () => {
+    // Act
     montar();
 
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes' }));
-
     // Assert
-    expect((await screen.findAllByRole('alert')).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('button', { name: 'Vincular estudiantes seleccionados' }),
+    ).toBeDisabled();
     expect(mutate).not.toHaveBeenCalled();
   });
 
-  it('enviar con un estudiante elegido llama al servicio con su UUID, avisa y vuelve a la lista', async () => {
+  it('enviar con un estudiante elegido llama al servicio con su UUID, avisa y limpia la selección', async () => {
     // Arrange
     const user = userEvent.setup();
-    const onVolver = vi.fn();
     mutate.mockImplementation((_v, o: OpcionesMutate) => o.onSuccess());
-    montar({ onVolver });
+    montar();
     await elegirLuis(user);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes' }));
+    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes seleccionados' }));
 
     // Assert
     await waitFor(() =>
@@ -115,13 +105,12 @@ describe('VincularEstudiantesPanel', () => {
       'Estudiantes vinculados',
       'Se vinculó 1 estudiante a «Acta de inicio».',
     );
-    expect(onVolver).toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Luis Gómez/ })).toBeNull());
   }, 15000);
 
   it('un 422 de ya vinculado avisa, pinta el mensaje junto al campo y mantiene la selección', async () => {
     // Arrange
     const user = userEvent.setup();
-    const onVolver = vi.fn();
     mutate.mockImplementation((_v, o: OpcionesMutate) =>
       o.onError(
         errorApi(422, {
@@ -131,11 +120,11 @@ describe('VincularEstudiantesPanel', () => {
         }),
       ),
     );
-    montar({ onVolver });
+    montar();
     await elegirLuis(user);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes' }));
+    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes seleccionados' }));
 
     // Assert
     expect(await screen.findByText('El estudiante ya está vinculado')).toBeInTheDocument();
@@ -144,10 +133,9 @@ describe('VincularEstudiantesPanel', () => {
       'El estudiante ya está vinculado',
     );
     expect(screen.getByRole('button', { name: /Luis Gómez/ })).toBeInTheDocument();
-    expect(onVolver).not.toHaveBeenCalled();
   }, 15000);
 
-  it('un 422 de artefacto omitido avisa y sale del panel', async () => {
+  it('un 422 de artefacto omitido avisa y cierra el panel', async () => {
     // Arrange
     const user = userEvent.setup();
     const onSalir = vi.fn();
@@ -164,14 +152,14 @@ describe('VincularEstudiantesPanel', () => {
     await elegirLuis(user);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes' }));
+    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes seleccionados' }));
 
     // Assert
     await waitFor(() => expect(onSalir).toHaveBeenCalledTimes(1));
     expect(toast.error).toHaveBeenCalled();
   }, 15000);
 
-  it('con la consulta caída muestra el aviso y deshabilita el envío', () => {
+  it('con la consulta caída muestra el aviso en lugar del formulario', () => {
     // Arrange
     simular({ isError: true, estudiantes: [] });
 
@@ -180,10 +168,10 @@ describe('VincularEstudiantesPanel', () => {
 
     // Assert
     expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Vincular estudiantes' })).toBeDisabled();
+    expect(screen.queryByRole('form', { name: 'Vincular estudiantes' })).toBeNull();
   });
 
-  it('sin estudiantes vinculables deshabilita el envío', () => {
+  it('sin estudiantes vinculables lo indica en lugar del formulario', () => {
     // Arrange
     simular({ estudiantes: [] });
 
@@ -191,6 +179,8 @@ describe('VincularEstudiantesPanel', () => {
     montar();
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Vincular estudiantes' })).toBeDisabled();
+    expect(
+      screen.getByText('Todos los estudiantes vigentes del proyecto ya están vinculados.'),
+    ).toBeInTheDocument();
   });
 });

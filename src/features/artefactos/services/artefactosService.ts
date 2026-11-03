@@ -19,6 +19,7 @@ import type { MarcarRevisionResueltaRequest } from '../models/MarcarRevisionResu
 import type { ObservacionRevision } from '../models/ObservacionRevision';
 import type { ObservacionRevisionResponse } from '../models/ObservacionRevisionResponse';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
+import type { RemoverEstudianteArtefactoRequest } from '../models/RemoverEstudianteArtefactoRequest';
 import type { RegistrarObservacionRequest } from '../models/RegistrarObservacionRequest';
 import type { RegistrarObservacionResponse } from '../models/RegistrarObservacionResponse';
 import type { RegistrarRevisionResponse } from '../models/RegistrarRevisionResponse';
@@ -71,6 +72,11 @@ export const artefactosService = {
     apiClient
       .get<EstudianteArtefacto[]>(`/artefactos/${artefactoId}/estudiantes`)
       .then((r) => r.data),
+
+  removerEstudianteArtefacto: (req: RemoverEstudianteArtefactoRequest): Promise<void> =>
+    apiClient
+      .delete(`/artefactos/${req.artefactoId}/estudiantes/${req.estudianteId}`)
+      .then(() => undefined),
 
   vincularEstudiantes: (
     artefactoId: string,
