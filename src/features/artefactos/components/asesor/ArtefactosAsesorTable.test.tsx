@@ -1,4 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
+
+const { descargar } = vi.hoisted(() => ({ descargar: vi.fn() }));
+
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar, descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
@@ -165,5 +171,28 @@ describe('ArtefactosAsesorTable', () => {
 
     // Assert
     expect(onCambiarAsesor).toHaveBeenCalledWith(ARTEFACTO);
+  });
+
+  it('Descargar sale en el menú de la fila activa y de la omitida con la versión de repositorio, no el id del artefacto', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const omitido = {
+      ...ARTEFACTO,
+      id: 'a-2',
+      versionRepositorioArtefacto: 'r-2',
+      nombreDocumento: 'Anteproyecto',
+      omitido: true,
+    };
+    renderizar({ artefactos: [ARTEFACTO, omitido] });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar' }));
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Anteproyecto' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar' }));
+
+    // Assert
+    expect(descargar).toHaveBeenCalledWith('r-1', 'Acta de inicio');
+    expect(descargar).toHaveBeenCalledWith('r-2', 'Anteproyecto');
   });
 });

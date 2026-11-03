@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar: vi.fn(), descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { Navigate, Route, Routes } from 'react-router';
 import { render, screen } from '../../test-utils/render';

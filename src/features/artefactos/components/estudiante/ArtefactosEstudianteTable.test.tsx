@@ -1,4 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
+
+const { descargar } = vi.hoisted(() => ({ descargar: vi.fn() }));
+
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar, descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
@@ -99,13 +105,28 @@ describe('ArtefactosEstudianteTable', () => {
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
 
-  it('la fila es solo de consulta: no ofrece acciones', () => {
+  it('cada fila tiene un menú con Descargar que pide la versión del repositorio de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar({
+      artefactos: [
+        ARTEFACTO,
+        {
+          ...ARTEFACTO,
+          id: 'a-2',
+          versionRepositorioArtefacto: 'r-2',
+          nombreDocumento: 'Anteproyecto',
+          omitido: true,
+        },
+      ],
+    });
+
     // Act
-    renderizar();
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Anteproyecto' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar' }));
 
     // Assert
-    expect(
-      screen.queryByRole('button', { name: 'Acciones del artefacto Acta de inicio' }),
-    ).not.toBeInTheDocument();
+    expect(descargar).toHaveBeenCalledWith('r-2', 'Anteproyecto');
+    expect(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' })).toBeInTheDocument();
   });
 });

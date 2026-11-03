@@ -1,4 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const { descargar } = vi.hoisted(() => ({ descargar: vi.fn() }));
+
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar, descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
@@ -240,25 +246,40 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(within(panel).getByText('Sistema de riego')).toBeInTheDocument();
   });
 
-  it('una participación omitida lleva "Omitido" y no tiene menú', async () => {
+  it('Descargar pide la versión del repositorio del artefacto, también en uno omitido, donde es la única acción', async () => {
     // Arrange
+    const user = userEvent.setup();
     getParticipaciones.mockResolvedValue([
       { ...participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'), omitido: true },
       participacion('a-2', 'p-1', 'Sistema de riego', 'Anteproyecto'),
     ]);
     render(<ConsultarParticipacionesEstudiante />);
-    const tabla = await screen.findByRole('table', {
-      name: 'Artefactos del proyecto Sistema de riego',
-    });
+
+    // Act
+    await abrirMenu(user, 'Acta de inicio');
 
     // Assert
-    expect(
-      await within(tabla).findByRole('button', { name: 'Acciones de Anteproyecto' }),
-    ).toBeInTheDocument();
-    expect(
-      within(tabla).queryByRole('button', { name: 'Acciones de Acta de inicio' }),
-    ).not.toBeInTheDocument();
+    expect(screen.getAllByRole('menuitem')).toHaveLength(1);
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar' }));
+    expect(descargar).toHaveBeenCalledWith('v-a-1', 'Acta de inicio');
+    const tabla = screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' });
     expect(within(tabla).getByText('Omitido')).toBeInTheDocument();
+  });
+
+  it('en un artefacto activo Descargar convive con las demás acciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    getParticipaciones.mockResolvedValue([
+      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+    ]);
+    render(<ConsultarParticipacionesEstudiante />);
+
+    // Act
+    await abrirMenu(user, 'Acta de inicio');
+
+    // Assert
+    expect(await screen.findByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Gestionar revisión' })).toBeInTheDocument();
   });
 
   it('muestra el estado de carga mientras llega la lista', () => {

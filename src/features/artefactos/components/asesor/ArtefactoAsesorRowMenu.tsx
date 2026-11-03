@@ -1,5 +1,7 @@
 import { EyeOff, GitCompareArrows, RotateCcw, UserRoundPen, Users } from 'lucide-react';
+import { accionDescargar } from '../../../../shared/components/accionDescargar';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
+import { useDescargarVersionRepositorio } from '../../../../shared/hooks/useDescargarVersionRepositorio';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 
 interface Props {
@@ -20,6 +22,7 @@ export default function ArtefactoAsesorRowMenu({
   onReactivar,
 }: Props) {
   const { omitido } = artefacto;
+  const { descargar, descargando } = useDescargarVersionRepositorio();
   const acciones = [
     ...(omitido
       ? []
@@ -35,6 +38,11 @@ export default function ArtefactoAsesorRowMenu({
             onSeleccionar: () => onCambiarVersionRepositorio(artefacto),
           },
         ]),
+    accionDescargar({
+      onSeleccionar: () =>
+        descargar(artefacto.versionRepositorioArtefacto, artefacto.nombreDocumento),
+      deshabilitada: descargando,
+    }),
     {
       etiqueta: omitido ? 'Ver estudiantes' : 'Gestionar estudiantes',
       icono: Users,
