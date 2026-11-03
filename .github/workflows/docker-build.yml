@@ -77,3 +77,15 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # ── Tag publicado, para que deploy.yml lo lea (su workflow_run.head_sha
+      #     apunta a la rama por defecto, no al commit construido) ──
+      - name: Guardar tag de la imagen
+        run: echo "${{ steps.vars.outputs.short_sha }}" > short_sha.txt
+
+      - name: Publicar tag como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-tag
+          path: short_sha.txt
+          retention-days: 7
