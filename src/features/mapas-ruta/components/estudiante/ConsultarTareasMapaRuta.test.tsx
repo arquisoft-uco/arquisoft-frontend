@@ -15,6 +15,8 @@ const TAREA = {
   id: 't-1',
   descripcion: 'Entregar informe',
   mapaRutaId: 'm-1',
+  fechaInicioMapaRuta: '2026-03-05',
+  fechaFinMapaRuta: '2026-08-01',
   estado: { id: 'NUEVA', nombre: 'Nueva' },
   asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
 };
@@ -87,6 +89,19 @@ describe('ConsultarTareasMapaRuta', () => {
     expect(screen.getAllByText('ana@uco.edu.co').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Nueva').length).toBeGreaterThan(0);
     expect(screen.getByText('1 tarea')).toBeInTheDocument();
+  });
+
+  it('la descripción de cada tarea es un enlace a su detalle', () => {
+    // Arrange
+    simularListado();
+
+    // Act
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+
+    // Assert
+    const enlaces = screen.getAllByRole('link', { name: 'Ver el detalle de Entregar informe' });
+    expect(enlaces.length).toBeGreaterThan(0);
+    enlaces.forEach((e) => expect(e).toHaveAttribute('href', '/mapas-ruta/tareas/t-1'));
   });
 
   it('mientras carga muestra el estado de carga accesible', () => {

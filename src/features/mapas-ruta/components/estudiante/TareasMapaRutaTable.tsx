@@ -11,8 +11,8 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { varianteEstadoTarea } from '../../../../shared/utils/estado-variante';
 import type { OrdenCampoTarea } from '../../models/OrdenCampoTarea';
 import type { Tarea } from '../../models/Tarea';
+import EnlaceTarea from './EnlaceTarea';
 
-const TITULO = 'font-medium text-on-surface';
 const SUBTEXTO = 'text-[13px] text-on-surface-secondary';
 const CELDA_ASESOR = 'flex flex-col';
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
@@ -49,7 +49,7 @@ const COLUMNAS: ColumnaTabla<Tarea>[] = [
     encabezado: 'Tarea',
     clave: 'descripcion',
     ordenable: true,
-    celda: (tarea) => <span className={TITULO}>{tarea.descripcion}</span>,
+    celda: (tarea) => <EnlaceTarea tarea={tarea} />,
   },
   {
     id: 'asesor',
@@ -106,7 +106,7 @@ export default function TareasMapaRutaTable({
       vacio={vacio}
       tarjeta={(tarea) => (
         <>
-          <span className={TITULO}>{tarea.descripcion}</span>
+          <EnlaceTarea tarea={tarea} />
           <DatosAsesor tarea={tarea} />
           <div className={TARJETA_ESTADO}>
             <InsigniaEstado tarea={tarea} />

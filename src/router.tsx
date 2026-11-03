@@ -6,8 +6,6 @@ import AppLayout from './layout/AppLayout';
 import { ROLES_POR_RUTA } from './layout/nav-items';
 import ForbiddenPage from './shared/components/ForbiddenPage';
 import RouteErrorPage from './shared/components/RouteErrorPage';
-
-// Lazy feature imports — AppLayout's <Suspense> handles loading states
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'));
 const FichasPerfil = lazy(() => import('./features/fichas-perfil/FichasPerfil'));
 const DetalleFicha = lazy(() => import('./features/fichas-perfil/DetalleFicha'));
@@ -34,6 +32,7 @@ const RegistrarEvaluacionesCualitativas = lazy(
   () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
 );
 const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
+const DetalleTarea = lazy(() => import('./features/mapas-ruta/DetalleTarea'));
 const RepositorioArtefactos = lazy(
   () => import('./features/repositorio-artefactos/RepositorioArtefactos'),
 );
@@ -47,19 +46,16 @@ const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
 
 function guarded(path: string, element: ReactElement): ReactElement {
   const roles = ROLES_POR_RUTA[path];
-  if (!roles) return element;
-  return <RoleGuard roles={roles}>{element}</RoleGuard>;
+  return roles ? <RoleGuard roles={roles}>{element}</RoleGuard> : element;
 }
 
 // Exportado para que el interceptor de Axios navegue a /forbidden fuera del árbol de React.
 export const router = createBrowserRouter([
   {
-    // AuthGuard: shows AppLoader while Keycloak initializes, then renders Outlet
     element: <AuthGuard />,
     errorElement: <RouteErrorPage />,
     children: [
       {
-        // AppLayout: shell with Header + conditional Sidebar
         element: <AppLayout />,
         children: [
           { index: true, element: <Navigate to="/dashboard" replace /> },
@@ -124,7 +120,14 @@ export const router = createBrowserRouter([
               },
             ],
           },
-          { path: 'mapas-ruta', element: guarded('mapas-ruta', <MapasRuta />) },
+          {
+            path: 'mapas-ruta',
+            element: guarded('mapas-ruta', <Outlet />),
+            children: [
+              { index: true, element: <MapasRuta /> },
+              { path: 'tareas/:id', element: <DetalleTarea /> },
+            ],
+          },
           {
             path: 'repositorio-artefactos',
             element: guarded('repositorio-artefactos', <Outlet />),
