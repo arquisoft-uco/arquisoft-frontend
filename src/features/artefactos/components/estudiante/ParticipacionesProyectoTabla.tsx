@@ -28,12 +28,12 @@ function etiquetaVersion(participacion: ParticipacionArtefacto): string {
 
 function NombreArtefacto({
   participacion,
-  motivoBloqueo,
+  avisoFila,
 }: {
   participacion: ParticipacionArtefacto;
-  motivoBloqueo: MotivoBloqueo;
+  avisoFila: MotivoBloqueo;
 }) {
-  const motivo = participacion.omitido ? undefined : motivoBloqueo(participacion);
+  const motivo = participacion.omitido ? undefined : avisoFila(participacion);
 
   return (
     <>
@@ -48,14 +48,14 @@ function NombreArtefacto({
   );
 }
 
-function columnasDe(motivoBloqueo: MotivoBloqueo): ColumnaTabla<ParticipacionArtefacto>[] {
+function columnasDe(avisoFila: MotivoBloqueo): ColumnaTabla<ParticipacionArtefacto>[] {
   return [
     {
       id: 'documento',
       encabezado: 'Documento',
       clave: 'nombreDocumento',
       celda: (participacion) => (
-        <NombreArtefacto participacion={participacion} motivoBloqueo={motivoBloqueo} />
+        <NombreArtefacto participacion={participacion} avisoFila={avisoFila} />
       ),
     },
     {
@@ -86,16 +86,18 @@ function columnasDe(motivoBloqueo: MotivoBloqueo): ColumnaTabla<ParticipacionArt
 interface Props extends Acciones {
   proyecto: ProyectoConParticipaciones;
   motivoBloqueo: MotivoBloqueo;
+  avisoFila: MotivoBloqueo;
 }
 
 export default function ParticipacionesProyectoTabla({
   proyecto,
   motivoBloqueo,
+  avisoFila,
   onGestionarRevision,
   onSubirVersion,
 }: Props) {
   const idTitulo = useId();
-  const columnas = useMemo(() => columnasDe(motivoBloqueo), [motivoBloqueo]);
+  const columnas = useMemo(() => columnasDe(avisoFila), [avisoFila]);
   const acciones = { onGestionarRevision, onSubirVersion };
 
   return (
@@ -117,7 +119,7 @@ export default function ParticipacionesProyectoTabla({
         )}
         tarjeta={(participacion) => (
           <>
-            <NombreArtefacto participacion={participacion} motivoBloqueo={motivoBloqueo} />
+            <NombreArtefacto participacion={participacion} avisoFila={avisoFila} />
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
             <p className={TARJETA_DATO}>
               {participacion.nombreAsesor} · {etiquetaVersion(participacion)}

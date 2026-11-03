@@ -16,6 +16,8 @@ import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 const LISTA = 'flex flex-col gap-6';
+const SIN_VERSION = 'Aún no has subido ninguna versión del artefacto.';
+const REVISION_EN_PROGRESO = 'Atiende las observaciones del asesor y sube una nueva versión.';
 
 function textoResumen(artefactos: number, proyectos: number): string {
   const textoArtefactos = `${artefactos} ${artefactos === 1 ? 'artefacto' : 'artefactos'}`;
@@ -53,6 +55,14 @@ export default function ConsultarParticipacionesEstudiante() {
     return motivoBloqueoSubida(ultima);
   }
 
+  function avisoFila(participacion: ParticipacionArtefacto): string | null | undefined {
+    if (participacion.omitido) return motivoBloqueo(participacion);
+    const ultima = ultimaVersion(participacion.id);
+    if (ultima === null) return SIN_VERSION;
+    if (ultima?.estadoRevision === 'EN_PROGRESO') return REVISION_EN_PROGRESO;
+    return motivoBloqueo(participacion);
+  }
+
   const resumen =
     isLoading || isError || totalArtefactos === 0
       ? ''
@@ -86,6 +96,7 @@ export default function ConsultarParticipacionesEstudiante() {
                 key={proyecto.proyectoGrado}
                 proyecto={proyecto}
                 motivoBloqueo={motivoBloqueo}
+                avisoFila={avisoFila}
                 onGestionarRevision={(p) =>
                   setPanel({ artefacto: aArtefacto(p), modo: 'gestionar' })
                 }

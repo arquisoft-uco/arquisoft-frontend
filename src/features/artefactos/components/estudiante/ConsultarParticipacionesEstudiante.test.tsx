@@ -146,6 +146,12 @@ describe('ConsultarParticipacionesEstudiante', () => {
     // Assert
     expect(within(tabla).getByText('Esperando la revisión del asesor.')).toBeInTheDocument();
     expect(within(tabla).getByText('El asesor está preparando la revisión.')).toBeInTheDocument();
+    expect(
+      within(tabla).getByText('Aún no has subido ninguna versión del artefacto.'),
+    ).toBeInTheDocument();
+    expect(
+      within(tabla).getByText('Atiende las observaciones del asesor y sube una nueva versión.'),
+    ).toBeInTheDocument();
 
     // Act
     await abrirMenu(user, 'En progreso');
