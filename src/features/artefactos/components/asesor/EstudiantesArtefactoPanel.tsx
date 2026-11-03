@@ -1,14 +1,12 @@
-import { useState } from 'react';
-import { UserPlus } from 'lucide-react';
-import Button from '../../../../shared/components/ui/Button';
 import FormActions from '../../../../shared/components/ui/FormActions';
+import FormSection from '../../../../shared/components/ui/FormSection';
 import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import EstudiantesArtefactoLista from './EstudiantesArtefactoLista';
-import VincularEstudiantesPanel from './VincularEstudiantesPanel';
+import VincularEstudiantesForm from './VincularEstudiantesForm';
 
-const BARRA = 'mb-4 flex justify-end';
+const CONTENIDO = 'flex flex-col gap-6';
 const AVISO_OMITIDO =
   'Este artefacto está omitido y no admite cambios de estudiantes. Reactívalo para modificarlos.';
 
@@ -18,18 +16,6 @@ interface Props {
 }
 
 export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props) {
-  const [vinculando, setVinculando] = useState(false);
-
-  if (vinculando) {
-    return (
-      <VincularEstudiantesPanel
-        artefacto={artefacto}
-        onVolver={() => setVinculando(false)}
-        onSalir={onCerrar}
-      />
-    );
-  }
-
   return (
     <SidePanel
       titulo="Estudiantes del artefacto"
@@ -39,18 +25,15 @@ export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props
         <FormActions nota="Los cambios se aplican al instante." onCancelar={solicitarCierre} />
       )}
     >
-      {artefacto.omitido ? (
-        <Notice variante="info" className="mb-4">
-          {AVISO_OMITIDO}
-        </Notice>
-      ) : (
-        <div className={BARRA}>
-          <Button icono={UserPlus} onClick={() => setVinculando(true)}>
-            Vincular estudiantes
-          </Button>
-        </div>
-      )}
-      <EstudiantesArtefactoLista artefactoId={artefacto.id} omitido={artefacto.omitido} />
+      <div className={CONTENIDO}>
+        {artefacto.omitido && <Notice variante="info">{AVISO_OMITIDO}</Notice>}
+        <EstudiantesArtefactoLista artefactoId={artefacto.id} omitido={artefacto.omitido} />
+        {!artefacto.omitido && (
+          <FormSection titulo="Vincular estudiantes">
+            <VincularEstudiantesForm artefacto={artefacto} onSalir={onCerrar} />
+          </FormSection>
+        )}
+      </div>
     </SidePanel>
   );
 }

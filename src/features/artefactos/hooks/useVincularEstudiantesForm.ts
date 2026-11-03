@@ -20,7 +20,7 @@ const MENSAJE_ERROR_POR_DEFECTO = 'Verifica los datos e inténtalo nuevamente.';
 
 interface Opciones {
   artefacto: ArtefactoAsesor;
-  onVolver: () => void;
+  onVolver?: () => void;
   onSalir: () => void;
 }
 
@@ -60,7 +60,7 @@ export function useVincularEstudiantesForm({ artefacto, onVolver, onSalir }: Opc
             `${cantidad === 1 ? 'Se vinculó 1 estudiante' : `Se vincularon ${cantidad} estudiantes`} a «${artefacto.nombreDocumento}».`,
           );
           form.reset();
-          onVolver();
+          onVolver?.();
         },
         onError: (err) => {
           const mensaje = getApiErrorMessage(err, MENSAJE_ERROR_POR_DEFECTO);
@@ -77,7 +77,7 @@ export function useVincularEstudiantesForm({ artefacto, onVolver, onSalir }: Opc
   function cerrar() {
     form.reset();
     reiniciarMutacion();
-    onVolver();
+    onVolver?.();
   }
 
   const enviar = form.handleSubmit(vincular, () => setResumenVisible(true));

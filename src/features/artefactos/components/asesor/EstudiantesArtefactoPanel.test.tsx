@@ -9,14 +9,8 @@ vi.mock('../../hooks/useEstudiantesArtefacto', () => ({ useEstudiantesArtefacto:
 vi.mock('../../hooks/useRemoverEstudianteArtefacto', () => ({
   useRemoverEstudianteArtefacto: vi.fn(),
 }));
-vi.mock('./VincularEstudiantesPanel', () => ({
-  default: ({ onVolver }: { onVolver: () => void }) => (
-    <div role="dialog" aria-label="Formulario de vincular">
-      <button type="button" onClick={onVolver}>
-        Cancelar vinculación
-      </button>
-    </div>
-  ),
+vi.mock('./VincularEstudiantesForm', () => ({
+  default: () => <form aria-label="Vincular estudiantes" />,
 }));
 
 const ARTEFACTO: ArtefactoAsesor = {
@@ -63,7 +57,7 @@ describe('EstudiantesArtefactoPanel', () => {
     // Assert
     expect(screen.getByText(/Este artefacto está omitido/)).toBeInTheDocument();
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Vincular estudiantes' })).toBeNull();
+    expect(screen.queryByRole('form', { name: 'Vincular estudiantes' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Quitar a Luis Gómez del artefacto' })).toBeNull();
   });
 
@@ -81,18 +75,15 @@ describe('EstudiantesArtefactoPanel', () => {
     await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
   });
 
-  it('vincular abre el formulario y cancelar vuelve a la lista', async () => {
-    // Arrange
-    const user = userEvent.setup();
+  it('muestra el formulario de vincular debajo de la lista de estudiantes', () => {
+    // Act
     render(<EstudiantesArtefactoPanel artefacto={ARTEFACTO} onCerrar={vi.fn()} />);
 
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Vincular estudiantes' }));
-    expect(screen.getByRole('dialog', { name: 'Formulario de vincular' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Cancelar vinculación' }));
-
     // Assert
-    expect(screen.queryByRole('dialog', { name: 'Formulario de vincular' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Vincular estudiantes' })).toBeInTheDocument();
+    const lista = screen.getByRole('list', { name: 'Estudiantes del artefacto' });
+    const formulario = screen.getByRole('form', { name: 'Vincular estudiantes' });
+    expect(
+      lista.compareDocumentPosition(formulario) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });
