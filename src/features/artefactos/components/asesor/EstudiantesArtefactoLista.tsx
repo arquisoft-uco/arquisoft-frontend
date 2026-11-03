@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { UserMinus, Users } from 'lucide-react';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
-import RowMenu from '../../../../shared/components/ui/RowMenu';
+import IconButton from '../../../../shared/components/ui/IconButton';
+import ListaPersonas from '../../../../shared/components/ui/ListaPersonas';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstudiantesArtefacto } from '../../hooks/useEstudiantesArtefacto';
 import type { EstudianteArtefacto } from '../../models/EstudianteArtefacto';
-import ListaEstudiantesArtefacto from './ListaEstudiantesArtefacto';
 import RemoverEstudianteArtefactoDialog from './RemoverEstudianteArtefactoDialog';
 
 interface Props {
@@ -42,23 +42,18 @@ export default function EstudiantesArtefactoLista({ artefactoId, omitido = false
   }
   return (
     <>
-      <ListaEstudiantesArtefacto
-        estudiantes={data}
+      <ListaPersonas
+        personas={data}
         etiqueta="Estudiantes del artefacto"
-        acciones={
+        accion={
           omitido
             ? undefined
             : (estudiante) => (
-                <RowMenu
-                  etiqueta={`Acciones de ${estudiante.nombre}`}
-                  acciones={[
-                    {
-                      etiqueta: 'Quitar estudiante',
-                      icono: UserMinus,
-                      peligro: true,
-                      onSeleccionar: () => setEstudianteAQuitar(estudiante),
-                    },
-                  ]}
+                <IconButton
+                  etiqueta={`Quitar a ${estudiante.nombre} del artefacto`}
+                  icono={UserMinus}
+                  tono="peligro"
+                  onClick={() => setEstudianteAQuitar(estudiante)}
                 />
               )
         }

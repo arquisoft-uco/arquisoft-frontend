@@ -60,7 +60,7 @@ describe('RemoverEstudianteArtefactoDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     // Assert
-    expect(screen.getByText('¿Quitar a Luis Gómez del artefacto?')).toBeInTheDocument();
+    expect(screen.getByText('¿Quitar estudiante?')).toBeInTheDocument();
     expect(onCerrar).toHaveBeenCalledTimes(1);
     expect(mutate).not.toHaveBeenCalled();
   });
@@ -73,7 +73,7 @@ describe('RemoverEstudianteArtefactoDialog', () => {
     const onCerrar = renderizar();
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Quitar estudiante' }));
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
 
     // Assert
     expect(mutate.mock.calls[0][0]).toEqual({ artefactoId: 'a-1', estudianteId: 'e-1' });
@@ -97,7 +97,7 @@ describe('RemoverEstudianteArtefactoDialog', () => {
     const onCerrar = renderizar();
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Quitar estudiante' }));
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
 
     // Assert
     expect(toast.error).toHaveBeenCalledWith(

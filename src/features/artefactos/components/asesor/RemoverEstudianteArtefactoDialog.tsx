@@ -22,7 +22,7 @@ export default function RemoverEstudianteArtefactoDialog({
       { artefactoId, estudianteId: estudiante.estudianteId },
       {
         onSuccess: () => {
-          toast.success('Estudiante quitado', `${estudiante.nombre} ya no está vinculado.`);
+          toast.success('Estudiante quitado', `${estudiante.nombre} fue quitado del artefacto.`);
           onCerrar();
         },
         onError: (err) => {
@@ -35,13 +35,13 @@ export default function RemoverEstudianteArtefactoDialog({
 
   return (
     <ConfirmDialog
-      titulo={`¿Quitar a ${estudiante.nombre} del artefacto?`}
-      descripcion="El estudiante dejará de estar vinculado a este artefacto."
+      titulo="¿Quitar estudiante?"
+      descripcion={`${estudiante.nombre} será quitado de este artefacto.`}
       consecuencias={[
         'Dejará de ver y entregar este artefacto.',
         'Se le enviará un aviso por correo.',
       ]}
-      labelConfirmar="Quitar estudiante"
+      labelConfirmar="Quitar"
       variante="peligro"
       cargando={quitar.isPending}
       onConfirmar={confirmarQuitar}

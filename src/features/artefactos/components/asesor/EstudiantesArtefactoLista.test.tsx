@@ -124,7 +124,7 @@ describe('EstudiantesArtefactoLista', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('con el artefacto omitido no ofrece el menú de acciones en ninguna fila', () => {
+  it('con el artefacto omitido no ofrece el botón de quitar en ninguna fila', () => {
     // Arrange
     hook.mockReturnValue(estado({ data: [vigente, dadoDeBaja] }));
 
@@ -133,7 +133,7 @@ describe('EstudiantesArtefactoLista', () => {
 
     // Assert
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /^Acciones de/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Quitar a/ })).toBeNull();
   });
 
   it('quitar abre el diálogo con el nombre del estudiante y cancelar lo cierra', async () => {
@@ -143,14 +143,13 @@ describe('EstudiantesArtefactoLista', () => {
     render(<EstudiantesArtefactoLista artefactoId="a-1" />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Acciones de Ana Pérez' }));
-    await user.click(await screen.findByRole('menuitem', { name: 'Quitar estudiante' }));
+    await user.click(screen.getByRole('button', { name: 'Quitar a Ana Pérez del artefacto' }));
     const dialogo = await screen.findByRole('alertdialog');
-    const tituloVisible = !!within(dialogo).queryByText('¿Quitar a Ana Pérez del artefacto?');
+    const nombreVisible = !!within(dialogo).queryByText(/Ana Pérez será quitado/);
     await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
 
     // Assert
-    expect(tituloVisible).toBe(true);
+    expect(nombreVisible).toBe(true);
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 });

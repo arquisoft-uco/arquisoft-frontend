@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { UserPlus } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
+import FormActions from '../../../../shared/components/ui/FormActions';
 import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
@@ -34,6 +35,9 @@ export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props
       titulo="Estudiantes del artefacto"
       descripcion={`«${artefacto.nombreDocumento}» · ${artefacto.nombreProyecto}`}
       onCerrar={onCerrar}
+      pie={(solicitarCierre) => (
+        <FormActions nota="Los cambios se aplican al instante." onCancelar={solicitarCierre} />
+      )}
     >
       {artefacto.omitido ? (
         <Notice variante="info" className="mb-4">

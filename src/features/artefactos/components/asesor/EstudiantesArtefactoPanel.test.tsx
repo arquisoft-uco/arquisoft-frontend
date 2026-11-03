@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, waitFor } from '../../../../test-utils/render';
 import { useEstudiantesArtefacto } from '../../hooks/useEstudiantesArtefacto';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
@@ -64,7 +64,21 @@ describe('EstudiantesArtefactoPanel', () => {
     expect(screen.getByText(/Este artefacto está omitido/)).toBeInTheDocument();
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Vincular estudiantes' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Acciones de Luis Gómez' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Quitar a Luis Gómez del artefacto' })).toBeNull();
+  });
+
+  it('el pie avisa que los cambios son inmediatos y Cerrar cierra el panel', async () => {
+    // Arrange
+    const onCerrar = vi.fn();
+    const user = userEvent.setup();
+    render(<EstudiantesArtefactoPanel artefacto={ARTEFACTO} onCerrar={onCerrar} />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+
+    // Assert
+    expect(screen.getByText('Los cambios se aplican al instante.')).toBeInTheDocument();
+    await waitFor(() => expect(onCerrar).toHaveBeenCalledTimes(1));
   });
 
   it('vincular abre el formulario y cancelar vuelve a la lista', async () => {
