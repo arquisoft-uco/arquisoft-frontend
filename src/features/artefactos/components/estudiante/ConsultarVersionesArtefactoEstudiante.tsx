@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Eye, MessageSquare, Upload } from 'lucide-react';
+import { Eye, MessageSquare, Trash2, Upload } from 'lucide-react';
 import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision';
+import { useVersionesEliminablesEstudiante } from '../../hooks/useVersionesEliminablesEstudiante';
 import { useVersionesArtefactoEstudiante } from '../../hooks/useVersionesArtefactoEstudiante';
 import type { ArtefactoParaVersion } from '../../models/ArtefactoParaVersion';
 import type { RevisionGestionable } from '../../models/RevisionGestionable';
@@ -9,6 +10,7 @@ import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { desVersion } from '../../utils/revision-gestionable';
 import { ESTADO_REVISION_EN_PROGRESO } from '../../utils/revision-resoluble';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
+import EliminarVersionArtefactoDialog from './EliminarVersionArtefactoDialog';
 import GestionarRevisionEstudiantePanel from './GestionarRevisionEstudiantePanel';
 import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
 
@@ -31,8 +33,10 @@ export default function ConsultarVersionesArtefactoEstudiante() {
   const listado = useVersionesArtefactoEstudiante();
   const opcionesEstado = useOpcionesEstadoRevision();
   const [panel, setPanel] = useState<PanelAbierto | null>(null);
+  const [versionAEliminar, setVersionAEliminar] = useState<VersionArtefacto | null>(null);
+  const { puedeEliminar } = useVersionesEliminablesEstudiante(listado.data?.content ?? []);
 
-  function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
+  function accionesRevision(version: VersionArtefacto): AccionMenu[] {
     const revision = desVersion(version);
     if (revision === null) return [];
     const artefacto = aArtefacto(version);
@@ -49,6 +53,19 @@ export default function ConsultarVersionesArtefactoEstudiante() {
         etiqueta: 'Subir nueva versión',
         icono: Upload,
         onSeleccionar: () => setPanel({ modo: 'subir', artefacto }),
+      });
+    }
+    return acciones;
+  }
+
+  function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
+    const acciones = accionesRevision(version);
+    if (puedeEliminar(version)) {
+      acciones.push({
+        etiqueta: 'Eliminar',
+        icono: Trash2,
+        peligro: true,
+        onSeleccionar: () => setVersionAEliminar(version),
       });
     }
     return acciones;
@@ -73,6 +90,12 @@ export default function ConsultarVersionesArtefactoEstudiante() {
       )}
       {panel?.modo === 'subir' && (
         <SubirVersionArtefactoPanel artefacto={panel.artefacto} onCerrar={() => setPanel(null)} />
+      )}
+      {versionAEliminar !== null && (
+        <EliminarVersionArtefactoDialog
+          version={versionAEliminar}
+          onCerrar={() => setVersionAEliminar(null)}
+        />
       )}
     </>
   );

@@ -69,6 +69,20 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('eliminarVersionArtefacto', () => {
+    it('hace DELETE /artefactos/versiones/{id} sin body y resuelve sin valor', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ data: undefined });
+
+      // Act
+      const resultado = await artefactosService.eliminarVersionArtefacto('v-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/versiones/v-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('marcarRevisionResuelta', () => {
     it('hace PATCH /artefactos/revisiones/{id}/estado con el estado RESUELTA y resuelve sin valor', async () => {
       // Arrange

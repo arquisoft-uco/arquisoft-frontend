@@ -123,6 +123,9 @@ export const artefactosService = {
   getVersionArtefacto: (versionId: string): Promise<VersionArtefacto> =>
     apiClient.get<VersionArtefacto>(`/artefactos/versiones/${versionId}`).then((r) => r.data),
 
+  eliminarVersionArtefacto: (versionId: string): Promise<void> =>
+    apiClient.delete(`/artefactos/versiones/${versionId}`).then(() => undefined),
+
   getParticipacionesEstudiante: (): Promise<ParticipacionArtefacto[]> =>
     apiClient
       .get<ParticipacionArtefacto[]>('/artefactos/estudiante/participaciones')

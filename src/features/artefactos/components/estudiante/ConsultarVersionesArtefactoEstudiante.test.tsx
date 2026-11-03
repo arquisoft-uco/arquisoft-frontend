@@ -19,6 +19,7 @@ vi.mock('../../services/artefactosService', () => ({
     getEstadosRevisionAsesor: vi.fn(),
     getVersionArtefacto: vi.fn(),
     getObservacionesRevisionEstudiante: vi.fn(),
+    eliminarVersionArtefacto: vi.fn(),
   },
 }));
 
@@ -161,6 +162,64 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
     // Assert
     await waitFor(() => expect(screen.queryByText('almacen/acta-v4.pdf')).not.toBeInTheDocument());
     expect(screen.getByRole('table', { name: 'Versiones de artefactos' })).toBeInTheDocument();
+  });
+
+  describe('eliminar versión', () => {
+    const ANTERIOR: VersionArtefacto = {
+      ...VERSION,
+      id: 'v-0',
+      version: 3,
+      revisionAsesor: 'r-0',
+      estadoRevision: 'EN_PROGRESO',
+      nombreEstadoRevision: 'En progreso',
+      fechaCreacionRevision: '2026-03-09T10:00:00Z',
+    };
+
+    function simularListado(fila: VersionArtefacto, ultimas: VersionArtefacto[]) {
+      consultarVersiones.mockImplementation((req) =>
+        Promise.resolve(pagina(req.tamanio === 2 ? ultimas : [fila])),
+      );
+    }
+
+    async function abrirMenu(user: UserEvent) {
+      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        await within(tabla).findByRole('button', {
+          name: 'Acciones de la versión 4 de Acta de inicio',
+        }),
+      );
+    }
+
+    it('ofrece "Eliminar" en la última versión sin revisión y abre la confirmación', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      simularListado(VERSION, [VERSION, ANTERIOR]);
+      render(<ConsultarVersionesArtefactoEstudiante />);
+
+      // Act
+      await abrirMenu(user);
+      await user.click(await screen.findByRole('menuitem', { name: 'Eliminar' }));
+
+      // Assert
+      expect(await screen.findByRole('alertdialog')).toHaveTextContent(
+        '¿Eliminar la versión 4 de «Acta de inicio»?',
+      );
+    });
+
+    it('no la ofrece si no es la última o si la revisión anterior no está en progreso', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      simularListado(VERSION, [{ ...VERSION, id: 'v-9', version: 5 }, VERSION]);
+      render(<ConsultarVersionesArtefactoEstudiante />);
+
+      // Act
+      await abrirMenu(user);
+
+      // Assert
+      await waitFor(() => expect(consultarVersiones).toHaveBeenCalledTimes(2));
+      expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Eliminar' })).not.toBeInTheDocument();
+    });
   });
 
   describe('gestión de la revisión', () => {
