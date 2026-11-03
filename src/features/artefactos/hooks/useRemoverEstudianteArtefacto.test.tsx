@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
+import { errorApi } from '../../../test-utils/errores-api';
 import { artefactosService } from '../services/artefactosService';
 import { useRemoverEstudianteArtefacto } from './useRemoverEstudianteArtefacto';
 
@@ -42,9 +43,14 @@ describe('useRemoverEstudianteArtefacto', () => {
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'a-1', 'estudiantes'] });
   });
 
-  it('si el service falla igual invalida la lista y expone el error', async () => {
+  it('si el 422 es de estudiante no vinculado invalida solo la lista de estudiantes', async () => {
     // Arrange
-    remover.mockRejectedValue(new Error('422'));
+    remover.mockRejectedValue(
+      errorApi(422, {
+        status: 422,
+        errorCode: 'ESTUDIANTE_ARTEFACTO_ESTUDIANTE_NO_VINCULADO_ARTEFACTO',
+      }),
+    );
     const { Wrapper, invalidar } = crearContexto();
     const { result } = renderHook(() => useRemoverEstudianteArtefacto(), { wrapper: Wrapper });
 
@@ -53,6 +59,42 @@ describe('useRemoverEstudianteArtefacto', () => {
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'a-1', 'estudiantes'] });
+    await waitFor(() =>
+      expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'a-1', 'estudiantes'] }),
+    );
+    expect(invalidar).not.toHaveBeenCalledWith({ queryKey: ['artefactos', 'asesor'] });
+  });
+
+  it('si el artefacto ya no está disponible invalida la lista de estudiantes y el listado del asesor', async () => {
+    // Arrange
+    remover.mockRejectedValue(
+      errorApi(422, { status: 422, errorCode: 'ARTEFACTOS_ARTEFACTO_OMITIDO' }),
+    );
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useRemoverEstudianteArtefacto(), { wrapper: Wrapper });
+
+    // Act
+    act(() => result.current.mutate(req));
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    await waitFor(() => {
+      expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'a-1', 'estudiantes'] });
+      expect(invalidar).toHaveBeenCalledWith({ queryKey: ['artefactos', 'asesor'] });
+    });
+  });
+
+  it('ante un error sin código no invalida nada y expone el error', async () => {
+    // Arrange
+    remover.mockRejectedValue(new Error('red'));
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useRemoverEstudianteArtefacto(), { wrapper: Wrapper });
+
+    // Act
+    act(() => result.current.mutate(req));
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).not.toHaveBeenCalled();
   });
 });

@@ -46,7 +46,7 @@ export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props
           </Button>
         </div>
       )}
-      <EstudiantesArtefactoLista artefactoId={artefacto.id} />
+      <EstudiantesArtefactoLista artefactoId={artefacto.id} omitido={artefacto.omitido} />
     </SidePanel>
   );
 }

@@ -6,6 +6,9 @@ import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
 
 vi.mock('../../hooks/useEstudiantesArtefacto', () => ({ useEstudiantesArtefacto: vi.fn() }));
+vi.mock('../../hooks/useRemoverEstudianteArtefacto', () => ({
+  useRemoverEstudianteArtefacto: vi.fn(),
+}));
 vi.mock('./VincularEstudiantesPanel', () => ({
   default: ({ onVolver }: { onVolver: () => void }) => (
     <div role="dialog" aria-label="Formulario de vincular">
@@ -61,6 +64,7 @@ describe('EstudiantesArtefactoPanel', () => {
     expect(screen.getByText(/Este artefacto está omitido/)).toBeInTheDocument();
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Vincular estudiantes' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Acciones de Luis Gómez' })).toBeNull();
   });
 
   it('vincular abre el formulario y cancelar vuelve a la lista', async () => {
