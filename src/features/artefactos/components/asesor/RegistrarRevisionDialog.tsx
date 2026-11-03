@@ -44,9 +44,10 @@ const TEXTOS: Record<'registrar' | 'reabrir', Textos> = {
 interface Props {
   version: VersionArtefacto;
   onCerrar: () => void;
+  onRegistrada?: (revisionAsesorId: string) => void;
 }
 
-export default function RegistrarRevisionDialog({ version, onCerrar }: Props) {
+export default function RegistrarRevisionDialog({ version, onCerrar, onRegistrada }: Props) {
   const { mutate, isPending } = useRegistrarRevision();
   const reabre = reabreArtefacto(version);
   const textos = TEXTOS[reabre ? 'reabrir' : 'registrar'];
@@ -54,12 +55,13 @@ export default function RegistrarRevisionDialog({ version, onCerrar }: Props) {
 
   function handleConfirmar() {
     mutate(version.id, {
-      onSuccess: () => {
+      onSuccess: (respuesta) => {
         toast.success(
           textos.exito,
           `Quedó pendiente ${reabre ? 'una nueva' : 'la'} revisión ${objetivo}.`,
         );
         onCerrar();
+        onRegistrada?.(respuesta.id);
       },
       onError: (err) => {
         toast.error(textos.errorTitulo, mensajeDeErrorRegistrarRevision(err));

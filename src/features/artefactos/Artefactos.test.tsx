@@ -5,6 +5,7 @@ import { render, screen } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
 import Artefactos from './Artefactos';
+import { artefactosService } from './services/artefactosService';
 
 vi.mock('../../shared/services/cargaPrefirmadaService', () => ({
   cargaPrefirmadaService: { cargarArchivo: vi.fn() },
@@ -146,7 +147,7 @@ describe('Artefactos', () => {
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
     renderizar();
-    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
+    expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Asignar artefacto' })).not.toBeInTheDocument();
   });
 
@@ -225,7 +226,7 @@ describe('Artefactos', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('el estudiante ve el listado de artefactos de sus proyectos', async () => {
+  it('el estudiante entra por Mis artefactos, solo con la tabla, y ve tres pestañas en orden', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
@@ -234,17 +235,93 @@ describe('Artefactos', () => {
     renderizar();
 
     // Assert
-    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
+    expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
+    expect(screen.queryByText('Aún no hay versiones de artefactos')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Versiones y revisiones' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link').map((enlace) => enlace.textContent)).toEqual(
+      expect.arrayContaining(['Mis artefactos', 'Versiones y revisiones', 'Artefactos proyecto']),
+    );
+    expect(screen.getByRole('link', { name: 'Mis artefactos' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    expect(screen.queryByRole('link', { name: 'Revisiones' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Versiones de artefactos' })).not.toBeInTheDocument();
   });
 
-  it('con ?vista=mis-artefactos el estudiante ve la pestaña de sus artefactos', async () => {
+  it('con ?vista=versiones-revisiones el estudiante ve su historial de versiones', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
 
     // Act
-    renderizar('/artefactos?vista=mis-artefactos');
+    renderizar('/artefactos?vista=versiones-revisiones');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones y revisiones' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('el nombre del documento lleva a Versiones y revisiones filtrada y el chip la limpia', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(artefactosService.getParticipacionesEstudiante).mockResolvedValueOnce([
+      {
+        id: '3f2b8c1e-5d4a-4b7e-9c6d-1a2b3c4d5e6f',
+        proyectoGrado: 'p-1',
+        nombreProyecto: 'Sistema de riego',
+        nombreDocumento: 'Acta de inicio',
+        versionRepositorioArtefacto: 'v-1',
+        versionDocumento: 1,
+        nombreRepositorio: 'Repositorio base',
+        asesor: 'u-1',
+        nombreAsesor: 'Laura Gómez',
+        omitido: false,
+      },
+    ]);
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+    renderizar();
+
+    // Act
+    await user.click(
+      (await screen.findAllByRole('link', { name: 'Ver versiones de Acta de inicio' }))[0],
+    );
+
+    // Assert
+    expect(await screen.findByText('Artefacto: seleccionado')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones y revisiones' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await user.click(screen.getByRole('button', { name: /Quitar/ }));
+    expect(screen.queryByText('Artefacto: seleccionado')).not.toBeInTheDocument();
+  });
+
+  it('con ?vista=artefactos-proyecto el estudiante ve el listado de artefactos de sus proyectos', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=artefactos-proyecto');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay artefactos en tus proyectos')).toBeInTheDocument();
+  });
+
+  it('una vista antigua del estudiante cae en Mis artefactos', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=revisiones');
 
     // Assert
     expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
@@ -252,23 +329,6 @@ describe('Artefactos', () => {
       'aria-current',
       'page',
     );
-  });
-
-  it('con ?vista=versiones-artefactos el estudiante ve la pestaña de versiones de artefactos', async () => {
-    // Arrange
-    entrarComo(Rol.Estudiante);
-    setActiveRole(Rol.Estudiante);
-
-    // Act
-    renderizar('/artefactos?vista=versiones-artefactos');
-
-    // Assert
-    expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
-    expect(screen.queryByRole('link', { name: 'Participación' })).not.toBeInTheDocument();
   });
 
   it('un rol sin vista redirige a /forbidden', () => {

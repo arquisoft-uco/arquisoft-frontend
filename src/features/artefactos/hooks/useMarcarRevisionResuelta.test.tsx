@@ -58,7 +58,7 @@ describe('useMarcarRevisionResuelta', () => {
     expect(invalidar).not.toHaveBeenCalled();
   });
 
-  it('ante otro error invalida versiones y el listado del estudiante', async () => {
+  it('ante otro error invalida versiones y artefactos del estudiante', async () => {
     // Arrange
     marcar.mockRejectedValue(errorApi(422, { errorCode: 'REVISION_ASESOR_CERRADA', message: 'x' }));
     const { Wrapper, invalidar } = crearContexto();

@@ -98,6 +98,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: 'r-1',
   estadoRevision: 'PENDIENTE',
   nombreEstadoRevision: 'Pendiente',
+  fechaCreacionRevision: null,
 };
 
 const PROPS = { revisionAsesorId: 'r-1', version: VERSION };

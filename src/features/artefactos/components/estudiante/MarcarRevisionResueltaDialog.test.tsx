@@ -6,7 +6,6 @@ import { errorApi } from '../../../../test-utils/errores-api';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useMarcarRevisionResuelta } from '../../hooks/useMarcarRevisionResuelta';
 import { useObservacionesRevisionEstudiante } from '../../hooks/useObservacionesRevisionEstudiante';
-import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import MarcarRevisionResueltaDialog from './MarcarRevisionResueltaDialog';
 
 vi.mock('../../hooks/useMarcarRevisionResuelta', () => ({ useMarcarRevisionResuelta: vi.fn() }));
@@ -17,20 +16,7 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
-const VERSION: VersionArtefacto = {
-  id: 'v-1',
-  artefacto: 'a-1',
-  version: 4,
-  fechaCreacion: '2026-03-10T15:30:00Z',
-  nombreProyecto: 'Sistema de riego',
-  nombreDocumento: 'Acta de inicio',
-  versionDocumento: 2,
-  nombreRepositorio: 'Repositorio base',
-  nombreAsesor: 'Marta Gómez',
-  revisionAsesor: 'r-1',
-  estadoRevision: 'EN_PROGRESO',
-  nombreEstadoRevision: 'En progreso',
-};
+const REVISION = { revisionAsesorId: 'r-1', nombreDocumento: 'Acta de inicio', version: 4 };
 
 const contexto = {} as MutationFunctionContext;
 
@@ -48,7 +34,7 @@ function montar(resultado: 'exito' | { error: unknown } | 'ninguno' = 'ninguno')
   const base: Partial<Resultado> = { mutate, isPending: false };
   vi.mocked(useMarcarRevisionResuelta).mockReturnValue(Object.assign(base) as Resultado);
   const onCerrar = vi.fn();
-  render(<MarcarRevisionResueltaDialog version={VERSION} onCerrar={onCerrar} />);
+  render(<MarcarRevisionResueltaDialog {...REVISION} onCerrar={onCerrar} />);
   return { mutate, onCerrar };
 }
 

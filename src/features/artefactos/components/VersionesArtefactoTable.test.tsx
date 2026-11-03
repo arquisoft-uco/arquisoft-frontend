@@ -18,6 +18,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: null,
   estadoRevision: null,
   nombreEstadoRevision: null,
+  fechaCreacionRevision: null,
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof VersionesArtefactoTable>> = {}) {
@@ -41,6 +42,16 @@ function tabla() {
 }
 
 describe('VersionesArtefactoTable', () => {
+  it('con mostrarRepositorio en falso oculta la columna y la etiqueta de fecha es configurable', () => {
+    // Act
+    renderizar({ mostrarRepositorio: false, etiquetaFecha: 'Fecha de subida' });
+
+    // Assert
+    expect(tabla().queryByRole('columnheader', { name: 'Repositorio' })).not.toBeInTheDocument();
+    expect(tabla().queryByText('Repositorio base')).not.toBeInTheDocument();
+    expect(tabla().getByRole('columnheader', { name: /Fecha de subida/ })).toBeInTheDocument();
+  });
+
   it('muestra proyecto, documento con su versión, repositorio, versión generada y fecha, sin pintar uriArchivo', () => {
     // Act
     renderizar();
@@ -53,6 +64,25 @@ describe('VersionesArtefactoTable', () => {
     expect(tabla().getByText('Versión 4')).toBeInTheDocument();
     expect(tabla().getByText(/2026/)).toBeInTheDocument();
     expect(screen.queryByText(/archivo-secreto/)).not.toBeInTheDocument();
+  });
+
+  it('la columna Fecha de la revisión muestra la fecha o un guion y ordena por su clave', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onOrdenar } = renderizar({
+      versiones: [
+        { ...VERSION, fechaCreacionRevision: '2026-04-02T09:00:00Z' },
+        { ...VERSION, id: 'v-2', version: 5 },
+      ],
+    });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Fecha de la revisión' }));
+
+    // Assert
+    expect(tabla().getAllByText(/2026/)).toHaveLength(3);
+    expect(tabla().getByText('—')).toBeInTheDocument();
+    expect(onOrdenar).toHaveBeenCalledWith('fechaCreacionRevision', expect.any(String));
   });
 
   it('el asesor solo se pinta con mostrarAsesor', () => {

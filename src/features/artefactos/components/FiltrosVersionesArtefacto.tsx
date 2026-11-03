@@ -5,9 +5,14 @@ import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArte
 interface Props {
   listado: ListadoVersionesArtefacto;
   opcionesEstado?: OpcionFiltro[];
+  etiquetaFecha?: string;
 }
 
-export default function FiltrosVersionesArtefacto({ listado, opcionesEstado }: Props) {
+export default function FiltrosVersionesArtefacto({
+  listado,
+  opcionesEstado,
+  etiquetaFecha = 'Fecha de creación',
+}: Props) {
   const nombreArtefacto = listado.data?.content[0]?.nombreDocumento ?? 'seleccionado';
   const aplicados = listado.artefacto
     ? [
@@ -39,7 +44,7 @@ export default function FiltrosVersionesArtefacto({ listado, opcionesEstado }: P
           : undefined
       }
       fechas={{
-        etiqueta: 'Fecha de creación',
+        etiqueta: etiquetaFecha,
         desde: listado.desde,
         hasta: listado.hasta,
         onCambiarDesde: listado.setDesde,

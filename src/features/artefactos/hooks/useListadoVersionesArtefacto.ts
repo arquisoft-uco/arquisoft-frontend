@@ -19,6 +19,8 @@ const ORDENES = [
   'fechaCreacion:DESC',
   'estadoRevision:ASC',
   'estadoRevision:DESC',
+  'fechaCreacionRevision:ASC',
+  'fechaCreacionRevision:DESC',
 ] as const;
 
 const ORDEN_POR_DEFECTO = 'fechaCreacion:DESC';

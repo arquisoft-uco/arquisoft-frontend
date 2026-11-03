@@ -22,6 +22,8 @@ interface Props {
   listado: ListadoVersionesArtefacto;
   descripcionVacio: string;
   mostrarAsesor?: boolean;
+  mostrarRepositorio?: boolean;
+  etiquetaFecha?: string;
   opcionesEstado?: OpcionFiltro[];
   accionesAdicionales?: (version: VersionArtefacto) => AccionMenu[];
 }
@@ -30,6 +32,8 @@ export default function ConsultarVersionesArtefacto({
   listado,
   descripcionVacio,
   mostrarAsesor = false,
+  mostrarRepositorio = true,
+  etiquetaFecha,
   opcionesEstado,
   accionesAdicionales,
 }: Props) {
@@ -39,7 +43,11 @@ export default function ConsultarVersionesArtefacto({
 
   return (
     <div className={RAIZ}>
-      <FiltrosVersionesArtefacto listado={listado} opcionesEstado={opcionesEstado} />
+      <FiltrosVersionesArtefacto
+        listado={listado}
+        opcionesEstado={opcionesEstado}
+        etiquetaFecha={etiquetaFecha}
+      />
 
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.totalElements)}
@@ -57,6 +65,8 @@ export default function ConsultarVersionesArtefacto({
             versiones={versiones}
             descripcionVacio={descripcionVacio}
             mostrarAsesor={mostrarAsesor}
+            mostrarRepositorio={mostrarRepositorio}
+            etiquetaFecha={etiquetaFecha}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}

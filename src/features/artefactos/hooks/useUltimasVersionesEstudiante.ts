@@ -35,5 +35,6 @@ export function useUltimasVersionesEstudiante(artefactoIds: string[], habilitado
       porArtefacto.get(artefactoId),
     isLoading: consultas.some((c) => c.isLoading),
     isError: consultas.some((c) => c.isError),
+    refetch: () => Promise.all(consultas.map((c) => c.refetch())),
   };
 }

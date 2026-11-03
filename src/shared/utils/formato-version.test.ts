@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatearFechaCreacion, formatearTamano } from './formato-version';
+import { formatearFechaCreacion, formatearFechaOpcional, formatearTamano } from './formato-version';
 
 describe('formato-version', () => {
   it('formatearTamano usa la unidad que corresponde con un decimal', () => {
@@ -19,5 +19,12 @@ describe('formato-version', () => {
     // Assert
     expect(texto).not.toBe('');
     expect(texto).toContain('2026');
+  });
+
+  it('formatearFechaOpcional devuelve el marcador con una fecha nula y la fecha formateada si existe', () => {
+    // Assert
+    expect(formatearFechaOpcional(null)).toBe('—');
+    expect(formatearFechaOpcional(null, 'Sin fecha')).toBe('Sin fecha');
+    expect(formatearFechaOpcional('2026-03-15T14:30:00Z')).toContain('2026');
   });
 });

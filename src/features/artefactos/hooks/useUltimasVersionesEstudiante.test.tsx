@@ -59,4 +59,17 @@ describe('useUltimasVersionesEstudiante', () => {
     expect(consultar).toHaveBeenCalledTimes(1);
     expect(apagado.result.current.ultimaVersion('a-5')).toBeUndefined();
   });
+
+  it('refetch vuelve a consultar cada artefacto', async () => {
+    // Arrange
+    consultar.mockResolvedValue(pagina([{ id: 'v-1' }]));
+    const { result } = renderHook(() => useUltimasVersionesEstudiante(['a-1', 'a-2']));
+    await waitFor(() => expect(result.current.ultimaVersion('a-2')?.id).toBe('v-1'));
+
+    // Act
+    await result.current.refetch();
+
+    // Assert
+    expect(consultar).toHaveBeenCalledTimes(4);
+  });
 });

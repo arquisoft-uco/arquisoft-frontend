@@ -23,6 +23,8 @@ interface Props {
   onLimpiarFiltros: () => void;
   onVerInformacion: (version: VersionArtefacto) => void;
   mostrarAsesor?: boolean;
+  mostrarRepositorio?: boolean;
+  etiquetaFecha?: string;
   accionesAdicionales?: (version: VersionArtefacto) => AccionMenu[];
 }
 
@@ -36,9 +38,11 @@ export default function VersionesArtefactoTable({
   onLimpiarFiltros,
   onVerInformacion,
   mostrarAsesor = false,
+  mostrarRepositorio = true,
+  etiquetaFecha,
   accionesAdicionales,
 }: Props) {
-  const columnas = construirColumnas(mostrarAsesor);
+  const columnas = construirColumnas({ mostrarAsesor, mostrarRepositorio, etiquetaFecha });
 
   const vacio = hayFiltros ? (
     <EmptyState
@@ -86,12 +90,18 @@ export default function VersionesArtefactoTable({
         <>
           <p className={TARJETA_NOMBRE}>{version.nombreDocumento}</p>
           <p className={TARJETA_DATO}>
-            {version.nombreProyecto} · {version.nombreRepositorio}
+            {version.nombreProyecto}
+            {mostrarRepositorio && ` · ${version.nombreRepositorio}`}
           </p>
           <p className={TARJETA_DATO}>
             {etiquetaVersion(version)} · {formatearFechaCreacion(version.fechaCreacion)}
           </p>
           {mostrarAsesor && <p className={TARJETA_DATO}>{version.nombreAsesor}</p>}
+          {version.fechaCreacionRevision !== null && (
+            <p className={TARJETA_DATO}>
+              Revisión: {formatearFechaCreacion(version.fechaCreacionRevision)}
+            </p>
+          )}
           <InsigniaEstadoRevision version={version} />
         </>
       )}

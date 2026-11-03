@@ -15,6 +15,7 @@ const VERSION: VersionArtefacto = {
   revisionAsesor: 'r-2',
   estadoRevision: 'RESUELTA',
   nombreEstadoRevision: 'Resuelta',
+  fechaCreacionRevision: null,
 };
 
 const BASE = {

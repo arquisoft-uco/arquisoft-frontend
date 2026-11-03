@@ -5,7 +5,7 @@ import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision
 import { usePuedeRegistrarRevision } from '../../hooks/usePuedeRegistrarRevision';
 import { useVersionesArtefactoAsesor } from '../../hooks/useVersionesArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
-import { reabreArtefacto } from '../../utils/revision-version';
+import { ESTADO_REVISION_PENDIENTE, reabreArtefacto } from '../../utils/revision-version';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
 import GestionarRevisionPanel from './GestionarRevisionPanel';
 import RegistrarRevisionDialog from './RegistrarRevisionDialog';
@@ -24,6 +24,19 @@ export default function ConsultarVersionesArtefactoAsesor() {
   const { puedeRegistrar } = usePuedeRegistrarRevision(listado.data?.content ?? []);
   const [versionARegistrar, setVersionARegistrar] = useState<VersionArtefacto | null>(null);
   const [revisionAbierta, setRevisionAbierta] = useState<RevisionAbierta | null>(null);
+
+  function abrirRevisionRecienRegistrada(version: VersionArtefacto, revisionAsesorId: string) {
+    setRevisionAbierta({
+      version: {
+        ...version,
+        revisionAsesor: revisionAsesorId,
+        estadoRevision: ESTADO_REVISION_PENDIENTE,
+        nombreEstadoRevision: 'Pendiente',
+        fechaCreacionRevision: null,
+      },
+      revisionAsesorId,
+    });
+  }
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const acciones: AccionMenu[] = [];
@@ -58,6 +71,7 @@ export default function ConsultarVersionesArtefactoAsesor() {
         <RegistrarRevisionDialog
           version={versionARegistrar}
           onCerrar={() => setVersionARegistrar(null)}
+          onRegistrada={(id) => abrirRevisionRecienRegistrada(versionARegistrar, id)}
         />
       )}
       {revisionAbierta && (

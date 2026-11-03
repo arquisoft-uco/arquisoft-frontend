@@ -26,9 +26,11 @@ export function useCambiarEstadoObservacionEstudiante() {
           ? 'Observación marcada como solucionada'
           : 'Observación marcada como en progreso',
       );
-      return queryClient.invalidateQueries({
-        queryKey: claveObservacionesRevisionEstudiante(revisionAsesorId),
-      });
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: claveObservacionesRevisionEstudiante(revisionAsesorId),
+        }),
+      ]);
     },
     onError: (err, { revisionAsesorId }) => {
       toast.error(

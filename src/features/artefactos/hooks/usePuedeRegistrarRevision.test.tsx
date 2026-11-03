@@ -29,6 +29,7 @@ function version(parcial: Partial<VersionArtefacto>): VersionArtefacto {
     revisionAsesor: null,
     estadoRevision: null,
     nombreEstadoRevision: null,
+    fechaCreacionRevision: null,
     ...parcial,
   };
 }

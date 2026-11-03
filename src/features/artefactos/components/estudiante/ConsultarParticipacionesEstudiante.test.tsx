@@ -48,6 +48,7 @@ function ultima(artefacto: string, estadoRevision: string | null): VersionArtefa
     revisionAsesor: estadoRevision ? `r-${artefacto}` : null,
     estadoRevision,
     nombreEstadoRevision: estadoRevision,
+    fechaCreacionRevision: null,
   };
 }
 
@@ -79,13 +80,42 @@ function participacion(
   };
 }
 
+async function abrirMenu(user: ReturnType<typeof userEvent.setup>, documento: string) {
+  const tabla = await screen.findByRole('table', {
+    name: 'Artefactos del proyecto Sistema de riego',
+  });
+  await user.click(await within(tabla).findByRole('button', { name: `Acciones de ${documento}` }));
+}
+
 describe('ConsultarParticipacionesEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultarVersiones.mockResolvedValue(paginaCon([]));
   });
 
-  it('muestra el motivo y no deja abrir la subida cuando la última versión lo bloquea', async () => {
+  it('el nombre del documento es un enlace a sus versiones y las acciones salen del menú de la fila', async () => {
+    // Arrange
+    getParticipaciones.mockResolvedValue([
+      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+    ]);
+    const user = userEvent.setup();
+
+    // Act
+    render(<ConsultarParticipacionesEstudiante />);
+    await abrirMenu(user, 'Acta de inicio');
+
+    // Assert
+    expect(
+      screen.getAllByRole('link', { name: 'Ver versiones de Acta de inicio' })[0],
+    ).toHaveAttribute('href', '/?vista=versiones-revisiones&artefacto=a-1');
+    expect(
+      screen.queryByRole('button', { name: /Subir nueva versión de/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Gestionar revisión' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Ver versiones' })).not.toBeInTheDocument();
+  });
+
+  it('ofrece Subir nueva versión solo cuando la última versión lo permite y muestra el motivo si no', async () => {
     // Arrange
     getParticipaciones.mockResolvedValue([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Sin revisión'),
@@ -100,43 +130,55 @@ describe('ConsultarParticipacionesEstudiante', () => {
       'a-3': ultima('a-3', 'CERRADA'),
       'a-4': ultima('a-4', 'EN_PROGRESO'),
     });
+    const user = userEvent.setup();
     render(<ConsultarParticipacionesEstudiante />);
     const tabla = await screen.findByRole('table', {
       name: 'Artefactos del proyecto Sistema de riego',
     });
-    expect(
-      await within(tabla).findByRole('button', { name: 'Subir nueva versión de En progreso' }),
-    ).toBeInTheDocument();
+    expect(await within(tabla).findByText('El asesor cerró este artefacto.')).toBeInTheDocument();
 
     // Assert
-    expect(
-      within(tabla).getByRole('button', { name: 'Subir nueva versión de Sin versiones' }),
-    ).toBeInTheDocument();
     expect(within(tabla).getByText('Esperando la revisión del asesor.')).toBeInTheDocument();
     expect(within(tabla).getByText('El asesor está preparando la revisión.')).toBeInTheDocument();
-    expect(within(tabla).getByText('El asesor cerró este artefacto.')).toBeInTheDocument();
-    for (const documento of ['Sin revisión', 'Pendiente', 'Cerrado']) {
-      expect(
-        within(tabla).queryByRole('button', { name: `Subir nueva versión de ${documento}` }),
-      ).not.toBeInTheDocument();
-    }
+
+    // Act
+    await abrirMenu(user, 'En progreso');
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Subir nueva versión' })).toBeInTheDocument();
+
+    // Act
+    await user.keyboard('{Escape}');
+    await abrirMenu(user, 'Sin versiones');
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Subir nueva versión' })).toBeInTheDocument();
+
+    // Act
+    await user.keyboard('{Escape}');
+    await abrirMenu(user, 'Cerrado');
+
+    // Assert
+    expect(screen.queryByRole('menuitem', { name: 'Subir nueva versión' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Ver versiones' })).not.toBeInTheDocument();
   });
 
-  it('si falla la consulta de la última versión deja abrir la subida y el servidor decide', async () => {
+  it('si falla la consulta de la última versión deja ofrecer la subida y el servidor decide', async () => {
     // Arrange
     getParticipaciones.mockResolvedValue([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
     ]);
     consultarVersiones.mockRejectedValue(new Error('falla'));
+    const user = userEvent.setup();
 
     // Act
     render(<ConsultarParticipacionesEstudiante />);
+    await abrirMenu(user, 'Acta de inicio');
 
     // Assert
-    const botones = await screen.findAllByRole('button', {
-      name: 'Subir nueva versión de Acta de inicio',
-    });
-    expect(botones.length).toBeGreaterThan(0);
+    expect(
+      await screen.findByRole('menuitem', { name: 'Subir nueva versión' }),
+    ).toBeInTheDocument();
   });
 
   it('con datos muestra un título por proyecto, sus documentos y el resumen', async () => {
@@ -152,40 +194,53 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
     // Assert
     expect(await screen.findByText('3 artefactos en 2 proyectos')).toBeInTheDocument();
-    expect(screen.getByText('Sistema de riego')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Sistema de riego' })).toBeInTheDocument();
     expect(screen.getByText('Domótica')).toBeInTheDocument();
     const tabla = screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' });
-    expect(tabla).toBeInTheDocument();
     expect(within(tabla).getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
     expect(within(tabla).getAllByText('Laura Gómez').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Laura Gómez · Versión 2').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Anteproyecto').length).toBeGreaterThan(0);
   });
 
-  it('al pulsar el nombre de un documento abre el panel para subir versión y Cerrar panel lo cierra', async () => {
+  it('Gestionar revisión abre el panel del artefacto y Cerrar lo cierra', async () => {
     // Arrange
     const user = userEvent.setup();
     getParticipaciones.mockResolvedValue([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
     ]);
     render(<ConsultarParticipacionesEstudiante />);
-    const tabla = await screen.findByRole('table', {
-      name: 'Artefactos del proyecto Sistema de riego',
-    });
 
     // Act
-    await user.click(
-      within(tabla).getByRole('button', { name: 'Subir nueva versión de Acta de inicio' }),
-    );
+    await abrirMenu(user, 'Acta de inicio');
+    await user.click(screen.getByRole('menuitem', { name: 'Gestionar revisión' }));
+
+    // Assert
+    const panel = await screen.findByRole('dialog');
+    expect(await within(panel).findByText('Aún no has subido versiones')).toBeInTheDocument();
+    await user.click(within(panel).getByRole('button', { name: 'Cerrar panel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('Subir nueva versión abre directamente el panel de subida', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    getParticipaciones.mockResolvedValue([
+      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+    ]);
+    render(<ConsultarParticipacionesEstudiante />);
+
+    // Act
+    await abrirMenu(user, 'Acta de inicio');
+    await user.click(await screen.findByRole('menuitem', { name: 'Subir nueva versión' }));
 
     // Assert
     const panel = await screen.findByRole('dialog');
     expect(within(panel).getByText('Acta de inicio')).toBeInTheDocument();
     expect(within(panel).getByText('Sistema de riego')).toBeInTheDocument();
-    await user.click(within(panel).getByRole('button', { name: 'Cerrar panel' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
-  it('una participación omitida no abre el panel de subir versión y lleva "Omitido"', async () => {
+
+  it('una participación omitida lleva "Omitido" y no tiene menú', async () => {
     // Arrange
     getParticipaciones.mockResolvedValue([
       { ...participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'), omitido: true },
@@ -198,11 +253,11 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
     // Assert
     expect(
-      await within(tabla).findByRole('button', { name: 'Subir nueva versión de Anteproyecto' }),
+      await within(tabla).findByRole('button', { name: 'Acciones de Anteproyecto' }),
     ).toBeInTheDocument();
     expect(
-      within(tabla).queryByRole('button', { name: 'Subir nueva versión de Acta de inicio' }),
-    ).toBeNull();
+      within(tabla).queryByRole('button', { name: 'Acciones de Acta de inicio' }),
+    ).not.toBeInTheDocument();
     expect(within(tabla).getByText('Omitido')).toBeInTheDocument();
   });
 

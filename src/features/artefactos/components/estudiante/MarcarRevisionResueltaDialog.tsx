@@ -2,7 +2,6 @@ import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useMarcarRevisionResuelta } from '../../hooks/useMarcarRevisionResuelta';
 import { useObservacionesRevisionEstudiante } from '../../hooks/useObservacionesRevisionEstudiante';
-import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { contarObservacionesAbiertas } from '../../utils/avance-observacion';
 import { mensajeErrorMarcarRevisionResuelta } from '../../utils/errores-marcar-revision-resuelta';
 
@@ -19,22 +18,31 @@ function avisoAbiertas(abiertas: number): string {
 }
 
 interface Props {
-  version: VersionArtefacto;
+  revisionAsesorId: string;
+  nombreDocumento: string;
+  version: number;
   onCerrar: () => void;
+  onResuelta?: () => void;
 }
 
-export default function MarcarRevisionResueltaDialog({ version, onCerrar }: Props) {
+export default function MarcarRevisionResueltaDialog({
+  revisionAsesorId,
+  nombreDocumento,
+  version,
+  onCerrar,
+  onResuelta,
+}: Props) {
   const mutacion = useMarcarRevisionResuelta();
-  const observaciones = useObservacionesRevisionEstudiante(version.revisionAsesor);
+  const observaciones = useObservacionesRevisionEstudiante(revisionAsesorId);
   const abiertas = contarObservacionesAbiertas(observaciones.data ?? []);
 
   function confirmar() {
-    if (!version.revisionAsesor) return;
     mutacion.mutate(
-      { revisionAsesorId: version.revisionAsesor },
+      { revisionAsesorId },
       {
         onSuccess: () => {
           toast.success('Revisión marcada como resuelta');
+          onResuelta?.();
           onCerrar();
         },
         onError: (err) => {
@@ -51,7 +59,7 @@ export default function MarcarRevisionResueltaDialog({ version, onCerrar }: Prop
   return (
     <ConfirmDialog
       titulo="¿Marcar la revisión como resuelta?"
-      descripcion={`${version.nombreDocumento}, versión ${version.version}.`}
+      descripcion={`${nombreDocumento}, versión ${version}.`}
       aviso={abiertas > 0 ? avisoAbiertas(abiertas) : undefined}
       consecuencias={CONSECUENCIAS}
       labelConfirmar="Marcar como resuelta"
