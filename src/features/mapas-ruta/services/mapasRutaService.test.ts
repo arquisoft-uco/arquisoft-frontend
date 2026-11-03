@@ -245,6 +245,33 @@ describe('mapasRutaService', () => {
       expect(get).toHaveBeenCalledWith('/estados-item');
       expect(resultado).toEqual(catalogo);
     });
+
+    it('devuelve una lista vacía cuando el catálogo no tiene filas', async () => {
+      // Arrange
+      get.mockResolvedValue({ data: [] });
+
+      // Act
+      const resultado = await mapasRutaService.consultarEstadosTarea();
+
+      // Assert
+      expect(resultado).toEqual([]);
+    });
+  });
+
+  describe('cambiarEstadoTarea', () => {
+    it('traduce estadoItemId a estadoItem en PATCH /tareas/{id}/estado-item y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.cambiarEstadoTarea('t-1', {
+        estadoItemId: 'EN_PROGRESO',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/tareas/t-1/estado-item', { estadoItem: 'EN_PROGRESO' });
+      expect(resultado).toBeUndefined();
+    });
   });
 
   describe('cambiarFechaFin', () => {

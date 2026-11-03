@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
+import type { CambiarEstadoTareaRequest } from '../models/CambiarEstadoTareaRequest';
 import type { CambiarFechaFinMapaRutaRequest } from '../models/CambiarFechaFinMapaRutaRequest';
 import type { MapaRuta } from '../models/MapaRuta';
 import type { MapaRutaResponse } from '../models/MapaRutaResponse';
@@ -93,6 +94,12 @@ export const mapasRutaService = {
 
   consultarTarea(tareaId: string): Promise<Tarea> {
     return apiClient.get<TareaResponse>(`/tareas/${tareaId}`).then((r) => aTarea(r.data));
+  },
+
+  cambiarEstadoTarea(tareaId: string, req: CambiarEstadoTareaRequest): Promise<void> {
+    return apiClient
+      .patch(`/tareas/${tareaId}/estado-item`, { estadoItem: req.estadoItemId })
+      .then(() => undefined);
   },
 
   consultarEstadosTarea(): Promise<EstadoTarea[]> {

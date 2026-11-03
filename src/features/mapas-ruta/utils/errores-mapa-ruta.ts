@@ -49,3 +49,13 @@ export function mensajeErrorCambioFechaFin(err: unknown): string {
   }
   return getApiErrorMessage(err, 'Verifica la fecha e inténtalo nuevamente.');
 }
+
+export function mensajeErrorCambioEstadoTarea(err: unknown): string {
+  if (hasApiErrorCode(err, 'TRANSICION_ESTADO_ITEM_NO_PERMITIDA')) {
+    return 'La tarea ya no admite ese cambio de estado. Revisa su estado actual e inténtalo de nuevo.';
+  }
+  if (hasApiErrorCode(err, 'TAREA_NO_ENCONTRADA')) {
+    return 'La tarea ya no está disponible. Vuelve a tus tareas e inténtalo de nuevo.';
+  }
+  return getApiErrorMessage(err, 'Inténtalo nuevamente.');
+}
