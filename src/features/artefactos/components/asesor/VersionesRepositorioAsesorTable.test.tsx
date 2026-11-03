@@ -4,6 +4,12 @@ import { render, screen, within } from '../../../../test-utils/render';
 import type { VersionRepositorioAsesor } from '../../models/VersionRepositorioAsesor';
 import VersionesRepositorioAsesorTable from './VersionesRepositorioAsesorTable';
 
+const { descargar } = vi.hoisted(() => ({ descargar: vi.fn() }));
+
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar, descargando: false }),
+}));
+
 const VERSION: VersionRepositorioAsesor = {
   id: 'v-1',
   nombreDocumento: 'Acta de inicio',
@@ -88,5 +94,21 @@ describe('VersionesRepositorioAsesorTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('cada fila tiene su botón de descarga que pide el id de esa versión', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar({ versiones: [VERSION, { ...VERSION, id: 'v-2', numeroVersion: 4 }] });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Descargar Acta de inicio versión 4' }));
+
+    // Assert
+    expect(descargar).toHaveBeenCalledTimes(1);
+    expect(descargar).toHaveBeenCalledWith('v-2', 'Acta de inicio');
+    expect(
+      tabla().getByRole('button', { name: 'Descargar Acta de inicio versión 3' }),
+    ).toBeInTheDocument();
   });
 });

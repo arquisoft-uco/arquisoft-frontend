@@ -1,4 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
+
+const { descargar } = vi.hoisted(() => ({ descargar: vi.fn() }));
+
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar, descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
@@ -59,5 +65,20 @@ describe('VersionesRepositorioTable', () => {
     unmount();
     render(<VersionesRepositorioTable versiones={[]} cargando={false} />);
     expect(screen.queryByRole('button', { name: 'Subir versión' })).not.toBeInTheDocument();
+  });
+
+  it('cada versión tiene su menú con Descargar, que pide el id de esa versión', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<VersionesRepositorioTable versiones={[CON_HUELLA, SIN_HUELLA]} cargando={false} />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Guía técnica versión 1' })[0],
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar' }));
+
+    // Assert
+    expect(descargar).toHaveBeenCalledWith('v-2', 'Guía técnica');
   });
 });

@@ -10,6 +10,7 @@ import type {
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
 import InsigniaOmitido from '../InsigniaOmitido';
+import MenuDescargarArtefacto from './MenuDescargarArtefacto';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
@@ -109,6 +110,8 @@ export default function ArtefactosEstudianteTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(artefacto) => <MenuDescargarArtefacto artefacto={artefacto} />}
+      encabezadoAcciones="Acciones"
       tarjeta={(artefacto) => (
         <>
           <p className={TARJETA_NOMBRE}>{artefacto.nombreDocumento}</p>

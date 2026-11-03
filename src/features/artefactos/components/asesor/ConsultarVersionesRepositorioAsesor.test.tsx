@@ -11,6 +11,10 @@ import type { VersionRepositorioAsesor } from '../../models/VersionRepositorioAs
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesRepositorioAsesor from './ConsultarVersionesRepositorioAsesor';
 
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar: vi.fn(), descargando: false }),
+}));
+
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarVersionesRepositorioAsesor: vi.fn(),

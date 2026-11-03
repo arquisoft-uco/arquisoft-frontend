@@ -6,6 +6,7 @@ import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
 import { formatearFechaCreacion, formatearTamano } from '../../../../shared/utils/formato-version';
+import VersionRepositorioRowMenu from './VersionRepositorioRowMenu';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
@@ -84,6 +85,8 @@ export default function VersionesRepositorioTable({ versiones, cargando, onSubir
       filas={versiones}
       idDeFila={(version) => version.id}
       cargando={cargando}
+      acciones={(version) => <VersionRepositorioRowMenu version={version} />}
+      encabezadoAcciones="Acciones"
       vacio={
         <EmptyState
           icono={FileStack}
