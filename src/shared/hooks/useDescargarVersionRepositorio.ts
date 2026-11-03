@@ -9,10 +9,14 @@ interface DescargaVariables {
   nombreDocumento: string;
 }
 
-export function useDescargarVersionRepositorio() {
+type OrigenDescarga = 'repositorio' | 'artefacto';
+
+export function useDescargarVersionRepositorio(origen: OrigenDescarga = 'repositorio') {
   const mutation = useMutation({
     mutationFn: ({ versionId }: DescargaVariables) =>
-      descargaVersionRepositorioService.obtenerEnlace(versionId),
+      origen === 'artefacto'
+        ? descargaVersionRepositorioService.obtenerEnlaceVersionArtefacto(versionId)
+        : descargaVersionRepositorioService.obtenerEnlace(versionId),
     onSuccess: (enlace, { nombreDocumento }) => {
       iniciarDescarga(enlace.url);
       toast.success('Descarga iniciada', nombreDocumento);

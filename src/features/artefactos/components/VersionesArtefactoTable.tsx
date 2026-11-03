@@ -1,14 +1,14 @@
-import { FileStack, Info, SearchX } from 'lucide-react';
+import { FileStack, SearchX } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type { DireccionOrden, OrdenTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
-import RowMenu from '../../../shared/components/ui/RowMenu';
 import type { AccionMenu } from '../../../shared/components/ui/RowMenu';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import { construirColumnas, etiquetaVersion } from './columnasVersionesArtefacto';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
+import VersionArtefactoRowMenu from './VersionArtefactoRowMenu';
 
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
@@ -74,16 +74,10 @@ export default function VersionesArtefactoTable({
       cargando={cargando}
       vacio={vacio}
       acciones={(version) => (
-        <RowMenu
-          etiqueta={`Acciones de la versión ${version.version} de ${version.nombreDocumento}`}
-          acciones={[
-            {
-              etiqueta: 'Ver información',
-              icono: Info,
-              onSeleccionar: () => onVerInformacion(version),
-            },
-            ...(accionesAdicionales?.(version) ?? []),
-          ]}
+        <VersionArtefactoRowMenu
+          version={version}
+          onVerInformacion={onVerInformacion}
+          accionesAdicionales={accionesAdicionales}
         />
       )}
       tarjeta={(version) => (

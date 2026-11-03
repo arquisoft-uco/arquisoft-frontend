@@ -8,4 +8,9 @@ export const descargaVersionRepositorioService = {
         `/repositorio-artefactos/versiones/${versionRepositorioArtefactoId}/descarga`,
       )
       .then((r) => r.data),
+
+  obtenerEnlaceVersionArtefacto: (versionArtefactoId: string): Promise<EnlaceDescargaVersion> =>
+    apiClient
+      .get<EnlaceDescargaVersion>(`/artefactos/versiones/${versionArtefactoId}/descarga`)
+      .then((r) => r.data),
 };
