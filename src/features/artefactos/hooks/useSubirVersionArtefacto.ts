@@ -4,6 +4,7 @@ import { cargaPrefirmadaService } from '../../../shared/services/cargaPrefirmada
 import { artefactosService } from '../services/artefactosService';
 import type { DatosSubidaVersionArtefacto } from '../models/DatosSubidaVersionArtefacto';
 import type { GenerarVersionArtefactoResponse } from '../models/GenerarVersionArtefactoResponse';
+import { esBloqueoDeSubida } from '../utils/errores-version-artefacto';
 import { tipoContenidoDeArtefacto } from '../utils/tipos-archivo-version-artefacto';
 
 export function useSubirVersionArtefacto(artefactoId: string) {
@@ -37,6 +38,12 @@ export function useSubirVersionArtefacto(artefactoId: string) {
           queryKey: ['artefactos', 'versiones-artefacto', 'estudiante'],
         }),
       ]),
+    onError: (err) =>
+      esBloqueoDeSubida(err)
+        ? queryClient.invalidateQueries({
+            queryKey: ['artefactos', 'versiones-artefacto', 'estudiante'],
+          })
+        : undefined,
     onSettled: reiniciar,
   });
 

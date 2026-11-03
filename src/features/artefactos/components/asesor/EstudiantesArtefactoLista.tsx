@@ -1,17 +1,23 @@
-import { Users } from 'lucide-react';
+import { useState } from 'react';
+import { UserMinus, Users } from 'lucide-react';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
+import IconButton from '../../../../shared/components/ui/IconButton';
+import ListaPersonas from '../../../../shared/components/ui/ListaPersonas';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEstudiantesArtefacto } from '../../hooks/useEstudiantesArtefacto';
-import ListaEstudiantesArtefacto from './ListaEstudiantesArtefacto';
+import type { EstudianteArtefacto } from '../../models/EstudianteArtefacto';
+import RemoverEstudianteArtefactoDialog from './RemoverEstudianteArtefactoDialog';
 
 interface Props {
   artefactoId: string;
+  omitido?: boolean;
 }
 
-export default function EstudiantesArtefactoLista({ artefactoId }: Props) {
+export default function EstudiantesArtefactoLista({ artefactoId, omitido = false }: Props) {
   const { data, isLoading, isError, error, refetch } = useEstudiantesArtefacto(artefactoId);
+  const [estudianteAQuitar, setEstudianteAQuitar] = useState<EstudianteArtefacto | null>(null);
 
   if (isLoading) {
     return <Skeleton variante="lineas" etiqueta="Cargando los estudiantes del artefacto…" />;
@@ -34,5 +40,31 @@ export default function EstudiantesArtefactoLista({ artefactoId }: Props) {
       />
     );
   }
-  return <ListaEstudiantesArtefacto estudiantes={data} etiqueta="Estudiantes del artefacto" />;
+  return (
+    <>
+      <ListaPersonas
+        personas={data}
+        etiqueta="Estudiantes del artefacto"
+        accion={
+          omitido
+            ? undefined
+            : (estudiante) => (
+                <IconButton
+                  etiqueta={`Quitar a ${estudiante.nombre} del artefacto`}
+                  icono={UserMinus}
+                  tono="peligro"
+                  onClick={() => setEstudianteAQuitar(estudiante)}
+                />
+              )
+        }
+      />
+      {estudianteAQuitar && !omitido && (
+        <RemoverEstudianteArtefactoDialog
+          artefactoId={artefactoId}
+          estudiante={estudianteAQuitar}
+          onCerrar={() => setEstudianteAQuitar(null)}
+        />
+      )}
+    </>
+  );
 }

@@ -7,27 +7,25 @@ import ConsultarArtefactosEstudiante from './estudiante/ConsultarArtefactosEstud
 import ConsultarParticipacionesEstudiante from './estudiante/ConsultarParticipacionesEstudiante';
 import ConsultarVersionesArtefactoEstudiante from './estudiante/ConsultarVersionesArtefactoEstudiante';
 
-type Vista = 'artefactos-proyecto' | 'mis-artefactos' | 'versiones-artefactos';
+type Vista = 'mis-artefactos' | 'versiones-revisiones' | 'artefactos-proyecto';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
-  'artefactos-proyecto': ConsultarArtefactosEstudiante,
   'mis-artefactos': ConsultarParticipacionesEstudiante,
-  'versiones-artefactos': ConsultarVersionesArtefactoEstudiante,
+  'versiones-revisiones': ConsultarVersionesArtefactoEstudiante,
+  'artefactos-proyecto': ConsultarArtefactosEstudiante,
 };
 
 const DESCRIPCION_POR_VISTA: Record<Vista, string> = {
+  'mis-artefactos':
+    'Tus artefactos con sus acciones. Pulsa el nombre de un documento para ver sus versiones y revisiones.',
+  'versiones-revisiones':
+    'Historial de las versiones que has subido, con el estado de su revisión.',
   'artefactos-proyecto':
     'Todos los artefactos de los proyectos de grado a los que perteneces, aunque no estés asignado a cada uno.',
-  'mis-artefactos':
-    'Los artefactos en los que estás asignado, agrupados por proyecto de grado. Elige uno para subir una nueva versión.',
-  'versiones-artefactos':
-    'El historial de versiones subidas a los artefactos en los que estás asignado, con su proyecto, documento, repositorio, asesor, estado de la revisión y fecha de creación.',
 };
 
 function leerVista(valor: string): Vista {
-  return Object.keys(CONTENIDO_POR_VISTA).includes(valor)
-    ? (valor as Vista)
-    : 'artefactos-proyecto';
+  return Object.keys(CONTENIDO_POR_VISTA).includes(valor) ? (valor as Vista) : 'mis-artefactos';
 }
 
 export default function EstudianteView() {
@@ -39,22 +37,22 @@ export default function EstudianteView() {
     <div className="flex flex-col gap-6">
       <PageHeader
         titulo="Artefactos"
-        descripcion="Consulta los artefactos de tus proyectos de grado, sube nuevas versiones de los tuyos y sigue las versiones de cada uno."
+        descripcion="Consulta los artefactos de tus proyectos de grado, gestiona la revisión de los tuyos y sube nuevas versiones."
       />
       <Tabs
         etiqueta="Secciones de artefactos"
         valor={vista}
         items={[
-          { id: 'artefactos-proyecto', etiqueta: 'Artefactos proyecto', to: pathname },
+          { id: 'mis-artefactos', etiqueta: 'Mis artefactos', to: pathname },
           {
-            id: 'mis-artefactos',
-            etiqueta: 'Mis artefactos',
-            to: `${pathname}?vista=mis-artefactos`,
+            id: 'versiones-revisiones',
+            etiqueta: 'Versiones y revisiones',
+            to: `${pathname}?vista=versiones-revisiones`,
           },
           {
-            id: 'versiones-artefactos',
-            etiqueta: 'Versiones de artefactos',
-            to: `${pathname}?vista=versiones-artefactos`,
+            id: 'artefactos-proyecto',
+            etiqueta: 'Artefactos proyecto',
+            to: `${pathname}?vista=artefactos-proyecto`,
           },
         ]}
       />

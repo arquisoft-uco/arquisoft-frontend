@@ -130,4 +130,18 @@ describe('useVersionesArtefactoEstudiante', () => {
     // Assert
     await waitFor(() => expect(result.current.hayFiltros).toBe(false));
   });
+
+  it('acepta ordenar por la fecha de la revisión desde la URL', async () => {
+    // Act
+    const { result } = renderHook(() => useVersionesArtefactoEstudiante(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?orden=fechaCreacionRevision:DESC'),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenCalledWith(
+      expect.objectContaining({ ordenamiento: ['fechaCreacionRevision:DESC'] }),
+    );
+    expect(result.current.ordenCampo).toBe('fechaCreacionRevision');
+  });
 });

@@ -49,6 +49,7 @@ const FILA: VersionArtefacto = {
   revisionAsesor: null,
   estadoRevision: null,
   nombreEstadoRevision: null,
+  fechaCreacionRevision: null,
 };
 
 const DETALLE: VersionArtefacto = {
@@ -97,6 +98,28 @@ describe('DetalleVersionArtefactoPanel', () => {
     expect(screen.getByText('Repositorio base')).toBeInTheDocument();
     expect(screen.getByText('Marta Gómez')).toBeInTheDocument();
     expect(screen.getByText('En progreso')).toBeInTheDocument();
+  });
+
+  it('con revisión muestra la fecha de la revisión; sin revisión solo el texto informativo', () => {
+    // Arrange
+    hook.mockReturnValue(
+      estado({ data: { ...DETALLE, fechaCreacionRevision: '2026-04-02T09:00:00Z' } }),
+    );
+
+    // Act
+    const { unmount } = render(<DetalleVersionArtefactoPanel version={FILA} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.getByText('Fecha de la revisión')).toBeInTheDocument();
+
+    // Act
+    unmount();
+    hook.mockReturnValue(estado({ data: FILA }));
+    render(<DetalleVersionArtefactoPanel version={FILA} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.queryByText('Fecha de la revisión')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Invalid Date/)).not.toBeInTheDocument();
   });
 
   it('sin revisión indica "Sin revisión" y "No disponible" si falta la ubicación', () => {
