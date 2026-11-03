@@ -28,12 +28,22 @@ jobs:
     permissions:
       contents: read
       packages: read
+      actions: read
 
     steps:
-      # ── SHA corto (mismo tag que publicó docker-build.yml) ──
-      - name: Calcular short SHA
+      # ── SHA corto: se lee del artefacto que publicó docker-build.yml. No se
+      #     usa workflow_run.head_sha: en una cadena de workflow_run apunta a la
+      #     rama por defecto (main), no al commit de develop que se construyó ──
+      - name: Descargar tag de la imagen
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tag
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Leer short SHA
         id: vars
-        run: echo "short_sha=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+        run: echo "short_sha=$(cat short_sha.txt)" >> "$GITHUB_OUTPUT"
 
       # ── Deploy remoto ──
       - name: Reemplazar contenedor vía SSH
