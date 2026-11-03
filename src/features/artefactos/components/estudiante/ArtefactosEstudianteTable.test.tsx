@@ -14,6 +14,7 @@ const ARTEFACTO: ArtefactoEstudiante = {
   nombreRepositorio: 'Repositorio base',
   asesor: 's-1',
   nombreAsesor: 'Ana Pérez',
+  omitido: false,
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosEstudianteTable>> = {}) {
@@ -45,6 +46,19 @@ describe('ArtefactosEstudianteTable', () => {
     expect(tabla().getByText('Versión 2')).toBeInTheDocument();
     expect(tabla().getByText('Repositorio base')).toBeInTheDocument();
     expect(tabla().getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('muestra "Omitido" solo en la fila omitida', () => {
+    // Act
+    renderizar({
+      artefactos: [
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true },
+      ],
+    });
+
+    // Assert
+    expect(tabla().getAllByText('Omitido')).toHaveLength(1);
   });
 
   it('las cinco columnas ordenan y entregan su clave', async () => {

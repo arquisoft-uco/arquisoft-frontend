@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PaginadorListado from '../../../shared/components/PaginadorListado';
+import type { AccionMenu } from '../../../shared/components/ui/RowMenu';
 import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
@@ -21,14 +22,20 @@ interface Props {
   listado: ListadoVersionesArtefacto;
   descripcionVacio: string;
   mostrarAsesor?: boolean;
+  mostrarRepositorio?: boolean;
+  etiquetaFecha?: string;
   opcionesEstado?: OpcionFiltro[];
+  accionesAdicionales?: (version: VersionArtefacto) => AccionMenu[];
 }
 
 export default function ConsultarVersionesArtefacto({
   listado,
   descripcionVacio,
   mostrarAsesor = false,
+  mostrarRepositorio = true,
+  etiquetaFecha,
   opcionesEstado,
+  accionesAdicionales,
 }: Props) {
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const versiones = data?.content ?? [];
@@ -36,7 +43,11 @@ export default function ConsultarVersionesArtefacto({
 
   return (
     <div className={RAIZ}>
-      <FiltrosVersionesArtefacto listado={listado} opcionesEstado={opcionesEstado} />
+      <FiltrosVersionesArtefacto
+        listado={listado}
+        opcionesEstado={opcionesEstado}
+        etiquetaFecha={etiquetaFecha}
+      />
 
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.totalElements)}
@@ -54,12 +65,15 @@ export default function ConsultarVersionesArtefacto({
             versiones={versiones}
             descripcionVacio={descripcionVacio}
             mostrarAsesor={mostrarAsesor}
+            mostrarRepositorio={mostrarRepositorio}
+            etiquetaFecha={etiquetaFecha}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
             onVerInformacion={setVersionAbierta}
+            accionesAdicionales={accionesAdicionales}
           />
         )}
       </div>

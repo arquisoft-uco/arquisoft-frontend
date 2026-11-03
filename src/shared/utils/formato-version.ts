@@ -6,6 +6,10 @@ export function formatearFechaCreacion(iso: string): string {
   return FORMATO_FECHA.format(new Date(iso));
 }
 
+export function formatearFechaOpcional(iso: string | null, vacio = '—'): string {
+  return iso === null ? vacio : formatearFechaCreacion(iso);
+}
+
 export function formatearTamano(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   let valor = bytes;

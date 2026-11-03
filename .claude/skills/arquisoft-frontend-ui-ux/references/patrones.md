@@ -193,3 +193,7 @@ llevan ya las piezas.
   (`ConfirmDialog peligro` con consecuencias y el verbo exacto: «Dar de baja», «Quitar», «Eliminar»);
   lo que cambia algo reversible pide `advertencia`.
 - Un mismo formulario **no mezcla** los tres modelos sin separarlos en pestañas o secciones con título.
+- **Acción principal que depende de un dato que aún no existe** (enviar una revisión sin observaciones): el botón
+  se **deshabilita** y la razón queda **visible** junto a él, en una nota de texto enlazada con `aria-describedby`;
+  nunca solo un tooltip ni solo el color. Una acción que envía correo o no se deshace pide `ConfirmDialog`
+  `advertencia` con sus consecuencias.

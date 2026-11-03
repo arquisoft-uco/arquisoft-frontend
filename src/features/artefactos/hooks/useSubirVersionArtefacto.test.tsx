@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '../../../test-utils/render';
+import { errorApi } from '../../../test-utils/errores-api';
 import { cargaPrefirmadaService } from '../../../shared/services/cargaPrefirmadaService';
 import { artefactosService } from '../services/artefactosService';
 import { useSubirVersionArtefacto } from './useSubirVersionArtefacto';
@@ -68,6 +69,36 @@ describe('useSubirVersionArtefacto', () => {
     expect(registrar).toHaveBeenCalledWith('a-1', { carga: 'c-1' });
     expect(solicitar.mock.invocationCallOrder[0]).toBeLessThan(cargar.mock.invocationCallOrder[0]);
     expect(cargar.mock.invocationCallOrder[0]).toBeLessThan(registrar.mock.invocationCallOrder[0]);
+  });
+
+  it('un 422 de bloqueo de subida invalida el prefijo del estudiante y otro error no', async () => {
+    // Arrange
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useSubirVersionArtefacto('a-1'), { wrapper });
+
+    // Act
+    solicitar.mockRejectedValueOnce(errorApi(500, { status: 500, message: 'caído' }));
+    result.current.mutate({ archivo: ARCHIVO });
+    await waitFor(() => expect(solicitar).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+    const trasOtro = invalidar.mock.calls.length;
+
+    solicitar.mockRejectedValueOnce(
+      errorApi(422, {
+        status: 422,
+        errorCode: 'ARTEFACTOS_ARTEFACTO_CERRADO',
+        message: 'cerrado',
+      }),
+    );
+    result.current.mutate({ archivo: ARCHIVO });
+
+    // Assert
+    await waitFor(() =>
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['artefactos', 'versiones-artefacto', 'estudiante'],
+      }),
+    );
+    expect(trasOtro).toBe(0);
   });
 
   it('si falla el almacenamiento no registra, no invalida e informa la fase donde falló', async () => {

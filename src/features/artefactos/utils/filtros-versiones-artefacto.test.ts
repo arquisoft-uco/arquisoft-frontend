@@ -118,6 +118,21 @@ describe('filtros de versiones de artefactos', () => {
     });
   });
 
+  it('agrega el predicado version ES junto al del artefacto', () => {
+    // Act
+    const filtros = construirFiltros({ ...BASE, artefacto: ARTEFACTO, version: 2 });
+
+    // Assert
+    expect(filtros).toEqual({
+      tipo: 'GRUPO',
+      conector: 'AND',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'artefacto', operador: 'ES', valor: ARTEFACTO },
+        { tipo: 'PREDICADO', campo: 'version', operador: 'ES', valor: '2' },
+      ],
+    });
+  });
+
   it('combina con AND el texto, las fechas, el artefacto y el estado', () => {
     // Act
     const filtros = construirFiltros({
