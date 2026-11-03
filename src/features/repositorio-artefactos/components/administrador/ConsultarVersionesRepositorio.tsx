@@ -36,6 +36,7 @@ export default function ConsultarVersionesRepositorio({ repositorioId, onSubir }
         ) : (
           <VersionesRepositorioTable
             versiones={data ?? []}
+            repositorioId={repositorioId}
             cargando={isLoading}
             onSubir={onSubir}
           />
