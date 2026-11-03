@@ -68,7 +68,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: ClipboardCheck,
     path: '/evaluaciones',
     order: 5,
-    roles: [Rol.Administrador, Rol.Coordinador, Rol.Estudiante, Rol.Jurado],
+    roles: [Rol.Administrador, Rol.Asesor, Rol.Coordinador, Rol.Estudiante, Rol.Jurado],
   },
   {
     label: 'Mapas de ruta',
