@@ -2,7 +2,7 @@ export interface PredicadoFiltro {
   tipo: 'PREDICADO';
   campo: string;
   operador: string;
-  valor: string;
+  valor?: string;
 }
 
 export interface PredicadoMultivalorFiltro {

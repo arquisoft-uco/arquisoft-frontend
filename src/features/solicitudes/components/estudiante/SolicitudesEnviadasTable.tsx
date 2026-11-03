@@ -7,14 +7,19 @@ import type { Solicitud } from '../../models/Solicitud';
 import FechaSolicitud from '../FechaSolicitud';
 import FechaTarjeta from '../FechaTarjeta';
 import ParticipanteCelda from '../ParticipanteCelda';
-import type { TipoSolicitudEnviadaUi } from '../SelectorTipoSolicitud';
+import type { TipoSolicitudListadoEnviadoUi } from '../SelectorTipoSolicitud';
 
 const MENSAJE = 'max-w-md break-words text-on-surface-secondary';
 
 const TEXTOS_POR_TIPO: Record<
-  TipoSolicitudEnviadaUi,
+  TipoSolicitudListadoEnviadoUi,
   { encabezado: string; etiqueta: string; vacio: string }
 > = {
+  'registro-modificacion-usuarios': {
+    encabezado: 'Administrador',
+    etiqueta: 'Solicitudes de registro y modificación de usuarios enviadas',
+    vacio: 'Cuando envíes una solicitud de registro y modificación de usuarios, aparecerá aquí.',
+  },
   coordinador: {
     encabezado: 'Coordinador',
     etiqueta: 'Solicitudes de novedad enviadas al coordinador',
@@ -62,7 +67,10 @@ function columnasDe(encabezadoDestinatario: string): ColumnaTabla<Solicitud>[] {
   ];
 }
 
-const COLUMNAS_POR_TIPO: Record<TipoSolicitudEnviadaUi, ColumnaTabla<Solicitud>[]> = {
+const COLUMNAS_POR_TIPO: Record<TipoSolicitudListadoEnviadoUi, ColumnaTabla<Solicitud>[]> = {
+  'registro-modificacion-usuarios': columnasDe(
+    TEXTOS_POR_TIPO['registro-modificacion-usuarios'].encabezado,
+  ),
   coordinador: columnasDe(TEXTOS_POR_TIPO.coordinador.encabezado),
   asesor: columnasDe(TEXTOS_POR_TIPO.asesor.encabezado),
   'cambio-asesor': columnasDe(TEXTOS_POR_TIPO['cambio-asesor'].encabezado),
@@ -70,7 +78,7 @@ const COLUMNAS_POR_TIPO: Record<TipoSolicitudEnviadaUi, ColumnaTabla<Solicitud>[
 };
 
 interface Props {
-  tipo: TipoSolicitudEnviadaUi;
+  tipo: TipoSolicitudListadoEnviadoUi;
   solicitudes: Solicitud[];
   cargando: boolean;
   eliminando?: boolean;

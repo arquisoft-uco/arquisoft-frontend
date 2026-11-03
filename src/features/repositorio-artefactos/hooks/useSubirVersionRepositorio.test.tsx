@@ -4,19 +4,23 @@ import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { renderHook, waitFor } from '../../../test-utils/render';
+import { cargaPrefirmadaService } from '../../../shared/services/cargaPrefirmadaService';
 import { repositorioArtefactosService } from '../services/repositorioArtefactosService';
 import { useSubirVersionRepositorio } from './useSubirVersionRepositorio';
 
 vi.mock('../services/repositorioArtefactosService', () => ({
   repositorioArtefactosService: {
     solicitarCargaVersion: vi.fn(),
-    cargarArchivoVersion: vi.fn(),
     subirVersion: vi.fn(),
   },
 }));
 
+vi.mock('../../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
+}));
+
 const solicitar = vi.mocked(repositorioArtefactosService.solicitarCargaVersion);
-const cargar = vi.mocked(repositorioArtefactosService.cargarArchivoVersion);
+const cargar = vi.mocked(cargaPrefirmadaService.cargarArchivo);
 const subir = vi.mocked(repositorioArtefactosService.subirVersion);
 
 const ARCHIVO = new File(['contenido'], 'Manual.PDF');

@@ -5,6 +5,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { EnviarSolicitudNovedadAsesorRequest } from '../models/EnviarSolicitudNovedadAsesorRequest';
 import type { EnviarSolicitudNovedadCoordinadorRequest } from '../models/EnviarSolicitudNovedadCoordinadorRequest';
+import type { EnviarSolicitudRegistroModificacionUsuariosRequest } from '../models/EnviarSolicitudRegistroModificacionUsuariosRequest';
 import type { EstadoRespuesta } from '../models/EstadoRespuesta';
 import type { ModificarEstadoRespuestaAmpliacionPlazoRequest } from '../models/ModificarEstadoRespuestaAmpliacionPlazoRequest';
 import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
@@ -14,6 +15,7 @@ import type { ResponderSolicitudAmpliacionPlazoRequest } from '../models/Respond
 import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
 import type { ResponderSolicitudNovedadCoordinadorRequest } from '../models/ResponderSolicitudNovedadCoordinadorRequest';
+import type { ResponderSolicitudRegistroModificacionUsuariosRequest } from '../models/ResponderSolicitudRegistroModificacionUsuariosRequest';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import type { Solicitud } from '../models/Solicitud';
 import type { SolicitudCreadaResponse } from '../models/SolicitudCreadaResponse';
@@ -59,6 +61,16 @@ export const solicitudesService = {
       })
       .then((r) => r.data),
 
+  enviarSolicitudRegistroModificacionUsuarios: (
+    req: EnviarSolicitudRegistroModificacionUsuariosRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>('/solicitudes/registro-modificacion-usuarios', {
+        destinatario: req.destinatario,
+        mensajeSolicitud: req.mensajeSolicitud,
+      })
+      .then((r) => r.data),
+
   consultarSolicitudesNovedadCoordinadorEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/novedad-coordinador/enviadas', {
@@ -86,6 +98,28 @@ export const solicitudesService = {
   consultarSolicitudesAmpliacionPlazoEnviadas: (page = 0, size = 10): Promise<Page<Solicitud>> =>
     apiClient
       .post<Page<Solicitud>>('/solicitudes/ampliacion-plazo/enviadas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarSolicitudesRegistroModificacionUsuariosEnviadas: (
+    page = 0,
+    size = 10,
+  ): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/registro-modificacion-usuarios/enviadas', {
+        pagina: page,
+        tamanio: size,
+      })
+      .then((r) => r.data),
+
+  consultarSolicitudesRegistroModificacionUsuariosRecibidas: (
+    page = 0,
+    size = 10,
+  ): Promise<Page<Solicitud>> =>
+    apiClient
+      .post<Page<Solicitud>>('/solicitudes/registro-modificacion-usuarios/recibidas', {
         pagina: page,
         tamanio: size,
       })
@@ -165,6 +199,15 @@ export const solicitudesService = {
       .post<Page<RespuestaSolicitud>>('/solicitudes/ampliacion-plazo/respuestas/enviadas', criterio)
       .then((r) => r.data),
 
+  consultarRespuestasRegistroModificacionUsuariosEnviadas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/registro-modificacion-usuarios/respuestas/enviadas', criterio)
+      .then((r) => r.data),
+
   consultarRespuestasAmpliacionPlazoRecibidas: (
     criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>
@@ -203,6 +246,11 @@ export const solicitudesService = {
   eliminarSolicitudAmpliacionPlazo: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/ampliacion-plazo/${solicitudId}`).then(() => undefined),
 
+  eliminarSolicitudRegistroModificacionUsuarios: (solicitudId: string): Promise<void> =>
+    apiClient
+      .delete(`/solicitudes/registro-modificacion-usuarios/${solicitudId}`)
+      .then(() => undefined),
+
   responderSolicitudNovedadCoordinador: (
     req: ResponderSolicitudNovedadCoordinadorRequest,
   ): Promise<SolicitudCreadaResponse> =>
@@ -238,6 +286,16 @@ export const solicitudesService = {
       .post<SolicitudCreadaResponse>(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta`, {
         contenido: req.contenido,
       })
+      .then((r) => r.data),
+
+  responderSolicitudRegistroModificacionUsuarios: (
+    req: ResponderSolicitudRegistroModificacionUsuariosRequest,
+  ): Promise<SolicitudCreadaResponse> =>
+    apiClient
+      .post<SolicitudCreadaResponse>(
+        `/solicitudes/registro-modificacion-usuarios/${req.solicitudId}/respuesta`,
+        { contenido: req.contenido },
+      )
       .then((r) => r.data),
 
   eliminarRespuestaCambioAsesor: (solicitudId: string): Promise<void> =>

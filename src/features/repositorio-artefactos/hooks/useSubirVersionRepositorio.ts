@@ -1,26 +1,21 @@
-import { useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAvanceSubida } from '../../../shared/hooks/useAvanceSubida';
+import { cargaPrefirmadaService } from '../../../shared/services/cargaPrefirmadaService';
 import { repositorioArtefactosService } from '../services/repositorioArtefactosService';
-import type { DatosSubidaVersion, FaseSubidaVersion } from '../models/DatosSubidaVersion';
+import type { DatosSubidaVersion } from '../models/DatosSubidaVersion';
 import type { SubirVersionResponse } from '../models/SubirVersionResponse';
 import { esErrorDeDocumento } from '../utils/errores-version';
 import { tipoContenidoDe } from '../utils/tipos-archivo-version';
 
 export function useSubirVersionRepositorio(repositorioId: string) {
   const queryClient = useQueryClient();
-  const [fase, setFase] = useState<FaseSubidaVersion | null>(null);
-  const [porcentaje, setPorcentaje] = useState(0);
-  const ultimaFase = useRef<FaseSubidaVersion | null>(null);
+  const { fase, porcentaje, avanzarA, actualizarPorcentaje, reiniciar, faseDelError } =
+    useAvanceSubida();
 
   const invalidarVersiones = () =>
     queryClient.invalidateQueries({
       queryKey: ['repositorio-artefactos', repositorioId, 'versiones'],
     });
-
-  function avanzarA(nueva: FaseSubidaVersion) {
-    ultimaFase.current = nueva;
-    setFase(nueva);
-  }
 
   const mutacion = useMutation<SubirVersionResponse, unknown, DatosSubidaVersion>({
     mutationFn: async ({ archivo, nombreDocumento, nuevoDocumento }) => {
@@ -32,8 +27,7 @@ export function useSubirVersionRepositorio(repositorioId: string) {
       });
 
       avanzarA('subiendo');
-      setPorcentaje(0);
-      await repositorioArtefactosService.cargarArchivoVersion(carga, archivo, setPorcentaje);
+      await cargaPrefirmadaService.cargarArchivo(carga, archivo, actualizarPorcentaje);
 
       avanzarA('registrando');
       return repositorioArtefactosService.subirVersion(repositorioId, {
@@ -46,10 +40,7 @@ export function useSubirVersionRepositorio(repositorioId: string) {
     onError: (err) => {
       if (esErrorDeDocumento(err)) invalidarVersiones();
     },
-    onSettled: () => {
-      setFase(null);
-      setPorcentaje(0);
-    },
+    onSettled: reiniciar,
   });
 
   return {
@@ -58,6 +49,6 @@ export function useSubirVersionRepositorio(repositorioId: string) {
     reset: mutacion.reset,
     fase,
     porcentaje,
-    faseDelError: () => ultimaFase.current,
+    faseDelError,
   };
 }

@@ -16,6 +16,9 @@ function participacion(
     versionRepositorioArtefacto: `v-${id}`,
     versionDocumento: 1,
     nombreRepositorio: 'Repositorio base',
+    asesor: 'u-1',
+    nombreAsesor: 'Laura Gómez',
+    omitido: false,
   };
 }
 

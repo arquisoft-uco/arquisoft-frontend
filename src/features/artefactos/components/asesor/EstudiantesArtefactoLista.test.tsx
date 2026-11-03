@@ -1,15 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, within } from '../../../../test-utils/render';
+import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { EstudianteArtefacto } from '../../models/EstudianteArtefacto';
 import { useEstudiantesArtefacto } from '../../hooks/useEstudiantesArtefacto';
+import { useRemoverEstudianteArtefacto } from '../../hooks/useRemoverEstudianteArtefacto';
 import EstudiantesArtefactoLista from './EstudiantesArtefactoLista';
 
 vi.mock('../../hooks/useEstudiantesArtefacto', () => ({
   useEstudiantesArtefacto: vi.fn(),
 }));
 
+vi.mock('../../hooks/useRemoverEstudianteArtefacto', () => ({
+  useRemoverEstudianteArtefacto: vi.fn(),
+}));
+
 const hook = vi.mocked(useEstudiantesArtefacto);
+const hookQuitar = vi.mocked(useRemoverEstudianteArtefacto);
+
+type Quitar = ReturnType<typeof useRemoverEstudianteArtefacto>;
+
+function quitarMock(parcial: Partial<Quitar> = {}) {
+  const mutate = vi.fn();
+  const base: Partial<Quitar> = { mutate, isPending: false, variables: undefined };
+  hookQuitar.mockReturnValue(Object.assign(base, parcial) as Quitar);
+  return mutate;
+}
 
 type Resultado = ReturnType<typeof useEstudiantesArtefacto>;
 
@@ -47,6 +62,7 @@ const dadoDeBaja: EstudianteArtefacto = {
 describe('EstudiantesArtefactoLista', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    quitarMock();
   });
 
   it('muestra el estado de carga accesible mientras consulta', () => {
@@ -106,5 +122,34 @@ describe('EstudiantesArtefactoLista', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.getByText('No pudimos cargar los estudiantes del artefacto')).toBeInTheDocument();
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('con el artefacto omitido no ofrece el botón de quitar en ninguna fila', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [vigente, dadoDeBaja] }));
+
+    // Act
+    render(<EstudiantesArtefactoLista artefactoId="a-1" omitido />);
+
+    // Assert
+    expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Quitar a/ })).toBeNull();
+  });
+
+  it('quitar abre el diálogo con el nombre del estudiante y cancelar lo cierra', async () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: [vigente, dadoDeBaja] }));
+    const user = userEvent.setup();
+    render(<EstudiantesArtefactoLista artefactoId="a-1" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar a Ana Pérez del artefacto' }));
+    const dialogo = await screen.findByRole('alertdialog');
+    const nombreVisible = !!within(dialogo).queryByText(/Ana Pérez será quitado/);
+    await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(nombreVisible).toBe(true);
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
   });
 });

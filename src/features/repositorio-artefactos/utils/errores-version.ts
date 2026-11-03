@@ -4,7 +4,7 @@ import {
   getApiFieldErrors,
   hasApiErrorCode,
 } from '../../../shared/utils/api-error';
-import type { FaseSubidaVersion } from '../models/DatosSubidaVersion';
+import type { FaseSubida } from '../../../shared/models/FaseSubida';
 import type { VersionValues } from './version-schema';
 
 const CODIGOS_DOCUMENTO = ['DOCUMENTO_YA_EXISTE', 'DOCUMENTO_NO_EXISTE'];
@@ -23,7 +23,7 @@ const CODIGOS_ARCHIVO = [
 const MENSAJE_DOCUMENTO_YA_EXISTE = 'Ya existe un documento con este nombre en el repositorio.';
 const MENSAJE_DOCUMENTO_NO_EXISTE = 'Este documento ya no existe en el repositorio.';
 
-const RESPALDO_POR_FASE: Record<FaseSubidaVersion, string> = {
+const RESPALDO_POR_FASE: Record<FaseSubida, string> = {
   solicitando: 'No se pudo preparar la carga. Vuelve a intentarlo.',
   subiendo: 'El almacenamiento no aceptó el archivo. Vuelve a intentarlo.',
   registrando: 'No se pudo registrar la versión. Vuelve a intentarlo.',
@@ -33,7 +33,7 @@ export function esErrorDeDocumento(err: unknown): boolean {
   return CODIGOS_DOCUMENTO.some((codigo) => hasApiErrorCode(err, codigo));
 }
 
-export function mensajeDeErrorDeVersion(err: unknown, fase: FaseSubidaVersion | null): string {
+export function mensajeDeErrorDeVersion(err: unknown, fase: FaseSubida | null): string {
   return getApiErrorMessage(err, RESPALDO_POR_FASE[fase ?? 'solicitando']);
 }
 

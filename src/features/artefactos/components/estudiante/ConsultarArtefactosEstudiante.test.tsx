@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar: vi.fn(), descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import {
@@ -27,6 +31,7 @@ const ARTEFACTO: ArtefactoEstudiante = {
   nombreRepositorio: 'Repositorio base',
   asesor: 's-1',
   nombreAsesor: 'Ana Pérez',
+  omitido: false,
 };
 
 function pagina<T>(content: T[]): Page<T> {

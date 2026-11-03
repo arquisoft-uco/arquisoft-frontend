@@ -6,4 +6,5 @@ export interface ArtefactoAsesor {
   nombreDocumento: string;
   versionDocumento: number;
   nombreRepositorio: string;
+  omitido: boolean;
 }

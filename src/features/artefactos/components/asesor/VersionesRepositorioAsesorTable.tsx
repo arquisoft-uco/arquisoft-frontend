@@ -10,6 +10,7 @@ import type {
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { formatearFechaCreacion, formatearTamano } from '../../../../shared/utils/formato-version';
 import type { VersionRepositorioAsesor } from '../../models/VersionRepositorioAsesor';
+import BotonDescargarVersionRepositorio from './BotonDescargarVersionRepositorio';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
@@ -119,6 +120,8 @@ export default function VersionesRepositorioAsesorTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(version) => <BotonDescargarVersionRepositorio version={version} />}
+      encabezadoAcciones="Acciones"
       tarjeta={(version) => (
         <>
           <p className={TARJETA_NOMBRE}>{version.nombreDocumento}</p>

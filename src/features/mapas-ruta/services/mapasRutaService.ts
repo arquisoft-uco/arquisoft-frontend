@@ -3,6 +3,7 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
+import type { CambiarEstadoTareaRequest } from '../models/CambiarEstadoTareaRequest';
 import type { CambiarFechaFinMapaRutaRequest } from '../models/CambiarFechaFinMapaRutaRequest';
 import type { MapaRuta } from '../models/MapaRuta';
 import type { MapaRutaResponse } from '../models/MapaRutaResponse';
@@ -30,6 +31,8 @@ function aTarea(dto: TareaResponse): Tarea {
     id: dto.id,
     descripcion: dto.descripcion,
     mapaRutaId: dto.mapaRuta,
+    fechaInicioMapaRuta: dto.fechaInicioMapaRuta,
+    fechaFinMapaRuta: dto.fechaFinMapaRuta,
     estado: { id: dto.estadoItem, nombre: dto.nombreEstadoItem },
     asesor: { id: dto.asesor, nombre: dto.nombreAsesor, email: dto.emailAsesor },
   };
@@ -87,6 +90,16 @@ export const mapasRutaService = {
     return apiClient
       .post<Page<TareaResponse>>(`/mapas-ruta/${mapaRutaId}/tareas/estudiante`, req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
+  },
+
+  consultarTarea(tareaId: string): Promise<Tarea> {
+    return apiClient.get<TareaResponse>(`/tareas/${tareaId}`).then((r) => aTarea(r.data));
+  },
+
+  cambiarEstadoTarea(tareaId: string, req: CambiarEstadoTareaRequest): Promise<void> {
+    return apiClient
+      .patch(`/tareas/${tareaId}/estado-item`, { estadoItem: req.estadoItemId })
+      .then(() => undefined);
   },
 
   consultarEstadosTarea(): Promise<EstadoTarea[]> {

@@ -6,6 +6,8 @@ import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { VersionRepositorioArtefacto } from '../../../../shared/models/VersionRepositorioArtefacto';
 import { formatearFechaCreacion, formatearTamano } from '../../../../shared/utils/formato-version';
+import { esUltimaVersionDelDocumento } from '../../utils/version-eliminable';
+import VersionRepositorioRowMenu from './VersionRepositorioRowMenu';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
@@ -72,11 +74,17 @@ const COLUMNAS: ColumnaTabla<VersionRepositorioArtefacto>[] = [
 
 interface Props {
   versiones: VersionRepositorioArtefacto[];
+  repositorioId: string;
   cargando: boolean;
   onSubir?: () => void;
 }
 
-export default function VersionesRepositorioTable({ versiones, cargando, onSubir }: Props) {
+export default function VersionesRepositorioTable({
+  versiones,
+  repositorioId,
+  cargando,
+  onSubir,
+}: Props) {
   return (
     <DataTable
       etiqueta="Versiones del repositorio"
@@ -84,6 +92,14 @@ export default function VersionesRepositorioTable({ versiones, cargando, onSubir
       filas={versiones}
       idDeFila={(version) => version.id}
       cargando={cargando}
+      acciones={(version) => (
+        <VersionRepositorioRowMenu
+          version={version}
+          repositorioId={repositorioId}
+          puedeEliminar={esUltimaVersionDelDocumento(version, versiones)}
+        />
+      )}
+      encabezadoAcciones="Acciones"
       vacio={
         <EmptyState
           icono={FileStack}

@@ -19,4 +19,27 @@ describe('useEstadosTarea', () => {
     // Assert
     await waitFor(() => expect(result.current.data).toEqual(catalogo));
   });
+
+  it('expone isError cuando el service rechaza', async () => {
+    // Arrange
+    vi.mocked(mapasRutaService.consultarEstadosTarea).mockRejectedValue(new Error('red'));
+
+    // Act
+    const { result } = renderHook(() => useEstadosTarea());
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it('devuelve una lista vacía cuando el catálogo no tiene filas', async () => {
+    // Arrange
+    vi.mocked(mapasRutaService.consultarEstadosTarea).mockResolvedValue([]);
+
+    // Act
+    const { result } = renderHook(() => useEstadosTarea());
+
+    // Assert
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toEqual([]);
+  });
 });

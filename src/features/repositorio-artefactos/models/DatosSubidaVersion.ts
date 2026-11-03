@@ -3,5 +3,3 @@ export interface DatosSubidaVersion {
   nombreDocumento: string;
   nuevoDocumento: boolean;
 }
-
-export type FaseSubidaVersion = 'solicitando' | 'subiendo' | 'registrando';

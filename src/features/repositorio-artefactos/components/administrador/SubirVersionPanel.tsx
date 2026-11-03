@@ -2,19 +2,13 @@ import ErrorSummary, { resumirErrores } from '../../../../shared/components/ui/E
 import FormActions from '../../../../shared/components/ui/FormActions';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { useSubirVersionForm } from '../../hooks/useSubirVersionForm';
-import type { FaseSubidaVersion } from '../../models/DatosSubidaVersion';
+import { textoDeAvanceSubida } from '../../../../shared/utils/avance-subida';
 import { ETIQUETAS_CAMPO_VERSION } from '../../utils/version-schema';
 import SubirVersionCampos from './SubirVersionCampos';
 
 const ID_FORMULARIO = 'subir-version';
 const FORMULARIO = 'flex flex-col gap-6';
 const AVANCE = 'text-sm text-on-surface-secondary';
-
-function textoDeAvance(fase: FaseSubidaVersion | null, porcentaje: number): string {
-  if (fase === 'subiendo') return `Subiendo… ${porcentaje} %`;
-  if (fase === 'registrando') return 'Registrando la versión…';
-  return 'Preparando la carga…';
-}
 
 interface Props {
   repositorioId: string;
@@ -76,7 +70,7 @@ export default function SubirVersionPanel({ repositorioId, onCerrar }: Props) {
           onCambiarModo={cambiarModo}
         />
         <div aria-live="polite">
-          {enviando && <p className={AVANCE}>{textoDeAvance(fase, porcentaje)}</p>}
+          {enviando && <p className={AVANCE}>{textoDeAvanceSubida(fase, porcentaje)}</p>}
         </div>
         <ErrorSummary errores={errores} onIrAlCampo={irAlCampo} />
       </form>

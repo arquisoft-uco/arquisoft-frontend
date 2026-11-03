@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar: vi.fn(), descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { Navigate, Route, Routes } from 'react-router';
 import { render, screen } from '../../test-utils/render';
@@ -10,9 +14,12 @@ vi.mock('./services/repositorioArtefactosService', () => ({
   repositorioArtefactosService: {
     consultarVersionesRepositorio: vi.fn().mockResolvedValue([]),
     solicitarCargaVersion: vi.fn(),
-    cargarArchivoVersion: vi.fn(),
     subirVersion: vi.fn(),
   },
+}));
+
+vi.mock('../../shared/services/cargaPrefirmadaService', () => ({
+  cargaPrefirmadaService: { cargarArchivo: vi.fn() },
 }));
 
 const RUTA = '/repositorio-artefactos/r-1/versiones';

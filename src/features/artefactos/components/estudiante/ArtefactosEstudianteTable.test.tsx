@@ -1,4 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
+
+const { descargar } = vi.hoisted(() => ({ descargar: vi.fn() }));
+
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar, descargando: false }),
+}));
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
@@ -14,6 +20,7 @@ const ARTEFACTO: ArtefactoEstudiante = {
   nombreRepositorio: 'Repositorio base',
   asesor: 's-1',
   nombreAsesor: 'Ana Pérez',
+  omitido: false,
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosEstudianteTable>> = {}) {
@@ -45,6 +52,19 @@ describe('ArtefactosEstudianteTable', () => {
     expect(tabla().getByText('Versión 2')).toBeInTheDocument();
     expect(tabla().getByText('Repositorio base')).toBeInTheDocument();
     expect(tabla().getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('muestra "Omitido" solo en la fila omitida', () => {
+    // Act
+    renderizar({
+      artefactos: [
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true },
+      ],
+    });
+
+    // Assert
+    expect(tabla().getAllByText('Omitido')).toHaveLength(1);
   });
 
   it('las cinco columnas ordenan y entregan su clave', async () => {
@@ -83,5 +103,30 @@ describe('ArtefactosEstudianteTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('cada fila tiene un menú con Descargar que pide la versión del repositorio de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar({
+      artefactos: [
+        ARTEFACTO,
+        {
+          ...ARTEFACTO,
+          id: 'a-2',
+          versionRepositorioArtefacto: 'r-2',
+          nombreDocumento: 'Anteproyecto',
+          omitido: true,
+        },
+      ],
+    });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Anteproyecto' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar' }));
+
+    // Assert
+    expect(descargar).toHaveBeenCalledWith('r-2', 'Anteproyecto');
+    expect(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' })).toBeInTheDocument();
   });
 });
