@@ -1,6 +1,4 @@
 import { FileStack, SearchX } from 'lucide-react';
-import { Link, useLocation } from 'react-router';
-import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type {
@@ -9,11 +7,12 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import ArtefactoAsesorRowMenu from './ArtefactoAsesorRowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
+import InsigniaOmitido from '../InsigniaOmitido';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const ENLACE =
-  'font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
@@ -24,6 +23,11 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onOmitir: (artefacto: ArtefactoAsesor) => void;
+  onReactivar: (artefacto: ArtefactoAsesor) => void;
+  onGestionarEstudiantes: (artefacto: ArtefactoAsesor) => void;
+  onCambiarAsesor: (artefacto: ArtefactoAsesor) => void;
+  onCambiarVersionRepositorio: (artefacto: ArtefactoAsesor) => void;
 }
 
 export default function ArtefactosAsesorTable({
@@ -33,18 +37,19 @@ export default function ArtefactosAsesorTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onOmitir,
+  onReactivar,
+  onGestionarEstudiantes,
+  onCambiarAsesor,
+  onCambiarVersionRepositorio,
 }: Props) {
-  const { pathname } = useLocation();
-
   function enlaceVersiones(artefacto: ArtefactoAsesor) {
     return (
-      <Link
-        to={`${pathname}?vista=versiones-artefactos&artefacto=${artefacto.id}`}
-        aria-label={`Ver versiones de ${artefacto.nombreDocumento}`}
-        className={ENLACE}
-      >
-        {artefacto.nombreDocumento}
-      </Link>
+      <EnlaceVersionesArtefacto
+        artefactoId={artefacto.id}
+        nombreDocumento={artefacto.nombreDocumento}
+        vista="versiones-artefactos"
+      />
     );
   }
 
@@ -65,7 +70,7 @@ export default function ArtefactosAsesorTable({
         <>
           {enlaceVersiones(artefacto)}
           <span className={DETALLE}>Versión {artefacto.versionDocumento} del documento</span>
-          {artefacto.omitido && <Badge variante="neutro">Omitido</Badge>}
+          {artefacto.omitido && <InsigniaOmitido />}
         </>
       ),
     },
@@ -107,13 +112,23 @@ export default function ArtefactosAsesorTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(artefacto) => (
+        <ArtefactoAsesorRowMenu
+          artefacto={artefacto}
+          onCambiarAsesor={onCambiarAsesor}
+          onCambiarVersionRepositorio={onCambiarVersionRepositorio}
+          onGestionarEstudiantes={onGestionarEstudiantes}
+          onOmitir={onOmitir}
+          onReactivar={onReactivar}
+        />
+      )}
       tarjeta={(artefacto) => (
         <>
           <p className="font-semibold">{enlaceVersiones(artefacto)}</p>
           <p className={TARJETA_DATO}>{artefacto.nombreProyecto}</p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>Versión {artefacto.versionDocumento} del documento</p>
-          {artefacto.omitido && <Badge variante="neutro">Omitido</Badge>}
+          {artefacto.omitido && <InsigniaOmitido />}
         </>
       )}
     />

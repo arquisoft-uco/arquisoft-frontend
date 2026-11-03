@@ -12,4 +12,5 @@ export interface VersionArtefacto {
   revisionAsesor: string | null;
   estadoRevision: string | null;
   nombreEstadoRevision: string | null;
+  fechaCreacionRevision: string | null;
 }

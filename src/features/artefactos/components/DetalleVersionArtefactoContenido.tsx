@@ -60,6 +60,13 @@ export default function DetalleVersionArtefactoContenido({ version }: Props) {
         <h3 className={TITULO}>Revisión más reciente</h3>
         <div className="flex flex-col items-start gap-1.5">
           <InsigniaEstadoRevision version={version} />
+          {version.fechaCreacionRevision !== null && (
+            <dl>
+              <Dato etiqueta="Fecha de la revisión">
+                {formatearFechaCreacion(version.fechaCreacionRevision)}
+              </Dato>
+            </dl>
+          )}
           {version.estadoRevision === null && (
             <p className={SECUNDARIO}>Esta versión aún no tiene revisiones.</p>
           )}

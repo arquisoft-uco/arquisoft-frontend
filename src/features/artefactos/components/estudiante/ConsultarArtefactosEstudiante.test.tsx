@@ -27,6 +27,7 @@ const ARTEFACTO: ArtefactoEstudiante = {
   nombreRepositorio: 'Repositorio base',
   asesor: 's-1',
   nombreAsesor: 'Ana Pérez',
+  omitido: false,
 };
 
 function pagina<T>(content: T[]): Page<T> {

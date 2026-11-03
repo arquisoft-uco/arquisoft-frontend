@@ -11,6 +11,8 @@ export const LIMITES = {
   OBSERVACION_EVALUACION_MAX: 200,
   // FichasLimits.ObservacionItem.OBSERVACION_MAX
   OBSERVACION_ITEM_MAX: 200,
+  // ArtefactosLimits.Observacion.DESCRIPCION_MAX
+  OBSERVACION_REVISION_ARTEFACTO_MAX: 1000,
   // No es un @Size del DTO (record desnudo): origen es la validación de dominio
   // (ApplicationValidationException) de EnviarSolicitudNovedadCoordinador (HU-081), de
   // EnviarSolicitudNovedadAsesor (HU-082) y de EnviarSolicitudCambioAsesor (HU-083), confirmado

@@ -18,6 +18,7 @@ function participacion(
     nombreRepositorio: 'Repositorio base',
     asesor: 'u-1',
     nombreAsesor: 'Laura Gómez',
+    omitido: false,
   };
 }
 

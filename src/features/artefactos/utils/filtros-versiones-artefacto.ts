@@ -44,6 +44,7 @@ interface Filtros {
   hasta: string;
   estadoIds: string[];
   artefacto: string;
+  version?: number;
 }
 
 const CAMPOS_BUSQUEDA = ['nombreDocumento', 'nombreProyecto'] as const;
@@ -72,6 +73,7 @@ export function construirFiltros({
   hasta,
   estadoIds,
   artefacto,
+  version,
 }: Filtros): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
   const recortado = texto.trim();
@@ -105,6 +107,9 @@ export function construirFiltros({
   }
   if (artefacto) {
     nodos.push({ tipo: 'PREDICADO', campo: 'artefacto', operador: 'ES', valor: artefacto });
+  }
+  if (version !== undefined) {
+    nodos.push({ tipo: 'PREDICADO', campo: 'version', operador: 'ES', valor: String(version) });
   }
   const estado = filtroEstado(estadoIds);
   if (estado) nodos.push(estado);

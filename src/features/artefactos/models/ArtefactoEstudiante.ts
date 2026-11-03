@@ -8,4 +8,5 @@ export interface ArtefactoEstudiante {
   nombreRepositorio: string;
   asesor: string;
   nombreAsesor: string;
+  omitido: boolean;
 }
