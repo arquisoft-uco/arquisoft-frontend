@@ -10,6 +10,9 @@ import type { Page } from '../../../../shared/models/api-response';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoAsesor from './ConsultarVersionesArtefactoAsesor';
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar: vi.fn(), descargando: false }),
+}));
 
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {

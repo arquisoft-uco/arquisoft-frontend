@@ -3,6 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import VersionesArtefactoTable from './VersionesArtefactoTable';
+vi.mock('../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar: vi.fn(), descargando: false }),
+}));
 
 const VERSION: VersionArtefacto = {
   id: 'v-1',
@@ -143,6 +146,20 @@ describe('VersionesArtefactoTable', () => {
     for (const nombre of ['Proyecto', 'Documento', 'Repositorio', 'Asesor']) {
       expect(tabla().queryByRole('button', { name: nombre })).not.toBeInTheDocument();
     }
+  });
+
+  it('el menú de la fila ofrece la acción "Descargar"', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la versión 4 de Acta de inicio' }),
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
   });
 
   it('la acción "Ver información" de la fila entrega esa versión', async () => {

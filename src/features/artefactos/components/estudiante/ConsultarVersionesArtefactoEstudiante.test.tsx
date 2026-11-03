@@ -5,6 +5,9 @@ import type { Page } from '../../../../shared/models/api-response';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarVersionesArtefactoEstudiante from './ConsultarVersionesArtefactoEstudiante';
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: () => ({ descargar: vi.fn(), descargando: false }),
+}));
 
 vi.mock('../../../../shared/services/cargaPrefirmadaService', () => ({
   cargaPrefirmadaService: { cargarArchivo: vi.fn() },
@@ -251,6 +254,7 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
 
       // Assert
       expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
       expect(screen.queryByRole('menuitem', { name: /revisión/ })).not.toBeInTheDocument();
 
       // Act

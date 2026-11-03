@@ -18,3 +18,18 @@ describe('descargaVersionRepositorioService.obtenerEnlace', () => {
     expect(resultado).toEqual(enlace);
   });
 });
+
+describe('descargaVersionRepositorioService.obtenerEnlaceVersionArtefacto', () => {
+  it('pide el enlace de la versión del artefacto por GET y devuelve el cuerpo', async () => {
+    // Arrange
+    const enlace = { url: 'https://s3.test/archivo?firma=x', expiraEn: '2026-11-02T10:05:00Z' };
+    vi.mocked(apiClient.get).mockResolvedValue({ data: enlace });
+
+    // Act
+    const resultado = await descargaVersionRepositorioService.obtenerEnlaceVersionArtefacto('v-9');
+
+    // Assert
+    expect(apiClient.get).toHaveBeenCalledWith('/artefactos/versiones/v-9/descarga');
+    expect(resultado).toEqual(enlace);
+  });
+});

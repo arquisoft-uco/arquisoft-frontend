@@ -9,7 +9,10 @@ import { toast } from './useToast';
 import { useDescargarVersionRepositorio } from './useDescargarVersionRepositorio';
 
 vi.mock('../services/descargaVersionRepositorioService', () => ({
-  descargaVersionRepositorioService: { obtenerEnlace: vi.fn() },
+  descargaVersionRepositorioService: {
+    obtenerEnlace: vi.fn(),
+    obtenerEnlaceVersionArtefacto: vi.fn(),
+  },
 }));
 
 vi.mock('../utils/iniciar-descarga', () => ({ iniciarDescarga: vi.fn() }));
@@ -19,6 +22,9 @@ vi.mock('./useToast', () => ({
 }));
 
 const obtenerEnlace = vi.mocked(descargaVersionRepositorioService.obtenerEnlace);
+const obtenerEnlaceArtefacto = vi.mocked(
+  descargaVersionRepositorioService.obtenerEnlaceVersionArtefacto,
+);
 
 function crearWrapper(queryClient: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -91,5 +97,47 @@ describe('useDescargarVersionRepositorio', () => {
     await waitFor(() => expect(result.current.descargando).toBe(true));
     await act(async () => resolver({ url: 'https://s3.test/a', expiraEn: '2026-11-02T10:05Z' }));
     await waitFor(() => expect(result.current.descargando).toBe(false));
+  });
+
+  it('con origen artefacto usa el enlace de la versión del artefacto y no el del repositorio', async () => {
+    // Arrange
+    obtenerEnlaceArtefacto.mockResolvedValue({
+      url: 'https://s3.test/art?f=1',
+      expiraEn: '2026-11-02T10:05Z',
+    });
+    const { result } = renderHook(() => useDescargarVersionRepositorio('artefacto'), {
+      wrapper: crearWrapper(queryClient),
+    });
+
+    // Act
+    act(() => result.current.descargar('v-7', 'Acta de inicio'));
+
+    // Assert
+    await waitFor(() => expect(iniciarDescarga).toHaveBeenCalledWith('https://s3.test/art?f=1'));
+    expect(obtenerEnlaceArtefacto).toHaveBeenCalledWith('v-7');
+    expect(obtenerEnlace).not.toHaveBeenCalled();
+    expect(toast.success).toHaveBeenCalledWith('Descarga iniciada', 'Acta de inicio');
+  });
+
+  it('con origen artefacto muestra el mensaje del backend ante un error', async () => {
+    // Arrange
+    obtenerEnlaceArtefacto.mockRejectedValue(
+      errorApi(503, { message: 'El archivo no está disponible' }),
+    );
+    const { result } = renderHook(() => useDescargarVersionRepositorio('artefacto'), {
+      wrapper: crearWrapper(queryClient),
+    });
+
+    // Act
+    act(() => result.current.descargar('v-7', 'Acta de inicio'));
+
+    // Assert
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudo descargar el archivo',
+        'El archivo no está disponible',
+      ),
+    );
+    expect(iniciarDescarga).not.toHaveBeenCalled();
   });
 });
