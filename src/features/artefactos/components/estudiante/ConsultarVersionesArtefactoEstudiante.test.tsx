@@ -211,6 +211,29 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
       expect(screen.getByRole('menuitem', { name: 'Ver revisión' })).toBeInTheDocument();
     });
 
+    it('ofrece "Subir nueva versión" solo en progreso y abre el panel de subida', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      consultarVersiones.mockResolvedValue(pagina([EN_PROGRESO, RESUELTA]));
+      render(<ConsultarVersionesArtefactoEstudiante />);
+
+      // Act
+      await abrirMenu(user, 5);
+
+      // Assert
+      expect(
+        screen.queryByRole('menuitem', { name: 'Subir nueva versión' }),
+      ).not.toBeInTheDocument();
+
+      // Act
+      await user.keyboard('{Escape}');
+      await abrirMenu(user, 4);
+      await user.click(screen.getByRole('menuitem', { name: 'Subir nueva versión' }));
+
+      // Assert
+      expect(await screen.findByRole('dialog', { name: /versión/i })).toBeInTheDocument();
+    });
+
     it('no la ofrece sin revisión ni con la revisión pendiente', async () => {
       // Arrange
       const user = userEvent.setup();

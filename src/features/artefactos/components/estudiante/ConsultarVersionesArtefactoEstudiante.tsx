@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, MessageSquare } from 'lucide-react';
+import { Eye, MessageSquare, Upload } from 'lucide-react';
 import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision';
 import { useVersionesArtefactoEstudiante } from '../../hooks/useVersionesArtefactoEstudiante';
@@ -10,37 +10,48 @@ import { desVersion } from '../../utils/revision-gestionable';
 import { ESTADO_REVISION_EN_PROGRESO } from '../../utils/revision-resoluble';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
 import GestionarRevisionEstudiantePanel from './GestionarRevisionEstudiantePanel';
+import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
 
 const DESCRIPCION_VACIO = 'Aparecerán aquí cuando se genere una versión de uno de tus artefactos.';
+
+type PanelAbierto =
+  | { modo: 'revision'; artefacto: ArtefactoParaVersion; revision: RevisionGestionable }
+  | { modo: 'subir'; artefacto: ArtefactoParaVersion };
+
+function aArtefacto(version: VersionArtefacto): ArtefactoParaVersion {
+  return {
+    id: version.artefacto,
+    nombreProyecto: version.nombreProyecto,
+    nombreDocumento: version.nombreDocumento,
+    versionDocumento: version.versionDocumento,
+  };
+}
 
 export default function ConsultarVersionesArtefactoEstudiante() {
   const listado = useVersionesArtefactoEstudiante();
   const opcionesEstado = useOpcionesEstadoRevision();
-  const [abierta, setAbierta] = useState<{
-    artefacto: ArtefactoParaVersion;
-    revision: RevisionGestionable;
-  } | null>(null);
+  const [panel, setPanel] = useState<PanelAbierto | null>(null);
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const revision = desVersion(version);
     if (revision === null) return [];
+    const artefacto = aArtefacto(version);
     const enProgreso = revision.estadoId === ESTADO_REVISION_EN_PROGRESO;
-    return [
+    const acciones: AccionMenu[] = [
       {
         etiqueta: enProgreso ? 'Gestionar revisión' : 'Ver revisión',
         icono: enProgreso ? MessageSquare : Eye,
-        onSeleccionar: () =>
-          setAbierta({
-            artefacto: {
-              id: version.artefacto,
-              nombreProyecto: version.nombreProyecto,
-              nombreDocumento: version.nombreDocumento,
-              versionDocumento: version.versionDocumento,
-            },
-            revision,
-          }),
+        onSeleccionar: () => setPanel({ modo: 'revision', artefacto, revision }),
       },
     ];
+    if (enProgreso) {
+      acciones.push({
+        etiqueta: 'Subir nueva versión',
+        icono: Upload,
+        onSeleccionar: () => setPanel({ modo: 'subir', artefacto }),
+      });
+    }
+    return acciones;
   }
 
   return (
@@ -53,12 +64,15 @@ export default function ConsultarVersionesArtefactoEstudiante() {
         mostrarRepositorio={false}
         etiquetaFecha="Fecha de subida"
       />
-      {abierta && (
+      {panel?.modo === 'revision' && (
         <GestionarRevisionEstudiantePanel
-          artefacto={abierta.artefacto}
-          revision={abierta.revision}
-          onCerrar={() => setAbierta(null)}
+          artefacto={panel.artefacto}
+          revision={panel.revision}
+          onCerrar={() => setPanel(null)}
         />
+      )}
+      {panel?.modo === 'subir' && (
+        <SubirVersionArtefactoPanel artefacto={panel.artefacto} onCerrar={() => setPanel(null)} />
       )}
     </>
   );
