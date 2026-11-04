@@ -2,9 +2,26 @@ import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import { RESPUESTA_REGISTRO_MODIFICACION_USUARIOS } from '../../../../test-utils/respuestas';
+import type { RespuestaSolicitud } from '../../models/RespuestaSolicitud';
+import type { ParticipanteSolicitud } from '../../models/Solicitud';
 import RespuestasRegistroModificacionUsuariosRecibidasTable from './RespuestasRegistroModificacionUsuariosRecibidasTable';
 
 const ORDEN = { clave: 'fechaRespuesta', direccion: 'DESC' } as const;
+
+const ADMINISTRADOR: ParticipanteSolicitud = {
+  usuarioId: 'usuario-administrador-4001',
+  identificador: '4001',
+  nombre: 'Sofía Administradora',
+  email: 'sofia@uco.edu.co',
+};
+
+const RESPUESTA: RespuestaSolicitud = {
+  ...RESPUESTA_REGISTRO_MODIFICACION_USUARIOS,
+  solicitud: {
+    ...RESPUESTA_REGISTRO_MODIFICACION_USUARIOS.solicitud,
+    destinatario: ADMINISTRADOR,
+  },
+};
 
 function crearProps(parcial: Partial<{ onOrdenar: () => void }> = {}) {
   return {
@@ -24,7 +41,7 @@ describe('RespuestasRegistroModificacionUsuariosRecibidasTable', () => {
     const onOrdenar = vi.fn();
     render(
       <RespuestasRegistroModificacionUsuariosRecibidasTable
-        respuestas={[RESPUESTA_REGISTRO_MODIFICACION_USUARIOS]}
+        respuestas={[RESPUESTA]}
         {...crearProps({ onOrdenar })}
       />,
     );
@@ -36,8 +53,10 @@ describe('RespuestasRegistroModificacionUsuariosRecibidasTable', () => {
     const tabla = screen.getByRole('table', {
       name: 'Respuestas de registro y modificación de usuarios recibidas',
     });
-    expect(within(tabla).getByText('Ana Coordinadora')).toBeInTheDocument();
-    expect(within(tabla).getByText(/1001 · ana@uco.edu.co/)).toBeInTheDocument();
+    expect(within(tabla).getByText(ADMINISTRADOR.nombre)).toBeInTheDocument();
+    expect(
+      within(tabla).getByText(`${ADMINISTRADOR.identificador} · ${ADMINISTRADOR.email}`),
+    ).toBeInTheDocument();
     expect(
       within(tabla).getByText('Solicito el registro de un nuevo usuario en la plataforma.'),
     ).toBeInTheDocument();
