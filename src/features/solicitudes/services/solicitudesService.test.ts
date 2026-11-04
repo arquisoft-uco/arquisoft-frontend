@@ -305,6 +305,34 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarRespuestasRegistroModificacionUsuariosRecibidas', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios/respuestas/recibidas con el criterio recibido tal cual y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarRespuestasRegistroModificacionUsuariosRecibidas(CRITERIO);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/respuestas/recibidas',
+        CRITERIO,
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('consultarRespuestasNovedadCoordinadorRecibidas', () => {
     it('llama POST /solicitudes/novedad-coordinador/respuestas/recibidas con el criterio recibido tal cual y resuelve la página', async () => {
       // Arrange

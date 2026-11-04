@@ -11,6 +11,7 @@ import {
   RESPUESTA_AMPLIACION_PLAZO,
   RESPUESTA_ASESOR,
   RESPUESTA_CAMBIO_ASESOR,
+  RESPUESTA_REGISTRO_MODIFICACION_USUARIOS,
 } from '../../test-utils/respuestas';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
@@ -31,6 +32,7 @@ import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedad
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasAmpliacionPlazoEnviadas } from './hooks/useRespuestasAmpliacionPlazoEnviadas';
 import { useRespuestasRegistroModificacionUsuariosEnviadas } from './hooks/useRespuestasRegistroModificacionUsuariosEnviadas';
+import { useRespuestasRegistroModificacionUsuariosRecibidas } from './hooks/useRespuestasRegistroModificacionUsuariosRecibidas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
@@ -148,6 +150,10 @@ vi.mock('./hooks/useRespuestasAmpliacionPlazoEnviadas', () => ({
 
 vi.mock('./hooks/useRespuestasRegistroModificacionUsuariosEnviadas', () => ({
   useRespuestasRegistroModificacionUsuariosEnviadas: vi.fn(),
+}));
+
+vi.mock('./hooks/useRespuestasRegistroModificacionUsuariosRecibidas', () => ({
+  useRespuestasRegistroModificacionUsuariosRecibidas: vi.fn(),
 }));
 
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
@@ -378,6 +384,15 @@ describe('Solicitudes', () => {
         typeof useRespuestasRegistroModificacionUsuariosEnviadas
       >,
     );
+    vi.mocked(useRespuestasRegistroModificacionUsuariosRecibidas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_REGISTRO_MODIFICACION_USUARIOS],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasRegistroModificacionUsuariosRecibidas>,
+    );
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
@@ -488,7 +503,7 @@ describe('Solicitudes', () => {
     expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 
-  it('renderiza CoordinadorView con cuatro pestañas, arranca en Recibidas y abre Respuestas enviadas, Solicitudes enviadas y Nueva solicitud', async () => {
+  it('renderiza CoordinadorView con cinco pestañas, arranca en Recibidas y abre Respuestas enviadas, Solicitudes enviadas, Respuestas recibidas y Nueva solicitud', async () => {
     autenticarCon(Rol.Coordinador);
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
       crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
@@ -509,6 +524,7 @@ describe('Solicitudes', () => {
       'Recibidas',
       'Respuestas enviadas',
       'Solicitudes enviadas',
+      'Respuestas recibidas',
       'Nueva solicitud',
     ]);
     expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute('aria-selected', 'true');
@@ -523,6 +539,15 @@ describe('Solicitudes', () => {
 
     expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
     expect(screen.queryByText('Aún no has enviado respuestas')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas recibidas' }));
+
+    expect(
+      screen.getByRole('table', {
+        name: 'Respuestas de registro y modificación de usuarios recibidas',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Aún no has enviado solicitudes')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
 
