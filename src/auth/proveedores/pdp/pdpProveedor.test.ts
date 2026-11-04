@@ -96,7 +96,7 @@ describe('pdpProveedor', () => {
     });
   });
 
-  it('renovarSesion con la sesión viva responde false sin redirigir', async () => {
+  it('renovarSesion con la sesión viva responde true sin redirigir', async () => {
     // Arrange
     mocks.get.mockResolvedValue(sesionPdp('Ana'));
 
@@ -104,7 +104,7 @@ describe('pdpProveedor', () => {
     const renovada = await crearPdpProveedor().renovarSesion();
 
     // Assert
-    expect(renovada).toBe(false);
+    expect(renovada).toBe(true);
     expect(asignar).not.toHaveBeenCalled();
   });
 
@@ -118,5 +118,20 @@ describe('pdpProveedor', () => {
     // Assert
     expect(renovada).toBe(false);
     expect(asignar).toHaveBeenCalledTimes(1);
+    expect(asignar).toHaveBeenCalledWith(
+      `http://pdp.test/oauth2/authorization/keycloak?return_to=${encodeURIComponent(URL_ACTUAL)}`,
+    );
+  });
+
+  it('renovarSesion con un error distinto de 401 responde false sin redirigir', async () => {
+    // Arrange
+    mocks.get.mockRejectedValue(errorApi(500));
+
+    // Act
+    const renovada = await crearPdpProveedor().renovarSesion();
+
+    // Assert
+    expect(renovada).toBe(false);
+    expect(asignar).not.toHaveBeenCalled();
   });
 });

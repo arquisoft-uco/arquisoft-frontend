@@ -78,14 +78,15 @@ export function crearPdpProveedor(): ProveedorIdentidad {
       };
     },
 
-    // 200: la sesión del PDP sigue viva y el 401 viene de la API propia; no se redirige para evitar un bucle de logins.
+    // 200: la sesión sigue viva y la API acepta la cookie, así que el 401 fue la caducidad del token del BFF; el interceptor reintenta una sola vez (_retry).
     async renovarSesion() {
       try {
         await consultarSesion();
+        return true;
       } catch (error) {
         if (isApiErrorWithStatus(error, 401)) iniciarSesion(window.location.href);
+        return false;
       }
-      return false;
     },
   };
 }

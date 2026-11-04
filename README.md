@@ -78,6 +78,11 @@ el id del proveedor y se olvida al cerrar sesión. `/seguridad` monta Security U
 un proveedor con la capacidad `administracion-seguridad` (hoy el PDP). Para ejecutar Security UI en local,
 sírvela en `http://localhost:5175` y apunta `VITE_SECURITY_UI_URL` a su bundle.
 
+El camino PDP exige que el backend tenga encendido el canal de sesión por cookie y que la aplicación esté
+registrada en el PDP; sin eso la API responde 401 o 403 con sesión PDP. El PDP, la app y la API deben
+compartir dominio registrable. Si la API responde 401 por caducidad de la sesión, el cliente consulta la
+sesión del PDP y reintenta la petición una sola vez.
+
 Para añadir un tercer proveedor: implementa el contrato en `src/auth/proveedores/{nombre}/`, agrega una
 entrada en `REGISTRO` de `src/auth/proveedores/proveedores.ts`, define sus variables en `src/config/env.ts` y
 `.env.example`, y ejecuta la suite del contrato (`src/test-utils/contrato-proveedor.ts`). Ningún consumidor cambia.
