@@ -1,7 +1,25 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import NuevaSolicitudPanel from './NuevaSolicitudPanel';
+import { useTiposSolicitud } from '../../hooks/useTiposSolicitud';
+import type { TipoSolicitud } from '../../models/TipoSolicitud';
+
+vi.mock('../../hooks/useTiposSolicitud', () => ({ useTiposSolicitud: vi.fn() }));
+
+const TIPOS: TipoSolicitud[] = [
+  { id: 'AMPLIACION_DE_PLAZO', nombre: 'Ampliación de Plazo', descripcion: 'd' },
+  { id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_ASESOR', nombre: 'Novedad para el Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_COORDINADOR', nombre: 'Novedad para el Coordinador', descripcion: 'd' },
+];
+
+function mockCatalogo() {
+  vi.mocked(useTiposSolicitud).mockReturnValue({
+    data: TIPOS,
+    isError: false,
+  } as ReturnType<typeof useTiposSolicitud>);
+}
 
 vi.mock('./NovedadCoordinadorForm', () => ({
   default: () => <h2>Formulario coordinador</h2>,
@@ -20,16 +38,20 @@ vi.mock('./AmpliacionPlazoForm', () => ({
 }));
 
 describe('NuevaSolicitudPanel', () => {
+  beforeEach(() => {
+    mockCatalogo();
+  });
+
   it('ofrece cuatro tipos habilitados y muestra por defecto el formulario del coordinador', () => {
     render(<NuevaSolicitudPanel />);
 
     const selector = screen.getByRole('combobox', { name: 'Tipo de solicitud' });
     const opciones = screen.getAllByRole('option');
     expect(opciones.map((o) => o.textContent)).toEqual([
-      'Novedad al coordinador',
-      'Novedad al asesor',
-      'Cambio de asesor',
-      'Ampliación de plazo',
+      'Novedad para el Coordinador',
+      'Novedad para el Asesor',
+      'Cambio de Asesor',
+      'Ampliación de Plazo',
     ]);
     opciones.forEach((o) => expect(o).toBeEnabled());
     expect(selector).toHaveValue('coordinador');
@@ -43,7 +65,7 @@ describe('NuevaSolicitudPanel', () => {
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
-      'Novedad al asesor',
+      'Novedad para el Asesor',
     );
 
     expect(screen.getByRole('heading', { name: 'Formulario asesor' })).toBeInTheDocument();
@@ -58,7 +80,7 @@ describe('NuevaSolicitudPanel', () => {
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
-      'Cambio de asesor',
+      'Cambio de Asesor',
     );
 
     expect(
@@ -75,7 +97,7 @@ describe('NuevaSolicitudPanel', () => {
 
     await user.selectOptions(
       screen.getByRole('combobox', { name: 'Tipo de solicitud' }),
-      'Ampliación de plazo',
+      'Ampliación de Plazo',
     );
 
     expect(
