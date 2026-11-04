@@ -1,10 +1,12 @@
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
-import PanelPorTipoHabilitado from './PanelPorTipoHabilitado';
+import { useTiposSolicitud } from '../../hooks/useTiposSolicitud';
+import PanelPorTipoHabilitado from '../PanelPorTipoHabilitado';
 import RespuestasAmpliacionPlazoRecibidasPanel from './RespuestasAmpliacionPlazoRecibidasPanel';
 import RespuestasAsesorRecibidasPanel from './RespuestasAsesorRecibidasPanel';
 import RespuestasCambioAsesorRecibidasPanel from './RespuestasCambioAsesorRecibidasPanel';
 import RespuestasRecibidasPanel from './RespuestasRecibidasPanel';
 import {
+  ID_TIPO_BACKEND,
   TIPOS_RESPUESTA_RECIBIDA_ESTUDIANTE,
   type TipoRespuestaRecibidaEstudianteUi,
 } from '../SelectorTipoSolicitud';
@@ -24,9 +26,13 @@ interface Props {
 }
 
 export default function RecibidasPanel({ filtros }: Props) {
+  const consulta = useTiposSolicitud();
+
   return (
     <PanelPorTipoHabilitado
       opciones={TIPOS_RESPUESTA_RECIBIDA_ESTUDIANTE}
+      idBackend={ID_TIPO_BACKEND}
+      consulta={consulta}
       renderizar={(tipo) => {
         const PanelElegido = PANEL_POR_TIPO[tipo];
         return <PanelElegido filtros={filtros[tipo]} />;

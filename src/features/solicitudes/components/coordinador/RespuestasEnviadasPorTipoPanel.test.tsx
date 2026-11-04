@@ -1,8 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
+import { useTiposSolicitudRecibidas } from '../../hooks/useTiposSolicitudRecibidas';
+import type { TipoSolicitud } from '../../models/TipoSolicitud';
 import RespuestasEnviadasPorTipoPanel from './RespuestasEnviadasPorTipoPanel';
+
+vi.mock('../../hooks/useTiposSolicitudRecibidas', () => ({ useTiposSolicitudRecibidas: vi.fn() }));
+
+const TIPOS: TipoSolicitud[] = [
+  { id: 'AMPLIACION_DE_PLAZO', nombre: 'Ampliación de Plazo', descripcion: 'd' },
+  { id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_COORDINADOR', nombre: 'Novedad para el Coordinador', descripcion: 'd' },
+];
 
 interface PropsPanel {
   filtros: FiltrosRespuestas;
@@ -35,6 +45,17 @@ function crearFiltros(page: number): FiltrosRespuestas {
 }
 
 describe('RespuestasEnviadasPorTipoPanel', () => {
+  beforeEach(() => {
+    vi.mocked(useTiposSolicitudRecibidas).mockReturnValue({
+      data: TIPOS,
+      isPending: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as Partial<ReturnType<typeof useTiposSolicitudRecibidas>> as ReturnType<
+      typeof useTiposSolicitudRecibidas
+    >);
+  });
+
   it('arranca en novedad y al cambiar de tipo entrega a cada panel sus propios filtros', async () => {
     // Arrange
     const user = userEvent.setup();

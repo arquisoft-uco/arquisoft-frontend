@@ -248,6 +248,9 @@ export const solicitudesService = {
   getTiposSolicitud: (): Promise<TipoSolicitud[]> =>
     apiClient.get<TipoSolicitud[]>('/solicitudes/tipos-solicitud').then((r) => r.data),
 
+  getTiposSolicitudRecibidas: (): Promise<TipoSolicitud[]> =>
+    apiClient.get<TipoSolicitud[]>('/solicitudes/tipos-solicitud/recibidas').then((r) => r.data),
+
   eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),
 
