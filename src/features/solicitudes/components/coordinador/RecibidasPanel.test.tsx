@@ -1,7 +1,28 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import RecibidasPanel from './RecibidasPanel';
+import { useTiposSolicitudRecibidas } from '../../hooks/useTiposSolicitudRecibidas';
+import type { TipoSolicitud } from '../../models/TipoSolicitud';
+
+vi.mock('../../hooks/useTiposSolicitudRecibidas', () => ({ useTiposSolicitudRecibidas: vi.fn() }));
+
+const TIPOS: TipoSolicitud[] = [
+  { id: 'AMPLIACION_DE_PLAZO', nombre: 'Ampliación de Plazo', descripcion: 'd' },
+  { id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_COORDINADOR', nombre: 'Novedad para el Coordinador', descripcion: 'd' },
+];
+
+function mockCatalogo(data: TipoSolicitud[]) {
+  vi.mocked(useTiposSolicitudRecibidas).mockReturnValue({
+    data,
+    isPending: false,
+    isError: false,
+    refetch: vi.fn(),
+  } as Partial<ReturnType<typeof useTiposSolicitudRecibidas>> as ReturnType<
+    typeof useTiposSolicitudRecibidas
+  >);
+}
 
 interface PropsPanel {
   page: number;
@@ -33,6 +54,30 @@ vi.mock('./SolicitudesAmpliacionPlazoRecibidasPanel', () => ({
 }));
 
 describe('RecibidasPanel del coordinador', () => {
+  beforeEach(() => {
+    mockCatalogo(TIPOS);
+  });
+
+  it('con un subconjunto de tipos ofrece solo los devueltos por el backend', () => {
+    // Arrange
+    mockCatalogo(TIPOS.filter((t) => t.id !== 'NOVEDAD_PARA_EL_COORDINADOR'));
+
+    // Act
+    render(
+      <RecibidasPanel
+        paginas={{ novedad: 2, 'cambio-asesor': 5, 'ampliacion-plazo': 3 }}
+        onPageChange={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual([
+      'Cambio de Asesor',
+      'Ampliación de Plazo',
+    ]);
+    expect(screen.getByText('Panel de cambio de asesor, página 5')).toBeInTheDocument();
+  });
+
   it('muestra novedad por defecto y al cambiar de tipo entrega a cada panel su propia página', async () => {
     // Arrange
     const user = userEvent.setup();

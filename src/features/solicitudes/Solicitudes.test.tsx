@@ -49,6 +49,7 @@ import { useModificarEstadoRespuestaNovedadAsesor } from './hooks/useModificarEs
 import { useModificarEstadoRespuestaNovedadCoordinador } from './hooks/useModificarEstadoRespuestaNovedadCoordinador';
 import { useEstadosRespuesta } from './hooks/useEstadosRespuesta';
 import { useTiposSolicitud } from './hooks/useTiposSolicitud';
+import { useTiposSolicitudRecibidas } from './hooks/useTiposSolicitudRecibidas';
 import type { TipoSolicitud } from './models/TipoSolicitud';
 
 vi.mock('./hooks/useEstadosRespuesta', () => ({
@@ -56,6 +57,7 @@ vi.mock('./hooks/useEstadosRespuesta', () => ({
 }));
 
 vi.mock('./hooks/useTiposSolicitud', () => ({ useTiposSolicitud: vi.fn() }));
+vi.mock('./hooks/useTiposSolicitudRecibidas', () => ({ useTiposSolicitudRecibidas: vi.fn() }));
 
 const TIPOS: TipoSolicitud[] = [
   { id: 'AMPLIACION_DE_PLAZO', nombre: 'Ampliación de Plazo', descripcion: 'd' },
@@ -413,6 +415,10 @@ describe('Solicitudes', () => {
       data: TIPOS,
       isError: false,
     } as ReturnType<typeof useTiposSolicitud>);
+    vi.mocked(useTiposSolicitudRecibidas).mockReturnValue({
+      data: TIPOS,
+      isError: false,
+    } as ReturnType<typeof useTiposSolicitudRecibidas>);
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,

@@ -529,6 +529,21 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('getTiposSolicitudRecibidas', () => {
+    it('llama GET /solicitudes/tipos-solicitud/recibidas y resuelve la lista', async () => {
+      // Arrange
+      const tipos = [{ id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' }];
+      get.mockResolvedValue({ status: 200, data: tipos });
+
+      // Act
+      const resultado = await solicitudesService.getTiposSolicitudRecibidas();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/solicitudes/tipos-solicitud/recibidas');
+      expect(resultado).toEqual(tipos);
+    });
+  });
+
   describe('eliminarSolicitudNovedadCoordinador', () => {
     it('llama DELETE /solicitudes/novedad-coordinador/{id} sin body y resuelve undefined', async () => {
       // Arrange
