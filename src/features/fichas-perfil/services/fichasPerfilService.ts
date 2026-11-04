@@ -34,6 +34,7 @@ import type {
   TipoItem,
   EstadoFicha,
   EstadoEvaluacion,
+  EstadoObservacionRevision,
   CrearItemRequest,
   ItemCreadoResponse,
   ModificarItemRequest,
@@ -400,6 +401,11 @@ export const fichasPerfilService = {
 
   getEstadosEvaluacion: (): Promise<EstadoEvaluacion[]> =>
     apiClient.get<EstadoEvaluacion[]>('/fichas-perfil/estados-evaluacion').then((r) => r.data),
+
+  getEstadosObservacionRevision: (): Promise<EstadoObservacionRevision[]> =>
+    apiClient
+      .get<EstadoObservacionRevision[]>('/fichas-perfil/estados-observacion-revision/estudiante')
+      .then((r) => r.data),
 
   getFichasAsesor: (page = 0, size = 10): Promise<Page<FichaPerfil>> =>
     apiClient

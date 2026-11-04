@@ -70,4 +70,31 @@ describe('nav-items', () => {
       navItemsDelRol(Rol.Administrador, NAV_ITEMS, ['administracion-seguridad']).map((i) => i.path),
     ).toContain('/seguridad');
   });
+
+  it('Artefactos está disponible para el asesor y el estudiante', () => {
+    // Act
+    const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/artefactos');
+    const delEstudiante = navItemsDelRol(Rol.Estudiante).find((i) => i.path === '/artefactos');
+
+    // Assert
+    expect(delAsesor).toBeDefined();
+    expect(estaDisponible(delAsesor!)).toBe(true);
+    expect(delEstudiante).toBeDefined();
+    expect(estaDisponible(delEstudiante!)).toBe(true);
+  });
+
+  it('Entregables está disponible para el asesor, el estudiante y el jurado', () => {
+    // Act
+    const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/entregables');
+    const delEstudiante = navItemsDelRol(Rol.Estudiante).find((i) => i.path === '/entregables');
+    const delJurado = navItemsDelRol(Rol.Jurado).find((i) => i.path === '/entregables');
+
+    // Assert
+    expect(delAsesor).toBeDefined();
+    expect(estaDisponible(delAsesor!)).toBe(true);
+    expect(delEstudiante).toBeDefined();
+    expect(estaDisponible(delEstudiante!)).toBe(true);
+    expect(delJurado).toBeDefined();
+    expect(estaDisponible(delJurado!)).toBe(true);
+  });
 });

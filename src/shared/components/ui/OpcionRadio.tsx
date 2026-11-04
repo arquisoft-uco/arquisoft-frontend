@@ -14,7 +14,7 @@ interface Props {
   nombre: string;
   valor: string;
   titulo: string;
-  descripcion: string;
+  descripcion?: string;
   elegida: boolean;
   deshabilitada?: boolean;
   onElegir: (valor: string) => void;
@@ -46,16 +46,18 @@ export default function OpcionRadio({
         disabled={deshabilitada}
         onChange={() => onElegir(valor)}
         aria-labelledby={idTitulo}
-        aria-describedby={idDescripcion}
+        aria-describedby={descripcion ? idDescripcion : undefined}
         className={RADIO}
       />
       <span className={TEXTOS}>
         <span id={idTitulo} className={NOMBRE}>
           {titulo}
         </span>
-        <span id={idDescripcion} className={DESCRIPCION}>
-          {descripcion}
-        </span>
+        {descripcion && (
+          <span id={idDescripcion} className={DESCRIPCION}>
+            {descripcion}
+          </span>
+        )}
       </span>
     </label>
   );

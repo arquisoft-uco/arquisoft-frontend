@@ -9,6 +9,14 @@ vi.mock('./components/ItemsJuradoView', () => ({
   default: () => <p>Vista de ítems del jurado</p>,
 }));
 
+vi.mock('./components/EstudianteView', () => ({
+  default: () => <p>Vista del estudiante</p>,
+}));
+
+vi.mock('./components/JuradoView', () => ({
+  default: () => <p>Vista del jurado</p>,
+}));
+
 vi.mock('./components/CoordinadorView', () => ({
   default: () => <p>Vista del coordinador</p>,
 }));
@@ -23,19 +31,29 @@ describe('Evaluaciones', () => {
     resetAllStores();
   });
 
-  it.each([Rol.Administrador, Rol.Jurado])(
-    'con el rol %s, renderiza la vista de ítems del jurado',
-    (rol) => {
-      // Arrange
-      autenticarCon(rol);
+  it('con el rol administrador, renderiza la vista de ítems del jurado', () => {
+    // Arrange
+    autenticarCon(Rol.Administrador);
 
-      // Act
-      render(<Evaluaciones />, { initialPath: '/evaluaciones' });
+    // Act
+    render(<Evaluaciones />, { initialPath: '/evaluaciones' });
 
-      // Assert
-      expect(screen.getByText('Vista de ítems del jurado')).toBeInTheDocument();
-    },
-  );
+    // Assert
+    expect(screen.getByText('Vista de ítems del jurado')).toBeInTheDocument();
+    expect(screen.queryByText('Vista del jurado')).not.toBeInTheDocument();
+  });
+
+  it('con el rol jurado, renderiza su vista y no la de ítems del jurado', () => {
+    // Arrange
+    autenticarCon(Rol.Jurado);
+
+    // Act
+    render(<Evaluaciones />, { initialPath: '/evaluaciones' });
+
+    // Assert
+    expect(screen.getByText('Vista del jurado')).toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
+  });
 
   it('con el rol coordinador, renderiza su vista y no la de ítems del jurado', () => {
     // Arrange
@@ -49,7 +67,20 @@ describe('Evaluaciones', () => {
     expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
   });
 
-  it.each([Rol.Asesor, Rol.Estudiante])('con el rol %s, redirige a /forbidden', (rol) => {
+  it('con el rol estudiante, renderiza su vista y no las de otros roles', () => {
+    // Arrange
+    autenticarCon(Rol.Estudiante);
+
+    // Act
+    render(<Evaluaciones />, { initialPath: '/evaluaciones' });
+
+    // Assert
+    expect(screen.getByText('Vista del estudiante')).toBeInTheDocument();
+    expect(screen.queryByText('Vista del coordinador')).not.toBeInTheDocument();
+    expect(screen.queryByText('Vista del jurado')).not.toBeInTheDocument();
+  });
+
+  it.each([Rol.Asesor, Rol.Bibliotecario])('con el rol %s, redirige a /forbidden', (rol) => {
     // Arrange
     autenticarCon(rol);
 

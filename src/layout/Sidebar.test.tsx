@@ -63,7 +63,16 @@ describe('Sidebar', () => {
       within(trabajo)
         .getAllByRole('link')
         .map((a) => a.getAttribute('href')),
-    ).toEqual(['/dashboard', '/fichas-perfil', '/proyectos-grado', '/solicitudes']);
+    ).toEqual([
+      '/dashboard',
+      '/fichas-perfil',
+      '/proyectos-grado',
+      '/artefactos',
+      '/entregables',
+      '/evaluaciones',
+      '/mapas-ruta',
+      '/solicitudes',
+    ]);
     const proximamente = screen.getByRole('list', { name: 'Próximamente' });
     const pendientes = within(proximamente).getAllByRole('link');
     expect(pendientes.length).toBeGreaterThan(0);
@@ -72,6 +81,18 @@ describe('Sidebar', () => {
       expect(p).not.toHaveAttribute('href');
       expect(p).toHaveTextContent('Próximamente');
     });
+  });
+
+  it('el jurado ve «Entregables» en «Trabajo», antes de «Evaluaciones»', () => {
+    entrarComo(Rol.Jurado);
+
+    renderizar();
+
+    const hrefs = within(screen.getByRole('list', { name: 'Trabajo' }))
+      .getAllByRole('link')
+      .map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/entregables');
+    expect(hrefs.indexOf('/entregables')).toBeLessThan(hrefs.indexOf('/evaluaciones'));
   });
 
   it('no pinta «Próximamente» si el rol no tiene ítems pendientes', () => {

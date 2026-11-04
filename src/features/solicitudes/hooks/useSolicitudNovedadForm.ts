@@ -55,10 +55,7 @@ export function useSolicitudNovedadForm({ mensajeExito, enviar, reiniciar }: Opc
             getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.'),
           );
 
-          if (
-            hasApiErrorCode(err, 'DESTINATARIO_NO_ENCONTRADO') ||
-            hasApiErrorCode(err, 'DESTINATARIO_NO_ASIGNADO')
-          ) {
+          if (hasApiErrorCode(err, 'DESTINATARIO_NO_ENCONTRADO')) {
             setError('destinatario', {
               message: getApiErrorMessage(err, 'El destinatario indicado no es válido.'),
             });

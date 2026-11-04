@@ -15,6 +15,7 @@ import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
 import ResumenFichaPanel from './ResumenFichaPanel';
 import CompanerosFichaPanel from './estudiante/CompanerosFichaPanel';
 import EditarTituloForm from './estudiante/EditarTituloForm';
+import EstadosObservacionPanel from './estudiante/EstadosObservacionPanel';
 import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
 import HistorialEstadosFichaPanel from './estudiante/HistorialEstadosFichaPanel';
 import ItemsMiFichaPanel from './estudiante/ItemsMiFichaPanel';
@@ -22,17 +23,18 @@ import ObservacionesMiFichaPanel from './estudiante/ObservacionesMiFichaPanel';
 import RevisionesMiFichaPanel from './estudiante/RevisionesMiFichaPanel';
 import SelectorFichaEstudiante from './estudiante/SelectorFichaEstudiante';
 
-type Pestana = 'items' | 'revisiones' | 'observaciones' | 'estados' | 'evaluaciones';
-
 const RAIZ = 'flex flex-col gap-6';
 
-const PANEL_POR_PESTANA: Record<Pestana, ComponentType> = {
+const PANEL_POR_PESTANA = {
   items: ItemsMiFichaPanel,
   revisiones: RevisionesMiFichaPanel,
   observaciones: ObservacionesMiFichaPanel,
   estados: HistorialEstadosFichaPanel,
   evaluaciones: EvaluacionesMiFichaPanel,
-};
+  estadosObservacion: EstadosObservacionPanel,
+} satisfies Record<string, ComponentType>;
+
+type Pestana = keyof typeof PANEL_POR_PESTANA;
 
 function aResumen(ficha: MiFichaPerfilResponse): ResumenFicha {
   return {
@@ -81,6 +83,7 @@ export default function EstudianteView() {
     { id: 'observaciones' as const, etiqueta: 'Observaciones' },
     { id: 'estados' as const, etiqueta: 'Historial de estados' },
     { id: 'evaluaciones' as const, etiqueta: 'Evaluaciones' },
+    { id: 'estadosObservacion' as const, etiqueta: 'Estados de observación' },
   ];
   const Panel = PANEL_POR_PESTANA[pestana];
 

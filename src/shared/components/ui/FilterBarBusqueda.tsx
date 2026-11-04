@@ -14,9 +14,16 @@ interface Props {
   onCambiar: (valor: string) => void;
   etiqueta: string;
   placeholder: string;
+  deshabilitada?: boolean;
 }
 
-export default function FilterBarBusqueda({ valor, onCambiar, etiqueta, placeholder }: Props) {
+export default function FilterBarBusqueda({
+  valor,
+  onCambiar,
+  etiqueta,
+  placeholder,
+  deshabilitada = false,
+}: Props) {
   const idCampo = useId();
   const campo = useRef<HTMLInputElement>(null);
   const { borrador, setBorrador, borrar } = useTextoConRetardo(valor, onCambiar);
@@ -40,10 +47,11 @@ export default function FilterBarBusqueda({ valor, onCambiar, etiqueta, placehol
         autoComplete="off"
         placeholder={placeholder}
         value={borrador}
+        disabled={deshabilitada}
         onChange={(evento) => setBorrador(evento.target.value)}
         className={CAMPO}
       />
-      {borrador.length > 0 && (
+      {borrador.length > 0 && !deshabilitada && (
         <button
           type="button"
           aria-label="Borrar búsqueda"

@@ -16,6 +16,50 @@ describe('evaluacionesService', () => {
     vi.clearAllMocks();
   });
 
+  describe('registrarEvaluacionesCualitativasJurado', () => {
+    it('envía a la ruta sin prefijo con item/criterio traducidos y resuelve undefined', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.registrarEvaluacionesCualitativasJurado({
+        evaluacionJuradoId: 'ej-1',
+        evaluaciones: [
+          { itemId: 'item-1', criterioId: 'crit-1' },
+          { itemId: 'item-2', criterioId: 'crit-1' },
+        ],
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/evaluaciones-jurado/ej-1/evaluaciones-cualitativas', {
+        evaluaciones: [
+          { item: 'item-1', criterio: 'crit-1' },
+          { item: 'item-2', criterio: 'crit-1' },
+        ],
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('omitirEvaluacionesCualitativasJurado', () => {
+    it('llama DELETE con el prefijo /evaluaciones y los ids en data, y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.omitirEvaluacionesCualitativasJurado({
+        evaluacionJuradoId: 'ej-1',
+        evaluaciones: ['ec-1', 'ec-2'],
+      });
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/ej-1/cualitativas', {
+        data: { evaluaciones: ['ec-1', 'ec-2'] },
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarItemCualitativoJurado', () => {
     it('llama PATCH con el itemId en la ruta y solo { descripcion } en el body, y resuelve undefined', async () => {
       // Arrange
@@ -45,6 +89,20 @@ describe('evaluacionesService', () => {
 
       // Assert
       expect(del).toHaveBeenCalledWith('/evaluaciones/items-cualitativos-jurado/item-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('removerItemCuantitativoJurado', () => {
+    it('llama DELETE con el itemId en la ruta y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerItemCuantitativoJurado('item-1');
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/items-cuantitativos-jurado/item-1');
       expect(resultado).toBeUndefined();
     });
   });
@@ -170,6 +228,24 @@ describe('evaluacionesService', () => {
       // Assert
       expect(post).toHaveBeenCalledWith('/evaluaciones/e-1/jurados', { jurados: ['j-1', 'j-2'] });
       expect(resultado).toEqual({ evaluacionesJurado: ['a'] });
+    });
+  });
+
+  describe('getEvaluacionesCualitativasRealizadasJurado', () => {
+    it('llama GET a la ruta de cualitativas del jurado y resuelve la lista', async () => {
+      // Arrange
+      const lista = [{ id: 'ec-1' }];
+      get.mockResolvedValue({ status: 200, data: lista });
+
+      // Act
+      const resultado =
+        await evaluacionesService.getEvaluacionesCualitativasRealizadasJurado('ej-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-jurado/ej-1/cualitativas/jurado',
+      );
+      expect(resultado).toEqual(lista);
     });
   });
 });

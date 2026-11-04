@@ -27,7 +27,7 @@ GitHub, donde el usuario aprueba el merge.
 | "escribe los tests de…" | `@3-tester` | `*.test.ts(x)`. Nunca toca producción |
 | "valida", "revisa la implementación de…" | `@4a-validator-analyze` | El reporte completo (como mensaje, o como cuerpo de su `.out.md` si lo invoca el orquestador). Valida en dos capas: sensores deterministas **y** revisión con juicio contra las skills de arquitectura y estándares. No escribe en el repo |
 | "genera el reporte de…" | `@4b-validator-report` | `.workspace/validator/validator-{HU\|HT}-{ID}.md` |
-| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs`, **sin pedir confirmación** |
+| "haz el commit", "abre el PR", "entrega…" | `@4c-commit` | Commit → push → PR hacia `develop` y publicación en `arquisoft-docs` con commit directo a su `main` (sin PR), **sin pedir confirmación** |
 | El desarrollador pide cambiar algo tras revisar un PR o un commit | `@0-orquestador` (`ajusta {ID}: …`) | Ajuste `{ID}-AJn`: plan acotado → implementación → `@4a` (arquitectura) → `@4b` → `@4c-commit` en Seguimiento. **No se edita directo** |
 | "sube cambios de…" (PR abierto y cambio ya verificado) | `@4c-commit` | Solo commit y push a la misma rama; el PR se actualiza solo y el CI vuelve a correr. Exige el reporte del ajuste |
 
@@ -140,7 +140,8 @@ nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/`
   demás convenciones (corre con `npm test`). Su deuda previa vive en
   `src/test-utils/arquitectura.baseline.ts` y **solo puede decrecer**: si el test falla, se corrige el
   código, nunca se agrega una entrada. `.claude/settings.json` y `.claude/hooks/` bloquean merge,
-  force-push, push o commit sobre `main`/`develop` y `git add` de `.env*`; al cerrar un turno con
+  force-push, push o commit sobre `main`/`develop` (salvo `main` del clon de `arquisoft-docs`, que
+  reconocen por su `origin`) y `git add` de `.env*`; al cerrar un turno con
   cambios en `src/`, un hook corre `tsc` y el test de arquitectura y devuelve el error.
 
 ## Convenciones

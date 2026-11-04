@@ -8,6 +8,7 @@ import { useEstadosFichaPerfilEstudiante } from '../hooks/useEstadosFichaPerfilE
 import { useEvaluacionesMiFicha } from '../hooks/useEvaluacionesMiFicha';
 import { useRevisionesMiFicha } from '../hooks/useRevisionesMiFicha';
 import { useObservacionesMiFicha } from '../hooks/useObservacionesMiFicha';
+import { useEstadosObservacionRevision } from '../hooks/useEstadosObservacionRevision';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 
 vi.mock('../hooks/useMiFichaPerfil', () => ({ useMiFichaPerfil: vi.fn() }));
@@ -27,6 +28,9 @@ vi.mock('../hooks/useRevisionesMiFicha', () => ({ useRevisionesMiFicha: vi.fn() 
 vi.mock('../hooks/useObservacionesMiFicha', () => ({ useObservacionesMiFicha: vi.fn() }));
 vi.mock('../hooks/useObservacionesEvaluacionMiFicha', () => ({
   useObservacionesEvaluacionMiFicha: vi.fn(),
+}));
+vi.mock('../hooks/useEstadosObservacionRevision', () => ({
+  useEstadosObservacionRevision: vi.fn(),
 }));
 vi.mock('./TiposItemPanel', () => ({ default: () => <div>Catálogo de tipos</div> }));
 
@@ -86,6 +90,19 @@ function conItems(parcial: Partial<Record<keyof Items, unknown>> = {}) {
   } as Items);
 }
 
+type EstadosObs = ReturnType<typeof useEstadosObservacionRevision>;
+
+function conEstadosObservacion(parcial: Partial<Record<keyof EstadosObs, unknown>> = {}) {
+  vi.mocked(useEstadosObservacionRevision).mockReturnValue({
+    data: [],
+    isPending: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+    ...parcial,
+  } as EstadosObs);
+}
+
 describe('EstudianteView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -129,6 +146,7 @@ describe('EstudianteView', () => {
       error: null,
       reintentar: vi.fn(),
     });
+    conEstadosObservacion();
     vi.mocked(useEvaluacionesMiFicha).mockReturnValue({
       evaluaciones: [],
       isLoading: false,
@@ -202,7 +220,7 @@ describe('EstudianteView', () => {
     );
   });
 
-  it('hay cinco pestañas, con contador de ítems una vez cargados, y se cambia con el teclado', async () => {
+  it('hay seis pestañas, con contador de ítems una vez cargados, y se cambia con el teclado', async () => {
     // Arrange
     const user = userEvent.setup();
     conFicha();
@@ -216,6 +234,7 @@ describe('EstudianteView', () => {
       'Observaciones',
       'Historial de estados',
       'Evaluaciones',
+      'Estados de observación',
     ]);
     expect(screen.queryByRole('tab', { name: /Tipos de ítem/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/Cambiar estado/)).not.toBeInTheDocument();
@@ -289,6 +308,23 @@ describe('EstudianteView', () => {
     expect(screen.getByText('Tu ficha aún no tiene evaluaciones')).toBeInTheDocument();
   });
 
+  it('la pestaña «Estados de observación» monta el panel del catálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFicha();
+    render(<EstudianteView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Estados de observación' }));
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Estados de observación' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByText('Aún no hay estados de observación')).toBeInTheDocument();
+  });
+
   it('el contador de ítems no aparece mientras la lista no ha cargado', () => {
     // Arrange
     conFicha();
@@ -304,6 +340,7 @@ describe('EstudianteView', () => {
       'Observaciones',
       'Historial de estados',
       'Evaluaciones',
+      'Estados de observación',
     ]);
   });
 

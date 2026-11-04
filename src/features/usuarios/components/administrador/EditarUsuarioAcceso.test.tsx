@@ -41,6 +41,7 @@ const USUARIO: Usuario = {
   esCoordinador: false,
   esRepresentanteComite: false,
   esAdministrador: false,
+  esJurado: false,
   esBibliotecario: false,
 };
 

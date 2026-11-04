@@ -53,6 +53,7 @@ function tabla() {
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof SolicitudesEnviadasTable>> = {}) {
   const props = {
+    tipo: 'coordinador' as const,
     solicitudes: SOLICITUDES,
     cargando: false,
     eliminando: false,
@@ -121,6 +122,106 @@ describe('SolicitudesEnviadasTable', () => {
     // Assert
     expect(onEliminar).toHaveBeenCalledTimes(1);
     expect(onEliminar).toHaveBeenCalledWith(SOLICITUDES[1]);
+  });
+
+  it('con tipo asesor y sin onEliminar usa los textos del asesor y no muestra acciones', () => {
+    // Act
+    renderizar({ tipo: 'asesor', onEliminar: undefined });
+
+    // Assert
+    const tablaAsesor = screen.getByRole('table', {
+      name: 'Solicitudes de novedad enviadas al asesor',
+    });
+    expect(within(tablaAsesor).getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
+    expect(within(tablaAsesor).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaAsesor).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo asesor y sin solicitudes el vacío menciona al asesor', () => {
+    // Act
+    renderizar({ tipo: 'asesor', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText('Cuando envíes una novedad al asesor, aparecerá aquí.'),
+    ).toBeInTheDocument();
+  });
+
+  it('con tipo cambio-asesor y sin onEliminar usa sus textos y no muestra acciones', () => {
+    // Act
+    renderizar({ tipo: 'cambio-asesor', onEliminar: undefined });
+
+    // Assert
+    const tablaCambio = screen.getByRole('table', {
+      name: 'Solicitudes de cambio de asesor enviadas',
+    });
+    expect(
+      within(tablaCambio).getByRole('columnheader', { name: 'Destinatario' }),
+    ).toBeInTheDocument();
+    expect(within(tablaCambio).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaCambio).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo cambio-asesor y sin solicitudes el vacío menciona el cambio de asesor', () => {
+    // Act
+    renderizar({ tipo: 'cambio-asesor', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText('Cuando envíes una solicitud de cambio de asesor, aparecerá aquí.'),
+    ).toBeInTheDocument();
+  });
+
+  it('con tipo ampliacion-plazo usa sus textos, sin acciones, y su vacío menciona la ampliación', () => {
+    // Arrange
+    renderizar({ tipo: 'ampliacion-plazo', onEliminar: undefined });
+
+    // Assert
+    const tablaAmpliacion = screen.getByRole('table', {
+      name: 'Solicitudes de ampliación de plazo enviadas',
+    });
+    expect(
+      within(tablaAmpliacion).getByRole('columnheader', { name: 'Coordinador' }),
+    ).toBeInTheDocument();
+    expect(within(tablaAmpliacion).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaAmpliacion).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo ampliacion-plazo y sin solicitudes el vacío menciona la ampliación de plazo', () => {
+    // Act
+    renderizar({ tipo: 'ampliacion-plazo', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText('Cuando envíes una solicitud de ampliación de plazo, aparecerá aquí.'),
+    ).toBeInTheDocument();
+  });
+
+  it('con tipo registro-modificacion-usuarios usa la columna Administrador y no muestra acciones', () => {
+    // Act
+    renderizar({ tipo: 'registro-modificacion-usuarios', onEliminar: undefined });
+
+    // Assert
+    const tablaRegistro = screen.getByRole('table', {
+      name: 'Solicitudes de registro y modificación de usuarios enviadas',
+    });
+    expect(
+      within(tablaRegistro).getByRole('columnheader', { name: 'Administrador' }),
+    ).toBeInTheDocument();
+    expect(within(tablaRegistro).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(tablaRegistro).getByText('Ana Pérez')).toBeInTheDocument();
+  });
+
+  it('con tipo registro-modificacion-usuarios y sin solicitudes el vacío menciona el registro y modificación de usuarios', () => {
+    // Act
+    renderizar({ tipo: 'registro-modificacion-usuarios', solicitudes: [], onEliminar: undefined });
+
+    // Assert
+    expect(
+      screen.getByText(
+        'Cuando envíes una solicitud de registro y modificación de usuarios, aparecerá aquí.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('deshabilita todos los botones de eliminar mientras se elimina', () => {

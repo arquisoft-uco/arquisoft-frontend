@@ -47,6 +47,9 @@ export const usuariosService = {
   removerBibliotecario: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}/bibliotecario`).then(() => undefined),
 
+  removerJurado: (usuarioId: string): Promise<void> =>
+    apiClient.delete<void>(`/usuarios/${usuarioId}/jurado`).then(() => undefined),
+
   eliminarUsuario: (usuarioId: string): Promise<void> =>
     apiClient.delete<void>(`/usuarios/${usuarioId}`).then(() => undefined),
 

@@ -14,16 +14,20 @@ interface Props {
 export default function RowMenu({ etiqueta, acciones }: Props) {
   const idMenu = useId();
   const disparador = useRef<HTMLButtonElement>(null);
-  const [ancla, setAncla] = useState<DOMRect | null>(null);
+  const [abierto, setAbierto] = useState<{ ancla: DOMRect; contenedor: HTMLElement } | null>(null);
 
   const cerrar = useCallback((devolverFoco: boolean) => {
-    setAncla(null);
+    setAbierto(null);
     if (devolverFoco) disparador.current?.focus();
   }, []);
 
   function alternar() {
-    if (ancla) cerrar(true);
-    else setAncla(disparador.current?.getBoundingClientRect() ?? null);
+    const boton = disparador.current;
+    if (abierto) cerrar(true);
+    else if (boton) {
+      const contenedor = boton.closest<HTMLElement>('[aria-modal="true"]') ?? document.body;
+      setAbierto({ ancla: boton.getBoundingClientRect(), contenedor });
+    }
   }
 
   return (
@@ -33,16 +37,17 @@ export default function RowMenu({ etiqueta, acciones }: Props) {
         etiqueta={etiqueta}
         icono={Ellipsis}
         aria-haspopup="menu"
-        aria-expanded={ancla !== null}
-        aria-controls={ancla ? idMenu : undefined}
+        aria-expanded={abierto !== null}
+        aria-controls={abierto ? idMenu : undefined}
         onClick={alternar}
       />
-      {ancla && (
+      {abierto && (
         <RowMenuLista
           id={idMenu}
           etiqueta={etiqueta}
           acciones={acciones}
-          ancla={ancla}
+          ancla={abierto.ancla}
+          contenedor={abierto.contenedor}
           disparador={disparador}
           onCerrar={cerrar}
         />

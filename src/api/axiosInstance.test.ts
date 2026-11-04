@@ -5,6 +5,7 @@ import type { CredencialesHttp, ProveedorIdentidad } from '../auth/proveedores/p
 import { fijarProveedorActivo } from '../auth/proveedores/proveedorActivo';
 import { router } from '../router';
 import { resetAllStores, setAuthenticatedUser } from '../test-utils/store.utils';
+import { useAuthStore } from '../auth/authStore';
 
 vi.mock('../config/env', () => ({ API_URL: 'http://api.test' }));
 vi.mock('../router', () => ({ router: { navigate: vi.fn() } }));
@@ -14,6 +15,9 @@ vi.mock('../shared/utils/monitoring', () => ({
 
 const adapterConStatus = (status: number) =>
   vi.fn<AxiosAdapter>(async (config) => {
+    if (status < 400) {
+      return { data: undefined, status, statusText: '', headers: {}, config };
+    }
     throw new AxiosError('fallo', 'ERR_BAD_REQUEST', config, null, {
       status,
       statusText: '',
@@ -209,5 +213,56 @@ describe('axiosInstance: renovación ante 401', () => {
 
     // Assert
     expect(adapter).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('axiosInstance: _sinCredenciales', () => {
+  const adapterOriginal = apiClient.defaults.adapter;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    apiClient.defaults.adapter = adapterOriginal;
+    useAuthStore.setState({ token: undefined });
+  });
+
+  it('con la opción, la petición sale sin Authorization', async () => {
+    // Arrange
+    useAuthStore.setState({ token: 'token-de-sesion' });
+    const adapter = adapterConStatus(204);
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await apiClient.post('http://minio.test/bucket', undefined, { _sinCredenciales: true });
+    await apiClient.post('/otra', undefined);
+
+    // Assert
+    expect(adapter.mock.calls[0][0].headers.get('Authorization')).toBeFalsy();
+    expect(adapter.mock.calls[1][0].headers.get('Authorization')).toBe('Bearer token-de-sesion');
+  });
+
+  it('con la opción, un 401 y un 403 no refrescan el token ni navegan', async () => {
+    // Arrange
+    const proveedor = proveedorDoble();
+    fijarProveedorActivo(proveedor);
+    const adapter401 = adapterConStatus(401);
+    apiClient.defaults.adapter = adapter401;
+
+    // Act
+    await expect(
+      apiClient.post('http://minio.test/b', undefined, { _sinCredenciales: true }),
+    ).rejects.toThrow();
+    apiClient.defaults.adapter = adapterConStatus(403);
+    await expect(
+      apiClient.post('http://minio.test/b', undefined, { _sinCredenciales: true }),
+    ).rejects.toThrow();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Assert
+    expect(proveedor.renovarSesion).not.toHaveBeenCalled();
+    expect(adapter401).toHaveBeenCalledTimes(1);
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 });

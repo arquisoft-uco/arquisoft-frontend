@@ -19,6 +19,7 @@ vi.mock('../../services/usuariosService', () => ({
     removerRepresentanteComite: vi.fn(),
     removerAdministrador: vi.fn(),
     removerBibliotecario: vi.fn(),
+    removerJurado: vi.fn(),
   },
 }));
 
@@ -40,6 +41,7 @@ const USUARIO: Usuario = {
   esCoordinador: true,
   esRepresentanteComite: false,
   esAdministrador: false,
+  esJurado: false,
   esBibliotecario: true,
 };
 
@@ -58,6 +60,7 @@ const ROLES_CAMBIABLES = [
   Rol.Coordinador,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Jurado,
   Rol.Bibliotecario,
 ];
 
@@ -68,9 +71,8 @@ describe('EditarUsuarioRoles', () => {
     vi.resetAllMocks();
   });
 
-  it('muestra un interruptor por rol marcado según el usuario, con Jurado deshabilitado y "Pronto"', async () => {
+  it('muestra un interruptor por rol marcado según el usuario, todos habilitados y sin "Pronto"', () => {
     // Arrange
-    const user = userEvent.setup();
     render(<EditarUsuarioRoles usuario={USUARIO} />);
 
     // Assert
@@ -78,16 +80,60 @@ describe('EditarUsuarioRoles', () => {
     for (const rol of ROLES_ENCENDIDOS) expect(interruptor(rol)).toBeChecked();
     for (const rol of ROLES_APAGADOS) expect(interruptor(rol)).not.toBeChecked();
     for (const rol of ROLES_CAMBIABLES) expect(interruptor(rol)).toBeEnabled();
-    expect(interruptor(Rol.Jurado)).toBeDisabled();
-    expect(screen.getAllByText('Pronto')).toHaveLength(1);
-    expect(interruptor(Rol.Jurado)).toHaveAccessibleDescription(/Pronto/);
+    expect(screen.queryByText('Pronto')).not.toBeInTheDocument();
+  });
+
+  it('un usuario jurado abre con Jurado encendido y habilitado, y al apagarlo pide confirmación, quita el rol y avisa', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.removerJurado).mockResolvedValue(undefined);
+    const rol = ETIQUETAS_ROL[Rol.Jurado];
+    render(<EditarUsuarioRoles usuario={{ ...USUARIO, esJurado: true }} />);
+
+    // Assert
+    expect(interruptor(Rol.Jurado)).toBeChecked();
+    expect(interruptor(Rol.Jurado)).toBeEnabled();
+    expect(screen.queryByText('Pronto')).not.toBeInTheDocument();
 
     // Act
     await user.click(interruptor(Rol.Jurado));
 
     // Assert
-    expect(usuariosService.agregarRol).not.toHaveBeenCalled();
-    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('alertdialog', { name: `¿Quitar el rol ${rol} a ${USUARIO.nombre}?` }),
+    ).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
+
+    // Assert
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    expect(usuariosService.removerJurado).toHaveBeenCalledWith(USUARIO.id);
+    expect(interruptor(Rol.Jurado)).not.toBeChecked();
+    expect(toast.success).toHaveBeenCalledWith(
+      'Rol quitado',
+      `${USUARIO.nombre} ya no es ${rol.toLowerCase()}.`,
+    );
+  });
+
+  it('encender Jurado llama al service con el id y el rol jurado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    vi.mocked(usuariosService.agregarRol).mockResolvedValue(undefined);
+    render(<EditarUsuarioRoles usuario={USUARIO} />);
+
+    // Act
+    await user.click(interruptor(Rol.Jurado));
+
+    // Assert
+    expect(
+      await screen.findByRole('switch', {
+        name: ETIQUETAS_ROL[Rol.Jurado],
+        checked: true,
+        busy: false,
+      }),
+    ).toBeInTheDocument();
+    expect(usuariosService.agregarRol).toHaveBeenCalledWith(USUARIO.id, Rol.Jurado);
   });
 
   it('encender un rol llama al service con el id y el rol, avisa el éxito y deja el interruptor encendido', async () => {

@@ -8,6 +8,8 @@ declare module 'axios' {
   interface AxiosRequestConfig {
     // Peticiones que no deben refrescar token, reintentar ni navegar a /forbidden (p. ej. el logout)
     _omitirManejoAuth?: boolean;
+    // Peticiones a un host externo ya firmado (MinIO): sin Bearer ni manejo de 401/403
+    _sinCredenciales?: boolean;
   }
 }
 
@@ -20,6 +22,7 @@ const apiClient = axios.create({
 // Sin proveedor (bypass de desarrollo) se usa el token del store. getState(), no un hook:
 // el interceptor corre fuera del árbol de React.
 apiClient.interceptors.request.use((config) => {
+  if (config._sinCredenciales) return config;
   const proveedor = proveedorActivo();
   const credenciales = proveedor
     ? proveedor.credencialesHttp()
@@ -50,7 +53,7 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const config = error.config as typeof error.config & { _retry?: boolean };
 
-    if (config?._omitirManejoAuth) {
+    if (config?._omitirManejoAuth || config?._sinCredenciales) {
       monitoring.captureHttpError(status, config.url, config.method);
       return Promise.reject(error);
     }

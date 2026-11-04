@@ -2,6 +2,8 @@ import { z } from 'zod';
 import {
   DIGITOS_REGEX,
   EMAIL_REGEX,
+  FECHA_ISO_REGEX,
+  NOMBRE_ARCHIVO_INVALIDO_REGEX,
   NOMBRE_COMPLETO_REGEX,
   UUID_REGEX,
 } from './expresiones-regulares';
@@ -117,6 +119,31 @@ export function listaConMaximo(max: number) {
   return z.array(z.string()).max(max, MENSAJES_VALIDACION.listaMaxima(max));
 }
 
+// Espejo de la lista no vacía del comando y de ValidatorColeccion.sinDuplicados del backend:
+// `clave` identifica a cada elemento y dos elementos con la misma clave son un duplicado.
+export function listaNoVaciaSinDuplicados<T extends z.ZodTypeAny>(
+  elemento: T,
+  clave: (valor: z.infer<T>) => string,
+) {
+  return z
+    .array(elemento)
+    .min(1, MENSAJES_VALIDACION.listaVacia)
+    .superRefine((lista, ctx) => {
+      const vistas = new Set<string>();
+      for (const valor of lista) {
+        const k = clave(valor);
+        if (vistas.has(k)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: MENSAJES_VALIDACION.elementoRepetido,
+          });
+          return;
+        }
+        vistas.add(k);
+      }
+    });
+}
+
 // Espejo de la regla compuesta del backend sobre `nombres + " " + apellidos`: longitud del conjunto
 // (error en ambos campos) y luego formato (error en el campo con el carácter inválido).
 export function validarParDeNombres(
@@ -148,4 +175,103 @@ export function validarParDeNombres(
       message: MENSAJES_VALIDACION.formatoNombre,
     });
   }
+}
+
+export function esFechaIsoReal(valor: string): boolean {
+  if (!FECHA_ISO_REGEX.test(valor)) return false;
+  const [anio, mes, dia] = valor.split('-').map(Number);
+  const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+  return (
+    fecha.getUTCFullYear() === anio && fecha.getUTCMonth() === mes - 1 && fecha.getUTCDate() === dia
+  );
+}
+
+// Espejo de las reglas MAPA_RUTA_FECHA_*_REQUERIDA/_INVALIDA del backend: requerida, formato
+// yyyy-MM-dd y fecha real, en ese orden.
+export function fechaIso() {
+  return z.string().superRefine((val, ctx) => {
+    const valor = val.trim();
+    if (valor.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.requerido });
+      return;
+    }
+    if (!esFechaIsoReal(valor)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.fechaInvalida });
+    }
+  });
+}
+
+// Espejo de MAPA_RUTA_FECHA_FIN_NO_POSTERIOR: la fecha de fin es estrictamente posterior a la de
+// inicio. Si alguna no es una fecha real no hace nada: ya la marca fechaIso().
+export function validarFechaFinPosterior(
+  valores: { fechaInicio: string; fechaFin: string },
+  ctx: z.RefinementCtx,
+) {
+  const inicio = valores.fechaInicio.trim();
+  const fin = valores.fechaFin.trim();
+  if (!esFechaIsoReal(inicio) || !esFechaIsoReal(fin)) return;
+  if (fin <= inicio) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['fechaFin'],
+      message: MENSAJES_VALIDACION.fechaFinPosterior,
+    });
+  }
+}
+
+interface OpcionesArchivo {
+  extensiones: readonly string[];
+  tamanoMaxBytes: number;
+  nombreMax: number;
+}
+
+// Espejo de la validación de un archivo del backend, en este orden: requerido, longitud del nombre,
+// caracteres del nombre, extensión permitida y tamaño (vacío o excedido).
+export function archivoPermitido({ extensiones, tamanoMaxBytes, nombreMax }: OpcionesArchivo) {
+  return z
+    .instanceof(File)
+    .nullable()
+    .superRefine((archivo, ctx) => {
+      if (!archivo) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.archivoRequerido,
+        });
+        return;
+      }
+      const nombre = archivo.name.trim();
+      if (nombre.length > nombreMax) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.longitudMaxima(nombreMax),
+        });
+        return;
+      }
+      if (NOMBRE_ARCHIVO_INVALIDO_REGEX.test(nombre)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.nombreArchivoInvalido,
+        });
+        return;
+      }
+      const punto = nombre.lastIndexOf('.');
+      const extension = punto < 0 ? '' : nombre.slice(punto + 1).toLowerCase();
+      if (!extensiones.includes(extension)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.formatoArchivo(extensiones),
+        });
+        return;
+      }
+      if (archivo.size < 1) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: MENSAJES_VALIDACION.archivoVacio });
+        return;
+      }
+      if (archivo.size > tamanoMaxBytes) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.archivoMuyGrande(tamanoMaxBytes),
+        });
+      }
+    });
 }

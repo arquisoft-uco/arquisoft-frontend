@@ -181,6 +181,25 @@ describe('ConfirmDialog', () => {
     expect(confirmar).toHaveFocus();
   });
 
+  it('con aviso lo muestra como nota dentro del diálogo y sin aviso no hay nota', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const aviso = 'Esta acción va por encima del ciclo normal.';
+    const { rerender } = render(<Pantalla variante="advertencia" aviso={aviso} />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    // Assert
+    expect(within(screen.getByRole('dialog')).getByRole('note')).toHaveTextContent(aviso);
+
+    // Act
+    rerender(<Pantalla variante="advertencia" />);
+
+    // Assert
+    expect(screen.queryByRole('note')).not.toBeInTheDocument();
+  });
+
   it('confirmar llama a onConfirmar sin cancelar', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -196,5 +215,20 @@ describe('ConfirmDialog', () => {
     expect(onConfirmar).toHaveBeenCalledTimes(1);
     expect(onCancelar).not.toHaveBeenCalled();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('con confirmarDeshabilitado el botón de confirmar no se puede accionar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onConfirmar = vi.fn();
+    render(<Pantalla labelConfirmar="Quitar" confirmarDeshabilitado onConfirmar={onConfirmar} />);
+    await user.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Quitar' })).toBeDisabled();
+    expect(onConfirmar).not.toHaveBeenCalled();
   });
 });

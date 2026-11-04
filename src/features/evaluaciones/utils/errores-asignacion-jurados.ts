@@ -5,20 +5,7 @@ import {
   EVALUACION_JURADO_JURADOS_YA_ASIGNADOS,
   EVALUACION_NO_ENCONTRADA,
 } from './codigos-error-evaluaciones';
-
-// El backend entrega los UUID dentro del texto del mensaje, sin campo estructurado.
-const UUID_EN_TEXTO = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-
-function nombresDelMensaje(err: unknown, nombresPorId: ReadonlyMap<string, string>): string[] {
-  const mensaje = getApiErrorMessage(err, '');
-  const ids = mensaje.match(UUID_EN_TEXTO) ?? [];
-  const nombres: string[] = [];
-  for (const id of ids) {
-    const nombre = nombresPorId.get(id) ?? nombresPorId.get(id.toLowerCase());
-    if (nombre && !nombres.includes(nombre)) nombres.push(nombre);
-  }
-  return nombres;
-}
+import { nombresDelMensaje } from './nombres-del-mensaje';
 
 export function mensajeErrorAsignacionJurados(
   err: unknown,

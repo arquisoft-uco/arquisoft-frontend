@@ -34,6 +34,7 @@ const ROLES_OFRECIDOS = [
   Rol.Coordinador,
   Rol.RepresentanteComiteCurriculum,
   Rol.Administrador,
+  Rol.Jurado,
   Rol.Bibliotecario,
 ];
 
@@ -126,7 +127,7 @@ describe('RegistrarUsuarioPanel', () => {
     vi.mocked(toast.error).mockClear();
   });
 
-  it('muestra las secciones, las ayudas y los siete roles registrables, y no deshabilita "Registrar usuario" con el formulario vacío', () => {
+  it('muestra las secciones, las ayudas y los ocho roles registrables, y no deshabilita "Registrar usuario" con el formulario vacío', () => {
     // Act
     render(<RegistrarUsuarioPanel onCerrar={vi.fn()} />);
 
@@ -154,9 +155,7 @@ describe('RegistrarUsuarioPanel', () => {
     expect(chips.map((chip) => chip.textContent)).toEqual(
       ROLES_OFRECIDOS.map((rol) => ETIQUETAS_ROL[rol]),
     );
-    expect(
-      screen.queryByRole('button', { name: ETIQUETAS_ROL[Rol.Jurado] }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: ETIQUETAS_ROL[Rol.Jurado] })).toBeInTheDocument();
     expect(botonRegistrar()).toBeEnabled();
   });
 

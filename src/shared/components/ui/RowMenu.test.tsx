@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../test-utils/render';
+import { render, screen, within } from '../../../test-utils/render';
 import RowMenu from './RowMenu';
 import type { AccionMenu } from './RowMenu';
+import SidePanel from './SidePanel';
 
 const ETIQUETA = 'Acciones de Marta Ríos';
 
@@ -137,6 +138,42 @@ describe('RowMenu', () => {
     // Assert
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     expect(fuera).toHaveFocus();
+  });
+
+  it('dentro de un SidePanel el menú queda en el diálogo, es operable con teclado y Esc cierra solo el menú', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCerrarPanel = vi.fn();
+    const { acciones } = crearAcciones();
+    render(
+      <SidePanel titulo="Observaciones" onCerrar={onCerrarPanel}>
+        <RowMenu etiqueta={ETIQUETA} acciones={acciones} />
+      </SidePanel>,
+    );
+    const panel = screen.getByRole('dialog', { name: 'Observaciones' });
+    const disparador = within(panel).getByRole('button', { name: ETIQUETA });
+
+    // Act
+    await user.click(disparador);
+
+    // Assert
+    expect(within(panel).getByRole('menu', { name: ETIQUETA })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Editar' })).toHaveFocus();
+
+    // Act
+    await user.keyboard('{ArrowDown}');
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Dar de baja…' })).toHaveFocus();
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(disparador).toHaveFocus();
+    expect(screen.getByRole('dialog', { name: 'Observaciones' })).toBeInTheDocument();
+    expect(onCerrarPanel).not.toHaveBeenCalled();
   });
 
   it('una acción deshabilitada no se puede seleccionar y deja el menú abierto', async () => {

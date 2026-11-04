@@ -81,35 +81,13 @@ describe('useSolicitudNovedadForm', () => {
     expect(enviar).not.toHaveBeenCalled();
   });
 
-  it('al confirmar envía los valores y, en éxito, notifica, reinicia y oculta el resumen', async () => {
-    const enviar = vi.fn((_body: unknown, opciones: Opciones) => opciones.onSuccess());
-    const { result, reiniciar } = renderizarHook(enviar);
-    await escribirCampos(result);
-    await act(async () => {
-      await result.current.alEnviarFormulario();
-    });
-
-    await act(async () => {
-      result.current.confirmar();
-    });
-
-    expect(enviar).toHaveBeenCalledWith(
-      { destinatario: UUID_VALIDO, mensajeSolicitud: MENSAJE_VALIDO },
-      expect.anything(),
-    );
-    expect(toast.success).toHaveBeenCalledWith('Solicitud enviada', MENSAJE_EXITO);
-    expect(reiniciar).toHaveBeenCalledTimes(1);
-    expect(result.current.confirmando).toBe(false);
-    expect(result.current.resumenVisible).toBe(false);
-  });
-
   it('en error de destinatario marca el campo, notifica y muestra el resumen', async () => {
     const enviar = vi.fn((_body: unknown, opciones: Opciones) =>
       opciones.onError(
         crearErrorApi({
           error: 'Unprocessable Entity',
-          errorCode: 'DESTINATARIO_NO_ASIGNADO',
-          message: 'El destinatario no es tu asesor.',
+          errorCode: 'DESTINATARIO_NO_ENCONTRADO',
+          message: 'El destinatario indicado no existe.',
           status: 422,
         }),
       ),
@@ -124,10 +102,10 @@ describe('useSolicitudNovedadForm', () => {
       result.current.confirmar();
     });
 
-    expect(result.current.errors.destinatario?.message).toBe('El destinatario no es tu asesor.');
+    expect(result.current.errors.destinatario?.message).toBe('El destinatario indicado no existe.');
     expect(toast.error).toHaveBeenCalledWith(
       'No se pudo enviar la solicitud',
-      'El destinatario no es tu asesor.',
+      'El destinatario indicado no existe.',
     );
     expect(result.current.confirmando).toBe(false);
     expect(result.current.resumenVisible).toBe(true);

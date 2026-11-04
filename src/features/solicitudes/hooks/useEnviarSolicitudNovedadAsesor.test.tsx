@@ -18,19 +18,6 @@ const REQUEST = {
   mensajeSolicitud: 'Mi asesor no ha respondido.',
 };
 
-function crearContexto() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, gcTime: Infinity },
-      mutations: { retry: false },
-    },
-  });
-  function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-  }
-  return { Wrapper };
-}
-
 describe('useEnviarSolicitudNovedadAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -38,10 +25,7 @@ describe('useEnviarSolicitudNovedadAsesor', () => {
 
   it('envía la solicitud con el request recibido', async () => {
     enviarSolicitudNovedadAsesor.mockResolvedValue({ id: 's-2' });
-    const { Wrapper } = crearContexto();
-    const { result } = renderHook(() => useEnviarSolicitudNovedadAsesor(), {
-      wrapper: Wrapper,
-    });
+    const { result } = renderHook(() => useEnviarSolicitudNovedadAsesor());
 
     act(() => result.current.mutate(REQUEST));
 
@@ -49,12 +33,36 @@ describe('useEnviarSolicitudNovedadAsesor', () => {
     expect(enviarSolicitudNovedadAsesor).toHaveBeenCalledWith(REQUEST);
   });
 
+  it('invalida el listado de enviadas al asesor al terminar bien y no lo hace si falla', async () => {
+    enviarSolicitudNovedadAsesor.mockResolvedValueOnce({ id: 's-3' });
+    enviarSolicitudNovedadAsesor.mockRejectedValueOnce(new Error('422'));
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    const invalidar = vi.spyOn(queryClient, 'invalidateQueries');
+    const { result } = renderHook(() => useEnviarSolicitudNovedadAsesor(), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      ),
+    });
+
+    act(() => result.current.mutate(REQUEST));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['solicitudes', 'novedad-asesor', 'enviadas'],
+    });
+
+    act(() => result.current.mutate(REQUEST));
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(invalidar).toHaveBeenCalledTimes(1);
+  });
+
   it('expone el error cuando el service rechaza', async () => {
     enviarSolicitudNovedadAsesor.mockRejectedValue(new Error('422'));
-    const { Wrapper } = crearContexto();
-    const { result } = renderHook(() => useEnviarSolicitudNovedadAsesor(), {
-      wrapper: Wrapper,
-    });
+    const { result } = renderHook(() => useEnviarSolicitudNovedadAsesor());
 
     act(() => result.current.mutate(REQUEST));
 

@@ -1,21 +1,18 @@
+import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useRespuestasNovedadCoordinadorRecibidas } from '../../hooks/useRespuestasNovedadCoordinadorRecibidas';
-import RespuestasPanel from '../RespuestasPanel';
+import RespuestasPanel, { type TablaRespuestasProps } from '../RespuestasPanel';
 import RespuestasRecibidasTable from './RespuestasRecibidasTable';
 
 interface Props {
-  page: number;
-  onPageChange: (page: number) => void;
+  filtros: FiltrosRespuestas;
 }
 
-export default function RespuestasRecibidasPanel({ page, onPageChange }: Props) {
-  const consulta = useRespuestasNovedadCoordinadorRecibidas(page);
+function TablaCoordinador(props: TablaRespuestasProps) {
+  return <RespuestasRecibidasTable {...props} tipo="coordinador" />;
+}
 
-  return (
-    <RespuestasPanel
-      consulta={consulta}
-      page={page}
-      onPageChange={onPageChange}
-      Tabla={RespuestasRecibidasTable}
-    />
-  );
+export default function RespuestasRecibidasPanel({ filtros }: Props) {
+  const consulta = useRespuestasNovedadCoordinadorRecibidas(filtros);
+
+  return <RespuestasPanel consulta={consulta} filtros={filtros} Tabla={TablaCoordinador} />;
 }

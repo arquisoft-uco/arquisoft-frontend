@@ -245,4 +245,37 @@ describe('Combobox', () => {
     expect(screen.getByText('Valor: ninguno')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Asesor' })).toHaveFocus();
   });
+
+  it('Cargar más aparece solo con cargarMas, llama a onCargar sin cerrar la lista y conserva el filtro', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCargar = vi.fn();
+    const propsBase = {
+      id: 'proyecto',
+      valor: '',
+      onCambiar: vi.fn(),
+      opciones: OPCIONES,
+      textoVacio: 'No hay coincidencias.',
+      etiquetaElegidos: 'Proyecto elegido',
+    };
+    const { rerender } = render(<Combobox {...propsBase} />);
+
+    // Act
+    await user.click(screen.getByRole('combobox'));
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Cargar más' })).not.toBeInTheDocument();
+
+    // Act
+    rerender(
+      <Combobox {...propsBase} cargarMas={{ etiqueta: 'Cargar más', cargando: false, onCargar }} />,
+    );
+    await user.type(screen.getByRole('combobox'), 'luis');
+    await user.click(screen.getByRole('button', { name: 'Cargar más' }));
+
+    // Assert
+    expect(onCargar).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+  });
 });

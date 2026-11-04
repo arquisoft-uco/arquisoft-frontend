@@ -50,4 +50,14 @@ describe('OpcionRadio', () => {
     // Assert
     expect(screen.getByRole('radio', { name: 'Aprobar la ficha' })).toBeChecked();
   });
+
+  it('sin descripción se nombra por el título y no tiene descripción accesible', () => {
+    // Arrange / Act
+    render(<OpcionRadio {...propsBase} descripcion={undefined} />);
+
+    // Assert
+    const radio = screen.getByRole('radio', { name: 'Aprobar la ficha' });
+    expect(radio).not.toHaveAttribute('aria-describedby');
+    expect(radio).toHaveAccessibleDescription('');
+  });
 });

@@ -77,6 +77,7 @@ const USUARIO: Usuario = {
   esCoordinador: false,
   esRepresentanteComite: false,
   esAdministrador: false,
+  esJurado: false,
   esBibliotecario: false,
 };
 
@@ -391,6 +392,7 @@ describe('ConsultarUsuarios', () => {
         'Coordinadores',
         'Comité',
         'Administradores',
+        'Jurados',
         'Bibliotecarios',
       ]);
       expect(roles.getByRole('button', { name: 'Estudiantes' })).toHaveAttribute(
@@ -401,12 +403,14 @@ describe('ConsultarUsuarios', () => {
 
       // Act
       await user.click(roles.getByRole('button', { name: 'Asesores de ficha' }));
+      await user.click(roles.getByRole('button', { name: 'Jurados' }));
       await user.click(roles.getByRole('button', { name: 'Bibliotecarios' }));
       await user.click(roles.getByRole('button', { name: 'Todos' }));
 
       // Assert
-      expect(toggleRol).toHaveBeenCalledTimes(2);
+      expect(toggleRol).toHaveBeenCalledTimes(3);
       expect(toggleRol).toHaveBeenCalledWith(Rol.AsesorFicha);
+      expect(toggleRol).toHaveBeenCalledWith(Rol.Jurado);
       expect(toggleRol).toHaveBeenCalledWith(Rol.Bibliotecario);
       expect(limpiarRoles).toHaveBeenCalledTimes(1);
     });

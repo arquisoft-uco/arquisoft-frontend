@@ -412,8 +412,8 @@ Switch.descripcion | text-[13px] text-on-surface-secondary
 
 - **Reemplazó:** el `label` con `input type="radio"` escrito a mano en `EstadoDeLaCuenta`. Lo usan ese panel (Usuarios) y
   `DecisionFichaPanel` (Fichas, coordinador).
-- **Cuándo:** pocas opciones excluyentes (hasta 5) que necesitan su consecuencia a la vista; un `select` nativo no la muestra.
-- **API:** `nombre` (el `name` del grupo), `valor`, `titulo`, `descripcion`, `elegida: boolean`, `deshabilitada?` y
+- **Cuándo:** pocas opciones excluyentes (hasta 5) que necesitan su consecuencia a la vista; un `select` nativo no la muestra. Excepción: un catálogo paginado que debe verse de base y seguir visible tras elegir (proyectos de «Nuevo mapa de ruta») va como lista de radios en línea con buscador y «Cargar más», sin `Combobox`.
+- **API:** `nombre` (el `name` del grupo), `valor`, `titulo`, `descripcion?`, `elegida: boolean`, `deshabilitada?` y
   `onElegir: (valor: string) => void`. El `role="radiogroup"` con su `aria-labelledby` lo pone quien la usa.
 - **A11y:** el radio se nombra con el título (`aria-labelledby`) y se describe con la descripción (`aria-describedby`).
 
@@ -436,7 +436,7 @@ OpcionRadio.radio | checkbox-control shrink-0 accent-primary
 - **Cuándo:** hasta 5 opciones, radio o chips; de 6 a 8, `select` nativo; más de 8, o cuando hay que reconocer
   personas, `Combobox`.
 - **API:** `opciones: { id; etiqueta; descripcion? }[]`, `valor` (un `id` o `id[]`), `onCambiar`, `multiple?`,
-  `max?`, `textoVacio`, `etiquetaElegidos` (nombre accesible de la lista de elegidos), `placeholder?`, `deshabilitado?`, `onBlur?`, `ref?` (React 19) y los
+  `max?`, `textoVacio`, `etiquetaElegidos` (nombre accesible de la lista de elegidos), `placeholder?`, `deshabilitado?`, `cargarMas?: { etiqueta; cargando; onCargar }` (botón «Cargar más» al pie de la lista para catálogos paginados; el consumidor lo pasa solo mientras hay más páginas), `onBlur?`, `ref?` (React 19) y los
   atributos de `Field` (`id`, `aria-invalid`, `aria-describedby`); se envuelve en `Field` para su etiqueta. El tipo `OpcionCombobox` vive en
   `useCombobox.ts` y `Combobox.tsx` lo reexporta.
 - **Modo único:** con valor, el input se oculta y se muestra una tarjeta (`Combobox.elegido`) con el nombre, el correo y «Cambiar», que recibe el
@@ -479,14 +479,17 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
 
 - **Reemplaza:** `FiltrosUsuariosPanel`, el formulario de filtros de `ConsultarFichasRepresentante`, el de
   la lista de estados del asesor (eliminada en HT-UX-06-AJ1) y las pestañas por rol de Usuarios.
-- **Archivos:** `FilterBar.tsx` (la tarjeta, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo; su
+- **Archivos:** `FilterBar.tsx` (la tarjeta, la búsqueda, el botón de fechas, el botón «Filtros», los chips y los aplicados), `FilterBarBusqueda.tsx` (el campo; su
   borrador y su retardo viven en el hook `useTextoConRetardo`), `FilterChip.tsx` (chip de selección, `aria-pressed`; declara
-  `OpcionFiltro = { id; etiqueta }`), `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón
-  «Filtros»), `FilterBarSecciones.tsx` (declara `SeccionFiltro` —unión de tres tipos— y `OrdenFiltro`; trae `SeccionChips`,
-  `SeccionDeFiltro`, que despacha por `tipo`, y `limpiarSeccion`) y `FilterBarSeccionTexto.tsx` (la sección de texto).
-  `FilterBar` y `FilterBarPanel` reexportan los tipos.
-- **API:** `busqueda: { valor; onCambiar; etiqueta; placeholder }`, `chips?: { etiqueta; opciones; seleccionados; onAlternar(id);
-  onTodos() }`, `popover?: { secciones: SeccionFiltro[] }`, `orden?: OrdenFiltro`, `aplicados: { id; etiqueta; onQuitar }[]`,
+  `OpcionFiltro = { id; etiqueta }`), `FilterBarDesplegable.tsx` (el par botón + panel: estado abierto, clic fuera y referencias; lo usan el botón de fechas y «Filtros»),
+  `FilterBarPanel.tsx` (popover y hoja, con su trampa de foco; recibe `retorno`, el botón que lo abrió; `titulo?` es la cabecera de la hoja, por defecto «Filtros y orden», y `etiqueta?` el nombre del diálogo, por defecto «Filtros»; el cierre dice `Cerrar {etiqueta en minúsculas}`; `alineacion?: 'inicio' | 'fin'` ancla el popover desde `sm` al borde izquierdo o derecho del botón, por defecto `fin`), `FilterBarSecciones.tsx` (declara `SeccionFiltro` —unión de **cinco** tipos: `opciones`, `multiple`, `texto`, `fecha` y `fechas`— y `OrdenFiltro`; trae `SeccionChips`,
+  `SeccionDeFiltro`, que despacha por `tipo`, y `limpiarSeccion`) `FilterBarSeccionTexto.tsx` (la sección de texto), `FilterBarSeccionFecha.tsx` (una fecha suelta) y `FilterBarSeccionFechas.tsx` (el rango).
+  `FilterBar` y `FilterBarPanel` reexportan los tipos. El formato de las fechas sale de `src/shared/utils/formato-fecha.ts` (`formatearFechaCorta`, `YYYY-MM-DD` → `dd/mm/aaaa`; `textoRangoFechas(desde, hasta)`).
+  La sección **fecha** (`tipo: 'fecha'`; `valor`, `onCambiar(valor)`, `min?`, `max?`) pinta un solo campo `date` dentro del popover, para un límite suelto como «Inicia desde» (mapas de ruta, HU-173); `limpiarSeccion` lo vacía con `onCambiar('')`. Un rango «de X a Y» no se arma con dos secciones `fecha`: va en la prop `fechas` de la barra.
+  La sección **fechas** (`tipo: 'fechas'`; `desde`, `hasta`, `onCambiarDesde(valor)`, `onCambiarHasta(valor)`) pinta dos campos `date` que emiten `YYYY-MM-DD` o `''`, con `min`/`max` cruzados, y `limpiarSeccion` vacía ambos. No hay sección de selección con `Combobox`: nació en HU-112 y se retiró en HU-112-AJ1 por no tener consumidor; vuelve a crearse cuando una HU necesite filtrar un catálogo largo.
+- **API:** `busqueda?: { valor; onCambiar; etiqueta; placeholder; deshabilitada? }` (`deshabilitada` deshabilita el campo y oculta su ✕; sin `busqueda` no se pinta el campo ni su fila: listados que solo filtran
+  por chips), `chips?: { etiqueta; opciones; seleccionados; onAlternar(id);
+  onTodos() }`, `fechas?: { etiqueta; desde; hasta; onCambiarDesde(valor); onCambiarHasta(valor) }`, `popover?: { secciones: SeccionFiltro[] }`, `alineacionPanel?: 'inicio' | 'fin'` (sin ella, el popover de «Filtros» se ancla a la izquierda solo si no hay búsqueda ni fechas antes), `orden?: OrdenFiltro`, `aplicados: { id; etiqueta; onQuitar }[]`,
   `onLimpiar` y `totalResultados?: number`. `SeccionFiltro` es una unión por `tipo`, todas con `id` y `etiqueta`: **opciones** (`tipo?: 'opciones'`, el ausente; `opciones`, `valor`,
   `onCambiar(id)`, `deshabilitada?`, `aviso?`) es de **selección única**: `valor` es el `id` elegido, «Todos» es una opción más (con `id`
   vacío) que pone quien la usa y `''` significa «sin filtro»; **multiple** (`tipo: 'multiple'`, `opciones`, `valores: string[]`,
@@ -508,11 +511,11 @@ Combobox.elegido | flex items-center gap-3 rounded-lg border border-border-input
   Los filtros principales (uno o dos, con 7 opciones como máximo) están a la vista como chips (`role="group"` con
   `aria-label={chips.etiqueta}`; «Todos» es un chip más, con `aria-pressed` mientras no hay ninguno seleccionado, y llama a
   `onTodos`); los secundarios, en el panel. En celular los chips se desplazan en horizontal y miden 44 px; desde `sm` envuelven y
-  miden 36 px. El botón «Filtros» (`Button` secundario con `SlidersHorizontal`, `aria-haspopup="dialog"`, `aria-expanded` y,
+  miden 36 px. El botón de **fechas** (`fechas`; icono `CalendarRange`, a la derecha de la búsqueda) dice la `etiqueta` sin fechas y el rango con ellas (`dd/mm/aaaa – dd/mm/aaaa`, `Desde …` o `Hasta …`); con rango, su nombre accesible es «{etiqueta}: {rango}», que contiene el texto visible. Abre el mismo panel (diálogo con `titulo` y `etiqueta` iguales a la etiqueta de las fechas, con foco, Esc y retorno del foco) con una sola sección de fechas y «Limpiar». El botón «Filtros» (`Button` secundario con `SlidersHorizontal`, `aria-haspopup="dialog"`, `aria-expanded` y,
   abierto, `aria-controls`) **solo existe si llega `popover`** (y `orden` solo se dibuja dentro de su panel); su contador es
   `aplicados.length`.
 - **Aplicados:** la fila existe si hay `aplicados` o más de un filtro activo en total (texto, chips y aplicados). Muestra solo lo
-  que está en el panel (los chips ya se ven marcados): «Filtros aplicados:» (solo con aplicados), un chip por aplicado con ✕
+  que está en el panel de «Filtros» (los chips ya se ven marcados, y las fechas no generan chip porque el botón ya muestra el rango, pero cuentan como filtro activo para «Limpiar todo»): «Filtros aplicados:» (solo con aplicados), un chip por aplicado con ✕
   («Quitar filtro {etiqueta}») y «Limpiar todo» (solo con más de un filtro activo). «Limpiar todo» llama a `onLimpiar()` y
   **remonta el buscador** (cambia su `key`) para descartar el borrador y el retardo pendientes.
 - **Panel:** un solo `div role="dialog" aria-label="Filtros"` con `tabIndex={-1}` y **sin `aria-modal`** (la hoja es modal solo en
@@ -609,8 +612,9 @@ FilterBar.panelCierre | grow sm:grow-0
   `IconButton` con `Ellipsis`.
 - **Reglas:** la fila abre el detalle o el panel con su título; el menú ⋯ agrupa las acciones secundarias **con etiqueta**. La
   acción que da de baja o elimina (`peligro`) va al final, en rojo, y un `role="separator"` la separa de las demás (no se dibuja si
-  es la primera). Se dibuja en un portal (`createPortal` en `document.body`, como `ConfirmDialog`) con posición calculada, para que
-  el `overflow-x-auto` de la tabla no lo recorte; las coordenadas calculadas son el único `style={{}}` admitido. El borde derecho del
+  es la primera). Se dibuja en un portal (`createPortal`) hacia el modal abierto más cercano al disparador (`[aria-modal="true"]`) o, si no hay, a
+  `document.body`: dentro de un `SidePanel` o diálogo el menú debe estar en su contexto de apilamiento, en su trampa de foco y en su
+  árbol accesible. La posición se calcula para que el `overflow-x-auto` de la tabla no lo recorte; las coordenadas calculadas son el único `style={{}}` admitido. El borde derecho del
   menú (`w-56`, 224 px) se alinea con el del disparador, 4 px debajo y con 8 px de margen al borde del viewport; si no cabe debajo,
   se abre encima.
 - **A11y y teclado:** disparador con `aria-haspopup="menu"`, `aria-expanded` y, mientras está abierto, `aria-controls` hacia el menú;
@@ -631,7 +635,7 @@ RowMenu.separador | my-1.5 h-px bg-border
 - **Composición:** el ítem es `item` más exactamente una de `itemNormal` o `itemPeligro`. El hover va con `enabled:` y `item` trae el
   estado deshabilitado: una acción deshabilitada («Dar de baja…» de quien ya no está vigente) se ve atenuada y no se ilumina al pasar el
   cursor (la receta anterior no tenía estado deshabilitado y su `hover:` iluminaba cualquier ítem).
-- **Pruebas:** abrir, moverse con flechas, seleccionar y Esc con retorno del foco.
+- **Pruebas:** abrir, moverse con flechas, seleccionar y Esc con retorno del foco; dentro de un `SidePanel`: visible en el diálogo y operable con teclado.
 
 ### DataTable
 
@@ -894,7 +898,7 @@ SidePanel.pie | shrink-0
 
 ### ConfirmDialog (se actualiza en su sitio)
 
-Conserva su API (`titulo`, `descripcion?`, `labelConfirmar?`, `labelCancelar?`, `variante?`, `cargando?`, `onConfirmar`,
+Conserva su API (`titulo`, `descripcion?`, `aviso?`, `labelConfirmar?`, `labelCancelar?`, `variante?`, `cargando?`, `onConfirmar`,
 `onCancelar`) y gana `consecuencias?: string[]` (lo que pasa al confirmar, en una lista). Lo que cambió:
 
 - **Foco:** usa `useTrampaDeFoco` (ver «useTrampaDeFoco») con el botón «Cancelar» como `focoInicial` y `alEscape` = cancelar: el
@@ -902,6 +906,9 @@ Conserva su API (`titulo`, `descripcion?`, `labelConfirmar?`, `labelCancelar?`, 
   no se enfoca nada. Desde el menú de fila el disparador es el ⋯, porque `RowMenu` le devuelve ahí el foco antes de llamar a
   `onSeleccionar`. **El foco inicial es «Cancelar» en las dos variantes**, no solo en `peligro` (desvío de la receta anterior):
   con `advertencia` el primer control del DOM ya es ese botón, y un Enter repetido al abrirlo cancela en lugar de confirmar.
+- **Aviso destacado (`aviso?: string`):** va dentro del bloque `detalle`, entre la descripción y las consecuencias, como `Notice`
+  `advertencia`. Se usa solo cuando la acción **va por encima de un ciclo de vida o regla normal** (excepción deliberada, p. ej.
+  reabrir una revisión cerrada), no para repetir una consecuencia: esas siguen en la lista. Sin clases nuevas en `clases`.
 - **Teclado:** Esc y el clic en el fondo cancelan, salvo mientras `cargando`.
 - **Semántica:** `role="alertdialog"` en `peligro` y `dialog` en `advertencia`, puesto en el panel y no en el contenedor de
   pantalla completa; `aria-modal="true"`, `aria-labelledby` hacia el `<h2>` y, si hay descripción o consecuencias,

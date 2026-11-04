@@ -31,6 +31,7 @@ const usuario: Usuario = {
   esCoordinador: false,
   esRepresentanteComite: false,
   esAdministrador: false,
+  esJurado: false,
   esBibliotecario: false,
 };
 
@@ -111,6 +112,28 @@ describe('construirFiltro', () => {
       nodos: [
         { tipo: 'PREDICADO', campo: 'esBibliotecario', operador: 'ES', valor: 'true' },
         { tipo: 'PREDICADO', campo: 'esAsesor', operador: 'ES', valor: 'true' },
+      ],
+    });
+  });
+
+  it('mapea el jurado a esJurado, solo o combinado en OR con otro rol', () => {
+    // Act
+    const solo = construirFiltro([Rol.Jurado], undefined, undefined);
+    const combinado = construirFiltro([Rol.Jurado, Rol.Estudiante], undefined, undefined);
+
+    // Assert
+    expect(solo).toEqual({
+      tipo: 'PREDICADO',
+      campo: 'esJurado',
+      operador: 'ES',
+      valor: 'true',
+    });
+    expect(combinado).toEqual({
+      tipo: 'GRUPO',
+      conector: 'OR',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'esJurado', operador: 'ES', valor: 'true' },
+        { tipo: 'PREDICADO', campo: 'esEstudiante', operador: 'ES', valor: 'true' },
       ],
     });
   });

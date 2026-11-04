@@ -1,11 +1,12 @@
 import { useState, type ComponentType } from 'react';
 import { GraduationCap } from 'lucide-react';
+import SelectorProyectoGrado from '../../../shared/components/SelectorProyectoGrado';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import Tabs from '../../../shared/components/ui/Tabs';
-import { useMisProyectosGrado } from '../hooks/useMisProyectosGrado';
+import { useMisProyectosGrado } from '../../../shared/hooks/useMisProyectosGrado';
 import { aResumen } from '../utils/resumen-proyecto-grado';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
 import { DISPOSICION } from './disposicion';
@@ -13,7 +14,6 @@ import AsesorActualResumen from './estudiante/AsesorActualResumen';
 import CompanerosProyectoResumen from './estudiante/CompanerosProyectoResumen';
 import HistorialAsesoresProyectoPanel from './estudiante/HistorialAsesoresProyectoPanel';
 import HistorialEstadosProyectoPanel from './estudiante/HistorialEstadosProyectoPanel';
-import SelectorProyectoGrado from './estudiante/SelectorProyectoGrado';
 import ResumenProyectoGradoPanel from './ResumenProyectoGradoPanel';
 
 const RAIZ = 'flex flex-col gap-6';

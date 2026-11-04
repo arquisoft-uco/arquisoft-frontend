@@ -1,7 +1,9 @@
 # ==============================================================================
 # Arquisoft Frontend — CI Pipeline
 # ==============================================================================
-# Ejecuta formato (solo lo modificado), type-check, tests y build en cada push/PR
+# Ejecuta formato (solo lo modificado), type-check, tests y build en cada PR hacia develop/main y en los push a develop/main
+# (el push a develop encadena Docker Build & Push y Deploy; las ramas de trabajo solo
+# corren con su PR, para no duplicar ejecuciones)
 # Runner: GitHub-hosted (ubuntu-latest) — gratis
 # Nota: Se activa solo cuando existe package.json (HT-010)
 # ==============================================================================
@@ -10,7 +12,7 @@ name: CI Frontend
 
 on:
   push:
-    branches: ['**']
+    branches: [develop, main]
   pull_request:
     branches: [develop, main]
 
