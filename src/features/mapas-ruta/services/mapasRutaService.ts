@@ -4,7 +4,10 @@ import type { ConsultaCriteriaRequest } from '../../../shared/models/query-crite
 import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
 import type { CambiarEstadoTareaRequest } from '../models/CambiarEstadoTareaRequest';
+import type { AsesorProyecto } from '../models/AsesorProyecto';
+import type { AsesorProyectoResponse } from '../models/AsesorProyectoResponse';
 import type { CambiarFechaFinMapaRutaRequest } from '../models/CambiarFechaFinMapaRutaRequest';
+import type { ModificarInformacionTareaRequest } from '../models/ModificarInformacionTareaRequest';
 import type { MapaRuta } from '../models/MapaRuta';
 import type { MapaRutaResponse } from '../models/MapaRutaResponse';
 import type { EstadoTarea } from '../models/mapas-ruta';
@@ -35,6 +38,16 @@ function aTarea(dto: TareaResponse): Tarea {
     fechaFinMapaRuta: dto.fechaFinMapaRuta,
     estado: { id: dto.estadoItem, nombre: dto.nombreEstadoItem },
     asesor: { id: dto.asesor, nombre: dto.nombreAsesor, email: dto.emailAsesor },
+  };
+}
+
+function aAsesorProyecto(dto: AsesorProyectoResponse): AsesorProyecto {
+  return {
+    id: dto.asesorId,
+    nombre: dto.nombre,
+    email: dto.email,
+    estadoId: dto.estadoAsesor,
+    actual: dto.actual,
   };
 }
 
@@ -100,6 +113,18 @@ export const mapasRutaService = {
     return apiClient
       .patch(`/tareas/${tareaId}/estado-item`, { estadoItem: req.estadoItemId })
       .then(() => undefined);
+  },
+
+  modificarInformacionTarea(tareaId: string, req: ModificarInformacionTareaRequest): Promise<void> {
+    return apiClient
+      .patch(`/tareas/${tareaId}`, { descripcion: req.descripcion, asesor: req.asesorId })
+      .then(() => undefined);
+  },
+
+  consultarAsesoresProyecto(proyectoGradoId: string): Promise<AsesorProyecto[]> {
+    return apiClient
+      .get<AsesorProyectoResponse[]>(`/proyectos-grado/${proyectoGradoId}/asesores-asignados`)
+      .then((r) => r.data.map(aAsesorProyecto));
   },
 
   consultarEstadosTarea(): Promise<EstadoTarea[]> {
