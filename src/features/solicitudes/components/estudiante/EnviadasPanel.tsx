@@ -1,8 +1,5 @@
-import { useState } from 'react';
-import SelectorTipoSolicitud, {
-  TIPOS_SOLICITUD_ENVIADA,
-  type TipoSolicitudEnviadaUi,
-} from '../SelectorTipoSolicitud';
+import { TIPOS_SOLICITUD_ENVIADA, type TipoSolicitudEnviadaUi } from '../SelectorTipoSolicitud';
+import PanelPorTipoHabilitado from './PanelPorTipoHabilitado';
 import SolicitudesAmpliacionPlazoEnviadasPanel from './SolicitudesAmpliacionPlazoEnviadasPanel';
 import SolicitudesAsesorEnviadasPanel from './SolicitudesAsesorEnviadasPanel';
 import SolicitudesCambioAsesorEnviadasPanel from './SolicitudesCambioAsesorEnviadasPanel';
@@ -15,18 +12,14 @@ const PANEL_POR_TIPO: Record<TipoSolicitudEnviadaUi, React.ComponentType> = {
   'ampliacion-plazo': SolicitudesAmpliacionPlazoEnviadasPanel,
 };
 
-const RAIZ = 'flex flex-col gap-4';
-
 export default function EnviadasPanel() {
-  const [tipo, setTipo] = useState<TipoSolicitudEnviadaUi>('coordinador');
-
-  const PanelElegido = PANEL_POR_TIPO[tipo];
-
   return (
-    <div className={RAIZ}>
-      <SelectorTipoSolicitud valor={tipo} onCambiar={setTipo} opciones={TIPOS_SOLICITUD_ENVIADA} />
-
-      <PanelElegido />
-    </div>
+    <PanelPorTipoHabilitado
+      opciones={TIPOS_SOLICITUD_ENVIADA}
+      renderizar={(tipo) => {
+        const PanelElegido = PANEL_POR_TIPO[tipo];
+        return <PanelElegido />;
+      }}
+    />
   );
 }

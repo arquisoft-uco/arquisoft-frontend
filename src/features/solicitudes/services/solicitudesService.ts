@@ -20,6 +20,7 @@ import type { ResponderSolicitudRegistroModificacionUsuariosRequest } from '../m
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import type { Solicitud } from '../models/Solicitud';
 import type { SolicitudCreadaResponse } from '../models/SolicitudCreadaResponse';
+import type { TipoSolicitud } from '../models/TipoSolicitud';
 
 export const solicitudesService = {
   enviarSolicitudNovedadCoordinador: (
@@ -243,6 +244,9 @@ export const solicitudesService = {
 
   getEstadosRespuesta: (): Promise<EstadoRespuesta[]> =>
     apiClient.get<EstadoRespuesta[]>('/solicitudes/estados-respuesta').then((r) => r.data),
+
+  getTiposSolicitud: (): Promise<TipoSolicitud[]> =>
+    apiClient.get<TipoSolicitud[]>('/solicitudes/tipos-solicitud').then((r) => r.data),
 
   eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),

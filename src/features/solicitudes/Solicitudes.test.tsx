@@ -48,10 +48,21 @@ import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespu
 import { useModificarEstadoRespuestaNovedadAsesor } from './hooks/useModificarEstadoRespuestaNovedadAsesor';
 import { useModificarEstadoRespuestaNovedadCoordinador } from './hooks/useModificarEstadoRespuestaNovedadCoordinador';
 import { useEstadosRespuesta } from './hooks/useEstadosRespuesta';
+import { useTiposSolicitud } from './hooks/useTiposSolicitud';
+import type { TipoSolicitud } from './models/TipoSolicitud';
 
 vi.mock('./hooks/useEstadosRespuesta', () => ({
   useEstadosRespuesta: vi.fn(),
 }));
+
+vi.mock('./hooks/useTiposSolicitud', () => ({ useTiposSolicitud: vi.fn() }));
+
+const TIPOS: TipoSolicitud[] = [
+  { id: 'AMPLIACION_DE_PLAZO', nombre: 'Ampliación de Plazo', descripcion: 'd' },
+  { id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_ASESOR', nombre: 'Novedad para el Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_COORDINADOR', nombre: 'Novedad para el Coordinador', descripcion: 'd' },
+];
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -398,6 +409,10 @@ describe('Solicitudes', () => {
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudRegistroModificacionUsuarios).mockReturnValue(crearMutacionMock());
+    vi.mocked(useTiposSolicitud).mockReturnValue({
+      data: TIPOS,
+      isError: false,
+    } as ReturnType<typeof useTiposSolicitud>);
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,
