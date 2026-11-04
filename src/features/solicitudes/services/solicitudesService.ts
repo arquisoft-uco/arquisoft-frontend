@@ -315,6 +315,11 @@ export const solicitudesService = {
   eliminarRespuestaNovedadAsesor: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-asesor/${solicitudId}/respuesta`).then(() => undefined),
 
+  eliminarRespuestaRegistroModificacionUsuarios: (solicitudId: string): Promise<void> =>
+    apiClient
+      .delete(`/solicitudes/registro-modificacion-usuarios/${solicitudId}/respuesta`)
+      .then(() => undefined),
+
   modificarEstadoRespuestaNovedadCoordinador: (
     req: ModificarEstadoRespuestaNovedadCoordinadorRequest,
   ): Promise<void> =>
