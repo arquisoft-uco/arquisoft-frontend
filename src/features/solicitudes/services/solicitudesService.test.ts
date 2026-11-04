@@ -613,6 +613,23 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('eliminarRespuestaRegistroModificacionUsuarios', () => {
+    it('llama DELETE /solicitudes/registro-modificacion-usuarios/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado =
+        await solicitudesService.eliminarRespuestaRegistroModificacionUsuarios('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/s-1/respuesta',
+      );
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('responderSolicitudNovedadCoordinador', () => {
     it('llama POST /solicitudes/novedad-coordinador/{solicitudId}/respuesta con solo { contenido } y resuelve { id }', async () => {
       // Arrange

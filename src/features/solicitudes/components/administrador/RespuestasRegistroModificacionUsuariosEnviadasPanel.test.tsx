@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen, within } from '../../../../test-utils/render';
-import type { Page } from '../../../../shared/models/api-response';
+import { toast } from '../../../../shared/hooks/useToast';
+import { useEliminarRespuestaRegistroModificacionUsuarios } from '../../hooks/useEliminarRespuestaRegistroModificacionUsuarios';
+import type { ApiError, Page } from '../../../../shared/models/api-response';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
 import { useModificarEstadoRespuestaRegistroModificacionUsuarios } from '../../hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios';
 import { useRespuestasRegistroModificacionUsuariosEnviadas } from '../../hooks/useRespuestasRegistroModificacionUsuariosEnviadas';
@@ -21,7 +24,63 @@ vi.mock('../../hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios', (
   useModificarEstadoRespuestaRegistroModificacionUsuarios: vi.fn(),
 }));
 
+vi.mock('../../hooks/useEliminarRespuestaRegistroModificacionUsuarios', () => ({
+  useEliminarRespuestaRegistroModificacionUsuarios: vi.fn(),
+}));
+
+vi.mock('../../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
+}));
+
 type HookModificar = ReturnType<typeof useModificarEstadoRespuestaRegistroModificacionUsuarios>;
+type HookEliminar = ReturnType<typeof useEliminarRespuestaRegistroModificacionUsuarios>;
+
+type OpcionesMutate = {
+  onSuccess?: () => void;
+  onError?: (err: unknown) => void;
+};
+
+function crearErrorApi(cuerpo: ApiError) {
+  return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+    data: cuerpo,
+    status: cuerpo.status,
+    statusText: 'Unprocessable Entity',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
+}
+
+function mockearEliminar(mutate = vi.fn()) {
+  vi.mocked(useEliminarRespuestaRegistroModificacionUsuarios).mockReturnValue({
+    data: undefined,
+    error: null,
+    variables: undefined,
+    context: undefined,
+    failureCount: 0,
+    failureReason: null,
+    isPaused: false,
+    submittedAt: 0,
+    status: 'idle',
+    isError: false,
+    isIdle: true,
+    isPending: false,
+    isSuccess: false,
+    mutate,
+    mutateAsync: vi.fn(),
+    reset: vi.fn(),
+  } as HookEliminar);
+  return mutate;
+}
+
+async function abrirDialogoEliminar(user: ReturnType<typeof userEvent.setup>) {
+  const tabla = screen.getByRole('table', {
+    name: 'Respuestas de registro y modificación de usuarios enviadas',
+  });
+  await user.click(
+    within(tabla).getByRole('button', { name: 'Acciones de la respuesta a Luis Gómez' }),
+  );
+  await user.click(screen.getByRole('menuitem', { name: 'Eliminar respuesta' }));
+}
 
 const RESPUESTA_EN_REVISION: RespuestaSolicitud = {
   ...RESPUESTA_REGISTRO_MODIFICACION_USUARIOS,
@@ -99,6 +158,7 @@ describe('RespuestasRegistroModificacionUsuariosEnviadasPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockearModificar();
+    mockearEliminar();
   });
 
   it('muestra el esqueleto de carga y no la tabla', () => {
@@ -182,7 +242,7 @@ describe('RespuestasRegistroModificacionUsuariosEnviadasPanel', () => {
     expect(within(tabla).getByText('Aprobada')).toBeInTheDocument();
     expect(within(tabla).queryByRole('button', { name: /acciones/i })).not.toBeInTheDocument();
   });
-  it('ofrece el menú solo en la fila En revisión con aprobar y no aprobar', async () => {
+  it('ofrece el menú solo en la fila En revisión con aprobar, no aprobar y eliminar', async () => {
     // Arrange
     const user = userEvent.setup();
     mockearHook({
@@ -203,6 +263,7 @@ describe('RespuestasRegistroModificacionUsuariosEnviadasPanel', () => {
     expect(botones).toHaveLength(1);
     expect(screen.getByRole('menuitem', { name: 'Aprobar respuesta' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Marcar como no aprobada' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Eliminar respuesta' })).toBeInTheDocument();
   });
 
   it('elegir aprobar abre el diálogo del coordinador y confirmar envía el estado', async () => {
@@ -236,5 +297,127 @@ describe('RespuestasRegistroModificacionUsuariosEnviadasPanel', () => {
       { solicitudId: 's-5', nuevoEstado: 'APROBADA' },
       expect.any(Object),
     );
+  });
+
+  it('al elegir eliminar abre el diálogo y cancelar lo cierra sin eliminar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearEliminar();
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasRegistroModificacionUsuariosEnviadasPanel filtros={crearFiltros()} />);
+
+    // Act
+    await abrirDialogoEliminar(user);
+
+    // Assert
+    const dialogo = screen.getByRole('alertdialog');
+    expect(dialogo).toHaveTextContent('¿Eliminar respuesta?');
+    expect(dialogo).toHaveTextContent('Vas a eliminar tu respuesta a Luis Gómez.');
+    expect(dialogo).toHaveTextContent('podrás responderla de nuevo');
+    expect(dialogo).toHaveTextContent('No se puede deshacer.');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('al confirmar elimina por el id de la solicitud, lanza el toast y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockearEliminar(
+      vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()),
+    );
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    const goToPage = vi.fn();
+    render(
+      <RespuestasRegistroModificacionUsuariosEnviadasPanel filtros={crearFiltros({ goToPage })} />,
+    );
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith('s-5', expect.any(Object));
+    expect(toast.success).toHaveBeenCalledWith('Respuesta eliminada', expect.any(String));
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(goToPage).not.toHaveBeenCalled();
+  });
+
+  it('en error lanza toast.error con el mensaje del backend y cierra el diálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar(
+      vi.fn((_id: string, opciones?: OpcionesMutate) =>
+        opciones?.onError?.(
+          crearErrorApi({
+            error: 'Unprocessable Entity',
+            errorCode: 'RESPUESTA_NO_EN_REVISION',
+            message: 'La respuesta ya fue evaluada y no puede eliminarse.',
+            status: 422,
+          }),
+        ),
+      ),
+    );
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    render(<RespuestasRegistroModificacionUsuariosEnviadasPanel filtros={crearFiltros()} />);
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith(
+      'No se pudo eliminar la respuesta',
+      'La respuesta ya fue evaluada y no puede eliminarse.',
+    );
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('retrocede una página solo si se elimina la única fila de una página posterior', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar(vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()));
+    mockearHook({ data: crearPagina([RESPUESTA_EN_REVISION]) });
+    const goToPage = vi.fn();
+    render(
+      <RespuestasRegistroModificacionUsuariosEnviadasPanel
+        filtros={crearFiltros({ page: 2, goToPage })}
+      />,
+    );
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('no retrocede si la página aún tiene más filas', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockearEliminar(vi.fn((_id: string, opciones?: OpcionesMutate) => opciones?.onSuccess?.()));
+    mockearHook({
+      data: crearPagina([RESPUESTA_EN_REVISION, RESPUESTA_REGISTRO_MODIFICACION_USUARIOS]),
+    });
+    const goToPage = vi.fn();
+    render(
+      <RespuestasRegistroModificacionUsuariosEnviadasPanel
+        filtros={crearFiltros({ page: 2, goToPage })}
+      />,
+    );
+    await abrirDialogoEliminar(user);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }));
+
+    // Assert
+    expect(goToPage).not.toHaveBeenCalled();
   });
 });
