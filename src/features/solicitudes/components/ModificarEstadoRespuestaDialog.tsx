@@ -2,7 +2,7 @@ import ConfirmDialog from '../../../shared/components/ConfirmDialog';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
-import { TEXTOS_DECISION } from '../utils/decisiones-respuesta';
+import { TEXTOS_DECISION, type TextosDecision } from '../utils/decisiones-respuesta';
 
 interface MutacionModificarEstado {
   mutate: (
@@ -15,6 +15,7 @@ interface MutacionModificarEstado {
 interface Props {
   respuesta: RespuestaSolicitud;
   nuevoEstado: string;
+  textos?: Record<string, TextosDecision>;
   mutacion: MutacionModificarEstado;
   onCerrar: () => void;
 }
@@ -22,11 +23,12 @@ interface Props {
 export default function ModificarEstadoRespuestaDialog({
   respuesta,
   nuevoEstado,
+  textos: textosDecision = TEXTOS_DECISION,
   mutacion,
   onCerrar,
 }: Props) {
   const { mutate, isPending } = mutacion;
-  const textos = TEXTOS_DECISION[nuevoEstado];
+  const textos = textosDecision[nuevoEstado];
 
   function handleConfirmar() {
     mutate(
