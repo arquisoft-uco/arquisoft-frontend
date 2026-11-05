@@ -3,7 +3,7 @@ import { useLocation } from 'react-router';
 import { University, ChevronsLeft } from 'lucide-react';
 import { agruparNavItems, navItemsDelRol } from './nav-items';
 import SidebarGrupo from './SidebarGrupo';
-import { useRolActivo } from '../hooks/useAuth';
+import { useCapacidades, useRolActivo } from '../hooks/useAuth';
 
 interface Props {
   onClose: () => void;
@@ -11,6 +11,7 @@ interface Props {
 
 export default function Sidebar({ onClose }: Props) {
   const rolActivo = useRolActivo();
+  const capacidades = useCapacidades();
   const { pathname } = useLocation();
 
   // Cierra el cajón al navegar en celular.
@@ -19,7 +20,9 @@ export default function Sidebar({ onClose }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  const { trabajo, proximamente } = agruparNavItems(navItemsDelRol(rolActivo));
+  const { trabajo, proximamente } = agruparNavItems(
+    navItemsDelRol(rolActivo, undefined, capacidades),
+  );
 
   return (
     <div className="flex h-full flex-col">

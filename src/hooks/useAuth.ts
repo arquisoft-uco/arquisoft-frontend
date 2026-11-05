@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 import { useAuthStore, parseRoles } from '../auth/authStore';
+import { useProveedorStore } from '../auth/proveedorStore';
+import type { Capacidad, DefinicionProveedor } from '../auth/proveedores/proveedor';
+import { definicionDe, proveedoresDisponibles } from '../auth/proveedores/proveedores';
 import { useRoleStore } from '../auth/roleStore';
+import { AUTH_BYPASS } from '../config/env';
 import { Rol } from '../shared/models/rol';
 
 const ROL_VALUES = new Set<string>(Object.values(Rol));
@@ -27,7 +31,29 @@ export function useRolActivo(): Rol | null {
   }, [rolSeleccionado, rolesDisponibles]);
 }
 
-// Verdadero mientras Keycloak no termina su init.
+export type DescriptorProveedor = Pick<DefinicionProveedor, 'id' | 'titulo' | 'descripcion'>;
+
+export function useProveedoresDisponibles(): DescriptorProveedor[] {
+  return useMemo(
+    () =>
+      proveedoresDisponibles().map(({ id, titulo, descripcion }) => ({ id, titulo, descripcion })),
+    [],
+  );
+}
+
+const SIN_CAPACIDADES: readonly Capacidad[] = [];
+
+// Capacidades del proveedor recordado; con el bypass de desarrollo no hay proveedor y no hay capacidades.
+export function useCapacidades(): readonly Capacidad[] {
+  const proveedor = useProveedorStore((s) => s.proveedor);
+  return useMemo(() => {
+    if (AUTH_BYPASS || !proveedor) return SIN_CAPACIDADES;
+    const definicion = definicionDe(proveedor);
+    return definicion?.disponible ? definicion.capacidades : SIN_CAPACIDADES;
+  }, [proveedor]);
+}
+
+// Verdadero mientras el proveedor de identidad no restaura la sesión.
 export function useIsInitializing(): boolean {
   return useAuthStore((s) => s.isInitializing);
 }
