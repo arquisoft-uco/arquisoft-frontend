@@ -4,6 +4,7 @@ import { keycloak, scheduleRefresh, logout } from '../../keycloak';
 import type { ProveedorIdentidad, SesionRestaurada } from '../proveedor';
 
 const ID_KEYCLOAK = 'keycloak';
+const PROVEEDOR_API = 'legado';
 const LOGOUT_TIMEOUT_MS = 5000;
 
 export function crearKeycloakProveedor(): ProveedorIdentidad {
@@ -66,7 +67,7 @@ export function crearKeycloakProveedor(): ProveedorIdentidad {
     },
 
     credencialesHttp() {
-      return { bearer: keycloak.token };
+      return { proveedorApi: PROVEEDOR_API, bearer: keycloak.token };
     },
 
     async renovarSesion() {

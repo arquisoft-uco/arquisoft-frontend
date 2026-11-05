@@ -36,7 +36,10 @@ const adapterExitoso = () =>
     config,
   }));
 
-function proveedorDoble(credenciales: CredencialesHttp = { bearer: 'tk' }, renovada = true) {
+function proveedorDoble(
+  credenciales: CredencialesHttp = { proveedorApi: 'doble-api', bearer: 'tk' },
+  renovada = true,
+) {
   return {
     id: 'doble',
     restaurarSesion: vi.fn(),
@@ -62,7 +65,7 @@ afterEach(() => {
 describe('axiosInstance: credenciales del proveedor activo', () => {
   it('con bearer adjunta Authorization y no activa cookies', async () => {
     // Arrange
-    fijarProveedorActivo(proveedorDoble({ bearer: 'abc' }));
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
     const adapter = adapterExitoso();
     apiClient.defaults.adapter = adapter;
 
@@ -79,6 +82,7 @@ describe('axiosInstance: credenciales del proveedor activo', () => {
     // Arrange
     fijarProveedorActivo(
       proveedorDoble({
+        proveedorApi: 'sesion-pdp',
         conCookies: true,
         nombreCookieCsrf: 'XSRF-TOKEN',
         nombreCabeceraCsrf: 'X-XSRF-TOKEN',
@@ -159,7 +163,7 @@ describe('axiosInstance: _omitirManejoAuth', () => {
 describe('axiosInstance: renovación ante 401', () => {
   it('si el proveedor renueva, reintenta la petición una vez', async () => {
     // Arrange
-    const proveedor = proveedorDoble({ bearer: 'tk' }, true);
+    const proveedor = proveedorDoble({ proveedorApi: 'legado', bearer: 'tk' }, true);
     fijarProveedorActivo(proveedor);
     const adapter = adapterConStatus(401);
     apiClient.defaults.adapter = adapter;
@@ -174,7 +178,7 @@ describe('axiosInstance: renovación ante 401', () => {
 
   it('si el proveedor no renueva, no reintenta la petición', async () => {
     // Arrange
-    const proveedor = proveedorDoble({ bearer: 'tk' }, false);
+    const proveedor = proveedorDoble({ proveedorApi: 'legado', bearer: 'tk' }, false);
     fijarProveedorActivo(proveedor);
     const adapter = adapterConStatus(401);
     apiClient.defaults.adapter = adapter;
@@ -264,5 +268,80 @@ describe('axiosInstance: _sinCredenciales', () => {
     expect(proveedor.renovarSesion).not.toHaveBeenCalled();
     expect(adapter401).toHaveBeenCalledTimes(1);
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe('axiosInstance: X-Proveedor-Identidad', () => {
+  it('envía la cabecera del proveedor activo en modo Bearer y cuando cambia de proveedor', async () => {
+    // Arrange
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
+    await apiClient.get('/algo');
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'sesion-pdp', conCookies: true }));
+    await apiClient.get('/algo');
+
+    // Assert
+    expect(adapter.mock.calls[0][0].headers.get('X-Proveedor-Identidad')).toBe('legado');
+    expect(adapter.mock.calls[1][0].headers.get('X-Proveedor-Identidad')).toBe('sesion-pdp');
+  });
+
+  it('el logout con _omitirManejoAuth también la lleva', async () => {
+    // Arrange
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await apiClient.post('/auth/logout', undefined, { _omitirManejoAuth: true });
+
+    // Assert
+    expect(adapter.mock.calls[0][0].headers.get('X-Proveedor-Identidad')).toBe('legado');
+  });
+
+  it('el reintento tras renovar la sesión conserva la cabecera', async () => {
+    // Arrange
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'tk' }, true));
+    const adapter = adapterConStatus(401);
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await expect(apiClient.get('/algo')).rejects.toThrow();
+
+    // Assert
+    expect(adapter).toHaveBeenCalledTimes(2);
+    expect(adapter.mock.calls[1][0].headers.get('X-Proveedor-Identidad')).toBe('legado');
+  });
+
+  it('sin cabecera con _omitirProveedorApi, _sinCredenciales o sin proveedor (bypass)', async () => {
+    // Arrange
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
+
+    // Act
+    await apiClient.get('/bff', { _omitirProveedorApi: true });
+    await apiClient.post('http://minio.test/b', undefined, { _sinCredenciales: true });
+    fijarProveedorActivo(null);
+    await apiClient.get('/algo');
+
+    // Assert
+    const cabeceras = adapter.mock.calls.map(([c]) => c.headers.get('X-Proveedor-Identidad'));
+    expect(cabeceras).toEqual([undefined, undefined, undefined]);
+    expect(adapter.mock.calls[0][0].headers.get('Authorization')).toBe('Bearer abc');
+  });
+
+  it('falla de forma explícita, sin enviar la petición, si el proveedor activo no la aporta', async () => {
+    // Arrange
+    const incompleto = { bearer: 'abc' } as CredencialesHttp;
+    fijarProveedorActivo(proveedorDoble(incompleto));
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act / Assert
+    await expect(apiClient.get('/algo')).rejects.toThrow(/proveedorApi/);
+    expect(adapter).not.toHaveBeenCalled();
   });
 });

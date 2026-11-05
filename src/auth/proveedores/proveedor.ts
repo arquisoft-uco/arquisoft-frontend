@@ -11,6 +11,7 @@ export interface SesionRestaurada {
 }
 
 export interface CredencialesHttp {
+  proveedorApi: string;
   bearer?: string;
   conCookies?: boolean;
   nombreCookieCsrf?: string;

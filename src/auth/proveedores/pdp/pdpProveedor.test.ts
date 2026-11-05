@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { errorApi } from '../../../test-utils/errores-api';
 import { describirContratoProveedor } from '../../../test-utils/contrato-proveedor';
+import { Rol } from '../../../shared/models/rol';
 import { crearPdpProveedor } from './pdpProveedor';
 
 const mocks = vi.hoisted(() => ({ get: vi.fn() }));
@@ -33,6 +34,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describirContratoProveedor('pdp', {
@@ -47,7 +49,7 @@ describirContratoProveedor('pdp', {
 });
 
 describe('pdpProveedor', () => {
-  it('mapea la sesión con nombre vacío, sin roles y sin token, y consulta con cookies', async () => {
+  it('mapea la sesión con nombre vacío, todos los roles del mock en desarrollo y sin token, y consulta con cookies', async () => {
     // Arrange
     mocks.get.mockResolvedValue(sesionPdp(''));
 
@@ -61,14 +63,31 @@ describe('pdpProveedor', () => {
         preferred_username: 'ana@uco.test',
         email: 'ana@uco.test',
         name: '',
-        realm_access: { roles: [] },
+        realm_access: { roles: Object.values(Rol) },
       },
       username: 'ana@uco.test',
     });
     expect(mocks.get).toHaveBeenCalledWith(
       '/api/v1/session',
-      expect.objectContaining({ baseURL: 'http://pdp.test', withCredentials: true }),
+      expect.objectContaining({
+        baseURL: 'http://pdp.test',
+        withCredentials: true,
+        _omitirProveedorApi: true,
+      }),
     );
+  });
+
+  it('en producción el usuario queda sin roles', async () => {
+    // Arrange
+    vi.stubEnv('DEV', false);
+    vi.stubEnv('PROD', true);
+    mocks.get.mockResolvedValue(sesionPdp('Ana'));
+
+    // Act
+    const sesion = await crearPdpProveedor().restaurarSesion(vi.fn());
+
+    // Assert
+    expect(sesion?.tokenParsed.realm_access).toEqual({ roles: [] });
   });
 
   it('con 401 navega al login del PDP con la URL original codificada en return_to', async () => {
@@ -84,12 +103,13 @@ describe('pdpProveedor', () => {
     );
   });
 
-  it('credencialesHttp pide cookies con los nombres CSRF y sin Bearer', () => {
+  it('credencialesHttp pide cookies con los nombres CSRF, sin Bearer y con el canal de sesión', () => {
     // Act
     const credenciales = crearPdpProveedor().credencialesHttp();
 
     // Assert
     expect(credenciales).toEqual({
+      proveedorApi: 'sesion-pdp',
       conCookies: true,
       nombreCookieCsrf: 'XSRF-TOKEN',
       nombreCabeceraCsrf: 'X-XSRF-TOKEN',

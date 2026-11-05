@@ -87,8 +87,8 @@ describe('keycloakProveedor', () => {
     const despues = proveedor.credencialesHttp();
 
     // Assert
-    expect(antes).toEqual({ bearer: 'primero' });
-    expect(despues).toEqual({ bearer: 'segundo' });
+    expect(antes).toEqual({ proveedorApi: 'legado', bearer: 'primero' });
+    expect(despues).toEqual({ proveedorApi: 'legado', bearer: 'segundo' });
   });
 
   it('si renovar falla cierra sesión en Keycloak una sola vez y responde false', async () => {

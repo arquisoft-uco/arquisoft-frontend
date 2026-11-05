@@ -83,9 +83,22 @@ registrada en el PDP; sin eso la API responde 401 o 403 con sesión PDP. El PDP,
 compartir dominio registrable. Si la API responde 401 por caducidad de la sesión, el cliente consulta la
 sesión del PDP y reintenta la petición una sola vez.
 
+Mientras el backend no exponga «mi perfil», en `npm run dev` el usuario PDP recibe todos los roles del enum
+`Rol` (`rolesMockPdp` en `pdpProveedor.ts`), solo para que la UI muestre cada vista; no autoriza nada: el PEP del backend decide y
+puede responder 403 (el cliente lleva a `/forbidden`). En producción el usuario PDP queda sin roles. Se retira
+al existir «mi perfil», borrando esa función y su llamada.
+
+Toda petición a la API lleva la cabecera `X-Proveedor-Identidad`, con el valor fijo que declara cada proveedor
+en su `credencialesHttp().proveedorApi` (obligatorio en el contrato): Keycloak envía `legado` y el PDP
+`sesion-pdp` (el id del canal de sesión del backend, `SESSION_PROVIDER_ID`). El interceptor de `axiosInstance`
+la fija siempre, también en el logout y en los reintentos tras un 401, y falla con un error explícito si el proveedor
+activo no la aporta. Solo se omite en las peticiones `_sinCredenciales` (MinIO) y `_omitirProveedorApi` (el
+`/api/v1/session` del PDP); el bypass de desarrollo no tiene proveedor y no la envía. El despliegue de la API no debe
+omitir `X-Proveedor-Identidad` en `CORS_ALLOWED_HEADERS`: si lo hace, el navegador bloquea todas las peticiones.
+
 Para añadir un tercer proveedor: implementa el contrato en `src/auth/proveedores/{nombre}/`, agrega una
 entrada en `REGISTRO` de `src/auth/proveedores/proveedores.ts`, define sus variables en `src/config/env.ts` y
-`.env.example`, y ejecuta la suite del contrato (`src/test-utils/contrato-proveedor.ts`). Ningún consumidor cambia.
+`.env.example`, declara su `proveedorApi` y ejecuta la suite del contrato (`src/test-utils/contrato-proveedor.ts`). Ningún consumidor cambia.
 
 Archivos de entorno:
 

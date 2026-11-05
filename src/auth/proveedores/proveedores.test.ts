@@ -57,4 +57,27 @@ describe('registro de proveedores', () => {
     // Act / Assert
     expect(() => registro.crearProveedor('inexistente')).toThrow(/desconocido/);
   });
+
+  it('todo proveedor del registro declara su proveedorApi no vacío en credencialesHttp', async () => {
+    // Arrange
+    vi.resetModules();
+    vi.doUnmock('./keycloak/keycloakProveedor');
+    vi.doUnmock('./pdp/pdpProveedor');
+    vi.doMock('../../config/env', () => ({ PDP_CONFIG: { url: 'http://pdp.test' } }));
+    vi.doMock('../keycloak', () => ({ keycloak: {}, scheduleRefresh: vi.fn(), logout: vi.fn() }));
+    vi.doMock('../../api/axiosInstance', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
+    vi.doMock('../../shared/utils/monitoring', () => ({ monitoring: { captureError: vi.fn() } }));
+    const registro = await import('./proveedores');
+
+    // Act
+    const declarados = registro.proveedoresDisponibles().map((d) => ({
+      id: d.id,
+      proveedorApi: d.crear().credencialesHttp().proveedorApi,
+    }));
+
+    // Assert
+    expect(declarados.map((d) => d.id)).toEqual(['keycloak', 'pdp']);
+    declarados.forEach((d) => expect(d.proveedorApi).toEqual(expect.any(String)));
+    declarados.forEach((d) => expect(d.proveedorApi).not.toBe(''));
+  });
 });

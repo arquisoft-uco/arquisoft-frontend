@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../auth/authStore';
+import type { CredencialesHttp } from '../auth/proveedores/proveedor';
 import { proveedorActivo } from '../auth/proveedores/proveedorActivo';
 import { API_URL } from '../config/env';
 import { monitoring } from '../shared/utils/monitoring';
@@ -10,8 +11,12 @@ declare module 'axios' {
     _omitirManejoAuth?: boolean;
     // Peticiones a un host externo ya firmado (MinIO): sin Bearer ni manejo de 401/403
     _sinCredenciales?: boolean;
+    // Peticiones a un host propio del proveedor (el BFF del PDP) que no declara X-Proveedor-Identidad en su CORS
+    _omitirProveedorApi?: boolean;
   }
 }
+
+const CABECERA_PROVEEDOR_API = 'X-Proveedor-Identidad';
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -24,9 +29,17 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   if (config._sinCredenciales) return config;
   const proveedor = proveedorActivo();
-  const credenciales = proveedor
+  const credenciales: Partial<CredencialesHttp> = proveedor
     ? proveedor.credencialesHttp()
     : { bearer: useAuthStore.getState().token };
+  if (proveedor && !config._omitirProveedorApi) {
+    if (!credenciales.proveedorApi) {
+      throw new Error(
+        `[auth] El proveedor de identidad "${proveedor.id}" no declara proveedorApi: la API exige X-Proveedor-Identidad.`,
+      );
+    }
+    config.headers[CABECERA_PROVEEDOR_API] = credenciales.proveedorApi;
+  }
   if (credenciales.bearer) {
     config.headers['Authorization'] = `Bearer ${credenciales.bearer}`;
   }

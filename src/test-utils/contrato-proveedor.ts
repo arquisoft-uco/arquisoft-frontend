@@ -69,6 +69,8 @@ export function describirContratoProveedor(nombre: string, escenarios: Escenario
 
       // Assert
       expect(credenciales).toEqual(expect.any(Object));
+      expect(credenciales.proveedorApi).toEqual(expect.any(String));
+      expect(credenciales.proveedorApi).not.toBe('');
       expect(typeof renovada).toBe('boolean');
     });
 
