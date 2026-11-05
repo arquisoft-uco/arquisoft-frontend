@@ -59,3 +59,22 @@ export function mensajeErrorCambioEstadoTarea(err: unknown): string {
   }
   return getApiErrorMessage(err, 'Inténtalo nuevamente.');
 }
+
+export function mensajeErrorModificarTarea(err: unknown): string {
+  if (hasApiErrorCode(err, 'TAREA_NO_ENCONTRADA')) {
+    return 'La tarea ya no está disponible. Vuelve a tus tareas e inténtalo de nuevo.';
+  }
+  if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) {
+    return 'Ya hay una tarea con esa descripción en tu mapa de ruta.';
+  }
+  if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) {
+    return 'Ese asesor no está asignado a tu proyecto de grado. Elige otro e inténtalo de nuevo.';
+  }
+  return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
+}
+
+export function campoDeErrorModificarTarea(err: unknown): 'descripcion' | 'asesor' | null {
+  if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) return 'descripcion';
+  if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) return 'asesor';
+  return null;
+}

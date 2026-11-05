@@ -9,6 +9,9 @@ vi.mock('../hooks/useTarea', () => ({ useTarea: vi.fn() }));
 vi.mock('./estudiante/CambiarEstadoTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de cambio de estado" />,
 }));
+vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de edición de la tarea" />,
+}));
 
 const useDetalle = vi.mocked(useTarea);
 
@@ -159,5 +162,38 @@ describe('DetalleTareaEstudianteView', () => {
     simular({ tarea: undefined, hayError: true });
     renderizar();
     expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+  });
+
+  it('Editar tarea abre el panel, también con una tarea finalizada', async () => {
+    // Arrange
+    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Editar tarea' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Panel de edición de la tarea' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+  });
+
+  it('no ofrece Editar tarea cargando, con error ni sin encontrar', () => {
+    // Arrange / Act / Assert
+    simular({ tarea: undefined, cargando: true });
+    const cargando = renderizar();
+    expect(screen.queryByRole('button', { name: 'Editar tarea' })).not.toBeInTheDocument();
+    cargando.unmount();
+
+    simular({ tarea: undefined, hayError: true });
+    const conError = renderizar();
+    expect(screen.queryByRole('button', { name: 'Editar tarea' })).not.toBeInTheDocument();
+    conError.unmount();
+
+    simular({ tarea: undefined, noEncontrada: true });
+    renderizar();
+    expect(screen.queryByRole('button', { name: 'Editar tarea' })).not.toBeInTheDocument();
   });
 });

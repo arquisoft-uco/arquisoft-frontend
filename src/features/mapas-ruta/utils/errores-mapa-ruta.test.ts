@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
 import {
   campoDeErrorMapaRuta,
+  campoDeErrorModificarTarea,
   mensajeErrorCambioEstadoTarea,
   mensajeErrorCambioFechaFin,
   mensajeErrorMapaRuta,
+  mensajeErrorModificarTarea,
 } from './errores-mapa-ruta';
 import { MENSAJES_VALIDACION } from '../../../shared/validation';
 
@@ -80,5 +82,27 @@ describe('errores-mapa-ruta', () => {
     expect(mensajeErrorCambioFechaFin(new Error('red'))).toBe(
       'Verifica la fecha e inténtalo nuevamente.',
     );
+  });
+
+  it.each([
+    ['TAREA_NO_ENCONTRADA', 'La tarea ya no está disponible', null],
+    ['TAREA_DUPLICADA', 'Ya hay una tarea con esa descripción', 'descripcion'],
+    ['ASESOR_NO_ASIGNADO_PROYECTO_GRADO', 'no está asignado a tu proyecto', 'asesor'],
+  ])('modificar tarea: %s se traduce a texto propio y a su campo', (codigo, texto, campo) => {
+    // Arrange
+    const err = errorApi(codigo);
+
+    // Act / Assert
+    expect(mensajeErrorModificarTarea(err)).toContain(texto);
+    expect(campoDeErrorModificarTarea(err)).toBe(campo);
+  });
+
+  it('modificar tarea: código desconocido usa el message y sin payload el respaldo', () => {
+    // Act / Assert
+    expect(mensajeErrorModificarTarea(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorModificarTarea(new Error('red'))).toBe(
+      'Verifica los datos e inténtalo nuevamente.',
+    );
+    expect(campoDeErrorModificarTarea(errorApi('OTRO'))).toBeNull();
   });
 });
