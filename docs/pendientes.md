@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-11-02.
+Última revisión: 2026-11-03.
 
 ## Bloqueados por el backend
 
@@ -36,6 +36,7 @@ Client roles a confirmar en el realm desplegado:
 - `fichas:estado-ficha:view` para los roles que consultan el catálogo de estados.
 - `fichas:estado-observacion-revision-estudiante:view` para el estudiante (catálogo de estados de observación, HU-020), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `artefactos:estado-revision-asesor:view` para el asesor (catálogo de estados de revisión, HU-113, y chips de estado de sus versiones, HU-112-AJ3), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `evaluaciones:evaluacion-asesor:view` y `evaluaciones:estado-evaluacion:view` para el asesor (listado y catálogo de estados de HU-120), verificados en el realm del repo y sin verificar en el desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `artefactos:estado-revision-asesor:view` para el estudiante (chips de estado en sus versiones de artefactos, HU-112-AJ3/HU-044): concedido en Keycloak y validado con 200, pero ausente del `realm-arquisoft.json` versionado del backend. Un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `artefactos:observacion-revision:view` para el asesor (observaciones de una revisión, HU-136), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `artefactos:version-artefacto-asesor:view` para el asesor (versiones de artefactos asignados, HU-112), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
