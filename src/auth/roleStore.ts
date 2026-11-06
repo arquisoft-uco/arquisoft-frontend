@@ -1,37 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Rol } from '../shared/models/rol';
+import { safeStorage } from './safeStorage';
 
 const STORAGE_KEY = 'arquisoft_rol_activo';
-
-/**
- * Safe localStorage adapter — matches the try/catch pattern from Angular's
- * RolActivoService._persistirRol(). Handles Safari private-browsing and
- * storage-full errors without throwing.
- */
-const safeStorage = {
-  getItem: (key: string): string | null => {
-    try {
-      return localStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  },
-  setItem: (key: string, value: string): void => {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      // Ignore storage errors silently
-    }
-  },
-  removeItem: (key: string): void => {
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      // Ignore storage errors silently
-    }
-  },
-};
 
 interface RoleState {
   /** The role explicitly chosen by the user (may be null if not chosen yet). */

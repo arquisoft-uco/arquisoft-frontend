@@ -3,7 +3,8 @@
 # ==============================================================================
 # Construye imagen Docker multi-arquitectura (amd64 + arm64) y la publica en
 # GitHub Container Registry (GHCR). Se dispara solo cuando "CI Frontend"
-# termina en éxito sobre develop. El deploy a Oracle Cloud vive en un workflow
+# termina en éxito sobre develop, o a mano con "Run workflow" (reconstruye
+# la rama o commit indicado, por defecto develop, p. ej. tras cambiar VITE_ENV_FILE). El deploy a Oracle Cloud vive en un workflow
 # separado (deploy.yml) que se encadena vía workflow_run sobre este.
 # Runner: GitHub-hosted (ubuntu-latest) — gratis
 # ==============================================================================
@@ -15,6 +16,12 @@ on:
     workflows: ['CI Frontend']
     branches: [develop]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Rama o commit a construir y desplegar'
+        required: false
+        default: 'develop'
 
 env:
   REGISTRY: ghcr.io
@@ -25,7 +32,7 @@ jobs:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
@@ -36,12 +43,12 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || inputs.ref }}
 
       # ── SHA corto (tag inmutable) ──
       - name: Calcular short SHA
         id: vars
-        run: echo "short_sha=$(echo ${{ github.event.workflow_run.head_sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+        run: echo "short_sha=$(git rev-parse HEAD | cut -c1-7)" >> "$GITHUB_OUTPUT"
 
       # ── Variables VITE_* de build (un solo secreto con formato .env) ──
       - name: Escribir .env.production.local desde el secreto

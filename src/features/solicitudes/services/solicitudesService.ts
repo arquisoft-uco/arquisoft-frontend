@@ -11,6 +11,7 @@ import type { ModificarEstadoRespuestaAmpliacionPlazoRequest } from '../models/M
 import type { ModificarEstadoRespuestaCambioAsesorRequest } from '../models/ModificarEstadoRespuestaCambioAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadAsesorRequest } from '../models/ModificarEstadoRespuestaNovedadAsesorRequest';
 import type { ModificarEstadoRespuestaNovedadCoordinadorRequest } from '../models/ModificarEstadoRespuestaNovedadCoordinadorRequest';
+import type { ModificarEstadoRespuestaRegistroModificacionUsuariosRequest } from '../models/ModificarEstadoRespuestaRegistroModificacionUsuariosRequest';
 import type { ResponderSolicitudAmpliacionPlazoRequest } from '../models/ResponderSolicitudAmpliacionPlazoRequest';
 import type { ResponderSolicitudCambioAsesorRequest } from '../models/ResponderSolicitudCambioAsesorRequest';
 import type { ResponderSolicitudNovedadAsesorRequest } from '../models/ResponderSolicitudNovedadAsesorRequest';
@@ -19,6 +20,7 @@ import type { ResponderSolicitudRegistroModificacionUsuariosRequest } from '../m
 import type { RespuestaSolicitud } from '../models/RespuestaSolicitud';
 import type { Solicitud } from '../models/Solicitud';
 import type { SolicitudCreadaResponse } from '../models/SolicitudCreadaResponse';
+import type { TipoSolicitud } from '../models/TipoSolicitud';
 
 export const solicitudesService = {
   enviarSolicitudNovedadCoordinador: (
@@ -208,6 +210,15 @@ export const solicitudesService = {
       >('/solicitudes/registro-modificacion-usuarios/respuestas/enviadas', criterio)
       .then((r) => r.data),
 
+  consultarRespuestasRegistroModificacionUsuariosRecibidas: (
+    criterio: ConsultaCriteriaRequest,
+  ): Promise<Page<RespuestaSolicitud>> =>
+    apiClient
+      .post<
+        Page<RespuestaSolicitud>
+      >('/solicitudes/registro-modificacion-usuarios/respuestas/recibidas', criterio)
+      .then((r) => r.data),
+
   consultarRespuestasAmpliacionPlazoRecibidas: (
     criterio: ConsultaCriteriaRequest,
   ): Promise<Page<RespuestaSolicitud>> =>
@@ -233,6 +244,12 @@ export const solicitudesService = {
 
   getEstadosRespuesta: (): Promise<EstadoRespuesta[]> =>
     apiClient.get<EstadoRespuesta[]>('/solicitudes/estados-respuesta').then((r) => r.data),
+
+  getTiposSolicitud: (): Promise<TipoSolicitud[]> =>
+    apiClient.get<TipoSolicitud[]>('/solicitudes/tipos-solicitud').then((r) => r.data),
+
+  getTiposSolicitudRecibidas: (): Promise<TipoSolicitud[]> =>
+    apiClient.get<TipoSolicitud[]>('/solicitudes/tipos-solicitud/recibidas').then((r) => r.data),
 
   eliminarSolicitudNovedadCoordinador: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-coordinador/${solicitudId}`).then(() => undefined),
@@ -314,6 +331,11 @@ export const solicitudesService = {
   eliminarRespuestaNovedadAsesor: (solicitudId: string): Promise<void> =>
     apiClient.delete(`/solicitudes/novedad-asesor/${solicitudId}/respuesta`).then(() => undefined),
 
+  eliminarRespuestaRegistroModificacionUsuarios: (solicitudId: string): Promise<void> =>
+    apiClient
+      .delete(`/solicitudes/registro-modificacion-usuarios/${solicitudId}/respuesta`)
+      .then(() => undefined),
+
   modificarEstadoRespuestaNovedadCoordinador: (
     req: ModificarEstadoRespuestaNovedadCoordinadorRequest,
   ): Promise<void> =>
@@ -344,6 +366,14 @@ export const solicitudesService = {
   ): Promise<void> =>
     apiClient
       .patch(`/solicitudes/ampliacion-plazo/${req.solicitudId}/respuesta/estado`, {
+        nuevoEstado: req.nuevoEstado,
+      })
+      .then(() => undefined),
+  modificarEstadoRespuestaRegistroModificacionUsuarios: (
+    req: ModificarEstadoRespuestaRegistroModificacionUsuariosRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/solicitudes/registro-modificacion-usuarios/${req.solicitudId}/respuesta/estado`, {
         nuevoEstado: req.nuevoEstado,
       })
       .then(() => undefined),

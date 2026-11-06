@@ -287,4 +287,57 @@ describe('mapasRutaService', () => {
       expect(resultado).toBeUndefined();
     });
   });
+
+  describe('modificarInformacionTarea', () => {
+    it('traduce asesorId a asesor en PATCH /tareas/{id} y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.modificarInformacionTarea('t-1', {
+        descripcion: 'Nueva descripción',
+        asesorId: 'a-2',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/tareas/t-1', {
+        descripcion: 'Nueva descripción',
+        asesor: 'a-2',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('consultarAsesoresProyecto', () => {
+    it('hace GET de los asesores asignados y traduce asesorId a id y estadoAsesor a estadoId', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            asesorId: 'a-1',
+            nombre: 'Ana Ruiz',
+            email: 'ana@uco.edu.co',
+            estadoAsesor: 'ASIGNADO',
+            actual: true,
+          },
+        ],
+      });
+
+      // Act
+      const resultado = await mapasRutaService.consultarAsesoresProyecto('p-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/proyectos-grado/p-1/asesores-asignados');
+      expect(resultado).toEqual([
+        {
+          id: 'a-1',
+          nombre: 'Ana Ruiz',
+          email: 'ana@uco.edu.co',
+          estadoId: 'ASIGNADO',
+          actual: true,
+        },
+      ]);
+    });
+  });
 });

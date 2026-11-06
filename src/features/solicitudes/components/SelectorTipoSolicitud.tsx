@@ -17,7 +17,7 @@ export type TipoSolicitudListadoRecibidoUi =
   | TipoSolicitudRecibidaUi
   | TipoSolicitudRecibidaAdministradorUi;
 
-interface OpcionTipo<T extends string> {
+export interface OpcionTipo<T extends string> {
   value: T;
   label: string;
   icono: LucideIcon;
@@ -51,6 +51,19 @@ export const TIPOS_RESPUESTA_ENVIADA_COORDINADOR: OpcionTipo<TipoRespuestaEnviad
 
 export const TIPOS_SOLICITUD_RECIBIDA: OpcionTipo<TipoSolicitudRecibidaUi>[] =
   TIPOS_RESPUESTA_ENVIADA_COORDINADOR;
+
+export const ID_TIPO_BACKEND: Record<TipoSolicitudNuevaUi, string> = {
+  coordinador: 'NOVEDAD_PARA_EL_COORDINADOR',
+  asesor: 'NOVEDAD_PARA_EL_ASESOR',
+  'cambio-asesor': 'CAMBIO_DE_ASESOR',
+  'ampliacion-plazo': 'AMPLIACION_DE_PLAZO',
+};
+
+export const ID_TIPO_RECIBIDO_BACKEND: Record<TipoSolicitudRecibidaUi, string> = {
+  novedad: 'NOVEDAD_PARA_EL_COORDINADOR',
+  'cambio-asesor': 'CAMBIO_DE_ASESOR',
+  'ampliacion-plazo': 'AMPLIACION_DE_PLAZO',
+};
 
 const ICONO_DEL_TIPO =
   'pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-secondary';

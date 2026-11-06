@@ -1,10 +1,12 @@
-import { useState } from 'react';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
+import { useTiposSolicitud } from '../../hooks/useTiposSolicitud';
+import PanelPorTipoHabilitado from '../PanelPorTipoHabilitado';
 import RespuestasAmpliacionPlazoRecibidasPanel from './RespuestasAmpliacionPlazoRecibidasPanel';
 import RespuestasAsesorRecibidasPanel from './RespuestasAsesorRecibidasPanel';
 import RespuestasCambioAsesorRecibidasPanel from './RespuestasCambioAsesorRecibidasPanel';
 import RespuestasRecibidasPanel from './RespuestasRecibidasPanel';
-import SelectorTipoSolicitud, {
+import {
+  ID_TIPO_BACKEND,
   TIPOS_RESPUESTA_RECIBIDA_ESTUDIANTE,
   type TipoRespuestaRecibidaEstudianteUi,
 } from '../SelectorTipoSolicitud';
@@ -19,26 +21,22 @@ const PANEL_POR_TIPO: Record<
   'ampliacion-plazo': RespuestasAmpliacionPlazoRecibidasPanel,
 };
 
-const RAIZ = 'flex flex-col gap-4';
-
 interface Props {
   filtros: Record<TipoRespuestaRecibidaEstudianteUi, FiltrosRespuestas>;
 }
 
 export default function RecibidasPanel({ filtros }: Props) {
-  const [tipo, setTipo] = useState<TipoRespuestaRecibidaEstudianteUi>('coordinador');
-
-  const PanelElegido = PANEL_POR_TIPO[tipo];
+  const consulta = useTiposSolicitud();
 
   return (
-    <div className={RAIZ}>
-      <SelectorTipoSolicitud
-        valor={tipo}
-        onCambiar={setTipo}
-        opciones={TIPOS_RESPUESTA_RECIBIDA_ESTUDIANTE}
-      />
-
-      <PanelElegido filtros={filtros[tipo]} />
-    </div>
+    <PanelPorTipoHabilitado
+      opciones={TIPOS_RESPUESTA_RECIBIDA_ESTUDIANTE}
+      idBackend={ID_TIPO_BACKEND}
+      consulta={consulta}
+      renderizar={(tipo) => {
+        const PanelElegido = PANEL_POR_TIPO[tipo];
+        return <PanelElegido filtros={filtros[tipo]} />;
+      }}
+    />
   );
 }
