@@ -61,6 +61,26 @@ jobs:
             echo "image_tag=sha-$(cat short_sha.txt)" >> "$GITHUB_OUTPUT"
           fi
 
+      # ── Orígenes de la CSP de nginx: se derivan del mismo secreto VITE_ENV_FILE
+      #     que usa el build (esquema://host[:puerto] de cada URL), así no hay
+      #     que mantenerlos por separado ──
+      - name: Derivar orígenes desde VITE_ENV_FILE
+        id: origenes
+        env:
+          ENV_FILE: ${{ secrets.VITE_ENV_FILE }}
+        run: |
+          origen() {
+            printf '%s\n' "$ENV_FILE" | tr -d '\r' \
+              | sed -n "s/^$1=//p" | tail -n1 | sed -E "s/^[\"']//; s/[\"']$//" \
+              | sed -nE 's#^(https?://[^/?\#]+).*#\1#p'
+          }
+          {
+            echo "api=$(origen VITE_API_URL)"
+            echo "keycloak=$(origen VITE_KEYCLOAK_URL)"
+            echo "pdp=$(origen VITE_PDP_URL)"
+            echo "security_ui=$(origen VITE_SECURITY_UI_URL)"
+          } >> "$GITHUB_OUTPUT"
+
       # ── Deploy remoto ──
       - name: Reemplazar contenedor vía SSH
         uses: appleboy/ssh-action@v1
@@ -69,7 +89,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GHCR_ACTOR,GHCR_TOKEN,IMAGE_REPO,IMAGE_TAG,BASE_DOMAIN
+          envs: GHCR_ACTOR,GHCR_TOKEN,IMAGE_REPO,IMAGE_TAG,BASE_DOMAIN,API_ORIGIN,KEYCLOAK_ORIGIN,PDP_ORIGIN,SECURITY_UI_ORIGIN
           script_stop: true
           script: |
             set -e
@@ -100,6 +120,10 @@ jobs:
             docker run -d \
               --name "$CONTAINER" \
               --restart unless-stopped \
+              -e API_ORIGIN="$API_ORIGIN" \
+              -e KEYCLOAK_ORIGIN="$KEYCLOAK_ORIGIN" \
+              -e PDP_ORIGIN="$PDP_ORIGIN" \
+              -e SECURITY_UI_ORIGIN="$SECURITY_UI_ORIGIN" \
               --network arquisoft-network \
               --label traefik.enable=true \
               --label traefik.docker.network=arquisoft-network \
@@ -138,3 +162,7 @@ jobs:
           IMAGE_REPO: ${{ github.repository }}
           IMAGE_TAG: ${{ steps.vars.outputs.image_tag }}
           BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
+          API_ORIGIN: ${{ steps.origenes.outputs.api }}
+          KEYCLOAK_ORIGIN: ${{ steps.origenes.outputs.keycloak }}
+          PDP_ORIGIN: ${{ steps.origenes.outputs.pdp }}
+          SECURITY_UI_ORIGIN: ${{ steps.origenes.outputs.security_ui }}
