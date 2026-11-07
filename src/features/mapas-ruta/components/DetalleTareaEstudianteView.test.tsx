@@ -13,6 +13,19 @@ vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de edición de la tarea" />,
 }));
 
+vi.mock('./estudiante/EliminarTareaDialog', () => ({
+  default: ({ onCerrar, onEliminada }: { onCerrar: () => void; onEliminada: () => void }) => (
+    <div role="dialog" aria-label="Diálogo de eliminación">
+      <button type="button" onClick={onCerrar}>
+        Cerrar diálogo
+      </button>
+      <button type="button" onClick={onEliminada}>
+        Simular eliminada
+      </button>
+    </div>
+  ),
+}));
+
 const useDetalle = vi.mocked(useTarea);
 
 const TAREA = {
@@ -178,6 +191,74 @@ describe('DetalleTareaEstudianteView', () => {
       screen.getByRole('dialog', { name: 'Panel de edición de la tarea' }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+  });
+
+  it.each(['NUEVA', 'EN_PROGRESO'])(
+    'Eliminar tarea abre el diálogo con una tarea %s',
+    async (id) => {
+      // Arrange
+      simular({ tarea: { ...TAREA, estado: { id, nombre: id } } });
+      const user = userEvent.setup();
+      renderizar();
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Eliminar tarea' }));
+
+      // Assert
+      expect(screen.getByRole('dialog', { name: 'Diálogo de eliminación' })).toBeInTheDocument();
+    },
+  );
+
+  it('no ofrece Eliminar tarea finalizada, cargando, con error ni sin encontrar', () => {
+    // Arrange / Act / Assert
+    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+    const finalizada = renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+    finalizada.unmount();
+
+    simular({ tarea: undefined, cargando: true });
+    const cargando = renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+    cargando.unmount();
+
+    simular({ tarea: undefined, hayError: true });
+    const conError = renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+    conError.unmount();
+
+    simular({ tarea: undefined, noEncontrada: true });
+    renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+  });
+
+  it('cerrar el diálogo lo quita y deja el detalle', async () => {
+    // Arrange
+    simular();
+    const user = userEvent.setup();
+    renderizar();
+    await user.click(screen.getByRole('button', { name: 'Eliminar tarea' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar diálogo' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Entregar informe' })).toBeInTheDocument();
+  });
+
+  it('al eliminar vuelve al listado conservando el search recibido en el state', async () => {
+    // Arrange
+    simular();
+    const user = userEvent.setup();
+    renderizar('/mapas-ruta');
+    await user.click(screen.getByRole('link', { name: 'Abrir detalle' }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar tarea' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Simular eliminada' }));
+
+    // Assert
+    expect(screen.getByText('Listado?pagina=2')).toBeInTheDocument();
   });
 
   it('no ofrece Editar tarea cargando, con error ni sin encontrar', () => {
