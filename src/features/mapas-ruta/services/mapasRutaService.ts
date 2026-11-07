@@ -121,6 +121,10 @@ export const mapasRutaService = {
       .then(() => undefined);
   },
 
+  eliminarTarea(tareaId: string): Promise<void> {
+    return apiClient.delete(`/tareas/${tareaId}`).then(() => undefined);
+  },
+
   consultarAsesoresProyecto(proyectoGradoId: string): Promise<AsesorProyecto[]> {
     return apiClient
       .get<AsesorProyectoResponse[]>(`/proyectos-grado/${proyectoGradoId}/asesores-asignados`)

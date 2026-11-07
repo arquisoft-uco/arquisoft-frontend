@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Pencil, SearchX } from 'lucide-react';
+import { ArrowRightLeft, Pencil, SearchX, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import Button from '../../../shared/components/ui/Button';
@@ -8,8 +8,9 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import { useContextoDetalleTarea } from '../hooks/useContextoDetalleTarea';
 import { useTarea } from '../hooks/useTarea';
-import { destinosDeEstado } from '../utils/estados-tarea';
+import { destinosDeEstado, esTareaRemovible } from '../utils/estados-tarea';
 import CambiarEstadoTareaPanel from './estudiante/CambiarEstadoTareaPanel';
+import EliminarTareaDialog from './estudiante/EliminarTareaDialog';
 import ModificarInformacionTareaPanel from './estudiante/ModificarInformacionTareaPanel';
 import TareaDetalleCard from './estudiante/TareaDetalleCard';
 
@@ -18,7 +19,9 @@ export default function DetalleTareaEstudianteView() {
   const navigate = useNavigate();
   const { tarea, cargando, noEncontrada, hayError, reintentar } = useTarea(tareaId);
   const { search } = useContextoDetalleTarea();
-  const [panelAbierto, setPanelAbierto] = useState<'estado' | 'informacion' | null>(null);
+  const [panelAbierto, setPanelAbierto] = useState<'estado' | 'informacion' | 'eliminar' | null>(
+    null,
+  );
 
   if (!tareaId) return <Navigate to="/mapas-ruta" replace />;
 
@@ -68,6 +71,15 @@ export default function DetalleTareaEstudianteView() {
               >
                 Editar tarea
               </Button>
+              {esTareaRemovible(tarea.estado.id) && (
+                <Button
+                  variante="peligroContorno"
+                  icono={Trash2}
+                  onClick={() => setPanelAbierto('eliminar')}
+                >
+                  Eliminar tarea
+                </Button>
+              )}
             </>
           ) : undefined
         }
@@ -78,6 +90,13 @@ export default function DetalleTareaEstudianteView() {
       )}
       {panelAbierto === 'informacion' && tarea && (
         <ModificarInformacionTareaPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />
+      )}
+      {panelAbierto === 'eliminar' && tarea && (
+        <EliminarTareaDialog
+          tarea={tarea}
+          onCerrar={() => setPanelAbierto(null)}
+          onEliminada={() => navigate(rutaListado, { replace: true })}
+        />
       )}
     </div>
   );
