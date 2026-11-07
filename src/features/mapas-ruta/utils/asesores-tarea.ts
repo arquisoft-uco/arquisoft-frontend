@@ -4,11 +4,11 @@ import type { Tarea } from '../models/Tarea';
 export const ESTADO_ASESOR_ASIGNADO = 'ASIGNADO';
 
 export function opcionesAsesorTarea(
-  asesorActual: Tarea['asesor'],
   asesores: AsesorProyecto[],
+  asesorActual?: Tarea['asesor'],
 ): AsesorProyecto[] {
   const asignados = asesores.filter((a) => a.estadoId === ESTADO_ASESOR_ASIGNADO && a.actual);
-  if (asignados.some((a) => a.id === asesorActual.id)) return asignados;
+  if (!asesorActual || asignados.some((a) => a.id === asesorActual.id)) return asignados;
   return [
     ...asignados,
     {

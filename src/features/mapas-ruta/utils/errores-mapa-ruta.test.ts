@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
 import {
+  campoDeErrorAsignarTarea,
   campoDeErrorMapaRuta,
   campoDeErrorModificarTarea,
+  mensajeErrorAsignarTarea,
   mensajeErrorCambioEstadoTarea,
   mensajeErrorCambioFechaFin,
   mensajeErrorEliminarTarea,
@@ -117,5 +119,28 @@ describe('errores-mapa-ruta', () => {
     );
     expect(mensajeErrorEliminarTarea(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
     expect(mensajeErrorEliminarTarea(new Error('red'))).toBe('Inténtalo nuevamente.');
+  });
+
+  it.each([
+    ['MAPA_RUTA_NO_ENCONTRADO', 'Tu mapa de ruta ya no está disponible', null],
+    ['PROYECTO_GRADO_NO_EN_PROCESO', 'ya no está en proceso y no admite nuevas tareas', null],
+    ['TAREA_DUPLICADA', 'Ya hay una tarea con esa descripción', 'descripcion'],
+    ['ASESOR_NO_ASIGNADO_PROYECTO_GRADO', 'no está asignado a tu proyecto', 'asesor'],
+  ])('asignar tarea: %s se traduce a texto propio y a su campo', (codigo, texto, campo) => {
+    // Arrange
+    const err = errorApi(codigo);
+
+    // Act / Assert
+    expect(mensajeErrorAsignarTarea(err)).toContain(texto);
+    expect(campoDeErrorAsignarTarea(err)).toBe(campo);
+  });
+
+  it('asignar tarea: código desconocido usa el message y sin payload el respaldo', () => {
+    // Act / Assert
+    expect(mensajeErrorAsignarTarea(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorAsignarTarea(new Error('red'))).toBe(
+      'Verifica los datos e inténtalo nuevamente.',
+    );
+    expect(campoDeErrorAsignarTarea(errorApi('OTRO'))).toBeNull();
   });
 });

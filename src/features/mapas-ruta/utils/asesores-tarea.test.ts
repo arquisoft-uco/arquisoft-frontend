@@ -25,7 +25,7 @@ describe('opcionesAsesorTarea', () => {
     ];
 
     // Act
-    const opciones = opcionesAsesorTarea(ACTUAL, asesores);
+    const opciones = opcionesAsesorTarea(asesores, ACTUAL);
 
     // Assert
     expect(opciones.map((o) => o.id)).toEqual(['a-2', 'a-1']);
@@ -37,9 +37,24 @@ describe('opcionesAsesorTarea', () => {
     const asesores = [asesor({ id: 'a-1' }), asesor({ id: 'a-2' })];
 
     // Act
-    const opciones = opcionesAsesorTarea(ACTUAL, asesores);
+    const opciones = opcionesAsesorTarea(asesores, ACTUAL);
 
     // Assert
     expect(opciones.map((o) => o.id)).toEqual(['a-1', 'a-2']);
+  });
+
+  it('sin asesor actual devuelve solo los asignados vigentes', () => {
+    // Arrange
+    const asesores = [
+      asesor({ id: 'a-2' }),
+      asesor({ id: 'a-3', estadoId: 'FINALIZADO' }),
+      asesor({ id: 'a-4', actual: false }),
+    ];
+
+    // Act
+    const opciones = opcionesAsesorTarea(asesores);
+
+    // Assert
+    expect(opciones.map((o) => o.id)).toEqual(['a-2']);
   });
 });

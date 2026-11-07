@@ -1,6 +1,10 @@
 import { getApiErrorMessage, hasApiErrorCode } from '../../../shared/utils/api-error';
 import { MENSAJES_VALIDACION } from '../../../shared/validation';
 
+const TEXTO_TAREA_DUPLICADA = 'Ya hay una tarea con esa descripción en tu mapa de ruta.';
+const TEXTO_ASESOR_NO_ASIGNADO =
+  'Ese asesor no está asignado a tu proyecto de grado. Elige otro e inténtalo de nuevo.';
+
 // Los textos propios existen porque el message del backend trae UUID, estado o fechas crudos.
 export function mensajeErrorMapaRuta(err: unknown): string {
   if (hasApiErrorCode(err, 'PROYECTO_GRADO_NO_ENCONTRADO')) {
@@ -65,10 +69,10 @@ export function mensajeErrorModificarTarea(err: unknown): string {
     return 'La tarea ya no está disponible. Vuelve a tus tareas e inténtalo de nuevo.';
   }
   if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) {
-    return 'Ya hay una tarea con esa descripción en tu mapa de ruta.';
+    return TEXTO_TAREA_DUPLICADA;
   }
   if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) {
-    return 'Ese asesor no está asignado a tu proyecto de grado. Elige otro e inténtalo de nuevo.';
+    return TEXTO_ASESOR_NO_ASIGNADO;
   }
   return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
 }
@@ -84,6 +88,24 @@ export function mensajeErrorEliminarTarea(err: unknown): string {
 }
 
 export function campoDeErrorModificarTarea(err: unknown): 'descripcion' | 'asesor' | null {
+  if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) return 'descripcion';
+  if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) return 'asesor';
+  return null;
+}
+
+export function mensajeErrorAsignarTarea(err: unknown): string {
+  if (hasApiErrorCode(err, 'MAPA_RUTA_NO_ENCONTRADO')) {
+    return 'Tu mapa de ruta ya no está disponible. Actualiza la página e inténtalo de nuevo.';
+  }
+  if (hasApiErrorCode(err, 'PROYECTO_GRADO_NO_EN_PROCESO')) {
+    return 'Tu proyecto de grado ya no está en proceso y no admite nuevas tareas.';
+  }
+  if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) return TEXTO_TAREA_DUPLICADA;
+  if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) return TEXTO_ASESOR_NO_ASIGNADO;
+  return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
+}
+
+export function campoDeErrorAsignarTarea(err: unknown): 'descripcion' | 'asesor' | null {
   if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) return 'descripcion';
   if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) return 'asesor';
   return null;

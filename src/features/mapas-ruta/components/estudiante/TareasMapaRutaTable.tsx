@@ -1,4 +1,4 @@
-import { ListChecks, SearchX } from 'lucide-react';
+import { ListChecks, Plus, SearchX } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -28,6 +28,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoTarea, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onNuevaTarea?: () => void;
 }
 
 function InsigniaEstado({ tarea }: { tarea: Tarea }) {
@@ -70,6 +71,7 @@ export default function TareasMapaRutaTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onNuevaTarea,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -90,7 +92,14 @@ export default function TareasMapaRutaTable({
     <EmptyState
       icono={ListChecks}
       titulo="Aún no hay tareas"
-      descripcion="Cuando se asignen tareas a tu mapa de ruta, aparecerán aquí."
+      descripcion="Crea la primera tarea de tu mapa de ruta y elige quién te asesora."
+      accion={
+        onNuevaTarea && (
+          <Button icono={Plus} onClick={onNuevaTarea}>
+            Nueva tarea
+          </Button>
+        )
+      }
     />
   );
 

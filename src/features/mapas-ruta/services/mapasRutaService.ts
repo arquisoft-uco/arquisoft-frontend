@@ -3,6 +3,8 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
+import type { AsignarTareaRequest } from '../models/AsignarTareaRequest';
+import type { AsignarTareaResponse } from '../models/AsignarTareaResponse';
 import type { CambiarEstadoTareaRequest } from '../models/CambiarEstadoTareaRequest';
 import type { AsesorProyecto } from '../models/AsesorProyecto';
 import type { AsesorProyectoResponse } from '../models/AsesorProyectoResponse';
@@ -113,6 +115,15 @@ export const mapasRutaService = {
     return apiClient
       .patch(`/tareas/${tareaId}/estado-item`, { estadoItem: req.estadoItemId })
       .then(() => undefined);
+  },
+
+  asignarTarea(mapaRutaId: string, req: AsignarTareaRequest): Promise<AsignarTareaResponse> {
+    return apiClient
+      .post<AsignarTareaResponse>(`/mapas-ruta/${mapaRutaId}/tareas`, {
+        descripcion: req.descripcion,
+        asesor: req.asesorId,
+      })
+      .then((r) => r.data);
   },
 
   modificarInformacionTarea(tareaId: string, req: ModificarInformacionTareaRequest): Promise<void> {
