@@ -5,6 +5,7 @@ import {
   campoDeErrorModificarTarea,
   mensajeErrorCambioEstadoTarea,
   mensajeErrorCambioFechaFin,
+  mensajeErrorEliminarTarea,
   mensajeErrorMapaRuta,
   mensajeErrorModificarTarea,
 } from './errores-mapa-ruta';
@@ -104,5 +105,17 @@ describe('errores-mapa-ruta', () => {
       'Verifica los datos e inténtalo nuevamente.',
     );
     expect(campoDeErrorModificarTarea(errorApi('OTRO'))).toBeNull();
+  });
+
+  it('eliminar tarea: traduce los códigos conocidos, y si no, usa el message o el respaldo', () => {
+    // Act / Assert
+    expect(mensajeErrorEliminarTarea(errorApi('TAREA_NO_REMOVIBLE'))).toContain(
+      'ya no se puede eliminar en su estado actual',
+    );
+    expect(mensajeErrorEliminarTarea(errorApi('TAREA_NO_ENCONTRADA'))).toContain(
+      'La tarea ya no está disponible',
+    );
+    expect(mensajeErrorEliminarTarea(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorEliminarTarea(new Error('red'))).toBe('Inténtalo nuevamente.');
   });
 });

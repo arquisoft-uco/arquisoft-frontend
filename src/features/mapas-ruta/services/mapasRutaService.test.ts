@@ -3,12 +3,13 @@ import apiClient from '../../../api/axiosInstance';
 import { mapasRutaService } from './mapasRutaService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
 const patch = vi.mocked(apiClient.patch);
+const eliminar = vi.mocked(apiClient.delete);
 
 describe('mapasRutaService', () => {
   beforeEach(() => {
@@ -304,6 +305,20 @@ describe('mapasRutaService', () => {
         descripcion: 'Nueva descripción',
         asesor: 'a-2',
       });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarTarea', () => {
+    it('hace DELETE /tareas/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.eliminarTarea('t-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/tareas/t-1');
       expect(resultado).toBeUndefined();
     });
   });
