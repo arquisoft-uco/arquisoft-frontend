@@ -1,34 +1,21 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useAsesoresProyecto } from './useAsesoresProyecto';
 import { useMapaRutaEstudiante } from './useMapaRutaEstudiante';
 import { useModificarInformacionTarea } from './useModificarInformacionTarea';
 import type { Tarea } from '../models/Tarea';
 import { opcionesAsesorTarea } from '../utils/asesores-tarea';
 import { campoDeErrorModificarTarea, mensajeErrorModificarTarea } from '../utils/errores-mapa-ruta';
+import {
+  CAMPOS_INFORMACION_TAREA,
+  ETIQUETAS_INFORMACION_TAREA,
+  comoCampoInformacionTarea,
+  informacionTareaSchema,
+  type InformacionTareaValues,
+} from '../utils/informacion-tarea';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiFieldErrors, hasApiErrorCode } from '../../../shared/utils/api-error';
-import { LIMITES, opcionRequerida, textoRequerido } from '../../../shared/validation';
-
-const schema = z.object({
-  descripcion: textoRequerido(LIMITES.TAREA_DESCRIPCION_MAX),
-  asesor: opcionRequerida(),
-});
-
-export type ModificarInformacionTareaValues = z.infer<typeof schema>;
-
-const ETIQUETAS: Record<keyof ModificarInformacionTareaValues, string> = {
-  descripcion: 'Descripción',
-  asesor: 'Asesor',
-};
-
-const CAMPOS = Object.keys(ETIQUETAS) as (keyof ModificarInformacionTareaValues)[];
-
-function comoCampo(campo: string): keyof ModificarInformacionTareaValues | undefined {
-  return CAMPOS.find((c) => c === campo);
-}
 
 interface Opciones {
   tarea: Tarea;
@@ -37,8 +24,8 @@ interface Opciones {
 
 export function useModificarInformacionTareaForm({ tarea, onCerrar }: Opciones) {
   const [resumenVisible, setResumenVisible] = useState(false);
-  const form = useForm<ModificarInformacionTareaValues>({
-    resolver: zodResolver(schema),
+  const form = useForm<InformacionTareaValues>({
+    resolver: zodResolver(informacionTareaSchema),
     defaultValues: { descripcion: tarea.descripcion, asesor: tarea.asesor.id },
     mode: 'onTouched',
   });
@@ -54,7 +41,7 @@ export function useModificarInformacionTareaForm({ tarea, onCerrar }: Opciones) 
   const asesores = useAsesoresProyecto(mapa?.proyectoGradoId);
   const { mutate, isPending, reset: reiniciarMutacion } = useModificarInformacionTarea();
 
-  const opcionesAsesor = opcionesAsesorTarea(tarea.asesor, asesores.data ?? []);
+  const opcionesAsesor = opcionesAsesorTarea(asesores.data ?? [], tarea.asesor);
   const cargandoAsesores = cargandoMapa || asesores.isLoading;
   const errorAsesores = errorMapa || sinMapa || asesores.isError;
 
@@ -70,9 +57,9 @@ export function useModificarInformacionTareaForm({ tarea, onCerrar }: Opciones) 
   }
 
   const errores = resumenVisible
-    ? CAMPOS.flatMap((campo) => {
+    ? CAMPOS_INFORMACION_TAREA.flatMap((campo) => {
         const mensaje = errors[campo]?.message;
-        return mensaje ? [{ campo, etiqueta: ETIQUETAS[campo], mensaje }] : [];
+        return mensaje ? [{ campo, etiqueta: ETIQUETAS_INFORMACION_TAREA[campo], mensaje }] : [];
       })
     : [];
 
@@ -89,7 +76,7 @@ export function useModificarInformacionTareaForm({ tarea, onCerrar }: Opciones) 
     }
     let hubo = false;
     for (const fe of getApiFieldErrors(err)) {
-      const campo = comoCampo(fe.field);
+      const campo = comoCampoInformacionTarea(fe.field);
       if (campo) {
         form.setError(campo, { message: fe.message });
         hubo = true;
@@ -102,7 +89,7 @@ export function useModificarInformacionTareaForm({ tarea, onCerrar }: Opciones) 
     setResumenVisible(true);
   }
 
-  function modificar(valores: ModificarInformacionTareaValues) {
+  function modificar(valores: InformacionTareaValues) {
     setResumenVisible(false);
     mutate(
       { tareaId: tarea.id, req: { descripcion: valores.descripcion, asesorId: valores.asesor } },

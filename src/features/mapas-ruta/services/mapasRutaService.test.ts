@@ -289,6 +289,26 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('asignarTarea', () => {
+    it('traduce asesorId a asesor en POST /mapas-ruta/{id}/tareas y devuelve el id', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 't-9' } });
+
+      // Act
+      const resultado = await mapasRutaService.asignarTarea('m-1', {
+        descripcion: 'Redactar capítulo',
+        asesorId: 'a-2',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/mapas-ruta/m-1/tareas', {
+        descripcion: 'Redactar capítulo',
+        asesor: 'a-2',
+      });
+      expect(resultado).toEqual({ id: 't-9' });
+    });
+  });
+
   describe('modificarInformacionTarea', () => {
     it('traduce asesorId a asesor en PATCH /tareas/{id} y resuelve undefined', async () => {
       // Arrange
