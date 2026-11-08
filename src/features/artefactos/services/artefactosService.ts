@@ -203,6 +203,9 @@ export const artefactosService = {
   cerrarRevision: (revisionAsesorId: string): Promise<void> =>
     apiClient.patch(`/artefactos/revisiones/${revisionAsesorId}/cierre`).then(() => undefined),
 
+  eliminarRevision: (revisionAsesorId: string): Promise<void> =>
+    apiClient.delete(`/artefactos/revisiones/${revisionAsesorId}`).then(() => undefined),
+
   registrarObservacion: (
     revisionAsesorId: string,
     req: RegistrarObservacionRequest,
