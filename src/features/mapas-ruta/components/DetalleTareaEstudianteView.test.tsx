@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { Link, Route, Routes, useLocation } from 'react-router';
 import { render, screen } from '../../../test-utils/render';
+import { usePlanEstimadoTarea } from '../hooks/usePlanEstimadoTarea';
 import { useTarea } from '../hooks/useTarea';
 import DetalleTareaEstudianteView from './DetalleTareaEstudianteView';
 
 vi.mock('../hooks/useTarea', () => ({ useTarea: vi.fn() }));
+vi.mock('../hooks/usePlanEstimadoTarea', () => ({ usePlanEstimadoTarea: vi.fn() }));
 vi.mock('./estudiante/CambiarEstadoTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de cambio de estado" />,
 }));
@@ -30,6 +32,15 @@ vi.mock('./estudiante/EliminarTareaDialog', () => ({
 }));
 
 const useDetalle = vi.mocked(useTarea);
+const usePlan = vi.mocked(usePlanEstimadoTarea);
+
+const CONSULTA_SIN_PLAN = {
+  plan: undefined,
+  cargando: false,
+  hayError: false,
+  reintentar: vi.fn(),
+  puedeAgregar: true,
+};
 
 const TAREA = {
   id: 't-1',
@@ -79,6 +90,7 @@ function renderizar(initialPath = '/mapas-ruta/tareas/t-1') {
 describe('DetalleTareaEstudianteView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    usePlan.mockReturnValue(CONSULTA_SIN_PLAN);
   });
 
   it('muestra descripción, estado, asesor con correo y las fechas del mapa de ruta', () => {
@@ -287,9 +299,30 @@ describe('DetalleTareaEstudianteView', () => {
     renderizar();
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Agregar plan estimado' }));
+    await user.click(screen.getAllByRole('button', { name: 'Agregar plan estimado' })[0]);
 
     // Assert
     expect(screen.getByRole('dialog', { name: 'Panel de plan estimado' })).toBeInTheDocument();
+    expect(usePlan).toHaveBeenCalledWith('t-1', true);
+  });
+
+  it('no ofrece Agregar plan estimado cuando la tarea ya tiene plan y muestra la sección', () => {
+    // Arrange
+    simular();
+    usePlan.mockReturnValue({
+      plan: { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 3, descripcionEstimado: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+      puedeAgregar: false,
+    });
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Agregar plan estimado' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Plan estimado' })).toBeInTheDocument();
+    expect(screen.getByText('3 días')).toBeInTheDocument();
   });
 });

@@ -14,6 +14,7 @@ const agregar = vi.mocked(mapasRutaService.agregarPlanEstimado);
 
 const VARIABLES = { tareaId: 't-1', req: { tiempoEstimadoDias: 5 } };
 const KEY = ['mapas-ruta', 'estudiante'];
+const KEY_PLAN = ['mapas-ruta', 'estudiante', 'tarea', 't-1', 'planes-estimados'];
 
 function errorApi(errorCode: string) {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
@@ -41,7 +42,7 @@ describe('useAgregarPlanEstimado', () => {
     vi.clearAllMocks();
   });
 
-  it('envía tarea y request y no invalida nada en éxito', async () => {
+  it('envía tarea y request e invalida el plan de la tarea en éxito', async () => {
     // Arrange
     agregar.mockResolvedValue({ id: 'p-1' });
     const { Wrapper, invalidar } = crearContexto();
@@ -53,7 +54,7 @@ describe('useAgregarPlanEstimado', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(agregar.mock.calls[0]).toEqual(['t-1', { tiempoEstimadoDias: 5 }]);
-    expect(invalidar).not.toHaveBeenCalled();
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY_PLAN });
   });
 
   it('invalida la key del mapa de ruta del estudiante ante TAREA_NO_ENCONTRADA', async () => {
@@ -70,20 +71,31 @@ describe('useAgregarPlanEstimado', () => {
     expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY });
   });
 
-  it.each(['PLAN_ESTIMADO_DUPLICADO', 'PLAN_ESTIMADO_TIEMPO_EXCEDE_PLAZO'])(
-    'no invalida nada ante %s',
-    async (codigo) => {
-      // Arrange
-      agregar.mockRejectedValue(errorApi(codigo));
-      const { Wrapper, invalidar } = crearContexto();
-      const { result } = renderHook(() => useAgregarPlanEstimado(), { wrapper: Wrapper });
+  it('invalida el plan de la tarea ante PLAN_ESTIMADO_DUPLICADO', async () => {
+    // Arrange
+    agregar.mockRejectedValue(errorApi('PLAN_ESTIMADO_DUPLICADO'));
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useAgregarPlanEstimado(), { wrapper: Wrapper });
 
-      // Act
-      act(() => result.current.mutate(VARIABLES));
+    // Act
+    act(() => result.current.mutate(VARIABLES));
 
-      // Assert
-      await waitFor(() => expect(result.current.isError).toBe(true));
-      expect(invalidar).not.toHaveBeenCalled();
-    },
-  );
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: KEY_PLAN });
+  });
+
+  it('no invalida nada ante PLAN_ESTIMADO_TIEMPO_EXCEDE_PLAZO', async () => {
+    // Arrange
+    agregar.mockRejectedValue(errorApi('PLAN_ESTIMADO_TIEMPO_EXCEDE_PLAZO'));
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useAgregarPlanEstimado(), { wrapper: Wrapper });
+
+    // Act
+    act(() => result.current.mutate(VARIABLES));
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).not.toHaveBeenCalled();
+  });
 });
