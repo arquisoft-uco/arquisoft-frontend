@@ -10,6 +10,7 @@ export const MENSAJES_VALIDACION = {
   listaMaxima: (max: number) => `Máximo ${max} elementos`,
   soloDigitos: 'Solo se permiten dígitos',
   formatoNombre: 'Solo letras y espacios',
+  valorMinimo: (min: number) => `Debe ser mayor o igual a ${min}`,
   valorEntre: (min: number, max: number) => `Debe estar entre ${min} y ${max}`,
   fechaInvalida: 'Ingresa una fecha válida',
   fechaFinPosterior: 'La fecha de fin debe ser posterior a la de inicio',

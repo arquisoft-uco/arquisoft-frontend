@@ -9,6 +9,9 @@ vi.mock('../hooks/useTarea', () => ({ useTarea: vi.fn() }));
 vi.mock('./estudiante/CambiarEstadoTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de cambio de estado" />,
 }));
+vi.mock('./estudiante/AgregarPlanEstimadoPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de plan estimado" />,
+}));
 vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de edición de la tarea" />,
 }));
@@ -276,5 +279,17 @@ describe('DetalleTareaEstudianteView', () => {
     simular({ tarea: undefined, noEncontrada: true });
     renderizar();
     expect(screen.queryByRole('button', { name: 'Editar tarea' })).not.toBeInTheDocument();
+  });
+  it('Agregar plan estimado abre el panel, también con una tarea finalizada', async () => {
+    // Arrange
+    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Agregar plan estimado' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de plan estimado' })).toBeInTheDocument();
   });
 });

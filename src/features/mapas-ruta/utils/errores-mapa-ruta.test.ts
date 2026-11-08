@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
 import {
+  campoDeErrorAgregarPlanEstimado,
   campoDeErrorAsignarTarea,
   campoDeErrorMapaRuta,
   campoDeErrorModificarTarea,
+  mensajeErrorAgregarPlanEstimado,
   mensajeErrorAsignarTarea,
   mensajeErrorCambioEstadoTarea,
   mensajeErrorCambioFechaFin,
@@ -142,5 +144,29 @@ describe('errores-mapa-ruta', () => {
       'Verifica los datos e inténtalo nuevamente.',
     );
     expect(campoDeErrorAsignarTarea(errorApi('OTRO'))).toBeNull();
+  });
+  it.each([
+    ['TAREA_NO_ENCONTRADA', 'La tarea ya no está disponible', null],
+    ['PLAN_ESTIMADO_DUPLICADO', 'Esta tarea ya tiene un plan estimado.', null],
+    ['PLAN_ESTIMADO_TIEMPO_EXCEDE_PLAZO', 'Excede 30 días', 'tiempoEstimadoDias'],
+  ])(
+    'agregar plan estimado: %s se traduce y solo el exceso apunta a un campo',
+    (codigo, texto, campo) => {
+      // Arrange
+      const err = errorApi(codigo, 'Excede 30 días');
+
+      // Act / Assert
+      expect(mensajeErrorAgregarPlanEstimado(err)).toContain(texto);
+      expect(campoDeErrorAgregarPlanEstimado(err)).toBe(campo);
+    },
+  );
+
+  it('agregar plan estimado: código desconocido usa el message y sin payload el respaldo', () => {
+    // Act / Assert
+    expect(mensajeErrorAgregarPlanEstimado(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorAgregarPlanEstimado(new Error('red'))).toBe(
+      'Verifica los datos e inténtalo nuevamente.',
+    );
+    expect(campoDeErrorAgregarPlanEstimado(errorApi('OTRO'))).toBeNull();
   });
 });
