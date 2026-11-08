@@ -14,6 +14,7 @@ import {
   textoNoVacio,
   soloDigitosEntre,
   enteroEntre,
+  textoOpcional,
   validarParDeNombres,
   fechaIso,
   validarFechaFinPosterior,
@@ -29,6 +30,8 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.ESTUDIANTES_MAX).toBe(3);
     expect(LIMITES.MENSAJE_SOLICITUD_MAX).toBe(100);
     expect(LIMITES.RESPUESTA_CONTENIDO_MAX).toBe(100);
+    expect(LIMITES.PLAN_ESTIMADO_TIEMPO_DIAS_MIN).toBe(1);
+    expect(LIMITES.PLAN_ESTIMADO_DESCRIPCION_MAX).toBe(200);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MIN).toBe(4);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MAX).toBe(30);
     expect(LIMITES.USUARIO_NOMBRE_MIN).toBe(2);
@@ -230,6 +233,41 @@ describe('enteroEntre', () => {
     expect(validador.safeParse(String(min)).success).toBe(true);
     expect(validador.safeParse(String(max)).success).toBe(true);
     expect(validador.safeParse(' 42 ').success).toBe(true);
+  });
+});
+
+describe('enteroEntre sin máximo', () => {
+  const min = LIMITES.PLAN_ESTIMADO_TIEMPO_DIAS_MIN;
+  const validador = enteroEntre(min);
+
+  function mensaje(valor: string) {
+    const resultado = validador.safeParse(valor);
+    return resultado.success ? null : resultado.error.issues[0].message;
+  }
+
+  it('responde requerido, solo dígitos y mínimo, y no impone tope superior', () => {
+    expect(mensaje('')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('abc')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje('0')).toBe(MENSAJES_VALIDACION.valorMinimo(min));
+    expect(validador.safeParse('5').success).toBe(true);
+    expect(validador.safeParse('100000').success).toBe(true);
+  });
+});
+
+describe('textoOpcional', () => {
+  const max = LIMITES.PLAN_ESTIMADO_DESCRIPCION_MAX;
+  const validador = textoOpcional(max);
+
+  it('acepta vacío, recorta espacios y rechaza lo que excede el máximo', () => {
+    expect(validador.safeParse('').success).toBe(true);
+    expect(validador.parse('  hola  ')).toBe('hola');
+    expect(validador.safeParse(`  ${'a'.repeat(max)}  `).success).toBe(true);
+
+    const resultado = validador.safeParse('a'.repeat(max + 1));
+    expect(resultado.success).toBe(false);
+    if (!resultado.success) {
+      expect(resultado.error.issues[0].message).toBe(MENSAJES_VALIDACION.longitudMaxima(max));
+    }
   });
 });
 

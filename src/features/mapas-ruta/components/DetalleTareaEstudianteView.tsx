@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Pencil, SearchX, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, CalendarClock, Pencil, SearchX, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import Button from '../../../shared/components/ui/Button';
@@ -9,6 +9,7 @@ import Skeleton from '../../../shared/components/ui/Skeleton';
 import { useContextoDetalleTarea } from '../hooks/useContextoDetalleTarea';
 import { useTarea } from '../hooks/useTarea';
 import { destinosDeEstado, esTareaRemovible } from '../utils/estados-tarea';
+import AgregarPlanEstimadoPanel from './estudiante/AgregarPlanEstimadoPanel';
 import CambiarEstadoTareaPanel from './estudiante/CambiarEstadoTareaPanel';
 import EliminarTareaDialog from './estudiante/EliminarTareaDialog';
 import ModificarInformacionTareaPanel from './estudiante/ModificarInformacionTareaPanel';
@@ -19,9 +20,9 @@ export default function DetalleTareaEstudianteView() {
   const navigate = useNavigate();
   const { tarea, cargando, noEncontrada, hayError, reintentar } = useTarea(tareaId);
   const { search } = useContextoDetalleTarea();
-  const [panelAbierto, setPanelAbierto] = useState<'estado' | 'informacion' | 'eliminar' | null>(
-    null,
-  );
+  const [panelAbierto, setPanelAbierto] = useState<
+    'estado' | 'plan' | 'informacion' | 'eliminar' | null
+  >(null);
 
   if (!tareaId) return <Navigate to="/mapas-ruta" replace />;
 
@@ -66,6 +67,13 @@ export default function DetalleTareaEstudianteView() {
               )}
               <Button
                 variante="secundario"
+                icono={CalendarClock}
+                onClick={() => setPanelAbierto('plan')}
+              >
+                Agregar plan estimado
+              </Button>
+              <Button
+                variante="secundario"
                 icono={Pencil}
                 onClick={() => setPanelAbierto('informacion')}
               >
@@ -87,6 +95,9 @@ export default function DetalleTareaEstudianteView() {
       {contenido()}
       {panelAbierto === 'estado' && tarea && (
         <CambiarEstadoTareaPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />
+      )}
+      {panelAbierto === 'plan' && tarea && (
+        <AgregarPlanEstimadoPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />
       )}
       {panelAbierto === 'informacion' && tarea && (
         <ModificarInformacionTareaPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />

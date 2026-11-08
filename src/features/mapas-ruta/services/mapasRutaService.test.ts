@@ -375,4 +375,23 @@ describe('mapasRutaService', () => {
       ]);
     });
   });
+  describe('agregarPlanEstimado', () => {
+    it('hace POST /tareas/{id}/planes-estimados con el tareaId solo en el path', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'p-1' } });
+
+      // Act
+      const resultado = await mapasRutaService.agregarPlanEstimado('t-1', {
+        tiempoEstimadoDias: 5,
+        descripcionEstimado: 'Redacción',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/tareas/t-1/planes-estimados', {
+        tiempoEstimadoDias: 5,
+        descripcionEstimado: 'Redacción',
+      });
+      expect(resultado).toEqual({ id: 'p-1' });
+    });
+  });
 });

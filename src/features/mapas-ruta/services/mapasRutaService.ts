@@ -3,6 +3,8 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
+import type { AgregarPlanEstimadoRequest } from '../models/AgregarPlanEstimadoRequest';
+import type { AgregarPlanEstimadoResponse } from '../models/AgregarPlanEstimadoResponse';
 import type { AsignarTareaRequest } from '../models/AsignarTareaRequest';
 import type { AsignarTareaResponse } from '../models/AsignarTareaResponse';
 import type { CambiarEstadoTareaRequest } from '../models/CambiarEstadoTareaRequest';
@@ -122,6 +124,18 @@ export const mapasRutaService = {
       .post<AsignarTareaResponse>(`/mapas-ruta/${mapaRutaId}/tareas`, {
         descripcion: req.descripcion,
         asesor: req.asesorId,
+      })
+      .then((r) => r.data);
+  },
+
+  agregarPlanEstimado(
+    tareaId: string,
+    req: AgregarPlanEstimadoRequest,
+  ): Promise<AgregarPlanEstimadoResponse> {
+    return apiClient
+      .post<AgregarPlanEstimadoResponse>(`/tareas/${tareaId}/planes-estimados`, {
+        tiempoEstimadoDias: req.tiempoEstimadoDias,
+        descripcionEstimado: req.descripcionEstimado,
       })
       .then((r) => r.data);
   },

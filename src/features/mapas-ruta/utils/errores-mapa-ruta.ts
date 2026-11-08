@@ -105,6 +105,21 @@ export function mensajeErrorAsignarTarea(err: unknown): string {
   return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
 }
 
+export function mensajeErrorAgregarPlanEstimado(err: unknown): string {
+  if (hasApiErrorCode(err, 'TAREA_NO_ENCONTRADA')) {
+    return 'La tarea ya no está disponible. Vuelve a tus tareas e inténtalo de nuevo.';
+  }
+  if (hasApiErrorCode(err, 'PLAN_ESTIMADO_DUPLICADO')) {
+    return 'Esta tarea ya tiene un plan estimado.';
+  }
+  return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
+}
+
+export function campoDeErrorAgregarPlanEstimado(err: unknown): 'tiempoEstimadoDias' | null {
+  if (hasApiErrorCode(err, 'PLAN_ESTIMADO_TIEMPO_EXCEDE_PLAZO')) return 'tiempoEstimadoDias';
+  return null;
+}
+
 export function campoDeErrorAsignarTarea(err: unknown): 'descripcion' | 'asesor' | null {
   if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) return 'descripcion';
   if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) return 'asesor';

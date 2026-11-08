@@ -67,8 +67,8 @@ export function soloDigitosEntre(min: number, max: number) {
 }
 
 // Espejo de la validación de un entero obligatorio dentro de un rango inclusivo del backend,
-// en este orden: requerido, formato (solo dígitos) y rango.
-export function enteroEntre(min: number, max: number) {
+// en este orden: requerido, formato (solo dígitos) y rango. Sin `max` solo se comprueba el mínimo.
+export function enteroEntre(min: number, max?: number) {
   return z.string().superRefine((val, ctx) => {
     const valor = val.trim();
     if (valor.length === 0) {
@@ -80,6 +80,15 @@ export function enteroEntre(min: number, max: number) {
       return;
     }
     const numero = Number(valor);
+    if (max === undefined) {
+      if (numero < min) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: MENSAJES_VALIDACION.valorMinimo(min),
+        });
+      }
+      return;
+    }
     if (numero < min || numero > max) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -87,6 +96,11 @@ export function enteroEntre(min: number, max: number) {
       });
     }
   });
+}
+
+// Espejo de un texto opcional del backend: se recorta y solo se valida el máximo.
+export function textoOpcional(max: number) {
+  return z.string().trim().max(max, MENSAJES_VALIDACION.longitudMaxima(max));
 }
 
 // Espejo de ValidatorTexto.noEnBlanco + formato (EMAIL_REGEX) + ValidatorLongitud.longitudEntre,
