@@ -59,6 +59,7 @@ export default function DetalleTareaEstudianteView() {
         <PlanEstimadoTareaSeccion
           consulta={planEstimado}
           onAgregar={() => setPanelAbierto('plan')}
+          onEditar={() => setPanelAbierto('modificarPlan')}
         />
       </>
     );
@@ -85,15 +86,6 @@ export default function DetalleTareaEstudianteView() {
                   onClick={() => setPanelAbierto('plan')}
                 >
                   Agregar plan estimado
-                </Button>
-              )}
-              {planEstimado.plan && (
-                <Button
-                  variante="secundario"
-                  icono={CalendarClock}
-                  onClick={() => setPanelAbierto('modificarPlan')}
-                >
-                  Editar plan estimado
                 </Button>
               )}
               <Button

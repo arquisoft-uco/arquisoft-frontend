@@ -26,7 +26,11 @@ describe('PlanEstimadoTareaSeccion', () => {
   it('mientras carga expone el estado de carga accesible', () => {
     // Arrange / Act
     render(
-      <PlanEstimadoTareaSeccion consulta={consulta({ cargando: true })} onAgregar={vi.fn()} />,
+      <PlanEstimadoTareaSeccion
+        consulta={consulta({ cargando: true })}
+        onAgregar={vi.fn()}
+        onEditar={vi.fn()}
+      />,
     );
 
     // Assert
@@ -35,7 +39,13 @@ describe('PlanEstimadoTareaSeccion', () => {
 
   it('con plan muestra los días y la descripción', () => {
     // Arrange / Act
-    render(<PlanEstimadoTareaSeccion consulta={consulta({ plan: PLAN })} onAgregar={vi.fn()} />);
+    render(
+      <PlanEstimadoTareaSeccion
+        consulta={consulta({ plan: PLAN })}
+        onAgregar={vi.fn()}
+        onEditar={vi.fn()}
+      />,
+    );
 
     // Assert
     expect(screen.getByRole('heading', { name: 'Plan estimado' })).toBeInTheDocument();
@@ -49,6 +59,7 @@ describe('PlanEstimadoTareaSeccion', () => {
       <PlanEstimadoTareaSeccion
         consulta={consulta({ plan: { ...PLAN, tiempoEstimadoDias: 1, descripcionEstimado: null } })}
         onAgregar={vi.fn()}
+        onEditar={vi.fn()}
       />,
     );
 
@@ -65,6 +76,7 @@ describe('PlanEstimadoTareaSeccion', () => {
       <PlanEstimadoTareaSeccion
         consulta={consulta({ puedeAgregar: true })}
         onAgregar={onAgregar}
+        onEditar={vi.fn()}
       />,
     );
 
@@ -84,6 +96,7 @@ describe('PlanEstimadoTareaSeccion', () => {
       <PlanEstimadoTareaSeccion
         consulta={consulta({ hayError: true, reintentar })}
         onAgregar={vi.fn()}
+        onEditar={vi.fn()}
       />,
     );
 
@@ -93,5 +106,37 @@ describe('PlanEstimadoTareaSeccion', () => {
     // Assert
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(reintentar).toHaveBeenCalled();
+  });
+
+  it('Editar plan estimado solo existe con plan y al pulsarlo llama a onEditar', async () => {
+    // Arrange
+    const onEditar = vi.fn();
+    const user = userEvent.setup();
+    const boton = () => screen.queryByRole('button', { name: 'Editar plan estimado' });
+    const casos = [
+      consulta({ cargando: true }),
+      consulta({ hayError: true }),
+      consulta({ puedeAgregar: true }),
+    ];
+    for (const caso of casos) {
+      const { unmount } = render(
+        <PlanEstimadoTareaSeccion consulta={caso} onAgregar={vi.fn()} onEditar={onEditar} />,
+      );
+      expect(boton()).not.toBeInTheDocument();
+      unmount();
+    }
+    render(
+      <PlanEstimadoTareaSeccion
+        consulta={consulta({ plan: PLAN })}
+        onAgregar={vi.fn()}
+        onEditar={onEditar}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Editar plan estimado' }));
+
+    // Assert
+    expect(onEditar).toHaveBeenCalledTimes(1);
   });
 });

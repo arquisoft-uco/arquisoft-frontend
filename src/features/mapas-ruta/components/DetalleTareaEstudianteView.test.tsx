@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { Link, Route, Routes, useLocation } from 'react-router';
-import { render, screen } from '../../../test-utils/render';
+import { render, screen, within } from '../../../test-utils/render';
 import { usePlanEstimadoTarea } from '../hooks/usePlanEstimadoTarea';
 import { useTarea } from '../hooks/useTarea';
 import DetalleTareaEstudianteView from './DetalleTareaEstudianteView';
@@ -354,8 +354,11 @@ describe('DetalleTareaEstudianteView', () => {
     const user = userEvent.setup();
     renderizar();
 
+    const region = within(screen.getByRole('region', { name: 'Plan estimado' }));
+    expect(screen.getAllByRole('button', { name: 'Editar plan estimado' })).toHaveLength(1);
+
     // Act
-    await user.click(screen.getByRole('button', { name: 'Editar plan estimado' }));
+    await user.click(region.getByRole('button', { name: 'Editar plan estimado' }));
 
     // Assert
     expect(
