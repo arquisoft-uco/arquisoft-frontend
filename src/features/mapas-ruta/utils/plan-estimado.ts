@@ -33,3 +33,7 @@ export function plazoMapaRutaEnDias(inicioIso: string, finIso: string): number |
   if (!esFechaIsoReal(inicioIso) || !esFechaIsoReal(finIso)) return null;
   return Math.round((aUtc(finIso) - aUtc(inicioIso)) / MS_POR_DIA);
 }
+
+export function formatearDias(dias: number): string {
+  return dias === 1 ? '1 día' : `${dias} días`;
+}

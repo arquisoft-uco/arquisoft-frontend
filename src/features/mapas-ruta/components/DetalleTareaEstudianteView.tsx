@@ -7,18 +7,21 @@ import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import { useContextoDetalleTarea } from '../hooks/useContextoDetalleTarea';
+import { usePlanEstimadoTarea } from '../hooks/usePlanEstimadoTarea';
 import { useTarea } from '../hooks/useTarea';
 import { destinosDeEstado, esTareaRemovible } from '../utils/estados-tarea';
 import AgregarPlanEstimadoPanel from './estudiante/AgregarPlanEstimadoPanel';
 import CambiarEstadoTareaPanel from './estudiante/CambiarEstadoTareaPanel';
 import EliminarTareaDialog from './estudiante/EliminarTareaDialog';
 import ModificarInformacionTareaPanel from './estudiante/ModificarInformacionTareaPanel';
+import PlanEstimadoTareaSeccion from './estudiante/PlanEstimadoTareaSeccion';
 import TareaDetalleCard from './estudiante/TareaDetalleCard';
 
 export default function DetalleTareaEstudianteView() {
   const { id: tareaId = '' } = useParams();
   const navigate = useNavigate();
   const { tarea, cargando, noEncontrada, hayError, reintentar } = useTarea(tareaId);
+  const planEstimado = usePlanEstimadoTarea(tareaId, !!tarea);
   const { search } = useContextoDetalleTarea();
   const [panelAbierto, setPanelAbierto] = useState<
     'estado' | 'plan' | 'informacion' | 'eliminar' | null
@@ -48,7 +51,16 @@ export default function DetalleTareaEstudianteView() {
     if (hayError) {
       return <ErrorState titulo="No pudimos cargar la tarea" onReintentar={() => reintentar()} />;
     }
-    return tarea ? <TareaDetalleCard tarea={tarea} /> : null;
+    if (!tarea) return null;
+    return (
+      <>
+        <TareaDetalleCard tarea={tarea} />
+        <PlanEstimadoTareaSeccion
+          consulta={planEstimado}
+          onAgregar={() => setPanelAbierto('plan')}
+        />
+      </>
+    );
   }
 
   return (
@@ -65,13 +77,15 @@ export default function DetalleTareaEstudianteView() {
                   Cambiar estado
                 </Button>
               )}
-              <Button
-                variante="secundario"
-                icono={CalendarClock}
-                onClick={() => setPanelAbierto('plan')}
-              >
-                Agregar plan estimado
-              </Button>
+              {planEstimado.puedeAgregar && (
+                <Button
+                  variante="secundario"
+                  icono={CalendarClock}
+                  onClick={() => setPanelAbierto('plan')}
+                >
+                  Agregar plan estimado
+                </Button>
+              )}
               <Button
                 variante="secundario"
                 icono={Pencil}
