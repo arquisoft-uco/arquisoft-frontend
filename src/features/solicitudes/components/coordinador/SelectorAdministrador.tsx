@@ -1,10 +1,11 @@
 import type { UseFormRegisterReturn } from 'react-hook-form';
-import Field from '../../../../shared/components/ui/Field';
 import type { AdministradorVigente } from '../../../../shared/models/AdministradorVigente';
+import SelectorDestinatario from '../SelectorDestinatario';
+import type { EstadoSelectorDestinatario } from '../SelectorDestinatario';
 
-export type EstadoSelectorAdministrador = 'cargando' | 'vacio' | 'error' | 'listo';
+export type EstadoSelectorAdministrador = EstadoSelectorDestinatario;
 
-const TEXTO_PLACEHOLDER: Record<EstadoSelectorAdministrador, string> = {
+const TEXTOS: Record<EstadoSelectorAdministrador, string> = {
   cargando: 'Cargando administradores…',
   vacio: 'No hay administradores vigentes',
   error: 'No se pudieron cargar los administradores',
@@ -27,25 +28,17 @@ export default function SelectorAdministrador({
   error,
 }: Props) {
   return (
-    <Field etiqueta={etiqueta} error={error}>
-      {(control) => (
-        <select
-          className="field-input"
-          defaultValue=""
-          disabled={estado !== 'listo'}
-          {...registro}
-          {...control}
-        >
-          <option value="" disabled hidden>
-            {TEXTO_PLACEHOLDER[estado]}
-          </option>
-          {administradores.map((administrador) => (
-            <option key={administrador.id} value={administrador.id}>
-              {administrador.nombre} ({administrador.email})
-            </option>
-          ))}
-        </select>
-      )}
-    </Field>
+    <SelectorDestinatario
+      etiqueta={etiqueta}
+      estado={estado}
+      opciones={administradores.map((administrador) => ({
+        clave: administrador.id,
+        valor: administrador.id,
+        etiqueta: `${administrador.nombre} (${administrador.email})`,
+      }))}
+      textos={TEXTOS}
+      registro={registro}
+      error={error}
+    />
   );
 }
