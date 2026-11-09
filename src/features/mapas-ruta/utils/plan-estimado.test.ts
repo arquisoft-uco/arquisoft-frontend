@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { LIMITES } from '../../../shared/validation';
-import { comoCampoPlanEstimado, planEstimadoSchema, plazoMapaRutaEnDias } from './plan-estimado';
+import {
+  comoCampoPlanEstimado,
+  formatearDias,
+  planEstimadoSchema,
+  plazoMapaRutaEnDias,
+} from './plan-estimado';
 
 describe('plazoMapaRutaEnDias', () => {
   it('calcula la diferencia civil sin sumar 1 y devuelve null con fechas inválidas', () => {
@@ -36,5 +41,13 @@ describe('planEstimadoSchema', () => {
     // Act / Assert
     expect(comoCampoPlanEstimado('tiempoEstimadoDias')).toBe('tiempoEstimadoDias');
     expect(comoCampoPlanEstimado('tarea')).toBeUndefined();
+  });
+});
+
+describe('formatearDias', () => {
+  it('usa singular con 1 y plural en otro caso', () => {
+    // Act / Assert
+    expect(formatearDias(1)).toBe('1 día');
+    expect(formatearDias(5)).toBe('5 días');
   });
 });

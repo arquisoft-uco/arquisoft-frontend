@@ -394,4 +394,28 @@ describe('mapasRutaService', () => {
       expect(resultado).toEqual({ id: 'p-1' });
     });
   });
+
+  describe('consultarPlanesEstimadosTarea', () => {
+    it('hace POST con el body recibido y traduce tarea a tareaId conservando la página', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [{ id: 'p-1', tarea: 't-1', tiempoEstimadoDias: 5, descripcionEstimado: null }],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesEstimadosTarea('t-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/tareas/t-1/planes-estimados/estudiante', req);
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 5, descripcionEstimado: null },
+      ]);
+    });
+  });
 });
