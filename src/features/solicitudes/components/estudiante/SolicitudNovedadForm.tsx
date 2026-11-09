@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+import type { UseFormRegisterReturn } from 'react-hook-form';
 import { useSolicitudNovedadForm } from '../../hooks/useSolicitudNovedadForm';
 import type { EnviarSolicitud } from '../../hooks/useSolicitudNovedadForm';
 import { LIMITES } from '../../../../shared/validation';
@@ -12,10 +14,15 @@ export interface TextosSolicitudNovedad {
   titulo: string;
   etiquetaDestinatario: string;
   placeholderMensaje: string;
-  recursoAviso: string;
+  recursoAviso?: string;
   tituloConfirmacion: string;
   descripcionConfirmacion: string;
   mensajeExito: string;
+}
+
+export interface CampoDestinatario {
+  registro: UseFormRegisterReturn;
+  error?: string;
 }
 
 const TARJETA = 'rounded-xl border border-border bg-surface p-4 shadow-card sm:p-5';
@@ -27,9 +34,18 @@ interface Props {
   enviar: EnviarSolicitud;
   enviando: boolean;
   reiniciar: () => void;
+  renderDestinatario?: (campo: CampoDestinatario) => ReactNode;
+  envioBloqueado?: boolean;
 }
 
-export default function SolicitudNovedadForm({ textos, enviar, enviando, reiniciar }: Props) {
+export default function SolicitudNovedadForm({
+  textos,
+  enviar,
+  enviando,
+  reiniciar,
+  renderDestinatario,
+  envioBloqueado = false,
+}: Props) {
   const {
     register,
     errors,
@@ -48,22 +64,31 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
     <div className={TARJETA}>
       <form noValidate className={FORMULARIO} onSubmit={alEnviarFormulario} aria-busy={enviando}>
         <FormSection titulo={textos.titulo}>
-          <div>
-            <Field etiqueta={textos.etiquetaDestinatario} error={errors.destinatario?.message}>
-              {(control) => (
-                <input
-                  type="text"
-                  className="field-input"
-                  placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
-                  {...register('destinatario')}
-                  {...control}
-                />
+          {renderDestinatario ? (
+            renderDestinatario({
+              registro: register('destinatario'),
+              error: errors.destinatario?.message,
+            })
+          ) : (
+            <div>
+              <Field etiqueta={textos.etiquetaDestinatario} error={errors.destinatario?.message}>
+                {(control) => (
+                  <input
+                    type="text"
+                    className="field-input"
+                    placeholder="Ej. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    {...register('destinatario')}
+                    {...control}
+                  />
+                )}
+              </Field>
+              {textos.recursoAviso && (
+                <div className="mt-2">
+                  <AvisoNoDisponible recurso={textos.recursoAviso} />
+                </div>
               )}
-            </Field>
-            <div className="mt-2">
-              <AvisoNoDisponible recurso={textos.recursoAviso} />
             </div>
-          </div>
+          )}
 
           <Field
             etiqueta={ETIQUETAS.mensajeSolicitud}
@@ -86,7 +111,7 @@ export default function SolicitudNovedadForm({ textos, enviar, enviando, reinici
         <ErrorSummary errores={erroresResumidos} onIrAlCampo={irAlCampo} />
 
         <div className="actions-row border-t border-border pt-4">
-          <Button type="submit" cargando={enviando}>
+          <Button type="submit" cargando={enviando} disabled={envioBloqueado}>
             {enviando ? 'Enviando…' : 'Enviar solicitud'}
           </Button>
         </div>
