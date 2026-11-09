@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
+import { useCoordinadoresEstudiante } from '../../../../shared/hooks/useCoordinadoresEstudiante';
 import AmpliacionPlazoForm from './AmpliacionPlazoForm';
 import { useEnviarSolicitudAmpliacionPlazo } from '../../hooks/useEnviarSolicitudAmpliacionPlazo';
 
@@ -8,7 +9,11 @@ vi.mock('../../hooks/useEnviarSolicitudAmpliacionPlazo', () => ({
   useEnviarSolicitudAmpliacionPlazo: vi.fn(),
 }));
 
-const UUID_VALIDO = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+vi.mock('../../../../shared/hooks/useCoordinadoresEstudiante', () => ({
+  useCoordinadoresEstudiante: vi.fn(),
+}));
+
+const COORDINADOR_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const MENSAJE_VALIDO = 'Necesito más plazo.';
 
 type Mutacion = ReturnType<typeof useEnviarSolicitudAmpliacionPlazo>;
@@ -39,34 +44,56 @@ describe('AmpliacionPlazoForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useCoordinadoresEstudiante).mockReturnValue({
+      data: [
+        {
+          coordinadorId: COORDINADOR_ID,
+          nombre: 'Ana Gómez',
+          proyectoGradoId: 'p1',
+          tituloProyecto: 'Proyecto Uno',
+          identificador: '1',
+          email: 'ana@uco.edu.co',
+        },
+      ],
+      isPending: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useCoordinadoresEstudiante>);
     vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock(mutate));
   });
 
   it('muestra los textos de la ampliación de plazo', () => {
+    // Arrange
+    // Act
     render(<AmpliacionPlazoForm />);
 
+    // Assert
     expect(
       screen.getByRole('heading', { name: 'Enviar solicitud de ampliación de plazo' }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/Destinatario \(UUID del coordinador\)/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Coordinador')).toBeInstanceOf(HTMLSelectElement);
     expect(screen.getByPlaceholderText(/por qué necesitas ampliar el plazo/)).toBeInTheDocument();
-    expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('note', { name: 'No disponible: coordinadores' }),
+    ).not.toBeInTheDocument();
   }, 15000);
 
   it('al confirmar envía con el hook de la ampliación de plazo', async () => {
+    // Arrange
     const user = userEvent.setup();
     render(<AmpliacionPlazoForm />);
 
-    await user.click(screen.getByLabelText(/Destinatario/));
-    await user.paste(UUID_VALIDO);
+    // Act
+    await user.selectOptions(screen.getByLabelText('Coordinador'), COORDINADOR_ID);
     await user.click(screen.getByLabelText(/^Mensaje/));
     await user.paste(MENSAJE_VALIDO);
     await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
     expect(screen.getByRole('dialog')).toHaveTextContent('Enviar solicitud de ampliación de plazo');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
+    // Assert
     expect(mutate).toHaveBeenCalledWith(
-      { destinatario: UUID_VALIDO, mensajeSolicitud: MENSAJE_VALIDO },
+      { destinatario: COORDINADOR_ID, mensajeSolicitud: MENSAJE_VALIDO },
       expect.anything(),
     );
   }, 15000);
