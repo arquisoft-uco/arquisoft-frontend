@@ -12,6 +12,7 @@ import type { AsesorProyecto } from '../models/AsesorProyecto';
 import type { AsesorProyectoResponse } from '../models/AsesorProyectoResponse';
 import type { CambiarFechaFinMapaRutaRequest } from '../models/CambiarFechaFinMapaRutaRequest';
 import type { ModificarInformacionTareaRequest } from '../models/ModificarInformacionTareaRequest';
+import type { ModificarPlanEstimadoRequest } from '../models/ModificarPlanEstimadoRequest';
 import type { MapaRuta } from '../models/MapaRuta';
 import type { MapaRutaResponse } from '../models/MapaRutaResponse';
 import type { EstadoTarea } from '../models/mapas-ruta';
@@ -158,6 +159,14 @@ export const mapasRutaService = {
     return apiClient
       .post<Page<PlanEstimadoResponse>>(`/tareas/${tareaId}/planes-estimados/estudiante`, req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aPlanEstimado) }));
+  },
+
+  modificarPlanEstimado(planEstimadoId: string, req: ModificarPlanEstimadoRequest): Promise<void> {
+    return apiClient
+      .patch(`/planes-estimados/${planEstimadoId}`, {
+        descripcionEstimado: req.descripcionEstimado,
+      })
+      .then(() => undefined);
   },
 
   modificarInformacionTarea(tareaId: string, req: ModificarInformacionTareaRequest): Promise<void> {

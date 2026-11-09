@@ -3,6 +3,7 @@ import { LIMITES } from '../../../shared/validation';
 import {
   comoCampoPlanEstimado,
   formatearDias,
+  modificarPlanEstimadoSchema,
   planEstimadoSchema,
   plazoMapaRutaEnDias,
 } from './plan-estimado';
@@ -41,6 +42,22 @@ describe('planEstimadoSchema', () => {
     // Act / Assert
     expect(comoCampoPlanEstimado('tiempoEstimadoDias')).toBe('tiempoEstimadoDias');
     expect(comoCampoPlanEstimado('tarea')).toBeUndefined();
+  });
+});
+
+describe('modificarPlanEstimadoSchema', () => {
+  it('acepta vacío y el máximo tras recortar, y rechaza uno más', () => {
+    // Arrange
+    const max = LIMITES.PLAN_ESTIMADO_DESCRIPCION_MAX;
+
+    // Act / Assert
+    expect(modificarPlanEstimadoSchema.safeParse({ descripcionEstimado: '' }).success).toBe(true);
+    expect(
+      modificarPlanEstimadoSchema.parse({ descripcionEstimado: ` ${'a'.repeat(max)} ` }),
+    ).toEqual({ descripcionEstimado: 'a'.repeat(max) });
+    expect(
+      modificarPlanEstimadoSchema.safeParse({ descripcionEstimado: 'a'.repeat(max + 1) }).success,
+    ).toBe(false);
   });
 });
 

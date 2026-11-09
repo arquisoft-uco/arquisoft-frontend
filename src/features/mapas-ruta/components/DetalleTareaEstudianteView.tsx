@@ -14,6 +14,7 @@ import AgregarPlanEstimadoPanel from './estudiante/AgregarPlanEstimadoPanel';
 import CambiarEstadoTareaPanel from './estudiante/CambiarEstadoTareaPanel';
 import EliminarTareaDialog from './estudiante/EliminarTareaDialog';
 import ModificarInformacionTareaPanel from './estudiante/ModificarInformacionTareaPanel';
+import ModificarPlanEstimadoPanel from './estudiante/ModificarPlanEstimadoPanel';
 import PlanEstimadoTareaSeccion from './estudiante/PlanEstimadoTareaSeccion';
 import TareaDetalleCard from './estudiante/TareaDetalleCard';
 
@@ -24,7 +25,7 @@ export default function DetalleTareaEstudianteView() {
   const planEstimado = usePlanEstimadoTarea(tareaId, !!tarea);
   const { search } = useContextoDetalleTarea();
   const [panelAbierto, setPanelAbierto] = useState<
-    'estado' | 'plan' | 'informacion' | 'eliminar' | null
+    'estado' | 'plan' | 'modificarPlan' | 'informacion' | 'eliminar' | null
   >(null);
 
   if (!tareaId) return <Navigate to="/mapas-ruta" replace />;
@@ -86,6 +87,15 @@ export default function DetalleTareaEstudianteView() {
                   Agregar plan estimado
                 </Button>
               )}
+              {planEstimado.plan && (
+                <Button
+                  variante="secundario"
+                  icono={CalendarClock}
+                  onClick={() => setPanelAbierto('modificarPlan')}
+                >
+                  Editar plan estimado
+                </Button>
+              )}
               <Button
                 variante="secundario"
                 icono={Pencil}
@@ -112,6 +122,13 @@ export default function DetalleTareaEstudianteView() {
       )}
       {panelAbierto === 'plan' && tarea && (
         <AgregarPlanEstimadoPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />
+      )}
+      {panelAbierto === 'modificarPlan' && tarea && planEstimado.plan && (
+        <ModificarPlanEstimadoPanel
+          tarea={tarea}
+          plan={planEstimado.plan}
+          onCerrar={() => setPanelAbierto(null)}
+        />
       )}
       {panelAbierto === 'informacion' && tarea && (
         <ModificarInformacionTareaPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />

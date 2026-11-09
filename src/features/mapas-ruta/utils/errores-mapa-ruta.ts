@@ -120,6 +120,20 @@ export function campoDeErrorAgregarPlanEstimado(err: unknown): 'tiempoEstimadoDi
   return null;
 }
 
+export function mensajeErrorModificarPlanEstimado(err: unknown): string {
+  if (hasApiErrorCode(err, 'PLAN_ESTIMADO_NO_ENCONTRADO')) {
+    return 'El plan estimado ya no está disponible. Actualiza el detalle de la tarea e inténtalo de nuevo.';
+  }
+  return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
+}
+
+export function campoDeErrorModificarPlanEstimado(err: unknown): 'descripcionEstimado' | null {
+  if (hasApiErrorCode(err, 'PLAN_ESTIMADO_DESCRIPCION_DEMASIADO_LARGA')) {
+    return 'descripcionEstimado';
+  }
+  return null;
+}
+
 export function campoDeErrorAsignarTarea(err: unknown): 'descripcion' | 'asesor' | null {
   if (hasApiErrorCode(err, 'TAREA_DUPLICADA')) return 'descripcion';
   if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) return 'asesor';

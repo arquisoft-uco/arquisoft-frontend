@@ -14,6 +14,9 @@ vi.mock('./estudiante/CambiarEstadoTareaPanel', () => ({
 vi.mock('./estudiante/AgregarPlanEstimadoPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de plan estimado" />,
 }));
+vi.mock('./estudiante/ModificarPlanEstimadoPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de edición del plan estimado" />,
+}));
 vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de edición de la tarea" />,
 }));
@@ -324,5 +327,39 @@ describe('DetalleTareaEstudianteView', () => {
     expect(screen.queryByRole('button', { name: 'Agregar plan estimado' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Plan estimado' })).toBeInTheDocument();
     expect(screen.getByText('3 días')).toBeInTheDocument();
+  });
+
+  it('Editar plan estimado solo existe con el plan cargado y abre el panel', async () => {
+    // Arrange
+    simular();
+    const boton = () => screen.queryByRole('button', { name: 'Editar plan estimado' });
+    const sinPlan = renderizar();
+    expect(boton()).not.toBeInTheDocument();
+    sinPlan.unmount();
+    usePlan.mockReturnValue({ ...CONSULTA_SIN_PLAN, cargando: true });
+    const cargando = renderizar();
+    expect(boton()).not.toBeInTheDocument();
+    cargando.unmount();
+    usePlan.mockReturnValue({ ...CONSULTA_SIN_PLAN, hayError: true });
+    const conError = renderizar();
+    expect(boton()).not.toBeInTheDocument();
+    conError.unmount();
+    usePlan.mockReturnValue({
+      plan: { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 3, descripcionEstimado: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+      puedeAgregar: false,
+    });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Editar plan estimado' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Panel de edición del plan estimado' }),
+    ).toBeInTheDocument();
   });
 });

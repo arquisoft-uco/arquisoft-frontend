@@ -4,6 +4,7 @@ import {
   campoDeErrorAgregarPlanEstimado,
   campoDeErrorAsignarTarea,
   campoDeErrorMapaRuta,
+  campoDeErrorModificarPlanEstimado,
   campoDeErrorModificarTarea,
   mensajeErrorAgregarPlanEstimado,
   mensajeErrorAsignarTarea,
@@ -11,6 +12,7 @@ import {
   mensajeErrorCambioFechaFin,
   mensajeErrorEliminarTarea,
   mensajeErrorMapaRuta,
+  mensajeErrorModificarPlanEstimado,
   mensajeErrorModificarTarea,
 } from './errores-mapa-ruta';
 import { MENSAJES_VALIDACION } from '../../../shared/validation';
@@ -168,5 +170,20 @@ describe('errores-mapa-ruta', () => {
       'Verifica los datos e inténtalo nuevamente.',
     );
     expect(campoDeErrorAgregarPlanEstimado(errorApi('OTRO'))).toBeNull();
+  });
+
+  it('modificar plan estimado: texto propio si no existe y campo solo si es demasiado larga', () => {
+    // Act / Assert
+    expect(mensajeErrorModificarPlanEstimado(errorApi('PLAN_ESTIMADO_NO_ENCONTRADO'))).toContain(
+      'ya no está disponible',
+    );
+    expect(mensajeErrorModificarPlanEstimado(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorModificarPlanEstimado(new Error('red'))).toBe(
+      'Verifica los datos e inténtalo nuevamente.',
+    );
+    expect(
+      campoDeErrorModificarPlanEstimado(errorApi('PLAN_ESTIMADO_DESCRIPCION_DEMASIADO_LARGA')),
+    ).toBe('descripcionEstimado');
+    expect(campoDeErrorModificarPlanEstimado(errorApi('PLAN_ESTIMADO_NO_ENCONTRADO'))).toBeNull();
   });
 });
