@@ -13,6 +13,8 @@ import {
   RESPUESTA_CAMBIO_ASESOR,
   RESPUESTA_REGISTRO_MODIFICACION_USUARIOS,
 } from '../../test-utils/respuestas';
+import type { CoordinadorProyecto } from '../../shared/models/CoordinadorProyecto';
+import { useCoordinadoresEstudiante } from '../../shared/hooks/useCoordinadoresEstudiante';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
@@ -51,6 +53,10 @@ import { useEstadosRespuesta } from './hooks/useEstadosRespuesta';
 import { useTiposSolicitud } from './hooks/useTiposSolicitud';
 import { useTiposSolicitudRecibidas } from './hooks/useTiposSolicitudRecibidas';
 import type { TipoSolicitud } from './models/TipoSolicitud';
+
+vi.mock('../../shared/hooks/useCoordinadoresEstudiante', () => ({
+  useCoordinadoresEstudiante: vi.fn(),
+}));
 
 vi.mock('./hooks/useEstadosRespuesta', () => ({
   useEstadosRespuesta: vi.fn(),
@@ -407,6 +413,14 @@ describe('Solicitudes', () => {
       }) as ReturnType<typeof useRespuestasRegistroModificacionUsuariosRecibidas>,
     );
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
+    vi.mocked(useCoordinadoresEstudiante).mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+      error: null,
+    } as Partial<UseQueryResult<CoordinadorProyecto[]>> as ReturnType<
+      typeof useCoordinadoresEstudiante
+    >);
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
