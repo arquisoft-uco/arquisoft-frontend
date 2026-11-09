@@ -91,7 +91,7 @@ jobs:
         run: echo "${{ steps.vars.outputs.short_sha }}" > short_sha.txt
 
       - name: Publicar tag como artefacto
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: image-tag
           path: short_sha.txt
