@@ -387,6 +387,20 @@ describe('artefactosService', () => {
     });
   });
 
+  describe('eliminar revisión (HU-115)', () => {
+    it('eliminarRevision envía DELETE a la ruta de la revisión y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204 });
+
+      // Act
+      const resultado = await artefactosService.eliminarRevision('r-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/revisiones/r-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrar revisión (HU-114)', () => {
     it('registrarRevision envía POST sin body a la ruta de revisiones de la versión y devuelve { id }', async () => {
       // Arrange

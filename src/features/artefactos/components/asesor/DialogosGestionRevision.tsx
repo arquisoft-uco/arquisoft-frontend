@@ -3,6 +3,7 @@ import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import CambiarEstadoObservacionDialog from './CambiarEstadoObservacionDialog';
 import CerrarRevisionDialog from './CerrarRevisionDialog';
 import EliminarObservacionDialog from './EliminarObservacionDialog';
+import EliminarRevisionDialog from './EliminarRevisionDialog';
 import EnviarRevisionDialog from './EnviarRevisionDialog';
 
 export interface Decision {
@@ -22,7 +23,9 @@ interface Props {
   onCerrarDecision: () => void;
   onCerrarEnvio: () => void;
   onCerrarCierre: () => void;
+  onCerrarEliminarRevision: () => void;
   onSalir: () => void;
+  eliminandoRevision: boolean;
 }
 
 export default function DialogosGestionRevision({
@@ -36,7 +39,9 @@ export default function DialogosGestionRevision({
   onCerrarDecision,
   onCerrarEnvio,
   onCerrarCierre,
+  onCerrarEliminarRevision,
   onSalir,
+  eliminandoRevision,
 }: Props) {
   return (
     <>
@@ -58,6 +63,14 @@ export default function DialogosGestionRevision({
           version={version}
           revisionAsesorId={revisionAsesorId}
           onCerrar={onCerrarEnvio}
+          onSalir={onSalir}
+        />
+      )}
+      {eliminandoRevision && (
+        <EliminarRevisionDialog
+          version={version}
+          revisionAsesorId={revisionAsesorId}
+          onCerrar={onCerrarEliminarRevision}
           onSalir={onSalir}
         />
       )}
