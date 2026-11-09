@@ -7,6 +7,8 @@ import type { EstudianteAsignable } from '../models/EstudianteAsignable';
 import type { PaginaProyectosAsignables } from '../models/PaginaProyectosAsignables';
 import type { ArtefactoAsesor } from '../models/ArtefactoAsesor';
 import type { ArtefactoEstudiante } from '../models/ArtefactoEstudiante';
+import type { ArtefactoSinAvance } from '../models/ArtefactoSinAvance';
+import type { ConsultarArtefactosSinAvanceRequest } from '../models/ConsultarArtefactosSinAvanceRequest';
 import type { CambiarAsesorArtefactoRequest } from '../models/CambiarAsesorArtefactoRequest';
 import type { CambiarVersionRepositorioArtefactoRequest } from '../models/CambiarVersionRepositorioArtefactoRequest';
 import type { CambiarEstadoObservacionEstudianteRequest } from '../models/CambiarEstadoObservacionEstudianteRequest';
@@ -133,6 +135,13 @@ export const artefactosService = {
 
   consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
     apiClient.post<Page<ArtefactoAsesor>>('/artefactos/asesor', req).then((r) => r.data),
+
+  consultarArtefactosSinAvanceAsesor: (
+    req: ConsultarArtefactosSinAvanceRequest,
+  ): Promise<Page<ArtefactoSinAvance>> =>
+    apiClient
+      .post<Page<ArtefactoSinAvance>>('/artefactos/asesor/sin-avance', req)
+      .then((r) => r.data),
 
   consultarArtefactosEstudiante: (
     req: ConsultaCriteriaRequest,
