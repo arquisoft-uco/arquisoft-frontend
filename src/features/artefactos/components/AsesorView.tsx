@@ -7,15 +7,17 @@ import Tabs from '../../../shared/components/ui/Tabs';
 import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import AsignarArtefactoPanel from './asesor/AsignarArtefactoPanel';
 import ConsultarArtefactosAsignadosAsesor from './asesor/ConsultarArtefactosAsignadosAsesor';
+import ConsultarArtefactosSinAvanceAsesor from './asesor/ConsultarArtefactosSinAvanceAsesor';
 import ConsultarVersionesArtefactoAsesor from './asesor/ConsultarVersionesArtefactoAsesor';
 import ConsultarVersionesRepositorioAsesor from './asesor/ConsultarVersionesRepositorioAsesor';
 
-type Vista = 'artefactos' | 'versiones-artefactos' | 'versiones';
+type Vista = 'artefactos' | 'versiones-artefactos' | 'versiones' | 'sin-avance';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
   artefactos: ConsultarArtefactosAsignadosAsesor,
   'versiones-artefactos': ConsultarVersionesArtefactoAsesor,
   versiones: ConsultarVersionesRepositorioAsesor,
+  'sin-avance': ConsultarArtefactosSinAvanceAsesor,
 };
 
 const VISTAS_RETIRADAS: Record<string, Vista> = {
@@ -52,7 +54,7 @@ export default function AsesorView() {
           </Button>
         }
         titulo="Artefactos"
-        descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones y las versiones de repositorio disponibles para asignar."
+        descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones las versiones de repositorio disponibles para asignar y el reporte de artefactos sin avance."
       />
       <Tabs
         etiqueta="Secciones de artefactos"
@@ -69,6 +71,7 @@ export default function AsesorView() {
             etiqueta: 'Versiones de repositorio',
             to: `${pathname}?vista=versiones`,
           },
+          { id: 'sin-avance', etiqueta: 'Sin avance', to: `${pathname}?vista=sin-avance` },
         ]}
       />
       <Contenido />

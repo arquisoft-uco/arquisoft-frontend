@@ -56,6 +56,8 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.VERSION_NOMBRE_ARCHIVO_MAX).toBe(255);
     expect(LIMITES.VERSION_ARCHIVO_TAMANO_MAX_BYTES).toBe(5_242_880);
     expect(LIMITES.TAREA_DESCRIPCION_MAX).toBe(200);
+    expect(LIMITES.ARTEFACTO_DIAS_SIN_AVANCE_MIN).toBe(1);
+    expect(LIMITES.ARTEFACTO_DIAS_SIN_AVANCE_MAX).toBe(365);
   });
 });
 
