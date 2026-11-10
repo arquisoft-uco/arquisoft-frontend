@@ -133,7 +133,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(
       await screen.findByRole('table', { name: 'Versiones de artefactos' }),
     ).toBeInTheDocument();
-    const consultasDelListado = consultarVersiones.mock.calls.filter(([req]) => req.tamanio !== 1);
+    const consultasDelListado = consultarVersiones.mock.calls.filter(([req]) => req.tamanio !== 2);
     expect(consultasDelListado).toHaveLength(2);
   });
 
@@ -284,7 +284,14 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
   });
 
   describe('registrar revisión (HU-114)', () => {
-    const ANTERIOR: VersionArtefacto = { ...VERSION, id: 'v-0', version: 3 };
+    const ANTERIOR: VersionArtefacto = {
+      ...VERSION,
+      id: 'v-0',
+      version: 3,
+      revisionAsesor: 'r-0',
+      estadoRevision: 'RESUELTA',
+      nombreEstadoRevision: 'Resuelta',
+    };
     const CONTROL: VersionArtefacto = {
       ...VERSION,
       id: 'v-9',
@@ -292,9 +299,18 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       nombreDocumento: 'Plano',
     };
 
+    const ANTERIOR_CONTROL: VersionArtefacto = {
+      ...CONTROL,
+      id: 'v-8',
+      version: 3,
+      revisionAsesor: 'r-8',
+      estadoRevision: 'RESUELTA',
+      nombreEstadoRevision: 'Resuelta',
+    };
+
     function listarConUltimas(filas: VersionArtefacto[], ultimas: VersionArtefacto[]) {
       consultarVersiones.mockImplementation(({ tamanio, filtros }) => {
-        if (tamanio !== 1) return Promise.resolve(pagina(filas));
+        if (tamanio !== 2) return Promise.resolve(pagina(filas));
         const pedido = JSON.stringify(filtros);
         return Promise.resolve(pagina(ultimas.filter((u) => pedido.includes(u.artefacto))));
       });
@@ -318,7 +334,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
 
     it('la ofrece en la última versión sin revisión; confirmar registra por el id de la fila y abre el panel de la revisión creada', async () => {
       // Arrange
-      listarConUltimas([VERSION, ANTERIOR], [VERSION]);
+      listarConUltimas([VERSION, ANTERIOR], [VERSION, ANTERIOR]);
       registrarRevision.mockResolvedValue({ id: 'r-1' });
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
@@ -353,7 +369,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
         estadoRevision: 'CERRADA',
         nombreEstadoRevision: 'Cerrada',
       };
-      listarConUltimas([cerrada], [cerrada]);
+      listarConUltimas([cerrada], [cerrada, ANTERIOR]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
 
@@ -373,7 +389,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
 
     it('no la ofrece en una versión anterior aunque sí en la última', async () => {
       // Arrange
-      listarConUltimas([VERSION, ANTERIOR], [VERSION]);
+      listarConUltimas([VERSION, ANTERIOR], [VERSION, ANTERIOR]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
       await comprobarControlPositivo(user, 4, 'Acta de inicio');
@@ -391,7 +407,25 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     it('no la ofrece con una revisión pendiente aunque sí en otra fila elegible', async () => {
       // Arrange
       const pendiente = { ...VERSION, revisionAsesor: 'r-1', estadoRevision: 'PENDIENTE' };
-      listarConUltimas([pendiente, CONTROL], [pendiente, CONTROL]);
+      listarConUltimas([pendiente, CONTROL], [pendiente, CONTROL, ANTERIOR_CONTROL]);
+      const user = userEvent.setup();
+      render(<ConsultarVersionesArtefactoAsesor />);
+      await comprobarControlPositivo(user, 4, 'Plano');
+
+      // Act
+      await abrirMenu(user, 4, 'Acta de inicio');
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('no la ofrece si la revisión de la versión anterior no está resuelta aunque sí en otra fila elegible', async () => {
+      // Arrange
+      const enProgreso = { ...ANTERIOR, estadoRevision: 'EN_PROGRESO' };
+      listarConUltimas([VERSION, CONTROL], [VERSION, enProgreso, CONTROL, ANTERIOR_CONTROL]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
       await comprobarControlPositivo(user, 4, 'Plano');
@@ -408,7 +442,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
 
     it('no la ofrece en un artefacto omitido aunque sí en otra fila elegible', async () => {
       // Arrange
-      listarConUltimas([VERSION, CONTROL], [VERSION, CONTROL]);
+      listarConUltimas([VERSION, CONTROL], [VERSION, ANTERIOR, CONTROL, ANTERIOR_CONTROL]);
       getOmitidos.mockResolvedValue([VERSION.artefacto]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);

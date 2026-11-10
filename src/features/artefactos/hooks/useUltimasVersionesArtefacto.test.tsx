@@ -29,18 +29,19 @@ describe('useUltimasVersionesArtefacto', () => {
     vi.clearAllMocks();
   });
 
-  it('pide la fila 0 por versión descendente filtrada por artefacto, sin repetir ids, y resuelve el id', async () => {
+  it('pide las dos primeras filas por versión descendente filtrada por artefacto, sin repetir ids, y resuelve la última y la anterior', async () => {
     // Arrange
-    consultar.mockResolvedValue(pagina([{ id: 'v-9' }]));
+    consultar.mockResolvedValue(pagina([{ id: 'v-9' }, { id: 'v-8' }]));
 
     // Act
     const { result } = renderHook(() => useUltimasVersionesArtefacto(['a-1', 'a-1', 'a-2']));
 
     // Assert
     await waitFor(() => expect(result.current.ultimaVersionId('a-1')).toBe('v-9'));
+    expect(result.current.versionAnterior('a-1')).toEqual({ id: 'v-8' });
     expect(consultar).toHaveBeenCalledTimes(2);
     expect(consultar).toHaveBeenCalledWith(
-      expect.objectContaining({ pagina: 0, tamanio: 1, ordenamiento: ['version:DESC'] }),
+      expect.objectContaining({ pagina: 0, tamanio: 2, ordenamiento: ['version:DESC'] }),
     );
     expect(JSON.stringify(consultar.mock.calls[0][0].filtros)).toContain('a-1');
   });
@@ -55,7 +56,9 @@ describe('useUltimasVersionesArtefacto', () => {
 
     // Assert
     await waitFor(() => expect(result.current.ultimaVersionId('a-1')).toBeNull());
+    expect(result.current.versionAnterior('a-1')).toBeNull();
     expect(consultar).toHaveBeenCalledTimes(1);
     expect(apagado.result.current.ultimaVersionId('a-5')).toBeUndefined();
+    expect(apagado.result.current.versionAnterior('a-5')).toBeUndefined();
   });
 });

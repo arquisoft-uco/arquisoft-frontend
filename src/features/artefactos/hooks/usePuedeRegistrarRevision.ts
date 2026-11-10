@@ -14,6 +14,7 @@ export function usePuedeRegistrarRevision(versiones: VersionArtefacto[]) {
     return puedeRegistrarRevision({
       version,
       ultimaVersionId: ultimas.ultimaVersionId(version.artefacto),
+      versionAnterior: ultimas.versionAnterior(version.artefacto),
       artefactoOmitido: omitidos.has(version.artefacto),
     });
   }
