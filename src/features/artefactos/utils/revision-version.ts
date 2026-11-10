@@ -39,6 +39,7 @@ export function estudianteVeObservaciones(version: VersionArtefacto): boolean {
 interface EntradaPuedeRegistrar {
   version: VersionArtefacto;
   ultimaVersionId: string | null | undefined;
+  versionAnterior: VersionArtefacto | null | undefined;
   artefactoOmitido: boolean;
 }
 
@@ -50,12 +51,27 @@ export function reabreArtefacto(version: VersionArtefacto): boolean {
   return version.estadoRevision === ESTADO_REVISION_CERRADA;
 }
 
+export function versionAnteriorPermiteRegistrar(
+  version: VersionArtefacto,
+  versionAnterior: VersionArtefacto | null | undefined,
+): boolean {
+  if (version.version <= 1) return true;
+  return (
+    versionAnterior?.version === version.version - 1 &&
+    versionAnterior.estadoRevision === ESTADO_REVISION_RESUELTA
+  );
+}
+
 export function puedeRegistrarRevision({
   version,
   ultimaVersionId,
+  versionAnterior,
   artefactoOmitido,
 }: EntradaPuedeRegistrar): boolean {
   return (
-    !artefactoOmitido && ultimaVersionId === version.id && estadoPermiteRegistrarRevision(version)
+    !artefactoOmitido &&
+    ultimaVersionId === version.id &&
+    estadoPermiteRegistrarRevision(version) &&
+    versionAnteriorPermiteRegistrar(version, versionAnterior)
   );
 }

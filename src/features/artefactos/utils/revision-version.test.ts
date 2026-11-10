@@ -9,6 +9,7 @@ import {
   reabreArtefacto,
   revisionAdmiteDecisionObservacion,
   tieneRevision,
+  versionAnteriorPermiteRegistrar,
 } from './revision-version';
 
 const VERSION: VersionArtefacto = {
@@ -27,6 +28,15 @@ const VERSION: VersionArtefacto = {
   fechaCreacionRevision: null,
 };
 
+const ANTERIOR_RESUELTA: VersionArtefacto = {
+  ...VERSION,
+  id: 'v-1',
+  version: 1,
+  revisionAsesor: 'r-1',
+  estadoRevision: 'RESUELTA',
+  nombreEstadoRevision: 'Resuelta',
+};
+
 function con(estadoRevision: string | null): VersionArtefacto {
   return { ...VERSION, estadoRevision };
 }
@@ -35,10 +45,12 @@ function puede(
   estadoRevision: string | null,
   ultimaVersionId: string | null | undefined = 'v-2',
   artefactoOmitido = false,
+  versionAnterior: VersionArtefacto | null | undefined = ANTERIOR_RESUELTA,
 ) {
   return puedeRegistrarRevision({
     version: con(estadoRevision),
     ultimaVersionId,
+    versionAnterior,
     artefactoOmitido,
   });
 }
@@ -55,6 +67,30 @@ describe('puedeRegistrarRevision', () => {
       noEsUltima: puede(null, 'v-3'),
       ultimaDesconocida: puede(null, null),
       omitido: puede(null, 'v-2', true),
+      anteriorPendiente: puede(null, 'v-2', false, {
+        ...ANTERIOR_RESUELTA,
+        estadoRevision: 'PENDIENTE',
+      }),
+      anteriorEnProgreso: puede(null, 'v-2', false, {
+        ...ANTERIOR_RESUELTA,
+        estadoRevision: 'EN_PROGRESO',
+      }),
+      anteriorCerrada: puede(null, 'v-2', false, {
+        ...ANTERIOR_RESUELTA,
+        estadoRevision: 'CERRADA',
+      }),
+      anteriorSinRevision: puede(null, 'v-2', false, {
+        ...ANTERIOR_RESUELTA,
+        estadoRevision: null,
+      }),
+      sinAnterior: puede(null, 'v-2', false, null),
+      anteriorDesconocida: puedeRegistrarRevision({
+        version: VERSION,
+        ultimaVersionId: 'v-2',
+        versionAnterior: undefined,
+        artefactoOmitido: false,
+      }),
+      anteriorOtroNumero: puede(null, 'v-2', false, { ...ANTERIOR_RESUELTA, version: 5 }),
     };
 
     // Assert
@@ -67,7 +103,24 @@ describe('puedeRegistrarRevision', () => {
       noEsUltima: false,
       ultimaDesconocida: false,
       omitido: false,
+      anteriorPendiente: false,
+      anteriorEnProgreso: false,
+      anteriorCerrada: false,
+      anteriorSinRevision: false,
+      sinAnterior: false,
+      anteriorDesconocida: false,
+      anteriorOtroNumero: false,
     });
+  });
+});
+
+describe('versionAnteriorPermiteRegistrar', () => {
+  it('la primera versión no exige anterior', () => {
+    // Act
+    const resultado = versionAnteriorPermiteRegistrar({ ...VERSION, version: 1 }, null);
+
+    // Assert
+    expect(resultado).toBe(true);
   });
 });
 

@@ -56,10 +56,10 @@ describe('usePuedeRegistrarRevision', () => {
   it('cierra mientras carga y luego abre solo en la última versión elegible de un artefacto no omitido', async () => {
     // Arrange
     const ultima = version({});
-    const anterior = version({ id: 'v-1', version: 1 });
+    const anterior = version({ id: 'v-1', version: 1, estadoRevision: 'RESUELTA' });
     const pendiente = version({ id: 'v-3', artefacto: 'a-3', estadoRevision: 'PENDIENTE' });
     const omitida = version({ id: 'v-2', artefacto: 'a-omitido' });
-    consultar.mockResolvedValue(pagina([ultima]));
+    consultar.mockResolvedValue(pagina([ultima, anterior]));
 
     // Act
     const { result } = renderHook(() =>
@@ -72,6 +72,20 @@ describe('usePuedeRegistrarRevision', () => {
     expect(result.current.puedeRegistrar(anterior)).toBe(false);
     expect(result.current.puedeRegistrar(pendiente)).toBe(false);
     expect(result.current.puedeRegistrar(omitida)).toBe(false);
+  });
+
+  it('no abre cuando la revisión de la versión anterior sigue en progreso', async () => {
+    // Arrange
+    const tercera = version({ version: 3 });
+    const segunda = version({ id: 'v-1', version: 2, estadoRevision: 'EN_PROGRESO' });
+    consultar.mockResolvedValue(pagina([tercera, segunda]));
+
+    // Act
+    const { result } = renderHook(() => usePuedeRegistrarRevision([tercera]));
+
+    // Assert
+    await waitFor(() => expect(consultar).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.puedeRegistrar(tercera)).toBe(false));
   });
 
   it('si falla el catálogo de omitidos no ofrece la acción ni consulta la última versión', async () => {

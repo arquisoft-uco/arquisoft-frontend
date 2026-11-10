@@ -3,6 +3,7 @@ import { errorApi } from '../../../test-utils/errores-api';
 import {
   ARTEFACTO_ASESOR_NO_PROPIETARIO,
   REVISION_ABIERTA_EXISTENTE,
+  REVISION_VERSION_ANTERIOR_NO_RESUELTA,
   VERSION_NO_ENCONTRADA,
   VERSION_NO_ES_ULTIMA,
   mensajeDeErrorRegistrarRevision,
@@ -23,6 +24,7 @@ describe('mensajeDeErrorRegistrarRevision', () => {
       'ARTEFACTOS_ARTEFACTO_OMITIDO',
       VERSION_NO_ES_ULTIMA,
       REVISION_ABIERTA_EXISTENTE,
+      REVISION_VERSION_ANTERIOR_NO_RESUELTA,
     ].map((codigo) => mensajeDeErrorRegistrarRevision(porCodigo(codigo)));
 
     // Assert
@@ -33,6 +35,7 @@ describe('mensajeDeErrorRegistrarRevision', () => {
       'El artefacto está omitido y no admite revisiones.',
       'Hay una versión más reciente: registra la revisión sobre ella.',
       'Esta versión ya tiene una revisión sin cerrar.',
+      'La revisión de la versión anterior aún no está resuelta: podrás registrar esta cuando el estudiante la resuelva.',
     ]);
     expect(mensajeDeErrorRegistrarRevision(porCodigo('OTRO'))).toBe('del backend');
     expect(mensajeDeErrorRegistrarRevision(new Error('Network Error'))).toBe(
@@ -46,6 +49,7 @@ describe('revisionYaNoRegistrable', () => {
     // Assert
     expect(revisionYaNoRegistrable(porCodigo(VERSION_NO_ES_ULTIMA))).toBe(true);
     expect(revisionYaNoRegistrable(porCodigo(REVISION_ABIERTA_EXISTENTE))).toBe(true);
+    expect(revisionYaNoRegistrable(porCodigo(REVISION_VERSION_ANTERIOR_NO_RESUELTA))).toBe(true);
     expect(revisionYaNoRegistrable(porCodigo('OTRO'))).toBe(false);
     expect(revisionYaNoRegistrable(new Error('fallo'))).toBe(false);
   });
