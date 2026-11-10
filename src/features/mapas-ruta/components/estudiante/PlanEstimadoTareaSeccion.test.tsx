@@ -30,6 +30,8 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ cargando: true })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
+        puedeEliminar={false}
+        onEliminar={vi.fn()}
       />,
     );
 
@@ -44,6 +46,8 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ plan: PLAN })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
+        puedeEliminar={false}
+        onEliminar={vi.fn()}
       />,
     );
 
@@ -60,6 +64,8 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ plan: { ...PLAN, tiempoEstimadoDias: 1, descripcionEstimado: null } })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
+        puedeEliminar={false}
+        onEliminar={vi.fn()}
       />,
     );
 
@@ -77,6 +83,8 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ puedeAgregar: true })}
         onAgregar={onAgregar}
         onEditar={vi.fn()}
+        puedeEliminar={false}
+        onEliminar={vi.fn()}
       />,
     );
 
@@ -97,6 +105,8 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ hayError: true, reintentar })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
+        puedeEliminar={false}
+        onEliminar={vi.fn()}
       />,
     );
 
@@ -120,7 +130,13 @@ describe('PlanEstimadoTareaSeccion', () => {
     ];
     for (const caso of casos) {
       const { unmount } = render(
-        <PlanEstimadoTareaSeccion consulta={caso} onAgregar={vi.fn()} onEditar={onEditar} />,
+        <PlanEstimadoTareaSeccion
+          consulta={caso}
+          onAgregar={vi.fn()}
+          onEditar={onEditar}
+          puedeEliminar={false}
+          onEliminar={vi.fn()}
+        />,
       );
       expect(boton()).not.toBeInTheDocument();
       unmount();
@@ -130,6 +146,8 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ plan: PLAN })}
         onAgregar={vi.fn()}
         onEditar={onEditar}
+        puedeEliminar={false}
+        onEliminar={vi.fn()}
       />,
     );
 
@@ -138,5 +156,37 @@ describe('PlanEstimadoTareaSeccion', () => {
 
     // Assert
     expect(onEditar).toHaveBeenCalledTimes(1);
+  });
+
+  it('Remover plan estimado solo aparece con puedeEliminar y al pulsarlo llama a onEliminar', async () => {
+    // Arrange
+    const onEliminar = vi.fn();
+    const user = userEvent.setup();
+    const sinPermiso = render(
+      <PlanEstimadoTareaSeccion
+        consulta={consulta({ plan: PLAN })}
+        onAgregar={vi.fn()}
+        onEditar={vi.fn()}
+        puedeEliminar={false}
+        onEliminar={onEliminar}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Remover plan estimado' })).not.toBeInTheDocument();
+    sinPermiso.unmount();
+    render(
+      <PlanEstimadoTareaSeccion
+        consulta={consulta({ plan: PLAN })}
+        onAgregar={vi.fn()}
+        onEditar={vi.fn()}
+        puedeEliminar
+        onEliminar={onEliminar}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Remover plan estimado' }));
+
+    // Assert
+    expect(onEliminar).toHaveBeenCalledTimes(1);
   });
 });

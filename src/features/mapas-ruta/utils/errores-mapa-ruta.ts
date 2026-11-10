@@ -127,6 +127,13 @@ export function mensajeErrorModificarPlanEstimado(err: unknown): string {
   return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
 }
 
+export function mensajeErrorEliminarPlanEstimado(err: unknown): string {
+  if (hasApiErrorCode(err, 'PLAN_ESTIMADO_NO_ENCONTRADO')) {
+    return 'El plan estimado ya no está disponible. Actualiza el detalle de la tarea e inténtalo de nuevo.';
+  }
+  return getApiErrorMessage(err, 'No se pudo remover el plan estimado. Inténtalo de nuevo.');
+}
+
 export function campoDeErrorModificarPlanEstimado(err: unknown): 'descripcionEstimado' | null {
   if (hasApiErrorCode(err, 'PLAN_ESTIMADO_DESCRIPCION_DEMASIADO_LARGA')) {
     return 'descripcionEstimado';

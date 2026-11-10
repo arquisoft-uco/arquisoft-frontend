@@ -21,6 +21,9 @@ vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de edición de la tarea" />,
 }));
 
+vi.mock('./estudiante/EliminarPlanEstimadoDialog', () => ({
+  default: () => <div role="dialog" aria-label="Diálogo de remoción del plan estimado" />,
+}));
 vi.mock('./estudiante/EliminarTareaDialog', () => ({
   default: ({ onCerrar, onEliminada }: { onCerrar: () => void; onEliminada: () => void }) => (
     <div role="dialog" aria-label="Diálogo de eliminación">
@@ -364,5 +367,33 @@ describe('DetalleTareaEstudianteView', () => {
     expect(
       screen.getByRole('dialog', { name: 'Panel de edición del plan estimado' }),
     ).toBeInTheDocument();
+  });
+
+  it.each([
+    ['NUEVA', true],
+    ['EN_PROGRESO', true],
+    ['FINALIZADA', false],
+  ])('Remover plan estimado con una tarea %s: visible=%s', async (id, visible) => {
+    // Arrange
+    simular({ tarea: { ...TAREA, estado: { id, nombre: id } } });
+    usePlan.mockReturnValue({
+      plan: { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 3, descripcionEstimado: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+      puedeAgregar: false,
+    });
+    const user = userEvent.setup();
+    renderizar();
+    const boton = screen.queryByRole('button', { name: 'Remover plan estimado' });
+
+    // Act
+    if (boton) await user.click(boton);
+
+    // Assert
+    expect(Boolean(boton)).toBe(visible);
+    expect(
+      Boolean(screen.queryByRole('dialog', { name: 'Diálogo de remoción del plan estimado' })),
+    ).toBe(visible);
   });
 });

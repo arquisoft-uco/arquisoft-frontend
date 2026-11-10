@@ -1,4 +1,4 @@
-import { CalendarClock } from 'lucide-react';
+import { CalendarClock, Trash2 } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
@@ -14,9 +14,17 @@ interface Props {
   consulta: ConsultaPlanEstimado;
   onAgregar: () => void;
   onEditar: () => void;
+  puedeEliminar: boolean;
+  onEliminar: () => void;
 }
 
-export default function PlanEstimadoTareaSeccion({ consulta, onAgregar, onEditar }: Props) {
+export default function PlanEstimadoTareaSeccion({
+  consulta,
+  onAgregar,
+  onEditar,
+  puedeEliminar,
+  onEliminar,
+}: Props) {
   const { plan, cargando, hayError, reintentar } = consulta;
 
   if (cargando) return <Skeleton variante="lineas" etiqueta="Cargando el plan estimado…" />;
@@ -53,6 +61,16 @@ export default function PlanEstimadoTareaSeccion({ consulta, onAgregar, onEditar
         >
           Editar plan estimado
         </Button>
+        {puedeEliminar && (
+          <Button
+            variante="peligroContorno"
+            icono={Trash2}
+            className="header-action"
+            onClick={onEliminar}
+          >
+            Remover plan estimado
+          </Button>
+        )}
       </div>
       <dl className="grid gap-4 sm:grid-cols-2">
         <div className={DATO}>

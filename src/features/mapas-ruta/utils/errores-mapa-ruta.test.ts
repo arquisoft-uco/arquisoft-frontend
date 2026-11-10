@@ -10,6 +10,7 @@ import {
   mensajeErrorAsignarTarea,
   mensajeErrorCambioEstadoTarea,
   mensajeErrorCambioFechaFin,
+  mensajeErrorEliminarPlanEstimado,
   mensajeErrorEliminarTarea,
   mensajeErrorMapaRuta,
   mensajeErrorModificarPlanEstimado,
@@ -185,5 +186,16 @@ describe('errores-mapa-ruta', () => {
       campoDeErrorModificarPlanEstimado(errorApi('PLAN_ESTIMADO_DESCRIPCION_DEMASIADO_LARGA')),
     ).toBe('descripcionEstimado');
     expect(campoDeErrorModificarPlanEstimado(errorApi('PLAN_ESTIMADO_NO_ENCONTRADO'))).toBeNull();
+  });
+
+  it('eliminar plan estimado: texto propio si no existe y si no el mensaje del backend o el respaldo', () => {
+    // Act / Assert
+    expect(mensajeErrorEliminarPlanEstimado(errorApi('PLAN_ESTIMADO_NO_ENCONTRADO'))).toContain(
+      'ya no está disponible',
+    );
+    expect(mensajeErrorEliminarPlanEstimado(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorEliminarPlanEstimado(new Error('red'))).toBe(
+      'No se pudo remover el plan estimado. Inténtalo de nuevo.',
+    );
   });
 });
