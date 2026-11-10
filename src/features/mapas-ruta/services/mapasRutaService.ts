@@ -177,7 +177,7 @@ export const mapasRutaService = {
     req: ConsultaCriteriaRequest,
   ): Promise<Page<PlanReal>> {
     return apiClient
-      .post<Page<PlanRealResponse>>(`/tareas/${tareaId}/planes-reales/estudiante`, req)
+      .post<Page<PlanRealResponse>>(`/mapas-ruta/tareas/${tareaId}/planes-reales/estudiante`, req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aPlanReal) }));
   },
 

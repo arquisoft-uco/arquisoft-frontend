@@ -465,7 +465,7 @@ describe('mapasRutaService', () => {
       const pagina = await mapasRutaService.consultarPlanesRealesTarea('t-1', req);
 
       // Assert
-      expect(post).toHaveBeenCalledWith('/tareas/t-1/planes-reales/estudiante', req);
+      expect(post).toHaveBeenCalledWith('/mapas-ruta/tareas/t-1/planes-reales/estudiante', req);
       expect(pagina.totalElements).toBe(1);
       expect(pagina.content).toEqual([
         { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: null },
