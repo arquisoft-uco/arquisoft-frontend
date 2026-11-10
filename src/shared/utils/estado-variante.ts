@@ -54,7 +54,6 @@ const VARIANTE_OBSERVACION: TablaDeVariantes = {
 
 const VARIANTE_PROYECTO: TablaDeVariantes = {
   EN_PROCESO: 'info',
-  LISTO_PARA_REVISION: 'advertencia',
   ATRASADO: 'peligro',
   FINALIZADO: 'exito',
 };

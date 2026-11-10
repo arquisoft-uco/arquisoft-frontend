@@ -111,7 +111,6 @@ describe('varianteEstadoProyecto', () => {
   it('mapea cada estado de proyecto de grado a su variante y un id desconocido cae en neutro', () => {
     // Act / Assert
     expect(varianteEstadoProyecto('EN_PROCESO')).toBe('info');
-    expect(varianteEstadoProyecto('LISTO_PARA_REVISION')).toBe('advertencia');
     expect(varianteEstadoProyecto('ATRASADO')).toBe('peligro');
     expect(varianteEstadoProyecto('FINALIZADO')).toBe('exito');
     expect(varianteEstadoProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
