@@ -122,10 +122,10 @@ describe('ConsultarProyectosGradoAsesor', () => {
     render(<ConsultarProyectosGradoAsesor />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Listo Para Revisión' }));
+    await user.click(screen.getByRole('button', { name: 'Atrasado' }));
 
     // Assert
     expect(screen.getByRole('button', { name: 'Finalizado' })).toBeInTheDocument();
-    expect(hook.toggleEstado).toHaveBeenCalledWith('LISTO_PARA_REVISION');
+    expect(hook.toggleEstado).toHaveBeenCalledWith('ATRASADO');
   });
 });
