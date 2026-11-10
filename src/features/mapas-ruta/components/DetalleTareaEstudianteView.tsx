@@ -8,6 +8,7 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import { useContextoDetalleTarea } from '../hooks/useContextoDetalleTarea';
 import { usePlanEstimadoTarea } from '../hooks/usePlanEstimadoTarea';
+import { usePlanRealTarea } from '../hooks/usePlanRealTarea';
 import { useTarea } from '../hooks/useTarea';
 import {
   destinosDeEstado,
@@ -17,6 +18,7 @@ import {
 import type { PanelDetalleTarea } from './estudiante/PanelesDetalleTarea';
 import PanelesDetalleTarea from './estudiante/PanelesDetalleTarea';
 import PlanEstimadoTareaSeccion from './estudiante/PlanEstimadoTareaSeccion';
+import PlanRealTareaSeccion from './estudiante/PlanRealTareaSeccion';
 import TareaDetalleCard from './estudiante/TareaDetalleCard';
 
 export default function DetalleTareaEstudianteView() {
@@ -24,6 +26,7 @@ export default function DetalleTareaEstudianteView() {
   const navigate = useNavigate();
   const { tarea, cargando, noEncontrada, hayError, reintentar } = useTarea(tareaId);
   const planEstimado = usePlanEstimadoTarea(tareaId, !!tarea);
+  const planReal = usePlanRealTarea(tareaId, !!tarea);
   const { search } = useContextoDetalleTarea();
   const [panelAbierto, setPanelAbierto] = useState<PanelDetalleTarea | null>(null);
 
@@ -62,6 +65,7 @@ export default function DetalleTareaEstudianteView() {
           puedeEliminar={puedeRemoverPlanEstimado(tarea.estado.id)}
           onEliminar={() => setPanelAbierto('eliminarPlan')}
         />
+        <PlanRealTareaSeccion consulta={planReal} />
       </>
     );
   }

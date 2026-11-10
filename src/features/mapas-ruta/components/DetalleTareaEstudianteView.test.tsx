@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { Link, Route, Routes, useLocation } from 'react-router';
 import { render, screen, within } from '../../../test-utils/render';
 import { usePlanEstimadoTarea } from '../hooks/usePlanEstimadoTarea';
+import { usePlanRealTarea } from '../hooks/usePlanRealTarea';
 import { useTarea } from '../hooks/useTarea';
 import DetalleTareaEstudianteView from './DetalleTareaEstudianteView';
 
 vi.mock('../hooks/useTarea', () => ({ useTarea: vi.fn() }));
+vi.mock('../hooks/usePlanRealTarea', () => ({ usePlanRealTarea: vi.fn() }));
 vi.mock('../hooks/usePlanEstimadoTarea', () => ({ usePlanEstimadoTarea: vi.fn() }));
 vi.mock('./estudiante/CambiarEstadoTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de cambio de estado" />,
@@ -97,6 +99,12 @@ describe('DetalleTareaEstudianteView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     usePlan.mockReturnValue(CONSULTA_SIN_PLAN);
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: undefined,
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
   });
 
   it('muestra descripción, estado, asesor con correo y las fechas del mapa de ruta', () => {
@@ -395,5 +403,34 @@ describe('DetalleTareaEstudianteView', () => {
     expect(
       Boolean(screen.queryByRole('dialog', { name: 'Diálogo de remoción del plan estimado' })),
     ).toBe(visible);
+  });
+
+  it('monta la sección Plan real solo cuando hay tarea', () => {
+    // Arrange
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: 'Informe entregado' },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
+    const casos = [
+      { parcial: {}, visible: true },
+      { parcial: { tarea: undefined, cargando: true }, visible: false },
+      { parcial: { tarea: undefined, hayError: true }, visible: false },
+      { parcial: { tarea: undefined, noEncontrada: true }, visible: false },
+    ];
+
+    for (const { parcial, visible } of casos) {
+      simular(parcial);
+
+      // Act
+      const { unmount } = renderizar();
+
+      // Assert
+      expect(Boolean(screen.queryByRole('heading', { name: 'Plan real' }))).toBe(visible);
+      unmount();
+    }
+    expect(usePlanRealTarea).toHaveBeenCalledWith('t-1', true);
+    expect(usePlanRealTarea).toHaveBeenCalledWith('t-1', false);
   });
 });

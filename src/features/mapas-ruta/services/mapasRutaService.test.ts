@@ -448,4 +448,28 @@ describe('mapasRutaService', () => {
       ]);
     });
   });
+
+  describe('consultarPlanesRealesTarea', () => {
+    it('hace POST con el body recibido y traduce tarea a tareaId conservando null y la página', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [{ id: 'r-1', tarea: 't-1', tiempoRealDias: 3, descripcionReal: null }],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesRealesTarea('t-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/mapas-ruta/tareas/t-1/planes-reales/estudiante', req);
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: null },
+      ]);
+    });
+  });
 });
