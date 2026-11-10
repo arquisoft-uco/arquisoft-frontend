@@ -18,6 +18,8 @@ import type { MapaRutaResponse } from '../models/MapaRutaResponse';
 import type { EstadoTarea } from '../models/mapas-ruta';
 import type { PlanEstimado } from '../models/PlanEstimado';
 import type { PlanEstimadoResponse } from '../models/PlanEstimadoResponse';
+import type { PlanReal } from '../models/PlanReal';
+import type { PlanRealResponse } from '../models/PlanRealResponse';
 import type { PaginaProyectosElegibles } from '../models/PaginaProyectosElegibles';
 import type { ProyectoElegibleResponse } from '../models/ProyectoElegibleResponse';
 import type { Tarea } from '../models/Tarea';
@@ -54,6 +56,15 @@ function aPlanEstimado(dto: PlanEstimadoResponse): PlanEstimado {
     tareaId: dto.tarea,
     tiempoEstimadoDias: dto.tiempoEstimadoDias,
     descripcionEstimado: dto.descripcionEstimado,
+  };
+}
+
+function aPlanReal(dto: PlanRealResponse): PlanReal {
+  return {
+    id: dto.id,
+    tareaId: dto.tarea,
+    tiempoRealDias: dto.tiempoRealDias,
+    descripcionReal: dto.descripcionReal,
   };
 }
 
@@ -159,6 +170,15 @@ export const mapasRutaService = {
     return apiClient
       .post<Page<PlanEstimadoResponse>>(`/tareas/${tareaId}/planes-estimados/estudiante`, req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aPlanEstimado) }));
+  },
+
+  consultarPlanesRealesTarea(
+    tareaId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<PlanReal>> {
+    return apiClient
+      .post<Page<PlanRealResponse>>(`/tareas/${tareaId}/planes-reales/estudiante`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aPlanReal) }));
   },
 
   modificarPlanEstimado(planEstimadoId: string, req: ModificarPlanEstimadoRequest): Promise<void> {
