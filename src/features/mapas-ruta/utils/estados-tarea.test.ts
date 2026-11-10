@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { destinosDeEstado, esTareaRemovible } from './estados-tarea';
+import { destinosDeEstado, esTareaRemovible, puedeRemoverPlanEstimado } from './estados-tarea';
 
 describe('esTareaRemovible', () => {
   it('permite eliminar NUEVA y EN_PROGRESO y no FINALIZADA ni un estado desconocido', () => {
@@ -18,5 +18,15 @@ describe('destinosDeEstado', () => {
     expect(destinosDeEstado('EN_PROGRESO')).toEqual(['FINALIZADA']);
     expect(destinosDeEstado('FINALIZADA')).toEqual([]);
     expect(destinosDeEstado('DESCONOCIDO')).toEqual([]);
+  });
+});
+
+describe('puedeRemoverPlanEstimado', () => {
+  it('bloquea solo FINALIZADA y permite NUEVA, EN_PROGRESO y un estado desconocido', () => {
+    // Act / Assert
+    expect(puedeRemoverPlanEstimado('FINALIZADA')).toBe(false);
+    expect(puedeRemoverPlanEstimado('NUEVA')).toBe(true);
+    expect(puedeRemoverPlanEstimado('EN_PROGRESO')).toBe(true);
+    expect(puedeRemoverPlanEstimado('DESCONOCIDO')).toBe(true);
   });
 });

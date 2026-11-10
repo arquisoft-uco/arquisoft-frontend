@@ -169,6 +169,10 @@ export const mapasRutaService = {
       .then(() => undefined);
   },
 
+  eliminarPlanEstimado(planEstimadoId: string): Promise<void> {
+    return apiClient.delete(`/mapas-ruta/planes-estimados/${planEstimadoId}`).then(() => undefined);
+  },
+
   modificarInformacionTarea(tareaId: string, req: ModificarInformacionTareaRequest): Promise<void> {
     return apiClient
       .patch(`/tareas/${tareaId}`, { descripcion: req.descripcion, asesor: req.asesorId })

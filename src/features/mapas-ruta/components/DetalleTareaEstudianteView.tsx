@@ -9,12 +9,13 @@ import Skeleton from '../../../shared/components/ui/Skeleton';
 import { useContextoDetalleTarea } from '../hooks/useContextoDetalleTarea';
 import { usePlanEstimadoTarea } from '../hooks/usePlanEstimadoTarea';
 import { useTarea } from '../hooks/useTarea';
-import { destinosDeEstado, esTareaRemovible } from '../utils/estados-tarea';
-import AgregarPlanEstimadoPanel from './estudiante/AgregarPlanEstimadoPanel';
-import CambiarEstadoTareaPanel from './estudiante/CambiarEstadoTareaPanel';
-import EliminarTareaDialog from './estudiante/EliminarTareaDialog';
-import ModificarInformacionTareaPanel from './estudiante/ModificarInformacionTareaPanel';
-import ModificarPlanEstimadoPanel from './estudiante/ModificarPlanEstimadoPanel';
+import {
+  destinosDeEstado,
+  esTareaRemovible,
+  puedeRemoverPlanEstimado,
+} from '../utils/estados-tarea';
+import type { PanelDetalleTarea } from './estudiante/PanelesDetalleTarea';
+import PanelesDetalleTarea from './estudiante/PanelesDetalleTarea';
 import PlanEstimadoTareaSeccion from './estudiante/PlanEstimadoTareaSeccion';
 import TareaDetalleCard from './estudiante/TareaDetalleCard';
 
@@ -24,9 +25,7 @@ export default function DetalleTareaEstudianteView() {
   const { tarea, cargando, noEncontrada, hayError, reintentar } = useTarea(tareaId);
   const planEstimado = usePlanEstimadoTarea(tareaId, !!tarea);
   const { search } = useContextoDetalleTarea();
-  const [panelAbierto, setPanelAbierto] = useState<
-    'estado' | 'plan' | 'modificarPlan' | 'informacion' | 'eliminar' | null
-  >(null);
+  const [panelAbierto, setPanelAbierto] = useState<PanelDetalleTarea | null>(null);
 
   if (!tareaId) return <Navigate to="/mapas-ruta" replace />;
 
@@ -60,6 +59,8 @@ export default function DetalleTareaEstudianteView() {
           consulta={planEstimado}
           onAgregar={() => setPanelAbierto('plan')}
           onEditar={() => setPanelAbierto('modificarPlan')}
+          puedeEliminar={puedeRemoverPlanEstimado(tarea.estado.id)}
+          onEliminar={() => setPanelAbierto('eliminarPlan')}
         />
       </>
     );
@@ -109,29 +110,13 @@ export default function DetalleTareaEstudianteView() {
         }
       />
       {contenido()}
-      {panelAbierto === 'estado' && tarea && (
-        <CambiarEstadoTareaPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />
-      )}
-      {panelAbierto === 'plan' && tarea && (
-        <AgregarPlanEstimadoPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />
-      )}
-      {panelAbierto === 'modificarPlan' && tarea && planEstimado.plan && (
-        <ModificarPlanEstimadoPanel
-          tarea={tarea}
-          plan={planEstimado.plan}
-          onCerrar={() => setPanelAbierto(null)}
-        />
-      )}
-      {panelAbierto === 'informacion' && tarea && (
-        <ModificarInformacionTareaPanel tarea={tarea} onCerrar={() => setPanelAbierto(null)} />
-      )}
-      {panelAbierto === 'eliminar' && tarea && (
-        <EliminarTareaDialog
-          tarea={tarea}
-          onCerrar={() => setPanelAbierto(null)}
-          onEliminada={() => navigate(rutaListado, { replace: true })}
-        />
-      )}
+      <PanelesDetalleTarea
+        panelAbierto={panelAbierto}
+        tarea={tarea}
+        plan={planEstimado.plan}
+        onCerrar={() => setPanelAbierto(null)}
+        onTareaEliminada={() => navigate(rutaListado, { replace: true })}
+      />
     </div>
   );
 }
