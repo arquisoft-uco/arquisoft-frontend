@@ -395,6 +395,22 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('modificarPlanEstimado', () => {
+    it('hace PATCH /planes-estimados/{id} con solo la descripcion, tambien vacia, y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.modificarPlanEstimado('p-1', {
+        descripcionEstimado: '',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/planes-estimados/p-1', { descripcionEstimado: '' });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('consultarPlanesEstimadosTarea', () => {
     it('hace POST con el body recibido y traduce tarea a tareaId conservando la página', async () => {
       // Arrange

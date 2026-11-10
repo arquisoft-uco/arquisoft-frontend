@@ -6,6 +6,10 @@ export const planEstimadoSchema = z.object({
   descripcionEstimado: textoOpcional(LIMITES.PLAN_ESTIMADO_DESCRIPCION_MAX),
 });
 
+export const modificarPlanEstimadoSchema = planEstimadoSchema.pick({ descripcionEstimado: true });
+
+export type ModificarPlanEstimadoValues = z.infer<typeof modificarPlanEstimadoSchema>;
+
 export type PlanEstimadoValues = z.infer<typeof planEstimadoSchema>;
 
 export const ETIQUETAS_PLAN_ESTIMADO: Record<keyof PlanEstimadoValues, string> = {

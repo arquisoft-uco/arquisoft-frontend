@@ -13,9 +13,10 @@ const VALOR = 'break-words text-base font-medium text-on-surface';
 interface Props {
   consulta: ConsultaPlanEstimado;
   onAgregar: () => void;
+  onEditar: () => void;
 }
 
-export default function PlanEstimadoTareaSeccion({ consulta, onAgregar }: Props) {
+export default function PlanEstimadoTareaSeccion({ consulta, onAgregar, onEditar }: Props) {
   const { plan, cargando, hayError, reintentar } = consulta;
 
   if (cargando) return <Skeleton variante="lineas" etiqueta="Cargando el plan estimado…" />;
@@ -40,9 +41,19 @@ export default function PlanEstimadoTareaSeccion({ consulta, onAgregar }: Props)
       aria-labelledby="plan-estimado-titulo"
       className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-card sm:p-6"
     >
-      <h2 id="plan-estimado-titulo" className="text-lg font-semibold text-on-surface">
-        Plan estimado
-      </h2>
+      <div className="section-header">
+        <h2 id="plan-estimado-titulo" className="text-lg font-semibold text-on-surface">
+          Plan estimado
+        </h2>
+        <Button
+          variante="secundario"
+          icono={CalendarClock}
+          className="header-action"
+          onClick={onEditar}
+        >
+          Editar plan estimado
+        </Button>
+      </div>
       <dl className="grid gap-4 sm:grid-cols-2">
         <div className={DATO}>
           <dt className={ETIQUETA}>Días estimados</dt>
