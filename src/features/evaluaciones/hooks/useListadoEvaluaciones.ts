@@ -38,7 +38,7 @@ export function construirFiltros(texto: string, estadoIds: string[]): NodoFiltro
 }
 
 export function useListadoEvaluaciones(
-  rol: 'coordinador' | 'estudiante',
+  rol: 'coordinador' | 'estudiante' | 'asesor',
   cargar: (req: ConsultaCriteriaRequest) => Promise<Page<Evaluacion>>,
 ) {
   const parametros = useParametrosListado();
