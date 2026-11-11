@@ -5,6 +5,7 @@ export const ESTADOS_PROYECTO: readonly EstadoProyecto[] = [
   { id: 'EN_PROCESO', nombre: 'En proceso' },
   { id: 'ATRASADO', nombre: 'Atrasado' },
   { id: 'FINALIZADO', nombre: 'Finalizado' },
+  { id: 'CANCELADO', nombre: 'Cancelado' },
 ];
 
 export const OPCIONES_ESTADO_PROYECTO = ESTADOS_PROYECTO.map((e) => ({
