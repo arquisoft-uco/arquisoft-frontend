@@ -55,7 +55,7 @@ export default function AsignarArtefactoDestinoSeccion({
                   etiquetaElegidos="Proyecto elegido"
                   textoVacio={
                     proyectos.proyectos.length === 0
-                      ? 'No tienes proyectos de grado asignados'
+                      ? 'No tienes proyectos en proceso ni atrasados'
                       : 'No hay proyectos que coincidan.'
                   }
                   placeholder="Busca por título"

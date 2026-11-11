@@ -33,6 +33,8 @@ import type { VersionRepositorioAsesor } from '../models/VersionRepositorioAseso
 import { ESTADO_REVISION_RESUELTA } from '../utils/revision-resoluble';
 
 const TAMANIO_PAGINA_PROYECTOS = 100;
+// Ids del catálogo de estados del backend en los que se puede asignar artefactos
+const ESTADOS_PROYECTO_ASIGNABLES = ['EN_PROCESO', 'ATRASADO'];
 const TAMANIO_PAGINA_ARTEFACTOS = 100;
 
 interface ProyectoAsesorResponse {
@@ -246,17 +248,25 @@ export const artefactosService = {
 
   getIdsArtefactosOmitidosAsesor,
 
-  consultarProyectosAsignables: (pagina: number): Promise<PaginaProyectosAsignables> =>
-    apiClient
-      .post<Page<ProyectoAsesorResponse>>('/proyectos-grado/asesor', {
-        pagina,
-        tamanio: TAMANIO_PAGINA_PROYECTOS,
-        ordenamiento: ['tituloProyecto:ASC'],
-      })
+  consultarProyectosAsignables: (pagina: number): Promise<PaginaProyectosAsignables> => {
+    const req: ConsultaCriteriaRequest = {
+      pagina,
+      tamanio: TAMANIO_PAGINA_PROYECTOS,
+      ordenamiento: ['tituloProyecto:ASC'],
+      filtros: {
+        tipo: 'PREDICADO_MULTIVALOR',
+        campo: 'estadoProyectoGrado',
+        operador: 'IN',
+        valores: [...ESTADOS_PROYECTO_ASIGNABLES],
+      },
+    };
+    return apiClient
+      .post<Page<ProyectoAsesorResponse>>('/proyectos-grado/asesor', req)
       .then((r) => ({
         proyectos: r.data.content.map((dto) => ({ id: dto.id, titulo: dto.tituloProyecto })),
         siguientePagina: r.data.last ? null : r.data.page + 1,
-      })),
+      }));
+  },
 
   getEstudiantesProyectoAsesorado: (proyectoGradoId: string): Promise<EstudianteAsignable[]> =>
     apiClient
