@@ -37,6 +37,8 @@ function error422(errorCode: string) {
 }
 
 const FILA: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
@@ -176,5 +178,36 @@ describe('DetalleVersionArtefactoPanel', () => {
 
     // Assert
     await waitFor(() => expect(onCerrar).toHaveBeenCalled());
+  });
+
+  it('con el proyecto cancelado o finalizado muestra el aviso de solo lectura, y con uno habilitado no', () => {
+    // Arrange
+    hook.mockReturnValue(estado({ data: { ...DETALLE, proyectoCancelado: true } }));
+
+    // Act
+    const { unmount } = render(<DetalleVersionArtefactoPanel version={FILA} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.getByText(/Este proyecto fue cancelado/)).toBeInTheDocument();
+
+    // Arrange
+    unmount();
+    hook.mockReturnValue(estado({ data: { ...DETALLE, proyectoFinalizado: true } }));
+
+    // Act
+    const segundo = render(<DetalleVersionArtefactoPanel version={FILA} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.getByText(/Este proyecto está finalizado/)).toBeInTheDocument();
+
+    // Arrange
+    segundo.unmount();
+    hook.mockReturnValue(estado({ data: DETALLE }));
+
+    // Act
+    render(<DetalleVersionArtefactoPanel version={FILA} onCerrar={vi.fn()} />);
+
+    // Assert
+    expect(screen.queryByText(/Este proyecto/)).not.toBeInTheDocument();
   });
 });

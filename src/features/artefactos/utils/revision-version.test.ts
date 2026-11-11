@@ -26,6 +26,8 @@ const VERSION: VersionArtefacto = {
   estadoRevision: null,
   nombreEstadoRevision: null,
   fechaCreacionRevision: null,
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 const ANTERIOR_RESUELTA: VersionArtefacto = {

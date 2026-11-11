@@ -60,6 +60,8 @@ describe('useVersionesArtefactoEstudiante', () => {
       filtros: undefined,
     });
     expect(result.current.hayFiltros).toBe(false);
+    expect(result.current.admiteEstadoProyecto).toBe(false);
+    expect(result.current.estadoProyecto).toBeUndefined();
     expect(
       queryClient
         .getQueryCache()
@@ -77,6 +79,7 @@ describe('useVersionesArtefactoEstudiante', () => {
       'fechaCreacion:DESC',
       [],
       '',
+      undefined,
     ]);
   });
 

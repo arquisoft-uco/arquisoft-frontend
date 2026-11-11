@@ -6,6 +6,8 @@ import type { EstadoRevisionAsesor } from '../../models/artefactos';
 import ArtefactosSinAvanceTable from './ArtefactosSinAvanceTable';
 
 const BASE: ArtefactoSinAvance = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: '3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',
@@ -79,5 +81,20 @@ describe('ArtefactosSinAvanceTable', () => {
 
     // Assert
     expect(props.onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('muestra la insignia del proyecto cerrado y ninguna en el habilitado', () => {
+    // Arrange / Act
+    renderizar({
+      artefactos: [
+        BASE,
+        { ...BASE, id: 'a-2', proyectoFinalizado: true },
+        { ...BASE, id: 'a-3', proyectoCancelado: true },
+      ],
+    });
+
+    // Assert
+    expect(screen.getAllByText('Proyecto finalizado').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Proyecto cancelado').length).toBeGreaterThan(0);
   });
 });

@@ -1,10 +1,13 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 
+import { filtrosEstadoProyecto, type EstadoProyectoListado } from './estado-proyecto';
+
 export { ordenamientoDe } from './filtros-artefactos-estudiante';
 
 export interface FiltrosArtefactosSinAvance {
   texto: string;
   estado: string;
+  estadoProyecto: EstadoProyectoListado;
 }
 
 export const CAMPOS_BUSQUEDA = ['nombreProyecto', 'nombreDocumento'] as const;
@@ -26,7 +29,7 @@ export const ORDENES = [
 
 export const ORDEN_POR_DEFECTO = 'fechaUltimaVersion:ASC';
 
-export function construirFiltros(filtros: FiltrosArtefactosSinAvance): NodoFiltroDTO | undefined {
+export function construirFiltros(filtros: FiltrosArtefactosSinAvance): NodoFiltroDTO {
   const nodos: NodoFiltroDTO[] = [];
   const texto = filtros.texto.trim();
   if (texto) {
@@ -50,7 +53,7 @@ export function construirFiltros(filtros: FiltrosArtefactosSinAvance): NodoFiltr
       valor: estado,
     });
   }
-  if (nodos.length === 0) return undefined;
+  nodos.push(...filtrosEstadoProyecto(filtros.estadoProyecto));
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };
 }

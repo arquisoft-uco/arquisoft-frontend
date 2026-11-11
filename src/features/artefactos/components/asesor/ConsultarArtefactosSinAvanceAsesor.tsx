@@ -6,15 +6,25 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { LIMITES } from '../../../../shared/validation';
 import { useArtefactosSinAvanceAsesor } from '../../hooks/useArtefactosSinAvanceAsesor';
 import { useEstadosRevisionAsesor } from '../../hooks/useEstadosRevisionAsesor';
+import {
+  textoAlcanceEstadoProyecto,
+  type EstadoProyectoListado,
+} from '../../utils/estado-proyecto';
 import ArtefactosSinAvanceTable from './ArtefactosSinAvanceTable';
 import FiltrosArtefactosSinAvance from './FiltrosArtefactosSinAvance';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total: number | undefined, dias: number | null): string {
+function textoResumen(
+  total: number | undefined,
+  dias: number | null,
+  estadoProyecto: EstadoProyectoListado,
+): string {
   if (total === undefined || dias === null) return '';
-  return `${total} ${total === 1 ? 'artefacto' : 'artefactos'} con más de ${dias} días sin avance`;
+  const cantidad = `${total} ${total === 1 ? 'artefacto' : 'artefactos'}`;
+  const alcance = textoAlcanceEstadoProyecto(estadoProyecto);
+  return `${cantidad} con más de ${dias} días sin avance · ${alcance}`;
 }
 
 export default function ConsultarArtefactosSinAvanceAsesor() {
@@ -62,7 +72,7 @@ export default function ConsultarArtefactosSinAvanceAsesor() {
       <FiltrosArtefactosSinAvance listado={listado} estados={estados} />
 
       <p aria-live="polite" className={RESUMEN}>
-        {plazoValido ? textoResumen(data?.totalElements, dias) : ''}
+        {plazoValido ? textoResumen(data?.totalElements, dias, listado.filtros.estadoProyecto) : ''}
       </p>
 
       <div aria-busy={isFetching}>{contenido()}</div>

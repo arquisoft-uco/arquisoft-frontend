@@ -13,4 +13,6 @@ export interface VersionArtefacto {
   estadoRevision: string | null;
   nombreEstadoRevision: string | null;
   fechaCreacionRevision: string | null;
+  proyectoFinalizado: boolean;
+  proyectoCancelado: boolean;
 }

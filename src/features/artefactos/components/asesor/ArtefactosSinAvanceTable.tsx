@@ -1,17 +1,17 @@
-import { FileStack, SearchX } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
-import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type {
   ColumnaTabla,
   DireccionOrden,
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
-import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { formatearFechaOpcional } from '../../../../shared/utils/formato-version';
 import type { ArtefactoSinAvance } from '../../models/ArtefactoSinAvance';
 import type { EstadoRevisionAsesor } from '../../models/artefactos';
 import { varianteEstadoUltimaRevision } from '../../utils/estado-ultima-revision';
+
+import VacioArtefactosSinAvance from './VacioArtefactosSinAvance';
+import ProyectoConInsignia from '../ProyectoConInsignia';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
@@ -61,7 +61,9 @@ export default function ArtefactosSinAvanceTable({
       encabezado: 'Proyecto',
       clave: 'nombreProyecto',
       ordenable: true,
-      celda: (artefacto) => <span className={DATO_SECUNDARIO}>{artefacto.nombreProyecto}</span>,
+      celda: (artefacto) => (
+        <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />
+      ),
     },
     {
       id: 'documento',
@@ -103,25 +105,6 @@ export default function ArtefactosSinAvanceTable({
     },
   ];
 
-  const vacio = hayFiltros ? (
-    <EmptyState
-      icono={SearchX}
-      titulo="Sin resultados"
-      descripcion="No hay artefactos que coincidan con los filtros aplicados."
-      accion={
-        <Button variante="secundario" onClick={onLimpiarFiltros}>
-          Limpiar filtros
-        </Button>
-      }
-    />
-  ) : (
-    <EmptyState
-      icono={FileStack}
-      titulo={`Ningún artefacto supera ${dias} días sin avance`}
-      descripcion="Prueba con un plazo menor para ver artefactos con avances más recientes."
-    />
-  );
-
   return (
     <DataTable
       etiqueta="Artefactos sin avance"
@@ -131,11 +114,19 @@ export default function ArtefactosSinAvanceTable({
       orden={orden}
       onOrdenar={onOrdenar}
       cargando={cargando}
-      vacio={vacio}
+      vacio={
+        <VacioArtefactosSinAvance
+          hayFiltros={hayFiltros}
+          dias={dias}
+          onLimpiarFiltros={onLimpiarFiltros}
+        />
+      }
       tarjeta={(artefacto) => (
         <>
           <p className="font-semibold">{artefacto.nombreDocumento}</p>
-          <p className={TARJETA_DATO}>{artefacto.nombreProyecto}</p>
+          <p className={TARJETA_DATO}>
+            <ProyectoConInsignia proyecto={artefacto} />
+          </p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>Versión {artefacto.versionDocumento} del documento</p>
           <p className={TARJETA_DATO}>Última versión: {fecha(artefacto)}</p>

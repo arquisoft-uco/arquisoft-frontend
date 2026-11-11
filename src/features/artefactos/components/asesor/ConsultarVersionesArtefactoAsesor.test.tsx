@@ -39,6 +39,8 @@ const registrarObservacion = vi.mocked(artefactosService.registrarObservacion);
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
 
 const VERSION: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
@@ -103,7 +105,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(within(tabla).getByText('Versión 4')).toBeInTheDocument();
     expect(within(tabla).queryByText('Marta Gómez')).not.toBeInTheDocument();
     expect(within(tabla).queryByRole('columnheader', { name: 'Asesor' })).not.toBeInTheDocument();
-    expect(screen.getByText('1 versión')).toBeInTheDocument();
+    expect(screen.getByText('1 versión · de proyectos habilitados')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });
 
@@ -175,7 +177,11 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     await waitFor(() =>
       expect(consultarVersiones).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'OR' }),
+          filtros: expect.objectContaining({
+            nodos: expect.arrayContaining([
+              expect.objectContaining({ tipo: 'GRUPO', conector: 'OR' }),
+            ]),
+          }),
         }),
       ),
     );
@@ -185,7 +191,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     // Arrange
     const user = userEvent.setup();
     consultarVersiones.mockImplementation(({ filtros }) =>
-      Promise.resolve(pagina(filtros ? [] : [VERSION])),
+      Promise.resolve(pagina(JSON.stringify(filtros).includes('zzz') ? [] : [VERSION])),
     );
     render(<ConsultarVersionesArtefactoAsesor />, { initialPath: '/artefactos?q=zzz' });
 
@@ -219,7 +225,11 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     await waitFor(() =>
       expect(consultarVersiones).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filtros: expect.objectContaining({ tipo: 'PREDICADO', campo: 'estadoRevision' }),
+          filtros: expect.objectContaining({
+            nodos: expect.arrayContaining([
+              expect.objectContaining({ tipo: 'PREDICADO', campo: 'estadoRevision' }),
+            ]),
+          }),
         }),
       ),
     );
@@ -589,6 +599,30 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       await waitFor(() =>
         expect(screen.queryByRole('dialog', { name: 'Gestionar revisión' })).toBeNull(),
       );
+    });
+  });
+
+  describe('proyecto cerrado', () => {
+    it('no ofrece Registrar revisión ni Reabrir revisión', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      consultarVersiones.mockResolvedValue(pagina([{ ...VERSION, proyectoCancelado: true }]));
+      render(<ConsultarVersionesArtefactoAsesor />);
+
+      // Act
+      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        await within(tabla).findByRole('button', {
+          name: 'Acciones de la versión 4 de Acta de inicio',
+        }),
+      );
+
+      // Assert
+      await waitFor(() => expect(consultarVersiones).toHaveBeenCalledTimes(2));
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Reabrir revisión' })).not.toBeInTheDocument();
     });
   });
 });

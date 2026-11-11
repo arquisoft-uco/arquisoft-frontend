@@ -26,6 +26,8 @@ const useAsesoresMock = vi.mocked(useAsesoresVigentes);
 const ANA: Asesor = { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' };
 const LUIS: Asesor = { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' };
 const ARTEFACTO: ArtefactoAsesor = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'art-1',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',

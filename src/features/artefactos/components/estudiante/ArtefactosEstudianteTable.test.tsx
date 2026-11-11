@@ -11,6 +11,8 @@ import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
 import ArtefactosEstudianteTable from './ArtefactosEstudianteTable';
 
 const ARTEFACTO: ArtefactoEstudiante = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'a-1',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',
@@ -128,5 +130,20 @@ describe('ArtefactosEstudianteTable', () => {
     // Assert
     expect(descargar).toHaveBeenCalledWith('r-2', 'Anteproyecto');
     expect(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' })).toBeInTheDocument();
+  });
+
+  it('muestra la insignia del proyecto cancelado o finalizado y ninguna en el habilitado', () => {
+    // Act
+    renderizar({
+      artefactos: [
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', proyectoCancelado: true },
+        { ...ARTEFACTO, id: 'a-3', nombreDocumento: 'Plano', proyectoFinalizado: true },
+      ],
+    });
+
+    // Assert
+    expect(tabla().getAllByText('Proyecto cancelado')).toHaveLength(1);
+    expect(tabla().getAllByText('Proyecto finalizado')).toHaveLength(1);
   });
 });

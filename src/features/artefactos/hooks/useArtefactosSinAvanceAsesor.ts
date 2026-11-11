@@ -4,6 +4,7 @@ import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import { artefactosService } from '../services/artefactosService';
 import { DIAS_SIN_AVANCE_POR_DEFECTO, validarDiasSinAvance } from '../utils/dias-sin-avance';
+import { leerEstadoProyecto } from '../utils/estado-proyecto';
 import {
   construirFiltros,
   ordenamientoDe,
@@ -22,10 +23,11 @@ export function useArtefactosSinAvanceAsesor() {
   const filtros: FiltrosArtefactosSinAvance = {
     texto: parametros.texto('q').trim(),
     estado: parametros.texto('estado').trim(),
+    estadoProyecto: leerEstadoProyecto(parametros.texto('estadoProyecto')),
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [ordenCampo, ordenDireccion] = orden.split(':') as [string, DireccionOrden];
-  const hayFiltros = filtros.texto !== '' || filtros.estado !== '';
+  const hayFiltros = filtros.texto !== '' || filtros.estado !== '' || filtros.estadoProyecto !== '';
 
   const [diasTexto, setDiasTexto] = useState(
     () => parametros.texto('dias') || String(DIAS_SIN_AVANCE_POR_DEFECTO),
@@ -50,13 +52,17 @@ export function useArtefactosSinAvanceAsesor() {
     parametros.cambiar({ estado: valor || undefined });
   }
 
+  function setEstadoProyecto(valor: string) {
+    parametros.cambiar({ estadoProyecto: valor || undefined });
+  }
+
   function setOrden(campo: string, direccion: DireccionOrden) {
     const nuevo = `${campo}:${direccion}`;
     parametros.cambiar({ orden: nuevo === ORDEN_POR_DEFECTO ? undefined : nuevo });
   }
 
   function limpiarFiltros() {
-    parametros.cambiar({ q: undefined, estado: undefined });
+    parametros.cambiar({ q: undefined, estado: undefined, estadoProyecto: undefined });
   }
 
   const query = useQuery({
@@ -69,6 +75,7 @@ export function useArtefactosSinAvanceAsesor() {
       filtros.texto,
       filtros.estado,
       orden,
+      filtros.estadoProyecto,
     ],
     queryFn: () =>
       artefactosService.consultarArtefactosSinAvanceAsesor({
@@ -96,6 +103,7 @@ export function useArtefactosSinAvanceAsesor() {
     filtros,
     setTexto,
     setEstado,
+    setEstadoProyecto,
     orden,
     ordenCampo,
     ordenDireccion,

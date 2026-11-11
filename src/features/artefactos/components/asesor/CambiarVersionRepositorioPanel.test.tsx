@@ -31,6 +31,8 @@ const useElegiblesMock = vi.mocked(useVersionesElegiblesArtefacto);
 const cambiar = vi.mocked(artefactosService.cambiarVersionRepositorioArtefacto);
 
 const ARTEFACTO: ArtefactoAsesor = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'art-1',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',

@@ -5,6 +5,7 @@ import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision
 import { usePuedeRegistrarRevision } from '../../hooks/usePuedeRegistrarRevision';
 import { useVersionesArtefactoAsesor } from '../../hooks/useVersionesArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import { estaCerrado } from '../../utils/estado-proyecto';
 import { ESTADO_REVISION_PENDIENTE, reabreArtefacto } from '../../utils/revision-version';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
 import GestionarRevisionPanel from './GestionarRevisionPanel';
@@ -40,7 +41,7 @@ export default function ConsultarVersionesArtefactoAsesor() {
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const acciones: AccionMenu[] = [];
-    if (puedeRegistrar(version)) {
+    if (puedeRegistrar(version) && !estaCerrado(version)) {
       const reabre = reabreArtefacto(version);
       acciones.push({
         etiqueta: reabre ? 'Reabrir revisión' : 'Registrar revisión',

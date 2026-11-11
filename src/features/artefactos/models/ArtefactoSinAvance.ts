@@ -9,4 +9,6 @@ export interface ArtefactoSinAvance {
   fechaUltimaVersion?: string;
   diasSinAvance?: number;
   estadoUltimaRevision?: string;
+  proyectoFinalizado: boolean;
+  proyectoCancelado: boolean;
 }

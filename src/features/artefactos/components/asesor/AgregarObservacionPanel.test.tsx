@@ -18,6 +18,8 @@ interface OpcionesMutate {
 }
 
 const VERSION: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,

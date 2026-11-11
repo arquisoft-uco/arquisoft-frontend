@@ -30,6 +30,8 @@ const VERSION: VersionArtefacto = {
   estadoRevision: null,
   nombreEstadoRevision: null,
   fechaCreacionRevision: null,
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function crearWrapper(queryClient: QueryClient) {

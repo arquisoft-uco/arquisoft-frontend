@@ -25,6 +25,8 @@ const VERSION: VersionArtefacto = {
   estadoRevision: 'EN_PROGRESO',
   nombreEstadoRevision: 'En progreso',
   fechaCreacionRevision: '2026-03-02T10:00:00',
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function pagina(content: VersionArtefacto[]): Page<VersionArtefacto> {

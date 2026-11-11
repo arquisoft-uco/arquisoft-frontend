@@ -8,6 +8,8 @@ vi.mock('../../../shared/hooks/useDescargarVersionRepositorio', () => ({
 }));
 
 const VERSION: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
@@ -218,5 +220,22 @@ describe('VersionesArtefactoTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('muestra la insignia del proyecto cerrado y ninguna en el habilitado', () => {
+    // Act
+    renderizar({
+      versiones: [
+        VERSION,
+        { ...VERSION, id: 'v-2', proyectoCancelado: true },
+        { ...VERSION, id: 'v-3', proyectoFinalizado: true },
+      ],
+    });
+
+    // Assert
+    expect(tabla().getAllByText('Proyecto cancelado')).toHaveLength(1);
+    expect(tabla().getAllByText('Proyecto finalizado')).toHaveLength(1);
+    expect(screen.getAllByText('Proyecto cancelado')).toHaveLength(2);
+    expect(screen.getAllByText('Proyecto finalizado')).toHaveLength(2);
   });
 });

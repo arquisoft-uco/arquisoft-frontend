@@ -13,6 +13,15 @@ vi.mock('../services/artefactosService', () => ({
   },
 }));
 
+const SOLO_HABILITADOS = {
+  tipo: 'GRUPO',
+  conector: 'AND',
+  nodos: [
+    { tipo: 'PREDICADO', campo: 'proyectoFinalizado', operador: 'ES', valor: 'false' },
+    { tipo: 'PREDICADO', campo: 'proyectoCancelado', operador: 'ES', valor: 'false' },
+  ],
+};
+
 const consultar = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
 
 const PAGINA_VACIA = {
@@ -57,7 +66,7 @@ describe('useVersionesArtefactoAsesor', () => {
       pagina: 0,
       tamanio: 10,
       ordenamiento: ['fechaCreacion:DESC'],
-      filtros: undefined,
+      filtros: SOLO_HABILITADOS,
     });
     expect(result.current.hayFiltros).toBe(false);
     expect(
@@ -76,6 +85,7 @@ describe('useVersionesArtefactoAsesor', () => {
       '',
       'fechaCreacion:DESC',
       [],
+      '',
       '',
     ]);
   });
@@ -101,6 +111,7 @@ describe('useVersionesArtefactoAsesor', () => {
         hasta: '2026-10-15',
         estadoIds: [],
         artefacto: '',
+        estadoProyecto: '',
       }),
     });
     expect(result.current.hayFiltros).toBe(true);
@@ -116,7 +127,10 @@ describe('useVersionesArtefactoAsesor', () => {
 
     // Assert
     expect(consultar).toHaveBeenCalledWith(
-      expect.objectContaining({ ordenamiento: ['fechaCreacion:DESC'], filtros: undefined }),
+      expect.objectContaining({
+        ordenamiento: ['fechaCreacion:DESC'],
+        filtros: expect.objectContaining({ conector: 'AND' }),
+      }),
     );
   });
 
@@ -142,7 +156,9 @@ describe('useVersionesArtefactoAsesor', () => {
 
     // Assert
     await waitFor(() => expect(result.current.hayFiltros).toBe(false));
-    expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined }));
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filtros: SOLO_HABILITADOS }),
+    );
   });
 
   it('lee estado y artefacto de la URL, envía el orden por estado y descarta un artefacto que no es UUID', async () => {
@@ -169,6 +185,7 @@ describe('useVersionesArtefactoAsesor', () => {
         hasta: '',
         estadoIds: ['SIN_REVISION', 'PENDIENTE'],
         artefacto: uuid,
+        estadoProyecto: '',
       }),
     });
     expect(result.current.estadoIds).toEqual(['SIN_REVISION', 'PENDIENTE']);
@@ -191,6 +208,24 @@ describe('useVersionesArtefactoAsesor', () => {
 
     // Assert
     expect(result.current.artefacto).toBe('');
-    expect(consultar).toHaveBeenCalledWith(expect.objectContaining({ filtros: undefined }));
+    expect(consultar).toHaveBeenCalledWith(expect.objectContaining({ filtros: SOLO_HABILITADOS }));
+  });
+
+  it('el estado del proyecto de la URL reemplaza los dos false y admiteEstadoProyecto es true', async () => {
+    // Act
+    const { result } = renderHook(() => useVersionesArtefactoAsesor(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?estadoProyecto=cancelados'),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.admiteEstadoProyecto).toBe(true);
+    expect(result.current.estadoProyecto).toBe('cancelados');
+    expect(result.current.hayFiltros).toBe(true);
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: { tipo: 'PREDICADO', campo: 'proyectoCancelado', operador: 'ES', valor: 'true' },
+      }),
+    );
   });
 });
