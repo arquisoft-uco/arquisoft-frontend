@@ -84,6 +84,12 @@ export const proyectosGradoService = {
       .then((r) => r.data.map(aHistorialEstadoProyectoGrado));
   },
 
+  getHistorialEstadosProyecto(proyectoGradoId: string): Promise<HistorialEstadoProyectoGrado[]> {
+    return apiClient
+      .get<EstadoProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/historial-estados`)
+      .then((r) => r.data.map(aHistorialEstadoProyectoGrado));
+  },
+
   getEstadosAsesor(): Promise<EstadoAsesorProyectoGrado[]> {
     return apiClient
       .get<EstadoAsesorProyectoGrado[]>('/proyectos-grado/estados-asesor')

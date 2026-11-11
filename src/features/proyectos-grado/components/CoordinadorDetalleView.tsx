@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useParams } from 'react-router';
+import { Navigate, Outlet, useLocation, useParams } from 'react-router';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import type { ContextoDetalleProyectoGrado } from '../models/ContextoDetalleProyectoGrado';
@@ -12,6 +12,7 @@ const TITULO_GENERICO = 'Proyecto de grado';
 
 export default function CoordinadorDetalleView() {
   const { id = '' } = useParams();
+  const { pathname } = useLocation();
   const { resumen, search } = useResumenProyectoGrado(id);
 
   if (!id) return <Navigate to="/proyectos-grado" replace />;
@@ -20,7 +21,9 @@ export default function CoordinadorDetalleView() {
   const finalizado = resumen?.estadoId === ESTADO_FINALIZADO;
   const pestanas = [
     { id: 'asesores', etiqueta: 'Asesores', to: `/proyectos-grado/${id}/asesores` },
+    { id: 'estados', etiqueta: 'Estados', to: `/proyectos-grado/${id}/estados` },
   ];
+  const activa = pestanas.find((p) => pathname.startsWith(p.to)) ?? pestanas[0];
 
   return (
     <div className="flex flex-col gap-6">
@@ -33,7 +36,7 @@ export default function CoordinadorDetalleView() {
       />
       <div className={DISPOSICION.contenedor}>
         <div className={DISPOSICION.principal}>
-          <Tabs items={pestanas} valor="asesores" etiqueta="Secciones del proyecto de grado" />
+          <Tabs items={pestanas} valor={activa.id} etiqueta="Secciones del proyecto de grado" />
           <Outlet context={{ titulo, finalizado } satisfies ContextoDetalleProyectoGrado} />
         </div>
         <div className={DISPOSICION.lateral}>

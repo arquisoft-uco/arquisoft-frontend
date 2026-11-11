@@ -10,6 +10,7 @@ import { Rol } from '../../../shared/models/rol';
 import PestanaProyectoGrado from './PestanaProyectoGrado';
 
 vi.mock('./PestanaAsesores', () => ({ default: () => <p>Panel de asesores</p> }));
+vi.mock('./PestanaEstados', () => ({ default: () => <p>Panel de estados</p> }));
 
 function renderizar(ruta: string) {
   return render(
@@ -25,6 +26,7 @@ function renderizar(ruta: string) {
       >
         <Route index element={<PestanaProyectoGrado />} />
         <Route path="asesores" element={<PestanaProyectoGrado pestana="asesores" />} />
+        <Route path="estados" element={<PestanaProyectoGrado pestana="estados" />} />
       </Route>
     </Routes>,
     { initialPath: ruta },
@@ -52,7 +54,18 @@ describe('PestanaProyectoGrado', () => {
     expect(screen.getByText('Panel de asesores')).toBeInTheDocument();
   });
 
-  it('el asesor no tiene pestañas: el índice no renderiza panel y la subruta ajena vuelve al detalle', () => {
+  it('el coordinador ve el panel de estados en su pestaña', () => {
+    // Arrange
+    comoRol(Rol.Coordinador);
+
+    // Act
+    renderizar('/proyectos-grado/p-1/estados');
+
+    // Assert
+    expect(screen.getByText('Panel de estados')).toBeInTheDocument();
+  });
+
+  it('el asesor llega a estados desde el índice y desde la pestaña de asesores, que no le corresponde', () => {
     // Arrange
     comoRol(Rol.Asesor);
 
@@ -60,15 +73,14 @@ describe('PestanaProyectoGrado', () => {
     const indice = renderizar('/proyectos-grado/p-1');
 
     // Assert
-    expect(screen.getByText('Detalle del proyecto')).toBeInTheDocument();
-    expect(screen.queryByText('Panel de asesores')).not.toBeInTheDocument();
+    expect(screen.getByText('Panel de estados')).toBeInTheDocument();
     indice.unmount();
 
     // Act
     renderizar('/proyectos-grado/p-1/asesores');
 
     // Assert
-    expect(screen.getByText('Detalle del proyecto')).toBeInTheDocument();
+    expect(screen.getByText('Panel de estados')).toBeInTheDocument();
     expect(screen.queryByText('Panel de asesores')).not.toBeInTheDocument();
   });
 });

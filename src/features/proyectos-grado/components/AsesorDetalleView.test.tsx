@@ -57,13 +57,15 @@ function estudiantesCon(parcial: Record<string, unknown>) {
   });
 }
 
-function renderizar() {
+function renderizar(ruta = '/proyectos-grado/p-1') {
   return render(
     <Routes>
-      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />} />
+      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />}>
+        <Route path="estados" element={<p>Panel de estados</p>} />
+      </Route>
       <Route path="/proyectos-grado" element={<p>Listado de proyectos</p>} />
     </Routes>,
-    { initialPath: '/proyectos-grado/p-1' },
+    { initialPath: ruta },
   );
 }
 
@@ -99,19 +101,16 @@ describe('AsesorDetalleView', () => {
     expect(screen.queryByText('Estudiantes que asesoras')).not.toBeInTheDocument();
   });
 
-  it('no muestra barra de pestañas y deja el panel Resumen siempre visible', () => {
+  it('muestra la pestaña Estados activa con su panel y deja el resumen siempre visible', () => {
     // Arrange
     detalleCon({ data: PROYECTO });
 
     // Act
-    renderizar();
+    renderizar('/proyectos-grado/p-1/estados');
 
     // Assert
-    expect(
-      screen.queryByRole('navigation', { name: 'Secciones del proyecto de grado' }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('tab', { name: 'Resumen' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estados' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByText('Panel de estados')).toBeInTheDocument();
     expect(
       screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' }),
     ).toBeInTheDocument();
