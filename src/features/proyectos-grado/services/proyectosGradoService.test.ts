@@ -277,4 +277,23 @@ describe('proyectosGradoService', () => {
       expect(resultado).toBeUndefined();
     });
   });
+
+  describe('cancelarProyecto', () => {
+    it('hace PATCH /proyectos-grado/{id}/cancelacion con solo { motivo } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await proyectosGradoService.cancelarProyecto({
+        proyectoGradoId: 'p-1',
+        motivo: 'Sin avances',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/proyectos-grado/p-1/cancelacion', {
+        motivo: 'Sin avances',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
 });

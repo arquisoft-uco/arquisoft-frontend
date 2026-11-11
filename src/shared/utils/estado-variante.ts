@@ -56,6 +56,7 @@ const VARIANTE_PROYECTO: TablaDeVariantes = {
   EN_PROCESO: 'info',
   ATRASADO: 'peligro',
   FINALIZADO: 'exito',
+  CANCELADO: 'peligro',
 };
 
 const VARIANTE_ASESOR_PROYECTO: TablaDeVariantes = {

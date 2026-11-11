@@ -13,7 +13,7 @@ interface Props {
   proyectoGradoId: string;
   titulo: string;
   asesores: AsesorProyectoGrado[];
-  finalizado: boolean;
+  soloLectura: boolean;
   onCerrar: () => void;
 }
 
@@ -21,7 +21,7 @@ export default function AsignarAsesorProyectoGradoPanel({
   proyectoGradoId,
   titulo,
   asesores,
-  finalizado,
+  soloLectura,
   onCerrar,
 }: Props) {
   const [seleccion, setSeleccion] = useState('');
@@ -62,7 +62,7 @@ export default function AsignarAsesorProyectoGradoPanel({
       <AsignarAsesorProyectoGradoSeccion
         idFormulario={ID_FORMULARIO}
         asesores={asesores}
-        finalizado={finalizado}
+        soloLectura={soloLectura}
         seleccion={seleccion}
         onCambiar={setSeleccion}
         onEnviar={enviar}
