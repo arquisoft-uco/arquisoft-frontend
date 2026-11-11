@@ -9,12 +9,15 @@ import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarE
 import type { CancelarProyectoGradoRequest } from '../models/CancelarProyectoGradoRequest';
 import type { CompaneroProyectoGrado } from '../models/CompaneroProyectoGrado';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
+import type { FinalizarProyectoGradoRequest } from '../models/FinalizarProyectoGradoRequest';
 import type { EstadoAsesorProyectoGrado } from '../models/EstadoAsesorProyectoGrado';
 import type { EstadoProyectoGradoResponse } from '../models/EstadoProyectoGradoResponse';
 import type { EstudianteAsesoradoProyectoGrado } from '../models/EstudianteAsesoradoProyectoGrado';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
 import type { HistorialEstadoProyectoGrado } from '../models/HistorialEstadoProyectoGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
+import type { UltimoEntregableProyectoGrado } from '../models/UltimoEntregableProyectoGrado';
+import { ESTADO_FINALIZADO } from '../utils/estados-proyecto';
 
 function aAsesorProyectoGrado(r: AsesorProyectoGradoResponse): AsesorProyectoGrado {
   return {
@@ -141,5 +144,42 @@ export const proyectosGradoService = {
     return apiClient
       .patch(`/proyectos-grado/${req.proyectoGradoId}/cancelacion`, { motivo: req.motivo })
       .then(() => undefined);
+  },
+
+  finalizarProyecto(req: FinalizarProyectoGradoRequest): Promise<void> {
+    return apiClient
+      .patch(`/proyectos-grado/${req.proyectoGradoId}/estado`, {
+        estadoProyecto: ESTADO_FINALIZADO,
+      })
+      .then(() => undefined);
+  },
+
+  consultarUltimoEntregable(
+    proyectoGradoId: string,
+  ): Promise<UltimoEntregableProyectoGrado | null> {
+    const criterios: ConsultaCriteriaRequest = {
+      pagina: 0,
+      tamanio: 1,
+      ordenamiento: ['versionEntregable:DESC'],
+      filtros: {
+        tipo: 'PREDICADO',
+        campo: 'proyectoGradoId',
+        operador: 'ES',
+        valor: proyectoGradoId,
+      },
+    };
+    return apiClient
+      .post<Page<UltimoEntregableProyectoGrado>>('/entregables-proyecto-grado/asesor', criterios)
+      .then((r) => {
+        const ultimo = r.data.content[0];
+        if (!ultimo) return null;
+        return {
+          versionEntregable: ultimo.versionEntregable,
+          estadoEntregable: {
+            id: ultimo.estadoEntregable.id,
+            nombre: ultimo.estadoEntregable.nombre,
+          },
+        };
+      });
   },
 };

@@ -296,4 +296,65 @@ describe('proyectosGradoService', () => {
       expect(resultado).toBeUndefined();
     });
   });
+
+  describe('finalizarProyecto', () => {
+    it('hace PATCH /proyectos-grado/{id}/estado con { estadoProyecto: FINALIZADO } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await proyectosGradoService.finalizarProyecto({ proyectoGradoId: 'p-1' });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/proyectos-grado/p-1/estado', {
+        estadoProyecto: 'FINALIZADO',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('consultarUltimoEntregable', () => {
+    it('envía el criterio por proyecto, versión descendente y tamaño 1, y mapea content[0]', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        status: 200,
+        data: {
+          content: [
+            {
+              id: 'en-1',
+              versionEntregable: 3,
+              estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+              otro: 'ignorado',
+            },
+          ],
+        },
+      });
+
+      // Act
+      const ultimo = await proyectosGradoService.consultarUltimoEntregable('p-1');
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/entregables-proyecto-grado/asesor', {
+        pagina: 0,
+        tamanio: 1,
+        ordenamiento: ['versionEntregable:DESC'],
+        filtros: { tipo: 'PREDICADO', campo: 'proyectoGradoId', operador: 'ES', valor: 'p-1' },
+      });
+      expect(ultimo).toEqual({
+        versionEntregable: 3,
+        estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+      });
+    });
+
+    it('devuelve null cuando el proyecto no tiene entregables', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: { content: [] } });
+
+      // Act
+      const ultimo = await proyectosGradoService.consultarUltimoEntregable('p-1');
+
+      // Assert
+      expect(ultimo).toBeNull();
+    });
+  });
 });

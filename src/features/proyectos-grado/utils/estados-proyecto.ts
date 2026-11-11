@@ -13,6 +13,7 @@ export const OPCIONES_ESTADO_PROYECTO = ESTADOS_PROYECTO.map((e) => ({
   etiqueta: e.nombre,
 }));
 
+export const ESTADO_EN_PROCESO = 'EN_PROCESO';
 export const ESTADO_FINALIZADO = 'FINALIZADO';
 export const ESTADO_CANCELADO = 'CANCELADO';
 
@@ -20,6 +21,10 @@ const ESTADOS_CANCELABLES: readonly string[] = ['EN_PROCESO', 'ATRASADO'];
 
 export function puedeCancelarProyecto(estadoId?: string): boolean {
   return estadoId === undefined || ESTADOS_CANCELABLES.includes(estadoId);
+}
+
+export function puedeFinalizarProyecto(estadoId?: string): boolean {
+  return estadoId === ESTADO_EN_PROCESO;
 }
 
 export function esSoloLectura(estadoId?: string): boolean {
