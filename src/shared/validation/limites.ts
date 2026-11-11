@@ -18,6 +18,8 @@ export const LIMITES = {
   // EnviarSolicitudNovedadAsesor (HU-082) y de EnviarSolicitudCambioAsesor (HU-083), confirmado
   // con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
+  // Espejo de ProyectosLimits.ProyectoGrado.MOTIVO_MAX del backend.
+  MOTIVO_CANCELACION_PROYECTO_GRADO_MAX: 500,
   // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear, ResponderSolicitudNovedadAsesorCommand.crear
   // ResponderSolicitudCambioAsesorCommand.crear, ResponderSolicitudAmpliacionPlazoCommand.crear
   // y ResponderSolicitudRegistroModificacionUsuariosCommand.crear

@@ -231,4 +231,23 @@ describe('ConfirmDialog', () => {
     expect(screen.getByRole('button', { name: 'Quitar' })).toBeDisabled();
     expect(onConfirmar).not.toHaveBeenCalled();
   });
+
+  it('renderiza children dentro del diálogo, incluso sin descripción ni aviso', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <Pantalla>
+        <label>
+          Frase
+          <input type="text" />
+        </label>
+      </Pantalla>,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Abrir confirmación' }));
+
+    // Assert
+    expect(within(screen.getByRole('alertdialog')).getByLabelText('Frase')).toBeInTheDocument();
+  });
 });

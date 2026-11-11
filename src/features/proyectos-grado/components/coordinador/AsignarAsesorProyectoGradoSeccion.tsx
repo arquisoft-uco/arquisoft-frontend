@@ -12,7 +12,7 @@ import { hayAsesorAsignado, opcionesAsesor } from '../../utils/cupo-asesor';
 interface Props {
   idFormulario: string;
   asesores: AsesorProyectoGrado[];
-  finalizado: boolean;
+  soloLectura: boolean;
   seleccion: string;
   onCambiar: (id: string) => void;
   onEnviar: () => void;
@@ -21,7 +21,7 @@ interface Props {
 export default function AsignarAsesorProyectoGradoSeccion({
   idFormulario,
   asesores,
-  finalizado,
+  soloLectura,
   seleccion,
   onCambiar,
   onEnviar,
@@ -35,10 +35,10 @@ export default function AsignarAsesorProyectoGradoSeccion({
   }
 
   function contenido() {
-    if (finalizado) {
+    if (soloLectura) {
       return (
         <Notice variante="info">
-          Este proyecto de grado está finalizado y no admite nuevos asesores.
+          Este proyecto de grado está finalizado o cancelado y no admite nuevos asesores.
         </Notice>
       );
     }

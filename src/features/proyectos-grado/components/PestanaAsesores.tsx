@@ -12,7 +12,7 @@ export default function PestanaAsesores() {
     <AsesoresProyectoGradoPanel
       proyectoGradoId={id}
       titulo={contexto?.titulo ?? 'Proyecto de grado'}
-      finalizado={contexto?.finalizado ?? false}
+      soloLectura={contexto?.soloLectura ?? false}
     />
   );
 }

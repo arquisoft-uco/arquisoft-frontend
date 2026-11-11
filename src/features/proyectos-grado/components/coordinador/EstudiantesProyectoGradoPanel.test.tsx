@@ -92,12 +92,12 @@ const baja: EstudianteProyectoGrado = {
   vigente: false,
 };
 
-function renderizar(onCerrar = vi.fn(), finalizado = false) {
+function renderizar(onCerrar = vi.fn(), soloLectura = false) {
   render(
     <EstudiantesProyectoGradoPanel
       proyectoGradoId="p-1"
       titulo="Sistema"
-      finalizado={finalizado}
+      soloLectura={soloLectura}
       onCerrar={onCerrar}
     />,
   );
@@ -232,7 +232,7 @@ describe('EstudiantesProyectoGradoPanel', () => {
     renderizar(vi.fn(), true);
 
     // Assert
-    expect(await screen.findByText(/está finalizado y no admite/)).toBeInTheDocument();
+    expect(await screen.findByText(/está finalizado o cancelado y no admite/)).toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 

@@ -6,6 +6,7 @@ import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoR
 import type { AsignarAsesorProyectoGradoRequest } from '../models/AsignarAsesorProyectoGradoRequest';
 import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEstudiantesProyectoGradoRequest';
 import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarEstadoAsesorProyectoGradoRequest';
+import type { CancelarProyectoGradoRequest } from '../models/CancelarProyectoGradoRequest';
 import type { CompaneroProyectoGrado } from '../models/CompaneroProyectoGrado';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
 import type { EstadoAsesorProyectoGrado } from '../models/EstadoAsesorProyectoGrado';
@@ -133,6 +134,12 @@ export const proyectosGradoService = {
   destituirEstudiante(req: DestituirEstudianteProyectoGradoRequest): Promise<void> {
     return apiClient
       .delete(`/proyectos-grado/${req.proyectoGradoId}/estudiantes/${req.estudianteId}`)
+      .then(() => undefined);
+  },
+
+  cancelarProyecto(req: CancelarProyectoGradoRequest): Promise<void> {
+    return apiClient
+      .patch(`/proyectos-grado/${req.proyectoGradoId}/cancelacion`, { motivo: req.motivo })
       .then(() => undefined);
   },
 };

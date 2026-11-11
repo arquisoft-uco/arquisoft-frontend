@@ -113,6 +113,7 @@ describe('varianteEstadoProyecto', () => {
     expect(varianteEstadoProyecto('EN_PROCESO')).toBe('info');
     expect(varianteEstadoProyecto('ATRASADO')).toBe('peligro');
     expect(varianteEstadoProyecto('FINALIZADO')).toBe('exito');
+    expect(varianteEstadoProyecto('CANCELADO')).toBe('peligro');
     expect(varianteEstadoProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
   });
 });
