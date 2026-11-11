@@ -6,6 +6,7 @@ import { useEntregablesAsesor } from '../../hooks/useEntregablesAsesor';
 import { useEstadosEntregable } from '../../hooks/useEstadosEntregable';
 import { useCambiarEstadoEntregable } from '../../hooks/useCambiarEstadoEntregable';
 import { useArtefactosEntregable } from '../../hooks/useArtefactosEntregable';
+import { useHistorialEstadosEntregable } from '../../hooks/useHistorialEstadosEntregable';
 import type { Page } from '../../../../shared/models/api-response';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 
@@ -20,6 +21,9 @@ vi.mock('../../hooks/useCambiarEstadoEntregable', () => ({
 }));
 vi.mock('../../hooks/useArtefactosEntregable', () => ({
   useArtefactosEntregable: vi.fn(),
+}));
+vi.mock('../../hooks/useHistorialEstadosEntregable', () => ({
+  useHistorialEstadosEntregable: vi.fn(),
 }));
 
 const ENTREGABLE: EntregableProyectoGrado = {
@@ -95,6 +99,39 @@ describe('ConsultarEntregablesAsesor', () => {
       error: null,
       refetch: vi.fn(),
     } as never);
+    vi.mocked(useHistorialEstadosEntregable).mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    } as never);
+  });
+
+  it('"Ver historial de estados" abre el panel del entregable elegido y cerrarlo lo quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([ENTREGABLE]) });
+    render(<ConsultarEntregablesAsesor />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Entregables' })).getByRole('button', {
+        name: /Acciones del entregable de Sistema de riego/,
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver historial de estados' }));
+
+    // Assert
+    expect(useHistorialEstadosEntregable).toHaveBeenCalledWith('e-1');
+    const vacio = 'Este entregable aún no tiene estados registrados';
+    expect(screen.getByText(vacio)).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByText(vacio)).not.toBeInTheDocument();
   });
 
   it('muestra un estado de carga accesible mientras llega la primera página', () => {

@@ -1,4 +1,4 @@
-import { FileText, RefreshCw, SearchX, Send } from 'lucide-react';
+import { FileText, History, RefreshCw, SearchX, Send } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -31,6 +31,7 @@ interface Props {
   onLimpiarFiltros: () => void;
   onCambiarEstado: (entregable: EntregableProyectoGrado) => void;
   onVerArtefactos: (entregable: EntregableProyectoGrado) => void;
+  onVerHistorial: (entregable: EntregableProyectoGrado) => void;
 }
 
 function InsigniaEstado({ entregable }: { entregable: EntregableProyectoGrado }) {
@@ -72,6 +73,7 @@ export default function EntregablesAsesorTable({
   onLimpiarFiltros,
   onCambiarEstado,
   onVerArtefactos,
+  onVerHistorial,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -114,6 +116,11 @@ export default function EntregablesAsesorTable({
               etiqueta: 'Ver artefactos',
               icono: FileText,
               onSeleccionar: () => onVerArtefactos(entregable),
+            },
+            {
+              etiqueta: 'Ver historial de estados',
+              icono: History,
+              onSeleccionar: () => onVerHistorial(entregable),
             },
             {
               etiqueta: 'Cambiar estado',

@@ -42,6 +42,7 @@ describe('useCambiarEstadoEntregable', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(cambiar).toHaveBeenCalledWith('e1', { estadoEntregableId: 'CERRADO' });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['entregables', 'asesor'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['entregables', 'e1', 'estados'] });
   });
 
   it('no invalida nada cuando el service rechaza', async () => {

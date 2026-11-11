@@ -6,7 +6,19 @@ import type { CambiarEstadoEntregableRequest } from '../models/CambiarEstadoEntr
 import type { GenerarEntregableResponse } from '../models/GenerarEntregableResponse';
 import type { ProyectoGradoAsesor } from '../models/ProyectoGradoAsesor';
 import type { EntregableProyectoGrado } from '../models/EntregableProyectoGrado';
+import type { EstadoEntregableProyectoGradoResponse } from '../models/EstadoEntregableProyectoGradoResponse';
+import type { HistorialEstadoEntregable } from '../models/HistorialEstadoEntregable';
 import type { EstadoEntregable } from '../models/entregables';
+
+function aHistorialEstadoEntregable(
+  r: EstadoEntregableProyectoGradoResponse,
+): HistorialEstadoEntregable {
+  return {
+    id: r.id,
+    estado: { id: r.estadoEntregable, nombre: r.estadoEntregableNombre },
+    fechaActualizacion: r.fechaActualizacion,
+  };
+}
 
 export const entregablesService = {
   getEstadosEntregable: (): Promise<EstadoEntregable[]> =>
@@ -55,6 +67,13 @@ export const entregablesService = {
     apiClient
       .get<ArtefactoEntregable[]>(`/entregables-proyecto-grado/${entregableId}/artefactos`)
       .then((r) => r.data),
+
+  consultarHistorialEstadosEntregable: (
+    entregableId: string,
+  ): Promise<HistorialEstadoEntregable[]> =>
+    apiClient
+      .get<EstadoEntregableProyectoGradoResponse[]>(`/entregables/${entregableId}/estados`)
+      .then((r) => r.data.map(aHistorialEstadoEntregable)),
 
   consultarProyectosAsesor: (): Promise<ProyectoGradoAsesor[]> => {
     const req: ConsultaCriteriaRequest = {

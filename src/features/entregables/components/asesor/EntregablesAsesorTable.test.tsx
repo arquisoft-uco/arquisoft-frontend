@@ -30,6 +30,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof EntregablesAses
     onLimpiarFiltros: vi.fn(),
     onCambiarEstado: vi.fn(),
     onVerArtefactos: vi.fn(),
+    onVerHistorial: vi.fn(),
     ...parcial,
   };
   render(<EntregablesAsesorTable {...props} />);
@@ -138,5 +139,26 @@ describe('EntregablesAsesorTable', () => {
 
     // Assert
     expect(onVerArtefactos).toHaveBeenCalledWith(cerrado);
+  });
+
+  it('ofrece "Ver historial de estados" en cualquier entregable, incluso uno cerrado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const cerrado: EntregableProyectoGrado = {
+      ...ENTREGABLE_2,
+      id: 'e-3',
+      proyectoGrado: { id: 'p-3', nombre: 'Proyecto cerrado' },
+      estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+    };
+    const { onVerHistorial } = renderizar({ entregables: [ENTREGABLE_1, cerrado] });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: /Acciones del entregable de Proyecto cerrado/ }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver historial de estados' }));
+
+    // Assert
+    expect(onVerHistorial).toHaveBeenCalledWith(cerrado);
   });
 });
