@@ -299,6 +299,12 @@ describe('artefactosService', () => {
         pagina: 0,
         tamanio: 100,
         ordenamiento: ['tituloProyecto:ASC'],
+        filtros: {
+          tipo: 'PREDICADO_MULTIVALOR',
+          campo: 'estadoProyectoGrado',
+          operador: 'IN',
+          valores: ['EN_PROCESO', 'ATRASADO'],
+        },
       });
       expect(primera).toEqual({ proyectos: [{ id: 'p-1', titulo: 'Riego' }], siguientePagina: 1 });
       expect(ultima.siguientePagina).toBeNull();
