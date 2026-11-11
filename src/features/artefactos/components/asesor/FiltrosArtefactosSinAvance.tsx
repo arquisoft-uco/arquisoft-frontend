@@ -2,6 +2,7 @@ import FilterBar from '../../../../shared/components/ui/FilterBar';
 import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/ui/FilterBar';
 import type { useArtefactosSinAvanceAsesor } from '../../hooks/useArtefactosSinAvanceAsesor';
 import type { EstadoRevisionAsesor } from '../../models/artefactos';
+import { OPCIONES_ESTADO_PROYECTO } from '../../utils/estado-proyecto';
 import UmbralDiasSinAvance from './UmbralDiasSinAvance';
 
 const OPCIONES_ORDEN: OpcionFiltro[] = [
@@ -41,17 +42,38 @@ export default function FiltrosArtefactosSinAvance({ listado, estados }: Props) 
       onCambiar: listado.setEstado,
       deshabilitada: !estados,
     },
+    {
+      id: 'estadoProyecto',
+      etiqueta: 'Estado del proyecto',
+      opciones: OPCIONES_ESTADO_PROYECTO,
+      valor: filtros.estadoProyecto,
+      onCambiar: listado.setEstadoProyecto,
+    },
   ];
 
-  const aplicados = filtros.estado
-    ? [
-        {
-          id: 'estado',
-          etiqueta: `Estado: ${filtros.estado}`,
-          onQuitar: () => listado.setEstado(''),
-        },
-      ]
-    : [];
+  const etiquetaEstadoProyecto = OPCIONES_ESTADO_PROYECTO.find(
+    (opcion) => opcion.id === filtros.estadoProyecto,
+  )?.etiqueta;
+  const aplicados = [
+    ...(filtros.estado
+      ? [
+          {
+            id: 'estado',
+            etiqueta: `Estado: ${filtros.estado}`,
+            onQuitar: () => listado.setEstado(''),
+          },
+        ]
+      : []),
+    ...(filtros.estadoProyecto
+      ? [
+          {
+            id: 'estadoProyecto',
+            etiqueta: `Proyecto: ${etiquetaEstadoProyecto}`,
+            onQuitar: () => listado.setEstadoProyecto(''),
+          },
+        ]
+      : []),
+  ];
 
   function cambiarOrden(id: string) {
     const [campo, direccion] = id.split(':');

@@ -1,6 +1,7 @@
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/ui/FilterBar';
 import type { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
+import { OPCIONES_ESTADO_PROYECTO } from '../../utils/estado-proyecto';
 
 interface FiltroAplicado {
   id: string;
@@ -57,7 +58,7 @@ export default function FiltrosArtefactosAsesor({ listado }: Props) {
     },
   ];
 
-  const secciones: SeccionFiltro[] = campos.map(({ id, etiqueta, valor, onCambiar }) => ({
+  const seccionesTexto: SeccionFiltro[] = campos.map(({ id, etiqueta, valor, onCambiar }) => ({
     id,
     etiqueta,
     valor,
@@ -65,13 +66,38 @@ export default function FiltrosArtefactosAsesor({ listado }: Props) {
     tipo: 'texto',
   }));
 
-  const aplicados: FiltroAplicado[] = campos
+  const secciones: SeccionFiltro[] = [
+    ...seccionesTexto,
+    {
+      id: 'estadoProyecto',
+      etiqueta: 'Estado del proyecto',
+      opciones: OPCIONES_ESTADO_PROYECTO,
+      valor: filtros.estadoProyecto,
+      onCambiar: listado.setEstadoProyecto,
+    },
+  ];
+
+  const aplicadosTexto: FiltroAplicado[] = campos
     .filter((campo) => campo.valor.trim() !== '')
     .map((campo) => ({
       id: campo.id,
       etiqueta: `${campo.aplicado}: ${campo.valor.trim()}`,
       onQuitar: () => campo.onCambiar(''),
     }));
+
+  const etiquetaEstadoProyecto = OPCIONES_ESTADO_PROYECTO.find(
+    (opcion) => opcion.id === filtros.estadoProyecto,
+  )?.etiqueta;
+  const aplicados: FiltroAplicado[] = filtros.estadoProyecto
+    ? [
+        ...aplicadosTexto,
+        {
+          id: 'estadoProyecto',
+          etiqueta: `Proyecto: ${etiquetaEstadoProyecto}`,
+          onQuitar: () => listado.setEstadoProyecto(''),
+        },
+      ]
+    : aplicadosTexto;
 
   function cambiarOrden(id: string) {
     const [campo, direccion] = id.split(':');

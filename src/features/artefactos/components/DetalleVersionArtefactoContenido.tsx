@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
+import AvisoProyectoCerrado from './AvisoProyectoCerrado';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
 
 const RAIZ = 'flex flex-col gap-6';
@@ -32,6 +33,10 @@ interface Props {
 export default function DetalleVersionArtefactoContenido({ version }: Props) {
   return (
     <div className={RAIZ}>
+      <AvisoProyectoCerrado
+        proyectoFinalizado={version.proyectoFinalizado}
+        proyectoCancelado={version.proyectoCancelado}
+      />
       <section className={SECCION}>
         <h3 className={TITULO}>Versión</h3>
         <dl className={LISTA}>

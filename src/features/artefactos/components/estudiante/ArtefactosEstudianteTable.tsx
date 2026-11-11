@@ -12,6 +12,8 @@ import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
 import InsigniaOmitido from '../InsigniaOmitido';
 import MenuDescargarArtefacto from './MenuDescargarArtefacto';
 
+import ProyectoConInsignia from '../ProyectoConInsignia';
+
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
@@ -27,7 +29,7 @@ const COLUMNAS: ColumnaTabla<ArtefactoEstudiante>[] = [
     encabezado: 'Proyecto',
     clave: 'nombreProyecto',
     ordenable: true,
-    celda: (artefacto) => <span className={DATO_SECUNDARIO}>{artefacto.nombreProyecto}</span>,
+    celda: (artefacto) => <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />,
   },
   {
     id: 'documento',
@@ -116,7 +118,9 @@ export default function ArtefactosEstudianteTable({
         <>
           <p className={TARJETA_NOMBRE}>{artefacto.nombreDocumento}</p>
           {artefacto.omitido && <InsigniaOmitido />}
-          <p className={TARJETA_DATO}>{artefacto.nombreProyecto}</p>
+          <p className={TARJETA_DATO}>
+            <ProyectoConInsignia proyecto={artefacto} />
+          </p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>
             {artefacto.nombreAsesor} · {etiquetaVersion(artefacto)}

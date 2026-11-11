@@ -3,6 +3,8 @@ import FormSection from '../../../../shared/components/ui/FormSection';
 import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import { estaCerrado } from '../../utils/estado-proyecto';
+import AvisoProyectoCerrado from '../AvisoProyectoCerrado';
 import EstudiantesArtefactoLista from './EstudiantesArtefactoLista';
 import VincularEstudiantesForm from './VincularEstudiantesForm';
 
@@ -16,6 +18,8 @@ interface Props {
 }
 
 export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props) {
+  const soloLectura = artefacto.omitido || estaCerrado(artefacto);
+
   return (
     <SidePanel
       titulo="Estudiantes del artefacto"
@@ -27,8 +31,12 @@ export default function EstudiantesArtefactoPanel({ artefacto, onCerrar }: Props
     >
       <div className={CONTENIDO}>
         {artefacto.omitido && <Notice variante="info">{AVISO_OMITIDO}</Notice>}
-        <EstudiantesArtefactoLista artefactoId={artefacto.id} omitido={artefacto.omitido} />
-        {!artefacto.omitido && (
+        <AvisoProyectoCerrado
+          proyectoFinalizado={artefacto.proyectoFinalizado}
+          proyectoCancelado={artefacto.proyectoCancelado}
+        />
+        <EstudiantesArtefactoLista artefactoId={artefacto.id} omitido={soloLectura} />
+        {!soloLectura && (
           <FormSection titulo="Vincular estudiantes">
             <VincularEstudiantesForm artefacto={artefacto} onSalir={onCerrar} />
           </FormSection>

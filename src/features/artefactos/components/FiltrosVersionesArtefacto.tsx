@@ -1,6 +1,7 @@
 import FilterBar from '../../../shared/components/ui/FilterBar';
 import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
 import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
+import { OPCIONES_ESTADO_PROYECTO } from '../utils/estado-proyecto';
 
 interface Props {
   listado: ListadoVersionesArtefacto;
@@ -14,15 +15,29 @@ export default function FiltrosVersionesArtefacto({
   etiquetaFecha = 'Fecha de creación',
 }: Props) {
   const nombreArtefacto = listado.data?.content[0]?.nombreDocumento ?? 'seleccionado';
-  const aplicados = listado.artefacto
-    ? [
-        {
-          id: 'artefacto',
-          etiqueta: `Artefacto: ${nombreArtefacto}`,
-          onQuitar: listado.quitarArtefacto,
-        },
-      ]
-    : [];
+  const etiquetaEstadoProyecto = OPCIONES_ESTADO_PROYECTO.find(
+    (opcion) => opcion.id === listado.estadoProyecto,
+  )?.etiqueta;
+  const aplicados = [
+    ...(listado.artefacto
+      ? [
+          {
+            id: 'artefacto',
+            etiqueta: `Artefacto: ${nombreArtefacto}`,
+            onQuitar: listado.quitarArtefacto,
+          },
+        ]
+      : []),
+    ...(listado.estadoProyecto
+      ? [
+          {
+            id: 'estadoProyecto',
+            etiqueta: `Proyecto: ${etiquetaEstadoProyecto}`,
+            onQuitar: () => listado.setEstadoProyecto(''),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <FilterBar
@@ -50,6 +65,21 @@ export default function FiltrosVersionesArtefacto({
         onCambiarDesde: listado.setDesde,
         onCambiarHasta: listado.setHasta,
       }}
+      popover={
+        listado.admiteEstadoProyecto
+          ? {
+              secciones: [
+                {
+                  id: 'estadoProyecto',
+                  etiqueta: 'Estado del proyecto',
+                  opciones: OPCIONES_ESTADO_PROYECTO,
+                  valor: listado.estadoProyecto ?? '',
+                  onCambiar: listado.setEstadoProyecto,
+                },
+              ],
+            }
+          : undefined
+      }
       aplicados={aplicados}
       onLimpiar={listado.limpiarFiltros}
       totalResultados={listado.data?.totalElements}

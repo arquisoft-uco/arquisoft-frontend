@@ -94,4 +94,21 @@ describe('VersionArtefactoRowMenu', () => {
     expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeDisabled();
     expect(descargar).not.toHaveBeenCalled();
   });
+
+  it('en un proyecto cerrado no ofrece Descargar y conserva Ver información', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(
+      <VersionArtefactoRowMenu
+        version={{ ...VERSION, proyectoCancelado: true }}
+        onVerInformacion={vi.fn()}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: ETIQUETA }));
+
+    // Assert
+    expect(screen.getAllByRole('menuitem').map((i) => i.textContent)).toEqual(['Ver información']);
+  });
 });

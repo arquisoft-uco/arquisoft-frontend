@@ -8,6 +8,7 @@ import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import { construirColumnas, etiquetaVersion } from './columnasVersionesArtefacto';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
+import InsigniaProyectoCerrado from './InsigniaProyectoCerrado';
 import VersionArtefactoRowMenu from './VersionArtefactoRowMenu';
 
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
@@ -87,6 +88,10 @@ export default function VersionesArtefactoTable({
             {version.nombreProyecto}
             {mostrarRepositorio && ` · ${version.nombreRepositorio}`}
           </p>
+          <InsigniaProyectoCerrado
+            proyectoFinalizado={version.proyectoFinalizado}
+            proyectoCancelado={version.proyectoCancelado}
+          />
           <p className={TARJETA_DATO}>
             {etiquetaVersion(version)} · {formatearFechaCreacion(version.fechaCreacion)}
           </p>

@@ -7,4 +7,6 @@ export interface ArtefactoAsesor {
   versionDocumento: number;
   nombreRepositorio: string;
   omitido: boolean;
+  proyectoFinalizado: boolean;
+  proyectoCancelado: boolean;
 }

@@ -7,6 +7,7 @@ import { useVersionesArtefactoEstudiante } from '../../hooks/useVersionesArtefac
 import type { ArtefactoParaVersion } from '../../models/ArtefactoParaVersion';
 import type { RevisionGestionable } from '../../models/RevisionGestionable';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import { estaCerrado } from '../../utils/estado-proyecto';
 import { desVersion } from '../../utils/revision-gestionable';
 import { ESTADO_REVISION_EN_PROGRESO } from '../../utils/revision-resoluble';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
@@ -48,7 +49,7 @@ export default function ConsultarVersionesArtefactoEstudiante() {
         onSeleccionar: () => setPanel({ modo: 'revision', artefacto, revision }),
       },
     ];
-    if (enProgreso) {
+    if (enProgreso && !estaCerrado(version)) {
       acciones.push({
         etiqueta: 'Subir nueva versión',
         icono: Upload,
@@ -60,7 +61,7 @@ export default function ConsultarVersionesArtefactoEstudiante() {
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const acciones = accionesRevision(version);
-    if (puedeEliminar(version)) {
+    if (puedeEliminar(version) && !estaCerrado(version)) {
       acciones.push({
         etiqueta: 'Eliminar',
         icono: Trash2,

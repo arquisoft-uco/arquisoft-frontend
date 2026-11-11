@@ -18,6 +18,8 @@ interface OpcionesMutate {
 }
 
 const ARTEFACTO: ArtefactoAsesor = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: '3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',

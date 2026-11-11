@@ -10,11 +10,14 @@ interface Props {
 }
 
 export default function EnlaceVersionesArtefacto({ artefactoId, nombreDocumento, vista }: Props) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const estadoProyecto = new URLSearchParams(search).get('estadoProyecto');
+  const parametros = new URLSearchParams({ vista, artefacto: artefactoId });
+  if (estadoProyecto) parametros.set('estadoProyecto', estadoProyecto);
 
   return (
     <Link
-      to={`${pathname}?vista=${vista}&artefacto=${artefactoId}`}
+      to={`${pathname}?${parametros.toString()}`}
       aria-label={`Ver versiones de ${nombreDocumento}`}
       className={ENLACE}
     >
