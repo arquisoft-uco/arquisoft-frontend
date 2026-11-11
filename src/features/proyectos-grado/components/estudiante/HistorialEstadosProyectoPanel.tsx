@@ -36,6 +36,7 @@ export default function HistorialEstadosProyectoPanel({ proyectoGradoId }: Props
     nombre: h.estado.nombre,
     variante: varianteEstadoProyecto(h.estado.id),
     fecha: h.fechaActualizacion,
+    motivo: h.motivo ?? undefined,
   }));
 
   return <LineaTiempo etiqueta="Historial de estados del proyecto de grado" pasos={pasos} />;

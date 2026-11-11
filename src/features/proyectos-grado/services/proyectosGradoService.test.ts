@@ -102,6 +102,20 @@ describe('proyectosGradoService', () => {
             estadoProyecto: 'EN_REVISION',
             estadoProyectoNombre: 'En revisión',
             fechaActualizacion: '2026-09-02T10:00:00Z',
+            motivo: null,
+          },
+          {
+            id: 'h-2',
+            estadoProyecto: 'CANCELADO',
+            estadoProyectoNombre: 'Cancelado',
+            fechaActualizacion: '2026-09-03T10:00:00Z',
+            motivo: 'Texto',
+          },
+          {
+            id: 'h-3',
+            estadoProyecto: 'INICIADO',
+            estadoProyectoNombre: 'Iniciado',
+            fechaActualizacion: '2026-09-01T10:00:00Z',
           },
         ],
       });
@@ -116,6 +130,19 @@ describe('proyectosGradoService', () => {
           id: 'h-1',
           estado: { id: 'EN_REVISION', nombre: 'En revisión' },
           fechaActualizacion: '2026-09-02T10:00:00Z',
+          motivo: null,
+        },
+        {
+          id: 'h-2',
+          estado: { id: 'CANCELADO', nombre: 'Cancelado' },
+          fechaActualizacion: '2026-09-03T10:00:00Z',
+          motivo: 'Texto',
+        },
+        {
+          id: 'h-3',
+          estado: { id: 'INICIADO', nombre: 'Iniciado' },
+          fechaActualizacion: '2026-09-01T10:00:00Z',
+          motivo: null,
         },
       ]);
     });
