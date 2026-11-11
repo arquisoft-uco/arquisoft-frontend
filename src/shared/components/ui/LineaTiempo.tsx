@@ -11,6 +11,8 @@ const LINEA = 'w-px flex-1 bg-border';
 const CONTENIDO = 'flex min-w-0 flex-col gap-1 pb-5';
 const FILA_ESTADO = 'flex flex-wrap items-center gap-2';
 const FECHA = 'text-sm text-on-surface-secondary';
+const MOTIVO = 'whitespace-pre-line break-words text-sm text-on-surface-secondary';
+const MOTIVO_ETIQUETA = 'font-medium text-on-surface';
 
 const formatoFecha = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -19,6 +21,7 @@ export interface PasoLineaTiempo {
   nombre: string;
   variante: VarianteBadge;
   fecha: string;
+  motivo?: string;
 }
 
 interface Props {
@@ -53,6 +56,12 @@ export default function LineaTiempo({ pasos, etiqueta }: Props) {
               <span className={FECHA}>
                 <FechaDelPaso iso={paso.fecha} />
               </span>
+              {paso.motivo?.trim() && (
+                <p className={MOTIVO}>
+                  <span className={MOTIVO_ETIQUETA}>Motivo: </span>
+                  {paso.motivo.trim()}
+                </p>
+              )}
             </div>
           </li>
         );

@@ -37,6 +37,7 @@ function aHistorialEstadoProyectoGrado(
     id: r.id,
     estado: { id: r.estadoProyecto, nombre: r.estadoProyectoNombre },
     fechaActualizacion: r.fechaActualizacion,
+    motivo: r.motivo ?? null,
   };
 }
 

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { ordenarMasRecientePrimero } from './historial-estados';
 
 function paso(id: string, fechaActualizacion: string) {
-  return { id, estado: { id: `E-${id}`, nombre: id }, fechaActualizacion };
+  return { id, estado: { id: `E-${id}`, nombre: id }, fechaActualizacion, motivo: null };
 }
 
 describe('ordenarMasRecientePrimero', () => {

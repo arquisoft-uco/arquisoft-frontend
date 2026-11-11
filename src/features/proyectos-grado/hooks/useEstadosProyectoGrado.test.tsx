@@ -15,11 +15,13 @@ const ANTIGUO = {
   id: 'h-1',
   estado: { id: 'EN_DESARROLLO', nombre: 'En desarrollo' },
   fechaActualizacion: '2026-09-01T10:00:00Z',
+  motivo: null,
 };
 const RECIENTE = {
   id: 'h-2',
   estado: { id: 'EN_REVISION', nombre: 'En revisión' },
   fechaActualizacion: '2026-09-02T10:00:00Z',
+  motivo: null,
 };
 
 function crearWrapper(queryClient: QueryClient) {

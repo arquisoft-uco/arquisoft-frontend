@@ -20,5 +20,21 @@ describe('LineaTiempo', () => {
     expect(screen.getByText('En curso')).toBeInTheDocument();
     expect(container.querySelectorAll('time')).toHaveLength(1);
     expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.queryByText(/Motivo/)).not.toBeInTheDocument();
+  });
+
+  it('muestra el motivo una sola vez con su etiqueta y omite el vacío o en blanco', () => {
+    // Arrange
+    const pasos: PasoLineaTiempo[] = [
+      { ...PASOS[0], motivo: 'Cambió de tema' },
+      { ...PASOS[1], motivo: '   ' },
+    ];
+
+    // Act
+    render(<LineaTiempo pasos={pasos} etiqueta="Historial de prueba" />);
+
+    // Assert
+    expect(screen.getAllByText(/Motivo/)).toHaveLength(1);
+    expect(screen.getByText('Cambió de tema')).toBeInTheDocument();
   });
 });
