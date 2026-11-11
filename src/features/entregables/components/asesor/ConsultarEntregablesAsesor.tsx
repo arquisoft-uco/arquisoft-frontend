@@ -9,6 +9,7 @@ import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGra
 import ArtefactosEntregablePanel from './ArtefactosEntregablePanel';
 import CambiarEstadoEntregablePanel from './CambiarEstadoEntregablePanel';
 import EntregablesAsesorTable from './EntregablesAsesorTable';
+import HistorialEstadosEntregablePanel from './HistorialEstadosEntregablePanel';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -23,6 +24,7 @@ export default function ConsultarEntregablesAsesor() {
   const { data: estados } = useEstadosEntregable();
   const [enEdicion, setEnEdicion] = useState<EntregableProyectoGrado | null>(null);
   const [enArtefactos, setEnArtefactos] = useState<EntregableProyectoGrado | null>(null);
+  const [enHistorial, setEnHistorial] = useState<EntregableProyectoGrado | null>(null);
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const entregables = data?.content ?? [];
@@ -73,6 +75,7 @@ export default function ConsultarEntregablesAsesor() {
             onLimpiarFiltros={listado.limpiarFiltros}
             onCambiarEstado={setEnEdicion}
             onVerArtefactos={setEnArtefactos}
+            onVerHistorial={setEnHistorial}
           />
         )}
       </div>
@@ -97,6 +100,13 @@ export default function ConsultarEntregablesAsesor() {
         <ArtefactosEntregablePanel
           entregable={enArtefactos}
           onCerrar={() => setEnArtefactos(null)}
+        />
+      )}
+
+      {enHistorial && (
+        <HistorialEstadosEntregablePanel
+          entregable={enHistorial}
+          onCerrar={() => setEnHistorial(null)}
         />
       )}
     </div>
