@@ -1,6 +1,6 @@
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import Field from '../../../../shared/components/ui/Field';
-import { FRASE_CONFIRMACION_CANCELACION } from '../../utils/frase-cancelacion';
+import { FRASE_CONFIRMACION_CANCELACION } from '../../utils/frase-confirmacion';
+import CampoFraseConfirmacion from '../CampoFraseConfirmacion';
 
 const CONSECUENCIAS = [
   'Se borran los archivos de los artefactos del proyecto.',
@@ -41,18 +41,11 @@ export default function ConfirmarCancelacionDialog({
       onConfirmar={onConfirmar}
       onCancelar={onVolver}
     >
-      <Field etiqueta={`Escribe «${FRASE_CONFIRMACION_CANCELACION}» para continuar`}>
-        {(control) => (
-          <input
-            {...control}
-            type="text"
-            value={frase}
-            onChange={(e) => onCambiarFrase(e.target.value)}
-            autoComplete="off"
-            className="field-input"
-          />
-        )}
-      </Field>
+      <CampoFraseConfirmacion
+        frase={FRASE_CONFIRMACION_CANCELACION}
+        valor={frase}
+        onCambiar={onCambiarFrase}
+      />
     </ConfirmDialog>
   );
 }

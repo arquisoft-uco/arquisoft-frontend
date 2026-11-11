@@ -10,7 +10,9 @@ import Tabs from '../../../shared/components/ui/Tabs';
 import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
 import { useDetalleProyectoGradoAsesor } from '../hooks/useDetalleProyectoGradoAsesor';
 import { useResumenProyectoGrado } from '../hooks/useResumenProyectoGrado';
+import { puedeFinalizarProyecto } from '../utils/estados-proyecto';
 import { aResumen } from '../utils/resumen-proyecto-grado';
+import AccionesProyectoGradoAsesor from './asesor/AccionesProyectoGradoAsesor';
 import EstudiantesAsesoradosResumen from './asesor/EstudiantesAsesoradosResumen';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
 import { DISPOSICION } from './disposicion';
@@ -77,6 +79,15 @@ export default function AsesorDetalleView() {
     <ResumenProyectoGradoPanel
       resumen={aResumen(proyecto)}
       estudiantes={<EstudiantesAsesoradosResumen proyectoGradoId={proyecto.id} />}
+      accion={
+        puedeFinalizarProyecto(proyecto.estado.id) ? (
+          <AccionesProyectoGradoAsesor
+            proyectoGradoId={proyecto.id}
+            titulo={titulo}
+            onFinalizado={() => navigate(rutaListado)}
+          />
+        ) : undefined
+      }
     />
   );
 

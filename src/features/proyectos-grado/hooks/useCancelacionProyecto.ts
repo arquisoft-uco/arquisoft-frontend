@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage, getApiFieldErrors } from '../../../shared/utils/api-error';
 import { LIMITES, textoRequerido } from '../../../shared/validation';
-import { coincideFraseConfirmacion } from '../utils/frase-cancelacion';
+import { coincideFrase, FRASE_CONFIRMACION_CANCELACION } from '../utils/frase-confirmacion';
 import { useCancelarProyectoGrado } from './useCancelarProyectoGrado';
 
 const schema = z.object({
@@ -30,7 +30,7 @@ export function useCancelacionProyecto({ proyectoGradoId, onCancelado }: Opcione
     defaultValues: { motivo: '' },
     mode: 'onTouched',
   });
-  const fraseCoincide = coincideFraseConfirmacion(frase);
+  const fraseCoincide = coincideFrase(frase, FRASE_CONFIRMACION_CANCELACION);
 
   function solicitar() {
     setPaso('motivo');
