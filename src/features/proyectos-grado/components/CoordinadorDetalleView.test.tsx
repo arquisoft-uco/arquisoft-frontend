@@ -29,6 +29,7 @@ function renderizar(initialPath: string) {
       />
       <Route path="/proyectos-grado/:id" element={<CoordinadorDetalleView />}>
         <Route path="asesores" element={<p>Panel de asesores</p>} />
+        <Route path="estados" element={<p>Panel de estados</p>} />
       </Route>
     </Routes>,
     { initialPath },
@@ -71,5 +72,15 @@ describe('CoordinadorDetalleView', () => {
       'href',
       '/proyectos-grado',
     );
+  });
+
+  it('muestra las pestañas Asesores y Estados y marca como activa la de la URL', () => {
+    // Act
+    renderizar('/proyectos-grado/p-1/estados');
+
+    // Assert
+    expect(screen.getByRole('link', { name: 'Asesores' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Estados' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByText('Panel de estados')).toBeInTheDocument();
   });
 });

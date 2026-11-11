@@ -148,6 +148,63 @@ describe('proyectosGradoService', () => {
     });
   });
 
+  describe('getHistorialEstadosProyecto', () => {
+    it('consulta GET /proyectos-grado/{id}/historial-estados y traduce el estado plano a { id, nombre }', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'h-1',
+            estadoProyecto: 'EN_REVISION',
+            estadoProyectoNombre: 'En revisión',
+            fechaActualizacion: '2026-09-02T10:00:00Z',
+            motivo: null,
+          },
+          {
+            id: 'h-2',
+            estadoProyecto: 'CANCELADO',
+            estadoProyectoNombre: 'Cancelado',
+            fechaActualizacion: '2026-09-03T10:00:00Z',
+            motivo: 'Texto',
+          },
+          {
+            id: 'h-3',
+            estadoProyecto: 'INICIADO',
+            estadoProyectoNombre: 'Iniciado',
+            fechaActualizacion: '2026-09-01T10:00:00Z',
+          },
+        ],
+      });
+
+      // Act
+      const historial = await proyectosGradoService.getHistorialEstadosProyecto('p-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/proyectos-grado/p-1/historial-estados');
+      expect(historial).toEqual([
+        {
+          id: 'h-1',
+          estado: { id: 'EN_REVISION', nombre: 'En revisión' },
+          fechaActualizacion: '2026-09-02T10:00:00Z',
+          motivo: null,
+        },
+        {
+          id: 'h-2',
+          estado: { id: 'CANCELADO', nombre: 'Cancelado' },
+          fechaActualizacion: '2026-09-03T10:00:00Z',
+          motivo: 'Texto',
+        },
+        {
+          id: 'h-3',
+          estado: { id: 'INICIADO', nombre: 'Iniciado' },
+          fechaActualizacion: '2026-09-01T10:00:00Z',
+          motivo: null,
+        },
+      ]);
+    });
+  });
+
   describe('asignarAsesor', () => {
     it('hace POST /proyectos-grado/{id}/asesores traduciendo asesorId a { asesor } y resuelve undefined', async () => {
       // Arrange
