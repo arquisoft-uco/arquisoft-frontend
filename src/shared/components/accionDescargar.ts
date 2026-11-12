@@ -4,8 +4,13 @@ import type { AccionMenu } from './ui/RowMenu';
 interface Opciones {
   onSeleccionar: () => void;
   deshabilitada?: boolean;
+  etiqueta?: string;
 }
 
-export function accionDescargar({ onSeleccionar, deshabilitada }: Opciones): AccionMenu {
-  return { etiqueta: 'Descargar', icono: Download, onSeleccionar, deshabilitada };
+export function accionDescargar({
+  onSeleccionar,
+  deshabilitada,
+  etiqueta = 'Descargar',
+}: Opciones): AccionMenu {
+  return { etiqueta, icono: Download, onSeleccionar, deshabilitada };
 }

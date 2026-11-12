@@ -11,6 +11,8 @@ const ENTREGABLE_1: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: ASESOR,
   estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 const ENTREGABLE_2: EntregableProyectoGrado = {
   id: 'e-2',
@@ -18,6 +20,8 @@ const ENTREGABLE_2: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-2', nombre: 'Monitoreo de aire' },
   asesor: ASESOR,
   estadoEntregable: { id: 'EN_EVALUACION', nombre: 'En evaluación' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof EntregablesAsesorTable>> = {}) {
@@ -25,12 +29,15 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof EntregablesAses
     entregables: [ENTREGABLE_1, ENTREGABLE_2],
     cargando: false,
     hayFiltros: false,
+    estadoProyecto: 'activos' as const,
     orden: { clave: 'proyectoGradoNombre', direccion: 'ASC' as const },
     onOrdenar: vi.fn(),
     onLimpiarFiltros: vi.fn(),
     onCambiarEstado: vi.fn(),
     onVerArtefactos: vi.fn(),
     onVerHistorial: vi.fn(),
+    onDescargarPaquete: vi.fn(),
+    descargando: false,
     ...parcial,
   };
   render(<EntregablesAsesorTable {...props} />);
@@ -160,5 +167,50 @@ describe('EntregablesAsesorTable', () => {
 
     // Assert
     expect(onVerHistorial).toHaveBeenCalledWith(cerrado);
+  });
+
+  it('en un proyecto finalizado muestra la insignia, quita "Cambiar estado" y solo habilita la descarga del entregable cerrado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const finalizadoCerrado: EntregableProyectoGrado = {
+      ...ENTREGABLE_1,
+      id: 'e-3',
+      proyectoGrado: { id: 'p-3', nombre: 'Proyecto terminado' },
+      estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+      proyectoFinalizado: true,
+    };
+    const finalizadoAprobado: EntregableProyectoGrado = {
+      ...ENTREGABLE_1,
+      id: 'e-4',
+      proyectoGrado: { id: 'p-4', nombre: 'Otro terminado' },
+      proyectoFinalizado: true,
+    };
+    const { onDescargarPaquete } = renderizar({
+      entregables: [finalizadoCerrado, finalizadoAprobado],
+      estadoProyecto: 'finalizados',
+    });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: /Acciones del entregable de Proyecto terminado/ }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar paquete' }));
+    await user.click(
+      tabla().getByRole('button', { name: /Acciones del entregable de Otro terminado/ }),
+    );
+
+    // Assert
+    expect(tabla().getAllByText('Proyecto finalizado')).toHaveLength(2);
+    expect(onDescargarPaquete).toHaveBeenCalledWith(finalizadoCerrado);
+    expect(screen.queryByRole('menuitem', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Descargar paquete' })).toBeDisabled();
+  });
+
+  it('con "Finalizados" y sin entregables muestra el vacío propio del alcance', () => {
+    // Act
+    renderizar({ entregables: [], estadoProyecto: 'finalizados' });
+
+    // Assert
+    expect(screen.getByText('Sin entregables de proyectos finalizados')).toBeInTheDocument();
   });
 });

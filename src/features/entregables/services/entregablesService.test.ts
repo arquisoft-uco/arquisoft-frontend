@@ -42,4 +42,41 @@ describe('entregablesService', () => {
       ]);
     });
   });
+
+  describe('consultarProyectosAsesor', () => {
+    it('filtra en servidor los proyectos EN_PROCESO y ATRASADO', async () => {
+      // Arrange
+      vi.mocked(apiClient.post).mockResolvedValue({ status: 200, data: { content: [] } });
+
+      // Act
+      await entregablesService.consultarProyectosAsesor();
+
+      // Assert
+      expect(apiClient.post).toHaveBeenCalledWith('/proyectos-grado/asesor', {
+        pagina: 0,
+        tamanio: 100,
+        ordenamiento: ['tituloProyecto:ASC'],
+        filtros: {
+          tipo: 'PREDICADO_MULTIVALOR',
+          campo: 'estadoProyectoGrado',
+          operador: 'IN',
+          valores: ['EN_PROCESO', 'ATRASADO'],
+        },
+      });
+    });
+  });
+
+  describe('obtenerEnlacePaquete', () => {
+    it('hace GET /entregables/{id}/paquete y devuelve el enlace', async () => {
+      // Arrange
+      get.mockResolvedValue({ status: 200, data: { url: 'https://s3.test/p', expiraEn: 'x' } });
+
+      // Act
+      const enlace = await entregablesService.obtenerEnlacePaquete('e-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/entregables/e-1/paquete');
+      expect(enlace.url).toBe('https://s3.test/p');
+    });
+  });
 });

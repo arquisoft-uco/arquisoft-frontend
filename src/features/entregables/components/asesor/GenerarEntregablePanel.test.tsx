@@ -64,7 +64,7 @@ describe('GenerarEntregablePanel', () => {
     render(<GenerarEntregablePanel onCerrar={vi.fn()} />);
 
     // Assert
-    expect(screen.getByText('Aún no tienes proyectos de grado')).toBeInTheDocument();
+    expect(screen.getByText('Aún no tienes proyectos en curso')).toBeInTheDocument();
     expect(botonGenerar()).toBeDisabled();
   });
 

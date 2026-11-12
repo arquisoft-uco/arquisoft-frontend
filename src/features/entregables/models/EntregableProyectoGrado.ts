@@ -6,4 +6,6 @@ export interface EntregableProyectoGrado {
   proyectoGrado: { id: string; nombre: string };
   asesor: Asesor;
   estadoEntregable: { id: string; nombre: string };
+  proyectoFinalizado: boolean;
+  proyectoCancelado: boolean;
 }

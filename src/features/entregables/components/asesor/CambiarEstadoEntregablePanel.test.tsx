@@ -30,6 +30,8 @@ function entregable(estadoId: string, nombre: string): EntregableProyectoGrado {
     versionEntregable: 3,
     proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
     asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+    proyectoFinalizado: false,
+    proyectoCancelado: false,
     estadoEntregable: { id: estadoId, nombre },
   };
 }

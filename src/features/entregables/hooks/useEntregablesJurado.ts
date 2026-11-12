@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import type { OrdenCampoEntregableJurado } from '../models/OrdenCampoEntregableJurado';
 import { entregablesService } from '../services/entregablesService';
+import { leerEstadoProyecto } from '../utils/estado-proyecto';
 import { construirFiltros } from '../utils/filtros-entregable';
 
 const PAGE_SIZE = 10;
@@ -30,6 +31,7 @@ export function useEntregablesJurado() {
   const page = parametros.pagina;
   const texto = parametros.texto('q');
   const asesor = parametros.texto('asesor');
+  const estadoProyecto = leerEstadoProyecto(parametros.texto('estadoProyecto'));
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [campo, direccion] = orden.split(':');
   const ordenCampo = campo as OrdenCampoEntregableJurado;
@@ -41,6 +43,10 @@ export function useEntregablesJurado() {
 
   function setAsesor(valor: string) {
     parametros.cambiar({ asesor: valor });
+  }
+
+  function setEstadoProyecto(valor: string) {
+    parametros.cambiar({ estadoProyecto: valor === 'finalizados' ? valor : undefined });
   }
 
   function setOrden(
@@ -64,13 +70,14 @@ export function useEntregablesJurado() {
       asesor.trim(),
       ordenCampo,
       ordenDireccion,
+      estadoProyecto,
     ],
     queryFn: () =>
       entregablesService.consultarEntregablesJurado({
         pagina: page,
         tamanio: PAGE_SIZE,
         ordenamiento: [`${ordenCampo}:${ordenDireccion}`, ...DESEMPATES[ordenCampo]],
-        filtros: construirFiltros(texto, [], asesor),
+        filtros: construirFiltros(texto, [], asesor, estadoProyecto),
       }),
     placeholderData: keepPreviousData,
   });
@@ -86,6 +93,8 @@ export function useEntregablesJurado() {
     setAsesor,
     ordenCampo,
     ordenDireccion,
+    estadoProyecto,
+    setEstadoProyecto,
     setOrden,
     limpiarFiltros,
   };

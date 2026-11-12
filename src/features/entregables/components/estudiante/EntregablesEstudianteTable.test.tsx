@@ -10,6 +10,8 @@ const ENTREGABLE_1: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
   estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 const ENTREGABLE_2: EntregableProyectoGrado = {
   id: 'e-2',
@@ -17,6 +19,8 @@ const ENTREGABLE_2: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' },
   estadoEntregable: { id: 'EN_EVALUACION', nombre: 'En evaluación' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function renderizar(
@@ -25,8 +29,11 @@ function renderizar(
   const props = {
     entregables: [ENTREGABLE_1, ENTREGABLE_2],
     cargando: false,
+    estadoProyecto: 'activos' as const,
     orden: { clave: 'versionEntregable', direccion: 'DESC' as const },
     onOrdenar: vi.fn(),
+    onDescargarPaquete: vi.fn(),
+    descargando: false,
     ...parcial,
   };
   render(<EntregablesEstudianteTable {...props} />);
@@ -72,5 +79,42 @@ describe('EntregablesEstudianteTable', () => {
 
     // Assert
     expect(screen.getByText('Aún no hay entregables en tu proyecto')).toBeInTheDocument();
+  });
+
+  it('el menú de la fila descarga el paquete y en un proyecto finalizado solo del entregable cerrado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const cerrado: EntregableProyectoGrado = {
+      ...ENTREGABLE_1,
+      estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+      proyectoFinalizado: true,
+    };
+    const aprobado: EntregableProyectoGrado = {
+      ...ENTREGABLE_2,
+      estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' },
+      proyectoFinalizado: true,
+    };
+    const { onDescargarPaquete } = renderizar({
+      entregables: [cerrado, aprobado],
+      estadoProyecto: 'finalizados',
+    });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones del entregable versión 2' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar paquete' }));
+    await user.click(tabla().getByRole('button', { name: 'Acciones del entregable versión 1' }));
+
+    // Assert
+    expect(tabla().getAllByText('Proyecto finalizado')).toHaveLength(2);
+    expect(onDescargarPaquete).toHaveBeenCalledWith(cerrado);
+    expect(screen.getByRole('menuitem', { name: 'Descargar paquete' })).toBeDisabled();
+  });
+
+  it('con "Finalizados" y sin entregables muestra el vacío propio del alcance', () => {
+    // Act
+    renderizar({ entregables: [], estadoProyecto: 'finalizados' });
+
+    // Assert
+    expect(screen.getByText('Sin entregables de proyectos finalizados')).toBeInTheDocument();
   });
 });

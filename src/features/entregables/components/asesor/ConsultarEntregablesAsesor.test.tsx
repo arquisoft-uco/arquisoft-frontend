@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarEntregablesAsesor from './ConsultarEntregablesAsesor';
+import { useDescargarPaqueteEntregable } from '../../hooks/useDescargarPaqueteEntregable';
 import { useEntregablesAsesor } from '../../hooks/useEntregablesAsesor';
 import { useEstadosEntregable } from '../../hooks/useEstadosEntregable';
 import { useCambiarEstadoEntregable } from '../../hooks/useCambiarEstadoEntregable';
@@ -12,6 +13,9 @@ import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGra
 
 vi.mock('../../hooks/useEntregablesAsesor', () => ({
   useEntregablesAsesor: vi.fn(),
+}));
+vi.mock('../../hooks/useDescargarPaqueteEntregable', () => ({
+  useDescargarPaqueteEntregable: vi.fn(),
 }));
 vi.mock('../../hooks/useEstadosEntregable', () => ({
   useEstadosEntregable: vi.fn(),
@@ -32,6 +36,8 @@ const ENTREGABLE: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
   estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function crearPagina(
@@ -71,6 +77,8 @@ function mockHook(parcial: Partial<ReturnType<typeof useEntregablesAsesor>> = {}
     ordenDireccion: 'ASC',
     setOrden: vi.fn(),
     limpiarFiltros: vi.fn(),
+    estadoProyecto: 'activos',
+    setEstadoProyecto: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useEntregablesAsesor>;
   vi.mocked(useEntregablesAsesor).mockReturnValue(hook);
@@ -88,6 +96,10 @@ describe('ConsultarEntregablesAsesor', () => {
     vi.mocked(useEntregablesAsesor).mockReset();
     vi.mocked(useEstadosEntregable).mockReset();
     mockCatalogo(undefined);
+    vi.mocked(useDescargarPaqueteEntregable).mockReturnValue({
+      descargar: vi.fn(),
+      descargando: false,
+    });
     vi.mocked(useCambiarEstadoEntregable).mockReturnValue({
       mutate: vi.fn(),
       isPending: false,
@@ -167,7 +179,7 @@ describe('ConsultarEntregablesAsesor', () => {
     const { rerender } = render(<ConsultarEntregablesAsesor />);
 
     // Assert
-    expect(screen.getByText('1 entregable')).toBeInTheDocument();
+    expect(screen.getByText('1 entregable · de proyectos activos')).toBeInTheDocument();
     expect(
       within(screen.getByRole('table', { name: 'Entregables' })).getByText('Sistema de riego'),
     ).toBeInTheDocument();
@@ -177,7 +189,7 @@ describe('ConsultarEntregablesAsesor', () => {
     rerender(<ConsultarEntregablesAsesor />);
 
     // Assert
-    expect(screen.getByText('12 entregables')).toBeInTheDocument();
+    expect(screen.getByText('12 entregables · de proyectos activos')).toBeInTheDocument();
   });
 
   it('los chips de estado salen del catálogo y alternar uno envía su id', async () => {
@@ -260,5 +272,39 @@ describe('ConsultarEntregablesAsesor', () => {
 
     // Assert
     expect(screen.queryByText('Este entregable aún no tiene artefactos')).not.toBeInTheDocument();
+  });
+
+  it('"Descargar paquete" pide la descarga del entregable de la fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const descargar = vi.fn();
+    vi.mocked(useDescargarPaqueteEntregable).mockReturnValue({ descargar, descargando: false });
+    mockHook({ data: crearPagina([ENTREGABLE]) });
+    render(<ConsultarEntregablesAsesor />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Entregables' })).getByRole('button', {
+        name: /Acciones del entregable de Sistema de riego/,
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar paquete' }));
+
+    // Assert
+    expect(descargar).toHaveBeenCalledWith(ENTREGABLE);
+  });
+
+  it('elegir otro alcance lo cambia y el resumen nombra el alcance actual', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([ENTREGABLE]), estadoProyecto: 'finalizados' });
+    render(<ConsultarEntregablesAsesor />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Activos' }));
+
+    // Assert
+    expect(hook.setEstadoProyecto).toHaveBeenCalledWith('activos');
+    expect(screen.getByText('1 entregable · de proyectos finalizados')).toBeInTheDocument();
   });
 });

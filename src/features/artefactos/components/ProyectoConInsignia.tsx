@@ -1,4 +1,4 @@
-import InsigniaProyectoCerrado from './InsigniaProyectoCerrado';
+import InsigniaProyectoCerrado from '../../../shared/components/InsigniaProyectoCerrado';
 
 interface Props {
   proyecto: { nombreProyecto: string; proyectoFinalizado: boolean; proyectoCancelado: boolean };

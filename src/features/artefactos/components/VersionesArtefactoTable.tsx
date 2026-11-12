@@ -8,7 +8,7 @@ import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import { construirColumnas, etiquetaVersion } from './columnasVersionesArtefacto';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
-import InsigniaProyectoCerrado from './InsigniaProyectoCerrado';
+import InsigniaProyectoCerrado from '../../../shared/components/InsigniaProyectoCerrado';
 import VersionArtefactoRowMenu from './VersionArtefactoRowMenu';
 
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
