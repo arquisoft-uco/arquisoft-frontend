@@ -41,6 +41,31 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('registrarEvaluacionesCuantitativasJurado', () => {
+    it('envía a la ruta con prefijo /evaluaciones, traduce itemId a item y resuelve undefined', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.registrarEvaluacionesCuantitativasJurado({
+        evaluacionJuradoId: 'ej-1',
+        evaluaciones: [
+          { itemId: 'item-1', puntaje: 80 },
+          { itemId: 'item-2', puntaje: 0 },
+        ],
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/ej-1/cuantitativas', {
+        evaluaciones: [
+          { item: 'item-1', puntaje: 80 },
+          { item: 'item-2', puntaje: 0 },
+        ],
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('omitirEvaluacionesCualitativasJurado', () => {
     it('llama DELETE con el prefijo /evaluaciones y los ids en data, y resuelve undefined', async () => {
       // Arrange

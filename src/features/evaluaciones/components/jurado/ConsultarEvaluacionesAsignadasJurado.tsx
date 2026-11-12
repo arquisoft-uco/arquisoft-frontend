@@ -1,4 +1,4 @@
-import { ClipboardList, ClipboardPen } from 'lucide-react';
+import { Calculator, ClipboardList, ClipboardPen } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import { useHasRole } from '../../../../hooks/useHasRole';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
@@ -102,6 +102,16 @@ export default function ConsultarEvaluacionesAsignadasJurado() {
                         rotulo="Evaluar"
                         disabled={asignacion.evaluacion.estado.id === ESTADO_FINALIZADA}
                         onClick={() => navigate(`/evaluaciones/${asignacion.id}/evaluar`)}
+                      />
+                      <IconButton
+                        etiqueta={`Evaluar cuantitativas de ${asignacion.entregable.proyecto}`}
+                        icono={Calculator}
+                        tono="primario"
+                        rotulo="Cuantitativas"
+                        disabled={asignacion.evaluacion.estado.id === ESTADO_FINALIZADA}
+                        onClick={() =>
+                          navigate(`/evaluaciones/${asignacion.id}/evaluar-cuantitativas`)
+                        }
                       />
                     </div>
                   )

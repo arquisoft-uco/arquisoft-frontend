@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import AuthGuard from './guards/AuthGuard';
 import { guarded } from './guards/guarded';
 import AppLayout from './layout/AppLayout';
+import { rutasEvaluaciones } from './features/evaluaciones/rutas';
 import IniciarSesion from './features/iniciar-sesion/IniciarSesion';
 import ForbiddenPage from './shared/components/ForbiddenPage';
 import RouteErrorPage from './shared/components/RouteErrorPage';
@@ -17,20 +18,6 @@ const PestanaProyectoGrado = lazy(
 );
 const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
-const Evaluaciones = lazy(() => import('./features/evaluaciones/Evaluaciones'));
-const JuradosEvaluacion = lazy(() => import('./features/evaluaciones/JuradosEvaluacion'));
-const EvaluacionesCualitativasJurado = lazy(
-  () => import('./features/evaluaciones/EvaluacionesCualitativasJurado'),
-);
-const EvaluacionesCuantitativasJurado = lazy(
-  () => import('./features/evaluaciones/EvaluacionesCuantitativasJurado'),
-);
-const EvaluacionesCualitativasRealizadasJurado = lazy(
-  () => import('./features/evaluaciones/EvaluacionesCualitativasRealizadasJurado'),
-);
-const RegistrarEvaluacionesCualitativas = lazy(
-  () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
-);
 const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
 const DetalleTarea = lazy(() => import('./features/mapas-ruta/DetalleTarea'));
 const RepositorioArtefactos = lazy(
@@ -93,30 +80,7 @@ export const router = createBrowserRouter([
           },
           { path: 'artefactos', element: guarded('artefactos', <Artefactos />) },
           { path: 'entregables', element: guarded('entregables', <Entregables />) },
-          {
-            path: 'evaluaciones',
-            element: guarded('evaluaciones', <Outlet />),
-            children: [
-              { index: true, element: <Evaluaciones /> },
-              {
-                path: ':evaluacionJuradoId/evaluar',
-                element: <RegistrarEvaluacionesCualitativas />,
-              },
-              { path: ':evaluacionId/jurados', element: <JuradosEvaluacion /> },
-              {
-                path: ':evaluacionJuradoId/cualitativas',
-                element: <EvaluacionesCualitativasJurado />,
-              },
-              {
-                path: ':evaluacionJuradoId/cualitativas-realizadas',
-                element: <EvaluacionesCualitativasRealizadasJurado />,
-              },
-              {
-                path: ':evaluacionJuradoId/cuantitativas',
-                element: <EvaluacionesCuantitativasJurado />,
-              },
-            ],
-          },
+          rutasEvaluaciones,
           {
             path: 'mapas-ruta',
             element: guarded('mapas-ruta', <Outlet />),
