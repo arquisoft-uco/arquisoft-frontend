@@ -3,14 +3,18 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEntregablesJurado } from '../../hooks/useEntregablesJurado';
+import { OPCIONES_ESTADO_PROYECTO, textoAlcanceEstadoProyecto } from '../../utils/estado-proyecto';
+import type { EstadoProyectoListado } from '../../utils/estado-proyecto';
+import Segmented from '../Segmented';
 import EntregablesJuradoTable from './EntregablesJuradoTable';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total?: number): string {
+function textoResumen(estadoProyecto: EstadoProyectoListado, total?: number): string {
   if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'entregable' : 'entregables'}`;
+  const entregables = `${total} ${total === 1 ? 'entregable' : 'entregables'}`;
+  return `${entregables} · ${textoAlcanceEstadoProyecto(estadoProyecto)}`;
 }
 
 export default function ConsultarEntregablesJurado() {
@@ -24,6 +28,13 @@ export default function ConsultarEntregablesJurado() {
 
   return (
     <div className={RAIZ}>
+      <Segmented
+        opciones={OPCIONES_ESTADO_PROYECTO}
+        valor={listado.estadoProyecto}
+        onCambiar={listado.setEstadoProyecto}
+        etiqueta="Proyectos de grado"
+      />
+
       <FilterBar
         busqueda={{
           valor: listado.texto,
@@ -58,7 +69,7 @@ export default function ConsultarEntregablesJurado() {
       />
 
       <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
+        {textoResumen(listado.estadoProyecto, data?.totalElements)}
       </p>
 
       <div aria-busy={isFetching}>
@@ -73,6 +84,7 @@ export default function ConsultarEntregablesJurado() {
             entregables={entregables}
             cargando={isLoading || recargandoSinFilas}
             hayFiltros={hayFiltros}
+            estadoProyecto={listado.estadoProyecto}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}

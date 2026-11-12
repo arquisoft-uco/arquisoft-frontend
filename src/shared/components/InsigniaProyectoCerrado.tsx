@@ -1,4 +1,4 @@
-import Badge from '../../../shared/components/ui/Badge';
+import Badge from './ui/Badge';
 
 interface Props {
   proyectoFinalizado: boolean;

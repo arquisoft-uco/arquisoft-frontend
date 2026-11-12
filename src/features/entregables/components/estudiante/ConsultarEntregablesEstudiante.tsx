@@ -1,15 +1,20 @@
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useDescargarPaqueteEntregable } from '../../hooks/useDescargarPaqueteEntregable';
 import { useEntregablesEstudiante } from '../../hooks/useEntregablesEstudiante';
+import { OPCIONES_ESTADO_PROYECTO, textoAlcanceEstadoProyecto } from '../../utils/estado-proyecto';
+import type { EstadoProyectoListado } from '../../utils/estado-proyecto';
+import Segmented from '../Segmented';
 import EntregablesEstudianteTable from './EntregablesEstudianteTable';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total?: number): string {
+function textoResumen(estadoProyecto: EstadoProyectoListado, total?: number): string {
   if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'entregable' : 'entregables'}`;
+  const entregables = `${total} ${total === 1 ? 'entregable' : 'entregables'}`;
+  return `${entregables} · ${textoAlcanceEstadoProyecto(estadoProyecto)}`;
 }
 
 interface Props {
@@ -18,13 +23,21 @@ interface Props {
 
 export default function ConsultarEntregablesEstudiante({ proyectoGradoId }: Props) {
   const listado = useEntregablesEstudiante(proyectoGradoId);
+  const { descargar, descargando } = useDescargarPaqueteEntregable();
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const entregables = data?.content ?? [];
 
   return (
     <div className={RAIZ}>
+      <Segmented
+        opciones={OPCIONES_ESTADO_PROYECTO}
+        valor={listado.estadoProyecto}
+        onCambiar={listado.setEstadoProyecto}
+        etiqueta="Proyectos de grado"
+      />
+
       <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
+        {textoResumen(listado.estadoProyecto, data?.totalElements)}
       </p>
 
       <div aria-busy={isFetching}>
@@ -38,6 +51,9 @@ export default function ConsultarEntregablesEstudiante({ proyectoGradoId }: Prop
           <EntregablesEstudianteTable
             entregables={entregables}
             cargando={isLoading}
+            estadoProyecto={listado.estadoProyecto}
+            onDescargarPaquete={descargar}
+            descargando={descargando}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
           />

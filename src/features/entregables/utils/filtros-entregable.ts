@@ -1,9 +1,11 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
+import { predicadoEstadoProyecto, type EstadoProyectoListado } from './estado-proyecto';
 
 export function construirFiltros(
   texto: string,
   estadoIds: string[],
   asesor = '',
+  estadoProyecto: EstadoProyectoListado = 'activos',
 ): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
   const recortado = texto.trim();
@@ -32,6 +34,8 @@ export function construirFiltros(
       valores: estadoIds,
     });
   }
+  const predicadoProyecto = predicadoEstadoProyecto(estadoProyecto);
+  if (predicadoProyecto) nodos.push(predicadoProyecto);
   if (nodos.length === 0) return undefined;
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };

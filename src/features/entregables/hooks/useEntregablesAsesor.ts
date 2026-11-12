@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import type { OrdenCampoEntregable } from '../models/OrdenCampoEntregable';
 import { entregablesService } from '../services/entregablesService';
+import { leerEstadoProyecto } from '../utils/estado-proyecto';
 import { construirFiltros } from '../utils/filtros-entregable';
 
 const PAGE_SIZE = 10;
@@ -27,6 +28,7 @@ export function useEntregablesAsesor() {
   const page = parametros.pagina;
   const texto = parametros.texto('q');
   const estadoIds = parametros.lista('estado');
+  const estadoProyecto = leerEstadoProyecto(parametros.texto('estadoProyecto'));
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [campo, direccion] = orden.split(':');
   const ordenCampo = campo as OrdenCampoEntregable;
@@ -34,6 +36,10 @@ export function useEntregablesAsesor() {
 
   function setTexto(valor: string) {
     parametros.cambiar({ q: valor });
+  }
+
+  function setEstadoProyecto(valor: string) {
+    parametros.cambiar({ estadoProyecto: valor === 'finalizados' ? valor : undefined });
   }
 
   function setOrden(nuevoCampo: OrdenCampoEntregable, nuevaDireccion: OrdenDireccion = 'ASC') {
@@ -57,13 +63,22 @@ export function useEntregablesAsesor() {
   }
 
   const query = useQuery({
-    queryKey: ['entregables', 'asesor', page, texto.trim(), estadoIds, ordenCampo, ordenDireccion],
+    queryKey: [
+      'entregables',
+      'asesor',
+      page,
+      texto.trim(),
+      estadoIds,
+      ordenCampo,
+      ordenDireccion,
+      estadoProyecto,
+    ],
     queryFn: () =>
       entregablesService.consultarEntregablesAsesor({
         pagina: page,
         tamanio: PAGE_SIZE,
         ordenamiento: [`${ordenCampo}:${ordenDireccion}`, DESEMPATE[ordenCampo]],
-        filtros: construirFiltros(texto, estadoIds),
+        filtros: construirFiltros(texto, estadoIds, '', estadoProyecto),
       }),
     placeholderData: keepPreviousData,
   });
@@ -80,6 +95,8 @@ export function useEntregablesAsesor() {
     limpiarEstados,
     ordenCampo,
     ordenDireccion,
+    estadoProyecto,
+    setEstadoProyecto,
     setOrden,
     limpiarFiltros,
   };

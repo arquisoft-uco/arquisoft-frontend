@@ -82,8 +82,8 @@ export default function GenerarEntregablePanel({ onCerrar }: Props) {
           {sinProyectos && (
             <EmptyState
               icono={FolderOpen}
-              titulo="Aún no tienes proyectos de grado"
-              descripcion="Un entregable se genera sobre un proyecto de grado que tengas asignado."
+              titulo="Aún no tienes proyectos en curso"
+              descripcion="Un entregable se genera sobre un proyecto de grado en proceso o atrasado que tengas asignado."
             />
           )}
           {hayCatalogo && (
