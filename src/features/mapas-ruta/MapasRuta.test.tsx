@@ -13,6 +13,10 @@ vi.mock('./components/EstudianteView', () => ({
   default: () => <p>Vista estudiante</p>,
 }));
 
+vi.mock('./components/AsesorView', () => ({
+  default: () => <p>Vista asesor</p>,
+}));
+
 function renderizar() {
   return render(
     <Routes>
@@ -69,10 +73,23 @@ describe('MapasRuta', () => {
     expect(screen.queryByText('Acceso denegado')).not.toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('el asesor ve su vista y no es redirigido', () => {
     // Arrange
     entrarComo(Rol.Asesor);
     setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Vista asesor')).toBeInTheDocument();
+    expect(screen.queryByText('Acceso denegado')).not.toBeInTheDocument();
+  });
+
+  it('un rol sin vista redirige a /forbidden', () => {
+    // Arrange
+    entrarComo(Rol.Jurado);
+    setActiveRole(Rol.Jurado);
 
     // Act
     renderizar();
