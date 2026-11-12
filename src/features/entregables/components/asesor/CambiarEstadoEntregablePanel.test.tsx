@@ -88,6 +88,23 @@ describe('CambiarEstadoEntregablePanel', () => {
     expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeEnabled();
   });
 
+  it('habilita Cerrado y Cancelado cuando el entregable está rechazado', () => {
+    // Arrange
+    catalogo({ data: CATALOGO });
+
+    // Act
+    render(
+      <CambiarEstadoEntregablePanel
+        entregable={entregable('RECHAZADO', 'Rechazado')}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByRole('radio', { name: 'Cerrado' })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeEnabled();
+  });
+
   it('muestra el estado de carga con el envío deshabilitado', () => {
     // Arrange
     catalogo({ isLoading: true });

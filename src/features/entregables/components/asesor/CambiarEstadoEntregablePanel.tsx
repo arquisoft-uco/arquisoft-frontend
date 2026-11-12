@@ -22,7 +22,7 @@ const PROYECTO = 'text-sm font-semibold text-on-surface';
 const DATOS = 'flex flex-wrap items-center gap-2 text-[13px] text-on-surface-secondary';
 const OPCIONES = 'flex flex-col gap-2';
 const MOTIVO_NO_CERRABLE =
-  'Solo puedes cerrar un entregable Aprobado o Aprobado con observaciones.';
+  'Solo puedes cerrar un entregable Aprobado, Aprobado con observaciones o Rechazado.';
 
 interface Props {
   entregable: EntregableProyectoGrado;
