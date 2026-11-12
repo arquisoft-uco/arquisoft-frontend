@@ -57,34 +57,36 @@ describe('AccionesProyectoGradoAsesor', () => {
     expect(screen.getByText(/Aún no hay entregables/)).toBeInTheDocument();
   });
 
-  it('con el último entregable en otro estado deshabilita el botón y nombra versión y estado', () => {
+  it.each(['APROBADO', 'RECHAZADO'])(
+    'con el último entregable %s deshabilita el botón y nombra versión y estado',
+    (id) => {
+      // Arrange
+      consultaCon({
+        data: { versionEntregable: 2, estadoEntregable: { id, nombre: id } },
+      });
+
+      // Act
+      montar();
+
+      // Assert
+      expect(screen.getByRole('button', { name: 'Finalizar proyecto' })).toBeDisabled();
+      expect(screen.getByText(new RegExp(`versión 2.*«${id}»`))).toBeInTheDocument();
+    },
+  );
+
+  it('con el último entregable CERRADO habilita el botón sin aviso', () => {
     // Arrange
     consultaCon({
-      data: { versionEntregable: 2, estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' } },
+      data: { versionEntregable: 1, estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' } },
     });
 
     // Act
     montar();
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Finalizar proyecto' })).toBeDisabled();
-    expect(screen.getByText(/versión 2.*«Aprobado»/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Finalizar proyecto' })).toBeEnabled();
+    expect(screen.queryByText(/Para finalizar debe estar/)).not.toBeInTheDocument();
   });
-
-  it.each(['CERRADO', 'RECHAZADO'])(
-    'con el último entregable %s habilita el botón sin aviso',
-    (id) => {
-      // Arrange
-      consultaCon({ data: { versionEntregable: 1, estadoEntregable: { id, nombre: id } } });
-
-      // Act
-      montar();
-
-      // Assert
-      expect(screen.getByRole('button', { name: 'Finalizar proyecto' })).toBeEnabled();
-      expect(screen.queryByText(/Para finalizar debe estar/)).not.toBeInTheDocument();
-    },
-  );
 
   it('si la consulta falla deshabilita el botón y «Reintentar» vuelve a consultar', async () => {
     // Arrange

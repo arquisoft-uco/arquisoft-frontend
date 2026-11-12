@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { esEntregableDefinitivo, mensajeUltimoEntregable } from './ultimo-entregable';
 
 describe('ultimo-entregable', () => {
-  it('esEntregableDefinitivo es verdadero solo para CERRADO y RECHAZADO', () => {
+  it('esEntregableDefinitivo es verdadero solo para CERRADO', () => {
     // Assert
     expect(esEntregableDefinitivo('CERRADO')).toBe(true);
-    expect(esEntregableDefinitivo('RECHAZADO')).toBe(true);
+    expect(esEntregableDefinitivo('RECHAZADO')).toBe(false);
     expect(esEntregableDefinitivo('CANCELADO')).toBe(false);
     expect(esEntregableDefinitivo('APROBADO')).toBe(false);
     expect(esEntregableDefinitivo(undefined)).toBe(false);
@@ -20,5 +20,6 @@ describe('ultimo-entregable', () => {
         estadoEntregable: { id: 'EN_EVALUACION', nombre: 'En evaluación' },
       }),
     ).toMatch(/versión 2.*«En evaluación»/);
+    expect(mensajeUltimoEntregable(null)).toMatch(/debe estar cerrado./);
   });
 });

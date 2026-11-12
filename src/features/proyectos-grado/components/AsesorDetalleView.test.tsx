@@ -118,18 +118,20 @@ describe('AsesorDetalleView', () => {
     expect(screen.queryByText('Estudiantes que asesoras')).not.toBeInTheDocument();
   });
 
-  it('con un proyecto EN_PROCESO ofrece «Finalizar proyecto» y con otro estado no muestra «Acciones»', () => {
-    // Arrange
-    detalleCon({ data: PROYECTO });
+  it('con un proyecto EN_PROCESO o ATRASADO ofrece «Finalizar proyecto» y con FINALIZADO o CANCELADO no muestra «Acciones»', () => {
+    for (const id of ['EN_PROCESO', 'ATRASADO']) {
+      // Arrange
+      detalleCon({ data: { ...PROYECTO, estado: { id, nombre: id } } });
 
-    // Act
-    const { unmount } = renderizar();
+      // Act
+      const { unmount } = renderizar();
 
-    // Assert
-    expect(screen.getByRole('button', { name: 'Finalizar proyecto' })).toBeInTheDocument();
-    unmount();
+      // Assert
+      expect(screen.getByRole('button', { name: 'Finalizar proyecto' })).toBeInTheDocument();
+      unmount();
+    }
 
-    for (const id of ['ATRASADO', 'FINALIZADO', 'CANCELADO']) {
+    for (const id of ['FINALIZADO', 'CANCELADO']) {
       // Arrange
       detalleCon({ data: { ...PROYECTO, estado: { id, nombre: id } } });
 
