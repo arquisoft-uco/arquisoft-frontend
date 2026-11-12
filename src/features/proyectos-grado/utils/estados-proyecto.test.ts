@@ -20,10 +20,10 @@ describe('estados-proyecto', () => {
     expect(esSoloLectura(undefined)).toBe(false);
   });
 
-  it('puedeFinalizarProyecto es verdadero solo para EN_PROCESO', () => {
+  it('puedeFinalizarProyecto es verdadero solo para EN_PROCESO y ATRASADO', () => {
     // Assert
     expect(puedeFinalizarProyecto('EN_PROCESO')).toBe(true);
-    expect(puedeFinalizarProyecto('ATRASADO')).toBe(false);
+    expect(puedeFinalizarProyecto('ATRASADO')).toBe(true);
     expect(puedeFinalizarProyecto('FINALIZADO')).toBe(false);
     expect(puedeFinalizarProyecto('CANCELADO')).toBe(false);
     expect(puedeFinalizarProyecto(undefined)).toBe(false);
