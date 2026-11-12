@@ -5,6 +5,7 @@ import {
   campoDeErrorAsignarTarea,
   campoDeErrorMapaRuta,
   campoDeErrorModificarPlanEstimado,
+  campoDeErrorModificarPlanReal,
   campoDeErrorModificarTarea,
   mensajeErrorAgregarPlanEstimado,
   mensajeErrorAsignarTarea,
@@ -14,6 +15,7 @@ import {
   mensajeErrorEliminarTarea,
   mensajeErrorMapaRuta,
   mensajeErrorModificarPlanEstimado,
+  mensajeErrorModificarPlanReal,
   mensajeErrorModificarTarea,
 } from './errores-mapa-ruta';
 import { MENSAJES_VALIDACION } from '../../../shared/validation';
@@ -186,6 +188,27 @@ describe('errores-mapa-ruta', () => {
       campoDeErrorModificarPlanEstimado(errorApi('PLAN_ESTIMADO_DESCRIPCION_DEMASIADO_LARGA')),
     ).toBe('descripcionEstimado');
     expect(campoDeErrorModificarPlanEstimado(errorApi('PLAN_ESTIMADO_NO_ENCONTRADO'))).toBeNull();
+  });
+
+  it('modificar plan real: texto propio si no existe, respaldo y campo de cada código', () => {
+    // Act / Assert
+    expect(mensajeErrorModificarPlanReal(errorApi('PLAN_REAL_NO_ENCONTRADO'))).toContain(
+      'ya no está disponible',
+    );
+    expect(mensajeErrorModificarPlanReal(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorModificarPlanReal(new Error('red'))).toBe(
+      'Verifica los datos e inténtalo nuevamente.',
+    );
+    expect(campoDeErrorModificarPlanReal(errorApi('PLAN_REAL_TIEMPO_REQUERIDO'))).toBe(
+      'tiempoRealDias',
+    );
+    expect(campoDeErrorModificarPlanReal(errorApi('PLAN_REAL_TIEMPO_INVALIDO'))).toBe(
+      'tiempoRealDias',
+    );
+    expect(campoDeErrorModificarPlanReal(errorApi('PLAN_REAL_DESCRIPCION_DEMASIADO_LARGA'))).toBe(
+      'descripcionReal',
+    );
+    expect(campoDeErrorModificarPlanReal(errorApi('PLAN_REAL_NO_ENCONTRADO'))).toBeNull();
   });
 
   it('eliminar plan estimado: texto propio si no existe y si no el mensaje del backend o el respaldo', () => {

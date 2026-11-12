@@ -411,6 +411,26 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('modificarPlanReal', () => {
+    it('hace PATCH /mapas-ruta/planes-reales/{id} con días y descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.modificarPlanReal('r-1', {
+        tiempoRealDias: 4,
+        descripcionReal: '',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/mapas-ruta/planes-reales/r-1', {
+        tiempoRealDias: 4,
+        descripcionReal: '',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('eliminarPlanEstimado', () => {
     it('hace DELETE /mapas-ruta/planes-estimados/{id} y resuelve undefined', async () => {
       // Arrange

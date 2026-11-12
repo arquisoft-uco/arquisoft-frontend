@@ -13,6 +13,7 @@ import type { AsesorProyectoResponse } from '../models/AsesorProyectoResponse';
 import type { CambiarFechaFinMapaRutaRequest } from '../models/CambiarFechaFinMapaRutaRequest';
 import type { ModificarInformacionTareaRequest } from '../models/ModificarInformacionTareaRequest';
 import type { ModificarPlanEstimadoRequest } from '../models/ModificarPlanEstimadoRequest';
+import type { ModificarPlanRealRequest } from '../models/ModificarPlanRealRequest';
 import type { MapaRuta } from '../models/MapaRuta';
 import type { MapaRutaResponse } from '../models/MapaRutaResponse';
 import type { EstadoTarea } from '../models/mapas-ruta';
@@ -185,6 +186,15 @@ export const mapasRutaService = {
     return apiClient
       .patch(`/planes-estimados/${planEstimadoId}`, {
         descripcionEstimado: req.descripcionEstimado,
+      })
+      .then(() => undefined);
+  },
+
+  modificarPlanReal(planRealId: string, req: ModificarPlanRealRequest): Promise<void> {
+    return apiClient
+      .patch(`/mapas-ruta/planes-reales/${planRealId}`, {
+        tiempoRealDias: req.tiempoRealDias,
+        descripcionReal: req.descripcionReal,
       })
       .then(() => undefined);
   },
