@@ -205,6 +205,37 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
       expect(await screen.findByText('Pantalla de registro')).toBeInTheDocument();
     });
 
+    it('ofrece «Cuantitativas» por fila, deshabilitado en la finalizada, y navega a evaluar-cuantitativas', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      autenticarCon(Rol.Jurado);
+      mockHook({ data: [ASIGNACION, FINALIZADA] });
+      render(
+        <Routes>
+          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
+          <Route
+            path="/evaluaciones/:id/evaluar-cuantitativas"
+            element={<p>Pantalla de cuantitativas</p>}
+          />
+        </Routes>,
+      );
+
+      // Assert
+      for (const boton of screen.getAllByRole('button', {
+        name: 'Evaluar cuantitativas de Plataforma de riego',
+      })) {
+        expect(boton).toBeDisabled();
+      }
+
+      // Act
+      await user.click(
+        screen.getAllByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' })[0],
+      );
+
+      // Assert
+      expect(await screen.findByText('Pantalla de cuantitativas')).toBeInTheDocument();
+    });
+
     it('con otro rol activo no hay acción de evaluar', () => {
       // Arrange
       autenticarCon(Rol.Coordinador);
