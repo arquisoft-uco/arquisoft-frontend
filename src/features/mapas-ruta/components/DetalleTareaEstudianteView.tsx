@@ -68,6 +68,7 @@ export default function DetalleTareaEstudianteView() {
         <PlanRealTareaSeccion
           consulta={planReal}
           onEditar={() => setPanelAbierto('modificarPlanReal')}
+          onRemover={() => setPanelAbierto('eliminarPlanReal')}
         />
       </>
     );

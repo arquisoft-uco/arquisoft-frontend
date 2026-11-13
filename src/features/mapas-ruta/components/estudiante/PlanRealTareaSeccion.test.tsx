@@ -19,7 +19,13 @@ function consulta(parcial: Partial<ConsultaPlanReal> = {}): ConsultaPlanReal {
 describe('PlanRealTareaSeccion', () => {
   it('mientras carga expone el estado de carga accesible', () => {
     // Arrange / Act
-    render(<PlanRealTareaSeccion onEditar={vi.fn()} consulta={consulta({ cargando: true })} />);
+    render(
+      <PlanRealTareaSeccion
+        onEditar={vi.fn()}
+        onRemover={vi.fn()}
+        consulta={consulta({ cargando: true })}
+      />,
+    );
 
     // Assert
     expect(screen.getByRole('status')).toBeInTheDocument();
@@ -27,7 +33,13 @@ describe('PlanRealTareaSeccion', () => {
 
   it('con plan muestra los días y la descripción', () => {
     // Arrange / Act
-    render(<PlanRealTareaSeccion onEditar={vi.fn()} consulta={consulta({ plan: PLAN })} />);
+    render(
+      <PlanRealTareaSeccion
+        onEditar={vi.fn()}
+        onRemover={vi.fn()}
+        consulta={consulta({ plan: PLAN })}
+      />,
+    );
 
     // Assert
     expect(screen.getByRole('heading', { name: 'Plan real' })).toBeInTheDocument();
@@ -39,7 +51,13 @@ describe('PlanRealTareaSeccion', () => {
     // Arrange
     const onEditar = vi.fn();
     const user = userEvent.setup();
-    render(<PlanRealTareaSeccion onEditar={onEditar} consulta={consulta({ plan: PLAN })} />);
+    render(
+      <PlanRealTareaSeccion
+        onEditar={onEditar}
+        onRemover={vi.fn()}
+        consulta={consulta({ plan: PLAN })}
+      />,
+    );
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Editar plan real' }));
@@ -48,11 +66,31 @@ describe('PlanRealTareaSeccion', () => {
     expect(onEditar).toHaveBeenCalledTimes(1);
   });
 
+  it('con plan ofrece Remover plan real y dispara onRemover', async () => {
+    // Arrange
+    const onRemover = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <PlanRealTareaSeccion
+        onEditar={vi.fn()}
+        onRemover={onRemover}
+        consulta={consulta({ plan: PLAN })}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Remover plan real' }));
+
+    // Assert
+    expect(onRemover).toHaveBeenCalledTimes(1);
+  });
+
   it('con descripción nula muestra «Sin descripción»', () => {
     // Arrange / Act
     render(
       <PlanRealTareaSeccion
         onEditar={vi.fn()}
+        onRemover={vi.fn()}
         consulta={consulta({ plan: { ...PLAN, tiempoRealDias: 1, descripcionReal: null } })}
       />,
     );
@@ -64,11 +102,12 @@ describe('PlanRealTareaSeccion', () => {
 
   it('sin plan muestra el vacío y ningún botón', () => {
     // Arrange / Act
-    render(<PlanRealTareaSeccion onEditar={vi.fn()} consulta={consulta()} />);
+    render(<PlanRealTareaSeccion onEditar={vi.fn()} onRemover={vi.fn()} consulta={consulta()} />);
 
     // Assert
     expect(screen.getByText('Esta tarea aún no tiene plan real')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar plan real' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remover plan real' })).not.toBeInTheDocument();
   });
 
   it('con error muestra el aviso y Reintentar vuelve a consultar', async () => {
@@ -78,6 +117,7 @@ describe('PlanRealTareaSeccion', () => {
     render(
       <PlanRealTareaSeccion
         onEditar={vi.fn()}
+        onRemover={vi.fn()}
         consulta={consulta({ hayError: true, reintentar })}
       />,
     );

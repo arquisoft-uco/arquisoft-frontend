@@ -220,6 +220,10 @@ export const mapasRutaService = {
     return apiClient.delete(`/mapas-ruta/planes-estimados/${planEstimadoId}`).then(() => undefined);
   },
 
+  eliminarPlanReal(planRealId: string): Promise<void> {
+    return apiClient.delete(`/mapas-ruta/planes-reales/${planRealId}`).then(() => undefined);
+  },
+
   modificarInformacionTarea(tareaId: string, req: ModificarInformacionTareaRequest): Promise<void> {
     return apiClient
       .patch(`/tareas/${tareaId}`, { descripcion: req.descripcion, asesor: req.asesorId })

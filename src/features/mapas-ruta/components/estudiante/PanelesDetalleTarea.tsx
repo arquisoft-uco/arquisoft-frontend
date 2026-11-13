@@ -4,6 +4,7 @@ import type { Tarea } from '../../models/Tarea';
 import AgregarPlanEstimadoPanel from './AgregarPlanEstimadoPanel';
 import CambiarEstadoTareaPanel from './CambiarEstadoTareaPanel';
 import EliminarPlanEstimadoDialog from './EliminarPlanEstimadoDialog';
+import EliminarPlanRealDialog from './EliminarPlanRealDialog';
 import EliminarTareaDialog from './EliminarTareaDialog';
 import ModificarInformacionTareaPanel from './ModificarInformacionTareaPanel';
 import ModificarPlanEstimadoPanel from './ModificarPlanEstimadoPanel';
@@ -15,6 +16,7 @@ export type PanelDetalleTarea =
   | 'modificarPlan'
   | 'eliminarPlan'
   | 'modificarPlanReal'
+  | 'eliminarPlanReal'
   | 'informacion'
   | 'eliminar';
 
@@ -49,6 +51,9 @@ export default function PanelesDetalleTarea({
       )}
       {panelAbierto === 'modificarPlanReal' && planReal && (
         <ModificarPlanRealPanel tarea={tarea} plan={planReal} onCerrar={onCerrar} />
+      )}
+      {panelAbierto === 'eliminarPlanReal' && planReal && (
+        <EliminarPlanRealDialog tarea={tarea} plan={planReal} onCerrar={onCerrar} />
       )}
       {panelAbierto === 'informacion' && (
         <ModificarInformacionTareaPanel tarea={tarea} onCerrar={onCerrar} />

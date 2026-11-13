@@ -1,4 +1,4 @@
-import { ClipboardCheck, Pencil } from 'lucide-react';
+import { ClipboardCheck, Pencil, Trash2 } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
@@ -13,9 +13,10 @@ const VALOR = 'break-words text-base font-medium text-on-surface';
 interface Props {
   consulta: ConsultaPlanReal;
   onEditar: () => void;
+  onRemover: () => void;
 }
 
-export default function PlanRealTareaSeccion({ consulta, onEditar }: Props) {
+export default function PlanRealTareaSeccion({ consulta, onEditar, onRemover }: Props) {
   const { plan, cargando, hayError, reintentar } = consulta;
 
   if (cargando) return <Skeleton variante="lineas" etiqueta="Cargando el plan real…" />;
@@ -43,6 +44,14 @@ export default function PlanRealTareaSeccion({ consulta, onEditar }: Props) {
         </h2>
         <Button variante="secundario" icono={Pencil} className="header-action" onClick={onEditar}>
           Editar plan real
+        </Button>
+        <Button
+          variante="peligroContorno"
+          icono={Trash2}
+          className="header-action"
+          onClick={onRemover}
+        >
+          Remover plan real
         </Button>
       </div>
       <dl className="grid gap-4 sm:grid-cols-2">
