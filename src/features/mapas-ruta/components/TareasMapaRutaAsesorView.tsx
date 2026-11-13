@@ -1,4 +1,4 @@
-import { Map } from 'lucide-react';
+import { ClipboardList, Map } from 'lucide-react';
 import { Navigate, useNavigate, useParams } from 'react-router';
 import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
@@ -54,6 +54,21 @@ export default function TareasMapaRutaAsesorView() {
           { etiqueta: mapa?.titulo ?? 'Tareas' },
         ]}
         titulo="Tareas del mapa de ruta"
+        acciones={
+          mapa && (
+            <Button
+              variante="secundario"
+              icono={ClipboardList}
+              onClick={() =>
+                navigate(`/mapas-ruta/proyectos/${proyectoGradoId}/planes-reales`, {
+                  state: { search },
+                })
+              }
+            >
+              Ver planes reales
+            </Button>
+          )
+        }
         descripcion={
           mapa
             ? `${mapa.titulo} · Inicio ${formatearFechaCivil(mapa.fechaInicio)} · Fin ${formatearFechaCivil(mapa.fechaFin)}`

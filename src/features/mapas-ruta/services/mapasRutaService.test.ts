@@ -506,4 +506,46 @@ describe('mapasRutaService', () => {
       ]);
     });
   });
+
+  describe('consultarPlanesRealesProyectoAsesor', () => {
+    it('hace POST a la ruta del proyecto, traduce tarea a tareaId y descarta mapaRuta', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [
+            {
+              id: 'r-1',
+              tarea: 't-1',
+              descripcionTarea: 'Entregar informe',
+              mapaRuta: 'm-1',
+              tiempoRealDias: 3,
+              descripcionReal: null,
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesRealesProyectoAsesor('p-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/mapas-ruta/proyectos-grado/p-1/planes-reales/asesor',
+        req,
+      );
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        {
+          id: 'r-1',
+          tareaId: 't-1',
+          descripcionTarea: 'Entregar informe',
+          tiempoRealDias: 3,
+          descripcionReal: null,
+        },
+      ]);
+    });
+  });
 });

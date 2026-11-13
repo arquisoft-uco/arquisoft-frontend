@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-11-12.
+Última revisión: 2026-11-13.
 
 ## Bloqueados por el backend
 
@@ -161,6 +161,7 @@ Client roles a confirmar en el realm desplegado:
 - `mapas-ruta:plan-estimado:update` para el estudiante (modificar la descripción del plan estimado, HU-002). Es composite del realm role `estudiante` y se crea a mano en el Keycloak desplegado, sin verificar: si falta, con login real «Editar plan estimado» responde 403 y lleva a `/forbidden`; con `VITE_AUTH_BYPASS=true` no se nota.
 - `mapas-ruta:mapa-ruta-asesor:view` para el asesor (consulta del mapa de ruta de un proyecto que asesora, HU-304). Es composite del realm role `asesor` en el `realm-arquisoft.json` del backend y no está verificado en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `mapas-ruta:tarea-mapa-ruta-asesor:view` para el asesor (consulta de las tareas de un mapa de ruta que asesora, HU-144). Es composite del realm role `asesor` en el `realm-arquisoft.json` del backend y no está verificado en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `mapas-ruta:plan-real-proyecto-asesor:view` para el asesor (consulta de los planes reales de un proyecto, HU-156). Es composite del realm role `asesor` en el `realm-arquisoft.json` del backend y no está verificado en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 | B19 | **Participaciones del estudiante sin estado de la última revisión ni indicador de «cerrado»** | HU-292: el endpoint de enviar la revisión ya existe, pero `ParticipacionArtefacto` y `ArtefactoEstudiante` no traen el estado de la revisión más reciente de la última versión ni un indicador de artefacto cerrado. «Mis artefactos» deduce si se puede subir una versión con una consulta de última versión por artefacto (`useUltimasVersionesEstudiante`). Pedir `estadoRevision` de la última versión y un indicador de cerrado en las participaciones eliminaría esas consultas | Backend |
 | B20 | **Versión de artefacto sin `esUltima` ni `omitido`** | HU-114: `VersionArtefactoResponseDTO` no trae `esUltima` ni `omitido`, por lo que «Registrar revisión» deduce ambos con una consulta de última versión por artefacto y un recorrido del catálogo de omitidos. Pedir ambos campos en la fila eliminaría esas consultas. | Backend |
 | B21 | **El estudiante recibe las observaciones de una revisión pendiente** | HU-134: `ObservacionEstudianteJpaQueryEntity` (`POST /revisiones-asesor/{id}/observaciones/estudiante`, HU-022) no filtra por el estado de la revisión: mientras está `PENDIENTE` el estudiante recibiría los borradores del asesor. El cliente oculta «Ver observaciones» con la revisión pendiente; se pide el filtro en el backend | Backend |
@@ -170,6 +171,7 @@ Client roles a confirmar en el realm desplegado:
 | B25 | **Consultar mapa de ruta de un proyecto sin verificar propiedad** | `GET /mapas-ruta/proyectos-grado/{proyectoGradoId}/asesor` (HU-304) no comprueba que el asesor esté asignado al proyecto (el stub `AsignacionAsesorOutputAdapter` devuelve `true`, ver B13): cualquier asesor con el client role obtiene el mapa de cualquier proyecto cuyo id conozca. La UI solo lo mitiga porque consulta únicamente los proyectos de su listado | Backend |
 | B26 | **Consultar tareas de un mapa de ruta sin verificar propiedad** | `POST /mapas-ruta/{mapaRutaId}/tareas/asesor` (HU-144) no comprueba que el asesor esté asignado al proyecto del mapa: cualquier asesor con el client role lee las tareas de cualquier mapa cuyo id conozca (y un id inexistente responde 200 vacío). La UI solo lo mitiga porque enlaza únicamente los proyectos de su listado. Se relaciona con B13 y B25 | Backend |
 | B27 | **Asesor sin lectura del catálogo de estados de tarea ni de la información de una tarea** | `GET /estados-item` exige `mapas-ruta:estado-item:view` y `GET /tareas/{id}` exige `mapas-ruta:tarea:view`, que `asesor` no tiene (403). Por eso las tareas de HU-144 no ofrecen filtro por estado ni enlace al detalle. Si se conceden, el filtro se añade como chips con `useEstadosTarea` y el detalle gana una vista del Asesor en `DetalleTarea` | Backend / infra |
+| B28 | **Consultar planes reales de un proyecto sin verificar propiedad** | `POST /mapas-ruta/proyectos-grado/{proyectoGradoId}/planes-reales/asesor` (HU-156) no comprueba que el asesor esté asignado al proyecto: cualquier asesor con el client role lee los planes reales de cualquier proyecto cuyo id conozca, y un id inexistente responde 200 vacío. La UI solo lo mitiga porque enlaza únicamente desde los proyectos de su listado. Se relaciona con B13, B25 y B26 | Backend |
 
 ## Del frontend
 
