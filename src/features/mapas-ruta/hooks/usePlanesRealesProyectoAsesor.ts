@@ -6,6 +6,10 @@ import { construirFiltrosPlanRealProyecto } from '../utils/filtros-plan-real';
 
 const PAGE_SIZE = 10;
 
+export function planesRealesProyectoAsesorQueryKey(proyectoGradoId: string) {
+  return ['mapas-ruta', 'asesor', 'proyecto', proyectoGradoId, 'planes-reales'] as const;
+}
+
 type OrdenDireccion = 'ASC' | 'DESC';
 
 const ORDENES = [
@@ -47,16 +51,7 @@ export function usePlanesRealesProyectoAsesor(proyectoGradoId: string) {
   }
 
   const query = useQuery({
-    queryKey: [
-      'mapas-ruta',
-      'asesor',
-      'proyecto',
-      proyectoGradoId,
-      'planes-reales',
-      page,
-      texto.trim(),
-      orden,
-    ],
+    queryKey: [...planesRealesProyectoAsesorQueryKey(proyectoGradoId), page, texto.trim(), orden],
     queryFn: () =>
       mapasRutaService.consultarPlanesRealesProyectoAsesor(proyectoGradoId, {
         pagina: page,
