@@ -19,6 +19,8 @@ import type { MapaRutaResponse } from '../models/MapaRutaResponse';
 import type { EstadoTarea } from '../models/mapas-ruta';
 import type { PlanEstimado } from '../models/PlanEstimado';
 import type { PlanEstimadoResponse } from '../models/PlanEstimadoResponse';
+import type { PlanEstimadoProyecto } from '../models/PlanEstimadoProyecto';
+import type { PlanEstimadoProyectoResponse } from '../models/PlanEstimadoProyectoResponse';
 import type { PlanReal } from '../models/PlanReal';
 import type { PlanRealResponse } from '../models/PlanRealResponse';
 import type { ProyectoAsesorado } from '../models/ProyectoAsesorado';
@@ -57,6 +59,17 @@ function aPlanEstimado(dto: PlanEstimadoResponse): PlanEstimado {
   return {
     id: dto.id,
     tareaId: dto.tarea,
+    tiempoEstimadoDias: dto.tiempoEstimadoDias,
+    descripcionEstimado: dto.descripcionEstimado,
+  };
+}
+
+function aPlanEstimadoProyecto(dto: PlanEstimadoProyectoResponse): PlanEstimadoProyecto {
+  return {
+    id: dto.id,
+    tareaId: dto.tarea,
+    descripcionTarea: dto.descripcionTarea,
+    mapaRutaId: dto.mapaRuta,
     tiempoEstimadoDias: dto.tiempoEstimadoDias,
     descripcionEstimado: dto.descripcionEstimado,
   };
@@ -197,6 +210,17 @@ export const mapasRutaService = {
     return apiClient
       .post<Page<PlanEstimadoResponse>>(`/tareas/${tareaId}/planes-estimados/estudiante`, req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aPlanEstimado) }));
+  },
+
+  consultarPlanesEstimadosProyectoAsesor(
+    proyectoGradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<PlanEstimadoProyecto>> {
+    return apiClient
+      .post<
+        Page<PlanEstimadoProyectoResponse>
+      >(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/planes-estimados/asesor`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aPlanEstimadoProyecto) }));
   },
 
   consultarPlanesRealesTarea(
