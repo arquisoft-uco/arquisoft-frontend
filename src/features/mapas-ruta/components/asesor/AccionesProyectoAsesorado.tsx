@@ -1,4 +1,4 @@
-import { ClipboardList } from 'lucide-react';
+import { ClipboardCheck, ClipboardList } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { useMapaRutaProyectoAsesor } from '../../hooks/useMapaRutaProyectoAsesor';
@@ -21,6 +21,11 @@ export default function AccionesProyectoAsesorado({ proyecto }: Props) {
     navigate(`/mapas-ruta/proyectos/${proyecto.id}/planes-estimados`, { state: navegacion });
   }
 
+  function verPlanesReales() {
+    const navegacion: NavegacionDetalleTarea = { search };
+    navigate(`/mapas-ruta/proyectos/${proyecto.id}/planes-reales`, { state: navegacion });
+  }
+
   return (
     <RowMenu
       etiqueta={`Acciones de ${proyecto.titulo}`}
@@ -29,6 +34,11 @@ export default function AccionesProyectoAsesorado({ proyecto }: Props) {
           etiqueta: 'Ver planes estimados',
           icono: ClipboardList,
           onSeleccionar: verPlanesEstimados,
+        },
+        {
+          etiqueta: 'Ver planes reales',
+          icono: ClipboardCheck,
+          onSeleccionar: verPlanesReales,
         },
       ]}
     />
