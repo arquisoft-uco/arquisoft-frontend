@@ -12,6 +12,7 @@ import {
   mensajeErrorCambioEstadoTarea,
   mensajeErrorCambioFechaFin,
   mensajeErrorEliminarPlanEstimado,
+  mensajeErrorEliminarPlanReal,
   mensajeErrorEliminarTarea,
   mensajeErrorMapaRuta,
   mensajeErrorModificarPlanEstimado,
@@ -219,6 +220,16 @@ describe('errores-mapa-ruta', () => {
     expect(mensajeErrorEliminarPlanEstimado(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
     expect(mensajeErrorEliminarPlanEstimado(new Error('red'))).toBe(
       'No se pudo remover el plan estimado. Inténtalo de nuevo.',
+    );
+  });
+
+  it('mensajeErrorEliminarPlanReal distingue plan inexistente, mensaje del backend y red', () => {
+    expect(mensajeErrorEliminarPlanReal(errorApi('PLAN_REAL_NO_ENCONTRADO'))).toContain(
+      'ya no está disponible',
+    );
+    expect(mensajeErrorEliminarPlanReal(errorApi('OTRO', 'Algo falló'))).toBe('Algo falló');
+    expect(mensajeErrorEliminarPlanReal(new Error('red'))).toBe(
+      'No se pudo remover el plan real. Inténtalo de nuevo.',
     );
   });
 });

@@ -445,6 +445,20 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('eliminarPlanReal', () => {
+    it('hace DELETE /mapas-ruta/planes-reales/{id} y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.eliminarPlanReal('r-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/mapas-ruta/planes-reales/r-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('consultarPlanesEstimadosTarea', () => {
     it('hace POST con el body recibido y traduce tarea a tareaId conservando la página', async () => {
       // Arrange

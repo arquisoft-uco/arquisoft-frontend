@@ -29,6 +29,9 @@ vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
 vi.mock('./estudiante/EliminarPlanEstimadoDialog', () => ({
   default: () => <div role="dialog" aria-label="Diálogo de remoción del plan estimado" />,
 }));
+vi.mock('./estudiante/EliminarPlanRealDialog', () => ({
+  default: () => <div role="dialog" aria-label="Diálogo de remoción del plan real" />,
+}));
 vi.mock('./estudiante/EliminarTareaDialog', () => ({
   default: ({ onCerrar, onEliminada }: { onCerrar: () => void; onEliminada: () => void }) => (
     <div role="dialog" aria-label="Diálogo de eliminación">
@@ -426,6 +429,27 @@ describe('DetalleTareaEstudianteView', () => {
     // Assert
     expect(
       screen.getByRole('dialog', { name: 'Panel de edición del plan real' }),
+    ).toBeInTheDocument();
+  });
+
+  it('Remover plan real abre el diálogo cuando el plan real está cargado', async () => {
+    // Arrange
+    simular();
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Remover plan real' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Diálogo de remoción del plan real' }),
     ).toBeInTheDocument();
   });
 
