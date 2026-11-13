@@ -16,6 +16,7 @@ import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
@@ -254,6 +255,16 @@ export const evaluacionesService = {
         `/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones`,
         { descripcion },
       )
+      .then((r) => r.data),
+
+  getObservacionesEvaluacionCuantitativaJurado: (
+    evaluacionCuantitativaJuradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItemJurado>> =>
+    apiClient
+      .post<
+        Page<ObservacionItemJurado>
+      >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/jurado`, req)
       .then((r) => r.data),
 
   omitirEvaluacionesCualitativasJurado: ({
