@@ -8,6 +8,7 @@ import type {
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { ProyectoAsesorado } from '../../models/ProyectoAsesorado';
+import AccionesProyectoAsesorado from './AccionesProyectoAsesorado';
 import EnlaceProyectoAsesorado from './EnlaceProyectoAsesorado';
 import MapaRutaProyectoCelda from './MapaRutaProyectoCelda';
 
@@ -82,6 +83,7 @@ export default function MapasRutaAsesorTable({
       onOrdenar={ordenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(proyecto) => <AccionesProyectoAsesorado proyecto={proyecto} />}
       tarjeta={(proyecto) => (
         <>
           <EnlaceProyectoAsesorado proyecto={proyecto} />

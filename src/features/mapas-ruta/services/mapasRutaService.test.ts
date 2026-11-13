@@ -483,6 +483,49 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('consultarPlanesEstimadosProyectoAsesor', () => {
+    it('hace POST a la ruta del proyecto y traduce tarea y mapaRuta conservando la página', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [
+            {
+              id: 'p-1',
+              tarea: 't-1',
+              descripcionTarea: 'Informe',
+              mapaRuta: 'm-1',
+              tiempoEstimadoDias: 5,
+              descripcionEstimado: null,
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesEstimadosProyectoAsesor('pg-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/mapas-ruta/proyectos-grado/pg-1/planes-estimados/asesor',
+        req,
+      );
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        {
+          id: 'p-1',
+          tareaId: 't-1',
+          descripcionTarea: 'Informe',
+          mapaRutaId: 'm-1',
+          tiempoEstimadoDias: 5,
+          descripcionEstimado: null,
+        },
+      ]);
+    });
+  });
+
   describe('consultarPlanesRealesTarea', () => {
     it('hace POST con el body recibido y traduce tarea a tareaId conservando null y la página', async () => {
       // Arrange
