@@ -20,6 +20,8 @@ import type { PlanEstimado } from '../models/PlanEstimado';
 import type { PlanEstimadoResponse } from '../models/PlanEstimadoResponse';
 import type { PlanReal } from '../models/PlanReal';
 import type { PlanRealResponse } from '../models/PlanRealResponse';
+import type { ProyectoAsesorado } from '../models/ProyectoAsesorado';
+import type { ProyectoAsesoradoResponse } from '../models/ProyectoAsesoradoResponse';
 import type { PaginaProyectosElegibles } from '../models/PaginaProyectosElegibles';
 import type { ProyectoElegibleResponse } from '../models/ProyectoElegibleResponse';
 import type { Tarea } from '../models/Tarea';
@@ -118,6 +120,21 @@ export const mapasRutaService = {
 
   consultarMapaRutaEstudiante(): Promise<MapaRuta> {
     return apiClient.get<MapaRutaResponse>('/mapas-ruta/estudiante').then((r) => aMapaRuta(r.data));
+  },
+
+  consultarMapaRutaProyectoAsesor(proyectoGradoId: string): Promise<MapaRuta> {
+    return apiClient
+      .get<MapaRutaResponse>(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/asesor`)
+      .then((r) => aMapaRuta(r.data));
+  },
+
+  consultarProyectosAsesor(req: ConsultaCriteriaRequest): Promise<Page<ProyectoAsesorado>> {
+    return apiClient
+      .post<Page<ProyectoAsesoradoResponse>>('/proyectos-grado/asesor', req)
+      .then((r) => ({
+        ...r.data,
+        content: r.data.content.map((dto) => ({ id: dto.id, titulo: dto.tituloProyecto })),
+      }));
   },
 
   cambiarFechaFin(mapaRutaId: string, req: CambiarFechaFinMapaRutaRequest): Promise<void> {

@@ -78,7 +78,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Map,
     path: '/mapas-ruta',
     order: 6,
-    roles: [Rol.Coordinador, Rol.Estudiante],
+    roles: [Rol.Coordinador, Rol.Estudiante, Rol.Asesor],
   },
   {
     label: 'Repositorio',
