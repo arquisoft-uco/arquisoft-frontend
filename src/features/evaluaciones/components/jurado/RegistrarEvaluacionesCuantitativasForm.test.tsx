@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { Route, Routes } from 'react-router';
-import { render, screen, within } from '../../../../test-utils/render';
+import { render, screen, waitFor, within } from '../../../../test-utils/render';
+import { LIMITES } from '../../../../shared/validation';
+import { evaluacionesService } from '../../services/evaluacionesService';
 import RegistrarEvaluacionesCuantitativasForm from './RegistrarEvaluacionesCuantitativasForm';
 import { useItemsCuantitativosJurado } from '../../hooks/useItemsCuantitativosJurado';
 import { useCategoriasItemCuantitativoJurado } from '../../hooks/useCategoriasItemCuantitativoJurado';
@@ -18,6 +20,12 @@ vi.mock('../../hooks/useCategoriasItemCuantitativoJurado', () => ({
 }));
 vi.mock('../../hooks/useRegistrarEvaluacionesCuantitativasJurado', () => ({
   useRegistrarEvaluacionesCuantitativasJurado: vi.fn(),
+}));
+vi.mock('../../services/evaluacionesService', () => ({
+  evaluacionesService: {
+    getEvaluacionesCuantitativasRealizadasJurado: vi.fn(),
+    registrarObservacionItemJurado: vi.fn(),
+  },
 }));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
@@ -55,6 +63,10 @@ const ITEMS = [
 const CATEGORIAS = [{ id: ID_CATEGORIA, nombre: 'Técnica', descripcion: 'Aspectos técnicos' }];
 
 type MutateOptions = { onSuccess?: () => void; onError?: (err: unknown) => void };
+const leerValoraciones = vi.mocked(
+  evaluacionesService.getEvaluacionesCuantitativasRealizadasJurado,
+);
+const registrarObservacion = vi.mocked(evaluacionesService.registrarObservacionItemJurado);
 type Mutacion = ReturnType<typeof useRegistrarEvaluacionesCuantitativasJurado>;
 
 function mockCatalogos(
@@ -132,6 +144,11 @@ describe('RegistrarEvaluacionesCuantitativasForm', () => {
     vi.clearAllMocks();
     mockCatalogos();
     mockMutacion();
+    leerValoraciones.mockResolvedValue([
+      { id: 'ec-1', puntaje: 40, item: ITEMS[0] },
+      { id: 'ec-2', puntaje: 10, item: ITEMS[1] },
+    ]);
+    registrarObservacion.mockResolvedValue({ id: 'obs-1' });
   });
 
   it('muestra la carga, el error con reintento del catálogo que falló y el vacío sin ítems', async () => {
@@ -309,6 +326,148 @@ describe('RegistrarEvaluacionesCuantitativasForm', () => {
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+
+    // Assert
+    expect(await screen.findByText('Pantalla Mis evaluaciones')).toBeInTheDocument();
+  });
+
+  it('una observación escrita marca el ítem con observación, viaja en el par y se registra tras los puntajes', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockMutacion();
+    mutate.mockImplementation((_pares: unknown, opciones: MutateOptions) => opciones.onSuccess?.());
+    montar();
+    await elegirItem(user, 'Arquitectura');
+    await user.type(screen.getByRole('textbox', { name: /Puntaje/ }), '40');
+    await user.type(screen.getByRole('textbox', { name: /Observación/ }), '  Falta detalle  ');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Agregar a la lista' }));
+
+    // Assert
+    const lista = screen.getByRole('list', { name: 'Valoraciones por registrar' });
+    expect(
+      within(lista).getByText('Técnica · puntaje 40 de 50 · con observación'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Observación/ })).toHaveValue('');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Registrar evaluación' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith(
+      [{ itemId: ID_ARQUITECTURA, puntaje: 40, observacion: 'Falta detalle' }],
+      expect.any(Object),
+    );
+    await waitFor(() =>
+      expect(registrarObservacion).toHaveBeenCalledWith({
+        evaluacionCuantitativaJuradoId: 'ec-1',
+        descripcion: 'Falta detalle',
+      }),
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      'Evaluación registrada',
+      expect.stringContaining('1 valoración y 1 observación'),
+    );
+    expect(await screen.findByText('Pantalla Mis evaluaciones')).toBeInTheDocument();
+  });
+
+  it('una observación en blanco se omite: el ítem se agrega sin ella y el campo respeta el máximo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockMutacion();
+    mutate.mockImplementation((_pares: unknown, opciones: MutateOptions) => opciones.onSuccess?.());
+    montar();
+    await elegirItem(user, 'Arquitectura');
+    await user.type(screen.getByRole('textbox', { name: /Puntaje/ }), '40');
+    const campo = screen.getByRole('textbox', { name: /Observación/ });
+
+    // Assert
+    expect(campo).toHaveAttribute(
+      'maxLength',
+      String(LIMITES.OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX),
+    );
+
+    // Act
+    await user.type(campo, '   ');
+    await user.click(screen.getByRole('button', { name: 'Agregar a la lista' }));
+    await user.click(screen.getByRole('button', { name: 'Registrar evaluación' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledWith(
+      [{ itemId: ID_ARQUITECTURA, puntaje: 40 }],
+      expect.any(Object),
+    );
+    expect(registrarObservacion).not.toHaveBeenCalled();
+  });
+
+  it('si una observación falla muestra las pendientes con su motivo, oculta el registro y permite reintentar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockMutacion();
+    mutate.mockImplementation((_pares: unknown, opciones: MutateOptions) => opciones.onSuccess?.());
+    registrarObservacion.mockRejectedValueOnce(
+      crearErrorApi('OBSERVACION_ITEM_JURADO_EVALUACION_JURADO_FINALIZADA', 'x'),
+    );
+    montar();
+    await elegirItem(user, 'Arquitectura');
+    await user.type(screen.getByRole('textbox', { name: /Puntaje/ }), '40');
+    await user.type(screen.getByRole('textbox', { name: /Observación/ }), 'Falta detalle');
+    await user.click(screen.getByRole('button', { name: 'Agregar a la lista' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Registrar evaluación' }));
+
+    // Assert
+    const pendientes = await screen.findByRole('list', { name: 'Observaciones pendientes' });
+    expect(within(pendientes).getByText('Arquitectura')).toBeInTheDocument();
+    expect(within(pendientes).getByText('Falta detalle')).toBeInTheDocument();
+    expect(
+      within(pendientes).getByText('La evaluación está finalizada y no admite observaciones.'),
+    ).toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith(
+      'Faltan observaciones',
+      'Se registró la evaluación, pero 1 observación no se guardó.',
+    );
+    expect(screen.queryByRole('button', { name: 'Registrar evaluación' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Pantalla Mis evaluaciones')).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar observaciones' }));
+
+    // Assert
+    expect(await screen.findByText('Pantalla Mis evaluaciones')).toBeInTheDocument();
+    expect(registrarObservacion).toHaveBeenCalledTimes(2);
+    expect(mutate).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledWith(
+      'Evaluación registrada',
+      expect.stringContaining('1 observación'),
+    );
+  });
+
+  it('salir sin las observaciones pide confirmación y, al confirmar, vuelve a Mis evaluaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = mockMutacion();
+    mutate.mockImplementation((_pares: unknown, opciones: MutateOptions) => opciones.onSuccess?.());
+    registrarObservacion.mockRejectedValue(new Error('cae'));
+    montar();
+    await elegirItem(user, 'Arquitectura');
+    await user.type(screen.getByRole('textbox', { name: /Puntaje/ }), '40');
+    await user.type(screen.getByRole('textbox', { name: /Observación/ }), 'Falta detalle');
+    await user.click(screen.getByRole('button', { name: 'Agregar a la lista' }));
+    await user.click(screen.getByRole('button', { name: 'Registrar evaluación' }));
+
+    // Act
+    await user.click(await screen.findByRole('button', { name: 'Salir sin ellas' }));
+
+    // Assert
+    expect(screen.getByText('¿Salir sin las observaciones?')).toBeInTheDocument();
+    expect(screen.queryByText('Pantalla Mis evaluaciones')).not.toBeInTheDocument();
+
+    // Act
+    const dialogo = screen.getByRole('dialog');
+    await user.click(within(dialogo).getByRole('button', { name: 'Salir sin ellas' }));
 
     // Assert
     expect(await screen.findByText('Pantalla Mis evaluaciones')).toBeInTheDocument();

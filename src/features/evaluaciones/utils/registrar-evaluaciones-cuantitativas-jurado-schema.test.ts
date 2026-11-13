@@ -9,7 +9,7 @@ const mensajes = (
   r: ReturnType<typeof registrarEvaluacionesCuantitativasJuradoSchema.safeParse>,
 ) => (r.success ? [] : r.error.issues.map((i) => i.message));
 
-const con = (...pares: { itemId: string; puntaje: unknown }[]) =>
+const con = (...pares: { itemId: string; puntaje: unknown; observacion?: unknown }[]) =>
   registrarEvaluacionesCuantitativasJuradoSchema.safeParse({ evaluaciones: pares });
 
 describe('registrarEvaluacionesCuantitativasJuradoSchema', () => {
@@ -40,5 +40,31 @@ describe('registrarEvaluacionesCuantitativasJuradoSchema', () => {
     ]);
     expect(mensajes(ausente)).toEqual([MENSAJES_VALIDACION.requerido]);
     expect(texto.success).toBe(false);
+  });
+
+  it('la observación es opcional, y si se escribe no puede estar en blanco ni superar el máximo', () => {
+    // Act
+    const sinObservacion = con({ itemId: ITEM_1, puntaje: 10 });
+    const conObservacion = con({ itemId: ITEM_1, puntaje: 10, observacion: 'Buen trabajo' });
+    const enBlanco = con({ itemId: ITEM_1, puntaje: 10, observacion: '   ' });
+    const enMaximo = con({
+      itemId: ITEM_1,
+      puntaje: 10,
+      observacion: 'a'.repeat(LIMITES.OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX),
+    });
+    const excedida = con({
+      itemId: ITEM_1,
+      puntaje: 10,
+      observacion: 'a'.repeat(LIMITES.OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX + 1),
+    });
+
+    // Assert
+    expect(sinObservacion.success).toBe(true);
+    expect(conObservacion.success).toBe(true);
+    expect(mensajes(enBlanco)).toEqual([MENSAJES_VALIDACION.requerido]);
+    expect(enMaximo.success).toBe(true);
+    expect(mensajes(excedida)).toEqual([
+      MENSAJES_VALIDACION.longitudMaxima(LIMITES.OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX),
+    ]);
   });
 });

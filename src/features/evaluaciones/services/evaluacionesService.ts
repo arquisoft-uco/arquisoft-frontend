@@ -19,6 +19,8 @@ import type { ModificarItemCuantitativoJuradoRequest } from '../models/Modificar
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
+import type { RegistrarObservacionItemJuradoRequest } from '../models/RegistrarObservacionItemJuradoRequest';
+import type { RegistrarObservacionItemJuradoResponse } from '../models/RegistrarObservacionItemJuradoResponse';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoResponse } from '../models/RegistrarItemCualitativoJuradoResponse';
 import type { RegistrarItemCuantitativoJuradoRequest } from '../models/RegistrarItemCuantitativoJuradoRequest';
@@ -242,6 +244,17 @@ export const evaluacionesService = {
         evaluaciones: evaluaciones.map(({ itemId, puntaje }) => ({ item: itemId, puntaje })),
       })
       .then(() => undefined),
+
+  registrarObservacionItemJurado: ({
+    evaluacionCuantitativaJuradoId,
+    descripcion,
+  }: RegistrarObservacionItemJuradoRequest): Promise<RegistrarObservacionItemJuradoResponse> =>
+    apiClient
+      .post<RegistrarObservacionItemJuradoResponse>(
+        `/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones`,
+        { descripcion },
+      )
+      .then((r) => r.data),
 
   omitirEvaluacionesCualitativasJurado: ({
     evaluacionJuradoId,
