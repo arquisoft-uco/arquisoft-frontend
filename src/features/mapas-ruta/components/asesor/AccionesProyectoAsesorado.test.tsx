@@ -37,6 +37,10 @@ function renderizar() {
         path="/mapas-ruta/proyectos/:proyectoGradoId/planes-estimados"
         element={<p>Pantalla de planes estimados</p>}
       />
+      <Route
+        path="/mapas-ruta/proyectos/:proyectoGradoId/planes-reales"
+        element={<p>Pantalla de planes reales</p>}
+      />
     </Routes>,
     { initialPath: '/mapas-ruta?q=sistema' },
   );
@@ -58,6 +62,19 @@ describe('AccionesProyectoAsesorado', () => {
 
     // Assert
     expect(screen.getByText('Pantalla de planes estimados')).toBeInTheDocument();
+  });
+
+  it('con mapa ofrece "Ver planes reales" y navega a la pantalla del proyecto', async () => {
+    // Arrange
+    configurarMapa({ mapa: MAPA });
+    renderizar();
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: 'Acciones de Sistema A' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: /ver planes reales/i }));
+
+    // Assert
+    expect(screen.getByText('Pantalla de planes reales')).toBeInTheDocument();
   });
 
   it('sin mapa o con error no renderiza el menú', () => {

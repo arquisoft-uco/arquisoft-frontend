@@ -82,22 +82,6 @@ describe('TareasMapaRutaAsesorView', () => {
     expect(screen.getByText('Listado de mapas')).toBeInTheDocument();
   });
 
-  it('con mapa "Ver planes reales" navega a los planes reales; sin mapa no aparece', async () => {
-    // Arrange
-    configurarMapa({ sinMapa: true });
-    const { unmount } = renderizar();
-    expect(screen.queryByRole('button', { name: /ver planes reales/i })).not.toBeInTheDocument();
-    unmount();
-    configurarMapa({ mapa: MAPA });
-    renderizar();
-
-    // Act
-    await userEvent.click(screen.getByRole('button', { name: /ver planes reales/i }));
-
-    // Assert
-    expect(screen.getByText('Planes reales del proyecto p')).toBeInTheDocument();
-  });
-
   it('ante un error del mapa muestra "Reintentar" y lo invoca', async () => {
     // Arrange
     const { reintentar } = configurarMapa({ hayError: true });
