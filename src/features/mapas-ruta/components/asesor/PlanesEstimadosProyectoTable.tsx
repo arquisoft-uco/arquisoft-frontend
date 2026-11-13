@@ -29,6 +29,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoPlanEstimadoProyecto, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onAportar?: (plan: PlanEstimadoProyecto) => void;
 }
 
 function DescripcionPlan({ plan }: { plan: PlanEstimadoProyecto }) {
@@ -69,6 +70,7 @@ export default function PlanesEstimadosProyectoTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onAportar,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -101,6 +103,20 @@ export default function PlanesEstimadosProyectoTable({
       idDeFila={(plan) => plan.id}
       orden={orden}
       onOrdenar={ordenar}
+      acciones={
+        onAportar
+          ? (plan) => (
+              <Button
+                variante="secundario"
+                tamano="sm"
+                aria-label={`Aportar al plan de ${plan.descripcionTarea}`}
+                onClick={() => onAportar(plan)}
+              >
+                Aportar
+              </Button>
+            )
+          : undefined
+      }
       cargando={cargando}
       vacio={vacio}
       tarjeta={(plan) => (

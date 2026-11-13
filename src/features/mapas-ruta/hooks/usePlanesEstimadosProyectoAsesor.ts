@@ -19,6 +19,10 @@ const ORDENES = [
 
 const ORDEN_POR_DEFECTO = 'tiempoEstimadoDias:ASC';
 
+export function planesEstimadosProyectoAsesorQueryKey(proyectoGradoId: string) {
+  return ['mapas-ruta', 'asesor', 'proyecto', proyectoGradoId, 'planes-estimados'] as const;
+}
+
 export function usePlanesEstimadosProyectoAsesor(proyectoGradoId: string) {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
@@ -48,11 +52,7 @@ export function usePlanesEstimadosProyectoAsesor(proyectoGradoId: string) {
 
   const query = useQuery({
     queryKey: [
-      'mapas-ruta',
-      'asesor',
-      'proyecto',
-      proyectoGradoId,
-      'planes-estimados',
+      ...planesEstimadosProyectoAsesorQueryKey(proyectoGradoId),
       page,
       texto.trim(),
       orden,

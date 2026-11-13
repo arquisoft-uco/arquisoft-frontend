@@ -74,6 +74,23 @@ describe('ConsultarPlanesEstimadosProyecto', () => {
     expect(screen.getAllByText('Sin descripción').length).toBeGreaterThan(0);
   });
 
+  it('cada fila ofrece "Aportar" y al pulsarlo abre el panel con el plan de esa fila', async () => {
+    // Arrange
+    simularListado();
+    render(<ConsultarPlanesEstimadosProyecto proyectoGradoId="pg-1" />);
+
+    // Act
+    const botones = screen.getAllByRole('button', { name: /^Aportar al plan de/ });
+    await userEvent.click(
+      screen.getAllByRole('button', { name: 'Aportar al plan de Preparar demo' })[0],
+    );
+
+    // Assert
+    expect(botones.length).toBeGreaterThanOrEqual(2);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Descripción/ })).toHaveValue('');
+  });
+
   it('muestra el estado de carga mientras consulta', () => {
     // Arrange
     simularListado({ data: undefined, isLoading: true });

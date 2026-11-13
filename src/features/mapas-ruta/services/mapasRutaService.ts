@@ -5,6 +5,7 @@ import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
 import type { AgregarPlanEstimadoRequest } from '../models/AgregarPlanEstimadoRequest';
 import type { AgregarPlanEstimadoResponse } from '../models/AgregarPlanEstimadoResponse';
+import type { AportarPlanEstimadoRequest } from '../models/AportarPlanEstimadoRequest';
 import type { AsignarTareaRequest } from '../models/AsignarTareaRequest';
 import type { AsignarTareaResponse } from '../models/AsignarTareaResponse';
 import type { CambiarEstadoTareaRequest } from '../models/CambiarEstadoTareaRequest';
@@ -258,6 +259,14 @@ export const mapasRutaService = {
   modificarPlanEstimado(planEstimadoId: string, req: ModificarPlanEstimadoRequest): Promise<void> {
     return apiClient
       .patch(`/planes-estimados/${planEstimadoId}`, {
+        descripcionEstimado: req.descripcionEstimado,
+      })
+      .then(() => undefined);
+  },
+
+  aportarPlanEstimado(planEstimadoId: string, req: AportarPlanEstimadoRequest): Promise<void> {
+    return apiClient
+      .patch(`/mapas-ruta/planes-estimados/${planEstimadoId}/asesor`, {
         descripcionEstimado: req.descripcionEstimado,
       })
       .then(() => undefined);

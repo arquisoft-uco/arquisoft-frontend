@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { enteroEntre, esFechaIsoReal, LIMITES, textoOpcional } from '../../../shared/validation';
+import {
+  enteroEntre,
+  esFechaIsoReal,
+  LIMITES,
+  textoOpcional,
+  textoRequerido,
+} from '../../../shared/validation';
 
 export const planEstimadoSchema = z.object({
   tiempoEstimadoDias: enteroEntre(LIMITES.PLAN_ESTIMADO_TIEMPO_DIAS_MIN),
@@ -7,6 +13,12 @@ export const planEstimadoSchema = z.object({
 });
 
 export const modificarPlanEstimadoSchema = planEstimadoSchema.pick({ descripcionEstimado: true });
+
+export const aportarPlanEstimadoSchema = z.object({
+  descripcionEstimado: textoRequerido(LIMITES.PLAN_ESTIMADO_DESCRIPCION_MAX),
+});
+
+export type AportarPlanEstimadoValues = z.infer<typeof aportarPlanEstimadoSchema>;
 
 export type ModificarPlanEstimadoValues = z.infer<typeof modificarPlanEstimadoSchema>;
 
