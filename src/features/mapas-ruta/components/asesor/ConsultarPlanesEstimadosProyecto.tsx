@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { usePlanesEstimadosProyectoAsesor } from '../../hooks/usePlanesEstimadosProyectoAsesor';
+import type { PlanEstimadoProyecto } from '../../models/PlanEstimadoProyecto';
+import AportarPlanEstimadoPanel from './AportarPlanEstimadoPanel';
 import PlanesEstimadosProyectoTable from './PlanesEstimadosProyectoTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -20,6 +23,7 @@ interface Props {
 
 export default function ConsultarPlanesEstimadosProyecto({ proyectoGradoId }: Props) {
   const listado = usePlanesEstimadosProyectoAsesor(proyectoGradoId);
+  const [planEnAporte, setPlanEnAporte] = useState<PlanEstimadoProyecto | null>(null);
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, hayFiltros } =
     listado;
@@ -62,6 +66,7 @@ export default function ConsultarPlanesEstimadosProyecto({ proyectoGradoId }: Pr
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onAportar={setPlanEnAporte}
           />
         )}
       </div>
@@ -75,6 +80,15 @@ export default function ConsultarPlanesEstimadosProyecto({ proyectoGradoId }: Pr
           cantidadEnPagina={planes.length}
           etiquetaPlural="planes estimados"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {planEnAporte && (
+        <AportarPlanEstimadoPanel
+          key={planEnAporte.id}
+          proyectoGradoId={proyectoGradoId}
+          plan={planEnAporte}
+          onCerrar={() => setPlanEnAporte(null)}
         />
       )}
     </section>
