@@ -8,9 +8,8 @@ import type {
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { ProyectoAsesorado } from '../../models/ProyectoAsesorado';
+import EnlaceProyectoAsesorado from './EnlaceProyectoAsesorado';
 import MapaRutaProyectoCelda from './MapaRutaProyectoCelda';
-
-const TITULO = 'font-medium text-on-surface';
 
 type OrdenCampoProyectoAsesorado = 'tituloProyecto';
 
@@ -33,7 +32,7 @@ const COLUMNAS: ColumnaTabla<ProyectoAsesorado>[] = [
     encabezado: 'Proyecto',
     clave: 'tituloProyecto',
     ordenable: true,
-    celda: (proyecto) => <span className={TITULO}>{proyecto.titulo}</span>,
+    celda: (proyecto) => <EnlaceProyectoAsesorado proyecto={proyecto} />,
   },
   {
     id: 'mapa',
@@ -85,7 +84,7 @@ export default function MapasRutaAsesorTable({
       vacio={vacio}
       tarjeta={(proyecto) => (
         <>
-          <span className={TITULO}>{proyecto.titulo}</span>
+          <EnlaceProyectoAsesorado proyecto={proyecto} />
           <MapaRutaProyectoCelda proyectoGradoId={proyecto.id} />
         </>
       )}

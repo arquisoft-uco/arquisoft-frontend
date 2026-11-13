@@ -20,6 +20,7 @@ const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
 const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
 const DetalleTarea = lazy(() => import('./features/mapas-ruta/DetalleTarea'));
+const TareasMapaRutaProyecto = lazy(() => import('./features/mapas-ruta/TareasMapaRutaProyecto'));
 const RepositorioArtefactos = lazy(
   () => import('./features/repositorio-artefactos/RepositorioArtefactos'),
 );
@@ -87,6 +88,10 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <MapasRuta /> },
               { path: 'tareas/:id', element: <DetalleTarea /> },
+              {
+                path: 'proyectos/:proyectoGradoId/tareas',
+                element: <TareasMapaRutaProyecto />,
+              },
             ],
           },
           {
