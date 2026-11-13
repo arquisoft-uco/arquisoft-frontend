@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { enteroEntre, LIMITES, textoOpcional } from '../../../shared/validation';
+import { enteroEntre, LIMITES, textoOpcional, textoRequerido } from '../../../shared/validation';
 
 export const planRealSchema = z.object({
   tiempoRealDias: enteroEntre(LIMITES.PLAN_REAL_TIEMPO_DIAS_MIN),
@@ -7,6 +7,12 @@ export const planRealSchema = z.object({
 });
 
 export type ModificarPlanRealValues = z.infer<typeof planRealSchema>;
+
+export const aportarPlanRealSchema = z.object({
+  descripcionReal: textoRequerido(LIMITES.PLAN_REAL_DESCRIPCION_MAX),
+});
+
+export type AportarPlanRealValues = z.infer<typeof aportarPlanRealSchema>;
 
 export const ETIQUETAS_PLAN_REAL: Record<keyof ModificarPlanRealValues, string> = {
   tiempoRealDias: 'Días reales',

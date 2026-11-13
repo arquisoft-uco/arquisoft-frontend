@@ -190,3 +190,20 @@ export function campoDeErrorAsignarTarea(err: unknown): 'descripcion' | 'asesor'
   if (hasApiErrorCode(err, 'ASESOR_NO_ASIGNADO_PROYECTO_GRADO')) return 'asesor';
   return null;
 }
+
+export function mensajeErrorAportarPlanReal(err: unknown): string {
+  if (hasApiErrorCode(err, 'PLAN_REAL_NO_ENCONTRADO')) {
+    return 'El plan real ya no está disponible. Actualiza la lista e inténtalo de nuevo.';
+  }
+  return getApiErrorMessage(err, 'Verifica el texto e inténtalo nuevamente.');
+}
+
+export function campoDeErrorAportarPlanReal(err: unknown): 'descripcionReal' | null {
+  if (
+    hasApiErrorCode(err, 'PLAN_REAL_DESCRIPCION_REQUERIDA') ||
+    hasApiErrorCode(err, 'PLAN_REAL_DESCRIPCION_DEMASIADO_LARGA')
+  ) {
+    return 'descripcionReal';
+  }
+  return null;
+}

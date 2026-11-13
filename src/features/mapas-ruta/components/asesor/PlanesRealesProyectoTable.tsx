@@ -53,6 +53,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoPlanRealProyecto, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onAportar?: (plan: PlanRealProyecto) => void;
 }
 
 export default function PlanesRealesProyectoTable({
@@ -62,6 +63,7 @@ export default function PlanesRealesProyectoTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onAportar,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -94,6 +96,20 @@ export default function PlanesRealesProyectoTable({
       idDeFila={(plan) => plan.id}
       orden={orden}
       onOrdenar={ordenar}
+      acciones={
+        onAportar
+          ? (plan) => (
+              <Button
+                variante="secundario"
+                tamano="sm"
+                aria-label={`Aportar al plan real de ${plan.descripcionTarea}`}
+                onClick={() => onAportar(plan)}
+              >
+                Aportar
+              </Button>
+            )
+          : undefined
+      }
       cargando={cargando}
       vacio={vacio}
       tarjeta={(plan) => (

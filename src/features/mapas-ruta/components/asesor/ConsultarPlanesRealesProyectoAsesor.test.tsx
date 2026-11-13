@@ -79,6 +79,23 @@ describe('ConsultarPlanesRealesProyectoAsesor', () => {
     expect(screen.getAllByText('Sin descripción').length).toBeGreaterThan(0);
   });
 
+  it('cada fila ofrece "Aportar" y al pulsarlo abre el panel con el plan de esa fila', async () => {
+    // Arrange
+    simularListado();
+    render(<ConsultarPlanesRealesProyectoAsesor proyectoGradoId="p-1" />);
+
+    // Act
+    const botones = screen.getAllByRole('button', { name: /^Aportar al plan real de/ });
+    await userEvent.click(
+      screen.getAllByRole('button', { name: 'Aportar al plan real de Entregar informe' })[0],
+    );
+
+    // Assert
+    expect(botones.length).toBeGreaterThanOrEqual(2);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /Descripción/ })).toHaveValue('Redacción final');
+  });
+
   it('muestra el estado de carga mientras consulta', () => {
     // Arrange
     simularListado({ data: undefined, isLoading: true });

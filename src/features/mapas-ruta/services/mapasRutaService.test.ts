@@ -429,6 +429,24 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('aportarPlanReal', () => {
+    it('hace PATCH /mapas-ruta/planes-reales/{id}/asesor con solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.aportarPlanReal('r-1', {
+        descripcionReal: 'Aporte',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/mapas-ruta/planes-reales/r-1/asesor', {
+        descripcionReal: 'Aporte',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarPlanReal', () => {
     it('hace PATCH /mapas-ruta/planes-reales/{id} con días y descripción y resuelve undefined', async () => {
       // Arrange

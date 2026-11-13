@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { usePlanesRealesProyectoAsesor } from '../../hooks/usePlanesRealesProyectoAsesor';
+import type { PlanRealProyecto } from '../../models/PlanRealProyecto';
+import AportarPlanRealPanel from './AportarPlanRealPanel';
 import PlanesRealesProyectoTable from './PlanesRealesProyectoTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -20,6 +23,7 @@ interface Props {
 
 export default function ConsultarPlanesRealesProyectoAsesor({ proyectoGradoId }: Props) {
   const listado = usePlanesRealesProyectoAsesor(proyectoGradoId);
+  const [planEnAporte, setPlanEnAporte] = useState<PlanRealProyecto | null>(null);
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch, hayFiltros } =
     listado;
@@ -62,6 +66,7 @@ export default function ConsultarPlanesRealesProyectoAsesor({ proyectoGradoId }:
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onAportar={setPlanEnAporte}
           />
         )}
       </div>
@@ -75,6 +80,15 @@ export default function ConsultarPlanesRealesProyectoAsesor({ proyectoGradoId }:
           cantidadEnPagina={planes.length}
           etiquetaPlural="planes reales"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {planEnAporte && (
+        <AportarPlanRealPanel
+          key={planEnAporte.id}
+          proyectoGradoId={proyectoGradoId}
+          plan={planEnAporte}
+          onCerrar={() => setPlanEnAporte(null)}
         />
       )}
     </section>
