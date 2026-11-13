@@ -65,7 +65,10 @@ export default function DetalleTareaEstudianteView() {
           puedeEliminar={puedeRemoverPlanEstimado(tarea.estado.id)}
           onEliminar={() => setPanelAbierto('eliminarPlan')}
         />
-        <PlanRealTareaSeccion consulta={planReal} />
+        <PlanRealTareaSeccion
+          consulta={planReal}
+          onEditar={() => setPanelAbierto('modificarPlanReal')}
+        />
       </>
     );
   }
@@ -118,6 +121,7 @@ export default function DetalleTareaEstudianteView() {
         panelAbierto={panelAbierto}
         tarea={tarea}
         plan={planEstimado.plan}
+        planReal={planReal.plan}
         onCerrar={() => setPanelAbierto(null)}
         onTareaEliminada={() => navigate(rutaListado, { replace: true })}
       />

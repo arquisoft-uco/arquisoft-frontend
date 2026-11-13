@@ -1,4 +1,5 @@
 import type { PlanEstimado } from '../../models/PlanEstimado';
+import type { PlanReal } from '../../models/PlanReal';
 import type { Tarea } from '../../models/Tarea';
 import AgregarPlanEstimadoPanel from './AgregarPlanEstimadoPanel';
 import CambiarEstadoTareaPanel from './CambiarEstadoTareaPanel';
@@ -6,12 +7,14 @@ import EliminarPlanEstimadoDialog from './EliminarPlanEstimadoDialog';
 import EliminarTareaDialog from './EliminarTareaDialog';
 import ModificarInformacionTareaPanel from './ModificarInformacionTareaPanel';
 import ModificarPlanEstimadoPanel from './ModificarPlanEstimadoPanel';
+import ModificarPlanRealPanel from './ModificarPlanRealPanel';
 
 export type PanelDetalleTarea =
   | 'estado'
   | 'plan'
   | 'modificarPlan'
   | 'eliminarPlan'
+  | 'modificarPlanReal'
   | 'informacion'
   | 'eliminar';
 
@@ -19,6 +22,7 @@ interface Props {
   panelAbierto: PanelDetalleTarea | null;
   tarea: Tarea | undefined;
   plan: PlanEstimado | undefined;
+  planReal: PlanReal | undefined;
   onCerrar: () => void;
   onTareaEliminada: () => void;
 }
@@ -27,6 +31,7 @@ export default function PanelesDetalleTarea({
   panelAbierto,
   tarea,
   plan,
+  planReal,
   onCerrar,
   onTareaEliminada,
 }: Props) {
@@ -41,6 +46,9 @@ export default function PanelesDetalleTarea({
       )}
       {panelAbierto === 'eliminarPlan' && plan && (
         <EliminarPlanEstimadoDialog tarea={tarea} plan={plan} onCerrar={onCerrar} />
+      )}
+      {panelAbierto === 'modificarPlanReal' && planReal && (
+        <ModificarPlanRealPanel tarea={tarea} plan={planReal} onCerrar={onCerrar} />
       )}
       {panelAbierto === 'informacion' && (
         <ModificarInformacionTareaPanel tarea={tarea} onCerrar={onCerrar} />

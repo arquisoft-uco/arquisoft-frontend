@@ -127,6 +127,26 @@ export function mensajeErrorModificarPlanEstimado(err: unknown): string {
   return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
 }
 
+export function mensajeErrorModificarPlanReal(err: unknown): string {
+  if (hasApiErrorCode(err, 'PLAN_REAL_NO_ENCONTRADO')) {
+    return 'El plan real ya no está disponible. Actualiza el detalle de la tarea e inténtalo de nuevo.';
+  }
+  return getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
+}
+
+export function campoDeErrorModificarPlanReal(
+  err: unknown,
+): 'tiempoRealDias' | 'descripcionReal' | null {
+  if (
+    hasApiErrorCode(err, 'PLAN_REAL_TIEMPO_REQUERIDO') ||
+    hasApiErrorCode(err, 'PLAN_REAL_TIEMPO_INVALIDO')
+  ) {
+    return 'tiempoRealDias';
+  }
+  if (hasApiErrorCode(err, 'PLAN_REAL_DESCRIPCION_DEMASIADO_LARGA')) return 'descripcionReal';
+  return null;
+}
+
 export function mensajeErrorEliminarPlanEstimado(err: unknown): string {
   if (hasApiErrorCode(err, 'PLAN_ESTIMADO_NO_ENCONTRADO')) {
     return 'El plan estimado ya no está disponible. Actualiza el detalle de la tarea e inténtalo de nuevo.';

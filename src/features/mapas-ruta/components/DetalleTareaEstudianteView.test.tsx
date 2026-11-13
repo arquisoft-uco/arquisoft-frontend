@@ -19,6 +19,9 @@ vi.mock('./estudiante/AgregarPlanEstimadoPanel', () => ({
 vi.mock('./estudiante/ModificarPlanEstimadoPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de edición del plan estimado" />,
 }));
+vi.mock('./estudiante/ModificarPlanRealPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de edición del plan real" />,
+}));
 vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de edición de la tarea" />,
 }));
@@ -403,6 +406,27 @@ describe('DetalleTareaEstudianteView', () => {
     expect(
       Boolean(screen.queryByRole('dialog', { name: 'Diálogo de remoción del plan estimado' })),
     ).toBe(visible);
+  });
+
+  it('Editar plan real abre el panel cuando el plan real está cargado', async () => {
+    // Arrange
+    simular();
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Editar plan real' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Panel de edición del plan real' }),
+    ).toBeInTheDocument();
   });
 
   it('monta la sección Plan real solo cuando hay tarea', () => {
