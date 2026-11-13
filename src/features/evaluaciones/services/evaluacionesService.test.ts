@@ -61,6 +61,27 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('getObservacionesEvaluacionCuantitativaJurado', () => {
+    it('hace POST con el id en la ruta y el criterio como body, y devuelve la página', async () => {
+      // Arrange
+      const pagina = { content: [{ id: 'o-1', descripcion: 'Falta rigor' }], totalElements: 1 };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await evaluacionesService.getObservacionesEvaluacionCuantitativaJurado(
+        'ec-1',
+        { pagina: 1, tamanio: 10 },
+      );
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-jurado/ec-1/observaciones/jurado',
+        { pagina: 1, tamanio: 10 },
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('registrarEvaluacionesCuantitativasJurado', () => {
     it('envía a la ruta con prefijo /evaluaciones, traduce itemId a item y resuelve undefined', async () => {
       // Arrange
