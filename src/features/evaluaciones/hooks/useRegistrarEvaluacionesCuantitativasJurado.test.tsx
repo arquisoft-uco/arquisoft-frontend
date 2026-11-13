@@ -40,7 +40,7 @@ describe('useRegistrarEvaluacionesCuantitativasJurado', () => {
     vi.clearAllMocks();
   });
 
-  it('envía el id de la evaluación y el lote sin invalidar nada en éxito', async () => {
+  it('envía el id de la evaluación y el lote e invalida la lectura del jurado en éxito', async () => {
     // Arrange
     registrar.mockResolvedValue(undefined);
     const { Wrapper, invalidar } = crearContexto();
@@ -54,7 +54,10 @@ describe('useRegistrarEvaluacionesCuantitativasJurado', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(registrar).toHaveBeenCalledWith({ evaluacionJuradoId: 'ej-1', evaluaciones: PARES });
-    expect(invalidar).not.toHaveBeenCalled();
+    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['evaluaciones', 'jurado', 'ej-1', 'cuantitativas'],
+    });
   });
 
   it('invalida el catálogo de ítems solo cuando el backend dice que alguno ya no existe', async () => {

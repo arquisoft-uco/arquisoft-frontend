@@ -205,7 +205,7 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
       expect(await screen.findByText('Pantalla de registro')).toBeInTheDocument();
     });
 
-    it('ofrece «Cuantitativas» por fila, deshabilitado en la finalizada, y navega a evaluar-cuantitativas', async () => {
+    it('ofrece «Evaluar cuantitativas» por fila, deshabilitado en la finalizada, y navega a evaluar-cuantitativas', async () => {
       // Arrange
       const user = userEvent.setup();
       autenticarCon(Rol.Jurado);
@@ -246,6 +246,49 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
 
       // Assert
       expect(screen.queryByRole('button', { name: /^Evaluar/ })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('«Ver cuantitativas»', () => {
+    it('aparece solo si hay cuantitativas registradas y navega con el state', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      resetAllStores();
+      setAuthenticatedUser({
+        tokenParsed: { sub: 'user-id', realm_access: { roles: [Rol.Jurado] } },
+      });
+      setActiveRole(Rol.Jurado);
+      mockHook({ data: [{ ...ASIGNACION, tieneEvaluacionesCuantitativas: false }, FINALIZADA] });
+      let estado: unknown;
+      function Destino() {
+        estado = useLocation().state;
+        return <p>Pantalla de cuantitativas realizadas</p>;
+      }
+      render(
+        <Routes>
+          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
+          <Route path="/evaluaciones/:id/cuantitativas-realizadas" element={<Destino />} />
+        </Routes>,
+      );
+
+      // Assert
+      expect(
+        screen.queryByRole('button', { name: 'Ver cuantitativas de Sistema de monitoreo' }),
+      ).not.toBeInTheDocument();
+
+      // Act
+      await user.click(
+        screen.getAllByRole('button', { name: 'Ver cuantitativas de Plataforma de riego' })[0],
+      );
+
+      // Assert
+      expect(await screen.findByText('Pantalla de cuantitativas realizadas')).toBeInTheDocument();
+      expect(estado).toEqual({
+        evaluacionJuradoId: 'ej-2',
+        search: '',
+        evaluacionFinalizada: true,
+        resumen: { proyecto: 'Plataforma de riego', version: 1 },
+      });
     });
   });
 
