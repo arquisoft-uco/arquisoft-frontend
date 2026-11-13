@@ -66,4 +66,6 @@ export const LIMITES = {
   ARTEFACTO_DIAS_SIN_AVANCE_MIN: 1,
   // ArtefactosLimits.Artefacto.DIAS_SIN_AVANCE_MAXIMO
   ARTEFACTO_DIAS_SIN_AVANCE_MAX: 365,
+  // EvaluacionesLimits.ObservacionItemJurado.DESCRIPCION_MAX (VARCHAR(500))
+  OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX: 500,
 } as const;

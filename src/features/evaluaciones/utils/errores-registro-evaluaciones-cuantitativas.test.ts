@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { mensajeErrorRegistroEvaluacionesCuantitativas } from './errores-registro-evaluaciones-cuantitativas';
+import {
+  mensajeErrorRegistroEvaluacionesCuantitativas,
+  mensajeExitoRegistroEvaluacionesCuantitativas,
+  mensajeObservacionesFaltantes,
+} from './errores-registro-evaluaciones-cuantitativas';
 
 const ID_CLARIDAD = '11111111-1111-4111-8111-111111111111';
 const ID_ORDEN = '22222222-2222-4222-8222-222222222222';
@@ -83,5 +87,26 @@ describe('mensajeErrorRegistroEvaluacionesCuantitativas', () => {
 
     // Assert
     expect(texto).toBe('Fallo conocido');
+  });
+});
+
+describe('mensajes de éxito y de observaciones faltantes', () => {
+  it('concuerdan singular y plural y omiten la parte que vale cero', () => {
+    // Assert
+    expect(mensajeExitoRegistroEvaluacionesCuantitativas(2, 0, 'Proyecto X')).toBe(
+      'Se registraron 2 valoraciones de Proyecto X.',
+    );
+    expect(mensajeExitoRegistroEvaluacionesCuantitativas(1, 1, 'Proyecto X')).toBe(
+      'Se registraron 1 valoración y 1 observación de Proyecto X.',
+    );
+    expect(mensajeExitoRegistroEvaluacionesCuantitativas(0, 3, 'Proyecto X')).toBe(
+      'Se registraron 3 observaciones de Proyecto X.',
+    );
+    expect(mensajeObservacionesFaltantes(1)).toBe(
+      'Se registró la evaluación, pero 1 observación no se guardó.',
+    );
+    expect(mensajeObservacionesFaltantes(2)).toBe(
+      'Se registró la evaluación, pero 2 observaciones no se guardaron.',
+    );
   });
 });

@@ -43,3 +43,24 @@ export function mensajeErrorRegistroEvaluacionesCuantitativas(
   }
   return getApiErrorMessage(err, 'Inténtalo nuevamente.');
 }
+
+function contar(n: number, singular: string, plural: string): string {
+  return `${n} ${n === 1 ? singular : plural}`;
+}
+
+export function mensajeExitoRegistroEvaluacionesCuantitativas(
+  total: number,
+  totalObservaciones: number,
+  proyecto: string,
+): string {
+  const partes = [
+    total > 0 ? contar(total, 'valoración', 'valoraciones') : '',
+    totalObservaciones > 0 ? contar(totalObservaciones, 'observación', 'observaciones') : '',
+  ];
+  return `Se registraron ${partes.filter(Boolean).join(' y ')} de ${proyecto}.`;
+}
+
+export function mensajeObservacionesFaltantes(faltan: number): string {
+  const noGuardadas = faltan === 1 ? 'no se guardó' : 'no se guardaron';
+  return `Se registró la evaluación, pero ${contar(faltan, 'observación', 'observaciones')} ${noGuardadas}.`;
+}

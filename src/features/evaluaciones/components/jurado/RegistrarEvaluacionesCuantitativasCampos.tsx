@@ -4,7 +4,9 @@ import type { OpcionCombobox } from '../../../../shared/components/ui/Combobox';
 import FormSection from '../../../../shared/components/ui/FormSection';
 import Notice from '../../../../shared/components/ui/Notice';
 import type { ItemCuantitativoJurado } from '../../models/ItemCuantitativoJurado';
+import type { ObservacionPendienteEvaluacionCuantitativa } from '../../models/ObservacionPendienteEvaluacionCuantitativa';
 import type { ParEvaluacionCuantitativaJurado } from '../../models/ParEvaluacionCuantitativaJurado';
+import ObservacionesPendientesAviso from './ObservacionesPendientesAviso';
 import SelectorParEvaluacionCuantitativa from './SelectorParEvaluacionCuantitativa';
 
 const AYUDA = 'text-sm text-on-surface-secondary';
@@ -20,6 +22,11 @@ interface Props {
   inputItemRef: Ref<HTMLInputElement>;
   onAgregar: (par: ParEvaluacionCuantitativaJurado) => void;
   onQuitar: (itemId: string) => void;
+  pendientes: ObservacionPendienteEvaluacionCuantitativa[];
+  nombresPorId: ReadonlyMap<string, string>;
+  reintentando: boolean;
+  onReintentar: () => void;
+  onSalir: () => void;
 }
 
 export default function RegistrarEvaluacionesCuantitativasCampos({
@@ -33,7 +40,23 @@ export default function RegistrarEvaluacionesCuantitativasCampos({
   inputItemRef,
   onAgregar,
   onQuitar,
+  pendientes,
+  nombresPorId,
+  reintentando,
+  onReintentar,
+  onSalir,
 }: Props) {
+  if (pendientes.length > 0) {
+    return (
+      <ObservacionesPendientesAviso
+        pendientes={pendientes}
+        nombresPorId={nombresPorId}
+        reintentando={reintentando}
+        onReintentar={onReintentar}
+        onSalir={onSalir}
+      />
+    );
+  }
   return (
     <>
       <FormSection titulo="Agregar valoración">

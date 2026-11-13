@@ -1,20 +1,27 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import FormActions from '../../../../shared/components/ui/FormActions';
 import { toast } from '../../../../shared/hooks/useToast';
-import { useRegistrarEvaluacionesCuantitativasJurado } from '../../hooks/useRegistrarEvaluacionesCuantitativasJurado';
+import {
+  useRegistrarEvaluacionCuantitativaConObservaciones,
+  type ResultadoRegistroConObservaciones,
+} from '../../hooks/useRegistrarEvaluacionCuantitativaConObservaciones';
 import type { CategoriaItemCuantitativoJurado } from '../../models/CategoriaItemCuantitativoJurado';
 import type { EvaluacionAsignadaJurado } from '../../models/EvaluacionAsignadaJurado';
 import type { ItemCuantitativoJurado } from '../../models/ItemCuantitativoJurado';
 import type { ParEvaluacionCuantitativaJurado } from '../../models/ParEvaluacionCuantitativaJurado';
-import { mensajeErrorRegistroEvaluacionesCuantitativas } from '../../utils/errores-registro-evaluaciones-cuantitativas';
+import { armarElegidos } from '../../utils/elegidos-evaluaciones-cuantitativas';
+import {
+  mensajeErrorRegistroEvaluacionesCuantitativas,
+  mensajeExitoRegistroEvaluacionesCuantitativas,
+  mensajeObservacionesFaltantes,
+} from '../../utils/errores-registro-evaluaciones-cuantitativas';
 import {
   registrarEvaluacionesCuantitativasJuradoSchema,
   type RegistrarEvaluacionesCuantitativasJuradoValues,
 } from '../../utils/registrar-evaluaciones-cuantitativas-jurado-schema';
+import RegistrarEvaluacionesCuantitativasAcciones from './RegistrarEvaluacionesCuantitativasAcciones';
 import RegistrarEvaluacionesCuantitativasCampos from './RegistrarEvaluacionesCuantitativasCampos';
 
 const ID_FORMULARIO = 'registrar-evaluaciones-cuantitativas-jurado';
@@ -34,14 +41,8 @@ export default function RegistrarEvaluacionesCuantitativasFormulario({
 }: Props) {
   const navigate = useNavigate();
   const inputItemRef = useRef<HTMLInputElement | null>(null);
-  const [descartando, setDescartando] = useState(false);
-  const {
-    mutate,
-    isPending,
-    isError,
-    error,
-    reset: resetMutation,
-  } = useRegistrarEvaluacionesCuantitativasJurado(asignacion.id);
+  const registro = useRegistrarEvaluacionCuantitativaConObservaciones(asignacion.id);
+  const { pendientes, enviando } = registro;
   const {
     handleSubmit,
     watch,
@@ -58,35 +59,40 @@ export default function RegistrarEvaluacionesCuantitativasFormulario({
   const nombresCategoria = new Map(categorias.map((c) => [c.id, c.nombre]));
   const itemsPorId = new Map(catalogoItems.map((item) => [item.id, item]));
   const itemsDisponibles = catalogoItems.filter((item) => !pares.some((p) => p.itemId === item.id));
-  const elegidos = pares.map(({ itemId, puntaje }) => {
-    const item = itemsPorId.get(itemId);
-    const categoria = item ? (nombresCategoria.get(item.categoriaId) ?? 'Sin categoría') : '';
-    return {
-      id: itemId,
-      etiqueta: item?.nombre ?? itemId,
-      descripcion: `${categoria} · puntaje ${puntaje} de ${item?.valor ?? '—'}`,
-    };
-  });
-  const mensajeEnvio = isError
-    ? mensajeErrorRegistroEvaluacionesCuantitativas(error, nombresPorId)
+  const elegidos = armarElegidos(pares, itemsPorId, nombresCategoria);
+  const mensajeEnvio = registro.isError
+    ? mensajeErrorRegistroEvaluacionesCuantitativas(registro.error, nombresPorId)
     : '';
   const errorLista = errors.evaluaciones?.message ?? errors.evaluaciones?.root?.message;
 
   function actualizar(nuevaLista: ParEvaluacionCuantitativaJurado[]) {
-    resetMutation();
+    registro.reiniciarError();
     setValue('evaluaciones', nuevaLista, { shouldDirty: true, shouldValidate: true });
   }
 
+  function terminar({
+    total,
+    totalObservaciones,
+    pendientes: faltan,
+  }: ResultadoRegistroConObservaciones) {
+    if (faltan.length > 0) {
+      toast.error('Faltan observaciones', mensajeObservacionesFaltantes(faltan.length));
+      return;
+    }
+    toast.success(
+      'Evaluación registrada',
+      mensajeExitoRegistroEvaluacionesCuantitativas(
+        total,
+        totalObservaciones,
+        asignacion.entregable.proyecto,
+      ),
+    );
+    navigate('/evaluaciones', { replace: true });
+  }
+
   function enviar(values: RegistrarEvaluacionesCuantitativasJuradoValues) {
-    mutate(values.evaluaciones, {
-      onSuccess: () => {
-        const total = values.evaluaciones.length;
-        toast.success(
-          'Evaluación registrada',
-          `Se registraron ${total} ${total === 1 ? 'valoración' : 'valoraciones'} de ${asignacion.entregable.proyecto}.`,
-        );
-        navigate('/evaluaciones', { replace: true });
-      },
+    registro.registrar(values.evaluaciones, {
+      onSuccess: terminar,
       onError: (err) => {
         toast.error(
           'No se pudo registrar la evaluación',
@@ -96,18 +102,13 @@ export default function RegistrarEvaluacionesCuantitativasFormulario({
     });
   }
 
-  function cancelar() {
-    if (pares.length > 0) setDescartando(true);
-    else navigate('/evaluaciones');
-  }
-
   return (
     <div className={RAIZ}>
       <form
         id={ID_FORMULARIO}
         aria-label="Registro de evaluación cuantitativa"
         noValidate
-        aria-busy={isPending}
+        aria-busy={enviando}
         onSubmit={handleSubmit(enviar, () => inputItemRef.current?.focus())}
         className={CUERPO}
       >
@@ -118,30 +119,22 @@ export default function RegistrarEvaluacionesCuantitativasFormulario({
           elegidos={elegidos}
           errorLista={errorLista}
           mensajeEnvio={mensajeEnvio}
-          enviando={isPending}
+          enviando={enviando}
           inputItemRef={inputItemRef}
           onAgregar={(par) => actualizar([...pares, par])}
           onQuitar={(id) => actualizar(pares.filter((p) => p.itemId !== id))}
+          pendientes={pendientes}
+          nombresPorId={nombresPorId}
+          reintentando={registro.reintentando}
+          onReintentar={() => void registro.reintentar({ onSuccess: terminar })}
+          onSalir={() => navigate('/evaluaciones', { replace: true })}
         />
       </form>
-      <FormActions
-        accion="Registrar evaluación"
-        accionEnviando="Registrando…"
-        formId={ID_FORMULARIO}
-        sucio={pares.length > 0}
-        sinCambios={pares.length === 0}
-        enviando={isPending}
-        onCancelar={cancelar}
-      />
-      {descartando && (
-        <ConfirmDialog
-          titulo="¿Descartar la evaluación?"
-          descripcion="Se perderán las valoraciones que agregaste."
-          variante="advertencia"
-          labelConfirmar="Descartar"
-          labelCancelar="Seguir editando"
-          onConfirmar={() => navigate('/evaluaciones')}
-          onCancelar={() => setDescartando(false)}
+      {pendientes.length === 0 && (
+        <RegistrarEvaluacionesCuantitativasAcciones
+          formId={ID_FORMULARIO}
+          totalPares={pares.length}
+          enviando={enviando}
         />
       )}
     </div>

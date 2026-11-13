@@ -4,6 +4,7 @@ import {
   LIMITES,
   listaNoVaciaSinDuplicados,
   MENSAJES_VALIDACION,
+  textoRequerido,
   uuidValido,
 } from '../../../shared/validation';
 
@@ -27,7 +28,11 @@ const puntajeValido = z
 
 export const registrarEvaluacionesCuantitativasJuradoSchema = z.object({
   evaluaciones: listaNoVaciaSinDuplicados(
-    z.object({ itemId: uuidValido(), puntaje: puntajeValido }),
+    z.object({
+      itemId: uuidValido(),
+      puntaje: puntajeValido,
+      observacion: textoRequerido(LIMITES.OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX).optional(),
+    }),
     (par) => par.itemId,
   ),
 });
