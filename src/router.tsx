@@ -22,6 +22,7 @@ const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
 const DetalleTarea = lazy(() => import('./features/mapas-ruta/DetalleTarea'));
 const TareasMapaRutaProyecto = lazy(() => import('./features/mapas-ruta/TareasMapaRutaProyecto'));
 const PlanesEstimadosProyecto = lazy(() => import('./features/mapas-ruta/PlanesEstimadosProyecto'));
+const PlanesRealesProyecto = lazy(() => import('./features/mapas-ruta/PlanesRealesProyecto'));
 const RepositorioArtefactos = lazy(
   () => import('./features/repositorio-artefactos/RepositorioArtefactos'),
 );
@@ -96,6 +97,10 @@ export const router = createBrowserRouter([
               {
                 path: 'proyectos/:proyectoGradoId/planes-estimados',
                 element: <PlanesEstimadosProyecto />,
+              },
+              {
+                path: 'proyectos/:proyectoGradoId/planes-reales',
+                element: <PlanesRealesProyecto />,
               },
             ],
           },

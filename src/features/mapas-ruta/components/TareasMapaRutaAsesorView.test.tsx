@@ -40,6 +40,10 @@ function renderizar() {
         path="/mapas-ruta/proyectos/:proyectoGradoId/tareas"
         element={<TareasMapaRutaAsesorView />}
       />
+      <Route
+        path="/mapas-ruta/proyectos/:proyectoGradoId/planes-reales"
+        element={<p>Planes reales del proyecto p</p>}
+      />
       <Route path="/mapas-ruta" element={<p>Listado de mapas</p>} />
     </Routes>,
     { initialPath: '/mapas-ruta/proyectos/p-1/tareas' },
@@ -76,6 +80,22 @@ describe('TareasMapaRutaAsesorView', () => {
 
     // Assert
     expect(screen.getByText('Listado de mapas')).toBeInTheDocument();
+  });
+
+  it('con mapa "Ver planes reales" navega a los planes reales; sin mapa no aparece', async () => {
+    // Arrange
+    configurarMapa({ sinMapa: true });
+    const { unmount } = renderizar();
+    expect(screen.queryByRole('button', { name: /ver planes reales/i })).not.toBeInTheDocument();
+    unmount();
+    configurarMapa({ mapa: MAPA });
+    renderizar();
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: /ver planes reales/i }));
+
+    // Assert
+    expect(screen.getByText('Planes reales del proyecto p')).toBeInTheDocument();
   });
 
   it('ante un error del mapa muestra "Reintentar" y lo invoca', async () => {

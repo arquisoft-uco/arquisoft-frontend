@@ -22,6 +22,8 @@ import type { PlanEstimadoResponse } from '../models/PlanEstimadoResponse';
 import type { PlanEstimadoProyecto } from '../models/PlanEstimadoProyecto';
 import type { PlanEstimadoProyectoResponse } from '../models/PlanEstimadoProyectoResponse';
 import type { PlanReal } from '../models/PlanReal';
+import type { PlanRealProyecto } from '../models/PlanRealProyecto';
+import type { PlanRealProyectoResponse } from '../models/PlanRealProyectoResponse';
 import type { PlanRealResponse } from '../models/PlanRealResponse';
 import type { ProyectoAsesorado } from '../models/ProyectoAsesorado';
 import type { ProyectoAsesoradoResponse } from '../models/ProyectoAsesoradoResponse';
@@ -79,6 +81,16 @@ function aPlanReal(dto: PlanRealResponse): PlanReal {
   return {
     id: dto.id,
     tareaId: dto.tarea,
+    tiempoRealDias: dto.tiempoRealDias,
+    descripcionReal: dto.descripcionReal,
+  };
+}
+
+function aPlanRealProyecto(dto: PlanRealProyectoResponse): PlanRealProyecto {
+  return {
+    id: dto.id,
+    tareaId: dto.tarea,
+    descripcionTarea: dto.descripcionTarea,
     tiempoRealDias: dto.tiempoRealDias,
     descripcionReal: dto.descripcionReal,
   };
@@ -170,6 +182,17 @@ export const mapasRutaService = {
     return apiClient
       .post<Page<TareaResponse>>(`/mapas-ruta/${mapaRutaId}/tareas/asesor`, req)
       .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
+  },
+
+  consultarPlanesRealesProyectoAsesor(
+    proyectoGradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<PlanRealProyecto>> {
+    return apiClient
+      .post<
+        Page<PlanRealProyectoResponse>
+      >(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/planes-reales/asesor`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aPlanRealProyecto) }));
   },
 
   consultarTarea(tareaId: string): Promise<Tarea> {
