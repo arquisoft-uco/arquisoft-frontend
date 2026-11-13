@@ -1,8 +1,9 @@
 import { ClipboardList } from 'lucide-react';
-import DataTable from '../../../../shared/components/ui/DataTable';
-import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
-import EmptyState from '../../../../shared/components/ui/EmptyState';
-import type { EvaluacionCuantitativaJurado } from '../../models/EvaluacionCuantitativaJurado';
+import type { ReactNode } from 'react';
+import DataTable from '../../../shared/components/ui/DataTable';
+import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
+import EmptyState from '../../../shared/components/ui/EmptyState';
+import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 
 const NOMBRE = 'font-medium text-on-surface';
 const DESCRIPCION = 'text-[13px] text-on-surface-secondary';
@@ -38,9 +39,14 @@ const COLUMNAS: ColumnaTabla<EvaluacionCuantitativaJurado>[] = [
 interface Props {
   evaluaciones: EvaluacionCuantitativaJurado[];
   cargando: boolean;
+  vacio?: ReactNode;
 }
 
-export default function EvaluacionesCuantitativasJuradoTable({ evaluaciones, cargando }: Props) {
+export default function EvaluacionesCuantitativasJuradoTable({
+  evaluaciones,
+  cargando,
+  vacio,
+}: Props) {
   return (
     <DataTable
       etiqueta="Evaluaciones cuantitativas del jurado"
@@ -49,11 +55,13 @@ export default function EvaluacionesCuantitativasJuradoTable({ evaluaciones, car
       idDeFila={(fila) => fila.id}
       cargando={cargando}
       vacio={
-        <EmptyState
-          icono={ClipboardList}
-          titulo="Aún no hay evaluaciones cuantitativas"
-          descripcion="Aparecerán aquí cuando el jurado registre sus puntajes."
-        />
+        vacio ?? (
+          <EmptyState
+            icono={ClipboardList}
+            titulo="Aún no hay evaluaciones cuantitativas"
+            descripcion="Aparecerán aquí cuando el jurado registre sus puntajes."
+          />
+        )
       }
       tarjeta={(fila) => (
         <>
