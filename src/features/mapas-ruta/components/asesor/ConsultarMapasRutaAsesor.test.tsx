@@ -165,4 +165,37 @@ describe('ConsultarMapasRutaAsesor', () => {
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(limpiarFiltros).toHaveBeenCalled();
   });
+
+  it('el título del proyecto enlaza a sus tareas solo cuando tiene mapa', () => {
+    // Arrange
+    configurarListado();
+    configurarMapa({
+      mapa: {
+        id: 'm-1',
+        proyectoGradoId: 'p-1',
+        titulo: 'Sistema A',
+        fechaInicio: '2026-03-05',
+        fechaFin: '2026-08-01',
+      },
+    });
+
+    // Act
+    const { unmount } = render(<ConsultarMapasRutaAsesor />);
+
+    // Assert
+    expect(screen.getAllByRole('link', { name: 'Ver las tareas de Sistema A' })[0]).toHaveAttribute(
+      'href',
+      '/mapas-ruta/proyectos/p-1/tareas',
+    );
+    unmount();
+
+    // Arrange
+    configurarMapa({ sinMapa: true });
+
+    // Act
+    render(<ConsultarMapasRutaAsesor />);
+
+    // Assert
+    expect(screen.queryByRole('link', { name: /ver las tareas de/i })).not.toBeInTheDocument();
+  });
 });

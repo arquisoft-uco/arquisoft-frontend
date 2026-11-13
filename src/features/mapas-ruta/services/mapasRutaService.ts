@@ -150,6 +150,15 @@ export const mapasRutaService = {
       .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
   },
 
+  consultarTareasMapaRutaAsesor(
+    mapaRutaId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<Tarea>> {
+    return apiClient
+      .post<Page<TareaResponse>>(`/mapas-ruta/${mapaRutaId}/tareas/asesor`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
+  },
+
   consultarTarea(tareaId: string): Promise<Tarea> {
     return apiClient.get<TareaResponse>(`/tareas/${tareaId}`).then((r) => aTarea(r.data));
   },
