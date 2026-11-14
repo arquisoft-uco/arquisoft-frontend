@@ -2,6 +2,8 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import type { OrdenCampoEntregableEstudiante } from '../models/OrdenCampoEntregableEstudiante';
 import { entregablesService } from '../services/entregablesService';
+import { leerEstadoProyecto } from '../utils/estado-proyecto';
+import { construirFiltros } from '../utils/filtros-entregable';
 
 const PAGE_SIZE = 10;
 
@@ -24,10 +26,15 @@ const DESEMPATE: Record<OrdenCampoEntregableEstudiante, string> = {
 export function useEntregablesEstudiante(proyectoGradoId: string) {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
+  const estadoProyecto = leerEstadoProyecto(parametros.texto('estadoProyecto'));
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [campo, direccion] = orden.split(':');
   const ordenCampo = campo as OrdenCampoEntregableEstudiante;
   const ordenDireccion = direccion as OrdenDireccion;
+
+  function setEstadoProyecto(valor: string) {
+    parametros.cambiar({ estadoProyecto: valor === 'finalizados' ? valor : undefined });
+  }
 
   function setOrden(
     nuevoCampo: OrdenCampoEntregableEstudiante,
@@ -38,12 +45,21 @@ export function useEntregablesEstudiante(proyectoGradoId: string) {
   }
 
   const query = useQuery({
-    queryKey: ['entregables', 'estudiante', proyectoGradoId, page, ordenCampo, ordenDireccion],
+    queryKey: [
+      'entregables',
+      'estudiante',
+      proyectoGradoId,
+      page,
+      ordenCampo,
+      ordenDireccion,
+      estadoProyecto,
+    ],
     queryFn: () =>
       entregablesService.consultarEntregablesEstudiante(proyectoGradoId, {
         pagina: page,
         tamanio: PAGE_SIZE,
         ordenamiento: [`${ordenCampo}:${ordenDireccion}`, DESEMPATE[ordenCampo]],
+        filtros: construirFiltros('', [], '', estadoProyecto),
       }),
     placeholderData: keepPreviousData,
   });
@@ -55,6 +71,8 @@ export function useEntregablesEstudiante(proyectoGradoId: string) {
     goToPage: parametros.irAPagina,
     ordenCampo,
     ordenDireccion,
+    estadoProyecto,
+    setEstadoProyecto,
     setOrden,
   };
 }

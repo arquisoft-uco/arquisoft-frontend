@@ -1,0 +1,66 @@
+import { Map } from 'lucide-react';
+import { Navigate, useNavigate, useParams } from 'react-router';
+import Button from '../../../shared/components/ui/Button';
+import EmptyState from '../../../shared/components/ui/EmptyState';
+import ErrorState from '../../../shared/components/ui/ErrorState';
+import PageHeader from '../../../shared/components/ui/PageHeader';
+import Skeleton from '../../../shared/components/ui/Skeleton';
+import { useContextoDetalleTarea } from '../hooks/useContextoDetalleTarea';
+import { useMapaRutaProyectoAsesor } from '../hooks/useMapaRutaProyectoAsesor';
+import { formatearFechaCivil } from '../utils/formato-fecha';
+import ConsultarTareasMapaRutaAsesor from './asesor/ConsultarTareasMapaRutaAsesor';
+
+export default function TareasMapaRutaAsesorView() {
+  const { proyectoGradoId = '' } = useParams();
+  const navigate = useNavigate();
+  const { mapa, cargando, sinMapa, hayError, reintentar } =
+    useMapaRutaProyectoAsesor(proyectoGradoId);
+  const { search } = useContextoDetalleTarea();
+
+  if (!proyectoGradoId) return <Navigate to="/mapas-ruta" replace />;
+
+  const rutaListado = `/mapas-ruta${search}`;
+
+  function contenido() {
+    if (cargando) return <Skeleton variante="lineas" etiqueta="Cargando el mapa de ruta…" />;
+    if (sinMapa) {
+      return (
+        <EmptyState
+          icono={Map}
+          titulo="Aún no hay mapa de ruta"
+          descripcion="Cuando el coordinador defina el mapa de este proyecto, aquí verás sus tareas."
+          accion={
+            <Button variante="secundario" onClick={() => navigate(rutaListado)}>
+              Volver a mapas de ruta
+            </Button>
+          }
+        />
+      );
+    }
+    if (hayError) {
+      return (
+        <ErrorState titulo="No pudimos cargar el mapa de ruta" onReintentar={() => reintentar()} />
+      );
+    }
+    if (!mapa) return null;
+    return <ConsultarTareasMapaRutaAsesor mapaRutaId={mapa.id} />;
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        migas={[
+          { etiqueta: 'Mapas de ruta', to: rutaListado },
+          { etiqueta: mapa?.titulo ?? 'Tareas' },
+        ]}
+        titulo="Tareas del mapa de ruta"
+        descripcion={
+          mapa
+            ? `${mapa.titulo} · Inicio ${formatearFechaCivil(mapa.fechaInicio)} · Fin ${formatearFechaCivil(mapa.fechaFin)}`
+            : 'Consulta las tareas del mapa de ruta de un proyecto que asesoras.'
+        }
+      />
+      {contenido()}
+    </div>
+  );
+}

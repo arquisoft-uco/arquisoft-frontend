@@ -4,6 +4,8 @@
 # Se dispara cuando "Docker Build & Push" termina en éxito. Se conecta por SSH
 # al servidor (usuario no-root "deploy") y reemplaza el contenedor con la
 # imagen recién publicada en GHCR, identificada por su tag inmutable sha-<short>.
+# También se puede lanzar a mano ("Run workflow") con un tag concreto, p. ej.
+# para volver a una versión anterior.
 #
 # El frontend es una SPA estática (Vite + nginx): las variables VITE_* ya
 # quedaron embebidas en el bundle en build-time (ver docker-build.yml), así
@@ -17,13 +19,19 @@ on:
   workflow_run:
     workflows: ['Docker Build & Push']
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Tag de imagen GHCR a desplegar, p. ej. sha-1a2b3c4 (vacío = latest)'
+        required: false
+        default: ''
 
 jobs:
   deploy:
     name: Deploy por SSH
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     permissions:
       contents: read
@@ -35,6 +43,7 @@ jobs:
       #     usa workflow_run.head_sha: en una cadena de workflow_run apunta a la
       #     rama por defecto (main), no al commit de develop que se construyó ──
       - name: Descargar tag de la imagen
+        if: ${{ github.event_name == 'workflow_run' }}
         uses: actions/download-artifact@v4
         with:
           name: image-tag
@@ -43,7 +52,34 @@ jobs:
 
       - name: Leer short SHA
         id: vars
-        run: echo "short_sha=$(cat short_sha.txt)" >> "$GITHUB_OUTPUT"
+        env:
+          TAG_MANUAL: ${{ inputs.image_tag }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "image_tag=${TAG_MANUAL:-latest}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=sha-$(cat short_sha.txt)" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Orígenes de la CSP de nginx: se derivan del mismo secreto VITE_ENV_FILE
+      #     que usa el build (esquema://host[:puerto] de cada URL), así no hay
+      #     que mantenerlos por separado ──
+      - name: Derivar orígenes desde VITE_ENV_FILE
+        id: origenes
+        env:
+          ENV_FILE: ${{ secrets.VITE_ENV_FILE }}
+        run: |
+          origen() {
+            printf '%s\n' "$ENV_FILE" | tr -d '\r' \
+              | sed -n "s/^$1=//p" | tail -n1 | sed -E "s/^[\"']//; s/[\"']$//" \
+              | sed -nE 's#^(https?://[^/?\#]+).*#\1#p'
+          }
+          {
+            echo "api=$(origen VITE_API_URL)"
+            echo "keycloak=$(origen VITE_KEYCLOAK_URL)"
+            echo "pdp=$(origen VITE_PDP_URL)"
+            echo "security_ui=$(origen VITE_SECURITY_UI_URL)"
+          } >> "$GITHUB_OUTPUT"
 
       # ── Deploy remoto ──
       - name: Reemplazar contenedor vía SSH
@@ -53,12 +89,12 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GHCR_ACTOR,GHCR_TOKEN,IMAGE_REPO,SHORT_SHA,BASE_DOMAIN
+          envs: GHCR_ACTOR,GHCR_TOKEN,IMAGE_REPO,IMAGE_TAG,BASE_DOMAIN,API_ORIGIN,KEYCLOAK_ORIGIN,PDP_ORIGIN,SECURITY_UI_ORIGIN
           script_stop: true
           script: |
             set -e
 
-            IMAGE="ghcr.io/${IMAGE_REPO}:sha-${SHORT_SHA}"
+            IMAGE="ghcr.io/${IMAGE_REPO}:${IMAGE_TAG}"
             CONTAINER="arquisoft-frontend"
 
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_ACTOR" --password-stdin
@@ -84,6 +120,10 @@ jobs:
             docker run -d \
               --name "$CONTAINER" \
               --restart unless-stopped \
+              -e API_ORIGIN="$API_ORIGIN" \
+              -e KEYCLOAK_ORIGIN="$KEYCLOAK_ORIGIN" \
+              -e PDP_ORIGIN="$PDP_ORIGIN" \
+              -e SECURITY_UI_ORIGIN="$SECURITY_UI_ORIGIN" \
               --network arquisoft-network \
               --label traefik.enable=true \
               --label traefik.docker.network=arquisoft-network \
@@ -120,5 +160,9 @@ jobs:
           GHCR_ACTOR: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_REPO: ${{ github.repository }}
-          SHORT_SHA: ${{ steps.vars.outputs.short_sha }}
+          IMAGE_TAG: ${{ steps.vars.outputs.image_tag }}
           BASE_DOMAIN: ${{ secrets.BASE_DOMAIN }}
+          API_ORIGIN: ${{ steps.origenes.outputs.api }}
+          KEYCLOAK_ORIGIN: ${{ steps.origenes.outputs.keycloak }}
+          PDP_ORIGIN: ${{ steps.origenes.outputs.pdp }}
+          SECURITY_UI_ORIGIN: ${{ steps.origenes.outputs.security_ui }}

@@ -12,8 +12,11 @@ export function useCambiarEstadoEntregable() {
       entregableId: string;
       estadoEntregableId: string;
     }) => entregablesService.cambiarEstadoEntregable(entregableId, { estadoEntregableId }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['entregables', 'asesor'] });
+      queryClient.invalidateQueries({
+        queryKey: ['entregables', variables.entregableId, 'estados'],
+      });
     },
   });
 }

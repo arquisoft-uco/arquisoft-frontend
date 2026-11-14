@@ -1,21 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from 'axios';
+import { AxiosError, type AxiosAdapter } from 'axios';
 import apiClient from './axiosInstance';
-import { keycloak } from '../auth/keycloak';
+import type { CredencialesHttp, ProveedorIdentidad } from '../auth/proveedores/proveedor';
+import { fijarProveedorActivo } from '../auth/proveedores/proveedorActivo';
 import { router } from '../router';
+import { resetAllStores, setAuthenticatedUser } from '../test-utils/store.utils';
 import { useAuthStore } from '../auth/authStore';
 
 vi.mock('../config/env', () => ({ API_URL: 'http://api.test' }));
-vi.mock('../auth/keycloak', () => ({
-  keycloak: { updateToken: vi.fn(), logout: vi.fn(), token: undefined, tokenParsed: undefined },
-}));
 vi.mock('../router', () => ({ router: { navigate: vi.fn() } }));
 vi.mock('../shared/utils/monitoring', () => ({
   monitoring: { captureError: vi.fn(), captureHttpError: vi.fn() },
 }));
 
-const adapterConStatus = (status: number) => {
-  const adapter = vi.fn(async (config: InternalAxiosRequestConfig) => {
+const adapterConStatus = (status: number) =>
+  vi.fn<AxiosAdapter>(async (config) => {
     if (status < 400) {
       return { data: undefined, status, statusText: '', headers: {}, config };
     }
@@ -27,22 +26,101 @@ const adapterConStatus = (status: number) => {
       data: undefined,
     });
   });
-  return adapter as unknown as AxiosAdapter & typeof adapter;
-};
+
+const adapterExitoso = () =>
+  vi.fn<AxiosAdapter>(async (config) => ({
+    data: {},
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config,
+  }));
+
+function proveedorDoble(
+  credenciales: CredencialesHttp = { proveedorApi: 'doble-api', bearer: 'tk' },
+  renovada = true,
+) {
+  return {
+    id: 'doble',
+    restaurarSesion: vi.fn(),
+    iniciarSesion: vi.fn(),
+    cerrarSesion: vi.fn(),
+    credencialesHttp: vi.fn(() => credenciales),
+    renovarSesion: vi.fn().mockResolvedValue(renovada),
+  } satisfies ProveedorIdentidad;
+}
+
+const adapterOriginal = apiClient.defaults.adapter;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  resetAllStores();
+  fijarProveedorActivo(null);
+});
+
+afterEach(() => {
+  apiClient.defaults.adapter = adapterOriginal;
+});
+
+describe('axiosInstance: credenciales del proveedor activo', () => {
+  it('con bearer adjunta Authorization y no activa cookies', async () => {
+    // Arrange
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await apiClient.get('/algo');
+
+    // Assert
+    const config = adapter.mock.calls[0][0];
+    expect(config.headers.get('Authorization')).toBe('Bearer abc');
+    expect(config.withCredentials).toBeFalsy();
+  });
+
+  it('con cookies activa withCredentials y la protección CSRF, sin Authorization', async () => {
+    // Arrange
+    fijarProveedorActivo(
+      proveedorDoble({
+        proveedorApi: 'sesion-pdp',
+        conCookies: true,
+        nombreCookieCsrf: 'XSRF-TOKEN',
+        nombreCabeceraCsrf: 'X-XSRF-TOKEN',
+      }),
+    );
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await apiClient.get('/algo');
+
+    // Assert
+    const config = adapter.mock.calls[0][0];
+    expect(config.withCredentials).toBe(true);
+    expect(config.xsrfCookieName).toBe('XSRF-TOKEN');
+    expect(config.xsrfHeaderName).toBe('X-XSRF-TOKEN');
+    expect(config.headers.get('Authorization')).toBeFalsy();
+  });
+
+  it('sin proveedor (bypass) usa el token del store', async () => {
+    // Arrange
+    setAuthenticatedUser({ token: 'del-store' });
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await apiClient.get('/algo');
+
+    // Assert
+    expect(adapter.mock.calls[0][0].headers.get('Authorization')).toBe('Bearer del-store');
+  });
+});
 
 describe('axiosInstance: _omitirManejoAuth', () => {
-  const adapterOriginal = apiClient.defaults.adapter;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    apiClient.defaults.adapter = adapterOriginal;
-  });
-
-  it('con la bandera, un 401 no refresca el token ni reintenta la petición', async () => {
+  it('con la bandera, un 401 no renueva la sesión ni reintenta la petición', async () => {
     // Arrange
+    const proveedor = proveedorDoble();
+    fijarProveedorActivo(proveedor);
     const adapter = adapterConStatus(401);
     apiClient.defaults.adapter = adapter;
 
@@ -52,8 +130,7 @@ describe('axiosInstance: _omitirManejoAuth', () => {
     ).rejects.toThrow();
 
     // Assert
-    expect(keycloak.updateToken).not.toHaveBeenCalled();
-    expect(keycloak.logout).not.toHaveBeenCalled();
+    expect(proveedor.renovarSesion).not.toHaveBeenCalled();
     expect(adapter).toHaveBeenCalledTimes(1);
   });
 
@@ -83,43 +160,63 @@ describe('axiosInstance: _omitirManejoAuth', () => {
   });
 });
 
-describe('axiosInstance: refresco de token ante 401', () => {
-  const adapterOriginal = apiClient.defaults.adapter;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    apiClient.defaults.adapter = adapterOriginal;
-  });
-
-  it('si el refresco falla, cierra sesión una vez y no reintenta la petición', async () => {
+describe('axiosInstance: renovación ante 401', () => {
+  it('si el proveedor renueva, reintenta la petición una vez', async () => {
     // Arrange
+    const proveedor = proveedorDoble({ proveedorApi: 'legado', bearer: 'tk' }, true);
+    fijarProveedorActivo(proveedor);
     const adapter = adapterConStatus(401);
     apiClient.defaults.adapter = adapter;
-    vi.mocked(keycloak.updateToken).mockRejectedValue(new Error('refresh inválido'));
 
     // Act
     await expect(apiClient.get('/algo')).rejects.toThrow();
 
     // Assert
-    expect(keycloak.logout).toHaveBeenCalledTimes(1);
+    expect(proveedor.renovarSesion).toHaveBeenCalledTimes(1);
+    expect(adapter).toHaveBeenCalledTimes(2);
+  });
+
+  it('si el proveedor no renueva, no reintenta la petición', async () => {
+    // Arrange
+    const proveedor = proveedorDoble({ proveedorApi: 'legado', bearer: 'tk' }, false);
+    fijarProveedorActivo(proveedor);
+    const adapter = adapterConStatus(401);
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await expect(apiClient.get('/algo')).rejects.toThrow();
+
+    // Assert
+    expect(proveedor.renovarSesion).toHaveBeenCalledTimes(1);
     expect(adapter).toHaveBeenCalledTimes(1);
   });
 
-  it('si el refresco funciona, reintenta la petición una vez', async () => {
+  it('varias peticiones concurrentes con 401 disparan una sola renovación', async () => {
+    // Arrange
+    const proveedor = proveedorDoble();
+    proveedor.renovarSesion.mockImplementation(
+      () => new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 0)),
+    );
+    fijarProveedorActivo(proveedor);
+    apiClient.defaults.adapter = adapterConStatus(401);
+
+    // Act
+    await Promise.allSettled([apiClient.get('/a'), apiClient.get('/b'), apiClient.get('/c')]);
+
+    // Assert
+    expect(proveedor.renovarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it('sin proveedor un 401 no se renueva ni se reintenta', async () => {
     // Arrange
     const adapter = adapterConStatus(401);
     apiClient.defaults.adapter = adapter;
-    vi.mocked(keycloak.updateToken).mockResolvedValue(true);
 
     // Act
     await expect(apiClient.get('/algo')).rejects.toThrow();
 
     // Assert
-    expect(keycloak.logout).not.toHaveBeenCalled();
-    expect(adapter).toHaveBeenCalledTimes(2);
+    expect(adapter).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -152,6 +249,8 @@ describe('axiosInstance: _sinCredenciales', () => {
 
   it('con la opción, un 401 y un 403 no refrescan el token ni navegan', async () => {
     // Arrange
+    const proveedor = proveedorDoble();
+    fijarProveedorActivo(proveedor);
     const adapter401 = adapterConStatus(401);
     apiClient.defaults.adapter = adapter401;
 
@@ -166,8 +265,83 @@ describe('axiosInstance: _sinCredenciales', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Assert
-    expect(keycloak.updateToken).not.toHaveBeenCalled();
+    expect(proveedor.renovarSesion).not.toHaveBeenCalled();
     expect(adapter401).toHaveBeenCalledTimes(1);
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe('axiosInstance: X-Proveedor-Identidad', () => {
+  it('envía la cabecera del proveedor activo en modo Bearer y cuando cambia de proveedor', async () => {
+    // Arrange
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
+    await apiClient.get('/algo');
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'sesion-pdp', conCookies: true }));
+    await apiClient.get('/algo');
+
+    // Assert
+    expect(adapter.mock.calls[0][0].headers.get('X-Proveedor-Identidad')).toBe('legado');
+    expect(adapter.mock.calls[1][0].headers.get('X-Proveedor-Identidad')).toBe('sesion-pdp');
+  });
+
+  it('el logout con _omitirManejoAuth también la lleva', async () => {
+    // Arrange
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await apiClient.post('/auth/logout', undefined, { _omitirManejoAuth: true });
+
+    // Assert
+    expect(adapter.mock.calls[0][0].headers.get('X-Proveedor-Identidad')).toBe('legado');
+  });
+
+  it('el reintento tras renovar la sesión conserva la cabecera', async () => {
+    // Arrange
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'tk' }, true));
+    const adapter = adapterConStatus(401);
+    apiClient.defaults.adapter = adapter;
+
+    // Act
+    await expect(apiClient.get('/algo')).rejects.toThrow();
+
+    // Assert
+    expect(adapter).toHaveBeenCalledTimes(2);
+    expect(adapter.mock.calls[1][0].headers.get('X-Proveedor-Identidad')).toBe('legado');
+  });
+
+  it('sin cabecera con _omitirProveedorApi, _sinCredenciales o sin proveedor (bypass)', async () => {
+    // Arrange
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+    fijarProveedorActivo(proveedorDoble({ proveedorApi: 'legado', bearer: 'abc' }));
+
+    // Act
+    await apiClient.get('/bff', { _omitirProveedorApi: true });
+    await apiClient.post('http://minio.test/b', undefined, { _sinCredenciales: true });
+    fijarProveedorActivo(null);
+    await apiClient.get('/algo');
+
+    // Assert
+    const cabeceras = adapter.mock.calls.map(([c]) => c.headers.get('X-Proveedor-Identidad'));
+    expect(cabeceras).toEqual([undefined, undefined, undefined]);
+    expect(adapter.mock.calls[0][0].headers.get('Authorization')).toBe('Bearer abc');
+  });
+
+  it('falla de forma explícita, sin enviar la petición, si el proveedor activo no la aporta', async () => {
+    // Arrange
+    const incompleto = { bearer: 'abc' } as CredencialesHttp;
+    fijarProveedorActivo(proveedorDoble(incompleto));
+    const adapter = adapterExitoso();
+    apiClient.defaults.adapter = adapter;
+
+    // Act / Assert
+    await expect(apiClient.get('/algo')).rejects.toThrow(/proveedorApi/);
+    expect(adapter).not.toHaveBeenCalled();
   });
 });

@@ -6,6 +6,7 @@ import {
 } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
+import ProyectoConInsignia from './ProyectoConInsignia';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const NOMBRE = 'font-medium text-on-surface';
@@ -30,7 +31,7 @@ export function construirColumnas({
     {
       id: 'proyecto',
       encabezado: 'Proyecto',
-      celda: (version) => <span className={NOMBRE}>{version.nombreProyecto}</span>,
+      celda: (version) => <ProyectoConInsignia proyecto={version} className={NOMBRE} />,
     },
     {
       id: 'documento',

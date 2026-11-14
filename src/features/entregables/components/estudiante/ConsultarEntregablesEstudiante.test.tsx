@@ -2,10 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarEntregablesEstudiante from './ConsultarEntregablesEstudiante';
+import { useDescargarPaqueteEntregable } from '../../hooks/useDescargarPaqueteEntregable';
 import { useEntregablesEstudiante } from '../../hooks/useEntregablesEstudiante';
 import type { Page } from '../../../../shared/models/api-response';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 
+vi.mock('../../hooks/useDescargarPaqueteEntregable', () => ({
+  useDescargarPaqueteEntregable: vi.fn(),
+}));
 vi.mock('../../hooks/useEntregablesEstudiante', () => ({
   useEntregablesEstudiante: vi.fn(),
 }));
@@ -16,6 +20,8 @@ const ENTREGABLE: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
   estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function crearPagina(totalElements: number, totalPages = 1) {
@@ -45,6 +51,8 @@ function mockHook(parcial: Partial<ReturnType<typeof useEntregablesEstudiante>> 
     ordenCampo: 'versionEntregable',
     ordenDireccion: 'DESC',
     setOrden: vi.fn(),
+    estadoProyecto: 'activos',
+    setEstadoProyecto: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useEntregablesEstudiante>;
   vi.mocked(useEntregablesEstudiante).mockReturnValue(hook);
@@ -54,6 +62,10 @@ function mockHook(parcial: Partial<ReturnType<typeof useEntregablesEstudiante>> 
 describe('ConsultarEntregablesEstudiante', () => {
   beforeEach(() => {
     vi.mocked(useEntregablesEstudiante).mockReset();
+    vi.mocked(useDescargarPaqueteEntregable).mockReturnValue({
+      descargar: vi.fn(),
+      descargando: false,
+    });
   });
 
   it('muestra un estado de carga accesible mientras llega la primera página', () => {
@@ -90,7 +102,7 @@ describe('ConsultarEntregablesEstudiante', () => {
 
     // Assert
     expect(vi.mocked(useEntregablesEstudiante)).toHaveBeenCalledWith('p-1');
-    expect(screen.getByText('1 entregable')).toBeInTheDocument();
+    expect(screen.getByText('1 entregable · de proyectos activos')).toBeInTheDocument();
     expect(
       within(screen.getByRole('table', { name: 'Entregables' })).getByText('Ana Pérez'),
     ).toBeInTheDocument();
@@ -100,6 +112,39 @@ describe('ConsultarEntregablesEstudiante', () => {
     rerender(<ConsultarEntregablesEstudiante proyectoGradoId="p-1" />);
 
     // Assert
-    expect(screen.getByText('12 entregables')).toBeInTheDocument();
+    expect(screen.getByText('12 entregables · de proyectos activos')).toBeInTheDocument();
+  });
+
+  it('"Descargar paquete" pide la descarga del entregable de la fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const descargar = vi.fn();
+    vi.mocked(useDescargarPaqueteEntregable).mockReturnValue({ descargar, descargando: false });
+    mockHook({ data: crearPagina(1) });
+    render(<ConsultarEntregablesEstudiante proyectoGradoId="p-1" />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Entregables' })).getByRole('button', {
+        name: 'Acciones del entregable versión 1',
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar paquete' }));
+
+    // Assert
+    expect(descargar).toHaveBeenCalledWith(ENTREGABLE);
+  });
+
+  it('elegir "Finalizados" cambia el alcance del listado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina(1) });
+    render(<ConsultarEntregablesEstudiante proyectoGradoId="p-1" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Finalizados' }));
+
+    // Assert
+    expect(hook.setEstadoProyecto).toHaveBeenCalledWith('finalizados');
   });
 });

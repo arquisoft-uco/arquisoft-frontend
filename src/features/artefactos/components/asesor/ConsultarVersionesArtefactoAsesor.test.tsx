@@ -39,6 +39,8 @@ const registrarObservacion = vi.mocked(artefactosService.registrarObservacion);
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoAsesor);
 
 const VERSION: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
@@ -103,7 +105,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(within(tabla).getByText('Versión 4')).toBeInTheDocument();
     expect(within(tabla).queryByText('Marta Gómez')).not.toBeInTheDocument();
     expect(within(tabla).queryByRole('columnheader', { name: 'Asesor' })).not.toBeInTheDocument();
-    expect(screen.getByText('1 versión')).toBeInTheDocument();
+    expect(screen.getByText('1 versión · de proyectos habilitados')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });
 
@@ -133,7 +135,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     expect(
       await screen.findByRole('table', { name: 'Versiones de artefactos' }),
     ).toBeInTheDocument();
-    const consultasDelListado = consultarVersiones.mock.calls.filter(([req]) => req.tamanio !== 1);
+    const consultasDelListado = consultarVersiones.mock.calls.filter(([req]) => req.tamanio !== 2);
     expect(consultasDelListado).toHaveLength(2);
   });
 
@@ -175,7 +177,11 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     await waitFor(() =>
       expect(consultarVersiones).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'OR' }),
+          filtros: expect.objectContaining({
+            nodos: expect.arrayContaining([
+              expect.objectContaining({ tipo: 'GRUPO', conector: 'OR' }),
+            ]),
+          }),
         }),
       ),
     );
@@ -185,7 +191,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     // Arrange
     const user = userEvent.setup();
     consultarVersiones.mockImplementation(({ filtros }) =>
-      Promise.resolve(pagina(filtros ? [] : [VERSION])),
+      Promise.resolve(pagina(JSON.stringify(filtros).includes('zzz') ? [] : [VERSION])),
     );
     render(<ConsultarVersionesArtefactoAsesor />, { initialPath: '/artefactos?q=zzz' });
 
@@ -219,7 +225,11 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     await waitFor(() =>
       expect(consultarVersiones).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filtros: expect.objectContaining({ tipo: 'PREDICADO', campo: 'estadoRevision' }),
+          filtros: expect.objectContaining({
+            nodos: expect.arrayContaining([
+              expect.objectContaining({ tipo: 'PREDICADO', campo: 'estadoRevision' }),
+            ]),
+          }),
         }),
       ),
     );
@@ -284,7 +294,14 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
   });
 
   describe('registrar revisión (HU-114)', () => {
-    const ANTERIOR: VersionArtefacto = { ...VERSION, id: 'v-0', version: 3 };
+    const ANTERIOR: VersionArtefacto = {
+      ...VERSION,
+      id: 'v-0',
+      version: 3,
+      revisionAsesor: 'r-0',
+      estadoRevision: 'RESUELTA',
+      nombreEstadoRevision: 'Resuelta',
+    };
     const CONTROL: VersionArtefacto = {
       ...VERSION,
       id: 'v-9',
@@ -292,9 +309,18 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       nombreDocumento: 'Plano',
     };
 
+    const ANTERIOR_CONTROL: VersionArtefacto = {
+      ...CONTROL,
+      id: 'v-8',
+      version: 3,
+      revisionAsesor: 'r-8',
+      estadoRevision: 'RESUELTA',
+      nombreEstadoRevision: 'Resuelta',
+    };
+
     function listarConUltimas(filas: VersionArtefacto[], ultimas: VersionArtefacto[]) {
       consultarVersiones.mockImplementation(({ tamanio, filtros }) => {
-        if (tamanio !== 1) return Promise.resolve(pagina(filas));
+        if (tamanio !== 2) return Promise.resolve(pagina(filas));
         const pedido = JSON.stringify(filtros);
         return Promise.resolve(pagina(ultimas.filter((u) => pedido.includes(u.artefacto))));
       });
@@ -318,7 +344,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
 
     it('la ofrece en la última versión sin revisión; confirmar registra por el id de la fila y abre el panel de la revisión creada', async () => {
       // Arrange
-      listarConUltimas([VERSION, ANTERIOR], [VERSION]);
+      listarConUltimas([VERSION, ANTERIOR], [VERSION, ANTERIOR]);
       registrarRevision.mockResolvedValue({ id: 'r-1' });
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
@@ -353,7 +379,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
         estadoRevision: 'CERRADA',
         nombreEstadoRevision: 'Cerrada',
       };
-      listarConUltimas([cerrada], [cerrada]);
+      listarConUltimas([cerrada], [cerrada, ANTERIOR]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
 
@@ -373,7 +399,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
 
     it('no la ofrece en una versión anterior aunque sí en la última', async () => {
       // Arrange
-      listarConUltimas([VERSION, ANTERIOR], [VERSION]);
+      listarConUltimas([VERSION, ANTERIOR], [VERSION, ANTERIOR]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
       await comprobarControlPositivo(user, 4, 'Acta de inicio');
@@ -391,7 +417,25 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
     it('no la ofrece con una revisión pendiente aunque sí en otra fila elegible', async () => {
       // Arrange
       const pendiente = { ...VERSION, revisionAsesor: 'r-1', estadoRevision: 'PENDIENTE' };
-      listarConUltimas([pendiente, CONTROL], [pendiente, CONTROL]);
+      listarConUltimas([pendiente, CONTROL], [pendiente, CONTROL, ANTERIOR_CONTROL]);
+      const user = userEvent.setup();
+      render(<ConsultarVersionesArtefactoAsesor />);
+      await comprobarControlPositivo(user, 4, 'Plano');
+
+      // Act
+      await abrirMenu(user, 4, 'Acta de inicio');
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Ver información' })).toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('no la ofrece si la revisión de la versión anterior no está resuelta aunque sí en otra fila elegible', async () => {
+      // Arrange
+      const enProgreso = { ...ANTERIOR, estadoRevision: 'EN_PROGRESO' };
+      listarConUltimas([VERSION, CONTROL], [VERSION, enProgreso, CONTROL, ANTERIOR_CONTROL]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
       await comprobarControlPositivo(user, 4, 'Plano');
@@ -408,7 +452,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
 
     it('no la ofrece en un artefacto omitido aunque sí en otra fila elegible', async () => {
       // Arrange
-      listarConUltimas([VERSION, CONTROL], [VERSION, CONTROL]);
+      listarConUltimas([VERSION, CONTROL], [VERSION, ANTERIOR, CONTROL, ANTERIOR_CONTROL]);
       getOmitidos.mockResolvedValue([VERSION.artefacto]);
       const user = userEvent.setup();
       render(<ConsultarVersionesArtefactoAsesor />);
@@ -555,6 +599,30 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       await waitFor(() =>
         expect(screen.queryByRole('dialog', { name: 'Gestionar revisión' })).toBeNull(),
       );
+    });
+  });
+
+  describe('proyecto cerrado', () => {
+    it('no ofrece Registrar revisión ni Reabrir revisión', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      consultarVersiones.mockResolvedValue(pagina([{ ...VERSION, proyectoCancelado: true }]));
+      render(<ConsultarVersionesArtefactoAsesor />);
+
+      // Act
+      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        await within(tabla).findByRole('button', {
+          name: 'Acciones de la versión 4 de Acta de inicio',
+        }),
+      );
+
+      // Assert
+      await waitFor(() => expect(consultarVersiones).toHaveBeenCalledTimes(2));
+      expect(
+        screen.queryByRole('menuitem', { name: 'Registrar revisión' }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Reabrir revisión' })).not.toBeInTheDocument();
     });
   });
 });

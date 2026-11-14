@@ -3,4 +3,5 @@ export interface EstadoProyectoGradoResponse {
   estadoProyecto: string;
   estadoProyectoNombre: string;
   fechaActualizacion: string;
+  motivo: string | null;
 }

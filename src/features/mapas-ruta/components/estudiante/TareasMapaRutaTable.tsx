@@ -1,4 +1,4 @@
-import { ListChecks, SearchX } from 'lucide-react';
+import { ListChecks, Plus, SearchX } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -15,6 +15,7 @@ import EnlaceTarea from './EnlaceTarea';
 
 const SUBTEXTO = 'text-[13px] text-on-surface-secondary';
 const CELDA_ASESOR = 'flex flex-col';
+const DESCRIPCION = 'font-medium text-on-surface';
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoTarea {
@@ -28,6 +29,8 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoTarea, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onNuevaTarea?: () => void;
+  soloLectura?: boolean;
 }
 
 function InsigniaEstado({ tarea }: { tarea: Tarea }) {
@@ -43,13 +46,18 @@ function DatosAsesor({ tarea }: { tarea: Tarea }) {
   );
 }
 
+function DescripcionTarea({ tarea, soloLectura }: { tarea: Tarea; soloLectura: boolean }) {
+  if (soloLectura) return <span className={DESCRIPCION}>{tarea.descripcion}</span>;
+  return <EnlaceTarea tarea={tarea} />;
+}
+
 const COLUMNAS: ColumnaTabla<Tarea>[] = [
   {
     id: 'descripcion',
     encabezado: 'Tarea',
     clave: 'descripcion',
     ordenable: true,
-    celda: (tarea) => <EnlaceTarea tarea={tarea} />,
+    celda: (tarea) => <DescripcionTarea tarea={tarea} soloLectura={false} />,
   },
   {
     id: 'asesor',
@@ -63,6 +71,12 @@ const COLUMNAS: ColumnaTabla<Tarea>[] = [
   },
 ];
 
+const COLUMNAS_SOLO_LECTURA: ColumnaTabla<Tarea>[] = COLUMNAS.map((columna) =>
+  columna.id === 'descripcion'
+    ? { ...columna, celda: (tarea) => <DescripcionTarea tarea={tarea} soloLectura /> }
+    : columna,
+);
+
 export default function TareasMapaRutaTable({
   tareas,
   cargando,
@@ -70,6 +84,8 @@ export default function TareasMapaRutaTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onNuevaTarea,
+  soloLectura = false,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -86,18 +102,31 @@ export default function TareasMapaRutaTable({
         </Button>
       }
     />
+  ) : soloLectura ? (
+    <EmptyState
+      icono={ListChecks}
+      titulo="Este mapa de ruta aún no tiene tareas"
+      descripcion="Aquí verás las tareas que el estudiante agregue a su mapa de ruta."
+    />
   ) : (
     <EmptyState
       icono={ListChecks}
       titulo="Aún no hay tareas"
-      descripcion="Cuando se asignen tareas a tu mapa de ruta, aparecerán aquí."
+      descripcion="Crea la primera tarea de tu mapa de ruta y elige quién te asesora."
+      accion={
+        onNuevaTarea && (
+          <Button icono={Plus} onClick={onNuevaTarea}>
+            Nueva tarea
+          </Button>
+        )
+      }
     />
   );
 
   return (
     <DataTable
       etiqueta="Tareas del mapa de ruta"
-      columnas={COLUMNAS}
+      columnas={soloLectura ? COLUMNAS_SOLO_LECTURA : COLUMNAS}
       filas={tareas}
       idDeFila={(tarea) => tarea.id}
       orden={orden}
@@ -106,7 +135,7 @@ export default function TareasMapaRutaTable({
       vacio={vacio}
       tarjeta={(tarea) => (
         <>
-          <EnlaceTarea tarea={tarea} />
+          <DescripcionTarea tarea={tarea} soloLectura={soloLectura} />
           <DatosAsesor tarea={tarea} />
           <div className={TARJETA_ESTADO}>
             <InsigniaEstado tarea={tarea} />

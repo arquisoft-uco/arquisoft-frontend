@@ -21,14 +21,14 @@ const ID_FORMULARIO = 'form-asignar-estudiantes-proyecto-grado';
 interface Props {
   proyectoGradoId: string;
   titulo: string;
-  finalizado?: boolean;
+  soloLectura?: boolean;
   onCerrar: () => void;
 }
 
 export default function EstudiantesProyectoGradoPanel({
   proyectoGradoId,
   titulo,
-  finalizado = false,
+  soloLectura = false,
   onCerrar,
 }: Props) {
   const [seleccion, setSeleccion] = useState<string[]>([]);
@@ -80,7 +80,7 @@ export default function EstudiantesProyectoGradoPanel({
     return (
       <EstudiantesProyectoGradoLista
         estudiantes={estudiantes}
-        onDestituir={finalizado ? undefined : solicitar}
+        onDestituir={soloLectura ? undefined : solicitar}
         destituyendo={destituyendo}
       />
     );
@@ -111,7 +111,7 @@ export default function EstudiantesProyectoGradoPanel({
           <AsignarEstudiantesProyectoGradoSeccion
             idFormulario={ID_FORMULARIO}
             vinculados={estudiantes}
-            finalizado={finalizado}
+            soloLectura={soloLectura}
             seleccion={seleccion}
             onCambiar={setSeleccion}
             onEnviar={enviar}

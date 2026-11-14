@@ -11,6 +11,8 @@ import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 
 const ARTEFACTO: ArtefactoAsesor = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: '3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',
@@ -194,5 +196,33 @@ describe('ArtefactosAsesorTable', () => {
     // Assert
     expect(descargar).toHaveBeenCalledWith('r-1', 'Acta de inicio');
     expect(descargar).toHaveBeenCalledWith('r-2', 'Anteproyecto');
+  });
+
+  it('muestra la insignia del proyecto cancelado o finalizado y ninguna en el habilitado', () => {
+    // Arrange / Act
+    renderizar({
+      artefactos: [
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', proyectoCancelado: true },
+        { ...ARTEFACTO, id: 'a-3', nombreDocumento: 'Plano', proyectoFinalizado: true },
+      ],
+    });
+
+    // Assert
+    expect(tabla().getAllByText('Proyecto cancelado')).toHaveLength(1);
+    expect(tabla().getAllByText('Proyecto finalizado')).toHaveLength(1);
+  });
+
+  it('en un proyecto cerrado no ofrece cambiar, omitir ni reactivar y deja los estudiantes en lectura', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar({ artefactos: [{ ...ARTEFACTO, proyectoCancelado: true }] });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' }));
+
+    // Assert
+    const items = screen.getAllByRole('menuitem').map((i) => i.textContent);
+    expect(items).toEqual(['Descargar', 'Ver estudiantes']);
   });
 });

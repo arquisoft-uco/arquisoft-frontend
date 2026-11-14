@@ -1,9 +1,10 @@
-import { lazy, type ReactElement } from 'react';
+import { lazy } from 'react';
 import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import AuthGuard from './guards/AuthGuard';
-import RoleGuard from './guards/RoleGuard';
+import { guarded } from './guards/guarded';
 import AppLayout from './layout/AppLayout';
-import { ROLES_POR_RUTA } from './layout/nav-items';
+import { rutasEvaluaciones } from './features/evaluaciones/rutas';
+import IniciarSesion from './features/iniciar-sesion/IniciarSesion';
 import ForbiddenPage from './shared/components/ForbiddenPage';
 import RouteErrorPage from './shared/components/RouteErrorPage';
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'));
@@ -17,22 +18,11 @@ const PestanaProyectoGrado = lazy(
 );
 const Artefactos = lazy(() => import('./features/artefactos/Artefactos'));
 const Entregables = lazy(() => import('./features/entregables/Entregables'));
-const Evaluaciones = lazy(() => import('./features/evaluaciones/Evaluaciones'));
-const JuradosEvaluacion = lazy(() => import('./features/evaluaciones/JuradosEvaluacion'));
-const EvaluacionesCualitativasJurado = lazy(
-  () => import('./features/evaluaciones/EvaluacionesCualitativasJurado'),
-);
-const EvaluacionesCuantitativasJurado = lazy(
-  () => import('./features/evaluaciones/EvaluacionesCuantitativasJurado'),
-);
-const EvaluacionesCualitativasRealizadasJurado = lazy(
-  () => import('./features/evaluaciones/EvaluacionesCualitativasRealizadasJurado'),
-);
-const RegistrarEvaluacionesCualitativas = lazy(
-  () => import('./features/evaluaciones/RegistrarEvaluacionesCualitativas'),
-);
 const MapasRuta = lazy(() => import('./features/mapas-ruta/MapasRuta'));
 const DetalleTarea = lazy(() => import('./features/mapas-ruta/DetalleTarea'));
+const TareasMapaRutaProyecto = lazy(() => import('./features/mapas-ruta/TareasMapaRutaProyecto'));
+const PlanesEstimadosProyecto = lazy(() => import('./features/mapas-ruta/PlanesEstimadosProyecto'));
+const PlanesRealesProyecto = lazy(() => import('./features/mapas-ruta/PlanesRealesProyecto'));
 const RepositorioArtefactos = lazy(
   () => import('./features/repositorio-artefactos/RepositorioArtefactos'),
 );
@@ -43,11 +33,7 @@ const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
 const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
-
-function guarded(path: string, element: ReactElement): ReactElement {
-  const roles = ROLES_POR_RUTA[path];
-  return roles ? <RoleGuard roles={roles}>{element}</RoleGuard> : element;
-}
+const Seguridad = lazy(() => import('./features/seguridad/Seguridad'));
 
 // Exportado para que el interceptor de Axios navegue a /forbidden fuera del árbol de React.
 export const router = createBrowserRouter([
@@ -90,42 +76,32 @@ export const router = createBrowserRouter([
                 children: [
                   { index: true, element: <PestanaProyectoGrado /> },
                   { path: 'asesores', element: <PestanaProyectoGrado pestana="asesores" /> },
+                  { path: 'estados', element: <PestanaProyectoGrado pestana="estados" /> },
                 ],
               },
             ],
           },
           { path: 'artefactos', element: guarded('artefactos', <Artefactos />) },
           { path: 'entregables', element: guarded('entregables', <Entregables />) },
-          {
-            path: 'evaluaciones',
-            element: guarded('evaluaciones', <Outlet />),
-            children: [
-              { index: true, element: <Evaluaciones /> },
-              {
-                path: ':evaluacionJuradoId/evaluar',
-                element: <RegistrarEvaluacionesCualitativas />,
-              },
-              { path: ':evaluacionId/jurados', element: <JuradosEvaluacion /> },
-              {
-                path: ':evaluacionJuradoId/cualitativas',
-                element: <EvaluacionesCualitativasJurado />,
-              },
-              {
-                path: ':evaluacionJuradoId/cualitativas-realizadas',
-                element: <EvaluacionesCualitativasRealizadasJurado />,
-              },
-              {
-                path: ':evaluacionJuradoId/cuantitativas',
-                element: <EvaluacionesCuantitativasJurado />,
-              },
-            ],
-          },
+          rutasEvaluaciones,
           {
             path: 'mapas-ruta',
             element: guarded('mapas-ruta', <Outlet />),
             children: [
               { index: true, element: <MapasRuta /> },
               { path: 'tareas/:id', element: <DetalleTarea /> },
+              {
+                path: 'proyectos/:proyectoGradoId/tareas',
+                element: <TareasMapaRutaProyecto />,
+              },
+              {
+                path: 'proyectos/:proyectoGradoId/planes-estimados',
+                element: <PlanesEstimadosProyecto />,
+              },
+              {
+                path: 'proyectos/:proyectoGradoId/planes-reales',
+                element: <PlanesRealesProyecto />,
+              },
             ],
           },
           {
@@ -139,12 +115,14 @@ export const router = createBrowserRouter([
           { path: 'biblioteca', element: guarded('biblioteca', <Biblioteca />) },
           { path: 'solicitudes', element: guarded('solicitudes', <Solicitudes />) },
           { path: 'usuarios', element: guarded('usuarios', <Usuarios />) },
+          { path: 'seguridad', element: guarded('seguridad', <Seguridad />) },
           { path: 'seleccionar-rol', element: <SeleccionarRol /> },
           { path: '*', element: <Navigate to="/dashboard" replace /> },
         ],
       },
     ],
   },
+  { path: 'iniciar-sesion', element: <IniciarSesion /> },
   { path: 'forbidden', element: <ForbiddenPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ]);

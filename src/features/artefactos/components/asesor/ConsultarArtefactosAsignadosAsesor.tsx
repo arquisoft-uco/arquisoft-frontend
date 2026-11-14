@@ -4,6 +4,10 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import {
+  textoAlcanceEstadoProyecto,
+  type EstadoProyectoListado,
+} from '../../utils/estado-proyecto';
 import AsignarArtefactoPanel from './AsignarArtefactoPanel';
 import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
 import CambiarAsesorArtefactoPanel from './CambiarAsesorArtefactoPanel';
@@ -15,9 +19,10 @@ import OmitirArtefactoDialog from './OmitirArtefactoDialog';
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total?: number): string {
+function textoResumen(total: number | undefined, estado: EstadoProyectoListado): string {
   if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'artefacto' : 'artefactos'}`;
+  const cantidad = `${total} ${total === 1 ? 'artefacto' : 'artefactos'}`;
+  return `${cantidad} · ${textoAlcanceEstadoProyecto(estado)}`;
 }
 
 export default function ConsultarArtefactosAsignadosAsesor() {
@@ -35,7 +40,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
       <FiltrosArtefactosAsesor listado={listado} />
 
       <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
+        {textoResumen(data?.totalElements, listado.filtros.estadoProyecto)}
       </p>
 
       <div aria-busy={isFetching}>

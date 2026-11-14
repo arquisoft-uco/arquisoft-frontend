@@ -47,7 +47,7 @@ function mockVigentes(parcial: Partial<Vigentes> = {}) {
 }
 
 function renderizar(
-  props: { asesores?: AsesorProyectoGrado[]; finalizado?: boolean } = {},
+  props: { asesores?: AsesorProyectoGrado[]; soloLectura?: boolean } = {},
   onCerrar = vi.fn(),
 ) {
   const resultado = render(
@@ -55,7 +55,7 @@ function renderizar(
       proyectoGradoId="p-1"
       titulo="Sistema de monitoreo"
       asesores={props.asesores ?? []}
-      finalizado={props.finalizado ?? false}
+      soloLectura={props.soloLectura ?? false}
       onCerrar={onCerrar}
     />,
   );
@@ -174,10 +174,12 @@ describe('AsignarAsesorProyectoGradoPanel', () => {
 
   it('con el proyecto finalizado muestra el aviso y no ofrece selector', () => {
     // Act
-    renderizar({ finalizado: true });
+    renderizar({ soloLectura: true });
 
     // Assert
-    expect(screen.getByText(/está finalizado y no admite nuevos asesores/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/está finalizado o cancelado y no admite nuevos asesores/),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 

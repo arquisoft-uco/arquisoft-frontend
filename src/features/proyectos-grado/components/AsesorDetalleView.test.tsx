@@ -7,7 +7,9 @@ import type { ProyectoGrado } from '../models/ProyectoGrado';
 import type { EstudianteAsesoradoProyectoGrado } from '../models/EstudianteAsesoradoProyectoGrado';
 import AsesorDetalleView from './AsesorDetalleView';
 
-const { detalle, estudiantes, resumen } = vi.hoisted(() => ({
+const { detalle, estudiantes, resumen, ultimoEntregable, mutar } = vi.hoisted(() => ({
+  ultimoEntregable: vi.fn(),
+  mutar: vi.fn(),
   detalle: vi.fn(),
   estudiantes: vi.fn(),
   resumen: vi.fn(),
@@ -18,6 +20,15 @@ vi.mock('../hooks/useDetalleProyectoGradoAsesor', () => ({
 }));
 vi.mock('../hooks/useEstudiantesAsesoradosProyectoGrado', () => ({
   useEstudiantesAsesoradosProyectoGrado: estudiantes,
+}));
+vi.mock('../hooks/useUltimoEntregableProyectoGrado', () => ({
+  useUltimoEntregableProyectoGrado: ultimoEntregable,
+}));
+vi.mock('../hooks/useFinalizarProyectoGrado', () => ({
+  useFinalizarProyectoGrado: () => ({ mutate: mutar, isPending: false, reset: vi.fn() }),
+}));
+vi.mock('../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 vi.mock('../hooks/useResumenProyectoGrado', () => ({
   useResumenProyectoGrado: resumen,
@@ -57,13 +68,15 @@ function estudiantesCon(parcial: Record<string, unknown>) {
   });
 }
 
-function renderizar() {
+function renderizar(ruta = '/proyectos-grado/p-1') {
   return render(
     <Routes>
-      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />} />
+      <Route path="/proyectos-grado/:id" element={<AsesorDetalleView />}>
+        <Route path="estados" element={<p>Panel de estados</p>} />
+      </Route>
       <Route path="/proyectos-grado" element={<p>Listado de proyectos</p>} />
     </Routes>,
-    { initialPath: '/proyectos-grado/p-1' },
+    { initialPath: ruta },
   );
 }
 
@@ -72,6 +85,12 @@ describe('AsesorDetalleView', () => {
     vi.clearAllMocks();
     resumen.mockReturnValue({ resumen: null, search: '?q=monitoreo' });
     estudiantesCon({ data: [ANA] });
+    ultimoEntregable.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
   });
 
   it('muestra título, estado, miga con la search y los estudiantes con su identificador', () => {
@@ -99,19 +118,67 @@ describe('AsesorDetalleView', () => {
     expect(screen.queryByText('Estudiantes que asesoras')).not.toBeInTheDocument();
   });
 
-  it('no muestra barra de pestañas y deja el panel Resumen siempre visible', () => {
+  it('con un proyecto EN_PROCESO o ATRASADO ofrece «Finalizar proyecto» y con FINALIZADO o CANCELADO no muestra «Acciones»', () => {
+    for (const id of ['EN_PROCESO', 'ATRASADO']) {
+      // Arrange
+      detalleCon({ data: { ...PROYECTO, estado: { id, nombre: id } } });
+
+      // Act
+      const { unmount } = renderizar();
+
+      // Assert
+      expect(screen.getByRole('button', { name: 'Finalizar proyecto' })).toBeInTheDocument();
+      unmount();
+    }
+
+    for (const id of ['FINALIZADO', 'CANCELADO']) {
+      // Arrange
+      detalleCon({ data: { ...PROYECTO, estado: { id, nombre: id } } });
+
+      // Act
+      const { unmount: desmontar } = renderizar();
+
+      // Assert
+      expect(screen.queryByRole('button', { name: 'Finalizar proyecto' })).not.toBeInTheDocument();
+      expect(screen.queryByText('Acciones')).not.toBeInTheDocument();
+      desmontar();
+    }
+  });
+
+  it('al finalizar vuelve al listado de proyectos', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mutar.mockImplementation((_req, opciones) => opciones.onSuccess());
+    detalleCon({ data: PROYECTO });
+    ultimoEntregable.mockReturnValue({
+      data: { versionEntregable: 1, estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' } },
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Finalizar proyecto' }));
+    const dialogo = within(screen.getByRole('alertdialog'));
+    await user.type(dialogo.getByRole('textbox'), 'Finalizar proyecto de grado');
+    await user.click(dialogo.getByRole('button', { name: 'Finalizar proyecto' }));
+
+    // Assert
+    expect(mutar).toHaveBeenCalledWith({ proyectoGradoId: 'p-1' }, expect.any(Object));
+    expect(screen.getByText('Listado de proyectos')).toBeInTheDocument();
+  });
+
+  it('muestra la pestaña Estados activa con su panel y deja el resumen siempre visible', () => {
     // Arrange
     detalleCon({ data: PROYECTO });
 
     // Act
-    renderizar();
+    renderizar('/proyectos-grado/p-1/estados');
 
     // Assert
-    expect(
-      screen.queryByRole('navigation', { name: 'Secciones del proyecto de grado' }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Resumen' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('tab', { name: 'Resumen' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estados' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByText('Panel de estados')).toBeInTheDocument();
     expect(
       screen.getByRole('complementary', { name: 'Resumen del proyecto de grado' }),
     ).toBeInTheDocument();

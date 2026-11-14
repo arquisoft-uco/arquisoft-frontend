@@ -29,6 +29,8 @@ const LUIS = {
 };
 
 const ARTEFACTO: ArtefactoAsesor = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'a-1',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',

@@ -2,7 +2,7 @@
 
 interface ImportMetaEnv {
   // ── API ────────────────────────────────────────────────────────────────────
-  /** URL base del backend. Ej: http://localhost:8082/api */
+  /** URL base del backend. Ej: http://localhost:8080/api */
   readonly VITE_API_URL: string;
 
   // ── Keycloak ───────────────────────────────────────────────────────────────
@@ -12,6 +12,14 @@ interface ImportMetaEnv {
   readonly VITE_KEYCLOAK_REALM: string;
   /** Client ID registrado en Keycloak. Ej: angular-app */
   readonly VITE_KEYCLOAK_CLIENT_ID: string;
+
+  // ── Security Baseline (opcionales; las tres van juntas) ────────────────────
+  /** Origen del PDP/BFF de Security Baseline. Si falta, el proveedor PDP no está disponible. */
+  readonly VITE_PDP_URL?: string;
+  /** URL del módulo ESM de Security UI. Requerida si VITE_PDP_URL está definida. */
+  readonly VITE_SECURITY_UI_URL?: string;
+  /** Nombre de esta aplicación en el catálogo del PDP. Requerida si VITE_PDP_URL está definida. */
+  readonly VITE_APPLICATION_NAME?: string;
 
   // ── Dev bypass ────────────────────────────────────────────────────────────
   /** Activa el bypass de Keycloak en desarrollo. Valor: 'true' | 'false' */

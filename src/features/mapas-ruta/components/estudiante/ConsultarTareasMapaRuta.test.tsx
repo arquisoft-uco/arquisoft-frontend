@@ -80,7 +80,7 @@ describe('ConsultarTareasMapaRuta', () => {
     simularListado();
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
 
     // Assert
     expect(useListado).toHaveBeenCalledWith('m-1');
@@ -96,7 +96,7 @@ describe('ConsultarTareasMapaRuta', () => {
     simularListado();
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
 
     // Assert
     const enlaces = screen.getAllByRole('link', { name: 'Ver el detalle de Entregar informe' });
@@ -109,7 +109,7 @@ describe('ConsultarTareasMapaRuta', () => {
     simularListado({ data: undefined, isLoading: true });
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
 
     // Assert
     expect(screen.getByRole('status')).toBeInTheDocument();
@@ -120,10 +120,30 @@ describe('ConsultarTareasMapaRuta', () => {
     simularListado({ data: PAGINA_VACIA });
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('Aún no hay tareas')).toBeInTheDocument();
+  });
+
+  it('el vacío sin filtros ofrece Nueva tarea y con filtros no', async () => {
+    // Arrange
+    simularListado({ data: PAGINA_VACIA });
+    const onNuevaTarea = vi.fn();
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={onNuevaTarea} />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Nueva tarea' }));
+    unmount();
+    simularListado({ data: PAGINA_VACIA, hayFiltros: true });
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={onNuevaTarea} />);
+
+    // Assert
+    expect(onNuevaTarea).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Nueva tarea' })).not.toBeInTheDocument();
   });
 
   it('sin coincidencias con filtros muestra Sin resultados y Limpiar filtros los quita', async () => {
@@ -136,7 +156,7 @@ describe('ConsultarTareasMapaRuta', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
 
     // Assert
@@ -150,7 +170,7 @@ describe('ConsultarTareasMapaRuta', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: /Reintentar/ }));
 
     // Assert
@@ -166,7 +186,7 @@ describe('ConsultarTareasMapaRuta', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     // Assert
@@ -182,7 +202,7 @@ describe('ConsultarTareasMapaRuta', () => {
     const user = userEvent.setup();
 
     // Act
-    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" />);
+    render(<ConsultarTareasMapaRuta mapaRutaId="m-1" onNuevaTarea={vi.fn()} />);
     await user.click(screen.getByRole('button', { name: 'Nueva' }));
 
     // Assert

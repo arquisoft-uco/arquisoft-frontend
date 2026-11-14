@@ -11,7 +11,10 @@ import {
   RESPUESTA_AMPLIACION_PLAZO,
   RESPUESTA_ASESOR,
   RESPUESTA_CAMBIO_ASESOR,
+  RESPUESTA_REGISTRO_MODIFICACION_USUARIOS,
 } from '../../test-utils/respuestas';
+import type { CoordinadorProyecto } from '../../shared/models/CoordinadorProyecto';
+import { useCoordinadoresEstudiante } from '../../shared/hooks/useCoordinadoresEstudiante';
 import { useEnviarSolicitudNovedadCoordinador } from './hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from './hooks/useEnviarSolicitudNovedadAsesor';
 import { useEnviarSolicitudCambioAsesor } from './hooks/useEnviarSolicitudCambioAsesor';
@@ -31,23 +34,43 @@ import { useRespuestasNovedadAsesorEnviadas } from './hooks/useRespuestasNovedad
 import { useRespuestasNovedadCoordinadorEnviadas } from './hooks/useRespuestasNovedadCoordinadorEnviadas';
 import { useRespuestasAmpliacionPlazoEnviadas } from './hooks/useRespuestasAmpliacionPlazoEnviadas';
 import { useRespuestasRegistroModificacionUsuariosEnviadas } from './hooks/useRespuestasRegistroModificacionUsuariosEnviadas';
+import { useRespuestasRegistroModificacionUsuariosRecibidas } from './hooks/useRespuestasRegistroModificacionUsuariosRecibidas';
 import { useRespuestasCambioAsesorEnviadas } from './hooks/useRespuestasCambioAsesorEnviadas';
 import { useRespuestasNovedadCoordinadorRecibidas } from './hooks/useRespuestasNovedadCoordinadorRecibidas';
 import { useRespuestasCambioAsesorRecibidas } from './hooks/useRespuestasCambioAsesorRecibidas';
 import { useRespuestasAmpliacionPlazoRecibidas } from './hooks/useRespuestasAmpliacionPlazoRecibidas';
 import { useModificarEstadoRespuestaCambioAsesor } from './hooks/useModificarEstadoRespuestaCambioAsesor';
 import { useModificarEstadoRespuestaAmpliacionPlazo } from './hooks/useModificarEstadoRespuestaAmpliacionPlazo';
+import { useModificarEstadoRespuestaRegistroModificacionUsuarios } from './hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios';
 import { useEliminarRespuestaNovedadAsesor } from './hooks/useEliminarRespuestaNovedadAsesor';
 import { useEliminarRespuestaCambioAsesor } from './hooks/useEliminarRespuestaCambioAsesor';
 import { useEliminarRespuestaAmpliacionPlazo } from './hooks/useEliminarRespuestaAmpliacionPlazo';
+import { useEliminarRespuestaRegistroModificacionUsuarios } from './hooks/useEliminarRespuestaRegistroModificacionUsuarios';
 import { useEliminarRespuestaNovedadCoordinador } from './hooks/useEliminarRespuestaNovedadCoordinador';
 import { useModificarEstadoRespuestaNovedadAsesor } from './hooks/useModificarEstadoRespuestaNovedadAsesor';
 import { useModificarEstadoRespuestaNovedadCoordinador } from './hooks/useModificarEstadoRespuestaNovedadCoordinador';
 import { useEstadosRespuesta } from './hooks/useEstadosRespuesta';
+import { useTiposSolicitud } from './hooks/useTiposSolicitud';
+import { useTiposSolicitudRecibidas } from './hooks/useTiposSolicitudRecibidas';
+import type { TipoSolicitud } from './models/TipoSolicitud';
+
+vi.mock('../../shared/hooks/useCoordinadoresEstudiante', () => ({
+  useCoordinadoresEstudiante: vi.fn(),
+}));
 
 vi.mock('./hooks/useEstadosRespuesta', () => ({
   useEstadosRespuesta: vi.fn(),
 }));
+
+vi.mock('./hooks/useTiposSolicitud', () => ({ useTiposSolicitud: vi.fn() }));
+vi.mock('./hooks/useTiposSolicitudRecibidas', () => ({ useTiposSolicitudRecibidas: vi.fn() }));
+
+const TIPOS: TipoSolicitud[] = [
+  { id: 'AMPLIACION_DE_PLAZO', nombre: 'Ampliación de Plazo', descripcion: 'd' },
+  { id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_ASESOR', nombre: 'Novedad para el Asesor', descripcion: 'd' },
+  { id: 'NOVEDAD_PARA_EL_COORDINADOR', nombre: 'Novedad para el Coordinador', descripcion: 'd' },
+];
 
 vi.mock('./hooks/useEnviarSolicitudNovedadCoordinador', () => ({
   useEnviarSolicitudNovedadCoordinador: vi.fn(),
@@ -148,6 +171,10 @@ vi.mock('./hooks/useRespuestasRegistroModificacionUsuariosEnviadas', () => ({
   useRespuestasRegistroModificacionUsuariosEnviadas: vi.fn(),
 }));
 
+vi.mock('./hooks/useRespuestasRegistroModificacionUsuariosRecibidas', () => ({
+  useRespuestasRegistroModificacionUsuariosRecibidas: vi.fn(),
+}));
+
 vi.mock('./hooks/useRespuestasNovedadAsesorRecibidas', () => ({
   useRespuestasNovedadAsesorRecibidas: vi.fn(),
 }));
@@ -176,6 +203,10 @@ vi.mock('./hooks/useEliminarRespuestaAmpliacionPlazo', () => ({
   useEliminarRespuestaAmpliacionPlazo: vi.fn(),
 }));
 
+vi.mock('./hooks/useEliminarRespuestaRegistroModificacionUsuarios', () => ({
+  useEliminarRespuestaRegistroModificacionUsuarios: vi.fn(),
+}));
+
 vi.mock('./hooks/useEliminarRespuestaNovedadCoordinador', () => ({
   useEliminarRespuestaNovedadCoordinador: vi.fn(),
 }));
@@ -194,6 +225,10 @@ vi.mock('./hooks/useModificarEstadoRespuestaCambioAsesor', () => ({
 
 vi.mock('./hooks/useModificarEstadoRespuestaAmpliacionPlazo', () => ({
   useModificarEstadoRespuestaAmpliacionPlazo: vi.fn(),
+}));
+
+vi.mock('./hooks/useModificarEstadoRespuestaRegistroModificacionUsuarios', () => ({
+  useModificarEstadoRespuestaRegistroModificacionUsuarios: vi.fn(),
 }));
 
 vi.mock('./hooks/useResponderSolicitudNovedadCoordinador', () => ({
@@ -368,11 +403,36 @@ describe('Solicitudes', () => {
         typeof useRespuestasRegistroModificacionUsuariosEnviadas
       >,
     );
+    vi.mocked(useRespuestasRegistroModificacionUsuariosRecibidas).mockReturnValue(
+      crearConsulta({
+        ...PAGINA_VACIA,
+        content: [RESPUESTA_REGISTRO_MODIFICACION_USUARIOS],
+        totalElements: 1,
+        totalPages: 1,
+        empty: false,
+      }) as ReturnType<typeof useRespuestasRegistroModificacionUsuariosRecibidas>,
+    );
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock());
+    vi.mocked(useCoordinadoresEstudiante).mockReturnValue({
+      data: [],
+      isPending: false,
+      isError: false,
+      error: null,
+    } as Partial<UseQueryResult<CoordinadorProyecto[]>> as ReturnType<
+      typeof useCoordinadoresEstudiante
+    >);
     vi.mocked(useEnviarSolicitudNovedadAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudCambioAsesor).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudAmpliacionPlazo).mockReturnValue(crearMutacionMock());
     vi.mocked(useEnviarSolicitudRegistroModificacionUsuarios).mockReturnValue(crearMutacionMock());
+    vi.mocked(useTiposSolicitud).mockReturnValue({
+      data: TIPOS,
+      isError: false,
+    } as ReturnType<typeof useTiposSolicitud>);
+    vi.mocked(useTiposSolicitudRecibidas).mockReturnValue({
+      data: TIPOS,
+      isError: false,
+    } as ReturnType<typeof useTiposSolicitudRecibidas>);
     vi.mocked(useEstadosRespuesta).mockReturnValue({
       data: [{ id: 'APROBADA', nombre: 'Aprobada', descripcion: 'Aceptada' }],
       isError: false,
@@ -384,6 +444,9 @@ describe('Solicitudes', () => {
     vi.mocked(useEliminarRespuestaNovedadCoordinador).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaCambioAsesor).mockReturnValue(crearMutacionEliminarMock());
     vi.mocked(useEliminarRespuestaAmpliacionPlazo).mockReturnValue(crearMutacionEliminarMock());
+    vi.mocked(useEliminarRespuestaRegistroModificacionUsuarios).mockReturnValue(
+      crearMutacionEliminarMock(),
+    );
     vi.mocked(useModificarEstadoRespuestaNovedadAsesor).mockReturnValue(
       crearMutacionModificarMock(),
     );
@@ -394,6 +457,9 @@ describe('Solicitudes', () => {
       crearMutacionModificarMock(),
     );
     vi.mocked(useModificarEstadoRespuestaAmpliacionPlazo).mockReturnValue(
+      crearMutacionModificarMock(),
+    );
+    vi.mocked(useModificarEstadoRespuestaRegistroModificacionUsuarios).mockReturnValue(
       crearMutacionModificarMock(),
     );
     vi.mocked(useResponderSolicitudNovedadCoordinador).mockReturnValue(
@@ -472,7 +538,7 @@ describe('Solicitudes', () => {
     expect(screen.queryByRole('button', { name: 'Volver al inicio' })).not.toBeInTheDocument();
   });
 
-  it('renderiza CoordinadorView con cuatro pestañas, arranca en Recibidas y abre Respuestas enviadas, Solicitudes enviadas y Nueva solicitud', async () => {
+  it('renderiza CoordinadorView con cinco pestañas, arranca en Recibidas y abre Respuestas enviadas, Solicitudes enviadas, Respuestas recibidas y Nueva solicitud', async () => {
     autenticarCon(Rol.Coordinador);
     vi.mocked(useSolicitudesNovedadCoordinadorRecibidas).mockReturnValue(
       crearConsulta(PAGINA_VACIA) as ReturnType<typeof useSolicitudesNovedadCoordinadorRecibidas>,
@@ -493,6 +559,7 @@ describe('Solicitudes', () => {
       'Recibidas',
       'Respuestas enviadas',
       'Solicitudes enviadas',
+      'Respuestas recibidas',
       'Nueva solicitud',
     ]);
     expect(screen.getByRole('tab', { name: 'Recibidas' })).toHaveAttribute('aria-selected', 'true');
@@ -507,6 +574,15 @@ describe('Solicitudes', () => {
 
     expect(screen.getByText('Aún no has enviado solicitudes')).toBeInTheDocument();
     expect(screen.queryByText('Aún no has enviado respuestas')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Respuestas recibidas' }));
+
+    expect(
+      screen.getByRole('table', {
+        name: 'Respuestas de registro y modificación de usuarios recibidas',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Aún no has enviado solicitudes')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Nueva solicitud' }));
 

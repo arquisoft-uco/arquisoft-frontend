@@ -6,6 +6,7 @@ import ErrorState from '../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
+import { textoAlcanceEstadoProyecto, type EstadoProyectoListado } from '../utils/estado-proyecto';
 import DetalleVersionArtefactoPanel from './DetalleVersionArtefactoPanel';
 import FiltrosVersionesArtefacto from './FiltrosVersionesArtefacto';
 import VersionesArtefactoTable from './VersionesArtefactoTable';
@@ -13,9 +14,11 @@ import VersionesArtefactoTable from './VersionesArtefactoTable';
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total?: number): string {
+function textoResumen(total: number | undefined, estadoProyecto?: EstadoProyectoListado): string {
   if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'versión' : 'versiones'}`;
+  const cantidad = `${total} ${total === 1 ? 'versión' : 'versiones'}`;
+  if (estadoProyecto === undefined) return cantidad;
+  return `${cantidad} · ${textoAlcanceEstadoProyecto(estadoProyecto)}`;
 }
 
 interface Props {
@@ -50,7 +53,7 @@ export default function ConsultarVersionesArtefacto({
       />
 
       <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
+        {textoResumen(data?.totalElements, listado.estadoProyecto)}
       </p>
 
       <div aria-busy={isFetching}>

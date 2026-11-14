@@ -18,9 +18,10 @@ function textoResumen(total?: number): string {
 
 interface Props {
   mapaRutaId: string;
+  onNuevaTarea: () => void;
 }
 
-export default function ConsultarTareasMapaRuta({ mapaRutaId }: Props) {
+export default function ConsultarTareasMapaRuta({ mapaRutaId, onNuevaTarea }: Props) {
   const listado = useTareasMapaRuta(mapaRutaId);
   const catalogo = useEstadosTarea();
 
@@ -86,6 +87,7 @@ export default function ConsultarTareasMapaRuta({ mapaRutaId }: Props) {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onNuevaTarea={onNuevaTarea}
           />
         )}
       </div>

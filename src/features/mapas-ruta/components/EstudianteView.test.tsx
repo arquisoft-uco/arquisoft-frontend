@@ -5,6 +5,9 @@ import { useMapaRutaEstudiante } from '../hooks/useMapaRutaEstudiante';
 import EstudianteView from './EstudianteView';
 
 vi.mock('../hooks/useMapaRutaEstudiante', () => ({ useMapaRutaEstudiante: vi.fn() }));
+vi.mock('./estudiante/AsignarTareaPanel', () => ({
+  default: () => <div>Panel nueva tarea</div>,
+}));
 vi.mock('./estudiante/ConsultarTareasMapaRuta', () => ({
   default: ({ mapaRutaId }: { mapaRutaId: string }) => <div>Listado de tareas {mapaRutaId}</div>,
 }));
@@ -90,5 +93,31 @@ describe('EstudianteView', () => {
     expect(screen.getByText('Fecha de fin').nextElementSibling).toHaveTextContent('2026');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByText('Listado de tareas m-1')).toBeInTheDocument();
+  });
+
+  it('con mapa, Nueva tarea abre el panel; sin mapa el botón no existe', async () => {
+    // Arrange
+    simular({
+      mapa: {
+        id: 'm-1',
+        proyectoGradoId: 'p-1',
+        titulo: 'Sistema A',
+        fechaInicio: '2026-03-05',
+        fechaFin: '2026-08-01',
+      },
+    });
+    const user = userEvent.setup();
+    const { unmount } = render(<EstudianteView />);
+
+    // Act
+    expect(screen.queryByText('Panel nueva tarea')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Nueva tarea' }));
+    expect(screen.getByText('Panel nueva tarea')).toBeInTheDocument();
+    unmount();
+    simular({ sinMapa: true });
+    render(<EstudianteView />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Nueva tarea' })).not.toBeInTheDocument();
   });
 });

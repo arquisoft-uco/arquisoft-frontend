@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
+import { useDescargarVersionRepositorio } from '../../../../shared/hooks/useDescargarVersionRepositorio';
 import { useArtefactosEntregable } from '../../hooks/useArtefactosEntregable';
 import type { ArtefactoEntregable } from '../../models/ArtefactoEntregable';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
@@ -8,7 +9,12 @@ import ArtefactosEntregablePanel from './ArtefactosEntregablePanel';
 
 vi.mock('../../hooks/useArtefactosEntregable', () => ({ useArtefactosEntregable: vi.fn() }));
 
+vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
+  useDescargarVersionRepositorio: vi.fn(),
+}));
+
 const hookMock = vi.mocked(useArtefactosEntregable);
+const descargar = vi.fn();
 const refetch = vi.fn();
 
 const ENTREGABLE: EntregableProyectoGrado = {
@@ -17,6 +23,8 @@ const ENTREGABLE: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
   estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function artefacto(n: number): ArtefactoEntregable {
@@ -44,14 +52,18 @@ function consulta(parcial: Record<string, unknown>) {
   } as never);
 }
 
-function renderizar(onCerrar = vi.fn()) {
-  render(<ArtefactosEntregablePanel entregable={ENTREGABLE} onCerrar={onCerrar} />);
+function renderizar(onCerrar = vi.fn(), entregable = ENTREGABLE) {
+  render(<ArtefactosEntregablePanel entregable={entregable} onCerrar={onCerrar} />);
   return onCerrar;
 }
 
 describe('ArtefactosEntregablePanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useDescargarVersionRepositorio).mockReturnValue({
+      descargar,
+      descargando: false,
+    });
   });
 
   it('consulta el entregable y lista nombre, repositorio y ubicación de cada artefacto en orden', () => {
@@ -126,5 +138,33 @@ describe('ArtefactosEntregablePanel', () => {
 
     // Assert
     expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('con proyecto activo cada artefacto se descarga con su versión y nombre de documento', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    consulta({ data: [artefacto(1)] });
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Descargar Documento 1' }));
+
+    // Assert
+    expect(useDescargarVersionRepositorio).toHaveBeenCalledWith('artefacto');
+    expect(descargar).toHaveBeenCalledWith('uuid-version', 'Documento 1');
+    expect(screen.queryByText(/ya no están disponibles/)).not.toBeInTheDocument();
+  });
+
+  it('con proyecto finalizado lista los artefactos sin descarga y explica el motivo', () => {
+    // Arrange
+    consulta({ data: [artefacto(1)] });
+
+    // Act
+    renderizar(vi.fn(), { ...ENTREGABLE, proyectoFinalizado: true });
+
+    // Assert
+    expect(screen.getByText('Documento 1')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Descargar/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/ya no están disponibles para descargar/)).toBeInTheDocument();
   });
 });

@@ -102,6 +102,20 @@ describe('proyectosGradoService', () => {
             estadoProyecto: 'EN_REVISION',
             estadoProyectoNombre: 'En revisión',
             fechaActualizacion: '2026-09-02T10:00:00Z',
+            motivo: null,
+          },
+          {
+            id: 'h-2',
+            estadoProyecto: 'CANCELADO',
+            estadoProyectoNombre: 'Cancelado',
+            fechaActualizacion: '2026-09-03T10:00:00Z',
+            motivo: 'Texto',
+          },
+          {
+            id: 'h-3',
+            estadoProyecto: 'INICIADO',
+            estadoProyectoNombre: 'Iniciado',
+            fechaActualizacion: '2026-09-01T10:00:00Z',
           },
         ],
       });
@@ -116,6 +130,76 @@ describe('proyectosGradoService', () => {
           id: 'h-1',
           estado: { id: 'EN_REVISION', nombre: 'En revisión' },
           fechaActualizacion: '2026-09-02T10:00:00Z',
+          motivo: null,
+        },
+        {
+          id: 'h-2',
+          estado: { id: 'CANCELADO', nombre: 'Cancelado' },
+          fechaActualizacion: '2026-09-03T10:00:00Z',
+          motivo: 'Texto',
+        },
+        {
+          id: 'h-3',
+          estado: { id: 'INICIADO', nombre: 'Iniciado' },
+          fechaActualizacion: '2026-09-01T10:00:00Z',
+          motivo: null,
+        },
+      ]);
+    });
+  });
+
+  describe('getHistorialEstadosProyecto', () => {
+    it('consulta GET /proyectos-grado/{id}/historial-estados y traduce el estado plano a { id, nombre }', async () => {
+      // Arrange
+      get.mockResolvedValue({
+        status: 200,
+        data: [
+          {
+            id: 'h-1',
+            estadoProyecto: 'EN_REVISION',
+            estadoProyectoNombre: 'En revisión',
+            fechaActualizacion: '2026-09-02T10:00:00Z',
+            motivo: null,
+          },
+          {
+            id: 'h-2',
+            estadoProyecto: 'CANCELADO',
+            estadoProyectoNombre: 'Cancelado',
+            fechaActualizacion: '2026-09-03T10:00:00Z',
+            motivo: 'Texto',
+          },
+          {
+            id: 'h-3',
+            estadoProyecto: 'INICIADO',
+            estadoProyectoNombre: 'Iniciado',
+            fechaActualizacion: '2026-09-01T10:00:00Z',
+          },
+        ],
+      });
+
+      // Act
+      const historial = await proyectosGradoService.getHistorialEstadosProyecto('p-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/proyectos-grado/p-1/historial-estados');
+      expect(historial).toEqual([
+        {
+          id: 'h-1',
+          estado: { id: 'EN_REVISION', nombre: 'En revisión' },
+          fechaActualizacion: '2026-09-02T10:00:00Z',
+          motivo: null,
+        },
+        {
+          id: 'h-2',
+          estado: { id: 'CANCELADO', nombre: 'Cancelado' },
+          fechaActualizacion: '2026-09-03T10:00:00Z',
+          motivo: 'Texto',
+        },
+        {
+          id: 'h-3',
+          estado: { id: 'INICIADO', nombre: 'Iniciado' },
+          fechaActualizacion: '2026-09-01T10:00:00Z',
+          motivo: null,
         },
       ]);
     });
@@ -191,6 +275,86 @@ describe('proyectosGradoService', () => {
       // Assert
       expect(eliminar).toHaveBeenCalledWith('/proyectos-grado/p-1/estudiantes/e-1');
       expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('cancelarProyecto', () => {
+    it('hace PATCH /proyectos-grado/{id}/cancelacion con solo { motivo } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await proyectosGradoService.cancelarProyecto({
+        proyectoGradoId: 'p-1',
+        motivo: 'Sin avances',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/proyectos-grado/p-1/cancelacion', {
+        motivo: 'Sin avances',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('finalizarProyecto', () => {
+    it('hace PATCH /proyectos-grado/{id}/estado con { estadoProyecto: FINALIZADO } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await proyectosGradoService.finalizarProyecto({ proyectoGradoId: 'p-1' });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/proyectos-grado/p-1/estado', {
+        estadoProyecto: 'FINALIZADO',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('consultarUltimoEntregable', () => {
+    it('envía el criterio por proyecto, versión descendente y tamaño 1, y mapea content[0]', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        status: 200,
+        data: {
+          content: [
+            {
+              id: 'en-1',
+              versionEntregable: 3,
+              estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+              otro: 'ignorado',
+            },
+          ],
+        },
+      });
+
+      // Act
+      const ultimo = await proyectosGradoService.consultarUltimoEntregable('p-1');
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/entregables-proyecto-grado/asesor', {
+        pagina: 0,
+        tamanio: 1,
+        ordenamiento: ['versionEntregable:DESC'],
+        filtros: { tipo: 'PREDICADO', campo: 'proyectoGradoId', operador: 'ES', valor: 'p-1' },
+      });
+      expect(ultimo).toEqual({
+        versionEntregable: 3,
+        estadoEntregable: { id: 'CERRADO', nombre: 'Cerrado' },
+      });
+    });
+
+    it('devuelve null cuando el proyecto no tiene entregables', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: { content: [] } });
+
+      // Act
+      const ultimo = await proyectosGradoService.consultarUltimoEntregable('p-1');
+
+      // Assert
+      expect(ultimo).toBeNull();
     });
   });
 });

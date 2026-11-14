@@ -14,7 +14,7 @@ Aplicación web de gestión académica construida con **React 19**, **TypeScript
 | Estado servidor  | TanStack React Query 5                          |
 | Formularios      | React Hook Form + Zod                           |
 | HTTP             | Axios                                           |
-| Autenticación    | Keycloak JS                                     |
+| Autenticación    | Keycloak JS y sesión BFF de Security Baseline (dos proveedores) |
 | Testing          | Vitest + Testing Library                        |
 | Iconos           | Lucide React                                    |
 
@@ -33,7 +33,7 @@ npm install
 cp .env.example .env.development.local
 # Editar .env.development.local con los valores reales
 
-# Iniciar servidor de desarrollo (http://localhost:5173)
+# Iniciar servidor de desarrollo (http://localhost:5174, puerto fijo)
 npm run dev
 ```
 
@@ -58,13 +58,47 @@ El CI ejecuta `format:check`, `lint`, `test` y `build`.
 
 | Variable                  | Descripción                                          |
 | ------------------------- | ---------------------------------------------------- |
-| `VITE_API_URL`            | URL base del backend. Ej: `http://localhost:8082/api` |
+| `VITE_API_URL`            | URL base del backend. Ej: `http://localhost:8080/api` |
 | `VITE_KEYCLOAK_URL`       | URL del servidor Keycloak                            |
 | `VITE_KEYCLOAK_REALM`     | Realm de Keycloak                                    |
 | `VITE_KEYCLOAK_CLIENT_ID` | Client ID registrado en Keycloak                     |
+| `VITE_PDP_URL`            | URL del PDP/BFF de Security Baseline. Opcional: las tres variables PDP van juntas |
+| `VITE_SECURITY_UI_URL`    | URL del módulo ESM de Security UI (requerida si hay `VITE_PDP_URL`) |
+| `VITE_APPLICATION_NAME`   | Nombre de la aplicación registrada en el PDP (requerida si hay `VITE_PDP_URL`) |
 | `VITE_AUTH_BYPASS`        | `true` para omitir Keycloak en desarrollo            |
 | `VITE_DEV_USERNAME`       | Usuario ficticio inyectado cuando el bypass está activo |
 | `VITE_DEV_ROLES`          | Roles simulados en dev (separados por coma)          |
+
+### Proveedores de identidad
+
+La aplicación soporta dos proveedores detrás del contrato `ProveedorIdentidad`
+(`src/auth/proveedores/proveedor.ts`): Keycloak directo (Bearer) y la sesión BFF de Security Baseline
+(cookie con CSRF). Con dos disponibles y ninguno recordado, `/iniciar-sesion` pide elegir; se recuerda solo
+el id del proveedor y se olvida al cerrar sesión. `/seguridad` monta Security UI y solo está disponible para
+un proveedor con la capacidad `administracion-seguridad` (hoy el PDP). Para ejecutar Security UI en local,
+sírvela en `http://localhost:5175` y apunta `VITE_SECURITY_UI_URL` a su bundle.
+
+El camino PDP exige que el backend tenga encendido el canal de sesión por cookie y que la aplicación esté
+registrada en el PDP; sin eso la API responde 401 o 403 con sesión PDP. El PDP, la app y la API deben
+compartir dominio registrable. Si la API responde 401 por caducidad de la sesión, el cliente consulta la
+sesión del PDP y reintenta la petición una sola vez.
+
+Mientras el backend no exponga «mi perfil», en `npm run dev` el usuario PDP recibe todos los roles del enum
+`Rol` (`rolesMockPdp` en `pdpProveedor.ts`), solo para que la UI muestre cada vista; no autoriza nada: el PEP del backend decide y
+puede responder 403 (el cliente lleva a `/forbidden`). En producción el usuario PDP queda sin roles. Se retira
+al existir «mi perfil», borrando esa función y su llamada.
+
+Toda petición a la API lleva la cabecera `X-Proveedor-Identidad`, con el valor fijo que declara cada proveedor
+en su `credencialesHttp().proveedorApi` (obligatorio en el contrato): Keycloak envía `legado` y el PDP
+`sesion-pdp` (el id del canal de sesión del backend, `SESSION_PROVIDER_ID`). El interceptor de `axiosInstance`
+la fija siempre, también en el logout y en los reintentos tras un 401, y falla con un error explícito si el proveedor
+activo no la aporta. Solo se omite en las peticiones `_sinCredenciales` (MinIO) y `_omitirProveedorApi` (el
+`/api/v1/session` del PDP); el bypass de desarrollo no tiene proveedor y no la envía. El despliegue de la API no debe
+omitir `X-Proveedor-Identidad` en `CORS_ALLOWED_HEADERS`: si lo hace, el navegador bloquea todas las peticiones.
+
+Para añadir un tercer proveedor: implementa el contrato en `src/auth/proveedores/{nombre}/`, agrega una
+entrada en `REGISTRO` de `src/auth/proveedores/proveedores.ts`, define sus variables en `src/config/env.ts` y
+`.env.example`, declara su `proveedorApi` y ejecuta la suite del contrato (`src/test-utils/contrato-proveedor.ts`). Ningún consumidor cambia.
 
 Archivos de entorno:
 
@@ -89,6 +123,8 @@ src/
 ├── auth/                     # Autenticación e identidad del usuario
 │   ├── keycloak.ts           # Cliente Keycloak + refresh proactivo
 │   ├── authStore.ts          # Estado de sesión (token, usuario, roles)
+│   ├── proveedorStore.ts     # Id del proveedor de identidad recordado
+│   ├── proveedores/          # Contrato, registro y las implementaciones Keycloak y PDP
 │   ├── roleStore.ts          # Rol activo seleccionado (persiste en localStorage)
 │   └── devAuth.ts            # Bypass de autenticación para desarrollo local
 │
@@ -107,7 +143,8 @@ src/
 │   └── usuarios/
 │
 ├── guards/                   # Guardias de ruta
-│   ├── AuthGuard.tsx         # Inicialización de Keycloak
+│   ├── AuthGuard.tsx         # Selección de proveedor y restauración de sesión
+│   ├── CapacidadGuard.tsx    # Acceso por capacidad del proveedor
 │   └── RoleGuard.tsx         # Control de acceso por rol
 │
 ├── hooks/                    # Hooks personalizados globales
@@ -179,7 +216,15 @@ docker build \
   --build-arg VITE_KEYCLOAK_CLIENT_ID=mi-client \
   -t arquisoft-frontend .
 
-# Ejecutar
-docker run -p 80:80 arquisoft-frontend
+# Ejecutar: nginx sirve una CSP con los orígenes tomados de estas variables
+docker run -p 80:80 \
+  -e PDP_ORIGIN=https://pdp.ejemplo.com \
+  -e SECURITY_UI_ORIGIN=https://security-ui.ejemplo.com \
+  -e API_ORIGIN=https://api.ejemplo.com \
+  -e KEYCLOAK_ORIGIN=https://keycloak.ejemplo.com \
+  arquisoft-frontend
 ```
+
+`nginx.conf.template` se procesa con `envsubst` al arrancar (`script-src` con `SECURITY_UI_ORIGIN`,
+`connect-src` con los otros tres). Sin definirlas quedan vacías.
 

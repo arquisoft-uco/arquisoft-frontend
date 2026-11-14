@@ -49,4 +49,26 @@ describe('construirFiltros', () => {
       ],
     });
   });
+
+  it('con «finalizados» suma el predicado del proyecto y con «activos» no agrega nada', () => {
+    // Arrange
+    const predicado = {
+      tipo: 'PREDICADO',
+      campo: 'proyectoFinalizado',
+      operador: 'ES',
+      valor: 'true',
+    };
+
+    // Assert
+    expect(construirFiltros('', [], '', 'activos')).toBeUndefined();
+    expect(construirFiltros('', [], '', 'finalizados')).toEqual(predicado);
+    expect(construirFiltros('riego', [], '', 'finalizados')).toEqual({
+      tipo: 'GRUPO',
+      conector: 'AND',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'proyectoGradoNombre', operador: 'CONTIENE', valor: 'riego' },
+        predicado,
+      ],
+    });
+  });
 });

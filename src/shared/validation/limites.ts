@@ -18,6 +18,8 @@ export const LIMITES = {
   // EnviarSolicitudNovedadAsesor (HU-082) y de EnviarSolicitudCambioAsesor (HU-083), confirmado
   // con 400 real.
   MENSAJE_SOLICITUD_MAX: 100,
+  // Espejo de ProyectosLimits.ProyectoGrado.MOTIVO_MAX del backend.
+  MOTIVO_CANCELACION_PROYECTO_GRADO_MAX: 500,
   // Origen: ResponderSolicitudNovedadCoordinadorCommand.crear, ResponderSolicitudNovedadAsesorCommand.crear
   // ResponderSolicitudCambioAsesorCommand.crear, ResponderSolicitudAmpliacionPlazoCommand.crear
   // y ResponderSolicitudRegistroModificacionUsuariosCommand.crear
@@ -52,4 +54,18 @@ export const LIMITES = {
   VERSION_ARCHIVO_TAMANO_MAX_BYTES: 5_242_880,
   // MapasRutaLimits.Tarea.DESCRIPCION_MAX (tarea.descripcion VARCHAR(200)).
   TAREA_DESCRIPCION_MAX: 200,
+  // MapasRutaLimits.PlanEstimado.TIEMPO_ESTIMADO_DIAS_MIN
+  PLAN_ESTIMADO_TIEMPO_DIAS_MIN: 1,
+  // MapasRutaLimits.PlanEstimado.DESCRIPCION_ESTIMADO_MAX (VARCHAR(200))
+  PLAN_ESTIMADO_DESCRIPCION_MAX: 200,
+  // MapasRutaLimits.PlanReal.TIEMPO_REAL_DIAS_MIN
+  PLAN_REAL_TIEMPO_DIAS_MIN: 1,
+  // MapasRutaLimits.PlanReal.DESCRIPCION_REAL_MAX (VARCHAR(200))
+  PLAN_REAL_DESCRIPCION_MAX: 200,
+  // ArtefactosLimits.Artefacto.DIAS_SIN_AVANCE_MINIMO
+  ARTEFACTO_DIAS_SIN_AVANCE_MIN: 1,
+  // ArtefactosLimits.Artefacto.DIAS_SIN_AVANCE_MAXIMO
+  ARTEFACTO_DIAS_SIN_AVANCE_MAX: 365,
+  // EvaluacionesLimits.ObservacionItemJurado.DESCRIPCION_MAX (VARCHAR(500))
+  OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX: 500,
 } as const;

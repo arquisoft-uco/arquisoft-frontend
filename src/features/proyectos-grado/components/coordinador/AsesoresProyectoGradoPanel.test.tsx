@@ -18,7 +18,7 @@ vi.mock('./AsignarAsesorProyectoGradoPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de asignación" />,
 }));
 
-const PROPS = { proyectoGradoId: 'p-1', titulo: 'Proyecto', finalizado: false };
+const PROPS = { proyectoGradoId: 'p-1', titulo: 'Proyecto', soloLectura: false };
 
 const consultar = vi.mocked(proyectosGradoService.getAsesoresProyecto);
 const cambiarEstado = vi.mocked(proyectosGradoService.cambiarEstadoAsesor);
@@ -261,7 +261,7 @@ describe('AsesoresProyectoGradoPanel', () => {
     unmount();
 
     // Act
-    render(<AsesoresProyectoGradoPanel {...PROPS} finalizado />);
+    render(<AsesoresProyectoGradoPanel {...PROPS} soloLectura />);
     await tablaDeAsesores();
 
     // Assert

@@ -305,6 +305,34 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('consultarRespuestasRegistroModificacionUsuariosRecibidas', () => {
+    it('llama POST /solicitudes/registro-modificacion-usuarios/respuestas/recibidas con el criterio recibido tal cual y resuelve la página', async () => {
+      // Arrange
+      const pagina = {
+        content: [],
+        page: 0,
+        size: 10,
+        totalElements: 0,
+        totalPages: 0,
+        first: true,
+        last: true,
+        empty: true,
+      };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado =
+        await solicitudesService.consultarRespuestasRegistroModificacionUsuariosRecibidas(CRITERIO);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/respuestas/recibidas',
+        CRITERIO,
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
   describe('consultarRespuestasNovedadCoordinadorRecibidas', () => {
     it('llama POST /solicitudes/novedad-coordinador/respuestas/recibidas con el criterio recibido tal cual y resuelve la página', async () => {
       // Arrange
@@ -486,6 +514,36 @@ describe('solicitudesService', () => {
     });
   });
 
+  describe('getTiposSolicitud', () => {
+    it('llama GET /solicitudes/tipos-solicitud y resuelve la lista', async () => {
+      // Arrange
+      const tipos = [{ id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' }];
+      get.mockResolvedValue({ status: 200, data: tipos });
+
+      // Act
+      const resultado = await solicitudesService.getTiposSolicitud();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/solicitudes/tipos-solicitud');
+      expect(resultado).toEqual(tipos);
+    });
+  });
+
+  describe('getTiposSolicitudRecibidas', () => {
+    it('llama GET /solicitudes/tipos-solicitud/recibidas y resuelve la lista', async () => {
+      // Arrange
+      const tipos = [{ id: 'CAMBIO_DE_ASESOR', nombre: 'Cambio de Asesor', descripcion: 'd' }];
+      get.mockResolvedValue({ status: 200, data: tipos });
+
+      // Act
+      const resultado = await solicitudesService.getTiposSolicitudRecibidas();
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/solicitudes/tipos-solicitud/recibidas');
+      expect(resultado).toEqual(tipos);
+    });
+  });
+
   describe('eliminarSolicitudNovedadCoordinador', () => {
     it('llama DELETE /solicitudes/novedad-coordinador/{id} sin body y resuelve undefined', async () => {
       // Arrange
@@ -609,6 +667,23 @@ describe('solicitudesService', () => {
 
       // Assert
       expect(eliminar).toHaveBeenCalledWith('/solicitudes/novedad-asesor/s-1/respuesta');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarRespuestaRegistroModificacionUsuarios', () => {
+    it('llama DELETE /solicitudes/registro-modificacion-usuarios/{solicitudId}/respuesta sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado =
+        await solicitudesService.eliminarRespuestaRegistroModificacionUsuarios('s-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith(
+        '/solicitudes/registro-modificacion-usuarios/s-1/respuesta',
+      );
       expect(resultado).toBeUndefined();
     });
   });

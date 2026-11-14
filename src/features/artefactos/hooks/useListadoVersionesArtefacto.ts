@@ -3,6 +3,7 @@ import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParame
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
+import { leerEstadoProyecto } from '../utils/estado-proyecto';
 import { construirFiltros, leerArtefacto, leerFecha } from '../utils/filtros-versiones-artefacto';
 
 interface Opciones {
@@ -35,10 +36,19 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
   const hasta = leerFecha(parametros.texto('hasta'));
   const estadoIds = parametros.lista('estado');
   const artefacto = leerArtefacto(parametros.texto('artefacto'));
+  const admiteEstadoProyecto = rol === 'asesor';
+  const estadoProyecto = admiteEstadoProyecto
+    ? leerEstadoProyecto(parametros.texto('estadoProyecto'))
+    : undefined;
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [ordenCampo, ordenDireccion] = orden.split(':') as [string, DireccionOrden];
   const hayFiltros =
-    texto !== '' || desde !== '' || hasta !== '' || estadoIds.length > 0 || artefacto !== '';
+    texto !== '' ||
+    desde !== '' ||
+    hasta !== '' ||
+    estadoIds.length > 0 ||
+    artefacto !== '' ||
+    (estadoProyecto !== undefined && estadoProyecto !== '');
 
   function setTexto(valor: string) {
     parametros.cambiar({ q: valor || undefined });
@@ -55,6 +65,10 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
   function setOrden(campo: string, direccion: DireccionOrden) {
     const nuevo = `${campo}:${direccion}`;
     parametros.cambiar({ orden: nuevo === ORDEN_POR_DEFECTO ? undefined : nuevo });
+  }
+
+  function setEstadoProyecto(valor: string) {
+    parametros.cambiar({ estadoProyecto: valor || undefined });
   }
 
   function toggleEstado(id: string) {
@@ -79,6 +93,7 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
       hasta: undefined,
       estado: undefined,
       artefacto: undefined,
+      estadoProyecto: undefined,
     });
   }
 
@@ -94,13 +109,14 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
       orden,
       estadoIds,
       artefacto,
+      estadoProyecto,
     ],
     queryFn: () =>
       consultar({
         pagina: page,
         tamanio: PAGE_SIZE,
         ordenamiento: [orden],
-        filtros: construirFiltros({ texto, desde, hasta, estadoIds, artefacto }),
+        filtros: construirFiltros({ texto, desde, hasta, estadoIds, artefacto, estadoProyecto }),
       }),
     placeholderData: keepPreviousData,
   });
@@ -115,6 +131,9 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
     hasta,
     estadoIds,
     artefacto,
+    admiteEstadoProyecto,
+    estadoProyecto,
+    setEstadoProyecto,
     toggleEstado,
     limpiarEstados,
     quitarArtefacto,

@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { TriangleAlert } from 'lucide-react';
 import { useTrampaDeFoco } from '../hooks/useTrampaDeFoco';
@@ -33,6 +33,7 @@ interface Props {
   variante?: Variante;
   cargando?: boolean;
   confirmarDeshabilitado?: boolean;
+  children?: ReactNode;
   onConfirmar: () => void;
   onCancelar: () => void;
 }
@@ -47,6 +48,7 @@ export default function ConfirmDialog({
   variante = 'peligro',
   cargando = false,
   confirmarDeshabilitado = false,
+  children,
   onConfirmar,
   onCancelar,
 }: Props) {
@@ -54,7 +56,8 @@ export default function ConfirmDialog({
   const idDetalle = useId();
   const panel = useRef<HTMLDivElement>(null);
   const cancelar = useRef<HTMLButtonElement>(null);
-  const tieneDetalle = Boolean(descripcion) || Boolean(aviso) || consecuencias.length > 0;
+  const tieneDetalle =
+    Boolean(descripcion) || Boolean(aviso) || consecuencias.length > 0 || Boolean(children);
 
   function cancelarSiNoProcesa() {
     if (!cargando) onCancelar();
@@ -94,6 +97,7 @@ export default function ConfirmDialog({
                 ))}
               </ul>
             )}
+            {children}
           </div>
         )}
 

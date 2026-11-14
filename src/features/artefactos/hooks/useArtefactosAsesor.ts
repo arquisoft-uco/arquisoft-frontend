@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
+import { leerEstadoProyecto } from '../utils/estado-proyecto';
 import { artefactosService } from '../services/artefactosService';
 import {
   construirFiltros,
@@ -23,6 +24,7 @@ export function useArtefactosAsesor() {
     documento: parametros.texto('documento').trim(),
     repositorio: parametros.texto('repositorio').trim(),
     version: leerVersion(parametros.texto('version')),
+    estadoProyecto: leerEstadoProyecto(parametros.texto('estadoProyecto')),
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [ordenCampo, ordenDireccion] = orden.split(':') as [string, DireccionOrden];
@@ -48,6 +50,10 @@ export function useArtefactosAsesor() {
     parametros.cambiar({ version: valor || undefined });
   }
 
+  function setEstadoProyecto(valor: string) {
+    parametros.cambiar({ estadoProyecto: valor || undefined });
+  }
+
   function setOrden(campo: string, direccion: DireccionOrden) {
     const nuevo = `${campo}:${direccion}`;
     parametros.cambiar({ orden: nuevo === ORDEN_POR_DEFECTO ? undefined : nuevo });
@@ -60,6 +66,7 @@ export function useArtefactosAsesor() {
       documento: undefined,
       repositorio: undefined,
       version: undefined,
+      estadoProyecto: undefined,
     });
   }
 
@@ -75,6 +82,7 @@ export function useArtefactosAsesor() {
       filtros.repositorio,
       filtros.version,
       orden,
+      filtros.estadoProyecto,
     ],
     queryFn: () =>
       artefactosService.consultarArtefactosAsesor({
@@ -97,6 +105,7 @@ export function useArtefactosAsesor() {
     setDocumento,
     setRepositorio,
     setVersion,
+    setEstadoProyecto,
     orden,
     ordenCampo,
     ordenDireccion,

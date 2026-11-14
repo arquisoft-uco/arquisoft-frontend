@@ -30,6 +30,8 @@ function entregable(estadoId: string, nombre: string): EntregableProyectoGrado {
     versionEntregable: 3,
     proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
     asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+    proyectoFinalizado: false,
+    proyectoCancelado: false,
     estadoEntregable: { id: estadoId, nombre },
   };
 }
@@ -85,6 +87,23 @@ describe('CambiarEstadoEntregablePanel', () => {
 
     // Assert
     expect(screen.getByRole('radio', { name: 'Cerrado' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeEnabled();
+  });
+
+  it('habilita Cerrado y Cancelado cuando el entregable está rechazado', () => {
+    // Arrange
+    catalogo({ data: CATALOGO });
+
+    // Act
+    render(
+      <CambiarEstadoEntregablePanel
+        entregable={entregable('RECHAZADO', 'Rechazado')}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByRole('radio', { name: 'Cerrado' })).toBeEnabled();
     expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeEnabled();
   });
 

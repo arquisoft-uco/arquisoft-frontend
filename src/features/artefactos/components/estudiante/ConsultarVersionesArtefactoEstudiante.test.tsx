@@ -30,6 +30,8 @@ const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
 
 const VERSION: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
@@ -359,6 +361,38 @@ describe('ConsultarVersionesArtefactoEstudiante', () => {
       expect(
         screen.queryByRole('button', { name: 'Marcar como resuelta' }),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('proyecto cerrado', () => {
+    const CERRADA: VersionArtefacto = {
+      ...VERSION,
+      proyectoFinalizado: true,
+      revisionAsesor: 'r-1',
+      estadoRevision: 'EN_PROGRESO',
+      nombreEstadoRevision: 'En progreso',
+      fechaCreacionRevision: '2026-03-12T10:00:00Z',
+    };
+
+    it('no ofrece Descargar, Subir nueva versión ni Eliminar, y conserva Gestionar revisión', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      consultarVersiones.mockResolvedValue(pagina([CERRADA]));
+      render(<ConsultarVersionesArtefactoEstudiante />);
+
+      // Act
+      const tabla = await screen.findByRole('table', { name: 'Versiones de artefactos' });
+      await user.click(
+        await within(tabla).findByRole('button', {
+          name: 'Acciones de la versión 4 de Acta de inicio',
+        }),
+      );
+
+      // Assert
+      expect(screen.getAllByRole('menuitem').map((i) => i.textContent)).toEqual([
+        'Ver información',
+        'Gestionar revisión',
+      ]);
     });
   });
 });

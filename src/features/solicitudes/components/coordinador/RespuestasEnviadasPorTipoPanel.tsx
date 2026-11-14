@@ -1,6 +1,8 @@
-import { useState } from 'react';
 import type { FiltrosRespuestas } from '../../hooks/useFiltrosRespuestas';
-import SelectorTipoSolicitud, {
+import { useTiposSolicitudRecibidas } from '../../hooks/useTiposSolicitudRecibidas';
+import PanelPorTipoHabilitado from '../PanelPorTipoHabilitado';
+import {
+  ID_TIPO_RECIBIDO_BACKEND,
   TIPOS_RESPUESTA_ENVIADA_COORDINADOR,
   type TipoRespuestaEnviadaCoordinadorUi,
 } from '../SelectorTipoSolicitud';
@@ -17,26 +19,28 @@ const PANEL_POR_TIPO: Record<
   'ampliacion-plazo': RespuestasAmpliacionPlazoEnviadasPanel,
 };
 
-const RAIZ = 'flex flex-col gap-4';
+const VACIO_RECIBIR = {
+  titulo: 'No tienes tipos de solicitud habilitados para recibir',
+  descripcion: 'Si crees que es un error, consulta con el administrador.',
+};
 
 interface Props {
   filtros: Record<TipoRespuestaEnviadaCoordinadorUi, FiltrosRespuestas>;
 }
 
 export default function RespuestasEnviadasPorTipoPanel({ filtros }: Props) {
-  const [tipo, setTipo] = useState<TipoRespuestaEnviadaCoordinadorUi>('novedad');
-
-  const PanelElegido = PANEL_POR_TIPO[tipo];
+  const consulta = useTiposSolicitudRecibidas();
 
   return (
-    <div className={RAIZ}>
-      <SelectorTipoSolicitud
-        valor={tipo}
-        onCambiar={setTipo}
-        opciones={TIPOS_RESPUESTA_ENVIADA_COORDINADOR}
-      />
-
-      <PanelElegido filtros={filtros[tipo]} />
-    </div>
+    <PanelPorTipoHabilitado
+      opciones={TIPOS_RESPUESTA_ENVIADA_COORDINADOR}
+      idBackend={ID_TIPO_RECIBIDO_BACKEND}
+      consulta={consulta}
+      vacio={VACIO_RECIBIR}
+      renderizar={(tipo) => {
+        const PanelElegido = PANEL_POR_TIPO[tipo];
+        return <PanelElegido filtros={filtros[tipo]} />;
+      }}
+    />
   );
 }

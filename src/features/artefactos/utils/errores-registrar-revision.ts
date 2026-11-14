@@ -5,6 +5,7 @@ export const VERSION_NO_ENCONTRADA = 'VERSION_ARTEFACTO_NO_ENCONTRADA';
 export const ARTEFACTO_ASESOR_NO_PROPIETARIO = 'ARTEFACTOS_ARTEFACTO_ASESOR_NO_PROPIETARIO';
 export const VERSION_NO_ES_ULTIMA = 'VERSION_ARTEFACTO_NO_ES_ULTIMA';
 export const REVISION_ABIERTA_EXISTENTE = 'REVISION_ASESOR_ABIERTA_EXISTENTE';
+export const REVISION_VERSION_ANTERIOR_NO_RESUELTA = 'REVISION_ASESOR_VERSION_ANTERIOR_NO_RESUELTA';
 
 const MENSAJES_POR_CODIGO: [string, string][] = [
   [VERSION_NO_ENCONTRADA, 'La versión ya no existe.'],
@@ -13,6 +14,10 @@ const MENSAJES_POR_CODIGO: [string, string][] = [
   [ARTEFACTO_OMITIDO, 'El artefacto está omitido y no admite revisiones.'],
   [VERSION_NO_ES_ULTIMA, 'Hay una versión más reciente: registra la revisión sobre ella.'],
   [REVISION_ABIERTA_EXISTENTE, 'Esta versión ya tiene una revisión sin cerrar.'],
+  [
+    REVISION_VERSION_ANTERIOR_NO_RESUELTA,
+    'La revisión de la versión anterior aún no está resuelta: podrás registrar esta cuando el estudiante la resuelva.',
+  ],
 ];
 
 export function mensajeDeErrorRegistrarRevision(err: unknown): string {

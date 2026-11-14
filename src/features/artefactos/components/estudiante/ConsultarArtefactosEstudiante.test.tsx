@@ -22,6 +22,8 @@ vi.mock('../../services/artefactosService', () => ({
 const consultar = vi.mocked(artefactosService.consultarArtefactosEstudiante);
 
 const ARTEFACTO: ArtefactoEstudiante = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'a-1',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',

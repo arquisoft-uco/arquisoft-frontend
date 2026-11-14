@@ -1,5 +1,6 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import { UUID_REGEX } from '../../../shared/validation';
+import { filtrosEstadoProyecto, type EstadoProyectoListado } from './estado-proyecto';
 
 export const SIN_REVISION = 'SIN_REVISION';
 
@@ -45,6 +46,7 @@ interface Filtros {
   estadoIds: string[];
   artefacto: string;
   version?: number;
+  estadoProyecto?: EstadoProyectoListado;
 }
 
 const CAMPOS_BUSQUEDA = ['nombreDocumento', 'nombreProyecto'] as const;
@@ -74,6 +76,7 @@ export function construirFiltros({
   estadoIds,
   artefacto,
   version,
+  estadoProyecto,
 }: Filtros): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
   const recortado = texto.trim();
@@ -113,6 +116,7 @@ export function construirFiltros({
   }
   const estado = filtroEstado(estadoIds);
   if (estado) nodos.push(estado);
+  if (estadoProyecto !== undefined) nodos.push(...filtrosEstadoProyecto(estadoProyecto));
   if (nodos.length === 0) return undefined;
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };

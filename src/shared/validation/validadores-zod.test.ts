@@ -14,6 +14,7 @@ import {
   textoNoVacio,
   soloDigitosEntre,
   enteroEntre,
+  textoOpcional,
   validarParDeNombres,
   fechaIso,
   validarFechaFinPosterior,
@@ -28,7 +29,12 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.ESTADO_FICHA_ID_MAX).toBe(50);
     expect(LIMITES.ESTUDIANTES_MAX).toBe(3);
     expect(LIMITES.MENSAJE_SOLICITUD_MAX).toBe(100);
+    expect(LIMITES.MOTIVO_CANCELACION_PROYECTO_GRADO_MAX).toBe(500);
     expect(LIMITES.RESPUESTA_CONTENIDO_MAX).toBe(100);
+    expect(LIMITES.PLAN_ESTIMADO_TIEMPO_DIAS_MIN).toBe(1);
+    expect(LIMITES.PLAN_ESTIMADO_DESCRIPCION_MAX).toBe(200);
+    expect(LIMITES.PLAN_REAL_TIEMPO_DIAS_MIN).toBe(1);
+    expect(LIMITES.PLAN_REAL_DESCRIPCION_MAX).toBe(200);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MIN).toBe(4);
     expect(LIMITES.USUARIO_IDENTIFICADOR_MAX).toBe(30);
     expect(LIMITES.USUARIO_NOMBRE_MIN).toBe(2);
@@ -44,6 +50,7 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MIN).toBe(0);
     expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MAX).toBe(500);
     expect(LIMITES.CATEGORIA_ITEM_CUANTITATIVO_NOMBRE_FILTRO_MAX).toBe(100);
+    expect(LIMITES.OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX).toBe(500);
     expect(LIMITES.REPOSITORIO_NOMBRE_MAX).toBe(100);
     expect(LIMITES.REPOSITORIO_DESCRIPCION_MAX).toBe(300);
     expect(LIMITES.OBSERVACION_EVALUACION_MAX).toBe(200);
@@ -53,6 +60,8 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.VERSION_NOMBRE_ARCHIVO_MAX).toBe(255);
     expect(LIMITES.VERSION_ARCHIVO_TAMANO_MAX_BYTES).toBe(5_242_880);
     expect(LIMITES.TAREA_DESCRIPCION_MAX).toBe(200);
+    expect(LIMITES.ARTEFACTO_DIAS_SIN_AVANCE_MIN).toBe(1);
+    expect(LIMITES.ARTEFACTO_DIAS_SIN_AVANCE_MAX).toBe(365);
   });
 });
 
@@ -230,6 +239,41 @@ describe('enteroEntre', () => {
     expect(validador.safeParse(String(min)).success).toBe(true);
     expect(validador.safeParse(String(max)).success).toBe(true);
     expect(validador.safeParse(' 42 ').success).toBe(true);
+  });
+});
+
+describe('enteroEntre sin máximo', () => {
+  const min = LIMITES.PLAN_ESTIMADO_TIEMPO_DIAS_MIN;
+  const validador = enteroEntre(min);
+
+  function mensaje(valor: string) {
+    const resultado = validador.safeParse(valor);
+    return resultado.success ? null : resultado.error.issues[0].message;
+  }
+
+  it('responde requerido, solo dígitos y mínimo, y no impone tope superior', () => {
+    expect(mensaje('')).toBe(MENSAJES_VALIDACION.requerido);
+    expect(mensaje('abc')).toBe(MENSAJES_VALIDACION.soloDigitos);
+    expect(mensaje('0')).toBe(MENSAJES_VALIDACION.valorMinimo(min));
+    expect(validador.safeParse('5').success).toBe(true);
+    expect(validador.safeParse('100000').success).toBe(true);
+  });
+});
+
+describe('textoOpcional', () => {
+  const max = LIMITES.PLAN_ESTIMADO_DESCRIPCION_MAX;
+  const validador = textoOpcional(max);
+
+  it('acepta vacío, recorta espacios y rechaza lo que excede el máximo', () => {
+    expect(validador.safeParse('').success).toBe(true);
+    expect(validador.parse('  hola  ')).toBe('hola');
+    expect(validador.safeParse(`  ${'a'.repeat(max)}  `).success).toBe(true);
+
+    const resultado = validador.safeParse('a'.repeat(max + 1));
+    expect(resultado.success).toBe(false);
+    if (!resultado.success) {
+      expect(resultado.error.issues[0].message).toBe(MENSAJES_VALIDACION.longitudMaxima(max));
+    }
   });
 });
 

@@ -17,6 +17,8 @@ function version(numero: number, estadoRevision: string | null = null): VersionA
     estadoRevision,
     nombreEstadoRevision: null,
     fechaCreacionRevision: null,
+    proyectoFinalizado: false,
+    proyectoCancelado: false,
   };
 }
 

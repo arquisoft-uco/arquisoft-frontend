@@ -1,27 +1,33 @@
 import { create } from 'zustand';
-import type { KeycloakTokenParsed } from 'keycloak-js';
 
-/** Extracts roles from the Keycloak token's realm_access claim. */
-export function parseRoles(tokenParsed: KeycloakTokenParsed | undefined): string[] {
-  const realmAccess = tokenParsed?.['realm_access'] as { roles?: string[] } | undefined;
-  return realmAccess?.roles ?? [];
+export interface ClaimsSesion {
+  sub?: string;
+  preferred_username?: string;
+  given_name?: string;
+  family_name?: string;
+  name?: string;
+  email?: string;
+  realm_access?: { roles?: string[] };
+  [clave: string]: unknown;
+}
+
+export function parseRoles(tokenParsed: ClaimsSesion | undefined): string[] {
+  return tokenParsed?.realm_access?.roles ?? [];
 }
 
 interface AuthState {
-  /** True while keycloak.init() has not yet resolved. Guards render <AppLoader />. */
   isInitializing: boolean;
   authenticated: boolean;
   token: string | undefined;
-  tokenParsed: KeycloakTokenParsed | undefined;
+  tokenParsed: ClaimsSesion | undefined;
   username: string;
-  // Actions
   setAuth: (payload: {
     authenticated: boolean;
     token: string | undefined;
-    tokenParsed: KeycloakTokenParsed | undefined;
+    tokenParsed: ClaimsSesion | undefined;
     username: string;
   }) => void;
-  setToken: (token: string, tokenParsed: KeycloakTokenParsed | undefined) => void;
+  setToken: (token: string, tokenParsed: ClaimsSesion | undefined) => void;
   setInitializing: (value: boolean) => void;
   reset: () => void;
 }
@@ -34,12 +40,7 @@ const INITIAL_STATE = {
   username: '',
 } satisfies Omit<AuthState, 'setAuth' | 'setToken' | 'setInitializing' | 'reset'>;
 
-/**
- * Auth store — IN-MEMORY ONLY, no persist middleware.
- * Raw JWT and tokenParsed stay in the Keycloak adapter; only derived data lives here.
- *
- * Access outside the React tree via useAuthStore.getState() (e.g., Axios interceptors).
- */
+// Solo memoria, sin persist. Fuera del árbol de React se accede con useAuthStore.getState().
 export const useAuthStore = create<AuthState>()((set) => ({
   ...INITIAL_STATE,
   setAuth: (payload) =>

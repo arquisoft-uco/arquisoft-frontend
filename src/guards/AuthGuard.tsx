@@ -1,74 +1,79 @@
-import { useEffect, useRef } from 'react';
-import { Outlet } from 'react-router';
-import { keycloak, scheduleRefresh, logout } from '../auth/keycloak';
+import { useEffect, useRef, useState } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuthStore } from '../auth/authStore';
-import AppLoader from '../shared/components/AppLoader';
 import { initDevAuth } from '../auth/devAuth';
+import { useProveedorStore } from '../auth/proveedorStore';
+import { resolverProveedor, restaurarSesion } from '../auth/session';
+import { AUTH_BYPASS } from '../config/env';
+import { useProveedoresDisponibles } from '../hooks/useAuth';
+import AppLoader from '../shared/components/AppLoader';
+import Button from '../shared/components/ui/Button';
+import ErrorState from '../shared/components/ui/ErrorState';
 
-/**
- * AuthGuard — layout route element that:
- * 1. Initialises Keycloak once (StrictMode-safe via useRef flag).
- * 2. Shows <AppLoader /> until keycloak.init() resolves.
- * 3. On success: populates the auth store atomically and starts proactive refresh.
- * 4. On failure: clears isInitializing so the user sees an error state (not blank).
- *
- * Uses onLoad: 'login-required' — unauthenticated users are redirected to Keycloak
- * before the React tree renders, so there is no "redirect back from guard" loop.
- */
 export default function AuthGuard() {
   const isInitializing = useAuthStore((s) => s.isInitializing);
-  const initRef = useRef(false);
+  const proveedorElegido = useProveedorStore((s) => s.proveedor);
+  const limpiarProveedor = useProveedorStore((s) => s.limpiarProveedor);
+  const proveedores = useProveedoresDisponibles();
+  const { pathname, search } = useLocation();
+  const [fallo, setFallo] = useState(false);
+  const [intento, setIntento] = useState(0);
+  const intentoIniciado = useRef<number | null>(null);
+
+  const requiereSelector = !AUTH_BYPASS && isInitializing && resolverProveedor() === null;
 
   useEffect(() => {
-    // StrictMode mounts/unmounts twice — this ref prevents a second init() call.
-    if (initRef.current) return;
-    initRef.current = true;
+    // StrictMode monta dos veces: el intento evita una segunda restauración.
+    if (intentoIniciado.current === intento) return;
+    if (!AUTH_BYPASS && resolverProveedor() === null) return;
+    intentoIniciado.current = intento;
 
-    // Dev bypass: omite Keycloak e inyecta un usuario ficticio desde .env.development.local.
-    if (import.meta.env.VITE_AUTH_BYPASS === 'true') {
+    if (AUTH_BYPASS) {
       initDevAuth();
       return;
     }
 
-    let cleanup: (() => void) | undefined;
+    restaurarSesion().catch(() => {
+      useAuthStore.getState().setInitializing(false);
+      setFallo(true);
+    });
+  }, [intento, proveedorElegido]);
 
-    keycloak
-      .init({
-        onLoad: 'login-required',
-        checkLoginIframe: false,
-        // PKCE S256 es el default desde keycloak-js 24, pero lo declaramos
-        // explícitamente para blindar el flujo ante cambios de config/versión.
-        // Authorization Code + PKCE es el flujo recomendado por OAuth 2.1 para SPAs.
-        pkceMethod: 'S256',
-        // Garantiza que Keycloak emita id_token (necesario para el logout con
-        // id_token_hint en logout()) y que la sesión sea OIDC estándar.
-        scope: 'openid',
-      })
-      .then((authenticated) => {
-        if (authenticated) {
-          // Single atomic setState to prevent intermediate renders with partial auth state.
-          useAuthStore.getState().setAuth({
-            authenticated: true,
-            token: keycloak.token,
-            tokenParsed: keycloak.tokenParsed,
-            username: (keycloak.tokenParsed?.['preferred_username'] as string | undefined) ?? '',
-          });
-          cleanup = scheduleRefresh(
-            (token) =>
-              useAuthStore.setState({ token, tokenParsed: keycloak.tokenParsed }),
-            () => logout(),
-          );
-        } else {
-          useAuthStore.getState().setInitializing(false);
-        }
-      })
-      .catch(() => {
-        // Keycloak server unreachable — clear initialising so UI can show an error.
-        useAuthStore.getState().setInitializing(false);
-      });
+  function reintentar() {
+    setFallo(false);
+    useAuthStore.getState().reset();
+    setIntento((n) => n + 1);
+  }
 
-    return () => cleanup?.();
-  }, []);
+  function elegirOtroMetodo() {
+    setFallo(false);
+    useAuthStore.getState().reset();
+    limpiarProveedor();
+  }
+
+  if (requiereSelector) {
+    return <Navigate to="/iniciar-sesion" replace state={{ desde: `${pathname}${search}` }} />;
+  }
+
+  if (fallo) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <div className="flex w-full max-w-md flex-col items-center gap-3">
+          <ErrorState
+            titulo="No pudimos iniciar tu sesión"
+            descripcion="Revisa tu conexión e inténtalo de nuevo."
+            onReintentar={reintentar}
+            className="w-full"
+          />
+          {proveedores.length > 1 && (
+            <Button variante="fantasma" onClick={elegirOtroMetodo}>
+              Elegir otro método
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (isInitializing) return <AppLoader />;
   return <Outlet />;

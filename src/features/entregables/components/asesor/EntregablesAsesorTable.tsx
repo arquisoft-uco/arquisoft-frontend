@@ -1,4 +1,5 @@
-import { FileText, RefreshCw, SearchX, Send } from 'lucide-react';
+import { SearchX, Send } from 'lucide-react';
+import InsigniaProyectoCerrado from '../../../../shared/components/InsigniaProyectoCerrado';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -8,15 +9,26 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { varianteEstadoEntregable } from '../../../../shared/utils/estado-variante';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 import type { OrdenCampoEntregable } from '../../models/OrdenCampoEntregable';
-import { puedeCambiarEstado } from '../../utils/estados-entregable';
+import type { EstadoProyectoListado } from '../../utils/estado-proyecto';
+import AccionesEntregableAsesor from './AccionesEntregableAsesor';
 
 const TARJETA_DATOS = 'flex flex-wrap items-center gap-1.5';
 const NOMBRE = 'font-medium text-on-surface';
 const VERSION = 'text-on-surface-secondary';
+
+const VACIOS = {
+  finalizados: {
+    titulo: 'Sin entregables de proyectos finalizados',
+    descripcion: 'Cuando uno de tus proyectos de grado finalice, sus entregables aparecerán aquí.',
+  },
+  activos: {
+    titulo: 'Aún no tienes entregables generados',
+    descripcion: 'Cuando se genere un entregable de tus proyectos de grado, aparecerá aquí.',
+  },
+};
 
 function esOrdenCampo(clave: string): clave is OrdenCampoEntregable {
   return clave === 'proyectoGradoNombre' || clave === 'versionEntregable';
@@ -26,18 +38,28 @@ interface Props {
   entregables: EntregableProyectoGrado[];
   cargando: boolean;
   hayFiltros: boolean;
+  estadoProyecto: EstadoProyectoListado;
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoEntregable, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
   onCambiarEstado: (entregable: EntregableProyectoGrado) => void;
   onVerArtefactos: (entregable: EntregableProyectoGrado) => void;
+  onVerHistorial: (entregable: EntregableProyectoGrado) => void;
+  onDescargarPaquete: (entregable: EntregableProyectoGrado) => void;
+  descargando: boolean;
 }
 
 function InsigniaEstado({ entregable }: { entregable: EntregableProyectoGrado }) {
   return (
-    <Badge variante={varianteEstadoEntregable(entregable.estadoEntregable.id)}>
-      {entregable.estadoEntregable.nombre}
-    </Badge>
+    <div className="flex flex-wrap gap-1.5">
+      <Badge variante={varianteEstadoEntregable(entregable.estadoEntregable.id)}>
+        {entregable.estadoEntregable.nombre}
+      </Badge>
+      <InsigniaProyectoCerrado
+        proyectoFinalizado={entregable.proyectoFinalizado}
+        proyectoCancelado={entregable.proyectoCancelado}
+      />
+    </div>
   );
 }
 
@@ -67,11 +89,11 @@ export default function EntregablesAsesorTable({
   entregables,
   cargando,
   hayFiltros,
+  estadoProyecto,
   orden,
   onOrdenar,
   onLimpiarFiltros,
-  onCambiarEstado,
-  onVerArtefactos,
+  ...accionesDeFila
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -89,11 +111,7 @@ export default function EntregablesAsesorTable({
       }
     />
   ) : (
-    <EmptyState
-      icono={Send}
-      titulo="Aún no tienes entregables generados"
-      descripcion="Cuando se genere un entregable de tus proyectos de grado, aparecerá aquí."
-    />
+    <EmptyState icono={Send} {...VACIOS[estadoProyecto]} />
   );
 
   return (
@@ -107,22 +125,7 @@ export default function EntregablesAsesorTable({
       cargando={cargando}
       vacio={vacio}
       acciones={(entregable) => (
-        <RowMenu
-          etiqueta={`Acciones del entregable de ${entregable.proyectoGrado.nombre}, versión ${entregable.versionEntregable}`}
-          acciones={[
-            {
-              etiqueta: 'Ver artefactos',
-              icono: FileText,
-              onSeleccionar: () => onVerArtefactos(entregable),
-            },
-            {
-              etiqueta: 'Cambiar estado',
-              icono: RefreshCw,
-              onSeleccionar: () => onCambiarEstado(entregable),
-              deshabilitada: !puedeCambiarEstado(entregable.estadoEntregable.id),
-            },
-          ]}
-        />
+        <AccionesEntregableAsesor entregable={entregable} {...accionesDeFila} />
       )}
       tarjeta={(entregable) => (
         <>

@@ -10,6 +10,8 @@ const ENTREGABLE_1: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
   estadoEntregable: { id: 'DISPONIBLE_EVALUACION', nombre: 'Disponible Evaluacion' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 const ENTREGABLE_2: EntregableProyectoGrado = {
   id: 'e-2',
@@ -17,6 +19,8 @@ const ENTREGABLE_2: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-2', nombre: 'Monitoreo de aire' },
   asesor: { id: 'a-2', nombre: 'Luis Gómez', email: 'luis@uco.edu.co' },
   estadoEntregable: { id: 'EN_EVALUACION', nombre: 'En Evaluacion' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof EntregablesJuradoTable>> = {}) {
@@ -24,6 +28,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof EntregablesJura
     entregables: [ENTREGABLE_1, ENTREGABLE_2],
     cargando: false,
     hayFiltros: false,
+    estadoProyecto: 'activos' as const,
     orden: { clave: 'proyectoGradoNombre', direccion: 'ASC' as const },
     onOrdenar: vi.fn(),
     onLimpiarFiltros: vi.fn(),
@@ -88,5 +93,31 @@ describe('EntregablesJuradoTable', () => {
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
+  });
+
+  it('en "Finalizados" muestra la insignia, no ofrece acciones y el vacío propio del alcance', () => {
+    // Act
+    const { unmount } = render(
+      <EntregablesJuradoTable
+        entregables={[{ ...ENTREGABLE_1, proyectoFinalizado: true }]}
+        cargando={false}
+        hayFiltros={false}
+        estadoProyecto="finalizados"
+        orden={{ clave: 'proyectoGradoNombre', direccion: 'ASC' }}
+        onOrdenar={vi.fn()}
+        onLimpiarFiltros={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(tabla().getByText('Proyecto finalizado')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Acciones/ })).not.toBeInTheDocument();
+    unmount();
+
+    // Act
+    renderizar({ entregables: [], estadoProyecto: 'finalizados' });
+
+    // Assert
+    expect(screen.getByText('Sin entregables de proyectos finalizados')).toBeInTheDocument();
   });
 });

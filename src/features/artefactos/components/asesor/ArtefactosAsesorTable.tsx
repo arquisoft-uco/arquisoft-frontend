@@ -12,6 +12,8 @@ import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
 import InsigniaOmitido from '../InsigniaOmitido';
 
+import ProyectoConInsignia from '../ProyectoConInsignia';
+
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
@@ -59,7 +61,9 @@ export default function ArtefactosAsesorTable({
       encabezado: 'Proyecto',
       clave: 'nombreProyecto',
       ordenable: true,
-      celda: (artefacto) => <span className={DATO_SECUNDARIO}>{artefacto.nombreProyecto}</span>,
+      celda: (artefacto) => (
+        <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />
+      ),
     },
     {
       id: 'documento',
@@ -125,7 +129,9 @@ export default function ArtefactosAsesorTable({
       tarjeta={(artefacto) => (
         <>
           <p className="font-semibold">{enlaceVersiones(artefacto)}</p>
-          <p className={TARJETA_DATO}>{artefacto.nombreProyecto}</p>
+          <p className={TARJETA_DATO}>
+            <ProyectoConInsignia proyecto={artefacto} />
+          </p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>Versión {artefacto.versionDocumento} del documento</p>
           {artefacto.omitido && <InsigniaOmitido />}

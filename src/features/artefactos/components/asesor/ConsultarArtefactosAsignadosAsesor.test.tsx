@@ -45,6 +45,8 @@ vi.mock('../../../../shared/hooks/useAsesoresVigentes', () => ({
 const consultar = vi.mocked(artefactosService.consultarArtefactosAsesor);
 
 const ARTEFACTO: ArtefactoAsesor = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: '3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',
@@ -81,7 +83,7 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     // Assert
     const tabla = await screen.findByRole('table', { name: 'Artefactos asignados' });
     expect(await within(tabla).findByText('Sistema de riego')).toBeInTheDocument();
-    expect(screen.getByText('1 artefacto')).toBeInTheDocument();
+    expect(screen.getByText('1 artefacto · de proyectos habilitados')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Buscar artefactos' })).toBeEnabled();
   });
 
@@ -196,11 +198,48 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     await waitFor(() =>
       expect(consultar).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filtros: expect.objectContaining({ campo: 'versionDocumento', operador: 'ES' }),
+          filtros: expect.objectContaining({
+            nodos: expect.arrayContaining([
+              expect.objectContaining({ campo: 'versionDocumento', operador: 'ES' }),
+            ]),
+          }),
         }),
       ),
     );
     expect(screen.queryByRole('button', { name: 'Quitar filtro Proyecto: riego' })).toBeNull();
+  });
+
+  it('con estadoProyecto=cancelados envía solo el predicado de cancelados, muestra su resumen y chip, y quitarlo vuelve a habilitados', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarArtefactosAsignadosAsesor />, {
+      initialPath: '/artefactos?estadoProyecto=cancelados',
+    });
+    await screen.findByRole('table', { name: 'Artefactos asignados' });
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: expect.objectContaining({ campo: 'proyectoCancelado', valor: 'true' }),
+      }),
+    );
+    expect(screen.getByText('1 artefacto · de proyectos cancelados')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Quitar filtro Proyecto: Cancelados' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(screen.getByText('1 artefacto · de proyectos habilitados')).toBeInTheDocument(),
+    );
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: expect.objectContaining({
+          nodos: [
+            expect.objectContaining({ campo: 'proyectoFinalizado', valor: 'false' }),
+            expect.objectContaining({ campo: 'proyectoCancelado', valor: 'false' }),
+          ],
+        }),
+      }),
+    );
   });
 
   it('sin coincidencias bajo filtros muestra "Sin resultados" y "Limpiar filtros" los quita', async () => {
@@ -215,7 +254,16 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
 
     // Assert
     await waitFor(() =>
-      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined })),
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filtros: expect.objectContaining({
+            nodos: [
+              expect.objectContaining({ campo: 'proyectoFinalizado', valor: 'false' }),
+              expect.objectContaining({ campo: 'proyectoCancelado', valor: 'false' }),
+            ],
+          }),
+        }),
+      ),
     );
   });
 

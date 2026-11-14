@@ -5,6 +5,7 @@ import { render, screen } from '../../../test-utils/render';
 import { toast } from '../../../shared/hooks/useToast';
 import type { ApiError } from '../../../shared/models/api-response';
 import { RESPUESTA } from '../../../test-utils/respuestas';
+import { TEXTOS_DECISION_COORDINADOR } from '../utils/decisiones-respuesta';
 import ModificarEstadoRespuestaDialog from './ModificarEstadoRespuestaDialog';
 
 vi.mock('../../../shared/hooks/useToast', () => ({
@@ -67,6 +68,28 @@ describe('ModificarEstadoRespuestaDialog', () => {
     const noAprobar = screen.getByRole('dialog');
     expect(noAprobar).toHaveTextContent('¿Marcar como no aprobada?');
     expect(noAprobar).toHaveTextContent('El estudiante recibirá un aviso por correo.');
+  });
+
+  it('con los textos del coordinador nombra al coordinador como destinatario', () => {
+    // Arrange
+    const mutacion = crearMutacion();
+
+    // Act
+    render(
+      <ModificarEstadoRespuestaDialog
+        respuesta={RESPUESTA}
+        nuevoEstado="APROBADA"
+        mutacion={mutacion}
+        textos={TEXTOS_DECISION_COORDINADOR}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    const dialogo = screen.getByRole('dialog');
+    expect(dialogo).toHaveTextContent('Vas a aprobar tu respuesta a Luis Gómez.');
+    expect(dialogo).toHaveTextContent('El coordinador recibirá un aviso por correo.');
+    expect(dialogo).not.toHaveTextContent('El estudiante');
   });
 
   it('al confirmar envía el id de la solicitud, lanza el toast de éxito y cierra', async () => {

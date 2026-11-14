@@ -83,6 +83,8 @@ const ARTEFACTO = {
 };
 
 const VERSION: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-2',
   artefacto: 'a-1',
   version: 2,

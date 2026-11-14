@@ -17,10 +17,7 @@ export interface BaselineArquitectura {
 
 export const BASELINE: BaselineArquitectura = {
   queryKeysFueraDeConvencion: {},
-  tiposInseguros: {
-    'api/axiosInstance.test.ts': 1,
-    'auth/devAuth.ts': 1,
-  },
+  tiposInseguros: {},
   componentesGrandes: {},
   coloresCrudos: {},
   coloresSinToken: {},
@@ -30,12 +27,9 @@ export const BASELINE: BaselineArquitectura = {
   tablasFueraDeDataTable: {},
   textosMenoresA12px: {},
   bloquesJsdoc: {
-    'auth/authStore.ts': 3,
-    'auth/devAuth.ts': 1,
     'auth/keycloak.ts': 4,
     'auth/roleStore.ts': 3,
     'config/env.ts': 1,
-    'guards/AuthGuard.tsx': 1,
     'guards/RoleGuard.tsx': 2,
     'hooks/useHasRole.ts': 1,
     'shared/models/api-response.ts': 3,

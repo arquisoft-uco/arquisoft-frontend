@@ -12,6 +12,7 @@ import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useCerrarRevision } from '../../hooks/useCerrarRevision';
 import { useEnviarRevision } from '../../hooks/useEnviarRevision';
+import { useEliminarRevision } from '../../hooks/useEliminarRevision';
 import { useCambiarEstadoObservacion } from '../../hooks/useCambiarEstadoObservacion';
 import { useRevisionAnterior } from '../../hooks/useRevisionAnterior';
 import { errorApi } from '../../../../test-utils/errores-api';
@@ -52,6 +53,9 @@ vi.mock('../../hooks/useCerrarRevision', () => ({
 vi.mock('../../hooks/useEnviarRevision', () => ({
   useEnviarRevision: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
+vi.mock('../../hooks/useEliminarRevision', () => ({
+  useEliminarRevision: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
 
 const hook = vi.mocked(useObservacionesRevision);
 const mutate = vi.fn();
@@ -86,6 +90,8 @@ const solucionada: ObservacionRevision = {
 };
 
 const VERSION: VersionArtefacto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: 'v-1',
   artefacto: 'a-1',
   version: 4,
@@ -786,6 +792,43 @@ describe('GestionarRevisionPanel', () => {
 
       // Assert
       expect(screen.queryByRole('button', { name: 'Dar por completado' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Eliminar revisión (HU-115)', () => {
+    it('con la revisión editable se ofrece y abre la confirmación sin llamar la mutación', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const eliminar = vi.fn();
+      vi.mocked(useEliminarRevision).mockReturnValue({
+        mutate: eliminar,
+        isPending: false,
+      } as Partial<ReturnType<typeof useEliminarRevision>> as ReturnType<
+        typeof useEliminarRevision
+      >);
+      hook.mockReturnValue(estado({ data: [] }));
+      renderEditable();
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Eliminar revisión' }));
+
+      // Assert
+      expect(
+        screen.getByRole('alertdialog', { name: '¿Eliminar esta revisión?' }),
+      ).toBeInTheDocument();
+      expect(eliminar).not.toHaveBeenCalled();
+    });
+
+    it('en solo lectura no se ofrece', () => {
+      // Arrange
+      hook.mockReturnValue(estado({ data: [] }));
+      simularOmitidos(new Set(['a-1']));
+
+      // Act
+      render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
+
+      // Assert
+      expect(screen.queryByRole('button', { name: 'Eliminar revisión' })).not.toBeInTheDocument();
     });
   });
 });

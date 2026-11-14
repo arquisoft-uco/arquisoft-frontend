@@ -42,6 +42,8 @@ function paginaCon(versiones: VersionArtefacto[]): Page<VersionArtefacto> {
 
 function ultima(artefacto: string, estadoRevision: string | null): VersionArtefacto {
   return {
+    proyectoFinalizado: false,
+    proyectoCancelado: false,
     id: `v-${artefacto}`,
     artefacto,
     version: 3,

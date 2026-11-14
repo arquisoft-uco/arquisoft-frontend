@@ -12,18 +12,43 @@ const vacios: FiltrosArtefactosAsesor = {
   documento: '',
   repositorio: '',
   version: '',
+  estadoProyecto: '',
 };
 
+const HABILITADOS = [
+  { tipo: 'PREDICADO', campo: 'proyectoFinalizado', operador: 'ES', valor: 'false' },
+  { tipo: 'PREDICADO', campo: 'proyectoCancelado', operador: 'ES', valor: 'false' },
+];
+
+function nodosDe(filtros: FiltrosArtefactosAsesor) {
+  return (construirFiltros(filtros) as { nodos: unknown[] }).nodos;
+}
+
 describe('filtros de artefactos asignados del asesor', () => {
-  it('sin texto devuelve undefined', () => {
+  it('sin otros filtros envía solo los dos predicados de proyectos habilitados', () => {
     // Assert
-    expect(construirFiltros(vacios)).toBeUndefined();
-    expect(construirFiltros({ ...vacios, texto: '   ' })).toBeUndefined();
+    const esperado = { tipo: 'GRUPO', conector: 'AND', nodos: HABILITADOS };
+    expect(construirFiltros(vacios)).toEqual(esperado);
+    expect(construirFiltros({ ...vacios, texto: '   ' })).toEqual(esperado);
+  });
+
+  it('finalizados y cancelados reemplazan los dos false por un solo true', () => {
+    // Assert
+    expect(construirFiltros({ ...vacios, estadoProyecto: 'finalizados' })).toEqual({
+      tipo: 'PREDICADO',
+      campo: 'proyectoFinalizado',
+      operador: 'ES',
+      valor: 'true',
+    });
+    expect(nodosDe({ ...vacios, proyecto: 'riego', estadoProyecto: 'cancelados' })).toEqual([
+      { tipo: 'PREDICADO', campo: 'nombreProyecto', operador: 'CONTIENE', valor: 'riego' },
+      { tipo: 'PREDICADO', campo: 'proyectoCancelado', operador: 'ES', valor: 'true' },
+    ]);
   });
 
   it('el texto arma un GRUPO OR de CONTIENE sin nombreAsesor', () => {
     // Act
-    const filtros = construirFiltros({ ...vacios, texto: ' acta ' });
+    const filtros = nodosDe({ ...vacios, texto: ' acta ' })[0];
 
     // Assert
     expect(CAMPOS_BUSQUEDA).not.toContain('nombreAsesor');
@@ -41,13 +66,13 @@ describe('filtros de artefactos asignados del asesor', () => {
 
   it('cada filtro por campo es un predicado suelto y varios se combinan con AND', () => {
     // Assert
-    expect(construirFiltros({ ...vacios, proyecto: ' riego ' })).toEqual({
+    expect(nodosDe({ ...vacios, proyecto: ' riego ' })[0]).toEqual({
       tipo: 'PREDICADO',
       campo: 'nombreProyecto',
       operador: 'CONTIENE',
       valor: 'riego',
     });
-    expect(construirFiltros({ ...vacios, version: '3' })).toMatchObject({
+    expect(nodosDe({ ...vacios, version: '3' })[0]).toMatchObject({
       tipo: 'PREDICADO',
       campo: 'versionDocumento',
       operador: 'ES',
@@ -58,16 +83,17 @@ describe('filtros de artefactos asignados del asesor', () => {
       documento: 'plan',
       repositorio: 'base',
       version: '2',
+      estadoProyecto: '',
     });
     expect(combinado).toMatchObject({ tipo: 'GRUPO', conector: 'AND' });
-    expect((combinado as { nodos: unknown[] }).nodos).toHaveLength(5);
+    expect((combinado as { nodos: unknown[] }).nodos).toHaveLength(7);
     expect(JSON.stringify(combinado)).not.toContain('nombreAsesor');
   });
 
   it('una versión inválida se ignora', () => {
     // Assert
     ['0', 'abc', '-1'].forEach((version) => {
-      expect(construirFiltros({ ...vacios, version })).toBeUndefined();
+      expect(nodosDe({ ...vacios, version })).toEqual(HABILITADOS);
     });
   });
 

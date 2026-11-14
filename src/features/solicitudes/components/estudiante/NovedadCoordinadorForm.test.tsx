@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
+import { useCoordinadoresEstudiante } from '../../../../shared/hooks/useCoordinadoresEstudiante';
 import NovedadCoordinadorForm from './NovedadCoordinadorForm';
 import { useEnviarSolicitudNovedadCoordinador } from '../../hooks/useEnviarSolicitudNovedadCoordinador';
 import { useEnviarSolicitudNovedadAsesor } from '../../hooks/useEnviarSolicitudNovedadAsesor';
@@ -13,7 +14,11 @@ vi.mock('../../hooks/useEnviarSolicitudNovedadAsesor', () => ({
   useEnviarSolicitudNovedadAsesor: vi.fn(),
 }));
 
-const UUID_VALIDO = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+vi.mock('../../../../shared/hooks/useCoordinadoresEstudiante', () => ({
+  useCoordinadoresEstudiante: vi.fn(),
+}));
+
+const COORDINADOR_ID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
 const MENSAJE_VALIDO = 'No he podido contactar a mi asesor.';
 
 type Mutacion = ReturnType<typeof useEnviarSolicitudNovedadCoordinador>;
@@ -44,36 +49,56 @@ describe('NovedadCoordinadorForm', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useCoordinadoresEstudiante).mockReturnValue({
+      data: [
+        {
+          coordinadorId: COORDINADOR_ID,
+          nombre: 'Ana Gómez',
+          proyectoGradoId: 'p1',
+          tituloProyecto: 'Proyecto Uno',
+          identificador: '1',
+          email: 'ana@uco.edu.co',
+        },
+      ],
+      isPending: false,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof useCoordinadoresEstudiante>);
     vi.mocked(useEnviarSolicitudNovedadCoordinador).mockReturnValue(crearMutacionMock(mutate));
   });
 
   it('muestra los textos del coordinador', () => {
+    // Arrange
+    // Act
     render(<NovedadCoordinadorForm />);
 
+    // Assert
     expect(
       screen.getByRole('heading', { name: 'Enviar solicitud de novedad al coordinador' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/Destinatario \(identificador del coordinador\)/),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Coordinador')).toBeInstanceOf(HTMLSelectElement);
     expect(screen.getByPlaceholderText(/reportar al coordinador/)).toBeInTheDocument();
-    expect(screen.getByRole('note', { name: 'No disponible: coordinadores' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('note', { name: 'No disponible: coordinadores' }),
+    ).not.toBeInTheDocument();
   });
 
   it('al confirmar envía con el hook del coordinador y nunca con el del asesor', async () => {
+    // Arrange
     const user = userEvent.setup();
     render(<NovedadCoordinadorForm />);
 
-    await user.click(screen.getByLabelText(/Destinatario/));
-    await user.paste(UUID_VALIDO);
+    // Act
+    await user.selectOptions(screen.getByLabelText('Coordinador'), COORDINADOR_ID);
     await user.click(screen.getByLabelText(/^Mensaje/));
     await user.paste(MENSAJE_VALIDO);
     await user.click(await screen.findByRole('button', { name: 'Enviar solicitud' }));
     expect(screen.getByRole('dialog')).toHaveTextContent('Enviar solicitud al coordinador');
     await user.click(screen.getByRole('button', { name: 'Enviar' }));
 
+    // Assert
     expect(mutate).toHaveBeenCalledWith(
-      { destinatario: UUID_VALIDO, mensajeSolicitud: MENSAJE_VALIDO },
+      { destinatario: COORDINADOR_ID, mensajeSolicitud: MENSAJE_VALIDO },
       expect.anything(),
     );
     expect(useEnviarSolicitudNovedadAsesor).not.toHaveBeenCalled();

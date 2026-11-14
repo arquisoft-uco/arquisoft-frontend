@@ -5,7 +5,7 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { useEvaluacionesCuantitativasJurado } from '../../hooks/useEvaluacionesCuantitativasJurado';
 import { EVALUACION_CUALITATIVA_JURADO_EVALUACION_JURADO_NO_ENCONTRADA } from '../../utils/codigos-error-evaluaciones';
-import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
+import EvaluacionesCuantitativasJuradoTable from '../EvaluacionesCuantitativasJuradoTable';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';

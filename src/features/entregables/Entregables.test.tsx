@@ -124,7 +124,7 @@ describe('Entregables', () => {
     await user.click(await screen.findByRole('button', { name: 'Generar entregable' }));
 
     // Assert
-    expect(await screen.findByText('Aún no tienes proyectos de grado')).toBeInTheDocument();
+    expect(await screen.findByText('Aún no tienes proyectos en curso')).toBeInTheDocument();
     unmount();
 
     // Arrange
