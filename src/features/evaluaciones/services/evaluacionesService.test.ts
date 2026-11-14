@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import apiClient from '../../../api/axiosInstance';
-import { evaluacionesService } from './evaluacionesService';
+import { evaluacionesService, TAMANIO_OBSERVACIONES_ITEM_JURADO } from './evaluacionesService';
 
 vi.mock('../../../api/axiosInstance', () => ({
   default: { get: vi.fn(), patch: vi.fn(), post: vi.fn(), delete: vi.fn() },
@@ -58,6 +58,44 @@ describe('evaluacionesService', () => {
         { descripcion: 'Falta profundidad' },
       );
       expect(resultado).toEqual({ id: 'obs-1' });
+    });
+  });
+
+  describe('getObservacionesItemJurado', () => {
+    it('hace POST a la ruta de la valoración con la página completa y devuelve la página', async () => {
+      // Arrange
+      const pagina = { content: [{ id: 'obs-1', descripcion: 'Texto' }] };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await evaluacionesService.getObservacionesItemJurado('ec-1');
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-jurado/ec-1/observaciones/jurado',
+        { pagina: 0, tamanio: TAMANIO_OBSERVACIONES_ITEM_JURADO },
+      );
+      expect(TAMANIO_OBSERVACIONES_ITEM_JURADO).toBe(100);
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('modificarObservacionItemJurado', () => {
+    it('pone el id en la ruta, manda solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.modificarObservacionItemJurado({
+        observacionId: 'obs-1',
+        descripcion: 'Nuevo texto',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/evaluaciones/observaciones-item-jurado/obs-1', {
+        descripcion: 'Nuevo texto',
+      });
+      expect(resultado).toBeUndefined();
     });
   });
 
