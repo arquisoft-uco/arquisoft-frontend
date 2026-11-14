@@ -1,15 +1,19 @@
-import { FileText, History, RefreshCw } from 'lucide-react';
+import { ClipboardCheck, FileText, History, RefreshCw } from 'lucide-react';
 import { accionDescargar } from '../../../../shared/components/accionDescargar';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 import { proyectoCerrado, puedeDescargarPaquete } from '../../utils/estado-proyecto';
-import { puedeCambiarEstado } from '../../utils/estados-entregable';
+import {
+  ESTADO_DISPONIBLE_EVALUACION,
+  puedeCambiarEstado,
+  puedeHabilitarEvaluacion,
+} from '../../utils/estados-entregable';
 
 interface Props {
   entregable: EntregableProyectoGrado;
   descargando: boolean;
-  onCambiarEstado: (entregable: EntregableProyectoGrado) => void;
+  onCambiarEstado: (entregable: EntregableProyectoGrado, destinoInicial?: string) => void;
   onVerArtefactos: (entregable: EntregableProyectoGrado) => void;
   onVerHistorial: (entregable: EntregableProyectoGrado) => void;
   onDescargarPaquete: (entregable: EntregableProyectoGrado) => void;
@@ -41,6 +45,13 @@ export default function AccionesEntregableAsesor({
     }),
   ];
   if (!proyectoCerrado(entregable)) {
+    if (puedeHabilitarEvaluacion(entregable.estadoEntregable.id)) {
+      acciones.push({
+        etiqueta: 'Habilitar para evaluación',
+        icono: ClipboardCheck,
+        onSeleccionar: () => onCambiarEstado(entregable, ESTADO_DISPONIBLE_EVALUACION),
+      });
+    }
     acciones.push({
       etiqueta: 'Cambiar estado',
       icono: RefreshCw,

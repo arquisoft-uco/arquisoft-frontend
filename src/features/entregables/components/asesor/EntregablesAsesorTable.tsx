@@ -42,7 +42,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoEntregable, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
-  onCambiarEstado: (entregable: EntregableProyectoGrado) => void;
+  onCambiarEstado: (entregable: EntregableProyectoGrado, destinoInicial?: string) => void;
   onVerArtefactos: (entregable: EntregableProyectoGrado) => void;
   onVerHistorial: (entregable: EntregableProyectoGrado) => void;
   onDescargarPaquete: (entregable: EntregableProyectoGrado) => void;
