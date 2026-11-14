@@ -31,6 +31,7 @@ describe('BasicaView', () => {
       '/proyectos-grado',
       '/evaluaciones',
       '/mapas-ruta',
+      '/biblioteca',
       '/solicitudes',
     ]);
     expect(screen.queryByRole('link', { name: /Inicio/ })).not.toBeInTheDocument();

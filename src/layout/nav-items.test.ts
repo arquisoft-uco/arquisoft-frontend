@@ -47,13 +47,26 @@ describe('nav-items', () => {
     expect(agruparNavItems([disponible]).proximamente).toEqual([]);
   });
 
-  it('ROLES_POR_RUTA conserva la restricción de los módulos aún no disponibles', () => {
-    const noDisponibles = NAV_ITEMS.filter((i) => !estaDisponible(i) && i.roles);
+  it('ROLES_POR_RUTA conserva la restricción de todos los módulos con roles', () => {
+    const conRoles = NAV_ITEMS.filter((i) => i.roles);
 
-    expect(noDisponibles.length).toBeGreaterThan(0);
-    noDisponibles.forEach((i) => {
+    expect(conRoles.length).toBeGreaterThan(0);
+    conRoles.forEach((i) => {
       expect(ROLES_POR_RUTA[i.path.slice(1)]).toEqual(i.roles);
     });
+  });
+
+  it('Biblioteca está disponible para el asesor, el bibliotecario, el coordinador y el estudiante, y no para el administrador', () => {
+    // Act
+    const roles = [Rol.Asesor, Rol.Bibliotecario, Rol.Coordinador, Rol.Estudiante];
+
+    // Assert
+    roles.forEach((rol) => {
+      const item = navItemsDelRol(rol).find((i) => i.path === '/biblioteca');
+      expect(item).toBeDefined();
+      expect(estaDisponible(item!)).toBe(true);
+    });
+    expect(navItemsDelRol(Rol.Administrador).map((i) => i.path)).not.toContain('/biblioteca');
   });
 
   it('Seguridad se habilita por capacidad: sin roles, order 11 y visible solo con la capacidad', () => {

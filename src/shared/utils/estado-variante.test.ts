@@ -6,6 +6,7 @@ import {
   varianteEstadoObservacion,
   varianteEstadoObservacionArtefacto,
   varianteEstadoTarea,
+  varianteEstadoDocumentacion,
   varianteEstadoAsesorProyecto,
   varianteEstadoProyecto,
   varianteEstadoRespuesta,
@@ -185,5 +186,16 @@ describe('varianteEstadoTarea', () => {
     expect(varianteEstadoTarea('FINALIZADA')).toBe('exito');
     expect(varianteEstadoTarea('ESTADO_INEXISTENTE')).toBe('neutro');
     expect(varianteEstadoTarea('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoDocumentacion', () => {
+  it('asigna su variante a cada estado de la documentación y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteEstadoDocumentacion('PENDIENTE')).toBe('advertencia');
+    expect(varianteEstadoDocumentacion('PUBLICADO')).toBe('exito');
+    expect(varianteEstadoDocumentacion('NO_PUBLICADO')).toBe('neutro');
+    expect(varianteEstadoDocumentacion('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoDocumentacion('constructor')).toBe('neutro');
   });
 });
