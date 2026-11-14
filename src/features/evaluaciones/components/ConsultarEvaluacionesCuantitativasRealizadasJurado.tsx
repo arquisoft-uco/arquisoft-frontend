@@ -1,7 +1,9 @@
-import { Calculator } from 'lucide-react';
+import { useState } from 'react';
+import { Calculator, MessageSquare } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
+import IconButton from '../../../shared/components/ui/IconButton';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../shared/utils/api-error';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import {
@@ -9,6 +11,7 @@ import {
   EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO,
 } from '../utils/codigos-error-evaluaciones';
 import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
+import ObservacionesEvaluacionCuantitativaPanel from './jurado/ObservacionesEvaluacionCuantitativaPanel';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -41,6 +44,7 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
   onEvaluar,
 }: Props) {
   const { data, isLoading, isError, error, refetch } = consulta;
+  const [seleccionada, setSeleccionada] = useState<EvaluacionCuantitativaJurado | null>(null);
 
   if (isError) {
     const volver = (
@@ -100,7 +104,21 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
         evaluaciones={data ?? []}
         cargando={isLoading}
         vacio={vacio}
+        acciones={(fila) => (
+          <IconButton
+            etiqueta={`Ver observaciones de ${fila.item.nombre}`}
+            rotulo="Ver observaciones"
+            icono={MessageSquare}
+            onClick={() => setSeleccionada(fila)}
+          />
+        )}
       />
+      {seleccionada && (
+        <ObservacionesEvaluacionCuantitativaPanel
+          evaluacion={seleccionada}
+          onCerrar={() => setSeleccionada(null)}
+        />
+      )}
     </div>
   );
 }

@@ -29,6 +29,22 @@ const OTRA_FILA: EvaluacionCuantitativaJurado = {
   item: { ...FILA.item, id: 'i-2', nombre: 'Rigor' },
 };
 
+vi.mock('./jurado/ObservacionesEvaluacionCuantitativaPanel', () => ({
+  default: ({
+    evaluacion,
+    onCerrar,
+  }: {
+    evaluacion: EvaluacionCuantitativaJurado;
+    onCerrar: () => void;
+  }) => (
+    <div role="dialog" aria-label={`Panel de ${evaluacion.item.nombre}`}>
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
 function crearError(status: number, errorCode?: string, message = 'Falla del servidor') {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
     data: { status, errorCode, message },
@@ -82,6 +98,24 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
 
     // Assert
     expect(screen.getByText('2 evaluaciones cuantitativas')).toBeInTheDocument();
+  });
+
+  it('«Ver observaciones» abre el panel del ítem de la fila y «Cerrar panel» lo cierra', async () => {
+    // Arrange
+    montar({ data: [FILA, OTRA_FILA] });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Act
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ver observaciones de Rigor' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Rigor' })).toBeInTheDocument();
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('muestra el estado de carga', () => {
