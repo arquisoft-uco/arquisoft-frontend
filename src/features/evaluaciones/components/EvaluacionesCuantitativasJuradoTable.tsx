@@ -1,9 +1,8 @@
-import { ClipboardList, MessageSquareText } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import type { ReactNode } from 'react';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
-import IconButton from '../../../shared/components/ui/IconButton';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 
 const NOMBRE = 'font-medium text-on-surface';
@@ -41,14 +40,14 @@ interface Props {
   evaluaciones: EvaluacionCuantitativaJurado[];
   cargando: boolean;
   vacio?: ReactNode;
-  onVerObservaciones?: (fila: EvaluacionCuantitativaJurado) => void;
+  acciones?: (fila: EvaluacionCuantitativaJurado) => ReactNode;
 }
 
 export default function EvaluacionesCuantitativasJuradoTable({
   evaluaciones,
   cargando,
   vacio,
-  onVerObservaciones,
+  acciones,
 }: Props) {
   return (
     <DataTable
@@ -57,6 +56,8 @@ export default function EvaluacionesCuantitativasJuradoTable({
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
+      acciones={acciones}
+      encabezadoAcciones={acciones ? 'Acciones' : undefined}
       vacio={
         vacio ?? (
           <EmptyState
@@ -65,17 +66,6 @@ export default function EvaluacionesCuantitativasJuradoTable({
             descripcion="Aparecerán aquí cuando el jurado registre sus puntajes."
           />
         )
-      }
-      acciones={
-        onVerObservaciones &&
-        ((fila) => (
-          <IconButton
-            etiqueta={`Ver observaciones del ítem ${fila.item.nombre}`}
-            icono={MessageSquareText}
-            rotulo="Observaciones"
-            onClick={() => onVerObservaciones(fila)}
-          />
-        ))
       }
       tarjeta={(fila) => (
         <>

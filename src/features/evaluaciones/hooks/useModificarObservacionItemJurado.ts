@@ -3,7 +3,8 @@ import { hasApiErrorCode } from '../../../shared/utils/api-error';
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
 import { evaluacionesService } from '../services/evaluacionesService';
 import { OBSERVACION_ITEM_JURADO_NO_ENCONTRADA } from '../utils/codigos-error-evaluaciones';
-import { OBSERVACIONES_ITEM_JURADO_KEY } from './useObservacionesItemJurado';
+
+const OBSERVACIONES_ITEM_JURADO_KEY = ['evaluaciones', 'jurado', 'observaciones-cuantitativa'];
 
 export function useModificarObservacionItemJurado() {
   const queryClient = useQueryClient();

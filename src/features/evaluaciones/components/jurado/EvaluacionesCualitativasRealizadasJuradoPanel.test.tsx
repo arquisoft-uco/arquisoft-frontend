@@ -9,6 +9,22 @@ vi.mock('../../hooks/useOmitirEvaluacionesCualitativasJurado', () => ({
   useOmitirEvaluacionesCualitativasJurado: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 
+vi.mock('../../hooks/useCambiarCriterioEvaluacionCualitativaJurado', () => ({
+  useCambiarCriterioEvaluacionCualitativaJurado: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
+vi.mock('../../hooks/useCriteriosItemCualitativoJurado', () => ({
+  useCriteriosItemCualitativoJurado: () => ({
+    data: [{ id: 'c-ec-1', nombre: 'Excelente', descripcion: 'Supera lo esperado' }],
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+}));
+
 function fila(id: string, item: string): EvaluacionCualitativaJurado {
   return {
     id,
@@ -47,9 +63,10 @@ describe('EvaluacionesCualitativasRealizadasJuradoPanel', () => {
 
     // Assert
     expect(
-      screen.getByText(/ya fue finalizada; no se pueden omitir valoraciones/),
+      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar valoraciones/),
     ).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Cambiar criterio/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
   });
 
@@ -78,5 +95,17 @@ describe('EvaluacionesCualitativasRealizadasJuradoPanel', () => {
     // Assert
     expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
     expect(screen.getByText('Aún no hay evaluaciones cualitativas')).toBeInTheDocument();
+  });
+
+  it('sin finalizar ofrece «Cambiar criterio» por fila y al pulsarlo abre el panel de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel([CLARIDAD, ORDEN]));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Cambiar criterio del ítem Orden/ })[0]);
+
+    // Assert
+    expect(screen.getByText('Ítem: Orden')).toBeInTheDocument();
   });
 });

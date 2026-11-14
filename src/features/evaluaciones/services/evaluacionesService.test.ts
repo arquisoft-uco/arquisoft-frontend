@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import apiClient from '../../../api/axiosInstance';
-import { evaluacionesService, TAMANIO_OBSERVACIONES_ITEM_JURADO } from './evaluacionesService';
+import { evaluacionesService } from './evaluacionesService';
 
 vi.mock('../../../api/axiosInstance', () => ({
   default: { get: vi.fn(), patch: vi.fn(), post: vi.fn(), delete: vi.fn() },
@@ -61,21 +61,23 @@ describe('evaluacionesService', () => {
     });
   });
 
-  describe('getObservacionesItemJurado', () => {
-    it('hace POST a la ruta de la valoración con la página completa y devuelve la página', async () => {
+  describe('getObservacionesEvaluacionCuantitativaJurado', () => {
+    it('hace POST con el id en la ruta y el criterio como body, y devuelve la página', async () => {
       // Arrange
-      const pagina = { content: [{ id: 'obs-1', descripcion: 'Texto' }] };
+      const pagina = { content: [{ id: 'o-1', descripcion: 'Falta rigor' }], totalElements: 1 };
       post.mockResolvedValue({ status: 200, data: pagina });
 
       // Act
-      const resultado = await evaluacionesService.getObservacionesItemJurado('ec-1');
+      const resultado = await evaluacionesService.getObservacionesEvaluacionCuantitativaJurado(
+        'ec-1',
+        { pagina: 1, tamanio: 10 },
+      );
 
       // Assert
       expect(post).toHaveBeenCalledWith(
         '/evaluaciones/evaluaciones-cuantitativas-jurado/ec-1/observaciones/jurado',
-        { pagina: 0, tamanio: TAMANIO_OBSERVACIONES_ITEM_JURADO },
+        { pagina: 1, tamanio: 10 },
       );
-      expect(TAMANIO_OBSERVACIONES_ITEM_JURADO).toBe(100);
       expect(resultado).toEqual(pagina);
     });
   });
@@ -139,6 +141,26 @@ describe('evaluacionesService', () => {
       expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/ej-1/cualitativas', {
         data: { evaluaciones: ['ec-1', 'ec-2'] },
       });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('cambiarCriterioEvaluacionCualitativaJurado', () => {
+    it('llama PATCH con el id de la evaluación cualitativa y traduce criterioId a { criterio }', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.cambiarCriterioEvaluacionCualitativaJurado({
+        evaluacionCualitativaJuradoId: 'ec-1',
+        criterioId: 'crit-2',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cualitativas-jurado/ec-1/criterio',
+        { criterio: 'crit-2' },
+      );
       expect(resultado).toBeUndefined();
     });
   });

@@ -10,8 +10,10 @@ import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativ
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
+import type { CambiarCriterioEvaluacionCualitativaJuradoRequest } from '../models/CambiarCriterioEvaluacionCualitativaJuradoRequest';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
+import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
@@ -38,7 +40,6 @@ interface JuradoVigenteResponseDTO {
 }
 
 export const TAMANIO_PAGINA_JURADOS = 10;
-export const TAMANIO_OBSERVACIONES_ITEM_JURADO = 100;
 
 function construirFiltrosJurados(texto: string): NodoFiltroDTO {
   const estadoActivo: NodoFiltroDTO = {
@@ -60,6 +61,11 @@ function construirFiltrosJurados(texto: string): NodoFiltroDTO {
 }
 
 export const evaluacionesService = {
+  getItemsCualitativosAsesor: (): Promise<ItemCualitativoAsesor[]> =>
+    apiClient
+      .get<ItemCualitativoAsesor[]>('/evaluaciones/items-cualitativos-asesor')
+      .then((r) => r.data),
+
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
     apiClient
       .get<ItemCualitativoJurado[]>('/evaluaciones/items-cualitativos-jurado')
@@ -114,6 +120,17 @@ export const evaluacionesService = {
       .patch<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`, { descripcion })
       .then(() => undefined),
 
+  cambiarCriterioEvaluacionCualitativaJurado: ({
+    evaluacionCualitativaJuradoId,
+    criterioId,
+  }: CambiarCriterioEvaluacionCualitativaJuradoRequest): Promise<void> =>
+    apiClient
+      .patch<void>(
+        `/evaluaciones/evaluaciones-cualitativas-jurado/${evaluacionCualitativaJuradoId}/criterio`,
+        { criterio: criterioId },
+      )
+      .then(() => undefined),
+
   removerItemCualitativoJurado: (itemId: string): Promise<void> =>
     apiClient
       .delete<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`)
@@ -137,6 +154,9 @@ export const evaluacionesService = {
 
   getEvaluacionesEstudiante: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
     apiClient.post<Page<Evaluacion>>('/evaluaciones/estudiante', req).then((r) => r.data),
+
+  getEvaluacionesAsesor: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
+    apiClient.post<Page<Evaluacion>>('/evaluaciones/asesor', req).then((r) => r.data),
 
   getJuradosEvaluacion: (
     evaluacionId: string,
@@ -259,13 +279,14 @@ export const evaluacionesService = {
       )
       .then((r) => r.data),
 
-  getObservacionesItemJurado: (
+  getObservacionesEvaluacionCuantitativaJurado: (
     evaluacionCuantitativaJuradoId: string,
+    req: ConsultaCriteriaRequest,
   ): Promise<Page<ObservacionItemJurado>> =>
     apiClient
       .post<
         Page<ObservacionItemJurado>
-      >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/jurado`, { pagina: 0, tamanio: TAMANIO_OBSERVACIONES_ITEM_JURADO })
+      >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/jurado`, req)
       .then((r) => r.data),
 
   modificarObservacionItemJurado: ({

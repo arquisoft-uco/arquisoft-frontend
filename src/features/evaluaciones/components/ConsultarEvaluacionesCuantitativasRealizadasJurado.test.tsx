@@ -10,15 +10,6 @@ import {
 } from '../utils/codigos-error-evaluaciones';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
-import { useObservacionesItemJurado } from '../hooks/useObservacionesItemJurado';
-import { useModificarObservacionItemJurado } from '../hooks/useModificarObservacionItemJurado';
-
-vi.mock('../hooks/useObservacionesItemJurado', () => ({
-  useObservacionesItemJurado: vi.fn(),
-}));
-vi.mock('../hooks/useModificarObservacionItemJurado', () => ({
-  useModificarObservacionItemJurado: vi.fn(),
-}));
 
 const OBSERVACION: ObservacionItemJurado = { id: 'obs-1', descripcion: 'Falta profundidad' };
 
@@ -40,6 +31,50 @@ const OTRA_FILA: EvaluacionCuantitativaJurado = {
   puntaje: 10,
   item: { ...FILA.item, id: 'i-2', nombre: 'Rigor' },
 };
+
+vi.mock('./jurado/ObservacionesEvaluacionCuantitativaPanel', () => ({
+  default: ({
+    evaluacion,
+    puedeModificar,
+    onModificar,
+    onCerrar,
+  }: {
+    evaluacion: EvaluacionCuantitativaJurado;
+    puedeModificar?: boolean;
+    onModificar?: (observacion: ObservacionItemJurado) => void;
+    onCerrar: () => void;
+  }) => (
+    <div role="dialog" aria-label={`Panel de ${evaluacion.item.nombre}`}>
+      {puedeModificar && (
+        <button type="button" onClick={() => onModificar?.(OBSERVACION)}>
+          Modificar observación
+        </button>
+      )}
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('./jurado/ModificarObservacionItemJuradoPanel', () => ({
+  default: ({
+    observacion,
+    nombreItem,
+    onCerrar,
+  }: {
+    observacion: ObservacionItemJurado;
+    nombreItem: string;
+    onCerrar: () => void;
+  }) => (
+    <div role="dialog" aria-label={`Edición de ${nombreItem}`}>
+      <p>{observacion.descripcion}</p>
+      <button type="button" onClick={onCerrar}>
+        Cancelar edición
+      </button>
+    </div>
+  ),
+}));
 
 function crearError(status: number, errorCode?: string, message = 'Falla del servidor') {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
@@ -82,31 +117,6 @@ function montar(
 describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useObservacionesItemJurado).mockReturnValue({
-      data: {
-        content: [OBSERVACION],
-        page: 0,
-        size: 100,
-        totalElements: 1,
-        totalPages: 1,
-        first: true,
-        last: true,
-        empty: false,
-      },
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-    } as Partial<ReturnType<typeof useObservacionesItemJurado>> as ReturnType<
-      typeof useObservacionesItemJurado
-    >);
-    vi.mocked(useModificarObservacionItemJurado).mockReturnValue({
-      isPending: false,
-      mutate: vi.fn(),
-      reset: vi.fn(),
-    } as Partial<ReturnType<typeof useModificarObservacionItemJurado>> as ReturnType<
-      typeof useModificarObservacionItemJurado
-    >);
   });
 
   it('lista ítem y puntaje de valor máximo y anuncia el total en singular y plural', () => {
@@ -124,6 +134,24 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
 
     // Assert
     expect(screen.getByText('2 evaluaciones cuantitativas')).toBeInTheDocument();
+  });
+
+  it('«Ver observaciones» abre el panel del ítem de la fila y «Cerrar panel» lo cierra', async () => {
+    // Arrange
+    montar({ data: [FILA, OTRA_FILA] });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Act
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ver observaciones de Rigor' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Rigor' })).toBeInTheDocument();
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('muestra el estado de carga', () => {
@@ -193,33 +221,24 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('la acción de fila abre la lectura, «Modificar observación» abre la edición y cancelar vuelve a la lectura', async () => {
+  it('«Modificar observación» abre la edición de la observación y cancelar vuelve a la lectura', async () => {
     // Arrange
     const user = userEvent.setup();
     montar({ data: [FILA] });
-
-    // Act
-    await user.click(
-      screen.getAllByRole('button', { name: 'Ver observaciones del ítem Claridad' })[0],
-    );
-
-    // Assert
-    expect(screen.getByRole('dialog', { name: /Observaciones del ítem/ })).toBeInTheDocument();
-    expect(screen.getByText(OBSERVACION.descripcion)).toBeInTheDocument();
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Modificar observación' }));
 
     // Assert
-    expect(screen.getByRole('dialog', { name: /Modificar observación/ })).toBeInTheDocument();
-    expect(screen.getByLabelText('Observación')).toHaveValue(OBSERVACION.descripcion);
+    expect(screen.getByRole('dialog', { name: 'Edición de Claridad' })).toBeInTheDocument();
+    expect(screen.getByText(OBSERVACION.descripcion)).toBeInTheDocument();
 
     // Act
-    const cerrar = screen.getAllByRole('button', { name: 'Cerrar' });
-    await user.click(cerrar[cerrar.length - 1]);
+    await user.click(screen.getByRole('button', { name: 'Cancelar edición' }));
 
     // Assert
-    expect(screen.getByRole('dialog', { name: /Observaciones del ítem/ })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
   });
 
   it('con la evaluación finalizada la lectura no ofrece «Modificar observación»', async () => {
@@ -228,12 +247,10 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     montar({ data: [FILA] }, false, true);
 
     // Act
-    await user.click(
-      screen.getAllByRole('button', { name: 'Ver observaciones del ítem Claridad' })[0],
-    );
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
 
     // Assert
-    expect(screen.getByText(OBSERVACION.descripcion)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Modificar observación' })).not.toBeInTheDocument();
   });
 });

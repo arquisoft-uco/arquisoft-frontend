@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Calculator } from 'lucide-react';
+import { Calculator, MessageSquare } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
+import IconButton from '../../../shared/components/ui/IconButton';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../shared/utils/api-error';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import {
@@ -11,8 +12,8 @@ import {
 } from '../utils/codigos-error-evaluaciones';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import ModificarObservacionItemJuradoPanel from './jurado/ModificarObservacionItemJuradoPanel';
-import ObservacionesItemJuradoPanel from './jurado/ObservacionesItemJuradoPanel';
 import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
+import ObservacionesEvaluacionCuantitativaPanel from './jurado/ObservacionesEvaluacionCuantitativaPanel';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -115,11 +116,18 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
         evaluaciones={data ?? []}
         cargando={isLoading}
         vacio={vacio}
-        onVerObservaciones={(valoracion) => setPanel({ tipo: 'lectura', valoracion })}
+        acciones={(fila) => (
+          <IconButton
+            etiqueta={`Ver observaciones de ${fila.item.nombre}`}
+            rotulo="Ver observaciones"
+            icono={MessageSquare}
+            onClick={() => setPanel({ tipo: 'lectura', valoracion: fila })}
+          />
+        )}
       />
       {panel?.tipo === 'lectura' && (
-        <ObservacionesItemJuradoPanel
-          valoracion={panel.valoracion}
+        <ObservacionesEvaluacionCuantitativaPanel
+          evaluacion={panel.valoracion}
           puedeModificar={!evaluacionFinalizada}
           onModificar={(observacion) =>
             setPanel({ tipo: 'edicion', valoracion: panel.valoracion, observacion })

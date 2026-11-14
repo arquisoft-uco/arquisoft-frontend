@@ -20,7 +20,7 @@ const request: ModificarObservacionItemJuradoRequest = {
   descripcion: 'Nuevo texto',
 };
 
-const KEY = { queryKey: ['evaluaciones', 'jurado', 'observaciones-item'] };
+const KEY = { queryKey: ['evaluaciones', 'jurado', 'observaciones-cuantitativa'] };
 
 function crearContexto() {
   const queryClient = new QueryClient({
