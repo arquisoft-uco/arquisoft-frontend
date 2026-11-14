@@ -10,6 +10,7 @@ import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativ
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
+import type { CambiarCriterioEvaluacionCualitativaJuradoRequest } from '../models/CambiarCriterioEvaluacionCualitativaJuradoRequest';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
@@ -115,6 +116,17 @@ export const evaluacionesService = {
   }: ModificarItemCualitativoJuradoRequest): Promise<void> =>
     apiClient
       .patch<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`, { descripcion })
+      .then(() => undefined),
+
+  cambiarCriterioEvaluacionCualitativaJurado: ({
+    evaluacionCualitativaJuradoId,
+    criterioId,
+  }: CambiarCriterioEvaluacionCualitativaJuradoRequest): Promise<void> =>
+    apiClient
+      .patch<void>(
+        `/evaluaciones/evaluaciones-cualitativas-jurado/${evaluacionCualitativaJuradoId}/criterio`,
+        { criterio: criterioId },
+      )
       .then(() => undefined),
 
   removerItemCualitativoJurado: (itemId: string): Promise<void> =>

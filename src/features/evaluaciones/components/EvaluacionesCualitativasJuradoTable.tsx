@@ -1,7 +1,8 @@
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, Pencil } from 'lucide-react';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
+import IconButton from '../../../shared/components/ui/IconButton';
 import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
 import CasillaEvaluacionCualitativa from './CasillaEvaluacionCualitativa';
 
@@ -43,12 +44,14 @@ interface Props {
   evaluaciones: EvaluacionCualitativaJurado[];
   cargando: boolean;
   seleccion?: SeleccionCualitativas;
+  onCambiarCriterio?: (fila: EvaluacionCualitativaJurado) => void;
 }
 
 export default function EvaluacionesCualitativasJuradoTable({
   evaluaciones,
   cargando,
   seleccion,
+  onCambiarCriterio,
 }: Props) {
   const casilla = (fila: EvaluacionCualitativaJurado) =>
     seleccion ? (
@@ -69,6 +72,19 @@ export default function EvaluacionesCualitativasJuradoTable({
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
+      acciones={
+        onCambiarCriterio &&
+        ((fila) => (
+          <div className="flex shrink-0 items-center justify-end gap-1">
+            <IconButton
+              etiqueta={`Cambiar criterio del ítem ${fila.item.nombre}`}
+              icono={Pencil}
+              rotulo="Cambiar criterio"
+              onClick={() => onCambiarCriterio(fila)}
+            />
+          </div>
+        ))
+      }
       vacio={
         <EmptyState
           icono={ClipboardList}

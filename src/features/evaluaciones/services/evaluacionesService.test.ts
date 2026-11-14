@@ -105,6 +105,26 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('cambiarCriterioEvaluacionCualitativaJurado', () => {
+    it('llama PATCH con el id de la evaluación cualitativa y traduce criterioId a { criterio }', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.cambiarCriterioEvaluacionCualitativaJurado({
+        evaluacionCualitativaJuradoId: 'ec-1',
+        criterioId: 'crit-2',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cualitativas-jurado/ec-1/criterio',
+        { criterio: 'crit-2' },
+      );
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarItemCualitativoJurado', () => {
     it('llama PATCH con el itemId en la ruta y solo { descripcion } en el body, y resuelve undefined', async () => {
       // Arrange
