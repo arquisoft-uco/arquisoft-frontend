@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../shared/components/PaginadorListado';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useDocumentaciones } from '../hooks/useDocumentaciones';
 import { useEstadosDocumentacion } from '../hooks/useEstadosDocumentacion';
+import type { Documentacion } from '../models/Documentacion';
+import AutoresDocumentacionPanel from './AutoresDocumentacionPanel';
 import DocumentacionesTable from './DocumentacionesTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -16,9 +19,14 @@ function textoResumen(total?: number): string {
 
 interface Props {
   puedeFiltrarPorEstado: boolean;
+  puedeVerAutores: boolean;
 }
 
-export default function ConsultarDocumentaciones({ puedeFiltrarPorEstado }: Props) {
+export default function ConsultarDocumentaciones({
+  puedeFiltrarPorEstado,
+  puedeVerAutores,
+}: Props) {
+  const [verAutoresDe, setVerAutoresDe] = useState<Documentacion | null>(null);
   const listado = useDocumentaciones(puedeFiltrarPorEstado);
   const { data: estados } = useEstadosDocumentacion(puedeFiltrarPorEstado);
 
@@ -63,6 +71,7 @@ export default function ConsultarDocumentaciones({ puedeFiltrarPorEstado }: Prop
             orden={{ clave: 'fechaPublicacion', direccion: listado.ordenDireccion }}
             onOrdenar={(_campo, direccion) => listado.setOrden(direccion)}
             onLimpiarFiltros={listado.limpiarFiltros}
+            onVerAutores={puedeVerAutores ? setVerAutoresDe : undefined}
           />
         )}
       </div>
@@ -76,6 +85,13 @@ export default function ConsultarDocumentaciones({ puedeFiltrarPorEstado }: Prop
           cantidadEnPagina={documentaciones.length}
           etiquetaPlural="documentaciones"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {verAutoresDe && (
+        <AutoresDocumentacionPanel
+          documentacion={verAutoresDe}
+          onCerrar={() => setVerAutoresDe(null)}
         />
       )}
     </div>

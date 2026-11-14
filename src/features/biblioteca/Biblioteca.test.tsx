@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Route, Routes } from 'react-router';
-import { render, screen } from '../../test-utils/render';
+import { render, screen, within } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
 import Biblioteca from './Biblioteca';
@@ -12,15 +12,24 @@ vi.mock('./services/bibliotecaService', () => ({
       { id: 'PUBLICADO', nombre: 'Publicado', descripcion: '' },
     ]),
     consultarDocumentaciones: vi.fn().mockResolvedValue({
-      content: [],
+      content: [
+        {
+          id: 'd-1',
+          fechaPublicacion: '2026-11-01T10:00:00Z',
+          entregableProyectoGrado: { id: 'e-1', versionEntregable: 2 },
+          bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },
+          estadoDocumentacion: { id: 'PUBLICADO', nombre: 'Publicado' },
+        },
+      ],
       page: 0,
       size: 10,
-      totalElements: 0,
-      totalPages: 0,
+      totalElements: 1,
+      totalPages: 1,
       first: true,
       last: true,
-      empty: true,
+      empty: false,
     }),
+    consultarAutoresDocumentacion: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -71,7 +80,7 @@ describe('Biblioteca', () => {
       expect(
         await screen.findByRole('heading', { level: 1, name: 'Biblioteca' }),
       ).toBeInTheDocument();
-      expect(await screen.findByText('Aún no hay documentaciones')).toBeInTheDocument();
+      expect(await screen.findByRole('table', { name: 'Documentaciones' })).toBeInTheDocument();
     },
   );
 
@@ -105,7 +114,38 @@ describe('Biblioteca', () => {
     renderizar();
 
     // Assert
-    await screen.findByText('Aún no hay documentaciones');
+    await screen.findByRole('table', { name: 'Documentaciones' });
     expect(screen.queryByRole('group', { name: 'Estado' })).not.toBeInTheDocument();
   });
+
+  it('solo el bibliotecario ve la acción "Ver autores"', async () => {
+    // Arrange
+    entrarComo(Rol.Bibliotecario);
+
+    // Act
+    renderizar();
+
+    // Assert
+    const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+    expect(
+      tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    ).toBeInTheDocument();
+  });
+
+  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante])(
+    'el rol %s no ve la acción "Ver autores"',
+    async (rol) => {
+      // Arrange
+      entrarComo(rol);
+
+      // Act
+      renderizar();
+
+      // Assert
+      await screen.findByRole('table', { name: 'Documentaciones' });
+      expect(
+        screen.queryByRole('button', { name: /Acciones de la documentación/ }),
+      ).not.toBeInTheDocument();
+    },
+  );
 });
