@@ -3,10 +3,15 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
 import ItemsCualitativosAsesorView from './ItemsCualitativosAsesorView';
 import { useItemsCualitativosAsesor } from '../hooks/useItemsCualitativosAsesor';
+import { useCriteriosItemCualitativoAsesor } from '../hooks/useCriteriosItemCualitativoAsesor';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 
 vi.mock('../hooks/useItemsCualitativosAsesor', () => ({
   useItemsCualitativosAsesor: vi.fn(),
+}));
+
+vi.mock('../hooks/useCriteriosItemCualitativoAsesor', () => ({
+  useCriteriosItemCualitativoAsesor: vi.fn(),
 }));
 
 const ITEMS: ItemCualitativoAsesor[] = [
@@ -28,6 +33,32 @@ function mockConsulta(parcial: Partial<ReturnType<typeof useItemsCualitativosAse
 describe('ItemsCualitativosAsesorView', () => {
   beforeEach(() => {
     vi.mocked(useItemsCualitativosAsesor).mockReset();
+    vi.mocked(useCriteriosItemCualitativoAsesor).mockReset();
+    const parcial: Partial<ReturnType<typeof useCriteriosItemCualitativoAsesor>> = {
+      data: [{ id: 'c-1', nombre: 'Aplicabilidad', descripcion: 'Resuelve un problema real.' }],
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    };
+    vi.mocked(useCriteriosItemCualitativoAsesor).mockReturnValue({
+      ...parcial,
+    } as ReturnType<typeof useCriteriosItemCualitativoAsesor>);
+  });
+
+  it('el panel de criterios solo se abre al pulsar «Ver criterios»', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    const user = userEvent.setup();
+    render(<ItemsCualitativosAsesorView />);
+    expect(screen.queryByText('Criterios de los ítems')).toBeNull();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Ver criterios' }));
+
+    // Assert
+    expect(screen.getByText('Criterios de los ítems')).toBeInTheDocument();
+    expect(screen.getByText('Aplicabilidad')).toBeInTheDocument();
   });
 
   it('mientras carga, muestra el skeleton accesible', () => {
