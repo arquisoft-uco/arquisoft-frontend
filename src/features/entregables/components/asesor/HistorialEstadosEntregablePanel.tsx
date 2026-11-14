@@ -4,10 +4,10 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import LineaTiempo from '../../../../shared/components/ui/LineaTiempo';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { varianteEstadoEntregable } from '../../../../shared/utils/estado-variante';
 import { useHistorialEstadosEntregable } from '../../hooks/useHistorialEstadosEntregable';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
+import { mensajeErrorConsultaEntregable } from '../../utils/errores-entregable';
 
 interface Props {
   entregable: EntregableProyectoGrado;
@@ -24,7 +24,7 @@ export default function HistorialEstadosEntregablePanel({ entregable, onCerrar }
       return (
         <ErrorState
           titulo="No se pudo cargar el historial de estados"
-          descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
+          descripcion={mensajeErrorConsultaEntregable(error)}
           onReintentar={() => void refetch()}
         />
       );

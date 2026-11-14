@@ -32,6 +32,7 @@ function artefacto(n: number): ArtefactoEntregable {
     id: `id-${n}`,
     entregableProyectoGrado: 'uuid-entregable',
     versionArtefacto: 'uuid-version',
+    numeroVersion: n,
     uriArchivo: `docs/archivo-${n}.pdf`,
     artefacto: 'uuid-artefacto',
     versionRepositorioArtefacto: 'uuid-vrepo',
@@ -95,8 +96,38 @@ describe('ArtefactosEntregablePanel', () => {
     renderizar();
 
     // Assert
-    expect(screen.getByText('Este entregable aún no tiene artefactos')).toBeInTheDocument();
+    expect(screen.getByText('Este entregable no tiene documentos')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('con lista vacía sugiere cancelar solo cuando el entregable está nuevo', () => {
+    // Arrange
+    const sugerencia = 'Puedes cancelarlo desde la lista de entregables y generar uno nuevo.';
+    consulta({ data: [] });
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.queryByText(sugerencia)).not.toBeInTheDocument();
+
+    // Act
+    renderizar(vi.fn(), { ...ENTREGABLE, estadoEntregable: { id: 'NUEVO', nombre: 'Nuevo' } });
+
+    // Assert
+    expect(screen.getByText(sugerencia)).toBeInTheDocument();
+  });
+
+  it('muestra la versión de cada artefacto del entregable', () => {
+    // Arrange
+    consulta({ data: [artefacto(1), artefacto(2)] });
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Versión 1')).toBeInTheDocument();
+    expect(screen.getByText('Versión 2')).toBeInTheDocument();
   });
 
   it('mientras carga muestra el esqueleto accesible', () => {

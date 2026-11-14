@@ -19,7 +19,7 @@ const mutate = vi.fn();
 const refetch = vi.fn();
 
 const CATALOGO = [
-  { id: 'EN_EVALUACION', nombre: 'En evaluación', descripcion: 'Evaluando' },
+  { id: 'DISPONIBLE_EVALUACION', nombre: 'Disponible para evaluación', descripcion: 'Se habilita' },
   { id: 'CANCELADO', nombre: 'Cancelado', descripcion: 'Se cancela' },
   { id: 'CERRADO', nombre: 'Cerrado', descripcion: 'Se cierra' },
 ];
@@ -53,7 +53,7 @@ describe('CambiarEstadoEntregablePanel', () => {
     cambiarMock.mockReturnValue({ mutate, isPending: false } as never);
   });
 
-  it('muestra el entregable y solo las opciones Cancelado y Cerrado', () => {
+  it('muestra el entregable con Cerrado habilitado y Cancelado bloqueado', () => {
     // Arrange
     catalogo({ data: CATALOGO });
 
@@ -68,26 +68,61 @@ describe('CambiarEstadoEntregablePanel', () => {
     // Assert
     expect(screen.getByText('Sistema de riego')).toBeInTheDocument();
     expect(screen.getByText('Versión 3')).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeDisabled();
     expect(screen.getByRole('radio', { name: 'Cerrado' })).toBeEnabled();
-    expect(screen.queryByRole('radio', { name: 'En evaluación' })).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Disponible para evaluación' })).toBeDisabled();
   });
 
-  it('deshabilita Cerrado cuando el entregable no está aprobado y deja Cancelado', () => {
+  it('deshabilita Cerrado y deja Cancelado y Habilitar cuando el entregable es nuevo', () => {
+    // Arrange
+    catalogo({ data: CATALOGO });
+
+    // Act
+    render(
+      <CambiarEstadoEntregablePanel entregable={entregable('NUEVO', 'Nuevo')} onCerrar={vi.fn()} />,
+    );
+
+    // Assert
+    expect(screen.getByRole('radio', { name: 'Cerrado' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: 'Disponible para evaluación' })).toBeEnabled();
+  });
+
+  it('desde disponible para evaluación o en evaluación ninguna opción es seleccionable', () => {
+    // Arrange
+    catalogo({ data: CATALOGO });
+    const origenes = [
+      ['DISPONIBLE_EVALUACION', 'Disponible para evaluación'],
+      ['EN_EVALUACION', 'En evaluación'],
+    ];
+
+    for (const [id, nombre] of origenes) {
+      // Act
+      const { unmount } = render(
+        <CambiarEstadoEntregablePanel entregable={entregable(id, nombre)} onCerrar={vi.fn()} />,
+      );
+
+      // Assert
+      for (const radio of screen.getAllByRole('radio')) expect(radio).toBeDisabled();
+      unmount();
+    }
+  });
+
+  it('preselecciona el destino inicial cuando está permitido', () => {
     // Arrange
     catalogo({ data: CATALOGO });
 
     // Act
     render(
       <CambiarEstadoEntregablePanel
-        entregable={entregable('EN_EVALUACION', 'En evaluación')}
+        entregable={entregable('NUEVO', 'Nuevo')}
+        destinoInicial="DISPONIBLE_EVALUACION"
         onCerrar={vi.fn()}
       />,
     );
 
     // Assert
-    expect(screen.getByRole('radio', { name: 'Cerrado' })).toBeDisabled();
-    expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: 'Disponible para evaluación' })).toBeChecked();
   });
 
   it('habilita Cerrado y Cancelado cuando el entregable está rechazado', () => {
@@ -187,12 +222,12 @@ describe('CambiarEstadoEntregablePanel', () => {
     );
 
     // Act
-    await user.click(screen.getByRole('radio', { name: 'Cancelado' }));
+    await user.click(screen.getByRole('radio', { name: 'Cerrado' }));
     await user.click(botonEnviar());
 
     // Assert
     expect(toast.error).toHaveBeenCalledWith('No se pudo cambiar el estado', expect.any(String));
     expect(onCerrar).not.toHaveBeenCalled();
-    expect(screen.getByRole('radio', { name: 'Cancelado' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Cerrado' })).toBeChecked();
   });
 });

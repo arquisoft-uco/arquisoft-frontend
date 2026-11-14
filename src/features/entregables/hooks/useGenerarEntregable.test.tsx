@@ -42,9 +42,13 @@ describe('useGenerarEntregable', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(generar).toHaveBeenCalledWith('p-1');
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['entregables', 'asesor'] });
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['entregables', 'proyectos-con-entregable-vigente'],
+    });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['entregables', 'vista-previa-paquete'] });
   });
 
-  it('no invalida nada cuando el service rechaza', async () => {
+  it('invalida también cuando el service rechaza', async () => {
     // Arrange
     generar.mockRejectedValue(new Error('422'));
     const { Wrapper, invalidar } = crearContexto();
@@ -55,6 +59,6 @@ describe('useGenerarEntregable', () => {
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(invalidar).not.toHaveBeenCalled();
+    await waitFor(() => expect(invalidar).toHaveBeenCalledTimes(3));
   });
 });

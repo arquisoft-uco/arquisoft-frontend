@@ -22,6 +22,7 @@ vi.mock('./services/entregablesService', () => ({
   entregablesService: {
     getEstadosEntregable: vi.fn().mockResolvedValue([]),
     consultarProyectosAsesor: vi.fn().mockResolvedValue([]),
+    consultarProyectosConEntregableVigente: vi.fn().mockResolvedValue([]),
     consultarEntregablesJurado: vi.fn().mockResolvedValue({
       content: [],
       page: 0,

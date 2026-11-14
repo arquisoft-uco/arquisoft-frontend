@@ -80,6 +80,7 @@ const VARIANTE_OBSERVACION_ARTEFACTO: TablaDeVariantes = {
 };
 
 const VARIANTE_ENTREGABLE: TablaDeVariantes = {
+  NUEVO: 'info',
   DISPONIBLE_EVALUACION: 'advertencia',
   EN_EVALUACION: 'info',
   APROBADO_CON_OBSERVACIONES: 'advertencia',

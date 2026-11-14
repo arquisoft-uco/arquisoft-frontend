@@ -127,6 +127,34 @@ describe('EntregablesAsesorTable', () => {
     expect(screen.getByRole('menuitem', { name: 'Cambiar estado' })).toBeDisabled();
   });
 
+  it('ofrece "Habilitar para evaluación" solo en un entregable nuevo y pasa el destino', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const nuevo: EntregableProyectoGrado = {
+      ...ENTREGABLE_2,
+      id: 'e-4',
+      proyectoGrado: { id: 'p-4', nombre: 'Proyecto nuevo' },
+      estadoEntregable: { id: 'NUEVO', nombre: 'Nuevo' },
+    };
+    const { onCambiarEstado } = renderizar({ entregables: [nuevo, ENTREGABLE_2] });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: /Acciones del entregable de Proyecto nuevo/ }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Habilitar para evaluación' }));
+    await user.click(
+      tabla().getByRole('button', { name: /Acciones del entregable de Monitoreo de aire/ }),
+    );
+
+    // Assert
+    expect(onCambiarEstado).toHaveBeenCalledWith(nuevo, 'DISPONIBLE_EVALUACION');
+    expect(
+      screen.queryByRole('menuitem', { name: 'Habilitar para evaluación' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Cambiar estado' })).toBeDisabled();
+  });
+
   it('ofrece "Ver artefactos" en cualquier entregable, incluso uno cerrado', async () => {
     // Arrange
     const user = userEvent.setup();
