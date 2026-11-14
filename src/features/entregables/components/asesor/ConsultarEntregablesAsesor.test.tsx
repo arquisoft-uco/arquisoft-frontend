@@ -265,13 +265,13 @@ describe('ConsultarEntregablesAsesor', () => {
 
     // Assert
     expect(useArtefactosEntregable).toHaveBeenCalledWith('e-1');
-    expect(screen.getByText('Este entregable aún no tiene artefactos')).toBeInTheDocument();
+    expect(screen.getByText('Este entregable no tiene documentos')).toBeInTheDocument();
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
 
     // Assert
-    expect(screen.queryByText('Este entregable aún no tiene artefactos')).not.toBeInTheDocument();
+    expect(screen.queryByText('Este entregable no tiene documentos')).not.toBeInTheDocument();
   });
 
   it('"Descargar paquete" pide la descarga del entregable de la fila', async () => {

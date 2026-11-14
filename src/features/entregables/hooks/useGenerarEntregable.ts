@@ -6,8 +6,12 @@ export function useGenerarEntregable() {
 
   return useMutation({
     mutationFn: (proyectoGradoId: string) => entregablesService.generarEntregable(proyectoGradoId),
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['entregables', 'asesor'] });
+      queryClient.invalidateQueries({
+        queryKey: ['entregables', 'proyectos-con-entregable-vigente'],
+      });
+      queryClient.invalidateQueries({ queryKey: ['entregables', 'vista-previa-paquete'] });
     },
   });
 }

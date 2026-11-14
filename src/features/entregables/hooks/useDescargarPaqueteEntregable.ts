@@ -1,8 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from '../../../shared/hooks/useToast';
-import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { iniciarDescarga } from '../../../shared/utils/iniciar-descarga';
 import { entregablesService } from '../services/entregablesService';
+import { mensajeErrorDescargarPaquete } from '../utils/errores-entregable';
 
 interface EntregableDescargable {
   id: string;
@@ -17,10 +17,7 @@ export function useDescargarPaqueteEntregable() {
       toast.success('Descarga iniciada', `Paquete de la versión ${versionEntregable}`);
     },
     onError: (err) => {
-      toast.error(
-        'No se pudo descargar el paquete',
-        getApiErrorMessage(err, 'Inténtalo de nuevo.'),
-      );
+      toast.error('No se pudo descargar el paquete', mensajeErrorDescargarPaquete(err));
     },
   });
 

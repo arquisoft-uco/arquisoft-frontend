@@ -66,6 +66,57 @@ describe('entregablesService', () => {
     });
   });
 
+  describe('consultarVistaPreviaPaquete', () => {
+    it('hace GET a la vista previa del proyecto y devuelve el cuerpo', async () => {
+      // Arrange
+      const cuerpo = {
+        cantidad: 1,
+        artefactos: [{ artefacto: 'a-1', documento: 'Anteproyecto', numeroVersion: 2 }],
+      };
+      get.mockResolvedValue({ status: 200, data: cuerpo });
+
+      // Act
+      const resultado = await entregablesService.consultarVistaPreviaPaquete('p-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/entregables/proyectos-grado/p-1/vista-previa-paquete');
+      expect(resultado).toEqual(cuerpo);
+    });
+  });
+
+  describe('consultarProyectosConEntregableVigente', () => {
+    it('excluye los CANCELADO sin proyectoFinalizado y recorre todas las páginas', async () => {
+      // Arrange
+      const fila = (id: string) => ({ proyectoGrado: { id, nombre: id } });
+      vi.mocked(apiClient.post)
+        .mockResolvedValueOnce({ status: 200, data: { content: [fila('p-1')], totalPages: 2 } })
+        .mockResolvedValueOnce({ status: 200, data: { content: [fila('p-2')], totalPages: 2 } });
+
+      // Act
+      const ids = await entregablesService.consultarProyectosConEntregableVigente();
+
+      // Assert
+      const filtros = {
+        tipo: 'PREDICADO',
+        campo: 'estadoEntregable',
+        operador: 'NO_ES',
+        valor: 'CANCELADO',
+      };
+      expect(apiClient.post).toHaveBeenCalledTimes(2);
+      expect(apiClient.post).toHaveBeenNthCalledWith(1, '/entregables-proyecto-grado/asesor', {
+        pagina: 0,
+        tamanio: 100,
+        filtros,
+      });
+      expect(apiClient.post).toHaveBeenNthCalledWith(2, '/entregables-proyecto-grado/asesor', {
+        pagina: 1,
+        tamanio: 100,
+        filtros,
+      });
+      expect(ids).toEqual(['p-1', 'p-2']);
+    });
+  });
+
   describe('obtenerEnlacePaquete', () => {
     it('hace GET /entregables/{id}/paquete y devuelve el enlace', async () => {
       // Arrange

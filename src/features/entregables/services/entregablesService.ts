@@ -4,6 +4,7 @@ import type { ConsultaCriteriaRequest } from '../../../shared/models/query-crite
 import type { ArtefactoEntregable } from '../models/ArtefactoEntregable';
 import type { CambiarEstadoEntregableRequest } from '../models/CambiarEstadoEntregableRequest';
 import type { GenerarEntregableResponse } from '../models/GenerarEntregableResponse';
+import type { VistaPreviaPaquete } from '../models/VistaPreviaPaquete';
 import type { ProyectoGradoAsesor } from '../models/ProyectoGradoAsesor';
 import type { EntregableProyectoGrado } from '../models/EntregableProyectoGrado';
 import type { EstadoEntregableProyectoGradoResponse } from '../models/EstadoEntregableProyectoGradoResponse';
@@ -13,6 +14,22 @@ import type { EnlaceDescargaVersion } from '../../../shared/models/EnlaceDescarg
 
 // Ids del catálogo de estados del backend sobre los que se puede generar un entregable
 const ESTADOS_PROYECTO_GENERABLES = ['EN_PROCESO', 'ATRASADO'];
+
+const TAMANIO_PAGINA_MAXIMO = 100;
+const ESTADO_ENTREGABLE_CANCELADO = 'CANCELADO';
+
+function criteriosEntregablesVigentes(pagina: number): ConsultaCriteriaRequest {
+  return {
+    pagina,
+    tamanio: TAMANIO_PAGINA_MAXIMO,
+    filtros: {
+      tipo: 'PREDICADO',
+      campo: 'estadoEntregable',
+      operador: 'NO_ES',
+      valor: ESTADO_ENTREGABLE_CANCELADO,
+    },
+  };
+}
 
 function aHistorialEstadoEntregable(
   r: EstadoEntregableProyectoGradoResponse,
@@ -99,5 +116,27 @@ export const entregablesService = {
     return apiClient
       .post<Page<ProyectoGradoAsesor>>('/proyectos-grado/asesor', req)
       .then((r) => r.data.content);
+  },
+
+  consultarVistaPreviaPaquete: (proyectoGradoId: string): Promise<VistaPreviaPaquete> =>
+    apiClient
+      .get<VistaPreviaPaquete>(
+        `/entregables/proyectos-grado/${proyectoGradoId}/vista-previa-paquete`,
+      )
+      .then((r) => r.data),
+
+  consultarProyectosConEntregableVigente: async (): Promise<string[]> => {
+    const consultar = (pagina: number) =>
+      apiClient
+        .post<
+          Page<EntregableProyectoGrado>
+        >('/entregables-proyecto-grado/asesor', criteriosEntregablesVigentes(pagina))
+        .then((r) => r.data);
+
+    const primera = await consultar(0);
+    const restantes = await Promise.all(
+      Array.from({ length: Math.max(primera.totalPages - 1, 0) }, (_, i) => consultar(i + 1)),
+    );
+    return [primera, ...restantes].flatMap((p) => p.content.map((e) => e.proyectoGrado.id));
   },
 };

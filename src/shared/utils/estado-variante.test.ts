@@ -156,6 +156,7 @@ describe('varianteEstadoEntregable', () => {
   it('asigna su variante a cada estado del catálogo y deja en neutro lo desconocido', () => {
     // Arrange
     const esperadas = {
+      NUEVO: 'info',
       DISPONIBLE_EVALUACION: 'advertencia',
       EN_EVALUACION: 'info',
       APROBADO_CON_OBSERVACIONES: 'advertencia',

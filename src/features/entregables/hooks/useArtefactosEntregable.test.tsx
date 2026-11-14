@@ -18,6 +18,7 @@ const ARTEFACTO: ArtefactoEntregable = {
   id: 'ar-1',
   entregableProyectoGrado: 'e1',
   versionArtefacto: 'v1',
+  numeroVersion: 1,
   uriArchivo: 'docs/informe.pdf',
   artefacto: 'a-1',
   versionRepositorioArtefacto: 'vr-1',

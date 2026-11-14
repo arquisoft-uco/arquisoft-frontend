@@ -6,10 +6,11 @@ import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { useDescargarVersionRepositorio } from '../../../../shared/hooks/useDescargarVersionRepositorio';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosEntregable } from '../../hooks/useArtefactosEntregable';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
+import { mensajeErrorConsultaEntregable } from '../../utils/errores-entregable';
 import { proyectoCerrado } from '../../utils/estado-proyecto';
+import { ESTADO_NUEVO } from '../../utils/estados-entregable';
 
 interface Props {
   entregable: EntregableProyectoGrado;
@@ -38,7 +39,7 @@ export default function ArtefactosEntregablePanel({ entregable, onCerrar }: Prop
       return (
         <ErrorState
           titulo="No se pudieron cargar los artefactos"
-          descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
+          descripcion={mensajeErrorConsultaEntregable(error)}
           onReintentar={() => void refetch()}
         />
       );
@@ -48,8 +49,12 @@ export default function ArtefactosEntregablePanel({ entregable, onCerrar }: Prop
       return (
         <EmptyState
           icono={FileText}
-          titulo="Este entregable aún no tiene artefactos"
-          descripcion="Cuando se vinculen artefactos al entregable, aparecerán aquí."
+          titulo="Este entregable no tiene documentos"
+          descripcion={
+            entregable.estadoEntregable.id === ESTADO_NUEVO
+              ? 'Puedes cancelarlo desde la lista de entregables y generar uno nuevo.'
+              : undefined
+          }
         />
       );
     }
@@ -71,6 +76,7 @@ export default function ArtefactosEntregablePanel({ entregable, onCerrar }: Prop
               <span className="text-sm font-semibold break-words text-on-surface">
                 {artefacto.nombreDocumento}
               </span>
+              <span className={TEXTO_SECUNDARIO}>Versión {artefacto.numeroVersion}</span>
               <span className={TEXTO_SECUNDARIO}>Repositorio: {artefacto.nombreRepositorio}</span>
               <span className={TEXTO_SECUNDARIO}>
                 Ubicación del archivo: <span className="break-all">{artefacto.uriArchivo}</span>
