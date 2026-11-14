@@ -12,6 +12,7 @@ import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
+import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
@@ -57,6 +58,11 @@ function construirFiltrosJurados(texto: string): NodoFiltroDTO {
 }
 
 export const evaluacionesService = {
+  getItemsCualitativosAsesor: (): Promise<ItemCualitativoAsesor[]> =>
+    apiClient
+      .get<ItemCualitativoAsesor[]>('/evaluaciones/items-cualitativos-asesor')
+      .then((r) => r.data),
+
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
     apiClient
       .get<ItemCualitativoJurado[]>('/evaluaciones/items-cualitativos-jurado')

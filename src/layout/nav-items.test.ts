@@ -71,6 +71,15 @@ describe('nav-items', () => {
     ).toContain('/seguridad');
   });
 
+  it('Evaluaciones está disponible para el asesor', () => {
+    // Act
+    const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/evaluaciones');
+
+    // Assert
+    expect(delAsesor).toBeDefined();
+    expect(estaDisponible(delAsesor!)).toBe(true);
+  });
+
   it('Artefactos está disponible para el asesor y el estudiante', () => {
     // Act
     const delAsesor = navItemsDelRol(Rol.Asesor).find((i) => i.path === '/artefactos');
