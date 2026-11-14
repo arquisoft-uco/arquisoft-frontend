@@ -16,6 +16,8 @@ import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
+import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
@@ -36,6 +38,7 @@ interface JuradoVigenteResponseDTO {
 }
 
 export const TAMANIO_PAGINA_JURADOS = 10;
+export const TAMANIO_OBSERVACIONES_ITEM_JURADO = 100;
 
 function construirFiltrosJurados(texto: string): NodoFiltroDTO {
   const estadoActivo: NodoFiltroDTO = {
@@ -255,6 +258,23 @@ export const evaluacionesService = {
         { descripcion },
       )
       .then((r) => r.data),
+
+  getObservacionesItemJurado: (
+    evaluacionCuantitativaJuradoId: string,
+  ): Promise<Page<ObservacionItemJurado>> =>
+    apiClient
+      .post<
+        Page<ObservacionItemJurado>
+      >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/jurado`, { pagina: 0, tamanio: TAMANIO_OBSERVACIONES_ITEM_JURADO })
+      .then((r) => r.data),
+
+  modificarObservacionItemJurado: ({
+    observacionId,
+    descripcion,
+  }: ModificarObservacionItemJuradoRequest): Promise<void> =>
+    apiClient
+      .patch<void>(`/evaluaciones/observaciones-item-jurado/${observacionId}`, { descripcion })
+      .then(() => undefined),
 
   omitirEvaluacionesCualitativasJurado: ({
     evaluacionJuradoId,

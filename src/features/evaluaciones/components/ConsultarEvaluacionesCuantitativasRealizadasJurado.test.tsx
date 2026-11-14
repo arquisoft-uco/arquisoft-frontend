@@ -9,6 +9,18 @@ import {
   EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO,
 } from '../utils/codigos-error-evaluaciones';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
+import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
+import { useObservacionesItemJurado } from '../hooks/useObservacionesItemJurado';
+import { useModificarObservacionItemJurado } from '../hooks/useModificarObservacionItemJurado';
+
+vi.mock('../hooks/useObservacionesItemJurado', () => ({
+  useObservacionesItemJurado: vi.fn(),
+}));
+vi.mock('../hooks/useModificarObservacionItemJurado', () => ({
+  useModificarObservacionItemJurado: vi.fn(),
+}));
+
+const OBSERVACION: ObservacionItemJurado = { id: 'obs-1', descripcion: 'Falta profundidad' };
 
 const FILA: EvaluacionCuantitativaJurado = {
   id: 'ec-1',
@@ -39,7 +51,11 @@ function crearError(status: number, errorCode?: string, message = 'Falla del ser
   });
 }
 
-function montar(parcial: Partial<ConsultaCuantitativas> = {}, conEvaluar = false) {
+function montar(
+  parcial: Partial<ConsultaCuantitativas> = {},
+  conEvaluar = false,
+  evaluacionFinalizada = false,
+) {
   const refetch = vi.fn();
   const onVolver = vi.fn();
   const onEvaluar = vi.fn();
@@ -57,6 +73,7 @@ function montar(parcial: Partial<ConsultaCuantitativas> = {}, conEvaluar = false
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
       onEvaluar={conEvaluar ? onEvaluar : undefined}
+      evaluacionFinalizada={evaluacionFinalizada}
     />,
   );
   return { refetch, onVolver, onEvaluar };
@@ -65,6 +82,31 @@ function montar(parcial: Partial<ConsultaCuantitativas> = {}, conEvaluar = false
 describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useObservacionesItemJurado).mockReturnValue({
+      data: {
+        content: [OBSERVACION],
+        page: 0,
+        size: 100,
+        totalElements: 1,
+        totalPages: 1,
+        first: true,
+        last: true,
+        empty: false,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    } as Partial<ReturnType<typeof useObservacionesItemJurado>> as ReturnType<
+      typeof useObservacionesItemJurado
+    >);
+    vi.mocked(useModificarObservacionItemJurado).mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+      reset: vi.fn(),
+    } as Partial<ReturnType<typeof useModificarObservacionItemJurado>> as ReturnType<
+      typeof useModificarObservacionItemJurado
+    >);
   });
 
   it('lista ítem y puntaje de valor máximo y anuncia el total en singular y plural', () => {
@@ -149,5 +191,49 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('Id inválido');
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('la acción de fila abre la lectura, «Modificar observación» abre la edición y cancelar vuelve a la lectura', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] });
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Ver observaciones del ítem Claridad' })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: /Observaciones del ítem/ })).toBeInTheDocument();
+    expect(screen.getByText(OBSERVACION.descripcion)).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Modificar observación' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: /Modificar observación/ })).toBeInTheDocument();
+    expect(screen.getByLabelText('Observación')).toHaveValue(OBSERVACION.descripcion);
+
+    // Act
+    const cerrar = screen.getAllByRole('button', { name: 'Cerrar' });
+    await user.click(cerrar[cerrar.length - 1]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: /Observaciones del ítem/ })).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada la lectura no ofrece «Modificar observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] }, false, true);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Ver observaciones del ítem Claridad' })[0],
+    );
+
+    // Assert
+    expect(screen.getByText(OBSERVACION.descripcion)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Modificar observación' })).not.toBeInTheDocument();
   });
 });
