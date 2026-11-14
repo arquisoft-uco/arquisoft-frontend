@@ -37,6 +37,7 @@ export default function EvaluacionesCuantitativasRealizadasJurado() {
         consulta={consulta}
         etiquetaVolver="Volver a mis evaluaciones"
         onVolver={() => navigate(rutaListado)}
+        evaluacionFinalizada={finalizada}
         onEvaluar={
           finalizada
             ? undefined

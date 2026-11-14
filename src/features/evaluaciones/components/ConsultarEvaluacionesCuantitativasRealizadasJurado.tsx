@@ -10,6 +10,8 @@ import {
   EVALUACION_CUALITATIVA_JURADO_EVALUACION_JURADO_NO_ENCONTRADA,
   EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO,
 } from '../utils/codigos-error-evaluaciones';
+import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
+import ModificarObservacionItemJuradoPanel from './jurado/ModificarObservacionItemJuradoPanel';
 import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
 import ObservacionesEvaluacionCuantitativaPanel from './jurado/ObservacionesEvaluacionCuantitativaPanel';
 
@@ -35,16 +37,26 @@ interface Props {
   etiquetaVolver: string;
   onVolver: () => void;
   onEvaluar?: () => void;
+  evaluacionFinalizada?: boolean;
 }
+
+type PanelAbierto =
+  | { tipo: 'lectura'; valoracion: EvaluacionCuantitativaJurado }
+  | {
+      tipo: 'edicion';
+      valoracion: EvaluacionCuantitativaJurado;
+      observacion: ObservacionItemJurado;
+    };
 
 export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
   consulta,
   etiquetaVolver,
   onVolver,
   onEvaluar,
+  evaluacionFinalizada = false,
 }: Props) {
+  const [panel, setPanel] = useState<PanelAbierto | null>(null);
   const { data, isLoading, isError, error, refetch } = consulta;
-  const [seleccionada, setSeleccionada] = useState<EvaluacionCuantitativaJurado | null>(null);
 
   if (isError) {
     const volver = (
@@ -109,14 +121,25 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
             etiqueta={`Ver observaciones de ${fila.item.nombre}`}
             rotulo="Ver observaciones"
             icono={MessageSquare}
-            onClick={() => setSeleccionada(fila)}
+            onClick={() => setPanel({ tipo: 'lectura', valoracion: fila })}
           />
         )}
       />
-      {seleccionada && (
+      {panel?.tipo === 'lectura' && (
         <ObservacionesEvaluacionCuantitativaPanel
-          evaluacion={seleccionada}
-          onCerrar={() => setSeleccionada(null)}
+          evaluacion={panel.valoracion}
+          puedeModificar={!evaluacionFinalizada}
+          onModificar={(observacion) =>
+            setPanel({ tipo: 'edicion', valoracion: panel.valoracion, observacion })
+          }
+          onCerrar={() => setPanel(null)}
+        />
+      )}
+      {panel?.tipo === 'edicion' && (
+        <ModificarObservacionItemJuradoPanel
+          observacion={panel.observacion}
+          nombreItem={panel.valoracion.item.nombre}
+          onCerrar={() => setPanel({ tipo: 'lectura', valoracion: panel.valoracion })}
         />
       )}
     </div>

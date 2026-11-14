@@ -45,7 +45,10 @@ function pagina(descripciones: string[]) {
   };
 }
 
-function montar(estado: Record<string, unknown> = {}) {
+function montar(
+  estado: Record<string, unknown> = {},
+  modificacion: { puedeModificar?: boolean; onModificar?: (o: unknown) => void } = {},
+) {
   const refetch = vi.fn();
   const onCerrar = vi.fn();
   usarHook.mockReturnValue({
@@ -60,7 +63,13 @@ function montar(estado: Record<string, unknown> = {}) {
     goToPage: vi.fn(),
     ...estado,
   } as never);
-  render(<ObservacionesEvaluacionCuantitativaPanel evaluacion={EVALUACION} onCerrar={onCerrar} />);
+  render(
+    <ObservacionesEvaluacionCuantitativaPanel
+      evaluacion={EVALUACION}
+      onCerrar={onCerrar}
+      {...modificacion}
+    />,
+  );
   return { refetch, onCerrar };
 }
 
@@ -131,5 +140,25 @@ describe('ObservacionesEvaluacionCuantitativaPanel', () => {
 
     // Assert
     expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('con puedeModificar ofrece «Modificar observación» y entrega la observación elegida', async () => {
+    // Arrange
+    const onModificar = vi.fn();
+    montar({ data: pagina(['Falta rigor']) }, { puedeModificar: true, onModificar });
+
+    // Act
+    await userEvent.click(screen.getAllByRole('button', { name: 'Modificar observación' })[0]);
+
+    // Assert
+    expect(onModificar).toHaveBeenCalledWith({ id: 'o-0', descripcion: 'Falta rigor' });
+  });
+
+  it('sin puedeModificar no ofrece «Modificar observación»', () => {
+    // Arrange / Act
+    montar({ data: pagina(['Falta rigor']) });
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Modificar observación' })).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,5 @@
 import { MessageSquare } from 'lucide-react';
+import Button from '../../../../shared/components/ui/Button';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
@@ -31,10 +32,17 @@ function textoResumen(total?: number): string {
 
 interface Props {
   evaluacion: EvaluacionCuantitativaJurado;
+  puedeModificar?: boolean;
+  onModificar?: (observacion: ObservacionItemJurado) => void;
   onCerrar: () => void;
 }
 
-export default function ObservacionesEvaluacionCuantitativaPanel({ evaluacion, onCerrar }: Props) {
+export default function ObservacionesEvaluacionCuantitativaPanel({
+  evaluacion,
+  puedeModificar = false,
+  onModificar,
+  onCerrar,
+}: Props) {
   const { data, isLoading, isFetching, isError, error, refetch, page, pageSize, goToPage } =
     useObservacionesEvaluacionCuantitativaJurado(evaluacion.id);
 
@@ -71,6 +79,22 @@ export default function ObservacionesEvaluacionCuantitativaPanel({ evaluacion, o
           filas={filas}
           idDeFila={(fila) => fila.id}
           cargando={isLoading}
+          acciones={
+            puedeModificar && onModificar
+              ? (fila) => (
+                  <Button
+                    variante="secundario"
+                    aria-label={
+                      filas.length > 1 ? `Modificar observación: ${fila.descripcion}` : undefined
+                    }
+                    onClick={() => onModificar(fila)}
+                  >
+                    Modificar observación
+                  </Button>
+                )
+              : undefined
+          }
+          encabezadoAcciones={puedeModificar && onModificar ? 'Acciones' : undefined}
           vacio={
             <EmptyState
               icono={MessageSquare}

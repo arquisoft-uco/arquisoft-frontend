@@ -9,6 +9,9 @@ import {
   EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO,
 } from '../utils/codigos-error-evaluaciones';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
+import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
+
+const OBSERVACION: ObservacionItemJurado = { id: 'obs-1', descripcion: 'Falta profundidad' };
 
 const FILA: EvaluacionCuantitativaJurado = {
   id: 'ec-1',
@@ -32,14 +35,42 @@ const OTRA_FILA: EvaluacionCuantitativaJurado = {
 vi.mock('./jurado/ObservacionesEvaluacionCuantitativaPanel', () => ({
   default: ({
     evaluacion,
+    puedeModificar,
+    onModificar,
     onCerrar,
   }: {
     evaluacion: EvaluacionCuantitativaJurado;
+    puedeModificar?: boolean;
+    onModificar?: (observacion: ObservacionItemJurado) => void;
     onCerrar: () => void;
   }) => (
     <div role="dialog" aria-label={`Panel de ${evaluacion.item.nombre}`}>
+      {puedeModificar && (
+        <button type="button" onClick={() => onModificar?.(OBSERVACION)}>
+          Modificar observación
+        </button>
+      )}
       <button type="button" onClick={onCerrar}>
         Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('./jurado/ModificarObservacionItemJuradoPanel', () => ({
+  default: ({
+    observacion,
+    nombreItem,
+    onCerrar,
+  }: {
+    observacion: ObservacionItemJurado;
+    nombreItem: string;
+    onCerrar: () => void;
+  }) => (
+    <div role="dialog" aria-label={`Edición de ${nombreItem}`}>
+      <p>{observacion.descripcion}</p>
+      <button type="button" onClick={onCerrar}>
+        Cancelar edición
       </button>
     </div>
   ),
@@ -55,7 +86,11 @@ function crearError(status: number, errorCode?: string, message = 'Falla del ser
   });
 }
 
-function montar(parcial: Partial<ConsultaCuantitativas> = {}, conEvaluar = false) {
+function montar(
+  parcial: Partial<ConsultaCuantitativas> = {},
+  conEvaluar = false,
+  evaluacionFinalizada = false,
+) {
   const refetch = vi.fn();
   const onVolver = vi.fn();
   const onEvaluar = vi.fn();
@@ -73,6 +108,7 @@ function montar(parcial: Partial<ConsultaCuantitativas> = {}, conEvaluar = false
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
       onEvaluar={conEvaluar ? onEvaluar : undefined}
+      evaluacionFinalizada={evaluacionFinalizada}
     />,
   );
   return { refetch, onVolver, onEvaluar };
@@ -183,5 +219,38 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('Id inválido');
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('«Modificar observación» abre la edición de la observación y cancelar vuelve a la lectura', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] });
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Modificar observación' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Edición de Claridad' })).toBeInTheDocument();
+    expect(screen.getByText(OBSERVACION.descripcion)).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar edición' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada la lectura no ofrece «Modificar observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] }, false, true);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Modificar observación' })).not.toBeInTheDocument();
   });
 });

@@ -82,6 +82,25 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('modificarObservacionItemJurado', () => {
+    it('pone el id en la ruta, manda solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.modificarObservacionItemJurado({
+        observacionId: 'obs-1',
+        descripcion: 'Nuevo texto',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/evaluaciones/observaciones-item-jurado/obs-1', {
+        descripcion: 'Nuevo texto',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrarEvaluacionesCuantitativasJurado', () => {
     it('envía a la ruta con prefijo /evaluaciones, traduce itemId a item y resuelve undefined', async () => {
       // Arrange
