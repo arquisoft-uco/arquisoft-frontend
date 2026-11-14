@@ -4,7 +4,7 @@ import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import { estaCerrado } from '../../utils/estado-proyecto';
-import AvisoProyectoCerrado from '../AvisoProyectoCerrado';
+import AvisoProyectoCerrado from '../../../../shared/components/AvisoProyectoCerrado';
 import EstudiantesArtefactoLista from './EstudiantesArtefactoLista';
 import VincularEstudiantesForm from './VincularEstudiantesForm';
 

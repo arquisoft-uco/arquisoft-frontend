@@ -4,13 +4,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '../../../test-utils/render';
 import type { ParticipacionArtefacto } from '../models/ParticipacionArtefacto';
 import { artefactosService } from '../services/artefactosService';
+import { useMisProyectosGrado } from '../../../shared/hooks/useMisProyectosGrado';
 import { useParticipacionesEstudiante } from './useParticipacionesEstudiante';
 
 vi.mock('../services/artefactosService', () => ({
   artefactosService: { getParticipacionesEstudiante: vi.fn() },
 }));
 
+vi.mock('../../../shared/hooks/useMisProyectosGrado', () => ({ useMisProyectosGrado: vi.fn() }));
+
 const getParticipaciones = vi.mocked(artefactosService.getParticipacionesEstudiante);
+const misProyectos = vi.mocked(useMisProyectosGrado);
 
 const LISTA: ParticipacionArtefacto[] = [
   {
@@ -50,6 +54,20 @@ describe('useParticipacionesEstudiante', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    misProyectos.mockReturnValue({
+      proyecto: {
+        id: 'p-1',
+        fichaPerfil: 'f-1',
+        tituloProyecto: 'Riego',
+        estado: { id: 'EN_PROCESO', nombre: 'En proceso' },
+      },
+      proyectos: [],
+      seleccionarProyecto: vi.fn(),
+      cargado: true,
+      sinProyecto: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
@@ -87,5 +105,56 @@ describe('useParticipacionesEstudiante', () => {
     // Assert
     expect(result.current.proyectos).toEqual([]);
     expect(result.current.totalArtefactos).toBe(0);
+  });
+
+  it('deriva los flags de cierre del estado del proyecto cruzado por id', async () => {
+    // Arrange
+    getParticipaciones.mockResolvedValue(LISTA);
+    misProyectos.mockReturnValue({
+      proyecto: null,
+      proyectos: [
+        {
+          id: 'p-1',
+          fichaPerfil: 'f-1',
+          tituloProyecto: 'Riego',
+          estado: { id: 'CANCELADO', nombre: 'Cancelado' },
+        },
+      ],
+      seleccionarProyecto: vi.fn(),
+      cargado: true,
+      sinProyecto: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    } as never);
+
+    // Act
+    const { result } = renderHook(() => useParticipacionesEstudiante(), {
+      wrapper: crearWrapper(queryClient),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.proyectos[0]).toMatchObject({
+      proyectoCancelado: true,
+      proyectoFinalizado: false,
+    });
+  });
+
+  it('sin el estado del proyecto los flags son falsos y el listado carga igual', async () => {
+    // Arrange
+    getParticipaciones.mockResolvedValue(LISTA);
+
+    // Act
+    const { result } = renderHook(() => useParticipacionesEstudiante(), {
+      wrapper: crearWrapper(queryClient),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.proyectos[0]).toMatchObject({
+      proyectoCancelado: false,
+      proyectoFinalizado: false,
+    });
+    expect(result.current.totalArtefactos).toBe(2);
   });
 });
