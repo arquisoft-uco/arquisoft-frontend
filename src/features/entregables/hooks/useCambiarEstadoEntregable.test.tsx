@@ -43,6 +43,9 @@ describe('useCambiarEstadoEntregable', () => {
     expect(cambiar).toHaveBeenCalledWith('e1', { estadoEntregableId: 'CERRADO' });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['entregables', 'asesor'] });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['entregables', 'e1', 'estados'] });
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['entregables', 'proyectos-con-entregable-vigente'],
+    });
   });
 
   it('no invalida nada cuando el service rechaza', async () => {

@@ -8,12 +8,16 @@ import OpcionRadio from '../../../../shared/components/ui/OpcionRadio';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { varianteEstadoEntregable } from '../../../../shared/utils/estado-variante';
 import { useCambiarEstadoEntregable } from '../../hooks/useCambiarEstadoEntregable';
 import { useEstadosEntregable } from '../../hooks/useEstadosEntregable';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
-import { ESTADO_CERRADO, ESTADOS_DESTINO, puedeCerrar } from '../../utils/estados-entregable';
+import { mensajeErrorCambiarEstadoEntregable } from '../../utils/errores-entregable';
+import {
+  ESTADO_DISPONIBLE_EVALUACION,
+  ESTADOS_DESTINO,
+  motivoDestinoNoDisponible,
+} from '../../utils/estados-entregable';
 
 const ID_FORMULARIO = 'cambiar-estado-entregable';
 const NOMBRE_CAMPO = 'estado-destino';
@@ -21,23 +25,39 @@ const RESUMEN = 'mb-4 flex flex-col gap-1.5 rounded-xl bg-surface-secondary px-3
 const PROYECTO = 'text-sm font-semibold text-on-surface';
 const DATOS = 'flex flex-wrap items-center gap-2 text-[13px] text-on-surface-secondary';
 const OPCIONES = 'flex flex-col gap-2';
-const MOTIVO_NO_CERRABLE =
-  'Solo puedes cerrar un entregable Aprobado, Aprobado con observaciones o Rechazado.';
+const AVISO_HABILITAR =
+  'Una vez disponible para evaluación, el entregable ya no se puede cancelar.';
+const AVISO_TERMINAL =
+  'Este cambio no se puede deshacer: un entregable cancelado o cerrado ya no cambia de estado.';
+const AVISO_GENERAL = 'Los cambios de estado no se pueden deshacer.';
+const AVISO_POR_DESTINO: Record<string, string> = {
+  [ESTADO_DISPONIBLE_EVALUACION]: AVISO_HABILITAR,
+};
 
 interface Props {
   entregable: EntregableProyectoGrado;
+  destinoInicial?: string;
   onCerrar: () => void;
 }
 
-export default function CambiarEstadoEntregablePanel({ entregable, onCerrar }: Props) {
+export default function CambiarEstadoEntregablePanel({
+  entregable,
+  destinoInicial,
+  onCerrar,
+}: Props) {
   const estados = useEstadosEntregable();
   const cambiar = useCambiarEstadoEntregable();
-  const [destino, setDestino] = useState('');
+  const origenId = entregable.estadoEntregable.id;
+  const [destino, setDestino] = useState(() =>
+    destinoInicial && motivoDestinoNoDisponible(origenId, destinoInicial) === null
+      ? destinoInicial
+      : '',
+  );
 
   const opciones = (estados.data ?? []).filter((e) => ESTADOS_DESTINO.includes(e.id));
   const hayOpciones = !estados.isLoading && !estados.isError && opciones.length > 0;
   const conError = estados.isError || (!estados.isLoading && opciones.length === 0);
-  const cerrable = puedeCerrar(entregable.estadoEntregable.id);
+  const aviso = destino ? (AVISO_POR_DESTINO[destino] ?? AVISO_TERMINAL) : AVISO_GENERAL;
 
   function enviar(e: FormEvent) {
     e.preventDefault();
@@ -51,10 +71,7 @@ export default function CambiarEstadoEntregablePanel({ entregable, onCerrar }: P
           onCerrar();
         },
         onError: (err) =>
-          toast.error(
-            'No se pudo cambiar el estado',
-            getApiErrorMessage(err, 'Inténtalo de nuevo.'),
-          ),
+          toast.error('No se pudo cambiar el estado', mensajeErrorCambiarEstadoEntregable(err)),
       },
     );
   }
@@ -62,7 +79,7 @@ export default function CambiarEstadoEntregablePanel({ entregable, onCerrar }: P
   return (
     <SidePanel
       titulo="Cambiar estado del entregable"
-      descripcion="Elige el nuevo estado del entregable. Solo puedes cancelarlo o cerrarlo."
+      descripcion="Elige el nuevo estado del entregable. Las opciones dependen del estado actual."
       sucio={!!destino}
       ocupado={cambiar.isPending}
       onCerrar={onCerrar}
@@ -102,14 +119,15 @@ export default function CambiarEstadoEntregablePanel({ entregable, onCerrar }: P
           {hayOpciones && (
             <div className={OPCIONES}>
               {opciones.map((estado) => {
-                const bloqueada = estado.id === ESTADO_CERRADO && !cerrable;
+                const motivo = motivoDestinoNoDisponible(origenId, estado.id);
+                const bloqueada = motivo !== null;
                 return (
                   <OpcionRadio
                     key={estado.id}
                     nombre={NOMBRE_CAMPO}
                     valor={estado.id}
                     titulo={estado.nombre}
-                    descripcion={bloqueada ? MOTIVO_NO_CERRABLE : estado.descripcion}
+                    descripcion={motivo ?? estado.descripcion}
                     elegida={destino === estado.id}
                     deshabilitada={bloqueada}
                     onElegir={setDestino}
@@ -119,10 +137,7 @@ export default function CambiarEstadoEntregablePanel({ entregable, onCerrar }: P
             </div>
           )}
         </FormSection>
-        <Notice variante="advertencia">
-          Este cambio no se puede deshacer: un entregable cancelado o cerrado no vuelve a estar
-          disponible para evaluación.
-        </Notice>
+        <Notice variante="advertencia">{aviso}</Notice>
       </form>
     </SidePanel>
   );

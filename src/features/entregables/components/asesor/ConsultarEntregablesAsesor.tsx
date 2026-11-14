@@ -28,7 +28,10 @@ export default function ConsultarEntregablesAsesor() {
   const listado = useEntregablesAsesor();
   const { data: estados } = useEstadosEntregable();
   const { descargar, descargando } = useDescargarPaqueteEntregable();
-  const [enEdicion, setEnEdicion] = useState<EntregableProyectoGrado | null>(null);
+  const [enEdicion, setEnEdicion] = useState<{
+    entregable: EntregableProyectoGrado;
+    destinoInicial?: string;
+  } | null>(null);
   const [enArtefactos, setEnArtefactos] = useState<EntregableProyectoGrado | null>(null);
   const [enHistorial, setEnHistorial] = useState<EntregableProyectoGrado | null>(null);
 
@@ -87,7 +90,9 @@ export default function ConsultarEntregablesAsesor() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
-            onCambiarEstado={setEnEdicion}
+            onCambiarEstado={(entregable, destinoInicial) =>
+              setEnEdicion({ entregable, destinoInicial })
+            }
             onVerArtefactos={setEnArtefactos}
             onVerHistorial={setEnHistorial}
             onDescargarPaquete={descargar}
@@ -109,7 +114,11 @@ export default function ConsultarEntregablesAsesor() {
       )}
 
       {enEdicion && (
-        <CambiarEstadoEntregablePanel entregable={enEdicion} onCerrar={() => setEnEdicion(null)} />
+        <CambiarEstadoEntregablePanel
+          entregable={enEdicion.entregable}
+          destinoInicial={enEdicion.destinoInicial}
+          onCerrar={() => setEnEdicion(null)}
+        />
       )}
 
       {enArtefactos && (
