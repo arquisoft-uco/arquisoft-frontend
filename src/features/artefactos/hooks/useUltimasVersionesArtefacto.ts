@@ -31,6 +31,10 @@ export function useUltimasVersionesArtefacto(artefactoIds: string[], habilitado 
   const porArtefacto = new Map(idsUnicos.map((id, i) => [id, consultas[i].data]));
 
   return {
+    ultimaVersion: (artefactoId: string): VersionArtefacto | null | undefined => {
+      const content = porArtefacto.get(artefactoId);
+      return content === undefined ? undefined : (content[0] ?? null);
+    },
     ultimaVersionId: (artefactoId: string): string | null | undefined => {
       const content = porArtefacto.get(artefactoId);
       return content === undefined ? undefined : (content[0]?.id ?? null);

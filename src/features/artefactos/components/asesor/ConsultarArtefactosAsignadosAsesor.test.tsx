@@ -7,6 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { Page } from '../../../../shared/models/api-response';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import { useUltimasVersionesArtefacto } from '../../hooks/useUltimasVersionesArtefacto';
 import { artefactosService } from '../../services/artefactosService';
 import ConsultarArtefactosAsignadosAsesor from './ConsultarArtefactosAsignadosAsesor';
 
@@ -14,6 +15,9 @@ vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarArtefactosAsesor: vi.fn(),
   },
+}));
+vi.mock('../../hooks/useUltimasVersionesArtefacto', () => ({
+  useUltimasVersionesArtefacto: vi.fn(),
 }));
 vi.mock('./OmitirArtefactoDialog', () => ({
   default: ({ artefacto }: { artefacto: { nombreDocumento: string } }) => (
@@ -74,6 +78,11 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockResolvedValue(pagina([ARTEFACTO]));
+    vi.mocked(useUltimasVersionesArtefacto).mockReturnValue({
+      ultimaVersion: () => undefined,
+      isError: false,
+      isLoading: false,
+    } as never);
   });
 
   it('con datos muestra la tabla, el resumen y la búsqueda habilitada', async () => {
@@ -288,5 +297,29 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
 
     // Assert
     expect(screen.queryByRole('dialog', { name: 'Cambiar asesor' })).not.toBeInTheDocument();
+  });
+
+  it('pide la última versión solo de los artefactos no omitidos y un fallo de esas consultas no rompe el listado', async () => {
+    // Arrange
+    consultar.mockResolvedValue(
+      pagina([
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true },
+      ]),
+    );
+    vi.mocked(useUltimasVersionesArtefacto).mockReturnValue({
+      ultimaVersion: () => undefined,
+      isError: true,
+      isLoading: false,
+    } as never);
+
+    // Act
+    render(<ConsultarArtefactosAsignadosAsesor />);
+
+    // Assert
+    const tabla = await screen.findByRole('table', { name: 'Artefactos asignados' });
+    expect(await within(tabla).findByText('Anteproyecto')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(useUltimasVersionesArtefacto).toHaveBeenLastCalledWith([ARTEFACTO.id]);
   });
 });

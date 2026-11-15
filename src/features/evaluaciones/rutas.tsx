@@ -15,7 +15,15 @@ const EvaluacionesCualitativasRealizadasJurado = lazy(
 const EvaluacionesCuantitativasRealizadasJurado = lazy(
   () => import('./EvaluacionesCuantitativasRealizadasJurado'),
 );
+const EvaluacionesCualitativasAsesor = lazy(() => import('./EvaluacionesCualitativasAsesor'));
+const EvaluacionesCuantitativasAsesor = lazy(() => import('./EvaluacionesCuantitativasAsesor'));
 const RegistrarEvaluacionesCualitativas = lazy(() => import('./RegistrarEvaluacionesCualitativas'));
+const RegistrarEvaluacionesCualitativasAsesor = lazy(
+  () => import('./RegistrarEvaluacionesCualitativasAsesor'),
+);
+const RegistrarEvaluacionesCuantitativasAsesor = lazy(
+  () => import('./RegistrarEvaluacionesCuantitativasAsesor'),
+);
 
 export const rutasEvaluaciones: RouteObject = {
   path: 'evaluaciones',
@@ -25,6 +33,14 @@ export const rutasEvaluaciones: RouteObject = {
     {
       path: ':evaluacionJuradoId/evaluar',
       element: <RegistrarEvaluacionesCualitativas />,
+    },
+    {
+      path: ':evaluacionAsesorId/evaluar-asesor',
+      element: <RegistrarEvaluacionesCualitativasAsesor />,
+    },
+    {
+      path: ':evaluacionAsesorId/evaluar-cuantitativas-asesor',
+      element: <RegistrarEvaluacionesCuantitativasAsesor />,
     },
     {
       path: ':evaluacionJuradoId/evaluar-cuantitativas',
@@ -42,6 +58,14 @@ export const rutasEvaluaciones: RouteObject = {
     {
       path: ':evaluacionJuradoId/cuantitativas-realizadas',
       element: <EvaluacionesCuantitativasRealizadasJurado />,
+    },
+    {
+      path: ':evaluacionAsesorId/cualitativas-asesor',
+      element: <EvaluacionesCualitativasAsesor />,
+    },
+    {
+      path: ':evaluacionAsesorId/cuantitativas-asesor',
+      element: <EvaluacionesCuantitativasAsesor />,
     },
     {
       path: ':evaluacionJuradoId/cuantitativas',

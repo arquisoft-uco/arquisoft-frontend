@@ -5,20 +5,32 @@ import type { EstadoEvaluacion } from '../models/EstadoEvaluacion';
 import type { AsignarJuradosEvaluacionRequest } from '../models/AsignarJuradosEvaluacionRequest';
 import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosEvaluacionResponse';
 import type { Evaluacion } from '../models/Evaluacion';
+import type { EvaluacionAsignadaAsesor } from '../models/EvaluacionAsignadaAsesor';
 import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
+import type { EvaluacionCualitativaAsesor } from '../models/EvaluacionCualitativaAsesor';
 import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
+import type { EvaluacionCuantitativaAsesor } from '../models/EvaluacionCuantitativaAsesor';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
+import type { CambiarCriterioEvaluacionCualitativaJuradoRequest } from '../models/CambiarCriterioEvaluacionCualitativaJuradoRequest';
+import type { CambiarPuntajeEvaluacionCuantitativaAsesorRequest } from '../models/CambiarPuntajeEvaluacionCuantitativaAsesorRequest';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoAsesor } from '../models/CriterioItemCualitativoAsesor';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
+import type { CriterioItemCualitativoAsesor } from '../models/CriterioItemCualitativoAsesor';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
+import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
+import type { CategoriaItemCuantitativoAsesor } from '../models/CategoriaItemCuantitativoAsesor';
+import type { RegistrarEvaluacionesCuantitativasAsesorRequest } from '../models/RegistrarEvaluacionesCuantitativasAsesorRequest';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
+import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
+import type { RegistrarEvaluacionesCualitativasAsesorRequest } from '../models/RegistrarEvaluacionesCualitativasAsesorRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
 import type { RegistrarObservacionItemJuradoRequest } from '../models/RegistrarObservacionItemJuradoRequest';
@@ -62,6 +74,44 @@ export const evaluacionesService = {
   getItemsCualitativosAsesor: (): Promise<ItemCualitativoAsesor[]> =>
     apiClient
       .get<ItemCualitativoAsesor[]>('/evaluaciones/items-cualitativos-asesor')
+      .then((r) => r.data),
+
+  getCriteriosItemCualitativoAsesor: (): Promise<CriterioItemCualitativoAsesor[]> =>
+    apiClient
+      .get<CriterioItemCualitativoAsesor[]>('/evaluaciones/criterios-item-cualitativo-asesor')
+      .then((r) => r.data),
+
+  registrarEvaluacionesCualitativasAsesor: ({
+    evaluacionAsesorId,
+    evaluaciones,
+  }: RegistrarEvaluacionesCualitativasAsesorRequest): Promise<void> =>
+    apiClient
+      .post<void>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cualitativas`, {
+        evaluaciones: evaluaciones.map(({ itemId, criterioId }) => ({
+          item: itemId,
+          criterio: criterioId,
+        })),
+      })
+      .then(() => undefined),
+
+  registrarEvaluacionesCuantitativasAsesor: ({
+    evaluacionAsesorId,
+    evaluaciones,
+  }: RegistrarEvaluacionesCuantitativasAsesorRequest): Promise<void> =>
+    apiClient
+      .post<void>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cuantitativas`, {
+        evaluaciones: evaluaciones.map(({ itemId, puntaje }) => ({ item: itemId, puntaje })),
+      })
+      .then(() => undefined),
+
+  getItemsCuantitativosAsesor: (): Promise<ItemCuantitativoAsesor[]> =>
+    apiClient
+      .get<ItemCuantitativoAsesor[]>('/evaluaciones/items-cuantitativos-asesor')
+      .then((r) => r.data),
+
+  getCategoriasItemCuantitativoAsesor: (): Promise<CategoriaItemCuantitativoAsesor[]> =>
+    apiClient
+      .get<CategoriaItemCuantitativoAsesor[]>('/evaluaciones/categorias-item-cuantitativo-asesor')
       .then((r) => r.data),
 
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
@@ -123,6 +173,28 @@ export const evaluacionesService = {
       .patch<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`, { descripcion })
       .then(() => undefined),
 
+  cambiarCriterioEvaluacionCualitativaJurado: ({
+    evaluacionCualitativaJuradoId,
+    criterioId,
+  }: CambiarCriterioEvaluacionCualitativaJuradoRequest): Promise<void> =>
+    apiClient
+      .patch<void>(
+        `/evaluaciones/evaluaciones-cualitativas-jurado/${evaluacionCualitativaJuradoId}/criterio`,
+        { criterio: criterioId },
+      )
+      .then(() => undefined),
+
+  cambiarPuntajeEvaluacionCuantitativaAsesor: ({
+    evaluacionCuantitativaAsesorId,
+    puntaje,
+  }: CambiarPuntajeEvaluacionCuantitativaAsesorRequest): Promise<void> =>
+    apiClient
+      .patch<void>(
+        `/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/puntaje`,
+        { puntaje },
+      )
+      .then(() => undefined),
+
   removerItemCualitativoJurado: (itemId: string): Promise<void> =>
     apiClient
       .delete<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`)
@@ -146,6 +218,31 @@ export const evaluacionesService = {
 
   getEvaluacionesEstudiante: (req: ConsultaCriteriaRequest): Promise<Page<Evaluacion>> =>
     apiClient.post<Page<Evaluacion>>('/evaluaciones/estudiante', req).then((r) => r.data),
+
+  getEvaluacionesAsignadasAsesor: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<EvaluacionAsignadaAsesor>> =>
+    apiClient
+      .post<Page<EvaluacionAsignadaAsesor>>('/evaluaciones/evaluaciones-asesor/asesor', req)
+      .then((r) => r.data),
+
+  getEvaluacionesCualitativasAsesor: (
+    evaluacionAsesorId: string,
+  ): Promise<EvaluacionCualitativaAsesor[]> =>
+    apiClient
+      .get<
+        EvaluacionCualitativaAsesor[]
+      >(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cualitativas`)
+      .then((r) => r.data),
+
+  getEvaluacionesCuantitativasAsesor: (
+    evaluacionAsesorId: string,
+  ): Promise<EvaluacionCuantitativaAsesor[]> =>
+    apiClient
+      .get<
+        EvaluacionCuantitativaAsesor[]
+      >(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cuantitativas`)
+      .then((r) => r.data),
 
   getJuradosEvaluacion: (
     evaluacionId: string,
@@ -267,6 +364,24 @@ export const evaluacionesService = {
         { descripcion },
       )
       .then((r) => r.data),
+
+  getObservacionesEvaluacionCuantitativaJurado: (
+    evaluacionCuantitativaJuradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItemJurado>> =>
+    apiClient
+      .post<
+        Page<ObservacionItemJurado>
+      >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/jurado`, req)
+      .then((r) => r.data),
+
+  modificarObservacionItemJurado: ({
+    observacionId,
+    descripcion,
+  }: ModificarObservacionItemJuradoRequest): Promise<void> =>
+    apiClient
+      .patch<void>(`/evaluaciones/observaciones-item-jurado/${observacionId}`, { descripcion })
+      .then(() => undefined),
 
   omitirEvaluacionesCualitativasJurado: ({
     evaluacionJuradoId,

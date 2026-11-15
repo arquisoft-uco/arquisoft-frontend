@@ -3,6 +3,7 @@ import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
+import { useUltimasVersionesArtefacto } from '../../hooks/useUltimasVersionesArtefacto';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import {
   textoAlcanceEstadoProyecto,
@@ -34,6 +35,9 @@ export default function ConsultarArtefactosAsignadosAsesor() {
   const [aGestionarEstudiantes, setAGestionarEstudiantes] = useState<ArtefactoAsesor | null>(null);
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
+  const { ultimaVersion } = useUltimasVersionesArtefacto(
+    artefactos.filter((a) => !a.omitido).map((a) => a.id),
+  );
 
   return (
     <div className={RAIZ}>
@@ -53,6 +57,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
         ) : (
           <ArtefactosAsesorTable
             artefactos={artefactos}
+            ultimaVersion={ultimaVersion}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}

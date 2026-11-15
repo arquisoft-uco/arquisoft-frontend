@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Notice from '../../../../shared/components/ui/Notice';
+import type { EvaluacionCualitativaJurado } from '../../models/EvaluacionCualitativaJurado';
 import ConsultarEvaluacionesCualitativasJurado from '../ConsultarEvaluacionesCualitativasJurado';
 import type { ConsultaCualitativas } from '../ConsultarEvaluacionesCualitativasJurado';
+import CambiarCriterioEvaluacionCualitativaJuradoPanel from './CambiarCriterioEvaluacionCualitativaJuradoPanel';
 import OmitirEvaluacionesCualitativasJuradoBarra from './OmitirEvaluacionesCualitativasJuradoBarra';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -22,6 +24,7 @@ export default function EvaluacionesCualitativasRealizadasJuradoPanel({
   onVolver,
 }: Props) {
   const [marcados, setMarcados] = useState<string[]>([]);
+  const [filaEnEdicion, setFilaEnEdicion] = useState<EvaluacionCualitativaJurado | null>(null);
   const idsTodas = (consulta.data ?? []).map((fila) => fila.id);
   const seleccionadas = marcados.filter((id) => idsTodas.includes(id));
 
@@ -35,7 +38,7 @@ export default function EvaluacionesCualitativasRealizadasJuradoPanel({
     return (
       <div className={RAIZ}>
         <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden omitir valoraciones.
+          La evaluación ya fue finalizada; no se pueden omitir ni cambiar valoraciones.
         </Notice>
         <ConsultarEvaluacionesCualitativasJurado
           consulta={consulta}
@@ -62,7 +65,15 @@ export default function EvaluacionesCualitativasRealizadasJuradoPanel({
         etiquetaVolver={etiquetaVolver}
         onVolver={onVolver}
         seleccion={{ seleccionados: new Set(seleccionadas), onAlternar: alternar }}
+        onCambiarCriterio={setFilaEnEdicion}
       />
+      {filaEnEdicion && (
+        <CambiarCriterioEvaluacionCualitativaJuradoPanel
+          fila={filaEnEdicion}
+          evaluacionJuradoId={evaluacionJuradoId}
+          onCerrar={() => setFilaEnEdicion(null)}
+        />
+      )}
     </div>
   );
 }

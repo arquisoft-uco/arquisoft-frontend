@@ -9,6 +9,10 @@ vi.mock('./components/ItemsJuradoView', () => ({
   default: () => <p>Vista de ítems del jurado</p>,
 }));
 
+vi.mock('./components/AsesorView', () => ({
+  default: () => <p>Vista del asesor</p>,
+}));
+
 vi.mock('./components/EstudianteView', () => ({
   default: () => <p>Vista del estudiante</p>,
 }));
@@ -19,10 +23,6 @@ vi.mock('./components/JuradoView', () => ({
 
 vi.mock('./components/CoordinadorView', () => ({
   default: () => <p>Vista del coordinador</p>,
-}));
-
-vi.mock('./components/AsesorView', () => ({
-  default: () => <p>Vista del asesor</p>,
 }));
 
 function autenticarCon(rol: Rol) {
