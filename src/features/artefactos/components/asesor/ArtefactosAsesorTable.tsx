@@ -67,15 +67,6 @@ export default function ArtefactosAsesorTable({
 
   const columnas: ColumnaTabla<ArtefactoAsesor>[] = [
     {
-      id: 'proyecto',
-      encabezado: 'Proyecto',
-      clave: 'nombreProyecto',
-      ordenable: true,
-      celda: (artefacto) => (
-        <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />
-      ),
-    },
-    {
       id: 'documento',
       encabezado: 'Documento',
       clave: 'nombreDocumento',
@@ -87,6 +78,15 @@ export default function ArtefactosAsesorTable({
           {artefacto.omitido && <InsigniaOmitido />}
           {guia(artefacto) && <span className={DETALLE}>{guia(artefacto)}</span>}
         </>
+      ),
+    },
+    {
+      id: 'proyecto',
+      encabezado: 'Proyecto',
+      clave: 'nombreProyecto',
+      ordenable: true,
+      celda: (artefacto) => (
+        <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />
       ),
     },
     {
