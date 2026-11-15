@@ -22,6 +22,7 @@ export default function AccionesEvaluacionAsignadaAsesor({ asignacion }: Props) 
     const state: NavegacionCualitativasAsesor & NavegacionCuantitativasAsesor = {
       evaluacionAsesorId: asignacion.id,
       search: location.search,
+      evaluacionFinalizada: finalizada,
       resumen: { proyecto, version: asignacion.entregable.version },
     };
     navigate(`/evaluaciones/${asignacion.id}/${ruta}`, { state });

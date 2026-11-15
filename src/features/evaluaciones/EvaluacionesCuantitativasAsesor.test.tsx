@@ -66,6 +66,7 @@ describe('EvaluacionesCuantitativasAsesor', () => {
     vi.mocked(useNavegacionCuantitativasAsesor).mockReturnValue({
       evaluacionAsesorId: 'ea-1',
       search: '?q=sis',
+      evaluacionFinalizada: false,
       resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
     });
   });
@@ -115,5 +116,39 @@ describe('EvaluacionesCuantitativasAsesor', () => {
 
     // Assert
     expect(await screen.findByText('Pantalla Mis evaluaciones')).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada en el state muestra el aviso y sin acción por fila', () => {
+    // Arrange
+    autenticarCon(Rol.Asesor);
+    vi.mocked(useNavegacionCuantitativasAsesor).mockReturnValue({
+      evaluacionAsesorId: 'ea-1',
+      search: '',
+      evaluacionFinalizada: true,
+      resumen: null,
+    });
+
+    // Act
+    montar();
+
+    // Assert
+    expect(
+      screen.getByText(/ya fue finalizada; no se pueden cambiar valoraciones/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
+  });
+
+  it('sin state ofrece la acción «Cambiar puntaje» por fila', () => {
+    // Arrange
+    autenticarCon(Rol.Asesor);
+    vi.mocked(useNavegacionCuantitativasAsesor).mockReturnValue(null);
+
+    // Act
+    montar();
+
+    // Assert
+    expect(
+      screen.getAllByRole('button', { name: /Cambiar puntaje del ítem Claridad/ }).length,
+    ).toBeGreaterThan(0);
   });
 });

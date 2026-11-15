@@ -71,6 +71,7 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
         JSON.stringify({
           evaluacionAsesorId: 'ea-1',
           search: '?q=sis',
+          evaluacionFinalizada: false,
           resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
         }),
       ),
@@ -94,6 +95,7 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
         JSON.stringify({
           evaluacionAsesorId: 'ea-1',
           search: '?q=sis',
+          evaluacionFinalizada: false,
           resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
         }),
       ),
@@ -127,6 +129,7 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
         JSON.stringify({
           evaluacionAsesorId: 'ea-1',
           search: '?q=sis',
+          evaluacionFinalizada: false,
           resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
         }),
       ),
@@ -152,6 +155,7 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
         JSON.stringify({
           evaluacionAsesorId: 'ea-1',
           search: '?q=sis',
+          evaluacionFinalizada: false,
           resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
         }),
       ),

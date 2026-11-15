@@ -203,6 +203,26 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('cambiarPuntajeEvaluacionCuantitativaAsesor', () => {
+    it('llama PATCH con el id de la evaluación cuantitativa y solo { puntaje } en el body', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.cambiarPuntajeEvaluacionCuantitativaAsesor({
+        evaluacionCuantitativaAsesorId: 'ec-1',
+        puntaje: 40,
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-asesor/ec-1/puntaje',
+        { puntaje: 40 },
+      );
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarItemCualitativoJurado', () => {
     it('llama PATCH con el itemId en la ruta y solo { descripcion } en el body, y resuelve undefined', async () => {
       // Arrange
