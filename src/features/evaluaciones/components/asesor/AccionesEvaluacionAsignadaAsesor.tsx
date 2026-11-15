@@ -1,8 +1,9 @@
-import { ClipboardList } from 'lucide-react';
+import { ClipboardList, ListChecks } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
 import type { NavegacionCualitativasAsesor } from '../../models/NavegacionCualitativasAsesor';
+import type { NavegacionCuantitativasAsesor } from '../../models/NavegacionCuantitativasAsesor';
 
 const ACCIONES = 'flex items-center gap-1';
 
@@ -15,13 +16,21 @@ export default function AccionesEvaluacionAsignadaAsesor({ asignacion }: Props) 
   const location = useLocation();
   const proyecto = asignacion.entregable.proyecto;
 
-  function verCualitativas() {
-    const state: NavegacionCualitativasAsesor = {
+  function navegarA(ruta: string) {
+    const state: NavegacionCualitativasAsesor & NavegacionCuantitativasAsesor = {
       evaluacionAsesorId: asignacion.id,
       search: location.search,
       resumen: { proyecto, version: asignacion.entregable.version },
     };
-    navigate(`/evaluaciones/${asignacion.id}/cualitativas-asesor`, { state });
+    navigate(`/evaluaciones/${asignacion.id}/${ruta}`, { state });
+  }
+
+  function verCualitativas() {
+    navegarA('cualitativas-asesor');
+  }
+
+  function verCuantitativas() {
+    navegarA('cuantitativas-asesor');
   }
 
   return (
@@ -33,6 +42,15 @@ export default function AccionesEvaluacionAsignadaAsesor({ asignacion }: Props) 
           tono="neutro"
           rotulo="Ver cualitativas"
           onClick={verCualitativas}
+        />
+      )}
+      {asignacion.tieneEvaluacionesCuantitativas && (
+        <IconButton
+          etiqueta={`Ver cuantitativas de ${proyecto}`}
+          icono={ListChecks}
+          tono="neutro"
+          rotulo="Ver cuantitativas"
+          onClick={verCuantitativas}
         />
       )}
     </div>
