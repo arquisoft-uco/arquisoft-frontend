@@ -1,21 +1,25 @@
 import { useId, useMemo } from 'react';
+import AvisoProyectoCerrado from '../../../../shared/components/AvisoProyectoCerrado';
+import InsigniaProyectoCerrado from '../../../../shared/components/InsigniaProyectoCerrado';
 import Badge from '../../../../shared/components/ui/Badge';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
-import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
-import InsigniaOmitido from '../InsigniaOmitido';
+import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import { estaCerrado } from '../../utils/estado-proyecto';
+import EstadoUltimaRevision from '../EstadoUltimaRevision';
+import NombreArtefacto, { type MotivoBloqueo } from './NombreArtefacto';
 import MenuArtefactoEstudiante from './MenuArtefactoEstudiante';
 import type { ProyectoConParticipaciones } from '../../utils/agrupar-participaciones';
 
 const SECCION = 'flex flex-col gap-3';
+const ENCABEZADO = 'flex flex-wrap items-center gap-2';
 const TITULO = 'text-base font-semibold text-on-surface';
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const MOTIVO = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
 type AlElegir = (participacion: ParticipacionArtefacto) => void;
-type MotivoBloqueo = (participacion: ParticipacionArtefacto) => string | null | undefined;
+type UltimaVersion = (artefactoId: string) => VersionArtefacto | null | undefined;
 
 interface Acciones {
   onGestionarRevision: AlElegir;
@@ -26,29 +30,10 @@ function etiquetaVersion(participacion: ParticipacionArtefacto): string {
   return `Versión ${participacion.versionDocumento}`;
 }
 
-function NombreArtefacto({
-  participacion,
-  avisoFila,
-}: {
-  participacion: ParticipacionArtefacto;
-  avisoFila: MotivoBloqueo;
-}) {
-  const motivo = participacion.omitido ? undefined : avisoFila(participacion);
-
-  return (
-    <>
-      <EnlaceVersionesArtefacto
-        artefactoId={participacion.id}
-        nombreDocumento={participacion.nombreDocumento}
-        vista="versiones-revisiones"
-      />
-      {participacion.omitido && <InsigniaOmitido />}
-      {motivo && <span className={MOTIVO}>{motivo}</span>}
-    </>
-  );
-}
-
-function columnasDe(avisoFila: MotivoBloqueo): ColumnaTabla<ParticipacionArtefacto>[] {
+function columnasDe(
+  avisoFila: MotivoBloqueo,
+  ultimaVersion: UltimaVersion,
+): ColumnaTabla<ParticipacionArtefacto>[] {
   return [
     {
       id: 'documento',
@@ -63,6 +48,16 @@ function columnasDe(avisoFila: MotivoBloqueo): ColumnaTabla<ParticipacionArtefac
       encabezado: 'Versión',
       clave: 'versionDocumento',
       celda: (participacion) => <Badge variante="neutro">{etiquetaVersion(participacion)}</Badge>,
+    },
+    {
+      id: 'revision',
+      encabezado: 'Revisión',
+      celda: (participacion) => (
+        <EstadoUltimaRevision
+          ultima={ultimaVersion(participacion.id)}
+          omitido={participacion.omitido}
+        />
+      ),
     },
     {
       id: 'repositorio',
@@ -87,24 +82,42 @@ interface Props extends Acciones {
   proyecto: ProyectoConParticipaciones;
   motivoBloqueo: MotivoBloqueo;
   avisoFila: MotivoBloqueo;
+  ultimaVersion: UltimaVersion;
 }
 
 export default function ParticipacionesProyectoTabla({
   proyecto,
   motivoBloqueo,
   avisoFila,
+  ultimaVersion,
   onGestionarRevision,
   onSubirVersion,
 }: Props) {
   const idTitulo = useId();
-  const columnas = useMemo(() => columnasDe(avisoFila), [avisoFila]);
+  const cerrado = estaCerrado(proyecto);
+  const avisoVisible: MotivoBloqueo = (participacion) =>
+    cerrado ? undefined : avisoFila(participacion);
+  const columnas = useMemo(
+    () => columnasDe(cerrado ? () => undefined : avisoFila, ultimaVersion),
+    [avisoFila, ultimaVersion, cerrado],
+  );
   const acciones = { onGestionarRevision, onSubirVersion };
 
   return (
     <section aria-labelledby={idTitulo} className={SECCION}>
-      <h2 id={idTitulo} className={TITULO}>
-        {proyecto.nombreProyecto}
-      </h2>
+      <div className={ENCABEZADO}>
+        <h2 id={idTitulo} className={TITULO}>
+          {proyecto.nombreProyecto}
+        </h2>
+        <InsigniaProyectoCerrado
+          proyectoFinalizado={proyecto.proyectoFinalizado}
+          proyectoCancelado={proyecto.proyectoCancelado}
+        />
+      </div>
+      <AvisoProyectoCerrado
+        proyectoFinalizado={proyecto.proyectoFinalizado}
+        proyectoCancelado={proyecto.proyectoCancelado}
+      />
       <DataTable
         etiqueta={`Artefactos del proyecto ${proyecto.nombreProyecto}`}
         columnas={columnas}
@@ -113,13 +126,17 @@ export default function ParticipacionesProyectoTabla({
         acciones={(participacion) => (
           <MenuArtefactoEstudiante
             participacion={participacion}
-            puedeSubir={motivoBloqueo(participacion) === null}
+            puedeSubir={!cerrado && motivoBloqueo(participacion) === null}
             {...acciones}
           />
         )}
         tarjeta={(participacion) => (
           <>
-            <NombreArtefacto participacion={participacion} avisoFila={avisoFila} />
+            <NombreArtefacto participacion={participacion} avisoFila={avisoVisible} />
+            <EstadoUltimaRevision
+              ultima={ultimaVersion(participacion.id)}
+              omitido={participacion.omitido}
+            />
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
             <p className={TARJETA_DATO}>
               {participacion.nombreAsesor} · {etiquetaVersion(participacion)}

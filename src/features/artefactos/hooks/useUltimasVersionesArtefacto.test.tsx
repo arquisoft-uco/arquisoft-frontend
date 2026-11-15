@@ -61,4 +61,22 @@ describe('useUltimasVersionesArtefacto', () => {
     expect(apagado.result.current.ultimaVersionId('a-5')).toBeUndefined();
     expect(apagado.result.current.versionAnterior('a-5')).toBeUndefined();
   });
+
+  it('ultimaVersion es undefined cargando, la versión cuando llega y null sin versiones', async () => {
+    // Arrange
+    consultar.mockImplementation(({ filtros }) =>
+      Promise.resolve(
+        JSON.stringify(filtros).includes('a-1') ? pagina([{ id: 'v-9' }]) : pagina([]),
+      ),
+    );
+
+    // Act
+    const { result } = renderHook(() => useUltimasVersionesArtefacto(['a-1', 'a-2']));
+    const alInicio = result.current.ultimaVersion('a-1');
+
+    // Assert
+    expect(alInicio).toBeUndefined();
+    await waitFor(() => expect(result.current.ultimaVersion('a-1')).toEqual({ id: 'v-9' }));
+    await waitFor(() => expect(result.current.ultimaVersion('a-2')).toBeNull());
+  });
 });

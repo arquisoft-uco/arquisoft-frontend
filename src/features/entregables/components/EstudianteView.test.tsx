@@ -95,4 +95,46 @@ describe('EntregablesEstudianteView', () => {
     // Assert
     expect(hook.seleccionarProyecto).toHaveBeenCalledWith('p-2');
   });
+
+  it('con el proyecto cancelado muestra el aviso y no monta el listado ni el selector con uno solo', () => {
+    // Arrange
+    const cancelado = { ...crearProyecto('p-1'), estado: { id: 'CANCELADO', nombre: 'Cancelado' } };
+    mockHook({ proyecto: cancelado, proyectos: [cancelado] });
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    expect(screen.getByText(/Este proyecto fue cancelado\./)).toHaveTextContent(
+      'Sus entregables ya no se muestran ni se pueden descargar.',
+    );
+    expect(screen.queryByText(/Listado de/)).not.toBeInTheDocument();
+  });
+
+  it('con el proyecto finalizado muestra el aviso sobre el listado y el activo no lo muestra', () => {
+    // Arrange
+    const finalizado = {
+      ...crearProyecto('p-1'),
+      estado: { id: 'FINALIZADO', nombre: 'Finalizado' },
+    };
+    mockHook({ proyecto: finalizado, proyectos: [finalizado] });
+
+    // Act
+    const { unmount } = render(<EstudianteView />);
+
+    // Assert
+    expect(screen.getByText(/Este proyecto está finalizado\./)).toHaveTextContent('Finalizados');
+    expect(screen.getByText('Listado de p-1')).toBeInTheDocument();
+    unmount();
+
+    // Arrange
+    const activo = crearProyecto('p-2');
+    mockHook({ proyecto: activo, proyectos: [activo] });
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    expect(screen.queryByText(/Este proyecto/)).not.toBeInTheDocument();
+  });
 });
