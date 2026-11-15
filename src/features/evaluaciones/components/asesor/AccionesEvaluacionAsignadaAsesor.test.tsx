@@ -8,10 +8,11 @@ import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAs
 function asignacion(
   tieneCualitativas: boolean,
   tieneCuantitativas = false,
+  estadoId = 'e-1',
 ): EvaluacionAsignadaAsesor {
   return {
     id: 'ea-1',
-    evaluacion: { id: 'ev-1', estado: { id: 'e-1', nombre: 'En curso' } },
+    evaluacion: { id: 'ev-1', estado: { id: estadoId, nombre: 'En curso' } },
     entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
     tieneEvaluacionesCualitativas: tieneCualitativas,
     tieneEvaluacionesCuantitativas: tieneCuantitativas,
@@ -29,19 +30,20 @@ function Destino() {
   );
 }
 
-function montar(tieneCualitativas: boolean, tieneCuantitativas = false) {
+function montar(tieneCualitativas: boolean, tieneCuantitativas = false, estadoId = 'e-1') {
   return render(
     <Routes>
       <Route
         path="/evaluaciones"
         element={
           <AccionesEvaluacionAsignadaAsesor
-            asignacion={asignacion(tieneCualitativas, tieneCuantitativas)}
+            asignacion={asignacion(tieneCualitativas, tieneCuantitativas, estadoId)}
           />
         }
       />
       <Route path="/evaluaciones/:id/cualitativas-asesor" element={<Destino />} />
       <Route path="/evaluaciones/:id/cuantitativas-asesor" element={<Destino />} />
+      <Route path="/evaluaciones/:id/evaluar-asesor" element={<Destino />} />
     </Routes>,
     { initialPath: '/evaluaciones?q=sis' },
   );
@@ -97,11 +99,41 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
     ).toBeInTheDocument();
   });
 
-  it('sin ninguna bandera no renderiza acciones', () => {
+  it('sin ninguna bandera solo ofrece "Evaluar"', () => {
     // Act
     montar(false);
 
     // Assert
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' })).toBeEnabled();
+  });
+
+  it('"Evaluar" navega a evaluar-asesor con el state esperado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar(false);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' }));
+
+    // Assert
+    expect(await screen.findByText('/evaluaciones/ea-1/evaluar-asesor')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        JSON.stringify({
+          evaluacionAsesorId: 'ea-1',
+          search: '?q=sis',
+          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada deshabilita "Evaluar"', () => {
+    // Act
+    montar(false, false, 'FINALIZADA');
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' })).toBeDisabled();
   });
 });

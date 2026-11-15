@@ -16,6 +16,7 @@ import type { JuradoVigente } from '../models/JuradoVigente';
 import type { CambiarCriterioEvaluacionCualitativaJuradoRequest } from '../models/CambiarCriterioEvaluacionCualitativaJuradoRequest';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
+import type { CriterioItemCualitativoAsesor } from '../models/CriterioItemCualitativoAsesor';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
@@ -24,6 +25,7 @@ import type { ModificarItemCuantitativoJuradoRequest } from '../models/Modificar
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
+import type { RegistrarEvaluacionesCualitativasAsesorRequest } from '../models/RegistrarEvaluacionesCualitativasAsesorRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
 import type { RegistrarObservacionItemJuradoRequest } from '../models/RegistrarObservacionItemJuradoRequest';
@@ -68,6 +70,24 @@ export const evaluacionesService = {
     apiClient
       .get<ItemCualitativoAsesor[]>('/evaluaciones/items-cualitativos-asesor')
       .then((r) => r.data),
+
+  getCriteriosItemCualitativoAsesor: (): Promise<CriterioItemCualitativoAsesor[]> =>
+    apiClient
+      .get<CriterioItemCualitativoAsesor[]>('/evaluaciones/criterios-item-cualitativo-asesor')
+      .then((r) => r.data),
+
+  registrarEvaluacionesCualitativasAsesor: ({
+    evaluacionAsesorId,
+    evaluaciones,
+  }: RegistrarEvaluacionesCualitativasAsesorRequest): Promise<void> =>
+    apiClient
+      .post<void>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cualitativas`, {
+        evaluaciones: evaluaciones.map(({ itemId, criterioId }) => ({
+          item: itemId,
+          criterio: criterioId,
+        })),
+      })
+      .then(() => undefined),
 
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
     apiClient
