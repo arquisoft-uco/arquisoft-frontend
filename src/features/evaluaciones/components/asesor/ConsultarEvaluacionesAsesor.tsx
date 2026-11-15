@@ -5,6 +5,7 @@ import Notice from '../../../../shared/components/ui/Notice';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useCatalogoEstadosEvaluacion } from '../../hooks/useCatalogoEstadosEvaluacion';
 import { useEvaluacionesAsignadasAsesor } from '../../hooks/useEvaluacionesAsignadasAsesor';
+import AccionesEvaluacionAsignadaAsesor from './AccionesEvaluacionAsignadaAsesor';
 import EvaluacionesAsignadasAsesorTable from './EvaluacionesAsignadasAsesorTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -78,6 +79,8 @@ export default function ConsultarEvaluacionesAsesor() {
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
             descripcionVacio="Aparecerán aquí cuando se te asocien entregables."
+            encabezadoAcciones="Acciones"
+            acciones={(fila) => <AccionesEvaluacionAsignadaAsesor asignacion={fila} />}
           />
         )}
       </div>

@@ -15,6 +15,7 @@ const EvaluacionesCualitativasRealizadasJurado = lazy(
 const EvaluacionesCuantitativasRealizadasJurado = lazy(
   () => import('./EvaluacionesCuantitativasRealizadasJurado'),
 );
+const EvaluacionesCualitativasAsesor = lazy(() => import('./EvaluacionesCualitativasAsesor'));
 const RegistrarEvaluacionesCualitativas = lazy(() => import('./RegistrarEvaluacionesCualitativas'));
 
 export const rutasEvaluaciones: RouteObject = {
@@ -42,6 +43,10 @@ export const rutasEvaluaciones: RouteObject = {
     {
       path: ':evaluacionJuradoId/cuantitativas-realizadas',
       element: <EvaluacionesCuantitativasRealizadasJurado />,
+    },
+    {
+      path: ':evaluacionAsesorId/cualitativas-asesor',
+      element: <EvaluacionesCualitativasAsesor />,
     },
     {
       path: ':evaluacionJuradoId/cuantitativas',
