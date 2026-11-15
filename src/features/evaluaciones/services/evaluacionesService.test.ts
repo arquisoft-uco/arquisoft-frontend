@@ -41,6 +41,25 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('registrarEvaluacionesCuantitativasAsesor', () => {
+    it('envía a la ruta del asesor con itemId traducido a item y resuelve undefined', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.registrarEvaluacionesCuantitativasAsesor({
+        evaluacionAsesorId: 'ea-1',
+        evaluaciones: [{ itemId: 'item-1', puntaje: 7 }],
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/evaluaciones/evaluaciones-asesor/ea-1/cuantitativas', {
+        evaluaciones: [{ item: 'item-1', puntaje: 7 }],
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrarEvaluacionesCualitativasAsesor', () => {
     it('envía a la ruta con prefijo /evaluaciones con item/criterio traducidos y resuelve undefined', async () => {
       // Arrange

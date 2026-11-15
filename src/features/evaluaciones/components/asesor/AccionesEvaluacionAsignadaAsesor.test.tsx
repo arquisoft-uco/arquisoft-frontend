@@ -44,6 +44,7 @@ function montar(tieneCualitativas: boolean, tieneCuantitativas = false, estadoId
       <Route path="/evaluaciones/:id/cualitativas-asesor" element={<Destino />} />
       <Route path="/evaluaciones/:id/cuantitativas-asesor" element={<Destino />} />
       <Route path="/evaluaciones/:id/evaluar-asesor" element={<Destino />} />
+      <Route path="/evaluaciones/:id/evaluar-cuantitativas-asesor" element={<Destino />} />
     </Routes>,
     { initialPath: '/evaluaciones?q=sis' },
   );
@@ -99,13 +100,16 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
     ).toBeInTheDocument();
   });
 
-  it('sin ninguna bandera solo ofrece "Evaluar"', () => {
+  it('sin ninguna bandera solo ofrece "Evaluar" y "Evaluar cuantitativas"', () => {
     // Act
     montar(false);
 
     // Assert
-    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(screen.getAllByRole('button')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' }),
+    ).toBeEnabled();
   });
 
   it('"Evaluar" navega a evaluar-asesor con el state esperado', async () => {
@@ -129,11 +133,39 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
     ).toBeInTheDocument();
   });
 
+  it('"Evaluar cuantitativas" navega a su pantalla con el state esperado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar(false);
+
+    // Act
+    await user.click(
+      screen.getByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' }),
+    );
+
+    // Assert
+    expect(
+      await screen.findByText('/evaluaciones/ea-1/evaluar-cuantitativas-asesor'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        JSON.stringify({
+          evaluacionAsesorId: 'ea-1',
+          search: '?q=sis',
+          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('con la evaluación finalizada deshabilita "Evaluar"', () => {
     // Act
     montar(false, false, 'FINALIZADA');
 
     // Assert
     expect(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' }),
+    ).toBeDisabled();
   });
 });
