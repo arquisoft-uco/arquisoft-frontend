@@ -9,6 +9,7 @@ import type { EvaluacionAsignadaAsesor } from '../models/EvaluacionAsignadaAseso
 import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
 import type { EvaluacionCualitativaAsesor } from '../models/EvaluacionCualitativaAsesor';
 import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
+import type { EvaluacionCuantitativaAsesor } from '../models/EvaluacionCuantitativaAsesor';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
@@ -171,6 +172,15 @@ export const evaluacionesService = {
       .get<
         EvaluacionCualitativaAsesor[]
       >(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cualitativas`)
+      .then((r) => r.data),
+
+  getEvaluacionesCuantitativasAsesor: (
+    evaluacionAsesorId: string,
+  ): Promise<EvaluacionCuantitativaAsesor[]> =>
+    apiClient
+      .get<
+        EvaluacionCuantitativaAsesor[]
+      >(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cuantitativas`)
       .then((r) => r.data),
 
   getJuradosEvaluacion: (

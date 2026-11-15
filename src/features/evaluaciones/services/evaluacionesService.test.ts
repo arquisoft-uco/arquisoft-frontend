@@ -368,4 +368,19 @@ describe('evaluacionesService', () => {
       expect(resultado).toEqual(lista);
     });
   });
+
+  describe('getEvaluacionesCuantitativasAsesor', () => {
+    it('llama GET a la ruta de cuantitativas del asesor y resuelve la lista', async () => {
+      // Arrange
+      const lista = [{ id: 'ec-1' }];
+      get.mockResolvedValue({ status: 200, data: lista });
+
+      // Act
+      const resultado = await evaluacionesService.getEvaluacionesCuantitativasAsesor('ea-1');
+
+      // Assert
+      expect(get).toHaveBeenCalledWith('/evaluaciones/evaluaciones-asesor/ea-1/cuantitativas');
+      expect(resultado).toEqual(lista);
+    });
+  });
 });

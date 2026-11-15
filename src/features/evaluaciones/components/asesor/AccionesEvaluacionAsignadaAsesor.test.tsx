@@ -5,13 +5,16 @@ import { render, screen } from '../../../../test-utils/render';
 import AccionesEvaluacionAsignadaAsesor from './AccionesEvaluacionAsignadaAsesor';
 import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
 
-function asignacion(tieneCualitativas: boolean): EvaluacionAsignadaAsesor {
+function asignacion(
+  tieneCualitativas: boolean,
+  tieneCuantitativas = false,
+): EvaluacionAsignadaAsesor {
   return {
     id: 'ea-1',
     evaluacion: { id: 'ev-1', estado: { id: 'e-1', nombre: 'En curso' } },
     entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
     tieneEvaluacionesCualitativas: tieneCualitativas,
-    tieneEvaluacionesCuantitativas: false,
+    tieneEvaluacionesCuantitativas: tieneCuantitativas,
   } as EvaluacionAsignadaAsesor;
 }
 
@@ -26,14 +29,19 @@ function Destino() {
   );
 }
 
-function montar(tieneCualitativas: boolean) {
+function montar(tieneCualitativas: boolean, tieneCuantitativas = false) {
   return render(
     <Routes>
       <Route
         path="/evaluaciones"
-        element={<AccionesEvaluacionAsignadaAsesor asignacion={asignacion(tieneCualitativas)} />}
+        element={
+          <AccionesEvaluacionAsignadaAsesor
+            asignacion={asignacion(tieneCualitativas, tieneCuantitativas)}
+          />
+        }
       />
       <Route path="/evaluaciones/:id/cualitativas-asesor" element={<Destino />} />
+      <Route path="/evaluaciones/:id/cuantitativas-asesor" element={<Destino />} />
     </Routes>,
     { initialPath: '/evaluaciones?q=sis' },
   );
@@ -66,7 +74,30 @@ describe('AccionesEvaluacionAsignadaAsesor', () => {
     ).toBeInTheDocument();
   });
 
-  it('sin cualitativas no renderiza la acción', () => {
+  it('con cuantitativas navega a su pantalla con el state esperado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar(false, true);
+
+    // Act
+    await user.click(
+      screen.getByRole('button', { name: 'Ver cuantitativas de Sistema de monitoreo' }),
+    );
+
+    // Assert
+    expect(await screen.findByText('/evaluaciones/ea-1/cuantitativas-asesor')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        JSON.stringify({
+          evaluacionAsesorId: 'ea-1',
+          search: '?q=sis',
+          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
+        }),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('sin ninguna bandera no renderiza acciones', () => {
     // Act
     montar(false);
 
