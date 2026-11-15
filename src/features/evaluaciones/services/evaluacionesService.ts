@@ -18,7 +18,6 @@ import type { CambiarPuntajeEvaluacionCuantitativaAsesorRequest } from '../model
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { CriterioItemCualitativoAsesor } from '../models/CriterioItemCualitativoAsesor';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
-import type { CriterioItemCualitativoAsesor } from '../models/CriterioItemCualitativoAsesor';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
@@ -136,11 +135,6 @@ export const evaluacionesService = {
   getCriteriosItemCualitativoJurado: (): Promise<CriterioItemCualitativoJurado[]> =>
     apiClient
       .get<CriterioItemCualitativoJurado[]>('/evaluaciones/criterios-item-cualitativo-jurado')
-      .then((r) => r.data),
-
-  getCriteriosItemCualitativoAsesor: (): Promise<CriterioItemCualitativoAsesor[]> =>
-    apiClient
-      .get<CriterioItemCualitativoAsesor[]>('/evaluaciones/criterios-item-cualitativo-asesor')
       .then((r) => r.data),
 
   registrarItemCualitativoJurado: (
