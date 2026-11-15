@@ -37,9 +37,9 @@ export function construirFiltros(texto: string, estadoIds: string[]): NodoFiltro
   return { tipo: 'GRUPO', conector: 'AND', nodos };
 }
 
-export function useListadoEvaluaciones(
+export function useListadoEvaluaciones<T>(
   rol: 'coordinador' | 'estudiante' | 'asesor',
-  cargar: (req: ConsultaCriteriaRequest) => Promise<Page<Evaluacion>>,
+  cargar: (req: ConsultaCriteriaRequest) => Promise<Page<T>>,
 ) {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
@@ -103,4 +103,4 @@ export function useListadoEvaluaciones(
   };
 }
 
-export type ListadoEvaluaciones = ReturnType<typeof useListadoEvaluaciones>;
+export type ListadoEvaluaciones<T = Evaluacion> = ReturnType<typeof useListadoEvaluaciones<T>>;

@@ -2,25 +2,27 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarEvaluacionesAsesor from './ConsultarEvaluacionesAsesor';
-import { useEvaluacionesAsesor } from '../../hooks/useEvaluacionesAsesor';
+import { useEvaluacionesAsignadasAsesor } from '../../hooks/useEvaluacionesAsignadasAsesor';
 import { useCatalogoEstadosEvaluacion } from '../../hooks/useCatalogoEstadosEvaluacion';
 import type { Page } from '../../../../shared/models/api-response';
-import type { Evaluacion } from '../../models/Evaluacion';
+import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
 
-vi.mock('../../hooks/useEvaluacionesAsesor', () => ({
-  useEvaluacionesAsesor: vi.fn(),
+vi.mock('../../hooks/useEvaluacionesAsignadasAsesor', () => ({
+  useEvaluacionesAsignadasAsesor: vi.fn(),
 }));
 vi.mock('../../hooks/useCatalogoEstadosEvaluacion', () => ({
   useCatalogoEstadosEvaluacion: vi.fn(),
 }));
 
-const EVALUACION: Evaluacion = {
-  id: 'e-1',
+const EVALUACION: EvaluacionAsignadaAsesor = {
+  id: 'ea-1',
+  evaluacion: { id: 'e-1', estado: { id: 'PENDIENTE', nombre: 'Pendiente' } },
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 3 },
-  estado: { id: 'PENDIENTE', nombre: 'Pendiente' },
+  tieneEvaluacionesCualitativas: false,
+  tieneEvaluacionesCuantitativas: false,
 };
 
-function crearPagina(content: Evaluacion[]) {
+function crearPagina(content: EvaluacionAsignadaAsesor[]) {
   return {
     content,
     page: 0,
@@ -30,10 +32,10 @@ function crearPagina(content: Evaluacion[]) {
     first: true,
     last: true,
     empty: content.length === 0,
-  } as Page<Evaluacion>;
+  } as Page<EvaluacionAsignadaAsesor>;
 }
 
-function mockHook(parcial: Partial<ReturnType<typeof useEvaluacionesAsesor>> = {}) {
+function mockHook(parcial: Partial<ReturnType<typeof useEvaluacionesAsignadasAsesor>> = {}) {
   const hook = {
     data: undefined,
     error: null,
@@ -55,14 +57,14 @@ function mockHook(parcial: Partial<ReturnType<typeof useEvaluacionesAsesor>> = {
     setOrden: vi.fn(),
     limpiarFiltros: vi.fn(),
     ...parcial,
-  } as ReturnType<typeof useEvaluacionesAsesor>;
-  vi.mocked(useEvaluacionesAsesor).mockReturnValue(hook);
+  } as ReturnType<typeof useEvaluacionesAsignadasAsesor>;
+  vi.mocked(useEvaluacionesAsignadasAsesor).mockReturnValue(hook);
   return hook;
 }
 
 describe('ConsultarEvaluacionesAsesor', () => {
   beforeEach(() => {
-    vi.mocked(useEvaluacionesAsesor).mockReset();
+    vi.mocked(useEvaluacionesAsignadasAsesor).mockReset();
     vi.mocked(useCatalogoEstadosEvaluacion).mockReset();
     const parcial: Partial<ReturnType<typeof useCatalogoEstadosEvaluacion>> = {
       data: [{ id: 'PENDIENTE', nombre: 'Pendiente', descripcion: '' }],
@@ -119,5 +121,29 @@ describe('ConsultarEvaluacionesAsesor', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las evaluaciones');
     expect(hook.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('si falla el catálogo de estados avisa, deja el listado usable y "Reintentar" recarga el catálogo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const refetch = vi.fn();
+    const parcial: Partial<ReturnType<typeof useCatalogoEstadosEvaluacion>> = {
+      data: undefined,
+      isError: true,
+      refetch,
+    };
+    vi.mocked(useCatalogoEstadosEvaluacion).mockReturnValue({
+      ...parcial,
+    } as ReturnType<typeof useCatalogoEstadosEvaluacion>);
+    mockHook({ data: crearPagina([EVALUACION]) });
+    render(<ConsultarEvaluacionesAsesor />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }));
+
+    // Assert
+    expect(screen.getByText('No se pudieron cargar los estados para filtrar.')).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: 'Evaluaciones' })).toBeInTheDocument();
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 });
