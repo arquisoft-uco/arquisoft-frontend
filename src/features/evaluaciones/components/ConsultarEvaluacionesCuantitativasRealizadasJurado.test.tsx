@@ -36,11 +36,13 @@ vi.mock('./jurado/ObservacionesEvaluacionCuantitativaPanel', () => ({
   default: ({
     evaluacion,
     puedeModificar,
+    puedeRemover,
     onModificar,
     onCerrar,
   }: {
     evaluacion: EvaluacionCuantitativaJurado;
     puedeModificar?: boolean;
+    puedeRemover?: boolean;
     onModificar?: (observacion: ObservacionItemJurado) => void;
     onCerrar: () => void;
   }) => (
@@ -50,6 +52,7 @@ vi.mock('./jurado/ObservacionesEvaluacionCuantitativaPanel', () => ({
           Modificar observación
         </button>
       )}
+      {puedeRemover && <button type="button">Remover observación</button>}
       <button type="button" onClick={onCerrar}>
         Cerrar panel
       </button>
@@ -252,5 +255,22 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     // Assert
     expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Modificar observación' })).not.toBeInTheDocument();
+  });
+
+  it('solo ofrece «Remover observación» mientras la evaluación no está finalizada', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] });
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+    expect(screen.getByRole('button', { name: 'Remover observación' })).toBeInTheDocument();
+    cleanup();
+    montar({ data: [FILA] }, false, true);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remover observación' })).not.toBeInTheDocument();
   });
 });
