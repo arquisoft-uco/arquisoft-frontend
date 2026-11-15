@@ -1,4 +1,4 @@
-import { ClipboardList, ClipboardPen, ListChecks } from 'lucide-react';
+import { Calculator, ClipboardList, ClipboardPen, ListChecks } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
@@ -39,6 +39,10 @@ export default function AccionesEvaluacionAsignadaAsesor({ asignacion }: Props) 
     navegarA('cuantitativas-asesor');
   }
 
+  function evaluarCuantitativas() {
+    navegarA('evaluar-cuantitativas-asesor');
+  }
+
   return (
     <div className={ACCIONES}>
       {asignacion.tieneEvaluacionesCualitativas && (
@@ -67,6 +71,14 @@ export default function AccionesEvaluacionAsignadaAsesor({ asignacion }: Props) 
           onClick={verCuantitativas}
         />
       )}
+      <IconButton
+        etiqueta={`Evaluar cuantitativas de ${proyecto}`}
+        icono={Calculator}
+        tono="primario"
+        rotulo="Evaluar cuantitativas"
+        disabled={finalizada}
+        onClick={evaluarCuantitativas}
+      />
     </div>
   );
 }

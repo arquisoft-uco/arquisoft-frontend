@@ -17,6 +17,7 @@ interface Props {
   onAgregar: (par: ParEvaluacionCuantitativaJurado) => void;
   deshabilitado?: boolean;
   inputItemRef?: Ref<HTMLInputElement>;
+  conObservacion?: boolean;
 }
 
 export default function SelectorParEvaluacionCuantitativa({
@@ -25,6 +26,7 @@ export default function SelectorParEvaluacionCuantitativa({
   onAgregar,
   deshabilitado,
   inputItemRef,
+  conObservacion = true,
 }: Props) {
   const [itemId, setItemId] = useState('');
   const [puntajeTexto, setPuntajeTexto] = useState('');
@@ -50,16 +52,6 @@ export default function SelectorParEvaluacionCuantitativa({
     setError('');
   }
 
-  function escribirPuntaje(texto: string) {
-    setPuntajeTexto(texto);
-    setError('');
-  }
-
-  function escribirObservacion(texto: string) {
-    setObservacionTexto(texto);
-    setErrorObservacion('');
-  }
-
   function agregar() {
     if (!item) return;
     const resultado = enteroEntre(LIMITES.ITEM_CUANTITATIVO_VALOR_MIN, item.valor).safeParse(
@@ -69,7 +61,7 @@ export default function SelectorParEvaluacionCuantitativa({
       setError(resultado.error.issues[0].message);
       return;
     }
-    const observacion = observacionTexto.trim();
+    const observacion = conObservacion ? observacionTexto.trim() : '';
     if (observacion !== '') {
       const validada = OBSERVACION_VALIDA.safeParse(observacion);
       if (!validada.success) {
@@ -126,16 +118,24 @@ export default function SelectorParEvaluacionCuantitativa({
             maxLength={DIGITOS_MAXIMOS}
             value={puntajeTexto}
             disabled={deshabilitado}
-            onChange={(e) => escribirPuntaje(e.target.value)}
+            onChange={(e) => {
+              setPuntajeTexto(e.target.value);
+              setError('');
+            }}
           />
         )}
       </Field>
-      <CampoObservacionEvaluacionCuantitativa
-        valor={observacionTexto}
-        onCambiar={escribirObservacion}
-        error={errorObservacion || undefined}
-        deshabilitado={deshabilitado}
-      />
+      {conObservacion && (
+        <CampoObservacionEvaluacionCuantitativa
+          valor={observacionTexto}
+          onCambiar={(texto) => {
+            setObservacionTexto(texto);
+            setErrorObservacion('');
+          }}
+          error={errorObservacion || undefined}
+          deshabilitado={deshabilitado}
+        />
+      )}
       <div className="actions-row">
         <Button
           variante="secundario"

@@ -19,6 +19,9 @@ import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualit
 import type { CriterioItemCualitativoAsesor } from '../models/CriterioItemCualitativoAsesor';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
+import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
+import type { CategoriaItemCuantitativoAsesor } from '../models/CategoriaItemCuantitativoAsesor';
+import type { RegistrarEvaluacionesCuantitativasAsesorRequest } from '../models/RegistrarEvaluacionesCuantitativasAsesorRequest';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
@@ -88,6 +91,26 @@ export const evaluacionesService = {
         })),
       })
       .then(() => undefined),
+
+  registrarEvaluacionesCuantitativasAsesor: ({
+    evaluacionAsesorId,
+    evaluaciones,
+  }: RegistrarEvaluacionesCuantitativasAsesorRequest): Promise<void> =>
+    apiClient
+      .post<void>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cuantitativas`, {
+        evaluaciones: evaluaciones.map(({ itemId, puntaje }) => ({ item: itemId, puntaje })),
+      })
+      .then(() => undefined),
+
+  getItemsCuantitativosAsesor: (): Promise<ItemCuantitativoAsesor[]> =>
+    apiClient
+      .get<ItemCuantitativoAsesor[]>('/evaluaciones/items-cuantitativos-asesor')
+      .then((r) => r.data),
+
+  getCategoriasItemCuantitativoAsesor: (): Promise<CategoriaItemCuantitativoAsesor[]> =>
+    apiClient
+      .get<CategoriaItemCuantitativoAsesor[]>('/evaluaciones/categorias-item-cuantitativo-asesor')
+      .then((r) => r.data),
 
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
     apiClient
