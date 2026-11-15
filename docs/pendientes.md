@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-11-14.
+Última revisión: 2026-11-15.
 
 ## Bloqueados por el backend
 
@@ -35,6 +35,7 @@ Client roles a confirmar en el realm desplegado:
 - `fichas:estado-observacion-revision-estudiante:view` para el estudiante (catálogo de estados de observación, HU-020), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `artefactos:estado-revision-asesor:view` para el asesor (catálogo de estados de revisión, HU-113, y chips de estado de sus versiones, HU-112-AJ3), sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-asesor-asesor:view` (listado de HU-120-AJ1) y `evaluaciones:estado-evaluacion:view` (catálogo de estados de HU-120) para el asesor: el primero está verificado en el `realm-arquisoft.json` del backend y ausente en el de `arquisoft-infra`; ambos sin verificar en el desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
+- `evaluaciones:evaluacion-asesor-estudiante:view` para el estudiante (evaluación del asesor de una evaluación, HU-014): presente en el composite del realm role `estudiante` del `realm-arquisoft.json` del backend, sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-cualitativa-asesor-asesor:view` para el asesor (cualitativas de una evaluación, HU-124): presente en el composite del realm role `asesor` del `realm-arquisoft.json` del backend, sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:evaluacion-cuantitativa-asesor-asesor:view` para el asesor (cuantitativas de una evaluación, HU-129): presente en el composite del realm role `asesor` del `realm-arquisoft.json` del backend y ausente del de `arquisoft-infra`, sin verificar en el realm desplegado: un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
 - `artefactos:estado-revision-asesor:view` para el estudiante (chips de estado en sus versiones de artefactos, HU-112-AJ3/HU-044): concedido en Keycloak y validado con 200, pero ausente del `realm-arquisoft.json` versionado del backend. Un 403 con login real lleva a `/forbidden` y con `VITE_AUTH_BYPASS=true` no se nota.
