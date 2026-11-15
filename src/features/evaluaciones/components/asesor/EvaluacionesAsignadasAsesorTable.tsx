@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ClipboardCheck, SearchX } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
@@ -30,6 +31,8 @@ interface Props {
   onOrdenar: (campo: OrdenCampoEvaluacion, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
   descripcionVacio?: string;
+  acciones?: (fila: EvaluacionAsignadaAsesor) => ReactNode;
+  encabezadoAcciones?: string;
 }
 
 function InsigniaEstado({ fila }: { fila: EvaluacionAsignadaAsesor }) {
@@ -70,6 +73,8 @@ export default function EvaluacionesAsignadasAsesorTable({
   onOrdenar,
   onLimpiarFiltros,
   descripcionVacio = DESCRIPCION_VACIO,
+  acciones,
+  encabezadoAcciones,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -103,6 +108,8 @@ export default function EvaluacionesAsignadasAsesorTable({
       orden={orden}
       onOrdenar={ordenar}
       cargando={cargando}
+      acciones={acciones}
+      encabezadoAcciones={encabezadoAcciones}
       vacio={vacio}
       tarjeta={(fila) => (
         <>

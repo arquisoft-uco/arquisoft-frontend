@@ -76,7 +76,7 @@ describe('ConsultarEvaluacionesAsesor', () => {
     } as ReturnType<typeof useCatalogoEstadosEvaluacion>);
   });
 
-  it('lista proyecto, versión y estado en solo lectura, sin columna ni botones de acción', () => {
+  it('lista proyecto, versión y estado con la columna de acciones, sin botones si no hay cualitativas', () => {
     // Arrange
     mockHook({ data: crearPagina([EVALUACION]) });
 
@@ -88,9 +88,9 @@ describe('ConsultarEvaluacionesAsesor', () => {
     expect(tabla.getByText('Sistema de monitoreo')).toBeInTheDocument();
     expect(tabla.getByText('3')).toBeInTheDocument();
     expect(tabla.getByText('Pendiente')).toBeInTheDocument();
-    expect(tabla.getAllByRole('columnheader')).toHaveLength(3);
+    expect(tabla.getAllByRole('columnheader')).toHaveLength(4);
     expect(
-      tabla.queryByRole('button', { name: /Ver evaluaciones|Asignar/ }),
+      tabla.queryByRole('button', { name: /Ver evaluaciones|Asignar|Ver cualitativas/ }),
     ).not.toBeInTheDocument();
   });
 
