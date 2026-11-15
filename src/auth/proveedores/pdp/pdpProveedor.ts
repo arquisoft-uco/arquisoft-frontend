@@ -41,6 +41,27 @@ export function crearPdpProveedor(): ProveedorIdentidad {
       _omitirProveedorApi: true,
     });
 
+  const sesionDePdp = async (): Promise<SesionRestaurada | null> => {
+    try {
+      const { data } = await consultarSesion();
+      const { subject, name, email } = data.data;
+      return {
+        // Pendiente: b) los roles vendrán del endpoint «mi perfil»; mientras tanto los provee rolesMockPdp.
+        tokenParsed: {
+          sub: subject,
+          preferred_username: email,
+          email,
+          name,
+          realm_access: { roles: rolesMockPdp() },
+        },
+        username: email,
+      };
+    } catch (error) {
+      if (isApiErrorWithStatus(error, 401)) return null;
+      throw error;
+    }
+  };
+
   const iniciarSesion = (destino: string) => {
     window.location.assign(`${url}${RUTA_LOGIN}?return_to=${encodeURIComponent(destino)}`);
   };
@@ -48,28 +69,12 @@ export function crearPdpProveedor(): ProveedorIdentidad {
   return {
     id: ID_PDP,
 
+    recuperarSesionSilenciosa: sesionDePdp,
+
     async restaurarSesion(): Promise<SesionRestaurada | null> {
-      try {
-        const { data } = await consultarSesion();
-        const { subject, name, email } = data.data;
-        return {
-          // Pendiente: b) los roles vendrán del endpoint «mi perfil»; mientras tanto los provee rolesMockPdp.
-          tokenParsed: {
-            sub: subject,
-            preferred_username: email,
-            email,
-            name,
-            realm_access: { roles: rolesMockPdp() },
-          },
-          username: email,
-        };
-      } catch (error) {
-        if (isApiErrorWithStatus(error, 401)) {
-          iniciarSesion(window.location.href);
-          return null;
-        }
-        throw error;
-      }
+      const sesion = await sesionDePdp();
+      if (!sesion) iniciarSesion(window.location.href);
+      return sesion;
     },
 
     iniciarSesion,

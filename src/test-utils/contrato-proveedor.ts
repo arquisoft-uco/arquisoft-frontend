@@ -8,6 +8,7 @@ export interface EscenariosProveedor {
   sinSesion: () => void;
   conFallo: () => void;
   verificarLoginEnCurso: () => void;
+  verificarSinRedireccion: () => void;
   prepararRenovacion: () => void;
   verificarCierre: () => void;
   provocarRenovacionDeSesion?: () => Promise<void> | void;
@@ -47,6 +48,34 @@ export function describirContratoProveedor(nombre: string, escenarios: Escenario
       // Assert
       expect(sesion).toBeNull();
       escenarios.verificarLoginEnCurso();
+    });
+
+    it('recuperarSesionSilenciosa con sesión devuelve claims y nombre de usuario', async () => {
+      // Arrange
+      escenarios.conSesion();
+      const proveedor = escenarios.crear();
+
+      // Act
+      const sesion = await proveedor.recuperarSesionSilenciosa(vi.fn());
+
+      // Assert
+      expect(sesion?.tokenParsed).toBeDefined();
+      expect(sesion?.username).not.toBe('');
+    });
+
+    it('recuperarSesionSilenciosa sin sesión devuelve null sin iniciar el login, y un fallo rechaza', async () => {
+      // Arrange
+      escenarios.sinSesion();
+      const sinSesion = escenarios.crear();
+
+      // Act
+      const sesion = await sinSesion.recuperarSesionSilenciosa(vi.fn());
+
+      // Assert
+      expect(sesion).toBeNull();
+      escenarios.verificarSinRedireccion();
+      escenarios.conFallo();
+      await expect(escenarios.crear().recuperarSesionSilenciosa(vi.fn())).rejects.toThrow();
     });
 
     it('un fallo no recuperable rechaza la restauración', async () => {

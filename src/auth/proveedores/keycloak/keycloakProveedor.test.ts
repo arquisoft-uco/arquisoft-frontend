@@ -6,6 +6,8 @@ import { crearKeycloakProveedor } from './keycloakProveedor';
 const mocks = vi.hoisted(() => ({
   keycloak: {
     init: vi.fn(),
+    didInitialize: false,
+    authenticated: false,
     login: vi.fn(),
     logout: vi.fn(),
     updateToken: vi.fn(),
@@ -40,6 +42,8 @@ beforeEach(() => {
   vi.resetAllMocks();
   mocks.keycloak.token = undefined;
   mocks.keycloak.tokenParsed = undefined;
+  mocks.keycloak.didInitialize = false;
+  mocks.keycloak.authenticated = false;
   mocks.refresco.onRefresh = undefined;
   mocks.scheduleRefresh.mockImplementation((onRefresh: (token: string) => void) => {
     mocks.refresco.onRefresh = onRefresh;
@@ -54,6 +58,7 @@ describirContratoProveedor('keycloak', {
   sinSesion: () => mocks.keycloak.init.mockResolvedValue(false),
   conFallo: () => mocks.keycloak.init.mockRejectedValue(new Error('init falló')),
   verificarLoginEnCurso: () => expect(mocks.keycloak.init).toHaveBeenCalledTimes(1),
+  verificarSinRedireccion: () => expect(mocks.keycloak.login).not.toHaveBeenCalled(),
   prepararRenovacion: () => mocks.keycloak.updateToken.mockResolvedValue(true),
   verificarCierre: () => expect(mocks.logout).toHaveBeenCalledWith('http://app.test'),
   provocarRenovacionDeSesion: () => mocks.refresco.onRefresh?.('token-nuevo'),
@@ -74,6 +79,38 @@ describe('keycloakProveedor', () => {
     expect(mocks.keycloak.init).toHaveBeenCalledWith(
       expect.objectContaining({ onLoad: 'login-required', pkceMethod: 'S256' }),
     );
+  });
+
+  it('recuperarSesionSilenciosa inicializa con check-sso sin iframe silencioso', async () => {
+    // Arrange
+    sesionIniciada();
+    const proveedor = crearKeycloakProveedor();
+
+    // Act
+    await proveedor.recuperarSesionSilenciosa(vi.fn());
+
+    // Assert
+    const opciones = mocks.keycloak.init.mock.calls[0][0];
+    expect(opciones).toEqual(expect.objectContaining({ onLoad: 'check-sso' }));
+    expect(opciones).not.toHaveProperty('silentCheckSsoRedirectUri');
+  });
+
+  it('tras un check-sso sin sesión, restaurarSesion inicia el login y no vuelve a llamar init', async () => {
+    // Arrange
+    mocks.keycloak.init.mockImplementation(async () => {
+      mocks.keycloak.didInitialize = true;
+      return false;
+    });
+    mocks.keycloak.login.mockResolvedValue(undefined);
+    await crearKeycloakProveedor().recuperarSesionSilenciosa(vi.fn());
+
+    // Act
+    const sesion = await crearKeycloakProveedor().restaurarSesion(vi.fn());
+
+    // Assert
+    expect(sesion).toBeNull();
+    expect(mocks.keycloak.init).toHaveBeenCalledTimes(1);
+    expect(mocks.keycloak.login).toHaveBeenCalledTimes(1);
   });
 
   it('credencialesHttp entrega siempre el token vivo de Keycloak', () => {

@@ -5,6 +5,7 @@ import { safeStorage } from './safeStorage';
 
 interface ProveedorState {
   proveedor: ProveedorId | null;
+  confirmadoEnEstaCarga: boolean;
   elegirProveedor: (id: ProveedorId) => void;
   limpiarProveedor: () => void;
 }
@@ -13,8 +14,9 @@ export const useProveedorStore = create<ProveedorState>()(
   persist(
     (set) => ({
       proveedor: null,
-      elegirProveedor: (id) => set({ proveedor: id }),
-      limpiarProveedor: () => set({ proveedor: null }),
+      confirmadoEnEstaCarga: false,
+      elegirProveedor: (id) => set({ proveedor: id, confirmadoEnEstaCarga: true }),
+      limpiarProveedor: () => set({ proveedor: null, confirmadoEnEstaCarga: false }),
     }),
     {
       name: 'arquisoft_proveedor_identidad',

@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router';
 import { useAuthStore } from '../auth/authStore';
 import { initDevAuth } from '../auth/devAuth';
 import { useProveedorStore } from '../auth/proveedorStore';
-import { resolverProveedor, restaurarSesion } from '../auth/session';
+import { requiereElegirProveedor, restaurarSesion } from '../auth/session';
 import { AUTH_BYPASS } from '../config/env';
 import { useProveedoresDisponibles } from '../hooks/useAuth';
 import AppLoader from '../shared/components/AppLoader';
@@ -17,15 +17,17 @@ export default function AuthGuard() {
   const proveedores = useProveedoresDisponibles();
   const { pathname, search } = useLocation();
   const [fallo, setFallo] = useState(false);
+  const [eleccionPendiente, setEleccionPendiente] = useState(false);
   const [intento, setIntento] = useState(0);
   const intentoIniciado = useRef<number | null>(null);
 
-  const requiereSelector = !AUTH_BYPASS && isInitializing && resolverProveedor() === null;
+  const requiereSelector =
+    !AUTH_BYPASS && isInitializing && (eleccionPendiente || requiereElegirProveedor());
 
   useEffect(() => {
     // StrictMode monta dos veces: el intento evita una segunda restauración.
     if (intentoIniciado.current === intento) return;
-    if (!AUTH_BYPASS && resolverProveedor() === null) return;
+    if (!AUTH_BYPASS && requiereElegirProveedor()) return;
     intentoIniciado.current = intento;
 
     if (AUTH_BYPASS) {
@@ -33,26 +35,33 @@ export default function AuthGuard() {
       return;
     }
 
-    restaurarSesion().catch(() => {
-      useAuthStore.getState().setInitializing(false);
-      setFallo(true);
-    });
+    restaurarSesion()
+      .then((resultado) => {
+        if (resultado === 'requiere-eleccion') setEleccionPendiente(true);
+      })
+      .catch(() => {
+        useAuthStore.getState().setInitializing(false);
+        setFallo(true);
+      });
   }, [intento, proveedorElegido]);
 
   function reintentar() {
     setFallo(false);
+    setEleccionPendiente(false);
     useAuthStore.getState().reset();
     setIntento((n) => n + 1);
   }
 
   function elegirOtroMetodo() {
     setFallo(false);
+    setEleccionPendiente(false);
     useAuthStore.getState().reset();
     limpiarProveedor();
   }
 
   if (requiereSelector) {
-    return <Navigate to="/iniciar-sesion" replace state={{ desde: `${pathname}${search}` }} />;
+    const desde = `${pathname}${search}`;
+    return <Navigate to="/iniciar-sesion" replace state={{ desde }} />;
   }
 
   if (fallo) {
