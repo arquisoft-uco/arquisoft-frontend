@@ -40,12 +40,14 @@ interface Props {
   evaluaciones: EvaluacionCuantitativaJurado[];
   cargando: boolean;
   vacio?: ReactNode;
+  acciones?: (fila: EvaluacionCuantitativaJurado) => ReactNode;
 }
 
 export default function EvaluacionesCuantitativasJuradoTable({
   evaluaciones,
   cargando,
   vacio,
+  acciones,
 }: Props) {
   return (
     <DataTable
@@ -54,6 +56,8 @@ export default function EvaluacionesCuantitativasJuradoTable({
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
+      acciones={acciones}
+      encabezadoAcciones={acciones ? 'Acciones' : undefined}
       vacio={
         vacio ?? (
           <EmptyState

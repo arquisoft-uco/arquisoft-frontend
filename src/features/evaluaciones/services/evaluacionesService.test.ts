@@ -61,6 +61,46 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('getObservacionesEvaluacionCuantitativaJurado', () => {
+    it('hace POST con el id en la ruta y el criterio como body, y devuelve la página', async () => {
+      // Arrange
+      const pagina = { content: [{ id: 'o-1', descripcion: 'Falta rigor' }], totalElements: 1 };
+      post.mockResolvedValue({ status: 200, data: pagina });
+
+      // Act
+      const resultado = await evaluacionesService.getObservacionesEvaluacionCuantitativaJurado(
+        'ec-1',
+        { pagina: 1, tamanio: 10 },
+      );
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-jurado/ec-1/observaciones/jurado',
+        { pagina: 1, tamanio: 10 },
+      );
+      expect(resultado).toEqual(pagina);
+    });
+  });
+
+  describe('modificarObservacionItemJurado', () => {
+    it('pone el id en la ruta, manda solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.modificarObservacionItemJurado({
+        observacionId: 'obs-1',
+        descripcion: 'Nuevo texto',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/evaluaciones/observaciones-item-jurado/obs-1', {
+        descripcion: 'Nuevo texto',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrarEvaluacionesCuantitativasJurado', () => {
     it('envía a la ruta con prefijo /evaluaciones, traduce itemId a item y resuelve undefined', async () => {
       // Arrange
@@ -101,6 +141,26 @@ describe('evaluacionesService', () => {
       expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/ej-1/cualitativas', {
         data: { evaluaciones: ['ec-1', 'ec-2'] },
       });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('cambiarCriterioEvaluacionCualitativaJurado', () => {
+    it('llama PATCH con el id de la evaluación cualitativa y traduce criterioId a { criterio }', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.cambiarCriterioEvaluacionCualitativaJurado({
+        evaluacionCualitativaJuradoId: 'ec-1',
+        criterioId: 'crit-2',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cualitativas-jurado/ec-1/criterio',
+        { criterio: 'crit-2' },
+      );
       expect(resultado).toBeUndefined();
     });
   });

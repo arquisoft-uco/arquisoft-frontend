@@ -4,29 +4,34 @@ import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
-import type { Evaluacion } from '../models/Evaluacion';
+import type { EvaluacionAsignadaAsesor } from '../models/EvaluacionAsignadaAsesor';
 import { evaluacionesService } from '../services/evaluacionesService';
-import { useEvaluacionesAsesor } from './useEvaluacionesAsesor';
+import { useEvaluacionesAsignadasAsesor } from './useEvaluacionesAsignadasAsesor';
 
 vi.mock('../services/evaluacionesService', () => ({
   evaluacionesService: {
-    getEvaluacionesAsesor: vi.fn(),
+    getEvaluacionesAsignadasAsesor: vi.fn(),
     getEvaluacionesEstudiante: vi.fn(),
     getEvaluacionesCoordinador: vi.fn(),
   },
 }));
 
-const consultar = vi.mocked(evaluacionesService.getEvaluacionesAsesor);
+const consultar = vi.mocked(evaluacionesService.getEvaluacionesAsignadasAsesor);
 const consultarEstudiante = vi.mocked(evaluacionesService.getEvaluacionesEstudiante);
 const consultarCoordinador = vi.mocked(evaluacionesService.getEvaluacionesCoordinador);
 
-const evaluacion: Evaluacion = {
-  id: 'e-1',
+const evaluacion: EvaluacionAsignadaAsesor = {
+  id: 'ea-1',
+  evaluacion: { id: 'e-1', estado: { id: 'PENDIENTE', nombre: 'Pendiente' } },
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 1 },
-  estado: { id: 'PENDIENTE', nombre: 'Pendiente' },
+  tieneEvaluacionesCualitativas: true,
+  tieneEvaluacionesCuantitativas: false,
 };
 
-function crearPagina(numero: number, content: Evaluacion[]): Page<Evaluacion> {
+function crearPagina(
+  numero: number,
+  content: EvaluacionAsignadaAsesor[],
+): Page<EvaluacionAsignadaAsesor> {
   return {
     content,
     page: numero,
@@ -50,10 +55,13 @@ function montarEn(entrada = '/') {
       </QueryClientProvider>
     );
   }
-  return { queryClient, ...renderHook(() => useEvaluacionesAsesor(), { wrapper: Wrapper }) };
+  return {
+    queryClient,
+    ...renderHook(() => useEvaluacionesAsignadasAsesor(), { wrapper: Wrapper }),
+  };
 }
 
-describe('useEvaluacionesAsesor', () => {
+describe('useEvaluacionesAsignadasAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockImplementation(({ pagina }) =>
