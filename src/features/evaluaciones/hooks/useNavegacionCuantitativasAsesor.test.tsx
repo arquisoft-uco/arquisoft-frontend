@@ -21,6 +21,7 @@ function montar(state: unknown) {
 const VALIDO = {
   evaluacionAsesorId: 'ea-1',
   search: '?q=sis',
+  evaluacionFinalizada: false,
   resumen: { proyecto: 'Sistema de monitoreo', version: 3 },
 };
 
@@ -37,5 +38,14 @@ describe('useNavegacionCuantitativasAsesor', () => {
     expect(montar({ ...VALIDO, evaluacionAsesorId: 'otro' })).toBeNull();
     expect(montar({ ...VALIDO, search: 5 })).toBeNull();
     expect(montar({ ...VALIDO, resumen: { proyecto: 'X', version: '1' } })).toBeNull();
+  });
+
+  it('lee evaluacionFinalizada y la asume false cuando el state no la trae', () => {
+    // Arrange
+    const { evaluacionFinalizada: _omitida, ...sinCampo } = VALIDO;
+
+    // Act & Assert
+    expect(montar({ ...VALIDO, evaluacionFinalizada: true })?.evaluacionFinalizada).toBe(true);
+    expect(montar(sinCampo)?.evaluacionFinalizada).toBe(false);
   });
 });

@@ -1,7 +1,8 @@
-import { ListChecks } from 'lucide-react';
+import { ListChecks, Pencil } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuantitativaAsesor';
 
 const NOMBRE = 'font-medium text-on-surface';
@@ -38,9 +39,14 @@ const COLUMNAS: ColumnaTabla<EvaluacionCuantitativaAsesor>[] = [
 interface Props {
   evaluaciones: EvaluacionCuantitativaAsesor[];
   cargando: boolean;
+  onCambiarPuntaje?: (fila: EvaluacionCuantitativaAsesor) => void;
 }
 
-export default function EvaluacionesCuantitativasAsesorTable({ evaluaciones, cargando }: Props) {
+export default function EvaluacionesCuantitativasAsesorTable({
+  evaluaciones,
+  cargando,
+  onCambiarPuntaje,
+}: Props) {
   return (
     <DataTable
       etiqueta="Evaluaciones cuantitativas del asesor"
@@ -48,6 +54,20 @@ export default function EvaluacionesCuantitativasAsesorTable({ evaluaciones, car
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
+      encabezadoAcciones="Acciones"
+      acciones={
+        onCambiarPuntaje &&
+        ((fila) => (
+          <div className="flex shrink-0 items-center justify-end gap-1">
+            <IconButton
+              etiqueta={`Cambiar puntaje del ítem ${fila.item.nombre}`}
+              icono={Pencil}
+              rotulo="Cambiar puntaje"
+              onClick={() => onCambiarPuntaje(fila)}
+            />
+          </div>
+        ))
+      }
       vacio={
         <EmptyState
           icono={ListChecks}

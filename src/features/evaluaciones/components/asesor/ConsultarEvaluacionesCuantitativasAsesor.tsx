@@ -29,12 +29,14 @@ interface Props {
   consulta: ConsultaCuantitativasAsesor;
   etiquetaVolver: string;
   onVolver: () => void;
+  onCambiarPuntaje?: (fila: EvaluacionCuantitativaAsesor) => void;
 }
 
 export default function ConsultarEvaluacionesCuantitativasAsesor({
   consulta,
   etiquetaVolver,
   onVolver,
+  onCambiarPuntaje,
 }: Props) {
   const { data, isLoading, isError, error, refetch } = consulta;
 
@@ -83,7 +85,11 @@ export default function ConsultarEvaluacionesCuantitativasAsesor({
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.length)}
       </p>
-      <EvaluacionesCuantitativasAsesorTable evaluaciones={data ?? []} cargando={isLoading} />
+      <EvaluacionesCuantitativasAsesorTable
+        evaluaciones={data ?? []}
+        cargando={isLoading}
+        onCambiarPuntaje={onCambiarPuntaje}
+      />
     </div>
   );
 }
