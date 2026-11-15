@@ -41,6 +41,25 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('registrarEvaluacionesCualitativasAsesor', () => {
+    it('envía a la ruta con prefijo /evaluaciones con item/criterio traducidos y resuelve undefined', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.registrarEvaluacionesCualitativasAsesor({
+        evaluacionAsesorId: 'ea-1',
+        evaluaciones: [{ itemId: 'item-1', criterioId: 'crit-1' }],
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/evaluaciones/evaluaciones-asesor/ea-1/cualitativas', {
+        evaluaciones: [{ item: 'item-1', criterio: 'crit-1' }],
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrarObservacionItemJurado', () => {
     it('pone el id de la valoración en la ruta, manda solo la descripción y devuelve el id creado', async () => {
       // Arrange
