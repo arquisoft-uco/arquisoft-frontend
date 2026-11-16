@@ -28,6 +28,7 @@ import type { CategoriaItemCuantitativoAsesor } from '../models/CategoriaItemCua
 import type { RegistrarEvaluacionesCuantitativasAsesorRequest } from '../models/RegistrarEvaluacionesCuantitativasAsesorRequest';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
+import type { ModificarItemCuantitativoAsesorRequest } from '../models/ModificarItemCuantitativoAsesorRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
@@ -224,6 +225,14 @@ export const evaluacionesService = {
   removerItemCualitativoJurado: (itemId: string): Promise<void> =>
     apiClient
       .delete<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`)
+      .then(() => undefined),
+
+  modificarItemCuantitativoAsesor: ({
+    itemId,
+    descripcion,
+  }: ModificarItemCuantitativoAsesorRequest): Promise<void> =>
+    apiClient
+      .patch<void>(`/evaluaciones/items-cuantitativos-asesor/${itemId}`, { descripcion })
       .then(() => undefined),
 
   modificarItemCuantitativoJurado: ({

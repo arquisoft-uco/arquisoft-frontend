@@ -25,6 +25,16 @@ vi.mock('./RegistrarItemCuantitativoAsesorPanel', () => ({
   ),
 }));
 
+vi.mock('./ModificarItemCuantitativoAsesorPanel', () => ({
+  default: ({ item, onCerrar }: { item: ItemCuantitativoAsesor; onCerrar: () => void }) => (
+    <div role="dialog" aria-label={`Panel de modificación de ${item.nombre}`}>
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
 const ITEMS: ItemCuantitativoAsesor[] = [
   { id: 'i-2', nombre: 'Rigor', descripcion: 'Calidad del método.', categoriaId: 'c-1', valor: 30 },
   { id: 'i-1', nombre: 'Impacto', descripcion: 'Alcance esperado.', categoriaId: 'c-9', valor: 20 },
@@ -153,6 +163,25 @@ describe('ItemsCuantitativosAsesorView', () => {
 
     // Assert
     expect(screen.getByRole('dialog', { name: 'Panel de registro' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('«Editar» por fila abre el panel de modificación con el ítem de esa fila', async () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    const user = userEvent.setup();
+
+    // Act
+    render(<ItemsCuantitativosAsesorView />);
+    const tabla = screen.getByRole('table', { name: 'Ítems cuantitativos del asesor' });
+    expect(within(tabla).getAllByRole('button', { name: /^Editar ítem/ })).toHaveLength(2);
+    await user.click(within(tabla).getByRole('button', { name: 'Editar ítem Rigor' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Panel de modificación de Rigor' }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
