@@ -388,6 +388,16 @@ export const evaluacionesService = {
       >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/jurado`, req)
       .then((r) => r.data),
 
+  getObservacionesEvaluacionCuantitativaJuradoEstudiante: (
+    evaluacionCuantitativaJuradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItemJurado>> =>
+    apiClient
+      .post<
+        Page<ObservacionItemJurado>
+      >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/estudiante`, req)
+      .then((r) => r.data),
+
   modificarObservacionItemJurado: ({
     observacionId,
     descripcion,
