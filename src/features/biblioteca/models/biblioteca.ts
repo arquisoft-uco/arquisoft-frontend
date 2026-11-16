@@ -4,7 +4,7 @@ export interface EstadoDocumentacion {
   descripcion: string;
 }
 
-export interface AutorDocumentacion {
+export interface AutorResumen {
   id: string;
   identificador: string;
   nombre: string;
