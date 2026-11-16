@@ -4,6 +4,7 @@ import { guarded } from '../../guards/guarded';
 
 const Evaluaciones = lazy(() => import('./Evaluaciones'));
 const JuradosEvaluacion = lazy(() => import('./JuradosEvaluacion'));
+const EvaluacionDelAsesor = lazy(() => import('./EvaluacionDelAsesor'));
 const EvaluacionesCualitativasJurado = lazy(() => import('./EvaluacionesCualitativasJurado'));
 const EvaluacionesCuantitativasJurado = lazy(() => import('./EvaluacionesCuantitativasJurado'));
 const RegistrarEvaluacionesCuantitativas = lazy(
@@ -47,6 +48,7 @@ export const rutasEvaluaciones: RouteObject = {
       element: <RegistrarEvaluacionesCuantitativas />,
     },
     { path: ':evaluacionId/jurados', element: <JuradosEvaluacion /> },
+    { path: ':evaluacionId/asesor', element: <EvaluacionDelAsesor /> },
     {
       path: ':evaluacionJuradoId/cualitativas',
       element: <EvaluacionesCualitativasJurado />,

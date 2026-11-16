@@ -156,7 +156,40 @@ describe('ConsultarEvaluacionesEstudiante', () => {
     expect(catalogo.refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('cada fila ofrece "Ver evaluaciones del jurado" que navega a la ruta hija con el resumen y el search', async () => {
+  it('las acciones viven en el menú de la fila y navegan a jurados y asesor con el resumen y el search', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([EVALUACION]) });
+    let estado: unknown = null;
+    function Destino({ nombre }: { nombre: string }) {
+      estado = useLocation().state;
+      return <p>Destino {nombre}</p>;
+    }
+    render(
+      <Routes>
+        <Route path="/evaluaciones" element={<ConsultarEvaluacionesEstudiante />} />
+        <Route path="/evaluaciones/:evaluacionId/jurados" element={<Destino nombre="jurados" />} />
+        <Route path="/evaluaciones/:evaluacionId/asesor" element={<Destino nombre="asesor" />} />
+      </Routes>,
+      { initialPath: '/evaluaciones?q=sis' },
+    );
+    const state = {
+      resumen: { id: 'e-1', proyecto: 'Sistema de monitoreo', version: 3 },
+      search: '?q=sis',
+    };
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver evaluación del asesor' }));
+
+    // Assert
+    expect(screen.getByText('Destino asesor')).toBeInTheDocument();
+    expect(estado).toEqual(state);
+  });
+
+  it('"Ver evaluaciones del jurado" del menú navega a la ruta hija de jurados', async () => {
     // Arrange
     const user = userEvent.setup();
     mockHook({ data: crearPagina([EVALUACION]) });
@@ -175,10 +208,9 @@ describe('ConsultarEvaluacionesEstudiante', () => {
 
     // Act
     await user.click(
-      screen.getAllByRole('button', {
-        name: 'Ver evaluaciones del jurado de Sistema de monitoreo',
-      })[0],
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
     );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver evaluaciones del jurado' }));
 
     // Assert
     expect(screen.getByText('Destino jurados')).toBeInTheDocument();
