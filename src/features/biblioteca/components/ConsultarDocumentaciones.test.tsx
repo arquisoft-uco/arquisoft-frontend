@@ -4,6 +4,7 @@ import { render, screen, within } from '../../../test-utils/render';
 import ConsultarDocumentaciones from './ConsultarDocumentaciones';
 import { useDocumentaciones } from '../hooks/useDocumentaciones';
 import { useEstadosDocumentacion } from '../hooks/useEstadosDocumentacion';
+import { useAutoresDocumentacion } from '../hooks/useAutoresDocumentacion';
 import type { Page } from '../../../shared/models/api-response';
 import type { Documentacion } from '../models/Documentacion';
 
@@ -14,8 +15,14 @@ vi.mock('../hooks/useEstadosDocumentacion', () => ({
   useEstadosDocumentacion: vi.fn(),
 }));
 
+vi.mock('../hooks/useAutoresDocumentacion', () => ({
+  useAutoresDocumentacion: vi.fn(),
+}));
+
 const DOCUMENTACION: Documentacion = {
   id: 'd-1',
+  tituloProyecto: 'Sistema de Gestión Académica',
+  autores: [{ id: 'a-1', identificador: 'ana', nombre: 'Ana Pérez' }],
   fechaPublicacion: '2026-11-01T10:00:00Z',
   entregableProyectoGrado: { id: 'e-1', versionEntregable: 2 },
   bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },
@@ -68,11 +75,26 @@ function mockCatalogo(data?: { id: string; nombre: string; descripcion: string }
   } as ReturnType<typeof useEstadosDocumentacion>);
 }
 
+function mockAutores(parcial: Partial<ReturnType<typeof useAutoresDocumentacion>> = {}) {
+  const hook = {
+    data: [],
+    error: null,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    ...parcial,
+  } as ReturnType<typeof useAutoresDocumentacion>;
+  vi.mocked(useAutoresDocumentacion).mockReturnValue(hook);
+  return hook;
+}
+
 describe('ConsultarDocumentaciones', () => {
   beforeEach(() => {
     vi.mocked(useDocumentaciones).mockReset();
     vi.mocked(useEstadosDocumentacion).mockReset();
     mockCatalogo(undefined);
+    vi.mocked(useAutoresDocumentacion).mockReset();
+    mockAutores();
   });
 
   it('muestra un estado de carga accesible mientras llega la primera página', () => {
@@ -80,7 +102,7 @@ describe('ConsultarDocumentaciones', () => {
     mockHook({ isLoading: true });
 
     // Act
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} />);
+    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
 
     // Assert
     expect(screen.getByRole('status')).toBeInTheDocument();
@@ -91,7 +113,7 @@ describe('ConsultarDocumentaciones', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ isError: true, error: new Error('fallo') });
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} />);
+    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
@@ -107,17 +129,24 @@ describe('ConsultarDocumentaciones', () => {
   it('resume el total con singular y plural y lista las documentaciones', () => {
     // Arrange
     mockHook({ data: crearPagina([DOCUMENTACION]) });
-    const { rerender } = render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} />);
+    const { rerender } = render(
+      <ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />,
+    );
 
     // Assert
     expect(screen.getByText('1 documentación')).toBeInTheDocument();
     expect(
       within(screen.getByRole('table', { name: 'Documentaciones' })).getByText('Laura Gómez'),
     ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table', { name: 'Documentaciones' })).getByText(
+        'Sistema de Gestión Académica',
+      ),
+    ).toBeInTheDocument();
 
     // Act
     mockHook({ data: crearPagina([DOCUMENTACION], { totalElements: 12, totalPages: 2 }) });
-    rerender(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} />);
+    rerender(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
 
     // Assert
     expect(screen.getByText('12 documentaciones')).toBeInTheDocument();
@@ -131,7 +160,7 @@ describe('ConsultarDocumentaciones', () => {
       { id: 'PUBLICADO', nombre: 'Publicado', descripcion: '' },
     ]);
     const hook = mockHook({ data: crearPagina([DOCUMENTACION]) });
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado />);
+    render(<ConsultarDocumentaciones puedeFiltrarPorEstado puedeVerAutores={false} />);
 
     // Act
     await user.click(
@@ -151,10 +180,49 @@ describe('ConsultarDocumentaciones', () => {
     mockHook({ data: crearPagina([DOCUMENTACION]) });
 
     // Act
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} />);
+    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
 
     // Assert
     expect(screen.queryByRole('group', { name: 'Estado' })).not.toBeInTheDocument();
     expect(useEstadosDocumentacion).toHaveBeenCalledWith(false);
+  });
+
+  it('con permiso "Ver autores" abre el panel de esa documentación y cerrarlo lo quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([DOCUMENTACION]) });
+    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores />);
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Documentaciones' })).getByRole('button', {
+        name: 'Acciones de la documentación, versión 2',
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver autores' }));
+
+    // Assert
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(useAutoresDocumentacion).toHaveBeenCalledWith('d-1');
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('sin permiso no hay acción "Ver autores" ni se consulta a los autores', () => {
+    // Arrange
+    mockHook({ data: crearPagina([DOCUMENTACION]) });
+
+    // Act
+    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
+
+    // Assert
+    expect(
+      screen.queryByRole('button', { name: /Acciones de la documentación/ }),
+    ).not.toBeInTheDocument();
+    expect(useAutoresDocumentacion).not.toHaveBeenCalled();
   });
 });

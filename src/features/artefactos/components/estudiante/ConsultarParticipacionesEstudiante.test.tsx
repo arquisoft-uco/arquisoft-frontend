@@ -11,10 +11,15 @@ import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto
 import type { Page } from '../../../../shared/models/api-response';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
+import { misProyectosGradoService } from '../../../../shared/services/misProyectosGradoService';
 import ConsultarParticipacionesEstudiante from './ConsultarParticipacionesEstudiante';
 
 vi.mock('../../../../shared/services/cargaPrefirmadaService', () => ({
   cargaPrefirmadaService: { cargarArchivo: vi.fn() },
+}));
+
+vi.mock('../../../../shared/services/misProyectosGradoService', () => ({
+  misProyectosGradoService: { consultar: vi.fn() },
 }));
 
 vi.mock('../../services/artefactosService', () => ({
@@ -24,6 +29,7 @@ vi.mock('../../services/artefactosService', () => ({
   },
 }));
 
+const consultarMisProyectos = vi.mocked(misProyectosGradoService.consultar);
 const getParticipaciones = vi.mocked(artefactosService.getParticipacionesEstudiante);
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
 
@@ -99,6 +105,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultarVersiones.mockResolvedValue(paginaCon([]));
+    consultarMisProyectos.mockResolvedValue([]);
   });
 
   it('el nombre del documento es un enlace a sus versiones y las acciones salen del menú de la fila', async () => {
@@ -325,5 +332,51 @@ describe('ConsultarParticipacionesEstudiante', () => {
     // Assert
     expect(aviso).toHaveTextContent('No se pudo cargar tu participación');
     await waitFor(() => expect(getParticipaciones).toHaveBeenCalledTimes(2));
+  });
+
+  it('con el proyecto cancelado muestra su insignia y aviso, sin guía ni Subir nueva versión', async () => {
+    // Arrange
+    getParticipaciones.mockResolvedValue([
+      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+    ]);
+    consultarMisProyectos.mockResolvedValue([
+      {
+        id: 'p-1',
+        fichaPerfil: 'f-1',
+        tituloProyecto: 'Sistema de riego',
+        estado: { id: 'CANCELADO', nombre: 'Cancelado' },
+      },
+    ]);
+    simularUltimas({ 'a-1': ultima('a-1', 'EN_PROGRESO') });
+    const user = userEvent.setup();
+
+    // Act
+    render(<ConsultarParticipacionesEstudiante />);
+    expect(await screen.findByText(/Este proyecto fue cancelado\./)).toBeInTheDocument();
+    await abrirMenu(user, 'Acta de inicio');
+
+    // Assert
+    expect(screen.getByText('Proyecto cancelado')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Atiende las observaciones del asesor y sube una nueva versión.'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Subir nueva versión' })).not.toBeInTheDocument();
+  });
+
+  it('una revisión cerrada se distingue en la columna Revisión sin abrir el artefacto', async () => {
+    // Arrange
+    getParticipaciones.mockResolvedValue([
+      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+    ]);
+    simularUltimas({ 'a-1': { ...ultima('a-1', 'CERRADA'), nombreEstadoRevision: 'Cerrada' } });
+
+    // Act
+    render(<ConsultarParticipacionesEstudiante />);
+    const tabla = await screen.findByRole('table', {
+      name: 'Artefactos del proyecto Sistema de riego',
+    });
+
+    // Assert
+    expect(await within(tabla).findByText('Cerrada')).toBeInTheDocument();
   });
 });

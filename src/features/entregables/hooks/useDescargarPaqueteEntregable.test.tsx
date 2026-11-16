@@ -48,9 +48,11 @@ describe('useDescargarPaqueteEntregable', () => {
     expect(toast.success).toHaveBeenCalledWith('Descarga iniciada', 'Paquete de la versión 3');
   });
 
-  it('en error muestra el mensaje del backend y no inicia la descarga', async () => {
+  it('en error muestra el mensaje mapeado por código y no inicia la descarga', async () => {
     // Arrange
-    obtenerEnlace.mockRejectedValue(errorApi(422, { message: 'El paquete está en preparación' }));
+    obtenerEnlace.mockRejectedValue(
+      errorApi(422, { errorCode: 'ENTREGABLES_PAQUETE_ENTREGABLE_NO_DISPONIBLE' }),
+    );
     const { result } = renderHook(() => useDescargarPaqueteEntregable(), {
       wrapper: crearWrapper(),
     });
@@ -62,7 +64,7 @@ describe('useDescargarPaqueteEntregable', () => {
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         'No se pudo descargar el paquete',
-        'El paquete está en preparación',
+        'El paquete de este entregable no está disponible.',
       ),
     );
     expect(iniciarDescarga).not.toHaveBeenCalled();

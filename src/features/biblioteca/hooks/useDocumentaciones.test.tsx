@@ -18,6 +18,8 @@ const consultar = vi.mocked(bibliotecaService.consultarDocumentaciones);
 
 const documentacion: Documentacion = {
   id: 'd-1',
+  tituloProyecto: 'Sistema de Gestión Académica',
+  autores: [{ id: 'a-1', identificador: 'ana', nombre: 'Ana Pérez' }],
   fechaPublicacion: '2026-11-01T10:00:00Z',
   entregableProyectoGrado: { id: 'e-1', versionEntregable: 1 },
   bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },

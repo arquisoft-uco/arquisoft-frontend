@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
-import AvisoProyectoCerrado from './AvisoProyectoCerrado';
+import AvisoProyectoCerrado from '../../../shared/components/AvisoProyectoCerrado';
 import InsigniaEstadoRevision from './InsigniaEstadoRevision';
 
 const RAIZ = 'flex flex-col gap-6';

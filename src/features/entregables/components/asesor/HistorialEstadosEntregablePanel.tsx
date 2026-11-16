@@ -1,13 +1,15 @@
 import { History } from 'lucide-react';
+import AvisoProyectoCerrado from '../../../../shared/components/AvisoProyectoCerrado';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import LineaTiempo from '../../../../shared/components/ui/LineaTiempo';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { varianteEstadoEntregable } from '../../../../shared/utils/estado-variante';
 import { useHistorialEstadosEntregable } from '../../hooks/useHistorialEstadosEntregable';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
+import { mensajeErrorConsultaEntregable } from '../../utils/errores-entregable';
+import { proyectoCerrado } from '../../utils/estado-proyecto';
 
 interface Props {
   entregable: EntregableProyectoGrado;
@@ -15,6 +17,8 @@ interface Props {
 }
 
 const ETIQUETA_LISTA = 'Historial de estados del entregable';
+const DETALLE_CERRADO = 'Puedes consultar el historial, pero ya no admite cambios.';
+const CUERPO = 'flex flex-col gap-4';
 
 export default function HistorialEstadosEntregablePanel({ entregable, onCerrar }: Props) {
   const { data, isLoading, isError, error, refetch } = useHistorialEstadosEntregable(entregable.id);
@@ -24,7 +28,7 @@ export default function HistorialEstadosEntregablePanel({ entregable, onCerrar }
       return (
         <ErrorState
           titulo="No se pudo cargar el historial de estados"
-          descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
+          descripcion={mensajeErrorConsultaEntregable(error)}
           onReintentar={() => void refetch()}
         />
       );
@@ -56,7 +60,16 @@ export default function HistorialEstadosEntregablePanel({ entregable, onCerrar }
       descripcion={`${entregable.proyectoGrado.nombre} · Versión ${entregable.versionEntregable}`}
       onCerrar={onCerrar}
     >
-      {contenido()}
+      <div className={CUERPO}>
+        {proyectoCerrado(entregable) && (
+          <AvisoProyectoCerrado
+            proyectoFinalizado={entregable.proyectoFinalizado}
+            proyectoCancelado={entregable.proyectoCancelado}
+            detalle={DETALLE_CERRADO}
+          />
+        )}
+        {contenido()}
+      </div>
     </SidePanel>
   );
 }
