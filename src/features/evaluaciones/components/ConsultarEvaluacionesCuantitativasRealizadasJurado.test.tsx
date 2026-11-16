@@ -9,6 +9,9 @@ import {
   EVALUACION_CUALITATIVA_JURADO_NO_PERTENECE_JURADO,
 } from '../utils/codigos-error-evaluaciones';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
+import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
+
+const OBSERVACION: ObservacionItemJurado = { id: 'obs-1', descripcion: 'Falta profundidad' };
 
 const FILA: EvaluacionCuantitativaJurado = {
   id: 'ec-1',
@@ -29,6 +32,63 @@ const OTRA_FILA: EvaluacionCuantitativaJurado = {
   item: { ...FILA.item, id: 'i-2', nombre: 'Rigor' },
 };
 
+vi.mock('./jurado/ObservacionesEvaluacionCuantitativaPanel', () => ({
+  default: ({
+    evaluacion,
+    puedeModificar,
+    puedeRemover,
+    onModificar,
+    onCerrar,
+  }: {
+    evaluacion: EvaluacionCuantitativaJurado;
+    puedeModificar?: boolean;
+    puedeRemover?: boolean;
+    onModificar?: (observacion: ObservacionItemJurado) => void;
+    onCerrar: () => void;
+  }) => (
+    <div role="dialog" aria-label={`Panel de ${evaluacion.item.nombre}`}>
+      {puedeModificar && (
+        <button type="button" onClick={() => onModificar?.(OBSERVACION)}>
+          Modificar observación
+        </button>
+      )}
+      {puedeRemover && <button type="button">Remover observación</button>}
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('./jurado/ModificarObservacionItemJuradoPanel', () => ({
+  default: ({
+    observacion,
+    nombreItem,
+    onCerrar,
+  }: {
+    observacion: ObservacionItemJurado;
+    nombreItem: string;
+    onCerrar: () => void;
+  }) => (
+    <div role="dialog" aria-label={`Edición de ${nombreItem}`}>
+      <p>{observacion.descripcion}</p>
+      <button type="button" onClick={onCerrar}>
+        Cancelar edición
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('./jurado/CambiarPuntajeEvaluacionCuantitativaJuradoPanel', () => ({
+  default: ({ fila, onCerrar }: { fila: EvaluacionCuantitativaJurado; onCerrar: () => void }) => (
+    <div role="dialog" aria-label={`Cambio de puntaje de ${fila.item.nombre}`}>
+      <button type="button" onClick={onCerrar}>
+        Cerrar cambio
+      </button>
+    </div>
+  ),
+}));
+
 function crearError(status: number, errorCode?: string, message = 'Falla del servidor') {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
     data: { status, errorCode, message },
@@ -39,7 +99,11 @@ function crearError(status: number, errorCode?: string, message = 'Falla del ser
   });
 }
 
-function montar(parcial: Partial<ConsultaCuantitativas> = {}, conEvaluar = false) {
+function montar(
+  parcial: Partial<ConsultaCuantitativas> = {},
+  conEvaluar = false,
+  evaluacionFinalizada = false,
+) {
   const refetch = vi.fn();
   const onVolver = vi.fn();
   const onEvaluar = vi.fn();
@@ -57,6 +121,8 @@ function montar(parcial: Partial<ConsultaCuantitativas> = {}, conEvaluar = false
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
       onEvaluar={conEvaluar ? onEvaluar : undefined}
+      evaluacionJuradoId="ej-1"
+      evaluacionFinalizada={evaluacionFinalizada}
     />,
   );
   return { refetch, onVolver, onEvaluar };
@@ -82,6 +148,24 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
 
     // Assert
     expect(screen.getByText('2 evaluaciones cuantitativas')).toBeInTheDocument();
+  });
+
+  it('«Ver observaciones» abre el panel del ítem de la fila y «Cerrar panel» lo cierra', async () => {
+    // Arrange
+    montar({ data: [FILA, OTRA_FILA] });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Act
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ver observaciones de Rigor' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Rigor' })).toBeInTheDocument();
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('muestra el estado de carga', () => {
@@ -149,5 +233,152 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('Id inválido');
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('«Modificar observación» abre la edición de la observación y cancelar vuelve a la lectura', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] });
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Modificar observación' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Edición de Claridad' })).toBeInTheDocument();
+    expect(screen.getByText(OBSERVACION.descripcion)).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cancelar edición' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada la lectura no ofrece «Modificar observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] }, false, true);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Modificar observación' })).not.toBeInTheDocument();
+  });
+
+  it('solo ofrece «Remover observación» mientras la evaluación no está finalizada', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar({ data: [FILA] });
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+    expect(screen.getByRole('button', { name: 'Remover observación' })).toBeInTheDocument();
+    cleanup();
+    montar({ data: [FILA] }, false, true);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remover observación' })).not.toBeInTheDocument();
+  });
+
+  it('«Cambiar puntaje» abre el panel de esa fila, cerrarlo lo desmonta y «Ver observaciones» sigue disponible', async () => {
+    // Arrange
+    const usuario = userEvent.setup();
+    montar({ data: [FILA, OTRA_FILA] });
+
+    // Act
+    await usuario.click(screen.getAllByRole('button', { name: 'Cambiar puntaje de Rigor' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Cambio de puntaje de Rigor' })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: 'Ver observaciones de Rigor' }).length,
+    ).toBeGreaterThan(0);
+    await usuario.click(screen.getByRole('button', { name: 'Cerrar cambio' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('sin «seleccion» no hay casillas y con ella hay una por fila que avisa el id al alternarla', async () => {
+    // Arrange
+    const onAlternar = vi.fn();
+    const consulta: ConsultaCuantitativas = {
+      data: [FILA],
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    };
+    const propiedades = {
+      consulta,
+      etiquetaVolver: 'Volver a mis evaluaciones',
+      onVolver: vi.fn(),
+      evaluacionJuradoId: 'ej-1',
+    };
+    const { unmount } = render(
+      <ConsultarEvaluacionesCuantitativasRealizadasJurado {...propiedades} />,
+    );
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    unmount();
+
+    // Act
+    render(
+      <ConsultarEvaluacionesCuantitativasRealizadasJurado
+        {...propiedades}
+        seleccion={{ seleccionados: new Set(), onAlternar }}
+      />,
+    );
+    await userEvent.click(screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0]);
+
+    // Assert
+    expect(onAlternar).toHaveBeenCalledWith('ec-1');
+  });
+
+  it('con la evaluación finalizada no ofrece «Cambiar puntaje» y muestra el aviso', () => {
+    // Arrange / Act
+    montar({ data: [FILA] }, false, true);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/no se pueden omitir ni cambiar puntajes/)).toBeInTheDocument();
+  });
+
+  it('sin seleccion no hay casillas; con seleccion hay una por fila y alternarla entrega el id', async () => {
+    // Arrange
+    montar({ data: [FILA, OTRA_FILA] });
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+
+    // Arrange
+    cleanup();
+    const onAlternar = vi.fn();
+    render(
+      <ConsultarEvaluacionesCuantitativasRealizadasJurado
+        consulta={{
+          data: [FILA, OTRA_FILA],
+          error: null,
+          isLoading: false,
+          isError: false,
+          refetch: vi.fn(),
+        }}
+        etiquetaVolver="Volver a mis evaluaciones"
+        onVolver={vi.fn()}
+        evaluacionJuradoId="ej-1"
+        seleccion={{ seleccionados: new Set(['ec-1']), onAlternar }}
+      />,
+    );
+
+    // Act
+    await userEvent.click(screen.getAllByRole('checkbox', { name: 'Seleccionar Rigor' })[0]);
+
+    // Assert
+    expect(screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0]).toBeChecked();
+    expect(onAlternar).toHaveBeenCalledWith('ec-2');
   });
 });

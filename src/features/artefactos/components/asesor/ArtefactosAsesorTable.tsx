@@ -1,14 +1,16 @@
-import { FileStack, SearchX } from 'lucide-react';
-import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type {
   ColumnaTabla,
   DireccionOrden,
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
-import EmptyState from '../../../../shared/components/ui/EmptyState';
+import ArtefactosAsesorVacio from './ArtefactosAsesorVacio';
 import ArtefactoAsesorRowMenu from './ArtefactoAsesorRowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import { estaCerrado } from '../../utils/estado-proyecto';
+import { guiaArtefactoAsesor } from '../../utils/guia-artefacto';
+import EstadoUltimaRevision from '../EstadoUltimaRevision';
 import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
 import InsigniaOmitido from '../InsigniaOmitido';
 
@@ -20,6 +22,7 @@ const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
 interface Props {
   artefactos: ArtefactoAsesor[];
+  ultimaVersion: (artefactoId: string) => VersionArtefacto | null | undefined;
   cargando: boolean;
   hayFiltros: boolean;
   orden: OrdenTabla;
@@ -34,6 +37,7 @@ interface Props {
 
 export default function ArtefactosAsesorTable({
   artefactos,
+  ultimaVersion,
   cargando,
   hayFiltros,
   orden,
@@ -55,16 +59,13 @@ export default function ArtefactosAsesorTable({
     );
   }
 
+  function guia(artefacto: ArtefactoAsesor): string | null {
+    if (artefacto.omitido || estaCerrado(artefacto)) return null;
+    const ultima = ultimaVersion(artefacto.id);
+    return ultima === undefined ? null : guiaArtefactoAsesor(ultima);
+  }
+
   const columnas: ColumnaTabla<ArtefactoAsesor>[] = [
-    {
-      id: 'proyecto',
-      encabezado: 'Proyecto',
-      clave: 'nombreProyecto',
-      ordenable: true,
-      celda: (artefacto) => (
-        <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />
-      ),
-    },
     {
       id: 'documento',
       encabezado: 'Documento',
@@ -75,7 +76,24 @@ export default function ArtefactosAsesorTable({
           {enlaceVersiones(artefacto)}
           <span className={DETALLE}>Versión {artefacto.versionDocumento} del documento</span>
           {artefacto.omitido && <InsigniaOmitido />}
+          {guia(artefacto) && <span className={DETALLE}>{guia(artefacto)}</span>}
         </>
+      ),
+    },
+    {
+      id: 'proyecto',
+      encabezado: 'Proyecto',
+      clave: 'nombreProyecto',
+      ordenable: true,
+      celda: (artefacto) => (
+        <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />
+      ),
+    },
+    {
+      id: 'revision',
+      encabezado: 'Revisión',
+      celda: (artefacto) => (
+        <EstadoUltimaRevision ultima={ultimaVersion(artefacto.id)} omitido={artefacto.omitido} />
       ),
     },
     {
@@ -87,25 +105,6 @@ export default function ArtefactosAsesorTable({
     },
   ];
 
-  const vacio = hayFiltros ? (
-    <EmptyState
-      icono={SearchX}
-      titulo="Sin resultados"
-      descripcion="No hay artefactos que coincidan con los filtros aplicados."
-      accion={
-        <Button variante="secundario" onClick={onLimpiarFiltros}>
-          Limpiar filtros
-        </Button>
-      }
-    />
-  ) : (
-    <EmptyState
-      icono={FileStack}
-      titulo="Aún no tienes artefactos asignados"
-      descripcion="Aparecerán aquí cuando un proyecto de grado te asigne como asesor de un artefacto."
-    />
-  );
-
   return (
     <DataTable
       etiqueta="Artefactos asignados"
@@ -115,7 +114,7 @@ export default function ArtefactosAsesorTable({
       orden={orden}
       onOrdenar={onOrdenar}
       cargando={cargando}
-      vacio={vacio}
+      vacio={<ArtefactosAsesorVacio hayFiltros={hayFiltros} onLimpiarFiltros={onLimpiarFiltros} />}
       acciones={(artefacto) => (
         <ArtefactoAsesorRowMenu
           artefacto={artefacto}
@@ -135,6 +134,8 @@ export default function ArtefactosAsesorTable({
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>Versión {artefacto.versionDocumento} del documento</p>
           {artefacto.omitido && <InsigniaOmitido />}
+          <EstadoUltimaRevision ultima={ultimaVersion(artefacto.id)} omitido={artefacto.omitido} />
+          {guia(artefacto) && <p className={TARJETA_DATO}>{guia(artefacto)}</p>}
         </>
       )}
     />

@@ -15,6 +15,8 @@ vi.mock('./services/bibliotecaService', () => ({
       content: [
         {
           id: 'd-1',
+          tituloProyecto: 'Sistema de riego',
+          autores: [],
           fechaPublicacion: '2026-11-01T10:00:00Z',
           entregableProyectoGrado: { id: 'e-1', versionEntregable: 2 },
           bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },

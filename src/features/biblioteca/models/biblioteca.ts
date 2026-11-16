@@ -3,3 +3,9 @@ export interface EstadoDocumentacion {
   nombre: string;
   descripcion: string;
 }
+
+export interface AutorDocumentacion {
+  id: string;
+  identificador: string;
+  nombre: string;
+}

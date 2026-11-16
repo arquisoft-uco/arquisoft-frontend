@@ -9,6 +9,7 @@ import { useUltimasVersionesEstudiante } from '../../hooks/useUltimasVersionesEs
 import type { ArtefactoParaVersion } from '../../models/ArtefactoParaVersion';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
 import { motivoBloqueoSubida } from '../../utils/bloqueo-subida-version';
+import { guiaArtefactoEstudiante } from '../../utils/guia-artefacto';
 import GestionarRevisionEstudiantePanel from './GestionarRevisionEstudiantePanel';
 import ParticipacionesProyectoTabla from './ParticipacionesProyectoTabla';
 import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
@@ -16,8 +17,6 @@ import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 const LISTA = 'flex flex-col gap-6';
-const SIN_VERSION = 'Aún no has subido ninguna versión del artefacto.';
-const REVISION_EN_PROGRESO = 'Atiende las observaciones del asesor y sube una nueva versión.';
 
 function textoResumen(artefactos: number, proyectos: number): string {
   const textoArtefactos = `${artefactos} ${artefactos === 1 ? 'artefacto' : 'artefactos'}`;
@@ -58,9 +57,8 @@ export default function ConsultarParticipacionesEstudiante() {
   function avisoFila(participacion: ParticipacionArtefacto): string | null | undefined {
     if (participacion.omitido) return motivoBloqueo(participacion);
     const ultima = ultimaVersion(participacion.id);
-    if (ultima === null) return SIN_VERSION;
-    if (ultima?.estadoRevision === 'EN_PROGRESO') return REVISION_EN_PROGRESO;
-    return motivoBloqueo(participacion);
+    if (ultima === undefined) return ultimasConError ? null : undefined;
+    return guiaArtefactoEstudiante(ultima);
   }
 
   const resumen =
@@ -97,6 +95,7 @@ export default function ConsultarParticipacionesEstudiante() {
                 proyecto={proyecto}
                 motivoBloqueo={motivoBloqueo}
                 avisoFila={avisoFila}
+                ultimaVersion={ultimaVersion}
                 onGestionarRevision={(p) =>
                   setPanel({ artefacto: aArtefacto(p), modo: 'gestionar' })
                 }
