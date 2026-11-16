@@ -7,6 +7,8 @@ import Skeleton from '../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useCategoriasItemCuantitativoAsesor } from '../hooks/useCategoriasItemCuantitativoAsesor';
 import { useItemsCuantitativosAsesor } from '../hooks/useItemsCuantitativosAsesor';
+import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
+import ModificarItemCuantitativoAsesorPanel from './ModificarItemCuantitativoAsesorPanel';
 import ItemsCuantitativosAsesorTable from './ItemsCuantitativosAsesorTable';
 import RegistrarItemCuantitativoAsesorPanel from './RegistrarItemCuantitativoAsesorPanel';
 
@@ -14,6 +16,7 @@ export default function ItemsCuantitativosAsesorView() {
   const { data, isLoading, isError, error, refetch } = useItemsCuantitativosAsesor();
   const categorias = useCategoriasItemCuantitativoAsesor();
   const [registrando, setRegistrando] = useState(false);
+  const [itemEnEdicion, setItemEnEdicion] = useState<ItemCuantitativoAsesor | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -47,11 +50,20 @@ export default function ItemsCuantitativosAsesorView() {
           items={data}
           categorias={categorias.data}
           cargandoCategorias={categorias.isLoading}
+          onEditar={setItemEnEdicion}
         />
       )}
 
       {registrando && (
         <RegistrarItemCuantitativoAsesorPanel onCerrar={() => setRegistrando(false)} />
+      )}
+
+      {itemEnEdicion && (
+        <ModificarItemCuantitativoAsesorPanel
+          key={itemEnEdicion.id}
+          item={itemEnEdicion}
+          onCerrar={() => setItemEnEdicion(null)}
+        />
       )}
     </div>
   );
