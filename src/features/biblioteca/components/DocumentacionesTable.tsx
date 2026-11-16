@@ -12,6 +12,7 @@ import { varianteEstadoDocumentacion } from '../../../shared/utils/estado-varian
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { Documentacion } from '../models/Documentacion';
 import type { OrdenCampoDocumentacion } from '../models/OrdenCampoDocumentacion';
+import { AutoresProyecto, TituloProyecto } from './DocumentacionCeldas';
 
 const TARJETA_DATOS = 'flex flex-wrap items-center gap-1.5';
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
@@ -39,16 +40,21 @@ function InsigniaEstado({ documentacion }: { documentacion: Documentacion }) {
 
 const COLUMNAS: ColumnaTabla<Documentacion>[] = [
   {
-    id: 'estado',
-    encabezado: 'Estado',
-    celda: (documentacion) => <InsigniaEstado documentacion={documentacion} />,
+    id: 'proyecto',
+    encabezado: 'Proyecto',
+    celda: (documentacion) => (
+      <div className="flex flex-col">
+        <TituloProyecto titulo={documentacion.tituloProyecto} />
+        <span className="text-[13px] text-on-surface-secondary">
+          Versión {documentacion.entregableProyectoGrado.versionEntregable}
+        </span>
+      </div>
+    ),
   },
   {
-    id: 'version',
-    encabezado: 'Versión',
-    celda: (documentacion) => (
-      <span>Versión {documentacion.entregableProyectoGrado.versionEntregable}</span>
-    ),
+    id: 'autores',
+    encabezado: 'Autores',
+    celda: (documentacion) => <AutoresProyecto autores={documentacion.autores} />,
   },
   {
     id: 'bibliotecario',
@@ -61,6 +67,11 @@ const COLUMNAS: ColumnaTabla<Documentacion>[] = [
     clave: 'fechaPublicacion',
     ordenable: true,
     celda: (documentacion) => <span>{formatearFechaCreacion(documentacion.fechaPublicacion)}</span>,
+  },
+  {
+    id: 'estado',
+    encabezado: 'Estado',
+    celda: (documentacion) => <InsigniaEstado documentacion={documentacion} />,
   },
 ];
 
@@ -108,12 +119,15 @@ export default function DocumentacionesTable({
       vacio={vacio}
       tarjeta={(documentacion) => (
         <>
+          <TituloProyecto titulo={documentacion.tituloProyecto} />
           <div className={TARJETA_DATOS}>
             <InsigniaEstado documentacion={documentacion} />
             <span className={DATO_SECUNDARIO}>
               Versión {documentacion.entregableProyectoGrado.versionEntregable}
             </span>
           </div>
+          <span className="sr-only">Autores: </span>
+          <AutoresProyecto autores={documentacion.autores} />
           <span className={DATO_SECUNDARIO}>{documentacion.bibliotecario.nombre}</span>
           <span className={DATO_SECUNDARIO}>
             {formatearFechaCreacion(documentacion.fechaPublicacion)}

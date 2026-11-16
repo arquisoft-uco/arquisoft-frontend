@@ -16,6 +16,8 @@ vi.mock('../hooks/useEstadosDocumentacion', () => ({
 
 const DOCUMENTACION: Documentacion = {
   id: 'd-1',
+  tituloProyecto: 'Sistema de Gestión Académica',
+  autores: [{ id: 'a-1', identificador: 'ana', nombre: 'Ana Pérez' }],
   fechaPublicacion: '2026-11-01T10:00:00Z',
   entregableProyectoGrado: { id: 'e-1', versionEntregable: 2 },
   bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },
@@ -113,6 +115,11 @@ describe('ConsultarDocumentaciones', () => {
     expect(screen.getByText('1 documentación')).toBeInTheDocument();
     expect(
       within(screen.getByRole('table', { name: 'Documentaciones' })).getByText('Laura Gómez'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table', { name: 'Documentaciones' })).getByText(
+        'Sistema de Gestión Académica',
+      ),
     ).toBeInTheDocument();
 
     // Act
