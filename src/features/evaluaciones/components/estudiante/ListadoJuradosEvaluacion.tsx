@@ -21,6 +21,8 @@ interface Props {
   onVolver: () => void;
   acciones?: (jurado: EvaluacionJurado) => ReactNode;
   encabezadoAcciones?: string;
+  descripcionVacio?: string;
+  accionVacio?: ReactNode;
 }
 
 export default function ListadoJuradosEvaluacion({
@@ -28,6 +30,8 @@ export default function ListadoJuradosEvaluacion({
   onVolver,
   acciones,
   encabezadoAcciones,
+  descripcionVacio,
+  accionVacio,
 }: Props) {
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const jurados = data?.content ?? [];
@@ -73,6 +77,8 @@ export default function ListadoJuradosEvaluacion({
             onLimpiarFiltros={listado.limpiarFiltros}
             acciones={acciones}
             encabezadoAcciones={encabezadoAcciones}
+            descripcionVacio={descripcionVacio}
+            accionVacio={accionVacio}
           />
         )}
       </div>
