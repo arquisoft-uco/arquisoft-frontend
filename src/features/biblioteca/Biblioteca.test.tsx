@@ -118,6 +118,22 @@ describe('Biblioteca', () => {
     // Assert
     await screen.findByRole('table', { name: 'Documentaciones' });
     expect(screen.queryByRole('group', { name: 'Estado' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '¿Qué significa cada estado?' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('el bibliotecario ve el botón para consultar los estados de una documentación', async () => {
+    // Arrange
+    entrarComo(Rol.Bibliotecario);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      await screen.findByRole('button', { name: '¿Qué significa cada estado?' }),
+    ).toBeInTheDocument();
   });
 
   it('solo el bibliotecario ve la acción "Ver autores"', async () => {
