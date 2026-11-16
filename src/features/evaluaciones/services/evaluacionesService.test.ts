@@ -388,6 +388,30 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('registrarItemCuantitativoAsesor', () => {
+    it('llama POST enviando categoria (no categoriaId) y el valor numérico, y resuelve { id }', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'i-1' } });
+
+      // Act
+      const resultado = await evaluacionesService.registrarItemCuantitativoAsesor({
+        nombre: 'Rigor',
+        descripcion: 'Calidad del método.',
+        categoriaId: 'c-1',
+        valor: 30,
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/evaluaciones/items-cuantitativos-asesor', {
+        nombre: 'Rigor',
+        descripcion: 'Calidad del método.',
+        categoria: 'c-1',
+        valor: 30,
+      });
+      expect(resultado).toEqual({ id: 'i-1' });
+    });
+  });
+
   describe('getCategoriasItemCuantitativoJurado', () => {
     it('no envía params sin nombre y envía params: { nombre } con filtro', async () => {
       // Arrange

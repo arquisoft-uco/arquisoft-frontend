@@ -1,9 +1,8 @@
 import type { UseFormRegisterReturn } from 'react-hook-form';
 import Field from '../../../shared/components/ui/Field';
-import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 
 interface Props {
-  categorias: CategoriaItemCuantitativoJurado[];
+  categorias: { id: string; nombre: string }[];
   cargando: boolean;
   error?: string;
   registro: UseFormRegisterReturn;
@@ -14,7 +13,7 @@ function textoOpcionInicial(cargando: boolean, hayCategorias: boolean) {
   return hayCategorias ? 'Selecciona una categoría' : 'No hay categorías disponibles';
 }
 
-export default function SelectorCategoriaItemCuantitativoJurado({
+export default function SelectorCategoriaItemCuantitativo({
   categorias,
   cargando,
   error,
