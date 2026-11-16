@@ -6,6 +6,7 @@ import type { AsignarJuradosEvaluacionRequest } from '../models/AsignarJuradosEv
 import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosEvaluacionResponse';
 import type { Evaluacion } from '../models/Evaluacion';
 import type { EvaluacionAsesor } from '../models/EvaluacionAsesor';
+import type { EvaluacionAsesorRealizada } from '../models/EvaluacionAsesorRealizada';
 import type { EvaluacionAsignadaAsesor } from '../models/EvaluacionAsignadaAsesor';
 import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
 import type { EvaluacionCualitativaAsesor } from '../models/EvaluacionCualitativaAsesor';
@@ -39,6 +40,8 @@ import type { RegistrarObservacionItemJuradoRequest } from '../models/RegistrarO
 import type { RegistrarObservacionItemJuradoResponse } from '../models/RegistrarObservacionItemJuradoResponse';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoResponse } from '../models/RegistrarItemCualitativoJuradoResponse';
+import type { RegistrarItemCuantitativoAsesorRequest } from '../models/RegistrarItemCuantitativoAsesorRequest';
+import type { RegistrarItemCuantitativoAsesorResponse } from '../models/RegistrarItemCuantitativoAsesorResponse';
 import type { RegistrarItemCuantitativoJuradoRequest } from '../models/RegistrarItemCuantitativoJuradoRequest';
 import type { RegistrarItemCuantitativoJuradoResponse } from '../models/RegistrarItemCuantitativoJuradoResponse';
 
@@ -109,6 +112,21 @@ export const evaluacionesService = {
   getItemsCuantitativosAsesor: (): Promise<ItemCuantitativoAsesor[]> =>
     apiClient
       .get<ItemCuantitativoAsesor[]>('/evaluaciones/items-cuantitativos-asesor')
+      .then((r) => r.data),
+
+  registrarItemCuantitativoAsesor: ({
+    nombre,
+    descripcion,
+    categoriaId,
+    valor,
+  }: RegistrarItemCuantitativoAsesorRequest): Promise<RegistrarItemCuantitativoAsesorResponse> =>
+    apiClient
+      .post<RegistrarItemCuantitativoAsesorResponse>('/evaluaciones/items-cuantitativos-asesor', {
+        nombre,
+        descripcion,
+        categoria: categoriaId,
+        valor,
+      })
       .then((r) => r.data),
 
   getCategoriasItemCuantitativoAsesor: (
@@ -267,6 +285,11 @@ export const evaluacionesService = {
   getEvaluacionAsesor: (evaluacionId: string): Promise<EvaluacionAsesor> =>
     apiClient
       .get<EvaluacionAsesor>(`/evaluaciones/${evaluacionId}/evaluacion-asesor`)
+      .then((r) => r.data),
+
+  getEvaluacionAsesorRealizada: (evaluacionAsesorId: string): Promise<EvaluacionAsesorRealizada> =>
+    apiClient
+      .get<EvaluacionAsesorRealizada>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}`)
       .then((r) => r.data),
 
   getEvaluacionesCualitativasJurado: (
