@@ -130,7 +130,7 @@ Layout       principal                                  | lateral (resumen)
   solo lo que depende del id, sin inventar datos.
 - **Panel lateral de resumen:** estado actual con su `Badge`, asesor, equipo (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante lo toma de `integrantes` de «mi ficha» porque su rol no tiene el permiso del endpoint de compañeros, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
   (asesor: «Cambiar estado»; representante: «Iniciar evaluación»; estudiante: ninguna).
-- **Pestañas solo de lo que existe.** Solo la pestaña Evaluaciones del asesor espera su historia. El
+- **Pestañas solo de lo que existe.** Las evaluaciones de las fichas del asesor viven como pestaña del listado «Mis fichas de perfil» (`?vista=evaluaciones`), no del detalle. El
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el
   formulario de ítem, los tipos que aún no se usan como atajos.
 - **Ítems:** tarjetas con el tipo (`Badge neutro`), el contenido y `IconButton` de editar y eliminar (44 px);

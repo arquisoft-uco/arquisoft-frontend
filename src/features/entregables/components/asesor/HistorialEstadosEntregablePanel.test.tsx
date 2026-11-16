@@ -116,4 +116,27 @@ describe('HistorialEstadosEntregablePanel', () => {
     );
     expect(refetch).toHaveBeenCalledTimes(1);
   });
+
+  it('con el proyecto cerrado muestra el aviso al inicio y con el proyecto habilitado no', () => {
+    // Arrange
+    consulta({ data: [] });
+    const { unmount } = render(
+      <HistorialEstadosEntregablePanel
+        entregable={{ ...ENTREGABLE, proyectoCancelado: true }}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByText(/Este proyecto fue cancelado\./)).toHaveTextContent(
+      'Puedes consultar el historial, pero ya no admite cambios.',
+    );
+    unmount();
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.queryByText(/Este proyecto/)).not.toBeInTheDocument();
+  });
 });

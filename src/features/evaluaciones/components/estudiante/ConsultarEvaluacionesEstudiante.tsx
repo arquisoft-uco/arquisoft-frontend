@@ -1,6 +1,6 @@
-import { Users } from 'lucide-react';
+import { UserCheck, Users } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
-import IconButton from '../../../../shared/components/ui/IconButton';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { useEvaluacionesEstudiante } from '../../hooks/useEvaluacionesEstudiante';
 import type { Evaluacion } from '../../models/Evaluacion';
 import type { NavegacionJuradosEvaluacion } from '../../models/ResumenEvaluacion';
@@ -11,8 +11,8 @@ export default function ConsultarEvaluacionesEstudiante() {
   const navigate = useNavigate();
   const { search } = useLocation();
 
-  function verJurados(evaluacion: Evaluacion) {
-    const state: NavegacionJuradosEvaluacion = {
+  function estadoDeNavegacion(evaluacion: Evaluacion): NavegacionJuradosEvaluacion {
+    return {
       resumen: {
         id: evaluacion.id,
         proyecto: evaluacion.entregable.proyecto,
@@ -20,7 +20,14 @@ export default function ConsultarEvaluacionesEstudiante() {
       },
       search,
     };
-    navigate(`/evaluaciones/${evaluacion.id}/jurados`, { state });
+  }
+
+  function verJurados(evaluacion: Evaluacion) {
+    navigate(`/evaluaciones/${evaluacion.id}/jurados`, { state: estadoDeNavegacion(evaluacion) });
+  }
+
+  function verAsesor(evaluacion: Evaluacion) {
+    navigate(`/evaluaciones/${evaluacion.id}/asesor`, { state: estadoDeNavegacion(evaluacion) });
   }
 
   return (
@@ -28,12 +35,20 @@ export default function ConsultarEvaluacionesEstudiante() {
       listado={listado}
       encabezadoAcciones="Acciones"
       acciones={(evaluacion) => (
-        <IconButton
-          etiqueta={`Ver evaluaciones del jurado de ${evaluacion.entregable.proyecto}`}
-          icono={Users}
-          tono="primario"
-          rotulo="Ver evaluaciones del jurado"
-          onClick={() => verJurados(evaluacion)}
+        <RowMenu
+          etiqueta={`Acciones de ${evaluacion.entregable.proyecto}`}
+          acciones={[
+            {
+              etiqueta: 'Ver evaluaciones del jurado',
+              icono: Users,
+              onSeleccionar: () => verJurados(evaluacion),
+            },
+            {
+              etiqueta: 'Ver evaluación del asesor',
+              icono: UserCheck,
+              onSeleccionar: () => verAsesor(evaluacion),
+            },
+          ]}
         />
       )}
       descripcionVacio="Aparecerán aquí cuando se registren evaluaciones de los entregables de tu proyecto de grado."

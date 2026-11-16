@@ -1,10 +1,18 @@
 import type { ProyectoGradoEstudiante } from '../models/ProyectoGradoEstudiante';
+import { banderasCierreProyecto } from '../utils/estado-proyecto';
 import Field from './ui/Field';
 
 interface Props {
   proyectos: ProyectoGradoEstudiante[];
   proyectoActivoId: string | null;
   onSeleccionar: (id: string) => void;
+}
+
+function etiquetaOpcion(proyecto: ProyectoGradoEstudiante): string {
+  const { proyectoCancelado, proyectoFinalizado } = banderasCierreProyecto(proyecto.estado.id);
+  return proyectoCancelado || proyectoFinalizado
+    ? `${proyecto.tituloProyecto} · ${proyecto.estado.nombre}`
+    : proyecto.tituloProyecto;
 }
 
 export default function SelectorProyectoGrado({
@@ -24,7 +32,7 @@ export default function SelectorProyectoGrado({
           >
             {proyectos.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.tituloProyecto}
+                {etiquetaOpcion(p)}
               </option>
             ))}
           </select>
