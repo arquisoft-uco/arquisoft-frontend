@@ -217,6 +217,26 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('cambiarPuntajeEvaluacionCuantitativaJurado', () => {
+    it('llama PATCH con el id de la valoración y solo { puntaje } en el body, y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.cambiarPuntajeEvaluacionCuantitativaJurado({
+        evaluacionCuantitativaJuradoId: 'ec-1',
+        puntaje: 40,
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-jurado/ec-1/puntaje',
+        { puntaje: 40 },
+      );
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('cambiarPuntajeEvaluacionCuantitativaAsesor', () => {
     it('llama PATCH con el id de la evaluación cuantitativa y solo { puntaje } en el body', async () => {
       // Arrange
