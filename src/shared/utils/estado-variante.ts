@@ -96,6 +96,12 @@ const VARIANTE_TAREA: TablaDeVariantes = {
   FINALIZADA: 'exito',
 };
 
+const VARIANTE_DOCUMENTACION: TablaDeVariantes = {
+  PENDIENTE: 'advertencia',
+  PUBLICADO: 'exito',
+  NO_PUBLICADO: 'neutro',
+};
+
 function buscarVariante(tabla: TablaDeVariantes, id: string): VarianteBadge {
   return Object.prototype.hasOwnProperty.call(tabla, id) ? tabla[id] : 'neutro';
 }
@@ -151,4 +157,8 @@ export function varianteEstadoEntregable(id: string): VarianteBadge {
 
 export function varianteEstadoTarea(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_TAREA, id);
+}
+
+export function varianteEstadoDocumentacion(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_DOCUMENTACION, id);
 }

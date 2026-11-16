@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../test-utils/store.utils';
 import { Rol } from '../shared/models/rol';
-import { NAV_ITEMS, estaDisponible, navItemsDelRol } from './nav-items';
+import { NAV_ITEMS, estaDisponible, navItemsDelRol, type NavItem } from './nav-items';
 import Sidebar from './Sidebar';
 
 vi.mock('./nav-items', async (importOriginal) => {
@@ -55,6 +55,14 @@ describe('Sidebar', () => {
 
   it('separa «Trabajo» (enlaces) de «Próximamente» (sin enlace, con aria-disabled y texto accesible)', () => {
     entrarComo(Rol.Estudiante);
+    const pendiente: NavItem = {
+      label: 'Módulo pendiente',
+      icon: NAV_ITEMS[0].icon,
+      path: '/pendiente',
+      order: 99,
+      disponible: false,
+    };
+    vi.mocked(navItemsDelRol).mockReturnValueOnce([...navItemsDelRol(Rol.Estudiante), pendiente]);
 
     renderizar();
 
@@ -71,6 +79,7 @@ describe('Sidebar', () => {
       '/entregables',
       '/evaluaciones',
       '/mapas-ruta',
+      '/biblioteca',
       '/solicitudes',
     ]);
     const proximamente = screen.getByRole('list', { name: 'Próximamente' });
