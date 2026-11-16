@@ -79,6 +79,16 @@ vi.mock('./jurado/ModificarObservacionItemJuradoPanel', () => ({
   ),
 }));
 
+vi.mock('./jurado/CambiarPuntajeEvaluacionCuantitativaJuradoPanel', () => ({
+  default: ({ fila, onCerrar }: { fila: EvaluacionCuantitativaJurado; onCerrar: () => void }) => (
+    <div role="dialog" aria-label={`Cambio de puntaje de ${fila.item.nombre}`}>
+      <button type="button" onClick={onCerrar}>
+        Cerrar cambio
+      </button>
+    </div>
+  ),
+}));
+
 function crearError(status: number, errorCode?: string, message = 'Falla del servidor') {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
     data: { status, errorCode, message },
@@ -111,6 +121,7 @@ function montar(
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
       onEvaluar={conEvaluar ? onEvaluar : undefined}
+      evaluacionJuradoId="ej-1"
       evaluacionFinalizada={evaluacionFinalizada}
     />,
   );
@@ -272,5 +283,31 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     // Assert
     expect(screen.getByRole('dialog', { name: 'Panel de Claridad' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Remover observación' })).not.toBeInTheDocument();
+  });
+
+  it('«Cambiar puntaje» abre el panel de esa fila, cerrarlo lo desmonta y «Ver observaciones» sigue disponible', async () => {
+    // Arrange
+    const usuario = userEvent.setup();
+    montar({ data: [FILA, OTRA_FILA] });
+
+    // Act
+    await usuario.click(screen.getAllByRole('button', { name: 'Cambiar puntaje de Rigor' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Cambio de puntaje de Rigor' })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: 'Ver observaciones de Rigor' }).length,
+    ).toBeGreaterThan(0);
+    await usuario.click(screen.getByRole('button', { name: 'Cerrar cambio' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada no ofrece «Cambiar puntaje» y muestra el aviso', () => {
+    // Arrange / Act
+    montar({ data: [FILA] }, false, true);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/no se pueden cambiar puntajes/)).toBeInTheDocument();
   });
 });
