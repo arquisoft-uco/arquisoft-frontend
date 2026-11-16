@@ -4,6 +4,7 @@ import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
+import CasillaEvaluacionCuantitativa from './CasillaEvaluacionCuantitativa';
 
 const NOMBRE = 'font-medium text-on-surface';
 const DESCRIPCION = 'text-[13px] text-on-surface-secondary';
@@ -36,11 +37,17 @@ const COLUMNAS: ColumnaTabla<EvaluacionCuantitativaJurado>[] = [
   },
 ];
 
+export interface SeleccionCuantitativas {
+  seleccionados: ReadonlySet<string>;
+  onAlternar: (id: string) => void;
+}
+
 interface Props {
   evaluaciones: EvaluacionCuantitativaJurado[];
   cargando: boolean;
   vacio?: ReactNode;
   acciones?: (fila: EvaluacionCuantitativaJurado) => ReactNode;
+  seleccion?: SeleccionCuantitativas;
 }
 
 export default function EvaluacionesCuantitativasJuradoTable({
@@ -48,11 +55,24 @@ export default function EvaluacionesCuantitativasJuradoTable({
   cargando,
   vacio,
   acciones,
+  seleccion,
 }: Props) {
+  const casilla = (fila: EvaluacionCuantitativaJurado) =>
+    seleccion ? (
+      <CasillaEvaluacionCuantitativa
+        fila={fila}
+        marcada={seleccion.seleccionados.has(fila.id)}
+        onAlternar={seleccion.onAlternar}
+      />
+    ) : null;
+  const columnas: ColumnaTabla<EvaluacionCuantitativaJurado>[] = seleccion
+    ? [{ id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla }, ...COLUMNAS]
+    : COLUMNAS;
+
   return (
     <DataTable
       etiqueta="Evaluaciones cuantitativas del jurado"
-      columnas={COLUMNAS}
+      columnas={columnas}
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
@@ -69,6 +89,7 @@ export default function EvaluacionesCuantitativasJuradoTable({
       }
       tarjeta={(fila) => (
         <>
+          {casilla(fila)}
           <span className={ROTULO}>Ítem</span>
           <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />
           <span className={ROTULO}>Puntaje</span>

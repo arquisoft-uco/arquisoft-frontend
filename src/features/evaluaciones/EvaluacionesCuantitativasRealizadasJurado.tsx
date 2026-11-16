@@ -2,7 +2,7 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
-import ConsultarEvaluacionesCuantitativasRealizadasJurado from './components/ConsultarEvaluacionesCuantitativasRealizadasJurado';
+import EvaluacionesCuantitativasRealizadasJuradoPanel from './components/jurado/EvaluacionesCuantitativasRealizadasJuradoPanel';
 import { useEvaluacionesCuantitativasRealizadasJurado } from './hooks/useEvaluacionesCuantitativasRealizadasJurado';
 import { useNavegacionCuantitativasRealizadasJurado } from './hooks/useNavegacionCuantitativasRealizadasJurado';
 
@@ -33,12 +33,12 @@ export default function EvaluacionesCuantitativasRealizadasJurado() {
         descripcion={descripcion}
         migas={[{ etiqueta: 'Evaluaciones', to: rutaListado }, { etiqueta: TITULO }]}
       />
-      <ConsultarEvaluacionesCuantitativasRealizadasJurado
+      <EvaluacionesCuantitativasRealizadasJuradoPanel
         consulta={consulta}
         etiquetaVolver="Volver a mis evaluaciones"
         onVolver={() => navigate(rutaListado)}
         evaluacionJuradoId={evaluacionJuradoId}
-        evaluacionFinalizada={finalizada}
+        finalizada={finalizada}
         onEvaluar={
           finalizada
             ? undefined

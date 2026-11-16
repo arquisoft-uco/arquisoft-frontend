@@ -10,6 +10,7 @@ import CambiarPuntajeEvaluacionCuantitativaJuradoPanel from './jurado/CambiarPun
 import ErrorConsultaCuantitativasRealizadasJurado from './ErrorConsultaCuantitativasRealizadasJurado';
 import ModificarObservacionItemJuradoPanel from './jurado/ModificarObservacionItemJuradoPanel';
 import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
+import type { SeleccionCuantitativas } from './EvaluacionesCuantitativasJuradoTable';
 import ObservacionesEvaluacionCuantitativaPanel from './jurado/ObservacionesEvaluacionCuantitativaPanel';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -35,6 +36,7 @@ interface Props {
   onEvaluar?: () => void;
   evaluacionJuradoId: string;
   evaluacionFinalizada?: boolean;
+  seleccion?: SeleccionCuantitativas;
 }
 
 type PanelAbierto =
@@ -53,6 +55,7 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
   onEvaluar,
   evaluacionJuradoId,
   evaluacionFinalizada = false,
+  seleccion,
 }: Props) {
   const [panel, setPanel] = useState<PanelAbierto | null>(null);
   const { data, isLoading, isError, error, refetch } = consulta;
@@ -84,13 +87,14 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
       </p>
       {evaluacionFinalizada && (data?.length ?? 0) > 0 && (
         <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden cambiar puntajes.
+          La evaluación ya fue finalizada; no se pueden omitir ni cambiar puntajes.
         </Notice>
       )}
       <EvaluacionesCuantitativasJuradoTable
         evaluaciones={data ?? []}
         cargando={isLoading}
         vacio={vacio}
+        seleccion={seleccion}
         acciones={(fila) => (
           <div className="flex shrink-0 items-center justify-end gap-1">
             <IconButton

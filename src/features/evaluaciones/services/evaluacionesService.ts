@@ -30,6 +30,7 @@ import type { ModificarItemCuantitativoJuradoRequest } from '../models/Modificar
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
+import type { OmitirEvaluacionesCuantitativasJuradoRequest } from '../models/OmitirEvaluacionesCuantitativasJuradoRequest';
 import type { RegistrarEvaluacionesCualitativasAsesorRequest } from '../models/RegistrarEvaluacionesCualitativasAsesorRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
@@ -400,6 +401,16 @@ export const evaluacionesService = {
   }: OmitirEvaluacionesCualitativasJuradoRequest): Promise<void> =>
     apiClient
       .delete<void>(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cualitativas`, {
+        data: { evaluaciones },
+      })
+      .then(() => undefined),
+
+  omitirEvaluacionesCuantitativasJurado: ({
+    evaluacionJuradoId,
+    evaluaciones,
+  }: OmitirEvaluacionesCuantitativasJuradoRequest): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/evaluaciones-jurado/${evaluacionJuradoId}/cuantitativas`, {
         data: { evaluaciones },
       })
       .then(() => undefined),

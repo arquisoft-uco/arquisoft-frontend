@@ -197,6 +197,44 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('omitirEvaluacionesCuantitativasJurado', () => {
+    it('llama DELETE con el prefijo /evaluaciones y los ids en data, y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.omitirEvaluacionesCuantitativasJurado({
+        evaluacionJuradoId: 'ej-1',
+        evaluaciones: ['ec-1', 'ec-2'],
+      });
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/ej-1/cuantitativas', {
+        data: { evaluaciones: ['ec-1', 'ec-2'] },
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('omitirEvaluacionesCuantitativasJurado', () => {
+    it('llama DELETE con el prefijo /evaluaciones y los ids en data, y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.omitirEvaluacionesCuantitativasJurado({
+        evaluacionJuradoId: 'ej-1',
+        evaluaciones: ['ec-1', 'ec-2'],
+      });
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/ej-1/cuantitativas', {
+        data: { evaluaciones: ['ec-1', 'ec-2'] },
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('cambiarCriterioEvaluacionCualitativaJurado', () => {
     it('llama PATCH con el id de la evaluación cualitativa y traduce criterioId a { criterio }', async () => {
       // Arrange

@@ -302,12 +302,83 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
+  it('sin «seleccion» no hay casillas y con ella hay una por fila que avisa el id al alternarla', async () => {
+    // Arrange
+    const onAlternar = vi.fn();
+    const consulta: ConsultaCuantitativas = {
+      data: [FILA],
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    };
+    const propiedades = {
+      consulta,
+      etiquetaVolver: 'Volver a mis evaluaciones',
+      onVolver: vi.fn(),
+      evaluacionJuradoId: 'ej-1',
+    };
+    const { unmount } = render(
+      <ConsultarEvaluacionesCuantitativasRealizadasJurado {...propiedades} />,
+    );
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    unmount();
+
+    // Act
+    render(
+      <ConsultarEvaluacionesCuantitativasRealizadasJurado
+        {...propiedades}
+        seleccion={{ seleccionados: new Set(), onAlternar }}
+      />,
+    );
+    await userEvent.click(screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0]);
+
+    // Assert
+    expect(onAlternar).toHaveBeenCalledWith('ec-1');
+  });
+
   it('con la evaluación finalizada no ofrece «Cambiar puntaje» y muestra el aviso', () => {
     // Arrange / Act
     montar({ data: [FILA] }, false, true);
 
     // Assert
     expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
-    expect(screen.getByText(/no se pueden cambiar puntajes/)).toBeInTheDocument();
+    expect(screen.getByText(/no se pueden omitir ni cambiar puntajes/)).toBeInTheDocument();
+  });
+
+  it('sin seleccion no hay casillas; con seleccion hay una por fila y alternarla entrega el id', async () => {
+    // Arrange
+    montar({ data: [FILA, OTRA_FILA] });
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+
+    // Arrange
+    cleanup();
+    const onAlternar = vi.fn();
+    render(
+      <ConsultarEvaluacionesCuantitativasRealizadasJurado
+        consulta={{
+          data: [FILA, OTRA_FILA],
+          error: null,
+          isLoading: false,
+          isError: false,
+          refetch: vi.fn(),
+        }}
+        etiquetaVolver="Volver a mis evaluaciones"
+        onVolver={vi.fn()}
+        evaluacionJuradoId="ej-1"
+        seleccion={{ seleccionados: new Set(['ec-1']), onAlternar }}
+      />,
+    );
+
+    // Act
+    await userEvent.click(screen.getAllByRole('checkbox', { name: 'Seleccionar Rigor' })[0]);
+
+    // Assert
+    expect(screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0]).toBeChecked();
+    expect(onAlternar).toHaveBeenCalledWith('ec-2');
   });
 });
