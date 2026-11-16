@@ -10,6 +10,7 @@ import { useItemsCuantitativosAsesor } from '../hooks/useItemsCuantitativosAseso
 import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
 import ModificarItemCuantitativoAsesorPanel from './ModificarItemCuantitativoAsesorPanel';
 import ItemsCuantitativosAsesorTable from './ItemsCuantitativosAsesorTable';
+import RemoverItemCuantitativoAsesorDialog from './RemoverItemCuantitativoAsesorDialog';
 import RegistrarItemCuantitativoAsesorPanel from './RegistrarItemCuantitativoAsesorPanel';
 
 export default function ItemsCuantitativosAsesorView() {
@@ -17,6 +18,7 @@ export default function ItemsCuantitativosAsesorView() {
   const categorias = useCategoriasItemCuantitativoAsesor();
   const [registrando, setRegistrando] = useState(false);
   const [itemEnEdicion, setItemEnEdicion] = useState<ItemCuantitativoAsesor | null>(null);
+  const [itemARemover, setItemARemover] = useState<ItemCuantitativoAsesor | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -51,6 +53,7 @@ export default function ItemsCuantitativosAsesorView() {
           categorias={categorias.data}
           cargandoCategorias={categorias.isLoading}
           onEditar={setItemEnEdicion}
+          onRemover={setItemARemover}
         />
       )}
 
@@ -63,6 +66,14 @@ export default function ItemsCuantitativosAsesorView() {
           key={itemEnEdicion.id}
           item={itemEnEdicion}
           onCerrar={() => setItemEnEdicion(null)}
+        />
+      )}
+
+      {itemARemover && (
+        <RemoverItemCuantitativoAsesorDialog
+          key={itemARemover.id}
+          item={itemARemover}
+          onCerrar={() => setItemARemover(null)}
         />
       )}
     </div>

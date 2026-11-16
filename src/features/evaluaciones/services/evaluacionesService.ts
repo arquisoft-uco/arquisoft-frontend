@@ -239,6 +239,11 @@ export const evaluacionesService = {
       .patch<void>(`/evaluaciones/items-cuantitativos-asesor/${itemId}`, { descripcion })
       .then(() => undefined),
 
+  removerItemCuantitativoAsesor: (itemId: string): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/items-cuantitativos-asesor/${itemId}`)
+      .then(() => undefined),
+
   modificarItemCuantitativoJurado: ({
     itemId,
     descripcion,
