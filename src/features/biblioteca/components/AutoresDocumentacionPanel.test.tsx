@@ -12,6 +12,8 @@ vi.mock('../hooks/useAutoresDocumentacion', () => ({
 
 const DOCUMENTACION: Documentacion = {
   id: 'd-1',
+  tituloProyecto: null,
+  autores: [],
   fechaPublicacion: '2026-11-01T10:00:00Z',
   entregableProyectoGrado: { id: 'e-1', versionEntregable: 2 },
   bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },
