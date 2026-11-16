@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ObservacionesEvaluacionCuantitativaPanel from './ObservacionesEvaluacionCuantitativaPanel';
 import { useObservacionesEvaluacionCuantitativaJurado } from '../../hooks/useObservacionesEvaluacionCuantitativaJurado';
+import { useRemoverObservacionItemJurado } from '../../hooks/useRemoverObservacionItemJurado';
 import { OBSERVACION_ITEM_JURADO_EVALUACION_NO_ENCONTRADA } from '../../utils/codigos-error-evaluaciones';
 import type { EvaluacionCuantitativaJurado } from '../../models/EvaluacionCuantitativaJurado';
 
 vi.mock('../../hooks/useObservacionesEvaluacionCuantitativaJurado', () => ({
   useObservacionesEvaluacionCuantitativaJurado: vi.fn(),
+}));
+vi.mock('../../hooks/useRemoverObservacionItemJurado', () => ({
+  useRemoverObservacionItemJurado: vi.fn(),
 }));
 
 const usarHook = vi.mocked(useObservacionesEvaluacionCuantitativaJurado);
@@ -47,10 +51,15 @@ function pagina(descripciones: string[]) {
 
 function montar(
   estado: Record<string, unknown> = {},
-  modificacion: { puedeModificar?: boolean; onModificar?: (o: unknown) => void } = {},
+  modificacion: {
+    puedeModificar?: boolean;
+    puedeRemover?: boolean;
+    onModificar?: (o: unknown) => void;
+  } = {},
 ) {
   const refetch = vi.fn();
   const onCerrar = vi.fn();
+  const goToPage = vi.fn();
   usarHook.mockReturnValue({
     data: undefined,
     isLoading: false,
@@ -60,7 +69,7 @@ function montar(
     refetch,
     page: 0,
     pageSize: 10,
-    goToPage: vi.fn(),
+    goToPage,
     ...estado,
   } as never);
   render(
@@ -70,7 +79,16 @@ function montar(
       {...modificacion}
     />,
   );
-  return { refetch, onCerrar };
+  return { refetch, onCerrar, goToPage: (estado.goToPage as typeof goToPage) ?? goToPage };
+}
+
+function mockRemocion(mutate: ReturnType<typeof vi.fn>) {
+  vi.mocked(useRemoverObservacionItemJurado).mockReturnValue({
+    isPending: false,
+    mutate,
+  } as Partial<ReturnType<typeof useRemoverObservacionItemJurado>> as ReturnType<
+    typeof useRemoverObservacionItemJurado
+  >);
 }
 
 describe('ObservacionesEvaluacionCuantitativaPanel', () => {
@@ -160,5 +178,62 @@ describe('ObservacionesEvaluacionCuantitativaPanel', () => {
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Modificar observación' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remover observación' })).not.toBeInTheDocument();
+  });
+
+  it('con puedeRemover y puedeModificar conviven los dos botones por fila', () => {
+    // Arrange / Act
+    montar(
+      { data: pagina(['Falta rigor']) },
+      { puedeModificar: true, puedeRemover: true, onModificar: vi.fn() },
+    );
+
+    // Assert
+    expect(screen.getAllByRole('button', { name: 'Modificar observación' }).length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.getAllByRole('button', { name: 'Remover observación' }).length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it('«Remover observación» abre la confirmación del ítem y cancelar no remueve', async () => {
+    // Arrange
+    const mutate = vi.fn();
+    mockRemocion(mutate);
+    montar({ data: pagina(['Falta rigor']) }, { puedeRemover: true });
+
+    // Act
+    await userEvent.click(screen.getAllByRole('button', { name: 'Remover observación' })[0]);
+
+    // Assert
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Claridad');
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    // Assert
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('al remover la única fila de una página posterior retrocede a la anterior', async () => {
+    // Arrange
+    mockRemocion(
+      vi.fn((_id: string, opciones?: { onSuccess?: () => void }) => opciones?.onSuccess?.()),
+    );
+    const { goToPage } = montar(
+      { data: { ...pagina(['Falta rigor']), number: 1, totalPages: 2 }, page: 1 },
+      { puedeRemover: true },
+    );
+
+    // Act
+    await userEvent.click(screen.getAllByRole('button', { name: 'Remover observación' })[0]);
+    await userEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remover observación' }),
+    );
+
+    // Assert
+    expect(goToPage).toHaveBeenCalledWith(0);
   });
 });

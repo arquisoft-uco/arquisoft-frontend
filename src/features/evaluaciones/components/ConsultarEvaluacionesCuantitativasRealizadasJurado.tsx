@@ -129,6 +129,7 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
         <ObservacionesEvaluacionCuantitativaPanel
           evaluacion={panel.valoracion}
           puedeModificar={!evaluacionFinalizada}
+          puedeRemover={!evaluacionFinalizada}
           onModificar={(observacion) =>
             setPanel({ tipo: 'edicion', valoracion: panel.valoracion, observacion })
           }

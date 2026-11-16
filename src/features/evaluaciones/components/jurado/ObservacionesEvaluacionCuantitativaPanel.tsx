@@ -1,5 +1,5 @@
+import { useState } from 'react';
 import { MessageSquare } from 'lucide-react';
-import Button from '../../../../shared/components/ui/Button';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
@@ -11,6 +11,8 @@ import { useObservacionesEvaluacionCuantitativaJurado } from '../../hooks/useObs
 import type { EvaluacionCuantitativaJurado } from '../../models/EvaluacionCuantitativaJurado';
 import type { ObservacionItemJurado } from '../../models/ObservacionItemJurado';
 import { OBSERVACION_ITEM_JURADO_EVALUACION_NO_ENCONTRADA } from '../../utils/codigos-error-evaluaciones';
+import AccionesObservacionItemJurado from './AccionesObservacionItemJurado';
+import RemoverObservacionItemJuradoDialog from './RemoverObservacionItemJuradoDialog';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -33,6 +35,7 @@ function textoResumen(total?: number): string {
 interface Props {
   evaluacion: EvaluacionCuantitativaJurado;
   puedeModificar?: boolean;
+  puedeRemover?: boolean;
   onModificar?: (observacion: ObservacionItemJurado) => void;
   onCerrar: () => void;
 }
@@ -40,9 +43,11 @@ interface Props {
 export default function ObservacionesEvaluacionCuantitativaPanel({
   evaluacion,
   puedeModificar = false,
+  puedeRemover = false,
   onModificar,
   onCerrar,
 }: Props) {
+  const [porRemover, setPorRemover] = useState<ObservacionItemJurado | null>(null);
   const { data, isLoading, isFetching, isError, error, refetch, page, pageSize, goToPage } =
     useObservacionesEvaluacionCuantitativaJurado(evaluacion.id);
 
@@ -68,6 +73,8 @@ export default function ObservacionesEvaluacionCuantitativaPanel({
     }
 
     const filas = data?.content ?? [];
+    const ofreceModificar = puedeModificar && !!onModificar;
+    const hayAcciones = ofreceModificar || puedeRemover;
     return (
       <>
         <p aria-live="polite" className={RESUMEN}>
@@ -80,21 +87,18 @@ export default function ObservacionesEvaluacionCuantitativaPanel({
           idDeFila={(fila) => fila.id}
           cargando={isLoading}
           acciones={
-            puedeModificar && onModificar
+            hayAcciones
               ? (fila) => (
-                  <Button
-                    variante="secundario"
-                    aria-label={
-                      filas.length > 1 ? `Modificar observación: ${fila.descripcion}` : undefined
-                    }
-                    onClick={() => onModificar(fila)}
-                  >
-                    Modificar observación
-                  </Button>
+                  <AccionesObservacionItemJurado
+                    observacion={fila}
+                    conVarias={filas.length > 1}
+                    onModificar={ofreceModificar ? onModificar : undefined}
+                    onRemover={puedeRemover ? setPorRemover : undefined}
+                  />
                 )
               : undefined
           }
-          encabezadoAcciones={puedeModificar && onModificar ? 'Acciones' : undefined}
+          encabezadoAcciones={hayAcciones ? 'Acciones' : undefined}
           vacio={
             <EmptyState
               icono={MessageSquare}
@@ -124,11 +128,23 @@ export default function ObservacionesEvaluacionCuantitativaPanel({
     );
   }
 
+  function handleRemovida() {
+    if ((data?.content.length ?? 0) === 1 && page > 0) goToPage(page - 1);
+  }
+
   return (
     <SidePanel titulo="Observaciones" descripcion={descripcion} onCerrar={onCerrar}>
       <div aria-busy={isFetching} className={RAIZ}>
         {contenido()}
       </div>
+      {porRemover && (
+        <RemoverObservacionItemJuradoDialog
+          observacion={porRemover}
+          nombreItem={evaluacion.item.nombre}
+          onRemovida={handleRemovida}
+          onCerrar={() => setPorRemover(null)}
+        />
+      )}
     </SidePanel>
   );
 }

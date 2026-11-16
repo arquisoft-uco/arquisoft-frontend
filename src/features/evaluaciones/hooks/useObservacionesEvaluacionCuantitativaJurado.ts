@@ -3,6 +3,12 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
 import { evaluacionesService } from '../services/evaluacionesService';
 
+export const OBSERVACIONES_EVALUACION_CUANTITATIVA_JURADO_KEY = [
+  'evaluaciones',
+  'jurado',
+  'observaciones-cuantitativa',
+];
+
 const PAGE_SIZE = 10;
 const REINTENTOS_MAXIMOS = 3;
 
@@ -13,9 +19,7 @@ export function useObservacionesEvaluacionCuantitativaJurado(
 
   const query = useQuery({
     queryKey: [
-      'evaluaciones',
-      'jurado',
-      'observaciones-cuantitativa',
+      ...OBSERVACIONES_EVALUACION_CUANTITATIVA_JURADO_KEY,
       evaluacionCuantitativaJuradoId,
       page,
     ],
