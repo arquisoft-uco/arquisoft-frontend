@@ -388,6 +388,27 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('getCategoriasItemCuantitativoAsesor', () => {
+    it('no envía params sin nombre y envía params: { nombre } con filtro', async () => {
+      // Arrange
+      get.mockResolvedValue({ status: 200, data: [] });
+
+      // Act
+      await evaluacionesService.getCategoriasItemCuantitativoAsesor();
+      await evaluacionesService.getCategoriasItemCuantitativoAsesor('abc');
+
+      // Assert
+      expect(get).toHaveBeenNthCalledWith(
+        1,
+        '/evaluaciones/categorias-item-cuantitativo-asesor',
+        undefined,
+      );
+      expect(get).toHaveBeenNthCalledWith(2, '/evaluaciones/categorias-item-cuantitativo-asesor', {
+        params: { nombre: 'abc' },
+      });
+    });
+  });
+
   describe('registrarItemCuantitativoAsesor', () => {
     it('llama POST enviando categoria (no categoriaId) y el valor numérico, y resuelve { id }', async () => {
       // Arrange

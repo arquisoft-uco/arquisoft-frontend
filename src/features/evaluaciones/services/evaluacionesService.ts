@@ -129,9 +129,13 @@ export const evaluacionesService = {
       })
       .then((r) => r.data),
 
-  getCategoriasItemCuantitativoAsesor: (): Promise<CategoriaItemCuantitativoAsesor[]> =>
+  getCategoriasItemCuantitativoAsesor: (
+    nombre?: string,
+  ): Promise<CategoriaItemCuantitativoAsesor[]> =>
     apiClient
-      .get<CategoriaItemCuantitativoAsesor[]>('/evaluaciones/categorias-item-cuantitativo-asesor')
+      .get<
+        CategoriaItemCuantitativoAsesor[]
+      >('/evaluaciones/categorias-item-cuantitativo-asesor', nombre ? { params: { nombre } } : undefined)
       .then((r) => r.data),
 
   getItemsCualitativosJurado: (): Promise<ItemCualitativoJurado[]> =>
