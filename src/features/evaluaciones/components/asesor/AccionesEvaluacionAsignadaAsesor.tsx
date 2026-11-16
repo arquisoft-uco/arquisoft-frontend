@@ -1,4 +1,4 @@
-import { Calculator, ClipboardList, ClipboardPen, ListChecks } from 'lucide-react';
+import { Calculator, ClipboardList, ClipboardPen, Info, ListChecks } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router';
 import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
@@ -28,6 +28,10 @@ export default function AccionesEvaluacionAsignadaAsesor({ asignacion }: Props) 
     navigate(`/evaluaciones/${asignacion.id}/${ruta}`, { state });
   }
 
+  function verInformacion() {
+    navegarA('informacion');
+  }
+
   function verCualitativas() {
     navegarA('cualitativas-asesor');
   }
@@ -46,6 +50,13 @@ export default function AccionesEvaluacionAsignadaAsesor({ asignacion }: Props) 
 
   return (
     <div className={ACCIONES}>
+      <IconButton
+        etiqueta={`Ver información de ${proyecto}`}
+        icono={Info}
+        tono="neutro"
+        rotulo="Ver información"
+        onClick={verInformacion}
+      />
       {asignacion.tieneEvaluacionesCualitativas && (
         <IconButton
           etiqueta={`Ver cualitativas de ${proyecto}`}
