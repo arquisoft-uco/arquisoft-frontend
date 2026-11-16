@@ -155,4 +155,29 @@ describe('DocumentacionesTable', () => {
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
     expect(onLimpiarFiltros).toHaveBeenCalledTimes(1);
   });
+
+  it('con onVerAutores cada fila ofrece "Ver autores" que lo llama con esa documentación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onVerAutores } = renderizar({ onVerAutores: vi.fn() });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver autores' }));
+
+    // Assert
+    expect(onVerAutores).toHaveBeenCalledWith(DOC_1);
+  });
+
+  it('sin onVerAutores no hay menú de acciones por fila', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(
+      tabla().queryByRole('button', { name: /Acciones de la documentación/ }),
+    ).not.toBeInTheDocument();
+  });
 });

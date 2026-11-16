@@ -12,6 +12,7 @@ import { varianteEstadoDocumentacion } from '../../../shared/utils/estado-varian
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { Documentacion } from '../models/Documentacion';
 import type { OrdenCampoDocumentacion } from '../models/OrdenCampoDocumentacion';
+import AccionesDocumentacion from './AccionesDocumentacion';
 import { AutoresProyecto, TituloProyecto } from './DocumentacionCeldas';
 
 const TARJETA_DATOS = 'flex flex-wrap items-center gap-1.5';
@@ -28,6 +29,7 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoDocumentacion, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
+  onVerAutores?: (documentacion: Documentacion) => void;
 }
 
 function InsigniaEstado({ documentacion }: { documentacion: Documentacion }) {
@@ -82,6 +84,7 @@ export default function DocumentacionesTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
+  onVerAutores,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -117,6 +120,12 @@ export default function DocumentacionesTable({
       onOrdenar={ordenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={
+        onVerAutores &&
+        ((documentacion) => (
+          <AccionesDocumentacion documentacion={documentacion} onVerAutores={onVerAutores} />
+        ))
+      }
       tarjeta={(documentacion) => (
         <>
           <TituloProyecto titulo={documentacion.tituloProyecto} />

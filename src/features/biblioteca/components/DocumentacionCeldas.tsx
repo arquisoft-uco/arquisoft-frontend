@@ -1,4 +1,4 @@
-import type { AutorDocumentacion } from '../models/biblioteca';
+import type { AutorResumen } from '../models/biblioteca';
 import { nombresDeAutores } from '../utils/autores-documentacion';
 
 const SIN_TITULO = 'Sin título';
@@ -17,7 +17,7 @@ export function TituloProyecto({ titulo }: { titulo: string | null }) {
   );
 }
 
-export function AutoresProyecto({ autores }: { autores: AutorDocumentacion[] }) {
+export function AutoresProyecto({ autores }: { autores: AutorResumen[] }) {
   const nombres = nombresDeAutores(autores);
   if (!nombres) return <span className={RESPALDO}>{SIN_AUTORES}</span>;
 
