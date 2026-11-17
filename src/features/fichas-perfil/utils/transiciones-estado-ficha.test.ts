@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { EstadoFicha } from '../models/fichas-perfil';
-import { estadosDestino } from './transiciones-estado-ficha';
+import { admiteCambioDeEstado, estadosDestino } from './transiciones-estado-ficha';
 
 const CATALOGO: EstadoFicha[] = [
   { id: 'EN_CONSTRUCCION', nombre: 'En Construccion', descripcion: 'a' },
@@ -11,6 +11,17 @@ const CATALOGO: EstadoFicha[] = [
 function ids(origen: string) {
   return estadosDestino(origen, CATALOGO).map((e) => e.id);
 }
+
+describe('admiteCambioDeEstado', () => {
+  it('es verdadero solo para los estados con destinos y falso para uno final o ausente', () => {
+    // Act / Assert
+    expect(admiteCambioDeEstado('EN_CONSTRUCCION')).toBe(true);
+    expect(admiteCambioDeEstado('DISPONIBLE_PARA_EVALUACION')).toBe(true);
+    expect(admiteCambioDeEstado('DESCARTADA')).toBe(true);
+    expect(admiteCambioDeEstado('APROBADA')).toBe(false);
+    expect(admiteCambioDeEstado(undefined)).toBe(false);
+  });
+});
 
 describe('estadosDestino', () => {
   it('devuelve los destinos de la matriz desde cada origen, sin repetir el actual', () => {

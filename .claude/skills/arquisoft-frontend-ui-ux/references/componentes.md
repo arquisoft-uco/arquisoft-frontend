@@ -344,6 +344,9 @@ Avatar.base | inline-flex size-9 shrink-0 items-center justify-center rounded-fu
 - **`idBase`:** opcional (por defecto `useId()`). Sin `children`, la pestaña activa lleva `aria-controls` al id
   `${idBase}-panel-${id}`: el consumidor monta sus paneles, con ese `id` y `aria-labelledby` hacia `${idBase}-pestana-${id}`.
   Con `children` el comportamiento no cambia.
+- **Desplazamiento:** al cambiar `valor`, un efecto desplaza **solo la lista** (`scrollLeft`, nunca `scrollIntoView`)
+  para dejar completa la pestaña activa cuando la barra desborda (`desplazamiento-pestanas.ts`, función pura). Una
+  pestaña vecina cortada en el borde sigue siendo la señal normal de que hay más.
 - **Sin `-mb-px`:** la pestaña no se monta sobre el borde de la lista. Ese solape de 1 px desborda la lista (que
   lleva `overflow-x-auto`), abre una barra vertical y recorta el subrayado.
 - **Composición de `Tabs`:** `pestana` + **una** de `activa` o `inactiva`; `contador` + **una** de

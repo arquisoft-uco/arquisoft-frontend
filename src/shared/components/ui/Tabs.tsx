@@ -1,7 +1,10 @@
-import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import ContenidoPestana from './ContenidoPestana';
 import type { ItemPestana } from './ContenidoPestana';
+import { desplazamientoParaMostrar } from './desplazamiento-pestanas';
+
+const SELECTOR_ACTIVA = '[aria-selected="true"], [aria-current="page"]';
 
 type ItemConRuta<T extends string> = ItemPestana<T> & { to: string };
 
@@ -59,10 +62,21 @@ export default function Tabs<T extends string>({
   const generado = useId();
   const base = idBase ?? generado;
   const pestanas = useRef<Record<string, HTMLButtonElement | null>>({});
+  const lista = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const contenedor = lista.current;
+    const activa = contenedor?.querySelector(SELECTOR_ACTIVA);
+    if (!contenedor || !activa) return;
+    contenedor.scrollLeft += desplazamientoParaMostrar(
+      contenedor.getBoundingClientRect(),
+      activa.getBoundingClientRect(),
+    );
+  }, [valor]);
 
   if (items.every(tieneRuta)) {
     return (
-      <nav aria-label={etiqueta} className={unirClases(LISTA, className)}>
+      <nav ref={lista} aria-label={etiqueta} className={unirClases(LISTA, className)}>
         {items.map((item) => {
           const activa = item.id === valor;
           return (
@@ -96,7 +110,7 @@ export default function Tabs<T extends string>({
 
   return (
     <div className={unirClases(RAIZ, className)}>
-      <div role="tablist" aria-label={etiqueta} className={LISTA}>
+      <div ref={lista} role="tablist" aria-label={etiqueta} className={LISTA}>
         {items.map((item, indice) => {
           const activa = item.id === valor;
           return (

@@ -129,14 +129,14 @@ Layout       principal                                  | lateral (resumen)
   contenedor de `:id`; sin `state` (URL directa o recarga en otra pestaña) la pantalla muestra el título genérico y
   solo lo que depende del id, sin inventar datos.
 - **Panel lateral de resumen:** estado actual con su `Badge`, asesor, compañeros (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante los toma del endpoint de compañeros de la ficha activa, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
-  (asesor: «Cambiar estado»; representante: «Iniciar evaluación»; estudiante: ninguna).
+  (asesor: «Cambiar estado», solo si la ficha admite transiciones y no se está en la pestaña Estados; representante: «Iniciar evaluación»; estudiante: ninguna).
 - **Pestañas solo de lo que existe.** Las evaluaciones de las fichas del asesor viven como pestaña del listado «Mis fichas de perfil» (`?vista=evaluaciones`), no del detalle. El
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el
   formulario de ítem, los tipos que aún no se usan como atajos.
 - **Ítems:** tarjetas con el tipo (`Badge neutro`), el contenido y `IconButton` de editar y eliminar (44 px);
   «Agregar ítem» abre un `SidePanel` (formulario corto). Eliminar pide confirmación («No se puede deshacer»). En el asesor, cada tarjeta lleva «Agregar revisión» (`IconButton`) o, si el ítem ya tiene revisión, la insignia con su estado.
 - **El estudiante** ve su ficha en la raíz del módulo (`EstudianteView`, sin ruta propia: las pestañas «Ítems», «Revisiones»,
-  «Historial de estados» y «Evaluaciones» son estado de React; en «Revisiones», cada fila en estado «Nueva» lleva «Marcar como visualizada» (`IconButton`) y las demás solo muestran su estado). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
+  «Historial de estados» y «Evaluaciones» son estado de React; en «Revisiones», cada fila en estado «Nueva» lleva «Marcar como visualizada» (`Button` `fantasma` `sm` con icono y texto visible; «Visualizada» bajo 640 px) y las demás solo muestran su estado). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
   una línea de tiempo (`LineaTiempoEstados`, un `<ol>`) con «Actual» en el estado más reciente. En el diagrama, la
   pestaña se llama «Historial de estados» solo para el estudiante.
