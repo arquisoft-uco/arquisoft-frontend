@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useAccesoDenegadoStore } from '../auth/accesoDenegadoStore';
 import { useAuthStore } from '../auth/authStore';
 import type { CredencialesHttp } from '../auth/proveedores/proveedor';
 import { proveedorActivo } from '../auth/proveedores/proveedorActivo';
@@ -7,8 +8,10 @@ import { monitoring } from '../shared/utils/monitoring';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
-    // Peticiones que no deben refrescar token, reintentar ni navegar a /forbidden (p. ej. el logout)
+    // Peticiones que no deben refrescar token, reintentar ni marcar acceso denegado (p. ej. el logout)
     _omitirManejoAuth?: boolean;
+    // Pathname vigente al enviar la petición: un 403 solo cuenta si esa ruta sigue abierta
+    _rutaOrigen?: string;
     // Peticiones a un host externo ya firmado (MinIO): sin Bearer ni manejo de 401/403
     _sinCredenciales?: boolean;
     // Peticiones a un host propio del proveedor (el BFF del PDP) que no declara X-Proveedor-Identidad en su CORS
@@ -27,6 +30,7 @@ const apiClient = axios.create({
 // Sin proveedor (bypass de desarrollo) se usa el token del store. getState(), no un hook:
 // el interceptor corre fuera del árbol de React.
 apiClient.interceptors.request.use((config) => {
+  config._rutaOrigen = window.location.pathname;
   if (config._sinCredenciales) return config;
   const proveedor = proveedorActivo();
   const credenciales: Partial<CredencialesHttp> = proveedor
@@ -89,8 +93,7 @@ apiClient.interceptors.response.use(
     }
 
     if (status === 403) {
-      // router is imported lazily to avoid circular deps — use dynamic import
-      import('../router').then(({ router }) => router.navigate('/forbidden'));
+      useAccesoDenegadoStore.getState().marcar(config?._rutaOrigen);
     }
 
     monitoring.captureHttpError(status, config?.url, config?.method);

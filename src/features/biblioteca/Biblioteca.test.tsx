@@ -40,7 +40,6 @@ function renderizar() {
     <Routes>
       <Route path="/biblioteca" element={<Biblioteca />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/biblioteca' },
   );
@@ -86,7 +85,7 @@ describe('Biblioteca', () => {
     },
   );
 
-  it('un rol sin vista redirige a /forbidden', async () => {
+  it('un rol sin vista muestra Acceso denegado', async () => {
     // Arrange
     entrarComo(Rol.Administrador);
 

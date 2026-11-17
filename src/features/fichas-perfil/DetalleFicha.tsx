@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { Navigate } from 'react-router';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import { Rol } from '../../shared/models/rol';
 import { useRolActivo } from '../../hooks/useAuth';
 import AsesorFichaDetalleView from './components/AsesorFichaDetalleView';
@@ -18,7 +19,7 @@ export default function DetalleFicha() {
   if (!rol) return <Navigate to="/seleccionar-rol" replace />;
 
   const View = VIEW_POR_ROL[rol];
-  if (!View) return <Navigate to="/forbidden" replace />;
+  if (!View) return <AccesoDenegado />;
 
   return <View />;
 }

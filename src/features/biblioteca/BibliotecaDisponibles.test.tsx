@@ -24,7 +24,6 @@ function renderizar() {
   return render(
     <Routes>
       <Route path="/biblioteca/disponibles" element={<BibliotecaDisponibles />} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/biblioteca/disponibles' },
   );
@@ -58,7 +57,7 @@ describe('BibliotecaDisponibles', () => {
     expect(await screen.findByText('No hay entregables por registrar')).toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', async () => {
+  it('un rol sin vista muestra Acceso denegado', async () => {
     // Arrange
     entrarComo(Rol.Asesor);
 

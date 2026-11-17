@@ -70,7 +70,6 @@ function montar() {
       />
       <Route path="/evaluaciones" element={<Listado />} />
       <Route path="/evaluaciones/:id/evaluar-cuantitativas" element={<p>Pantalla evaluar</p>} />
-      <Route path="/forbidden" element={<p>Pantalla prohibida</p>} />
     </Routes>,
     { initialPath: '/evaluaciones/ej-1/cuantitativas-realizadas' },
   );
@@ -84,7 +83,7 @@ describe('EvaluacionesCuantitativasRealizadasJurado', () => {
     mockNavegacion(false);
   });
 
-  it('un rol distinto de jurado es enviado a /forbidden', () => {
+  it('un rol distinto de jurado muestra Acceso denegado', () => {
     // Arrange
     autenticarCon(Rol.Coordinador);
 
@@ -92,7 +91,7 @@ describe('EvaluacionesCuantitativasRealizadasJurado', () => {
     montar();
 
     // Assert
-    expect(screen.getByText('Pantalla prohibida')).toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
     expect(screen.queryByText('Claridad')).not.toBeInTheDocument();
   });
 

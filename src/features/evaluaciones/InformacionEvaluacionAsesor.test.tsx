@@ -37,7 +37,6 @@ function montar() {
         path="/evaluaciones/:evaluacionAsesorId/informacion"
         element={<InformacionEvaluacionAsesor />}
       />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/evaluaciones/ea-1/informacion' },
   );
@@ -101,7 +100,7 @@ describe('InformacionEvaluacionAsesor', () => {
     );
   });
 
-  it('un rol distinto de asesor es redirigido a /forbidden', () => {
+  it('un rol distinto de asesor es muestra Acceso denegado', () => {
     // Arrange
     vi.mocked(useHasRole).mockReturnValue(false);
     vi.mocked(useNavegacionCualitativasAsesor).mockReturnValue(null);

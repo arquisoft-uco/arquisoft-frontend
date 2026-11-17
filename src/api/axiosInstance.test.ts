@@ -3,12 +3,11 @@ import { AxiosError, type AxiosAdapter } from 'axios';
 import apiClient from './axiosInstance';
 import type { CredencialesHttp, ProveedorIdentidad } from '../auth/proveedores/proveedor';
 import { fijarProveedorActivo } from '../auth/proveedores/proveedorActivo';
-import { router } from '../router';
+import { useAccesoDenegadoStore } from '../auth/accesoDenegadoStore';
 import { resetAllStores, setAuthenticatedUser } from '../test-utils/store.utils';
 import { useAuthStore } from '../auth/authStore';
 
 vi.mock('../config/env', () => ({ API_URL: 'http://api.test' }));
-vi.mock('../router', () => ({ router: { navigate: vi.fn() } }));
 vi.mock('../shared/utils/monitoring', () => ({
   monitoring: { captureError: vi.fn(), captureHttpError: vi.fn() },
 }));
@@ -135,7 +134,7 @@ describe('axiosInstance: _omitirManejoAuth', () => {
     expect(adapter).toHaveBeenCalledTimes(1);
   });
 
-  it('con la bandera, un 403 no navega a /forbidden', async () => {
+  it('con la bandera, un 403 no marca el acceso denegado', async () => {
     // Arrange
     apiClient.defaults.adapter = adapterConStatus(403);
 
@@ -146,18 +145,20 @@ describe('axiosInstance: _omitirManejoAuth', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Assert
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
   });
 
-  it('sin la bandera, un 403 sigue navegando a /forbidden', async () => {
+  it('sin la bandera, un 403 marca la ruta de origen', async () => {
     // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion');
     apiClient.defaults.adapter = adapterConStatus(403);
 
     // Act
     await expect(apiClient.get('/algo')).rejects.toThrow();
 
     // Assert
-    await vi.waitFor(() => expect(router.navigate).toHaveBeenCalledWith('/forbidden'));
+    expect(useAccesoDenegadoStore.getState().ruta).toBe('/seccion');
   });
 });
 
@@ -268,7 +269,7 @@ describe('axiosInstance: _sinCredenciales', () => {
     // Assert
     expect(proveedor.renovarSesion).not.toHaveBeenCalled();
     expect(adapter401).toHaveBeenCalledTimes(1);
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
   });
 });
 

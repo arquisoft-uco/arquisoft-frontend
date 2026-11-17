@@ -1,5 +1,6 @@
 import { ClipboardX } from 'lucide-react';
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import { useHasRole } from '../../hooks/useHasRole';
 import Button from '../../shared/components/ui/Button';
 import EmptyState from '../../shared/components/ui/EmptyState';
@@ -25,7 +26,7 @@ export default function RegistrarEvaluacionesCualitativas() {
   const { data, isLoading, isError, error, refetch } =
     useEvaluacionAsignadaJurado(evaluacionJuradoId);
 
-  if (!esJurado) return <Navigate to="/forbidden" replace />;
+  if (!esJurado) return <AccesoDenegado />;
 
   const asignacion = data ?? undefined;
   const descripcion = asignacion

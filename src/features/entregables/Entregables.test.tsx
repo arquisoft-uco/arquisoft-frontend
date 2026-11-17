@@ -51,7 +51,6 @@ function renderizar(ruta = '/entregables') {
     <Routes>
       <Route path="/entregables" element={<Entregables />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: ruta },
   );
@@ -179,7 +178,7 @@ describe('Entregables', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('un rol sin vista muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Coordinador);
     setActiveRole(Rol.Coordinador);

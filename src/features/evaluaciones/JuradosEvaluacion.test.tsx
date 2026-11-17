@@ -16,7 +16,6 @@ function montar() {
   return render(
     <Routes>
       <Route path="/evaluaciones/:evaluacionId/jurados" element={<JuradosEvaluacion />} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
       <Route path="/seleccionar-rol" element={<p>Seleccionar rol</p>} />
     </Routes>,
     { initialPath: '/evaluaciones/e-1/jurados' },
@@ -57,7 +56,7 @@ describe('JuradosEvaluacion', () => {
     expect(screen.queryByText('Vista del estudiante')).not.toBeInTheDocument();
   });
 
-  it('un rol fuera del mapa va a /forbidden y sin rol activo va a /seleccionar-rol', () => {
+  it('un rol fuera del mapa muestra Acceso denegado y sin rol activo va a /seleccionar-rol', () => {
     // Arrange
     autenticarCon([Rol.Jurado], Rol.Jurado);
 
