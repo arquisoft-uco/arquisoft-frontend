@@ -136,13 +136,14 @@ describe('axiosInstance: _omitirManejoAuth', () => {
 
   it('con la bandera, un 403 no marca el acceso denegado', async () => {
     // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion');
     apiClient.defaults.adapter = adapterConStatus(403);
 
     // Act
     await expect(
       apiClient.post('/auth/logout', undefined, { _omitirManejoAuth: true }),
     ).rejects.toThrow();
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Assert
     expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
@@ -159,6 +160,37 @@ describe('axiosInstance: _omitirManejoAuth', () => {
 
     // Assert
     expect(useAccesoDenegadoStore.getState().ruta).toBe('/seccion');
+  });
+});
+
+describe('axiosInstance: 403 y acceso denegado', () => {
+  it('sin sesión, un 403 no marca el acceso denegado', async () => {
+    // Arrange
+    window.history.pushState({}, '', '/seccion');
+    apiClient.defaults.adapter = adapterConStatus(403);
+
+    // Act
+    await expect(apiClient.get('/algo')).rejects.toThrow();
+
+    // Assert
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
+  });
+
+  it('un 403 de una petición enviada desde otra ruta no marca el acceso denegado', async () => {
+    // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion-lenta');
+    const adapter403 = adapterConStatus(403);
+    apiClient.defaults.adapter = async (config) => {
+      window.history.pushState({}, '', '/otra');
+      return adapter403(config);
+    };
+
+    // Act
+    await expect(apiClient.get('/algo')).rejects.toThrow();
+
+    // Assert
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
   });
 });
 
@@ -251,6 +283,8 @@ describe('axiosInstance: _sinCredenciales', () => {
 
   it('con la opción, un 401 y un 403 no refrescan el token ni navegan', async () => {
     // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion');
     const proveedor = proveedorDoble();
     fijarProveedorActivo(proveedor);
     const adapter401 = adapterConStatus(401);
@@ -264,7 +298,6 @@ describe('axiosInstance: _sinCredenciales', () => {
     await expect(
       apiClient.post('http://minio.test/b', undefined, { _sinCredenciales: true }),
     ).rejects.toThrow();
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Assert
     expect(proveedor.renovarSesion).not.toHaveBeenCalled();
