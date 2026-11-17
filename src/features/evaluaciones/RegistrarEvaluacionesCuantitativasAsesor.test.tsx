@@ -78,7 +78,6 @@ function montar(id: string) {
         element={<RegistrarEvaluacionesCuantitativasAsesor />}
       />
       <Route path="/evaluaciones" element={<p>Pantalla Mis evaluaciones</p>} />
-      <Route path="/forbidden" element={<p>Pantalla prohibida</p>} />
     </Routes>,
     { initialPath: `/evaluaciones/${id}/evaluar-cuantitativas-asesor` },
   );
@@ -161,7 +160,7 @@ describe('RegistrarEvaluacionesCuantitativasAsesor', () => {
     expect(screen.getByRole('button', { name: 'Volver a mis evaluaciones' })).toBeInTheDocument();
   });
 
-  it.each([Rol.Coordinador, Rol.Jurado])('con el rol %s redirige a /forbidden', (rol) => {
+  it.each([Rol.Coordinador, Rol.Jurado])('con el rol %s muestra Acceso denegado', (rol) => {
     // Arrange
     resetAllStores();
     autenticarCon(rol);
@@ -171,7 +170,7 @@ describe('RegistrarEvaluacionesCuantitativasAsesor', () => {
     montar('ea-1');
 
     // Assert
-    expect(screen.getByText('Pantalla prohibida')).toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
     expect(screen.queryByText(/Formulario de/)).not.toBeInTheDocument();
   });
 });

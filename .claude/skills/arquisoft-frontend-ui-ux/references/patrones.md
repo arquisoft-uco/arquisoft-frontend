@@ -180,6 +180,7 @@ Layout       principal                                  | lateral (resumen)
 | Sin resultados | `EmptyState` | Solo con filtros activos; «Limpiar filtros» |
 | Todavía no disponible | `EmptyState` o `Notice advertencia` | «Esta opción aún no está disponible.» Sustituye a `AvisoNoDisponible` y a `ComingSoon` dentro de una pantalla; el envío sigue deshabilitado como pide la skill de arquitectura |
 | Error al cargar | `ErrorState` con `onReintentar` | El detalle técnico, si hay, va en texto pequeño bajo el botón |
+| Acceso denegado (403) | `AccesoDenegado` (sobre `ErrorState`) | Se pinta dentro del contenido de la sección, con el menú y el encabezado visibles; nunca una pantalla completa ni una redirección. «Reintentar» solo si viene de un 403 de red |
 | Error en una sección o campo | `Notice peligro` / `Field error` | El envío fallido además da toast y `ErrorSummary` |
 
 Los atributos ARIA de cada estado (`role="status"`, `role="alert"`, `aria-busy`) son los de los estándares y los

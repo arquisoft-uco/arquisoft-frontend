@@ -15,7 +15,6 @@ function renderizar() {
     <Routes>
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/dashboard' },
   );
@@ -53,7 +52,7 @@ describe('Dashboard', () => {
     expect(screen.getByText(texto)).toBeInTheDocument();
   });
 
-  it('un rol sin vista propia recibe la básica y no /forbidden', () => {
+  it('un rol sin vista propia recibe la básica y no Acceso denegado', () => {
     entrarComo(Rol.Bibliotecario);
 
     renderizar();

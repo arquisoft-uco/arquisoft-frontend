@@ -22,7 +22,6 @@ function renderizar() {
     <Routes>
       <Route path="/mapas-ruta" element={<MapasRuta />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/mapas-ruta' },
   );
@@ -86,7 +85,7 @@ describe('MapasRuta', () => {
     expect(screen.queryByText('Acceso denegado')).not.toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('un rol sin vista muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Jurado);
     setActiveRole(Rol.Jurado);

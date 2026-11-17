@@ -14,6 +14,7 @@ import {
   contarTablasFueraDeDataTable,
   contarTextosMenoresA12px,
   extraerTokensDeColor,
+  navegacionesAForbidden,
   queryKeysFueraDeConvencion,
   spinnersCopiados,
   tablasFueraDeDataTable,
@@ -155,6 +156,17 @@ describe('Arquitectura: reglas por capa', () => {
     exigir(
       archivos,
       'Usa captureError de shared/utils/monitoring.ts para errores y quita el resto de las trazas.',
+    );
+  });
+
+  it('ningún archivo de producción navega a /forbidden', () => {
+    // Act
+    const archivos = navegacionesAForbidden();
+
+    // Assert
+    exigir(
+      archivos,
+      'El acceso denegado se renderiza con <AccesoDenegado />, no se redirige: /forbidden ya no existe.',
     );
   });
 });

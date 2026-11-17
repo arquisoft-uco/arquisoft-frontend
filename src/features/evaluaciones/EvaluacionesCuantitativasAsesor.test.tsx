@@ -53,7 +53,6 @@ function montar() {
         element={<EvaluacionesCuantitativasAsesor />}
       />
       <Route path="/evaluaciones" element={<p>Pantalla Mis evaluaciones</p>} />
-      <Route path="/forbidden" element={<p>Pantalla prohibida</p>} />
     </Routes>,
     { initialPath: '/evaluaciones/ea-1/cuantitativas-asesor' },
   );
@@ -71,7 +70,7 @@ describe('EvaluacionesCuantitativasAsesor', () => {
     });
   });
 
-  it('un rol distinto de asesor es enviado a /forbidden', () => {
+  it('un rol distinto de asesor muestra Acceso denegado', () => {
     // Arrange
     autenticarCon(Rol.Jurado);
 
@@ -79,7 +78,7 @@ describe('EvaluacionesCuantitativasAsesor', () => {
     montar();
 
     // Assert
-    expect(screen.getByText('Pantalla prohibida')).toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
     expect(screen.queryByText('Claridad')).not.toBeInTheDocument();
   });
 

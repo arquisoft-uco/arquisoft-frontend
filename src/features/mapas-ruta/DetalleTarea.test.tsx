@@ -14,7 +14,6 @@ function renderizar() {
     <Routes>
       <Route path="/mapas-ruta/tareas/:id" element={<DetalleTarea />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/mapas-ruta/tareas/t-1' },
   );
@@ -40,7 +39,7 @@ describe('DetalleTarea', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('el coordinador no tiene vista y termina en /forbidden', () => {
+  it('el coordinador no tiene vista y muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Coordinador);
     setActiveRole(Rol.Coordinador);

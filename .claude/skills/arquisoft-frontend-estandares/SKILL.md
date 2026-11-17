@@ -243,7 +243,7 @@ Las recetas de cada pieza están en `arquisoft-frontend-ui-ux`.
 | `isApiErrorWithStatus(err, 404)` | Tratar un 404 como "vacío" |
 | `classifyApiError(err)` | Ramificar por categoría (`'network'`, `'domain'`, …) |
 
-**401 y 403 no se manejan en la feature:** el interceptor ya refresca o navega a `/forbidden`.
+**401 y 403 no se manejan en la feature:** el interceptor ya refresca o marca el acceso denegado, que `AppLayout` pinta en el contenido.
 
 ## Notificaciones
 
@@ -449,9 +449,6 @@ tamaño de componente, colores crudos, JSDoc, colores sin token en `@theme`, un 
 12 px y tablas solo con `DataTable`). Si falla, el mensaje dice qué corregir; la deuda previa
 vive en `src/test-utils/arquitectura.baseline.ts` y **no se amplía**. `format:check` no revisa el código
 heredado, solo lo modificado: formatea con `npx prettier --write` únicamente esos archivos.
-
-El aviso de build sobre `router.tsx` importado dinámica y estáticamente a la vez es el patrón
-deliberado del interceptor; no es un hallazgo.
 
 ## Entorno
 

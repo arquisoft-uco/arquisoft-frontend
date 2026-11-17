@@ -1,5 +1,6 @@
 import { ClipboardX } from 'lucide-react';
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import { useHasRole } from '../../hooks/useHasRole';
 import Button from '../../shared/components/ui/Button';
 import EmptyState from '../../shared/components/ui/EmptyState';
@@ -26,7 +27,7 @@ export default function RegistrarEvaluacionesCualitativasAsesor() {
   const { data, isLoading, isError, error, refetch } =
     useEvaluacionAsignadaAsesor(evaluacionAsesorId);
 
-  if (!esAsesor) return <Navigate to="/forbidden" replace />;
+  if (!esAsesor) return <AccesoDenegado />;
 
   const rutaListado = `/evaluaciones${navegacion?.search ?? ''}`;
   const migas = [{ etiqueta: 'Evaluaciones', to: rutaListado }, { etiqueta: 'Evaluar proyecto' }];

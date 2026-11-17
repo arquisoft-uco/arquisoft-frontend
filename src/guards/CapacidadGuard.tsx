@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { Navigate } from 'react-router';
 import type { Capacidad } from '../auth/proveedores/proveedor';
 import { useCapacidades } from '../hooks/useAuth';
+import AccesoDenegado from '../shared/components/AccesoDenegado';
 
 interface Props {
   capacidad: Capacidad;
@@ -10,6 +10,6 @@ interface Props {
 
 export default function CapacidadGuard({ capacidad, children }: Props) {
   const capacidades = useCapacidades();
-  if (!capacidades.includes(capacidad)) return <Navigate to="/forbidden" replace />;
+  if (!capacidades.includes(capacidad)) return <AccesoDenegado />;
   return <>{children}</>;
 }

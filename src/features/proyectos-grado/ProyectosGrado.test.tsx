@@ -22,7 +22,6 @@ function renderizar() {
     <Routes>
       <Route path="/proyectos-grado" element={<ProyectosGrado />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/proyectos-grado' },
   );
@@ -84,7 +83,7 @@ describe('ProyectosGrado', () => {
     expect(screen.getByText('Vista asesor')).toBeInTheDocument();
   });
 
-  it('un rol sin vista va a /forbidden', () => {
+  it('un rol sin vista muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Administrador);
     setActiveRole(Rol.Administrador);

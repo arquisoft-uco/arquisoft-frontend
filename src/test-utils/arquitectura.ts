@@ -266,6 +266,12 @@ export function consolesLog(): string[] {
     .map(({ ruta }) => ruta);
 }
 
+export function navegacionesAForbidden(): string[] {
+  return produccion
+    .filter(({ contenido }) => /['"`]\/forbidden['"`]/.test(contenido))
+    .map(({ ruta }) => ruta);
+}
+
 export function usosDeStorage(): string[] {
   return produccion
     .filter(({ ruta }) => ruta !== ARCHIVO_CON_STORAGE)

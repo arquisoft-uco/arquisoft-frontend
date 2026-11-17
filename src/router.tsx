@@ -5,7 +5,6 @@ import { guarded } from './guards/guarded';
 import AppLayout from './layout/AppLayout';
 import { rutasEvaluaciones } from './features/evaluaciones/rutas';
 import IniciarSesion from './features/iniciar-sesion/IniciarSesion';
-import ForbiddenPage from './shared/components/ForbiddenPage';
 import RouteErrorPage from './shared/components/RouteErrorPage';
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'));
 const FichasPerfil = lazy(() => import('./features/fichas-perfil/FichasPerfil'));
@@ -36,7 +35,7 @@ const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/Seleccionar
 const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
 const Seguridad = lazy(() => import('./features/seguridad/Seguridad'));
 
-// Exportado para que el interceptor de Axios navegue a /forbidden fuera del árbol de React.
+// Exportado para main.tsx.
 export const router = createBrowserRouter([
   {
     element: <AuthGuard />,
@@ -131,6 +130,5 @@ export const router = createBrowserRouter([
     ],
   },
   { path: 'iniciar-sesion', element: <IniciarSesion /> },
-  { path: 'forbidden', element: <ForbiddenPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ]);

@@ -95,7 +95,6 @@ function renderizar(rutaInicial: string) {
         <Route path="estados" element={<PestanaFicha pestana="estados" />} />
         <Route path="evaluaciones" element={<PestanaFicha pestana="evaluaciones" />} />
       </Route>
-      <Route path="/forbidden" element={<div>Acceso denegado</div>} />
       <Route path="/seleccionar-rol" element={<div>Selecciona un rol</div>} />
     </Routes>,
     { initialPath: rutaInicial },
@@ -249,7 +248,7 @@ describe('DetalleFicha', () => {
     expect(screen.getByText('Evaluaciones coordinador f-1')).toBeInTheDocument();
   });
 
-  it('un rol sin vista va a /forbidden y sin rol a /seleccionar-rol', () => {
+  it('un rol sin vista muestra Acceso denegado y sin rol a /seleccionar-rol', () => {
     // Arrange
     entrarComo(Rol.Administrador);
 

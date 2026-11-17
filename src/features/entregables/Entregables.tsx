@@ -1,4 +1,5 @@
 import { Navigate } from 'react-router';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
 import AsesorView from './components/AsesorView';
@@ -18,7 +19,7 @@ export default function Entregables() {
 
   const View = VIEW_POR_ROL[rolActivo];
 
-  if (!View) return <Navigate to="/forbidden" replace />;
+  if (!View) return <AccesoDenegado />;
 
   return <View />;
 }
