@@ -43,6 +43,7 @@ describirContratoProveedor('pdp', {
   sinSesion: () => mocks.get.mockRejectedValue(errorApi(401)),
   conFallo: () => mocks.get.mockRejectedValue(errorApi(500)),
   verificarLoginEnCurso: () => expect(asignar).toHaveBeenCalledTimes(1),
+  verificarSinRedireccion: () => expect(asignar).not.toHaveBeenCalled(),
   prepararRenovacion: () => mocks.get.mockResolvedValue(sesionPdp('Ana')),
   verificarCierre: () =>
     expect(asignar).toHaveBeenCalledWith('http://pdp.test/api/v1/session/logout'),

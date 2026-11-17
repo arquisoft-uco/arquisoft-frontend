@@ -4,19 +4,19 @@ Aplicación web de gestión académica construida con **React 19**, **TypeScript
 
 ## Tecnologías principales
 
-| Categoría        | Herramientas                                    |
-| ---------------- | ----------------------------------------------- |
-| Framework        | React 19 + TypeScript                           |
-| Bundler          | Vite 6                                          |
-| Estilos          | Tailwind CSS v4                                 |
-| Routing          | React Router 7                                  |
-| Estado global    | Zustand 5                                       |
-| Estado servidor  | TanStack React Query 5                          |
-| Formularios      | React Hook Form + Zod                           |
-| HTTP             | Axios                                           |
-| Autenticación    | Keycloak JS y sesión BFF de Security Baseline (dos proveedores) |
-| Testing          | Vitest + Testing Library                        |
-| Iconos           | Lucide React                                    |
+| Categoría       | Herramientas                                                    |
+| --------------- | --------------------------------------------------------------- |
+| Framework       | React 19 + TypeScript                                           |
+| Bundler         | Vite 6                                                          |
+| Estilos         | Tailwind CSS v4                                                 |
+| Routing         | React Router 7                                                  |
+| Estado global   | Zustand 5                                                       |
+| Estado servidor | TanStack React Query 5                                          |
+| Formularios     | React Hook Form + Zod                                           |
+| HTTP            | Axios                                                           |
+| Autenticación   | Keycloak JS y sesión BFF de Security Baseline (dos proveedores) |
+| Testing         | Vitest + Testing Library                                        |
+| Iconos          | Lucide React                                                    |
 
 ## Requisitos
 
@@ -41,13 +41,13 @@ npm run dev
 
 ## Scripts disponibles
 
-| Comando           | Descripción                                         |
-| ----------------- | --------------------------------------------------- |
-| `npm run dev`     | Inicia el servidor de desarrollo con Vite           |
-| `npm run build`   | Compila TypeScript y genera el bundle de producción |
-| `npm run preview` | Sirve el build de producción localmente             |
-| `npm run test`    | Ejecuta los tests con Vitest (incluye `src/arquitectura.test.ts`) |
-| `npm run lint`    | Type-check de TypeScript (`tsc --noEmit`; no hay ESLint) |
+| Comando                | Descripción                                                                 |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `npm run dev`          | Inicia el servidor de desarrollo con Vite                                   |
+| `npm run build`        | Compila TypeScript y genera el bundle de producción                         |
+| `npm run preview`      | Sirve el build de producción localmente                                     |
+| `npm run test`         | Ejecuta los tests con Vitest (incluye `src/arquitectura.test.ts`)           |
+| `npm run lint`         | Type-check de TypeScript (`tsc --noEmit`; no hay ESLint)                    |
 | `npm run format:check` | Prettier solo sobre los archivos de `src/` modificados respecto a `develop` |
 
 `src/arquitectura.test.ts` hace cumplir las reglas de capas, el cliente HTTP único y otras
@@ -56,24 +56,24 @@ El CI ejecuta `format:check`, `lint`, `test` y `build`.
 
 ## Variables de entorno
 
-| Variable                  | Descripción                                          |
-| ------------------------- | ---------------------------------------------------- |
-| `VITE_API_URL`            | URL base del backend. Ej: `http://localhost:8080/api` |
-| `VITE_KEYCLOAK_URL`       | URL del servidor Keycloak                            |
-| `VITE_KEYCLOAK_REALM`     | Realm de Keycloak                                    |
-| `VITE_KEYCLOAK_CLIENT_ID` | Client ID registrado en Keycloak                     |
+| Variable                  | Descripción                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| `VITE_API_URL`            | URL base del backend. Ej: `http://localhost:8080/api`                             |
+| `VITE_KEYCLOAK_URL`       | URL del servidor Keycloak                                                         |
+| `VITE_KEYCLOAK_REALM`     | Realm de Keycloak                                                                 |
+| `VITE_KEYCLOAK_CLIENT_ID` | Client ID registrado en Keycloak                                                  |
 | `VITE_PDP_URL`            | URL del PDP/BFF de Security Baseline. Opcional: las tres variables PDP van juntas |
-| `VITE_SECURITY_UI_URL`    | URL del módulo ESM de Security UI (requerida si hay `VITE_PDP_URL`) |
-| `VITE_APPLICATION_NAME`   | Nombre de la aplicación registrada en el PDP (requerida si hay `VITE_PDP_URL`) |
-| `VITE_AUTH_BYPASS`        | `true` para omitir Keycloak en desarrollo            |
-| `VITE_DEV_USERNAME`       | Usuario ficticio inyectado cuando el bypass está activo |
-| `VITE_DEV_ROLES`          | Roles simulados en dev (separados por coma)          |
+| `VITE_SECURITY_UI_URL`    | URL del módulo ESM de Security UI (requerida si hay `VITE_PDP_URL`)               |
+| `VITE_APPLICATION_NAME`   | Nombre de la aplicación registrada en el PDP (requerida si hay `VITE_PDP_URL`)    |
+| `VITE_AUTH_BYPASS`        | `true` para omitir Keycloak en desarrollo                                         |
+| `VITE_DEV_USERNAME`       | Usuario ficticio inyectado cuando el bypass está activo                           |
+| `VITE_DEV_ROLES`          | Roles simulados en dev (separados por coma)                                       |
 
 ### Proveedores de identidad
 
 La aplicación soporta dos proveedores detrás del contrato `ProveedorIdentidad`
 (`src/auth/proveedores/proveedor.ts`): Keycloak directo (Bearer) y la sesión BFF de Security Baseline
-(cookie con CSRF). Con dos disponibles y ninguno recordado, `/iniciar-sesion` pide elegir; se recuerda solo
+(cookie con CSRF). Con dos disponibles, al abrir la app se intenta recuperar en silencio la sesión del proveedor recordado y `/iniciar-sesion` solo se muestra si no hay proveedor recordado o su sesión no es recuperable; se recuerda solo
 el id del proveedor y se olvida al cerrar sesión. `/seguridad` monta Security UI y solo está disponible para
 un proveedor con la capacidad `administracion-seguridad` (hoy el PDP). Para ejecutar Security UI en local,
 sírvela en `http://localhost:5175` y apunta `VITE_SECURITY_UI_URL` a su bundle.
@@ -102,10 +102,10 @@ entrada en `REGISTRO` de `src/auth/proveedores/proveedores.ts`, define sus varia
 
 Archivos de entorno:
 
-| Archivo                    | En repo | Propósito                                    |
-| -------------------------- | ------- | -------------------------------------------- |
-| `.env.example`             | ✅      | Plantilla con todas las variables            |
-| `.env.development.local`   | ❌      | Configuración local de cada desarrollador    |
+| Archivo                  | En repo | Propósito                                 |
+| ------------------------ | ------- | ----------------------------------------- |
+| `.env.example`           | ✅      | Plantilla con todas las variables         |
+| `.env.development.local` | ❌      | Configuración local de cada desarrollador |
 
 ## Estructura del proyecto
 
@@ -227,4 +227,3 @@ docker run -p 80:80 \
 
 `nginx.conf.template` se procesa con `envsubst` al arrancar (`script-src` con `SECURITY_UI_ORIGIN`,
 `connect-src` con los otros tres). Sin definirlas quedan vacías.
-

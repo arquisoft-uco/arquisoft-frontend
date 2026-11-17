@@ -13,7 +13,7 @@ export function resetAllStores() {
     username: '',
   });
   useRoleStore.setState({ rolSeleccionado: null });
-  useProveedorStore.setState({ proveedor: null });
+  useProveedorStore.setState({ proveedor: null, confirmadoEnEstaCarga: false });
   useToastStore.setState({ toasts: [] });
 }
 
