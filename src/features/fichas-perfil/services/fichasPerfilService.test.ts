@@ -215,7 +215,6 @@ describe('fichasPerfilService', () => {
             nombre: 'En revisión',
             fechaActualizacion: '2026-09-01T10:00:00',
           },
-          integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
         },
       ]);
     });

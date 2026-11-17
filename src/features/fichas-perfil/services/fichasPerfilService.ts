@@ -187,11 +187,6 @@ function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
       nombre: dto.estado.nombre,
       fechaActualizacion: dto.estado.fechaActualizacion,
     },
-    integrantes: dto.estudiantes.map((e) => ({
-      id: e.estudianteId,
-      nombre: e.nombre,
-      email: e.email,
-    })),
   };
 }
 

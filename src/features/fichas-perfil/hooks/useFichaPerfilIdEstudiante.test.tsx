@@ -20,7 +20,6 @@ function crearFicha(id: string) {
     tituloProyecto: `Proyecto ${id}`,
     asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
     estadoActual: { id: 'st-1', nombre: 'En revisión', fechaActualizacion: '2026-09-01T10:00:00' },
-    integrantes: [],
   };
 }
 

@@ -128,7 +128,7 @@ Layout       principal                                  | lateral (resumen)
 - **`Tabs` no lleva `state`.** Si el resumen viaja en el `state` del `Link` del listado, se lee una vez en el
   contenedor de `:id`; sin `state` (URL directa o recarga en otra pestaña) la pantalla muestra el título genérico y
   solo lo que depende del id, sin inventar datos.
-- **Panel lateral de resumen:** estado actual con su `Badge`, asesor, equipo (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante lo toma de `integrantes` de «mi ficha» porque su rol no tiene el permiso del endpoint de compañeros, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
+- **Panel lateral de resumen:** estado actual con su `Badge`, asesor, compañeros (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante los toma del endpoint de compañeros de la ficha activa, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
   (asesor: «Cambiar estado»; representante: «Iniciar evaluación»; estudiante: ninguna).
 - **Pestañas solo de lo que existe.** Las evaluaciones de las fichas del asesor viven como pestaña del listado «Mis fichas de perfil» (`?vista=evaluaciones`), no del detalle. El
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el
