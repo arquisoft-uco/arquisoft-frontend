@@ -4,6 +4,7 @@ import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import type { EntregableDisponible } from '../models/EntregableDisponible';
+import AccionesEntregableDisponible from './AccionesEntregableDisponible';
 import { AutoresProyecto, TituloProyecto } from './DocumentacionCeldas';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
@@ -45,6 +46,7 @@ interface Props {
   cargando: boolean;
   hayFiltros: boolean;
   onLimpiarFiltros: () => void;
+  onRegistrar: (entregable: EntregableDisponible) => void;
 }
 
 export default function EntregablesDisponiblesTable({
@@ -52,6 +54,7 @@ export default function EntregablesDisponiblesTable({
   cargando,
   hayFiltros,
   onLimpiarFiltros,
+  onRegistrar,
 }: Props) {
   const vacio = hayFiltros ? (
     <EmptyState
@@ -72,7 +75,6 @@ export default function EntregablesDisponiblesTable({
     />
   );
 
-  // Pendiente: la fila ofrecerá «Registrar» cuando exista el frontend de HU-307
   return (
     <DataTable
       etiqueta="Entregables por registrar"
@@ -81,6 +83,9 @@ export default function EntregablesDisponiblesTable({
       idDeFila={(entregable) => entregable.id}
       cargando={cargando}
       vacio={vacio}
+      acciones={(entregable) => (
+        <AccionesEntregableDisponible entregable={entregable} onRegistrar={onRegistrar} />
+      )}
       tarjeta={(entregable) => (
         <>
           <TituloProyecto titulo={entregable.tituloProyecto} />
