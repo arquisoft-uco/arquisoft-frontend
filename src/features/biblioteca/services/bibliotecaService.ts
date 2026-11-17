@@ -6,6 +6,8 @@ import type { ConsultarEntregablesDisponiblesRequest } from '../models/Consultar
 import type { Documentacion } from '../models/Documentacion';
 import type { EntregableDisponible } from '../models/EntregableDisponible';
 import type { EstadoDocumentacion } from '../models/biblioteca';
+import type { RegistrarDocumentacionRequest } from '../models/RegistrarDocumentacionRequest';
+import type { RegistrarDocumentacionResponse } from '../models/RegistrarDocumentacionResponse';
 
 export const bibliotecaService = {
   consultarDocumentaciones: (req: ConsultaCriteriaRequest): Promise<Page<Documentacion>> =>
@@ -26,5 +28,12 @@ export const bibliotecaService = {
   ): Promise<Page<EntregableDisponible>> =>
     apiClient
       .post<Page<EntregableDisponible>>('/biblioteca/entregables-proyecto-grado/consultar', req)
+      .then((r) => r.data),
+
+  registrarDocumentacion: (
+    req: RegistrarDocumentacionRequest,
+  ): Promise<RegistrarDocumentacionResponse> =>
+    apiClient
+      .post<RegistrarDocumentacionResponse>('/biblioteca/documentaciones', req)
       .then((r) => r.data),
 };
