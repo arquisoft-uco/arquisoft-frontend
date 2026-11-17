@@ -376,6 +376,64 @@ describe('ConsultarDocumentaciones', () => {
       );
     });
 
+    it.each([
+      {
+        caso: 'sale por el filtro y era la única de una página posterior',
+        page: 1,
+        estadoIds: ['PUBLICADO'],
+        filas: 1,
+        retrocede: true,
+      },
+      {
+        caso: 'sale por el filtro pero está en la primera página',
+        page: 0,
+        estadoIds: ['PUBLICADO'],
+        filas: 1,
+        retrocede: false,
+      },
+      {
+        caso: 'el filtro incluye el estado destino',
+        page: 1,
+        estadoIds: ['NO_PUBLICADO'],
+        filas: 1,
+        retrocede: false,
+      },
+      {
+        caso: 'quedan más filas en la página',
+        page: 1,
+        estadoIds: ['PUBLICADO'],
+        filas: 2,
+        retrocede: false,
+      },
+    ])(
+      'al confirmar, retrocede de página solo cuando $caso: $retrocede',
+      async ({ page, estadoIds, filas, retrocede }) => {
+        // Arrange
+        const user = userEvent.setup();
+        mockMutacion('exito');
+        const otra: Documentacion = {
+          ...DOCUMENTACION,
+          id: 'd-2',
+          entregableProyectoGrado: { id: 'e-2', versionEntregable: 3 },
+        };
+        const contenido = filas === 1 ? [DOCUMENTACION] : [DOCUMENTACION, otra];
+        const hook = mockHook({ data: crearPagina(contenido), page, estadoIds });
+        await abrirDialogo(user);
+
+        // Act
+        await user.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', {
+            name: 'Marcar como no publicada',
+          }),
+        );
+
+        // Assert
+        await waitFor(() => expect(toast.success).toHaveBeenCalled());
+        if (retrocede) expect(hook.goToPage).toHaveBeenCalledWith(0);
+        else expect(hook.goToPage).not.toHaveBeenCalled();
+      },
+    );
+
     it('sin permiso no hay acciones de estado', () => {
       // Arrange
       mockMutacion('exito');

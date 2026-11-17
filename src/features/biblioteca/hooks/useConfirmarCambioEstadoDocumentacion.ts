@@ -24,7 +24,7 @@ interface Listado {
   goToPage: (page: number) => void;
 }
 
-export function useCambioEstadoDocumentacion(listado: Listado, filasEnPagina: number) {
+export function useConfirmarCambioEstadoDocumentacion(listado: Listado, filasEnPagina: number) {
   const [cambio, setCambio] = useState<CambioPendiente | null>(null);
   const cambiarEstado = useCambiarEstadoDocumentacion();
 
