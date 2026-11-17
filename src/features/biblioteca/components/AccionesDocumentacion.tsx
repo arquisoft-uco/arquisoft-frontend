@@ -1,4 +1,5 @@
 import { Eye, EyeOff, Users } from 'lucide-react';
+import { accionDescargar } from '../../../shared/components/accionDescargar';
 import RowMenu from '../../../shared/components/ui/RowMenu';
 import type { Documentacion } from '../models/Documentacion';
 import {
@@ -15,14 +16,26 @@ interface Props {
   documentacion: Documentacion;
   onVerAutores?: (documentacion: Documentacion) => void;
   onCambiarEstado?: (documentacion: Documentacion, destino: DestinoEstadoDocumentacion) => void;
+  onDescargar?: (documentacion: Documentacion) => void;
+  descargando?: boolean;
 }
 
 export default function AccionesDocumentacion({
   documentacion,
   onVerAutores,
   onCambiarEstado,
+  onDescargar,
+  descargando,
 }: Props) {
   const acciones = [];
+  if (onDescargar) {
+    acciones.push(
+      accionDescargar({
+        onSeleccionar: () => onDescargar(documentacion),
+        deshabilitada: descargando,
+      }),
+    );
+  }
   if (onVerAutores) {
     acciones.push({
       etiqueta: 'Ver autores',

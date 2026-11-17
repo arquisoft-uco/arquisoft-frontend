@@ -1,5 +1,6 @@
 import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
+import type { EnlaceDescargaVersion } from '../../../shared/models/EnlaceDescargaVersion';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AutorDocumentacion } from '../models/AutorDocumentacion';
 import type { CambiarEstadoDocumentacionRequest } from '../models/CambiarEstadoDocumentacionRequest';
@@ -45,4 +46,9 @@ export const bibliotecaService = {
     apiClient
       .patch(`/biblioteca/documentaciones/${documentacionId}/estado`, req)
       .then(() => undefined),
+
+  obtenerEnlaceDescarga: (documentacionId: string): Promise<EnlaceDescargaVersion> =>
+    apiClient
+      .get<EnlaceDescargaVersion>(`/biblioteca/documentaciones/${documentacionId}/descarga`)
+      .then((r) => r.data),
 };

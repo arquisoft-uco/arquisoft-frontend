@@ -168,20 +168,41 @@ describe('Biblioteca', () => {
     expect(screen.queryByRole('menuitem', { name: 'Publicar' })).not.toBeInTheDocument();
   });
 
-  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante])(
-    'el rol %s no ve la acción "Ver autores"',
+  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante, Rol.Bibliotecario])(
+    'el rol %s ve "Descargar" en el menú de la fila',
     async (rol) => {
       // Arrange
+      const user = userEvent.setup();
       entrarComo(rol);
-
-      // Act
       renderizar();
 
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+      );
+
       // Assert
-      await screen.findByRole('table', { name: 'Documentaciones' });
-      expect(
-        screen.queryByRole('button', { name: /Acciones de la documentación/ }),
-      ).not.toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
+    },
+  );
+
+  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante])(
+    'el rol %s no ve la acción "Ver autores" en el menú',
+    async (rol) => {
+      // Arrange
+      const user = userEvent.setup();
+      entrarComo(rol);
+      renderizar();
+
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+      );
+
+      // Assert
+      expect(screen.queryByRole('menuitem', { name: 'Ver autores' })).not.toBeInTheDocument();
     },
   );
 });
