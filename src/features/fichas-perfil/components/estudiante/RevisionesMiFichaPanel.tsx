@@ -1,5 +1,5 @@
 import { CheckCheck } from 'lucide-react';
-import IconButton from '../../../../shared/components/ui/IconButton';
+import Button from '../../../../shared/components/ui/Button';
 import { toast } from '../../../../shared/hooks/useToast';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { useMarcarRevisionItemVisualizada } from '../../hooks/useMarcarRevisionItemVisualizada';
@@ -36,14 +36,17 @@ export default function RevisionesMiFichaPanel() {
       acciones={(fila) => {
         if (fila.revision.estadoId !== ESTADO_REVISION_NUEVA) return null;
         return (
-          <IconButton
-            tono="primario"
+          <Button
+            variante="fantasma"
+            tamano="sm"
             icono={CheckCheck}
-            etiqueta={`Marcar como visualizada la revisión de ${fila.item?.tipoItem.nombre ?? 'un ítem'}`}
-            rotulo="Marcar como visualizada"
-            disabled={marcar.isPending && marcar.variables === fila.revision.id}
+            aria-label={`Marcar como visualizada la revisión de ${fila.item?.tipoItem.nombre ?? 'un ítem'}`}
+            cargando={marcar.isPending && marcar.variables === fila.revision.id}
             onClick={() => marcarVisualizada(fila.revision.id)}
-          />
+          >
+            <span className="sm:hidden">Visualizada</span>
+            <span className="hidden sm:inline">Marcar como visualizada</span>
+          </Button>
         );
       }}
     />

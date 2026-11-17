@@ -156,6 +156,38 @@ describe('Tabs', () => {
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 
+  it('al cambiar la pestaña activa desplaza la lista hasta dejarla completa', () => {
+    // Arrange
+    const rectangulo = (left: number, right: number) =>
+      ({
+        left,
+        right,
+        top: 0,
+        bottom: 44,
+        width: right - left,
+        height: 44,
+        x: left,
+        y: 0,
+      }) as DOMRect;
+    const medida = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.getAttribute('role') === 'tablist') return rectangulo(100, 500);
+        if (this.getAttribute('aria-selected') === 'true') return rectangulo(450, 580);
+        return rectangulo(0, 0);
+      });
+    const { rerender } = render(<Tabs items={ITEMS} valor="datos" etiqueta={ETIQUETA} />);
+    const lista = screen.getByRole('tablist');
+    lista.scrollLeft = 0;
+
+    // Act
+    rerender(<Tabs items={ITEMS} valor="historial" etiqueta={ETIQUETA} />);
+
+    // Assert
+    expect(lista.scrollLeft).toBe(350);
+    medida.mockRestore();
+  });
+
   it('el icono de una pestaña es decorativo: no cambia su nombre accesible y las demás no lo traen', () => {
     // Arrange
     const itemsConIcono: ItemPestana<Seccion>[] = ITEMS.map((item) =>
