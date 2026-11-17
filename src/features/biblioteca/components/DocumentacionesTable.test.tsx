@@ -219,7 +219,43 @@ describe('DocumentacionesTable', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('sin onVerAutores ni onCambiarEstado no hay menú de acciones por fila', () => {
+  it('con onDescargar cada fila ofrece "Descargar" primero y elegirla lo llama con esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onDescargar } = renderizar({ onDescargar: vi.fn(), onVerAutores: vi.fn() });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    );
+    const opciones = screen.getAllByRole('menuitem');
+
+    // Assert
+    expect(opciones[0]).toHaveAccessibleName('Descargar');
+    expect(opciones[1]).toHaveAccessibleName('Ver autores');
+
+    // Act
+    await user.click(opciones[0]);
+
+    // Assert
+    expect(onDescargar).toHaveBeenCalledWith(DOC_1);
+  });
+
+  it('con descargando la opción "Descargar" aparece deshabilitada', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar({ onDescargar: vi.fn(), descargando: true });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeDisabled();
+  });
+
+  it('sin onVerAutores, onCambiarEstado ni onDescargar no hay menú de acciones por fila', () => {
     // Act
     renderizar();
 

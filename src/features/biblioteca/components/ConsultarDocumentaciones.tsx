@@ -4,6 +4,7 @@ import ErrorState from '../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useConfirmarCambioEstadoDocumentacion } from '../hooks/useConfirmarCambioEstadoDocumentacion';
+import { useDescargarDocumentacion } from '../hooks/useDescargarDocumentacion';
 import { useDocumentaciones } from '../hooks/useDocumentaciones';
 import { useEstadosDocumentacion } from '../hooks/useEstadosDocumentacion';
 import type { Documentacion } from '../models/Documentacion';
@@ -32,6 +33,7 @@ export default function ConsultarDocumentaciones({
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const documentaciones = data?.content ?? [];
   const hayFiltros = listado.estadoIds.length > 0;
+  const descarga = useDescargarDocumentacion();
   const cambioEstado = useConfirmarCambioEstadoDocumentacion(listado, documentaciones.length);
   const recargandoSinFilas = isPlaceholderData && documentaciones.length === 0 && !hayFiltros;
   const opciones = estados?.map((estado) => ({ id: estado.id, etiqueta: estado.nombre }));
@@ -71,6 +73,8 @@ export default function ConsultarDocumentaciones({
             onLimpiarFiltros={listado.limpiarFiltros}
             onVerAutores={puedeVerAutores ? setVerAutoresDe : undefined}
             onCambiarEstado={puedeCambiarEstado ? cambioEstado.pedirCambio : undefined}
+            onDescargar={descarga.descargar}
+            descargando={descarga.descargando}
           />
         )}
       </div>

@@ -30,6 +30,8 @@ interface Props {
   onLimpiarFiltros: () => void;
   onVerAutores?: (documentacion: Documentacion) => void;
   onCambiarEstado?: (documentacion: Documentacion, destino: DestinoEstadoDocumentacion) => void;
+  onDescargar?: (documentacion: Documentacion) => void;
+  descargando?: boolean;
 }
 
 const COLUMNAS: ColumnaTabla<Documentacion>[] = [
@@ -78,10 +80,14 @@ export default function DocumentacionesTable({
   onLimpiarFiltros,
   onVerAutores,
   onCambiarEstado,
+  onDescargar,
+  descargando,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
   }
+
+  const propsAcciones = { onVerAutores, onCambiarEstado, onDescargar, descargando };
 
   const vacio = hayFiltros ? (
     <EmptyState
@@ -114,13 +120,9 @@ export default function DocumentacionesTable({
       cargando={cargando}
       vacio={vacio}
       acciones={
-        (onVerAutores || onCambiarEstado) &&
+        (onVerAutores || onCambiarEstado || onDescargar) &&
         ((documentacion) => (
-          <AccionesDocumentacion
-            documentacion={documentacion}
-            onVerAutores={onVerAutores}
-            onCambiarEstado={onCambiarEstado}
-          />
+          <AccionesDocumentacion documentacion={documentacion} {...propsAcciones} />
         ))
       }
       tarjeta={(documentacion) => (
