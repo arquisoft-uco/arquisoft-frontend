@@ -130,7 +130,7 @@ export default function EstudianteView() {
         <div className={DISPOSICION.lateral}>
           <ResumenFichaPanel
             resumen={aResumen(ficha)}
-            equipo={<CompanerosFichaPanel integrantes={ficha.integrantes} />}
+            equipo={<CompanerosFichaPanel idFichaPerfil={ficha.id} />}
           />
         </div>
       </div>

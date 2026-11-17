@@ -26,7 +26,6 @@ const FICHA = {
   tituloProyecto: 'Sistema de monitoreo',
   asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
   estadoActual: { id: 'st-1', nombre: 'En revisión', fechaActualizacion: '2026-09-01T10:00:00' },
-  integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
 };
 
 function crearWrapper(
@@ -46,7 +45,7 @@ describe('useMiFichaPerfil', () => {
     vi.clearAllMocks();
   });
 
-  it('expone la ficha activa con sus integrantes', async () => {
+  it('expone la ficha activa', async () => {
     // Arrange
     consultar.mockResolvedValue([FICHA]);
 
@@ -55,7 +54,6 @@ describe('useMiFichaPerfil', () => {
     await waitFor(() => expect(result.current.ficha).toEqual(FICHA));
 
     // Assert
-    expect(result.current.ficha?.integrantes).toEqual(FICHA.integrantes);
     expect(result.current.sinFicha).toBe(false);
     expect(result.current.errorFicha).toBe(false);
   });

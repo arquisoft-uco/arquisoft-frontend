@@ -134,6 +134,6 @@ describe('RepresentanteDetalleView', () => {
     // Assert
     expect(screen.getByRole('heading', { level: 1, name: 'Ficha de perfil' })).toBeInTheDocument();
     expect(screen.getByText(/No tenemos el resumen de esta ficha/)).toBeInTheDocument();
-    expect(screen.queryByText('Equipo')).not.toBeInTheDocument();
+    expect(screen.queryByText('Compañeros')).not.toBeInTheDocument();
   });
 });
