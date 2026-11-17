@@ -15,6 +15,7 @@ interface Props {
   etiqueta: string;
   placeholder: string;
   deshabilitada?: boolean;
+  maxLength?: number;
 }
 
 export default function FilterBarBusqueda({
@@ -23,6 +24,7 @@ export default function FilterBarBusqueda({
   etiqueta,
   placeholder,
   deshabilitada = false,
+  maxLength,
 }: Props) {
   const idCampo = useId();
   const campo = useRef<HTMLInputElement>(null);
@@ -48,6 +50,7 @@ export default function FilterBarBusqueda({
         placeholder={placeholder}
         value={borrador}
         disabled={deshabilitada}
+        maxLength={maxLength}
         onChange={(evento) => setBorrador(evento.target.value)}
         className={CAMPO}
       />

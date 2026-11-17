@@ -3,6 +3,7 @@ import PageHeader from '../../../shared/components/ui/PageHeader';
 import { Rol } from '../../../shared/models/rol';
 import AyudaEstadosDocumentacion from './AyudaEstadosDocumentacion';
 import ConsultarDocumentaciones from './ConsultarDocumentaciones';
+import PestanasBiblioteca from './PestanasBiblioteca';
 
 const ROLES_CONSULTAN_ESTADOS = [Rol.Bibliotecario];
 const ROLES_VEN_AUTORES = [Rol.Bibliotecario];
@@ -18,6 +19,7 @@ export default function BibliotecaView() {
         descripcion="Consulta la documentación publicada de los proyectos de grado."
         acciones={puedeConsultarEstados ? <AyudaEstadosDocumentacion /> : undefined}
       />
+      <PestanasBiblioteca activa="documentaciones" />
       <ConsultarDocumentaciones
         puedeFiltrarPorEstado={puedeConsultarEstados}
         puedeVerAutores={puedeVerAutores}

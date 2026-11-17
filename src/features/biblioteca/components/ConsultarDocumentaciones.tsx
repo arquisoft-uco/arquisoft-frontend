@@ -8,14 +8,9 @@ import { useEstadosDocumentacion } from '../hooks/useEstadosDocumentacion';
 import type { Documentacion } from '../models/Documentacion';
 import AutoresDocumentacionPanel from './AutoresDocumentacionPanel';
 import DocumentacionesTable from './DocumentacionesTable';
+import ResumenTotal from './ResumenTotal';
 
 const RAIZ = 'flex flex-col gap-4';
-const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
-
-function textoResumen(total?: number): string {
-  if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'documentación' : 'documentaciones'}`;
-}
 
 interface Props {
   puedeFiltrarPorEstado: boolean;
@@ -52,9 +47,7 @@ export default function ConsultarDocumentaciones({
         />
       )}
 
-      <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
-      </p>
+      <ResumenTotal total={data?.totalElements} singular="documentación" plural="documentaciones" />
 
       <div aria-busy={isFetching}>
         {isError ? (
