@@ -30,6 +30,7 @@ const VersionesRepositorio = lazy(
   () => import('./features/repositorio-artefactos/VersionesRepositorio'),
 );
 const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
+const BibliotecaDisponibles = lazy(() => import('./features/biblioteca/BibliotecaDisponibles'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
 const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
@@ -112,7 +113,14 @@ export const router = createBrowserRouter([
               { path: ':repositorioId/versiones', element: <VersionesRepositorio /> },
             ],
           },
-          { path: 'biblioteca', element: guarded('biblioteca', <Biblioteca />) },
+          {
+            path: 'biblioteca',
+            element: guarded('biblioteca', <Outlet />),
+            children: [
+              { index: true, element: <Biblioteca /> },
+              { path: 'disponibles', element: <BibliotecaDisponibles /> },
+            ],
+          },
           { path: 'solicitudes', element: guarded('solicitudes', <Solicitudes />) },
           { path: 'usuarios', element: guarded('usuarios', <Usuarios />) },
           { path: 'seguridad', element: guarded('seguridad', <Seguridad />) },

@@ -2,7 +2,9 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AutorDocumentacion } from '../models/AutorDocumentacion';
+import type { ConsultarEntregablesDisponiblesRequest } from '../models/ConsultarEntregablesDisponiblesRequest';
 import type { Documentacion } from '../models/Documentacion';
+import type { EntregableDisponible } from '../models/EntregableDisponible';
 import type { EstadoDocumentacion } from '../models/biblioteca';
 
 export const bibliotecaService = {
@@ -17,5 +19,12 @@ export const bibliotecaService = {
   consultarAutoresDocumentacion: (documentacionId: string): Promise<AutorDocumentacion[]> =>
     apiClient
       .get<AutorDocumentacion[]>(`/biblioteca/documentaciones/${documentacionId}/autores`)
+      .then((r) => r.data),
+
+  consultarEntregablesDisponibles: (
+    req: ConsultarEntregablesDisponiblesRequest,
+  ): Promise<Page<EntregableDisponible>> =>
+    apiClient
+      .post<Page<EntregableDisponible>>('/biblioteca/entregables-proyecto-grado/consultar', req)
       .then((r) => r.data),
 };
