@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { errorApi } from '../../../test-utils/errores-api';
 import { describirContratoProveedor } from '../../../test-utils/contrato-proveedor';
-import { Rol } from '../../../shared/models/rol';
 import { crearPdpProveedor } from './pdpProveedor';
 
 const mocks = vi.hoisted(() => ({ get: vi.fn() }));
@@ -19,6 +18,17 @@ vi.mock('../../../api/axiosInstance', () => ({ default: { get: mocks.get, post: 
 const URL_ACTUAL = 'http://localhost:5174/fichas-perfil?pagina=2';
 const asignar = vi.fn();
 
+const RUTA_PERFIL = '/usuarios/mi/perfil';
+
+const perfil = (...roles: string[]) => ({
+  data: { roles: roles.map((id) => ({ id, nombre: id })) },
+});
+
+const conPerfil = (respuestaPerfil: () => Promise<unknown>, respuestaSesion = sesionPdp('Ana')) =>
+  mocks.get.mockImplementation((url: string) =>
+    url === RUTA_PERFIL ? respuestaPerfil() : Promise.resolve(respuestaSesion),
+  );
+
 const sesionPdp = (name: string) => ({
   data: {
     code: 'SESSION_ACTIVE',
@@ -34,25 +44,24 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
-  vi.unstubAllEnvs();
 });
 
 describirContratoProveedor('pdp', {
   crear: crearPdpProveedor,
-  conSesion: () => mocks.get.mockResolvedValue(sesionPdp('Ana')),
+  conSesion: () => conPerfil(() => Promise.resolve(perfil('estudiante'))),
   sinSesion: () => mocks.get.mockRejectedValue(errorApi(401)),
   conFallo: () => mocks.get.mockRejectedValue(errorApi(500)),
   verificarLoginEnCurso: () => expect(asignar).toHaveBeenCalledTimes(1),
   verificarSinRedireccion: () => expect(asignar).not.toHaveBeenCalled(),
-  prepararRenovacion: () => mocks.get.mockResolvedValue(sesionPdp('Ana')),
+  prepararRenovacion: () => conPerfil(() => Promise.resolve(perfil('estudiante'))),
   verificarCierre: () =>
     expect(asignar).toHaveBeenCalledWith('http://pdp.test/api/v1/session/logout'),
 });
 
 describe('pdpProveedor', () => {
-  it('mapea la sesión con nombre vacío, todos los roles del mock en desarrollo y sin token, y consulta con cookies', async () => {
+  it('mapea los roles del perfil a realm_access.roles y consulta la sesión con cookies y el perfil sin baseURL', async () => {
     // Arrange
-    mocks.get.mockResolvedValue(sesionPdp(''));
+    conPerfil(() => Promise.resolve(perfil('estudiante', 'asesor-ficha')), sesionPdp(''));
 
     // Act
     const sesion = await crearPdpProveedor().restaurarSesion(vi.fn());
@@ -64,7 +73,7 @@ describe('pdpProveedor', () => {
         preferred_username: 'ana@uco.test',
         email: 'ana@uco.test',
         name: '',
-        realm_access: { roles: Object.values(Rol) },
+        realm_access: { roles: ['estudiante', 'asesor-ficha'] },
       },
       username: 'ana@uco.test',
     });
@@ -76,19 +85,68 @@ describe('pdpProveedor', () => {
         _omitirProveedorApi: true,
       }),
     );
+    expect(mocks.get).toHaveBeenCalledWith(RUTA_PERFIL, { _omitirManejoAuth: true });
   });
 
-  it('en producción el usuario queda sin roles', async () => {
+  it('recuperarSesionSilenciosa también entrega los roles del perfil', async () => {
     // Arrange
-    vi.stubEnv('DEV', false);
-    vi.stubEnv('PROD', true);
-    mocks.get.mockResolvedValue(sesionPdp('Ana'));
+    conPerfil(() => Promise.resolve(perfil('coordinador')));
+
+    // Act
+    const sesion = await crearPdpProveedor().recuperarSesionSilenciosa(vi.fn());
+
+    // Assert
+    expect(sesion?.tokenParsed.realm_access).toEqual({ roles: ['coordinador'] });
+  });
+
+  it('un perfil con roles vacíos deja la sesión sin roles', async () => {
+    // Arrange
+    conPerfil(() => Promise.resolve(perfil()));
 
     // Act
     const sesion = await crearPdpProveedor().restaurarSesion(vi.fn());
 
     // Assert
     expect(sesion?.tokenParsed.realm_access).toEqual({ roles: [] });
+  });
+
+  it.each([403, 422])(
+    'un perfil con %i deja la sesión sin roles y sin rechazar',
+    async (status) => {
+      // Arrange
+      conPerfil(() => Promise.reject(errorApi(status)));
+
+      // Act
+      const sesion = await crearPdpProveedor().restaurarSesion(vi.fn());
+
+      // Assert
+      expect(sesion?.tokenParsed.realm_access).toEqual({ roles: [] });
+      expect(asignar).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([401, 503])('un perfil con %i rechaza y no navega al login', async (status) => {
+    // Arrange
+    conPerfil(() => Promise.reject(errorApi(status)));
+
+    // Act
+    const resultado = crearPdpProveedor().restaurarSesion(vi.fn());
+
+    // Assert
+    await expect(resultado).rejects.toBeDefined();
+    expect(asignar).not.toHaveBeenCalled();
+  });
+
+  it('con /session en 401 no consulta el perfil', async () => {
+    // Arrange
+    mocks.get.mockRejectedValue(errorApi(401));
+
+    // Act
+    const sesion = await crearPdpProveedor().recuperarSesionSilenciosa(vi.fn());
+
+    // Assert
+    expect(sesion).toBeNull();
+    expect(mocks.get).toHaveBeenCalledTimes(1);
   });
 
   it('con 401 navega al login del PDP con la URL original codificada en return_to', async () => {
