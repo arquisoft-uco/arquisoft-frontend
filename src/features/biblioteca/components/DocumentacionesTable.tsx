@@ -1,5 +1,4 @@
 import { BookOpen, SearchX } from 'lucide-react';
-import Badge from '../../../shared/components/ui/Badge';
 import Button from '../../../shared/components/ui/Button';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type {
@@ -8,12 +7,12 @@ import type {
   OrdenTabla,
 } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
-import { varianteEstadoDocumentacion } from '../../../shared/utils/estado-variante';
 import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { Documentacion } from '../models/Documentacion';
 import type { OrdenCampoDocumentacion } from '../models/OrdenCampoDocumentacion';
+import type { DestinoEstadoDocumentacion } from '../utils/transiciones-estado-documentacion';
 import AccionesDocumentacion from './AccionesDocumentacion';
-import { AutoresProyecto, TituloProyecto } from './DocumentacionCeldas';
+import { AutoresProyecto, InsigniaEstado, TituloProyecto } from './DocumentacionCeldas';
 
 const TARJETA_DATOS = 'flex flex-wrap items-center gap-1.5';
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
@@ -30,14 +29,7 @@ interface Props {
   onOrdenar: (campo: OrdenCampoDocumentacion, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
   onVerAutores?: (documentacion: Documentacion) => void;
-}
-
-function InsigniaEstado({ documentacion }: { documentacion: Documentacion }) {
-  return (
-    <Badge variante={varianteEstadoDocumentacion(documentacion.estadoDocumentacion.id)}>
-      {documentacion.estadoDocumentacion.nombre}
-    </Badge>
-  );
+  onCambiarEstado?: (documentacion: Documentacion, destino: DestinoEstadoDocumentacion) => void;
 }
 
 const COLUMNAS: ColumnaTabla<Documentacion>[] = [
@@ -85,6 +77,7 @@ export default function DocumentacionesTable({
   onOrdenar,
   onLimpiarFiltros,
   onVerAutores,
+  onCambiarEstado,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (esOrdenCampo(clave)) onOrdenar(clave, direccion);
@@ -121,9 +114,13 @@ export default function DocumentacionesTable({
       cargando={cargando}
       vacio={vacio}
       acciones={
-        onVerAutores &&
+        (onVerAutores || onCambiarEstado) &&
         ((documentacion) => (
-          <AccionesDocumentacion documentacion={documentacion} onVerAutores={onVerAutores} />
+          <AccionesDocumentacion
+            documentacion={documentacion}
+            onVerAutores={onVerAutores}
+            onCambiarEstado={onCambiarEstado}
+          />
         ))
       }
       tarjeta={(documentacion) => (

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Route, Routes } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
@@ -32,6 +33,7 @@ vi.mock('./services/bibliotecaService', () => ({
       empty: false,
     }),
     consultarAutoresDocumentacion: vi.fn().mockResolvedValue([]),
+    cambiarEstadoDocumentacion: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -147,6 +149,23 @@ describe('Biblioteca', () => {
     expect(
       tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
     ).toBeInTheDocument();
+  });
+
+  it('el bibliotecario ve en una fila publicada la acción para marcarla como no publicada', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    entrarComo(Rol.Bibliotecario);
+    renderizar();
+
+    // Act
+    const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+    await user.click(
+      tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Marcar como no publicada' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Publicar' })).not.toBeInTheDocument();
   });
 
   it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante])(
