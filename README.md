@@ -83,10 +83,10 @@ registrada en el PDP; sin eso la API responde 401 o 403 con sesión PDP. El PDP,
 compartir dominio registrable. Si la API responde 401 por caducidad de la sesión, el cliente consulta la
 sesión del PDP y reintenta la petición una sola vez.
 
-Mientras el backend no exponga «mi perfil», en `npm run dev` el usuario PDP recibe todos los roles del enum
-`Rol` (`rolesMockPdp` en `pdpProveedor.ts`), solo para que la UI muestre cada vista; no autoriza nada: el PEP del backend decide y
-puede responder 403 (el cliente lleva a `/forbidden`). En producción el usuario PDP queda sin roles. Se retira
-al existir «mi perfil», borrando esa función y su llamada.
+Los roles del usuario PDP salen de `GET /usuarios/mi/perfil` (`roles[].id`, valores del enum `Rol`) y llegan a
+`realm_access.roles`, así que el selector de rol y los guards no cambian. Un 403 o un 422 del perfil dejan al usuario sin
+roles (aviso de «sin roles asignados»); cualquier otro error (401, 503, 404/405, red) muestra el `ErrorState` de arranque
+de `AuthGuard`. Requiere que el backend incluya la HU-309: sin ella el camino PDP no arranca.
 
 Toda petición a la API lleva la cabecera `X-Proveedor-Identidad`, con el valor fijo que declara cada proveedor
 en su `credencialesHttp().proveedorApi` (obligatorio en el contrato): Keycloak envía `legado` y el PDP
