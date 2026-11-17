@@ -1,3 +1,6 @@
+import Badge from '../../../shared/components/ui/Badge';
+import { varianteEstadoDocumentacion } from '../../../shared/utils/estado-variante';
+import type { Documentacion } from '../models/Documentacion';
 import type { AutorResumen } from '../models/biblioteca';
 import { nombresDeAutores } from '../utils/autores-documentacion';
 
@@ -14,6 +17,14 @@ export function TituloProyecto({ titulo }: { titulo: string | null }) {
     <span title={titulo} className={`${RECORTE} font-semibold text-on-surface`}>
       {titulo}
     </span>
+  );
+}
+
+export function InsigniaEstado({ documentacion }: { documentacion: Documentacion }) {
+  return (
+    <Badge variante={varianteEstadoDocumentacion(documentacion.estadoDocumentacion.id)}>
+      {documentacion.estadoDocumentacion.nombre}
+    </Badge>
   );
 }
 

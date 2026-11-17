@@ -2,6 +2,7 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AutorDocumentacion } from '../models/AutorDocumentacion';
+import type { CambiarEstadoDocumentacionRequest } from '../models/CambiarEstadoDocumentacionRequest';
 import type { ConsultarEntregablesDisponiblesRequest } from '../models/ConsultarEntregablesDisponiblesRequest';
 import type { Documentacion } from '../models/Documentacion';
 import type { EntregableDisponible } from '../models/EntregableDisponible';
@@ -36,4 +37,12 @@ export const bibliotecaService = {
     apiClient
       .post<RegistrarDocumentacionResponse>('/biblioteca/documentaciones', req)
       .then((r) => r.data),
+
+  cambiarEstadoDocumentacion: (
+    documentacionId: string,
+    req: CambiarEstadoDocumentacionRequest,
+  ): Promise<void> =>
+    apiClient
+      .patch(`/biblioteca/documentaciones/${documentacionId}/estado`, req)
+      .then(() => undefined),
 };
