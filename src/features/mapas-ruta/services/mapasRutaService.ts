@@ -146,8 +146,10 @@ export const mapasRutaService = {
     }));
   },
 
-  consultarMapaRutaEstudiante(): Promise<MapaRuta> {
-    return apiClient.get<MapaRutaResponse>('/mapas-ruta/estudiante').then((r) => aMapaRuta(r.data));
+  consultarMapaRutaEstudiante(proyectoGradoId: string): Promise<MapaRuta> {
+    return apiClient
+      .get<MapaRutaResponse>(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/estudiante`)
+      .then((r) => aMapaRuta(r.data));
   },
 
   consultarMapaRutaProyectoAsesor(proyectoGradoId: string): Promise<MapaRuta> {
