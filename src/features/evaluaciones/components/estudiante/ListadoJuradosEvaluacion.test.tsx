@@ -85,8 +85,27 @@ describe('ListadoJuradosEvaluacion', () => {
 
     // Assert
     expect(screen.getByText('Aún no hay jurados asignados')).toBeInTheDocument();
+    expect(
+      screen.getByText('Aparecerán aquí cuando el coordinador asigne jurados a esta evaluación.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).not.toBeInTheDocument();
+  });
+
+  it('en el vacío sin filtros muestra la descripción y la acción que recibe', () => {
+    // Act
+    render(
+      <ListadoJuradosEvaluacion
+        listado={crearListado({ data: crearPagina([]) })}
+        onVolver={vi.fn()}
+        descripcionVacio="Esta evaluación aún no tiene jurados asignados."
+        accionVacio={<button type="button">Asignar jurados</button>}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByText('Esta evaluación aún no tiene jurados asignados.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Asignar jurados' })).toBeInTheDocument();
   });
 
   it('con búsqueda sin coincidencias ofrece "Limpiar filtros" que limpia el listado', async () => {

@@ -22,10 +22,13 @@ function leerNavegacion(state: unknown, evaluacionId: string): NavegacionJurados
   ) {
     return null;
   }
-  return {
-    search: state.search,
-    resumen: { id: evaluacionId, proyecto: bruto.proyecto, version: bruto.version },
+  const resumen: ResumenEvaluacion = {
+    id: evaluacionId,
+    proyecto: bruto.proyecto,
+    version: bruto.version,
   };
+  if (typeof bruto.finalizada === 'boolean') resumen.finalizada = bruto.finalizada;
+  return { search: state.search, resumen };
 }
 
 export function useResumenEvaluacion(evaluacionId: string): ResultadoResumenEvaluacion {

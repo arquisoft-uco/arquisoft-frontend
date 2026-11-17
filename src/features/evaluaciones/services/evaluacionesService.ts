@@ -34,6 +34,7 @@ import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarO
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { OmitirEvaluacionesCuantitativasJuradoRequest } from '../models/OmitirEvaluacionesCuantitativasJuradoRequest';
+import type { RemoverJuradosEvaluacionRequest } from '../models/RemoverJuradosEvaluacionRequest';
 import type { RegistrarEvaluacionesCualitativasAsesorRequest } from '../models/RegistrarEvaluacionesCualitativasAsesorRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
@@ -379,6 +380,14 @@ export const evaluacionesService = {
         jurados: juradosIds,
       })
       .then((r) => r.data),
+
+  removerJuradosEvaluacion: ({
+    evaluacionId,
+    juradosIds,
+  }: RemoverJuradosEvaluacionRequest): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/${evaluacionId}/jurados`, { data: { jurados: juradosIds } })
+      .then(() => undefined),
 
   registrarEvaluacionesCualitativasJurado: ({
     evaluacionJuradoId,
