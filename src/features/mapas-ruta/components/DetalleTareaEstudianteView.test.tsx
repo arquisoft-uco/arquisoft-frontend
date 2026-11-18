@@ -338,6 +338,7 @@ describe('DetalleTareaEstudianteView', () => {
     const botones = screen.getAllByRole('button', { name: 'Agregar plan estimado' });
     expect(botones).toHaveLength(2);
     botones.forEach((boton) => expect(boton).toBeDisabled());
+    expect(screen.queryByRole('button', { name: 'Editar plan estimado' })).not.toBeInTheDocument();
   });
 
   it('no ofrece Agregar plan estimado cuando la tarea ya tiene plan y muestra la sección', () => {

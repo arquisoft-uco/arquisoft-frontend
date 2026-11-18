@@ -14,12 +14,8 @@ export function esTareaRemovible(id: string): boolean {
 
 export const ESTADO_TAREA_FINALIZADA = 'FINALIZADA';
 
-// Regla de UX: el backend no impide remover el plan de una tarea finalizada.
-export function puedeRemoverPlanEstimado(estadoId: string): boolean {
-  return estadoId !== ESTADO_TAREA_FINALIZADA;
-}
-
-export function puedeAgregarPlanEstimado(estadoId: string): boolean {
+// Regla de UX: el plan estimado de una tarea finalizada no se agrega, edita, aporta ni remueve.
+export function puedeGestionarPlanEstimado(estadoId: string): boolean {
   return estadoId !== ESTADO_TAREA_FINALIZADA;
 }
 

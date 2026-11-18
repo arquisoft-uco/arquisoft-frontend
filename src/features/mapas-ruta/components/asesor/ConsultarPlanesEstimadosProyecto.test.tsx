@@ -2,11 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import { usePlanesEstimadosProyectoAsesor } from '../../hooks/usePlanesEstimadosProyectoAsesor';
+import { useTarea } from '../../hooks/useTarea';
 import ConsultarPlanesEstimadosProyecto from './ConsultarPlanesEstimadosProyecto';
 
 vi.mock('../../hooks/usePlanesEstimadosProyectoAsesor', () => ({
   usePlanesEstimadosProyectoAsesor: vi.fn(),
 }));
+
+vi.mock('../../hooks/useTarea', () => ({ useTarea: vi.fn() }));
 
 const useListado = vi.mocked(usePlanesEstimadosProyectoAsesor);
 
@@ -21,10 +24,29 @@ const PLAN = {
 const PLAN_SIN_DESCRIPCION = {
   ...PLAN,
   id: 'p-2',
+  tareaId: 't-2',
   descripcionTarea: 'Preparar demo',
   tiempoEstimadoDias: 1,
   descripcionEstimado: null,
 };
+
+function simularEstadosTarea(estados: Record<string, string>) {
+  vi.mocked(useTarea).mockImplementation((tareaId: string) => ({
+    tarea: {
+      id: tareaId,
+      descripcion: 'Tarea',
+      mapaRutaId: 'm-1',
+      fechaInicioMapaRuta: '2026-03-05',
+      fechaFinMapaRuta: '2026-08-01',
+      estado: { id: estados[tareaId] ?? 'NUEVA', nombre: 'Estado' },
+      asesor: { id: 'a-1', nombre: 'Ana Ruiz', email: 'ana@uco.edu.co' },
+    },
+    cargando: false,
+    noEncontrada: false,
+    hayError: false,
+    reintentar: vi.fn(),
+  }));
+}
 
 const PAGINA_VACIA = { content: [], totalElements: 0, totalPages: 0 };
 
@@ -56,6 +78,7 @@ function simularListado(parcial: Record<string, unknown> = {}) {
 describe('ConsultarPlanesEstimadosProyecto', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    simularEstadosTarea({});
   });
 
   it('muestra el resumen y cada plan con su tarea, días y descripción o "Sin descripción"', () => {
@@ -89,6 +112,23 @@ describe('ConsultarPlanesEstimadosProyecto', () => {
     expect(botones.length).toBeGreaterThanOrEqual(2);
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /Descripción/ })).toHaveValue('');
+  });
+
+  it('no ofrece "Aportar" en las filas cuya tarea está finalizada', () => {
+    // Arrange
+    simularListado();
+    simularEstadosTarea({ 't-2': 'FINALIZADA' });
+
+    // Act
+    render(<ConsultarPlanesEstimadosProyecto proyectoGradoId="pg-1" />);
+
+    // Assert
+    expect(
+      screen.getAllByRole('button', { name: 'Aportar al plan de Entregar informe' }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole('button', { name: 'Aportar al plan de Preparar demo' }),
+    ).not.toBeInTheDocument();
   });
 
   it('muestra el estado de carga mientras consulta', () => {
