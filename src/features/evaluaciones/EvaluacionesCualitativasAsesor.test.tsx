@@ -60,6 +60,7 @@ describe('EvaluacionesCualitativasAsesor', () => {
       evaluacionAsesorId: 'ea-1',
       search: '?q=sis',
       resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
+      evaluacionFinalizada: false,
     });
   });
 

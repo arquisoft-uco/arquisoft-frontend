@@ -27,7 +27,12 @@ function leerNavegacion(
   }
   const resumen = leerResumen(state.resumen);
   if (resumen === undefined) return null;
-  return { evaluacionAsesorId, search: state.search, resumen };
+  return {
+    evaluacionAsesorId,
+    search: state.search,
+    resumen,
+    evaluacionFinalizada: state.evaluacionFinalizada === true,
+  };
 }
 
 export function useNavegacionCualitativasAsesor(

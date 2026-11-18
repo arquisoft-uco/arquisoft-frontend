@@ -3,7 +3,7 @@ import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
-import ConsultarEvaluacionesCualitativasAsesor from './components/asesor/ConsultarEvaluacionesCualitativasAsesor';
+import EvaluacionesCualitativasRealizadasAsesorPanel from './components/asesor/EvaluacionesCualitativasRealizadasAsesorPanel';
 import { useEvaluacionesCualitativasAsesor } from './hooks/useEvaluacionesCualitativasAsesor';
 import { useNavegacionCualitativasAsesor } from './hooks/useNavegacionCualitativasAsesor';
 
@@ -33,8 +33,10 @@ export default function EvaluacionesCualitativasAsesor() {
         descripcion={descripcion}
         migas={[{ etiqueta: 'Evaluaciones', to: rutaListado }, { etiqueta: TITULO }]}
       />
-      <ConsultarEvaluacionesCualitativasAsesor
+      <EvaluacionesCualitativasRealizadasAsesorPanel
+        evaluacionAsesorId={evaluacionAsesorId}
         consulta={consulta}
+        finalizada={navegacion?.evaluacionFinalizada ?? false}
         etiquetaVolver="Volver a mis evaluaciones"
         onVolver={() => navigate(rutaListado)}
       />
