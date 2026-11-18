@@ -35,4 +35,27 @@ describe('AccionesObservacionItemAsesor', () => {
       screen.getByRole('button', { name: 'Modificar observación: Falta rigor' }),
     ).toBeInTheDocument();
   });
+
+  it('con onRemover ofrece «Remover observación» junto al lápiz y lo llama con la observación; sin onRemover no existe', async () => {
+    // Arrange
+    const onRemover = vi.fn();
+    const { rerender } = render(
+      <AccionesObservacionItemAsesor
+        observacion={OBSERVACION}
+        conVarias
+        onModificar={vi.fn()}
+        onRemover={onRemover}
+      />,
+    );
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: 'Remover observación: Falta rigor' }));
+    const conviven = screen.queryByRole('button', { name: /^Modificar observación/ });
+    rerender(<AccionesObservacionItemAsesor observacion={OBSERVACION} conVarias={false} />);
+
+    // Assert
+    expect(onRemover).toHaveBeenCalledWith(OBSERVACION);
+    expect(conviven).not.toBeNull();
+    expect(screen.queryByRole('button', { name: /Remover observación/ })).not.toBeInTheDocument();
+  });
 });

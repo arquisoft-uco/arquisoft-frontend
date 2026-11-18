@@ -476,6 +476,11 @@ export const evaluacionesService = {
       .patch<void>(`/evaluaciones/observaciones-item-asesor/${observacionId}`, { descripcion })
       .then(() => undefined),
 
+  removerObservacionItemAsesor: (observacionId: string): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/observaciones-item-asesor/${observacionId}`)
+      .then(() => undefined),
+
   modificarObservacionItemJurado: ({
     observacionId,
     descripcion,

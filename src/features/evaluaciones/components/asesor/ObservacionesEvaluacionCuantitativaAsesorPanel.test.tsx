@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import ObservacionesEvaluacionCuantitativaAsesorPanel from './ObservacionesEvaluacionCuantitativaAsesorPanel';
 import { useObservacionesEvaluacionCuantitativaAsesor } from '../../hooks/useObservacionesEvaluacionCuantitativaAsesor';
 import {
@@ -12,6 +12,11 @@ import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuanti
 
 vi.mock('../../hooks/useObservacionesEvaluacionCuantitativaAsesor', () => ({
   useObservacionesEvaluacionCuantitativaAsesor: vi.fn(),
+}));
+
+const removerMutate = vi.hoisted(() => vi.fn());
+vi.mock('../../hooks/useRemoverObservacionItemAsesor', () => ({
+  useRemoverObservacionItemAsesor: () => ({ isPending: false, mutate: removerMutate }),
 }));
 
 const usarHook = vi.mocked(useObservacionesEvaluacionCuantitativaAsesor);
@@ -55,6 +60,7 @@ function montar(
     onRegistrar?: () => void;
     puedeModificar?: boolean;
     onModificar?: (observacion: unknown) => void;
+    puedeRemover?: boolean;
   } = {},
 ) {
   const refetch = vi.fn();
@@ -225,6 +231,77 @@ describe('ObservacionesEvaluacionCuantitativaAsesorPanel', () => {
 
     // Assert
     expect(screen.queryByRole('button', { name: /Modificar observación/ })).not.toBeInTheDocument();
+  });
+
+  it('con puedeRemover cada fila ofrece «Remover observación» y al pulsarlo abre la confirmación', async () => {
+    // Arrange
+    montar({ data: pagina(['Falta rigor', 'Buena redacción']) }, { puedeRemover: true });
+
+    // Act
+    await userEvent.click(
+      screen.getAllByRole('button', { name: 'Remover observación: Buena redacción' })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('¿Remover observación?');
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('Claridad');
+  });
+
+  it('sin puedeRemover no ofrece «Remover observación»', () => {
+    // Arrange / Act
+    montar({ data: pagina(['Falta rigor']) });
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Remover observación/ })).not.toBeInTheDocument();
+  });
+
+  it('con un error de carga no ofrece «Remover observación» aunque puedeRemover sea verdadero', () => {
+    // Arrange / Act
+    montar(
+      { isError: true, error: crearError(500, 'X', 'Servidor caído') },
+      { puedeRemover: true },
+    );
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Remover observación/ })).not.toBeInTheDocument();
+  });
+
+  it('al remover la única fila de una página que no es la primera retrocede una página', async () => {
+    // Arrange
+    removerMutate.mockImplementation((_id: string, opciones?: { onSuccess?: () => void }) =>
+      opciones?.onSuccess?.(),
+    );
+    const goToPage = vi.fn();
+    montar({ data: pagina(['Falta rigor']), page: 2, goToPage }, { puedeRemover: true });
+    await userEvent.click(screen.getAllByRole('button', { name: 'Remover observación' })[0]);
+
+    // Act
+    await userEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remover observación' }),
+    );
+
+    // Assert
+    expect(removerMutate).toHaveBeenCalledWith('o-0', expect.any(Object));
+    expect(goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('al remover la única fila de la primera página no cambia de página', async () => {
+    // Arrange
+    removerMutate.mockImplementation((_id: string, opciones?: { onSuccess?: () => void }) =>
+      opciones?.onSuccess?.(),
+    );
+    const goToPage = vi.fn();
+    montar({ data: pagina(['Falta rigor']), page: 0, goToPage }, { puedeRemover: true });
+    await userEvent.click(screen.getAllByRole('button', { name: 'Remover observación' })[0]);
+
+    // Act
+    await userEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remover observación' }),
+    );
+
+    // Assert
+    expect(removerMutate).toHaveBeenCalledTimes(1);
+    expect(goToPage).not.toHaveBeenCalled();
   });
 
   it('«Cerrar panel» llama a onCerrar', async () => {
