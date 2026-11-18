@@ -17,7 +17,7 @@ export default function PieRevision({ nota, onCerrar, children }: Props) {
           {nota}
         </p>
       )}
-      <div className="actions-row">
+      <div className="actions-row sm:flex-wrap">
         <Button variante="secundario" onClick={onCerrar}>
           Cerrar
         </Button>
