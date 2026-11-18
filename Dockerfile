@@ -13,7 +13,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --production=false
 
 # Copiar código fuente. El workflow de CI escribe .env.production.local (desde
-# el secreto VITE_ENV_FILE) en el checkout ANTES de este build, así que llega
+# la variable de Actions VITE_ENV_FILE) en el checkout ANTES de este build, así que llega
 # incluido aquí — Vite lo carga automáticamente en "npm run build" y embebe
 # las VITE_* en el bundle. No se usan build ARGs.
 COPY . .

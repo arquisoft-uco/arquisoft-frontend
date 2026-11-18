@@ -61,13 +61,13 @@ jobs:
             echo "image_tag=sha-$(cat short_sha.txt)" >> "$GITHUB_OUTPUT"
           fi
 
-      # ── Orígenes de la CSP de nginx: se derivan del mismo secreto VITE_ENV_FILE
+      # ── Orígenes de la CSP de nginx: se derivan de la misma variable VITE_ENV_FILE
       #     que usa el build (esquema://host[:puerto] de cada URL), así no hay
       #     que mantenerlos por separado ──
       - name: Derivar orígenes desde VITE_ENV_FILE
         id: origenes
         env:
-          ENV_FILE: ${{ secrets.VITE_ENV_FILE }}
+          ENV_FILE: ${{ vars.VITE_ENV_FILE }}
         run: |
           origen() {
             printf '%s\n' "$ENV_FILE" | tr -d '\r' \
