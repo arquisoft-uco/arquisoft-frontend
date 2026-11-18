@@ -21,11 +21,25 @@ vi.mock('../../hooks/useRegistrarObservacionItemAsesor', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useModificarObservacionItemAsesor', () => ({
+  useModificarObservacionItemAsesor: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
+
 vi.mock('../../hooks/useObservacionesEvaluacionCuantitativaAsesor', () => ({
   useObservacionesEvaluacionCuantitativaAsesor: () => ({
-    data: undefined,
-    isLoading: true,
-    isFetching: true,
+    data: {
+      content: [{ id: 'o-1', descripcion: 'Falta rigor' }],
+      totalElements: 1,
+      totalPages: 1,
+      number: 0,
+      size: 10,
+    },
+    isLoading: false,
+    isFetching: false,
     isError: false,
     error: null,
     refetch: vi.fn(),
@@ -105,7 +119,7 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
 
     // Assert
-    expect(screen.getByText(/ni registrar observaciones/)).toBeInTheDocument();
+    expect(screen.getByText(/ni registrar o modificar observaciones/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
   });
 
@@ -132,5 +146,31 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
 
     // Assert
     expect(screen.getByText('Ítem: Orden')).toBeInTheDocument();
+  });
+
+  it('sin finalizar, «Modificar observación» abre el formulario sobre el panel de observaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(false));
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Modificar observación' })[0]);
+
+    // Assert
+    expect(screen.getByRole('form', { name: 'Modificación de observación' })).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada no ofrece «Modificar observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getAllByText('Falta rigor').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: /Modificar observación/ })).not.toBeInTheDocument();
   });
 });

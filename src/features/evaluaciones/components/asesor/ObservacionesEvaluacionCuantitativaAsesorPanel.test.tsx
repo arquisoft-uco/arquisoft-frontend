@@ -50,7 +50,12 @@ function pagina(descripciones: string[]) {
 
 function montar(
   estado: Record<string, unknown> = {},
-  acciones: { puedeRegistrar?: boolean; onRegistrar?: () => void } = {},
+  acciones: {
+    puedeRegistrar?: boolean;
+    onRegistrar?: () => void;
+    puedeModificar?: boolean;
+    onModificar?: (observacion: unknown) => void;
+  } = {},
 ) {
   const refetch = vi.fn();
   const onCerrar = vi.fn();
@@ -183,6 +188,43 @@ describe('ObservacionesEvaluacionCuantitativaAsesorPanel', () => {
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
+  });
+
+  it('con puedeModificar cada fila ofrece «Modificar observación» y al pulsarlo llama a onModificar con esa fila', async () => {
+    // Arrange
+    const onModificar = vi.fn();
+    const datos = pagina(['Falta rigor', 'Buena redacción']);
+    montar({ data: datos }, { puedeModificar: true, onModificar });
+
+    // Act
+    await userEvent.click(
+      screen.getAllByRole('button', { name: 'Modificar observación: Buena redacción' })[0],
+    );
+
+    // Assert
+    expect(
+      screen.getAllByRole('button', { name: /^Modificar observación: / }).length,
+    ).toBeGreaterThanOrEqual(2);
+    expect(onModificar).toHaveBeenCalledWith(datos.content[1]);
+  });
+
+  it('sin puedeModificar no ofrece «Modificar observación»', () => {
+    // Arrange / Act
+    montar({ data: pagina(['Falta rigor']) }, { onModificar: vi.fn() });
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Modificar observación/ })).not.toBeInTheDocument();
+  });
+
+  it('con un error de carga no ofrece «Modificar observación» aunque puedeModificar sea verdadero', () => {
+    // Arrange / Act
+    montar(
+      { isError: true, error: crearError(500, 'X', 'Servidor caído') },
+      { puedeModificar: true, onModificar: vi.fn() },
+    );
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Modificar observación/ })).not.toBeInTheDocument();
   });
 
   it('«Cerrar panel» llama a onCerrar', async () => {
