@@ -15,6 +15,10 @@ vi.mock('./hooks/useNavegacionCuantitativasAsesor', () => ({
   useNavegacionCuantitativasAsesor: vi.fn(),
 }));
 
+vi.mock('./hooks/useOmitirEvaluacionesCuantitativasAsesor', () => ({
+  useOmitirEvaluacionesCuantitativasAsesor: () => ({ isPending: false, mutate: vi.fn() }),
+}));
+
 type Consulta = ReturnType<typeof useEvaluacionesCuantitativasAsesor>;
 
 const FILA = {
@@ -132,7 +136,7 @@ describe('EvaluacionesCuantitativasAsesor', () => {
 
     // Assert
     expect(
-      screen.getByText(/ya fue finalizada; no se pueden cambiar valoraciones/),
+      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar valoraciones/),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
   });

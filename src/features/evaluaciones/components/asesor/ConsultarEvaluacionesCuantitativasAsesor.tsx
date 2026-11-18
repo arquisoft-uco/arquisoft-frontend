@@ -6,6 +6,7 @@ import {
   EVALUACION_CUALITATIVA_ASESOR_EVALUACION_ASESOR_NO_ENCONTRADA,
   EVALUACION_CUALITATIVA_ASESOR_NO_PERTENECE_ASESOR,
 } from '../../utils/codigos-error-evaluaciones';
+import type { SeleccionCuantitativas } from '../EvaluacionesCuantitativasJuradoTable';
 import EvaluacionesCuantitativasAsesorTable from './EvaluacionesCuantitativasAsesorTable';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -29,6 +30,7 @@ interface Props {
   consulta: ConsultaCuantitativasAsesor;
   etiquetaVolver: string;
   onVolver: () => void;
+  seleccion?: SeleccionCuantitativas;
   onVerObservaciones: (fila: EvaluacionCuantitativaAsesor) => void;
   onCambiarPuntaje?: (fila: EvaluacionCuantitativaAsesor) => void;
 }
@@ -37,6 +39,7 @@ export default function ConsultarEvaluacionesCuantitativasAsesor({
   consulta,
   etiquetaVolver,
   onVolver,
+  seleccion,
   onVerObservaciones,
   onCambiarPuntaje,
 }: Props) {
@@ -90,6 +93,7 @@ export default function ConsultarEvaluacionesCuantitativasAsesor({
       <EvaluacionesCuantitativasAsesorTable
         evaluaciones={data ?? []}
         cargando={isLoading}
+        seleccion={seleccion}
         onVerObservaciones={onVerObservaciones}
         onCambiarPuntaje={onCambiarPuntaje}
       />

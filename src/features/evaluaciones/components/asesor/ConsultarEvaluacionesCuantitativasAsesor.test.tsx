@@ -4,6 +4,7 @@ import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen } from '../../../../test-utils/render';
 import ConsultarEvaluacionesCuantitativasAsesor from './ConsultarEvaluacionesCuantitativasAsesor';
 import type { ConsultaCuantitativasAsesor } from './ConsultarEvaluacionesCuantitativasAsesor';
+import type { SeleccionCuantitativas } from '../EvaluacionesCuantitativasJuradoTable';
 import {
   EVALUACION_CUALITATIVA_ASESOR_EVALUACION_ASESOR_NO_ENCONTRADA,
   EVALUACION_CUALITATIVA_ASESOR_NO_PERTENECE_ASESOR,
@@ -35,6 +36,7 @@ function montar(
   parcial: Partial<ConsultaCuantitativasAsesor>,
   onVolver = vi.fn(),
   onVerObservaciones = vi.fn(),
+  seleccion?: SeleccionCuantitativas,
 ) {
   const consulta: ConsultaCuantitativasAsesor = {
     data: undefined,
@@ -49,6 +51,7 @@ function montar(
       consulta={consulta}
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
+      seleccion={seleccion}
       onVerObservaciones={onVerObservaciones}
     />,
   );
@@ -145,5 +148,28 @@ describe('ConsultarEvaluacionesCuantitativasAsesor', () => {
 
     // Assert
     expect(consulta.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('con `seleccion` pinta una casilla por ítem y alterna por id de ítem; sin ella no hay casillas', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onAlternar = vi.fn();
+    montar({ data: [FILA] }, vi.fn(), vi.fn(), { seleccionados: new Set(['i-1']), onAlternar });
+
+    // Act
+    const casilla = screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0];
+    await user.click(casilla);
+
+    // Assert
+    expect(casilla).toBeChecked();
+    expect(onAlternar).toHaveBeenCalledWith('i-1');
+  });
+
+  it('sin `seleccion` no pinta casillas', () => {
+    // Act
+    montar({ data: [FILA] });
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
   });
 });

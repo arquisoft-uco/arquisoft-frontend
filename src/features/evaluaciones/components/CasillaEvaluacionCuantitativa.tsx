@@ -1,10 +1,8 @@
-import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
-
 const ETIQUETA = 'tap-target inline-flex cursor-pointer items-center';
 const CASILLA = 'checkbox-control shrink-0 accent-primary';
 
 interface Props {
-  fila: EvaluacionCuantitativaJurado;
+  fila: { id: string; item: { nombre: string } };
   marcada: boolean;
   onAlternar: (id: string) => void;
 }

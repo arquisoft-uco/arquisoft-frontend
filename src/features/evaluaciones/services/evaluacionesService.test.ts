@@ -312,6 +312,26 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('omitirEvaluacionesCuantitativasAsesor', () => {
+    it('llama DELETE sin body y con el query item repetido, y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.omitirEvaluacionesCuantitativasAsesor({
+        evaluacionAsesorId: 'ea-1',
+        items: ['i-1', 'i-2'],
+      });
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-asesor/ea-1/cuantitativas', {
+        params: expect.any(URLSearchParams),
+      });
+      expect(del.mock.calls[0][1]?.params.toString()).toBe('item=i-1&item=i-2');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('removerJuradosEvaluacion', () => {
     it('llama DELETE a /evaluaciones/{id}/jurados con los ids traducidos a jurados y resuelve undefined', async () => {
       // Arrange
