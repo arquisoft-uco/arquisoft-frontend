@@ -34,6 +34,7 @@ import type { ModificarObservacionItemAsesorRequest } from '../models/ModificarO
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
 import type { ObservacionItemAsesor } from '../models/ObservacionItemAsesor';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
+import type { OmitirEvaluacionesCualitativasAsesorRequest } from '../models/OmitirEvaluacionesCualitativasAsesorRequest';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { OmitirEvaluacionesCuantitativasJuradoRequest } from '../models/OmitirEvaluacionesCuantitativasJuradoRequest';
 import type { RemoverJuradosEvaluacionRequest } from '../models/RemoverJuradosEvaluacionRequest';
@@ -503,6 +504,19 @@ export const evaluacionesService = {
         data: { evaluaciones },
       })
       .then(() => undefined),
+
+  omitirEvaluacionesCualitativasAsesor: ({
+    evaluacionAsesorId,
+    items,
+  }: OmitirEvaluacionesCualitativasAsesorRequest): Promise<void> => {
+    const params = new URLSearchParams();
+    items.forEach((item) => params.append('item', item));
+    return apiClient
+      .delete<void>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cualitativas`, {
+        params,
+      })
+      .then(() => undefined);
+  },
 
   omitirEvaluacionesCuantitativasJurado: ({
     evaluacionJuradoId,

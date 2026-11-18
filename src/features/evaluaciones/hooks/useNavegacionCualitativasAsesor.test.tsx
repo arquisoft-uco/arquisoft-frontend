@@ -22,6 +22,7 @@ const VALIDO = {
   evaluacionAsesorId: 'ea-1',
   search: '?q=sis',
   resumen: { proyecto: 'Sistema de monitoreo', version: 3 },
+  evaluacionFinalizada: true,
 };
 
 describe('useNavegacionCualitativasAsesor', () => {
@@ -29,6 +30,10 @@ describe('useNavegacionCualitativasAsesor', () => {
     // Act & Assert
     expect(montar(VALIDO)).toEqual(VALIDO);
     expect(montar({ ...VALIDO, resumen: null })).toEqual({ ...VALIDO, resumen: null });
+    expect(montar({ ...VALIDO, evaluacionFinalizada: 'true' })?.evaluacionFinalizada).toBe(false);
+    expect(montar({ ...VALIDO, evaluacionFinalizada: undefined })?.evaluacionFinalizada).toBe(
+      false,
+    );
   });
 
   it('devuelve null con state ausente, de otra evaluación o malformado', () => {

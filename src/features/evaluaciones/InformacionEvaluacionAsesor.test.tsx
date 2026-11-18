@@ -55,6 +55,7 @@ describe('InformacionEvaluacionAsesor', () => {
       evaluacionAsesorId: 'ea-1',
       search: '?q=sis&pagina=2',
       resumen: { proyecto: 'Sistema de monitoreo', version: 3 },
+      evaluacionFinalizada: false,
     });
 
     // Act

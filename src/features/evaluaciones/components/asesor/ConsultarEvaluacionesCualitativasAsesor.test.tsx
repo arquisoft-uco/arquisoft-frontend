@@ -4,6 +4,7 @@ import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen } from '../../../../test-utils/render';
 import ConsultarEvaluacionesCualitativasAsesor from './ConsultarEvaluacionesCualitativasAsesor';
 import type { ConsultaCualitativasAsesor } from './ConsultarEvaluacionesCualitativasAsesor';
+import type { SeleccionCualitativas } from '../EvaluacionesCualitativasJuradoTable';
 import {
   EVALUACION_CUALITATIVA_ASESOR_EVALUACION_ASESOR_NO_ENCONTRADA,
   EVALUACION_CUALITATIVA_ASESOR_NO_PERTENECE_ASESOR,
@@ -25,7 +26,11 @@ function error422(errorCode: string) {
   });
 }
 
-function montar(parcial: Partial<ConsultaCualitativasAsesor>, onVolver = vi.fn()) {
+function montar(
+  parcial: Partial<ConsultaCualitativasAsesor>,
+  onVolver = vi.fn(),
+  seleccion?: SeleccionCualitativas,
+) {
   const consulta: ConsultaCualitativasAsesor = {
     data: undefined,
     isLoading: false,
@@ -39,6 +44,7 @@ function montar(parcial: Partial<ConsultaCualitativasAsesor>, onVolver = vi.fn()
       consulta={consulta}
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
+      seleccion={seleccion}
     />,
   );
   return { consulta, onVolver };
@@ -121,5 +127,28 @@ describe('ConsultarEvaluacionesCualitativasAsesor', () => {
 
     // Assert
     expect(consulta.refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('con `seleccion` pinta una casilla por ítem, la marca según el conjunto y alterna por id de ítem', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onAlternar = vi.fn();
+    montar({ data: [FILA] }, vi.fn(), { seleccionados: new Set(['i-1']), onAlternar });
+
+    // Act
+    const casilla = screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0];
+    await user.click(casilla);
+
+    // Assert
+    expect(casilla).toBeChecked();
+    expect(onAlternar).toHaveBeenCalledWith('i-1');
+  });
+
+  it('sin `seleccion` no pinta casillas', () => {
+    // Act
+    montar({ data: [FILA] });
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
   });
 });
