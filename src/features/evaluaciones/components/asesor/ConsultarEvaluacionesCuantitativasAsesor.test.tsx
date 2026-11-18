@@ -31,7 +31,11 @@ function error422(errorCode: string) {
   });
 }
 
-function montar(parcial: Partial<ConsultaCuantitativasAsesor>, onVolver = vi.fn()) {
+function montar(
+  parcial: Partial<ConsultaCuantitativasAsesor>,
+  onVolver = vi.fn(),
+  onVerObservaciones = vi.fn(),
+) {
   const consulta: ConsultaCuantitativasAsesor = {
     data: undefined,
     isLoading: false,
@@ -45,6 +49,7 @@ function montar(parcial: Partial<ConsultaCuantitativasAsesor>, onVolver = vi.fn(
       consulta={consulta}
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
+      onVerObservaciones={onVerObservaciones}
     />,
   );
   return { consulta, onVolver };
@@ -61,6 +66,19 @@ describe('ConsultarEvaluacionesCuantitativasAsesor', () => {
     expect(screen.getAllByText('80 de 100').length).toBeGreaterThan(0);
     expect(screen.queryByText(FILA.item.categoriaId)).not.toBeInTheDocument();
     expect(screen.getByText('1 evaluación cuantitativa')).toBeInTheDocument();
+  });
+
+  it('la acción «Ver observaciones» de la fila la entrega a onVerObservaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onVerObservaciones = vi.fn();
+    montar({ data: [FILA] }, vi.fn(), onVerObservaciones);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Claridad/ })[0]);
+
+    // Assert
+    expect(onVerObservaciones).toHaveBeenCalledWith(FILA);
   });
 
   it('con lista vacía muestra el estado vacío y no un error', () => {

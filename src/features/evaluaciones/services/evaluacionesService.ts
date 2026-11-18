@@ -31,6 +31,7 @@ import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarI
 import type { ModificarItemCuantitativoAsesorRequest } from '../models/ModificarItemCuantitativoAsesorRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
+import type { ObservacionItemAsesor } from '../models/ObservacionItemAsesor';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { OmitirEvaluacionesCuantitativasJuradoRequest } from '../models/OmitirEvaluacionesCuantitativasJuradoRequest';
@@ -441,6 +442,16 @@ export const evaluacionesService = {
       .post<
         Page<ObservacionItemJurado>
       >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/estudiante`, req)
+      .then((r) => r.data),
+
+  getObservacionesEvaluacionCuantitativaAsesor: (
+    evaluacionCuantitativaAsesorId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItemAsesor>> =>
+    apiClient
+      .post<
+        Page<ObservacionItemAsesor>
+      >(`/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/observaciones/asesor`, req)
       .then((r) => r.data),
 
   modificarObservacionItemJurado: ({
