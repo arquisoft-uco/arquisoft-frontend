@@ -99,6 +99,14 @@ describe('ModificarInformacionTareaPanel', () => {
       status: 'idle',
     });
     vi.mocked(useMapaRutaEstudiante).mockReturnValue({
+      proyecto: {
+        id: 'p-1',
+        fichaPerfil: 'f-1',
+        tituloProyecto: 'Sistema A',
+        estado: { id: 'e-1', nombre: 'Activo' },
+      },
+      proyectos: [],
+      seleccionarProyecto: vi.fn(),
       mapa: MAPA,
       cargando: false,
       sinMapa: false,
