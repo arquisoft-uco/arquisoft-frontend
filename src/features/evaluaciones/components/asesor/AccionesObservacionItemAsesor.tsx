@@ -24,6 +24,7 @@ export default function AccionesObservacionItemAsesor({
           etiqueta={`Modificar observación${sufijo}`}
           icono={Pencil}
           rotulo="Modificar observación"
+          rotuloPosicion="arriba"
           onClick={() => onModificar(observacion)}
         />
       )}
@@ -33,6 +34,7 @@ export default function AccionesObservacionItemAsesor({
           icono={Trash2}
           tono="peligro"
           rotulo="Remover observación"
+          rotuloPosicion="arriba"
           onClick={() => onRemover(observacion)}
         />
       )}
