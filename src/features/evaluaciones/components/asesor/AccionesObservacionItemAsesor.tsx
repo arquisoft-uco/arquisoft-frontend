@@ -1,4 +1,5 @@
-import Button from '../../../../shared/components/ui/Button';
+import { Pencil } from 'lucide-react';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import type { ObservacionItemAsesor } from '../../models/ObservacionItemAsesor';
 
 interface Props {
@@ -13,13 +14,13 @@ export default function AccionesObservacionItemAsesor({
   onModificar,
 }: Props) {
   return (
-    <Button
-      type="button"
-      variante="secundario"
-      aria-label={conVarias ? `Modificar observación: ${observacion.descripcion}` : undefined}
+    <IconButton
+      etiqueta={
+        conVarias ? `Modificar observación: ${observacion.descripcion}` : 'Modificar observación'
+      }
+      icono={Pencil}
+      rotulo="Modificar observación"
       onClick={() => onModificar(observacion)}
-    >
-      Modificar observación
-    </Button>
+    />
   );
 }

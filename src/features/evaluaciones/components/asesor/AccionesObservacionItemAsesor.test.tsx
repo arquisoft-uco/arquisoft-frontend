@@ -6,7 +6,7 @@ import AccionesObservacionItemAsesor from './AccionesObservacionItemAsesor';
 const OBSERVACION = { id: 'o-1', descripcion: 'Falta rigor' };
 
 describe('AccionesObservacionItemAsesor', () => {
-  it('llama a onModificar con la observación; el nombre lleva la descripción solo con varias filas', async () => {
+  it('muestra el rótulo oculto al lector, llama a onModificar con la observación; el nombre lleva la descripción solo con varias filas', async () => {
     // Arrange
     const onModificar = vi.fn();
     const { rerender } = render(
@@ -18,6 +18,7 @@ describe('AccionesObservacionItemAsesor', () => {
     );
 
     // Act
+    const rotulo = screen.getByText('Modificar observación');
     await userEvent.click(screen.getByRole('button', { name: 'Modificar observación' }));
     rerender(
       <AccionesObservacionItemAsesor
@@ -28,6 +29,7 @@ describe('AccionesObservacionItemAsesor', () => {
     );
 
     // Assert
+    expect(rotulo).toHaveAttribute('aria-hidden', 'true');
     expect(onModificar).toHaveBeenCalledWith(OBSERVACION);
     expect(
       screen.getByRole('button', { name: 'Modificar observación: Falta rigor' }),
