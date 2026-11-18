@@ -1,4 +1,4 @@
-import { ListChecks, Pencil } from 'lucide-react';
+import { ListChecks, MessageSquare, Pencil } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
@@ -39,12 +39,14 @@ const COLUMNAS: ColumnaTabla<EvaluacionCuantitativaAsesor>[] = [
 interface Props {
   evaluaciones: EvaluacionCuantitativaAsesor[];
   cargando: boolean;
+  onVerObservaciones: (fila: EvaluacionCuantitativaAsesor) => void;
   onCambiarPuntaje?: (fila: EvaluacionCuantitativaAsesor) => void;
 }
 
 export default function EvaluacionesCuantitativasAsesorTable({
   evaluaciones,
   cargando,
+  onVerObservaciones,
   onCambiarPuntaje,
 }: Props) {
   return (
@@ -55,19 +57,24 @@ export default function EvaluacionesCuantitativasAsesorTable({
       idDeFila={(fila) => fila.id}
       cargando={cargando}
       encabezadoAcciones="Acciones"
-      acciones={
-        onCambiarPuntaje &&
-        ((fila) => (
-          <div className="flex shrink-0 items-center justify-end gap-1">
+      acciones={(fila) => (
+        <div className="flex shrink-0 items-center justify-end gap-1">
+          <IconButton
+            etiqueta={`Ver observaciones de ${fila.item.nombre}`}
+            icono={MessageSquare}
+            rotulo="Ver observaciones"
+            onClick={() => onVerObservaciones(fila)}
+          />
+          {onCambiarPuntaje && (
             <IconButton
               etiqueta={`Cambiar puntaje del ítem ${fila.item.nombre}`}
               icono={Pencil}
               rotulo="Cambiar puntaje"
               onClick={() => onCambiarPuntaje(fila)}
             />
-          </div>
-        ))
-      }
+          )}
+        </div>
+      )}
       vacio={
         <EmptyState
           icono={ListChecks}

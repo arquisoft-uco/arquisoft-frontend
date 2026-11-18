@@ -4,6 +4,7 @@ import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuanti
 import CambiarPuntajeEvaluacionCuantitativaAsesorPanel from './CambiarPuntajeEvaluacionCuantitativaAsesorPanel';
 import ConsultarEvaluacionesCuantitativasAsesor from './ConsultarEvaluacionesCuantitativasAsesor';
 import type { ConsultaCuantitativasAsesor } from './ConsultarEvaluacionesCuantitativasAsesor';
+import ObservacionesEvaluacionCuantitativaAsesorPanel from './ObservacionesEvaluacionCuantitativaAsesorPanel';
 
 const RAIZ = 'flex flex-col gap-4';
 
@@ -23,35 +24,33 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
   onVolver,
 }: Props) {
   const [filaEnEdicion, setFilaEnEdicion] = useState<EvaluacionCuantitativaAsesor | null>(null);
-
-  if (finalizada) {
-    return (
-      <div className={RAIZ}>
-        <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden cambiar valoraciones.
-        </Notice>
-        <ConsultarEvaluacionesCuantitativasAsesor
-          consulta={consulta}
-          etiquetaVolver={etiquetaVolver}
-          onVolver={onVolver}
-        />
-      </div>
-    );
-  }
+  const [filaEnLectura, setFilaEnLectura] = useState<EvaluacionCuantitativaAsesor | null>(null);
 
   return (
     <div className={RAIZ}>
+      {finalizada && (
+        <Notice variante="advertencia">
+          La evaluación ya fue finalizada; no se pueden cambiar valoraciones.
+        </Notice>
+      )}
       <ConsultarEvaluacionesCuantitativasAsesor
         consulta={consulta}
         etiquetaVolver={etiquetaVolver}
         onVolver={onVolver}
-        onCambiarPuntaje={setFilaEnEdicion}
+        onVerObservaciones={setFilaEnLectura}
+        onCambiarPuntaje={finalizada ? undefined : setFilaEnEdicion}
       />
-      {filaEnEdicion && (
+      {!finalizada && filaEnEdicion && (
         <CambiarPuntajeEvaluacionCuantitativaAsesorPanel
           fila={filaEnEdicion}
           evaluacionAsesorId={evaluacionAsesorId}
           onCerrar={() => setFilaEnEdicion(null)}
+        />
+      )}
+      {filaEnLectura && (
+        <ObservacionesEvaluacionCuantitativaAsesorPanel
+          evaluacion={filaEnLectura}
+          onCerrar={() => setFilaEnLectura(null)}
         />
       )}
     </div>

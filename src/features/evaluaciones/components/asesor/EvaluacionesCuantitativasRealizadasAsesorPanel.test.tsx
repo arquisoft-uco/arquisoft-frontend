@@ -13,6 +13,20 @@ vi.mock('../../hooks/useCambiarPuntajeEvaluacionCuantitativaAsesor', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useObservacionesEvaluacionCuantitativaAsesor', () => ({
+  useObservacionesEvaluacionCuantitativaAsesor: () => ({
+    data: undefined,
+    isLoading: true,
+    isFetching: true,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+  }),
+}));
+
 function fila(id: string, nombre: string): EvaluacionCuantitativaAsesor {
   return {
     id,
@@ -60,6 +74,18 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
       screen.getByText(/ya fue finalizada; no se pueden cambiar valoraciones/),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada sigue ofreciendo «Ver observaciones» y abre el panel del ítem', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getByText(/Orden · 50 de 100/)).toBeInTheDocument();
   });
 
   it('sin finalizar, pulsar la acción de una fila abre el panel con ese ítem', async () => {
