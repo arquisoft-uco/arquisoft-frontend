@@ -19,6 +19,10 @@ export function puedeRemoverPlanEstimado(estadoId: string): boolean {
   return estadoId !== ESTADO_TAREA_FINALIZADA;
 }
 
+export function puedeAgregarPlanEstimado(estadoId: string): boolean {
+  return estadoId !== ESTADO_TAREA_FINALIZADA;
+}
+
 export function destinosDeEstado(id: string): readonly string[] {
   return TRANSICIONES_TAREA[id] ?? [];
 }

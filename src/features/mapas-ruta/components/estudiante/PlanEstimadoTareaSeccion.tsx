@@ -12,6 +12,7 @@ const VALOR = 'break-words text-base font-medium text-on-surface';
 
 interface Props {
   consulta: ConsultaPlanEstimado;
+  puedeAgregar: boolean;
   onAgregar: () => void;
   onEditar: () => void;
   puedeEliminar: boolean;
@@ -20,6 +21,7 @@ interface Props {
 
 export default function PlanEstimadoTareaSeccion({
   consulta,
+  puedeAgregar,
   onAgregar,
   onEditar,
   puedeEliminar,
@@ -38,8 +40,16 @@ export default function PlanEstimadoTareaSeccion({
       <EmptyState
         icono={CalendarClock}
         titulo="Esta tarea aún no tiene plan estimado"
-        descripcion="Indica en cuántos días calculas terminarla para que tu asesor pueda seguirla."
-        accion={<Button onClick={onAgregar}>Agregar plan estimado</Button>}
+        descripcion={
+          puedeAgregar
+            ? 'Indica en cuántos días calculas terminarla para que tu asesor pueda seguirla.'
+            : 'La tarea está finalizada, por eso ya no se le puede agregar un plan estimado.'
+        }
+        accion={
+          <Button disabled={!puedeAgregar} onClick={onAgregar}>
+            Agregar plan estimado
+          </Button>
+        }
       />
     );
   }

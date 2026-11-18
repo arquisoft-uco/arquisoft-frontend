@@ -13,6 +13,7 @@ import { useTarea } from '../hooks/useTarea';
 import {
   destinosDeEstado,
   esTareaRemovible,
+  puedeAgregarPlanEstimado,
   puedeRemoverPlanEstimado,
 } from '../utils/estados-tarea';
 import type { PanelDetalleTarea } from './estudiante/PanelesDetalleTarea';
@@ -60,6 +61,7 @@ export default function DetalleTareaEstudianteView() {
         <TareaDetalleCard tarea={tarea} />
         <PlanEstimadoTareaSeccion
           consulta={planEstimado}
+          puedeAgregar={puedeAgregarPlanEstimado(tarea.estado.id)}
           onAgregar={() => setPanelAbierto('plan')}
           onEditar={() => setPanelAbierto('modificarPlan')}
           puedeEliminar={puedeRemoverPlanEstimado(tarea.estado.id)}
@@ -92,6 +94,7 @@ export default function DetalleTareaEstudianteView() {
                 <Button
                   variante="secundario"
                   icono={CalendarClock}
+                  disabled={!puedeAgregarPlanEstimado(tarea.estado.id)}
                   onClick={() => setPanelAbierto('plan')}
                 >
                   Agregar plan estimado
