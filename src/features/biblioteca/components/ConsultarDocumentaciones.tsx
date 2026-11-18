@@ -3,6 +3,7 @@ import PaginadorListado from '../../../shared/components/PaginadorListado';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
+import { useCompartirDocumentacion } from '../hooks/useCompartirDocumentacion';
 import { useConfirmarCambioEstadoDocumentacion } from '../hooks/useConfirmarCambioEstadoDocumentacion';
 import { useDescargarDocumentacion } from '../hooks/useDescargarDocumentacion';
 import { useDocumentaciones } from '../hooks/useDocumentaciones';
@@ -11,6 +12,7 @@ import type { Documentacion } from '../models/Documentacion';
 import AutoresDocumentacionPanel from './AutoresDocumentacionPanel';
 import ConfirmarCambioEstadoDocumentacion from './ConfirmarCambioEstadoDocumentacion';
 import DocumentacionesTable from './DocumentacionesTable';
+import EnlaceCompartirDocumentacionPanel from './EnlaceCompartirDocumentacionPanel';
 import ResumenTotal from './ResumenTotal';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -34,6 +36,7 @@ export default function ConsultarDocumentaciones({
   const documentaciones = data?.content ?? [];
   const hayFiltros = listado.estadoIds.length > 0;
   const descarga = useDescargarDocumentacion();
+  const compartir = useCompartirDocumentacion();
   const cambioEstado = useConfirmarCambioEstadoDocumentacion(listado, documentaciones.length);
   const recargandoSinFilas = isPlaceholderData && documentaciones.length === 0 && !hayFiltros;
   const opciones = estados?.map((estado) => ({ id: estado.id, etiqueta: estado.nombre }));
@@ -75,6 +78,8 @@ export default function ConsultarDocumentaciones({
             onCambiarEstado={puedeCambiarEstado ? cambioEstado.pedirCambio : undefined}
             onDescargar={descarga.descargar}
             descargando={descarga.descargando}
+            onCompartir={compartir.compartir}
+            compartiendo={compartir.compartiendo}
           />
         )}
       </div>
@@ -98,6 +103,14 @@ export default function ConsultarDocumentaciones({
           cargando={cambioEstado.cargando}
           onConfirmar={cambioEstado.confirmar}
           onCancelar={cambioEstado.cancelar}
+        />
+      )}
+
+      {compartir.enlaceCompartido && (
+        <EnlaceCompartirDocumentacionPanel
+          documentacion={compartir.enlaceCompartido.documentacion}
+          enlace={compartir.enlaceCompartido.enlace}
+          onCerrar={compartir.cerrarEnlaceCompartido}
         />
       )}
 

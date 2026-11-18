@@ -1,9 +1,10 @@
-import { Eye, EyeOff, Users } from 'lucide-react';
+import { Eye, EyeOff, Share2, Users } from 'lucide-react';
 import { accionDescargar } from '../../../shared/components/accionDescargar';
 import RowMenu from '../../../shared/components/ui/RowMenu';
 import type { Documentacion } from '../models/Documentacion';
 import {
   destinosPermitidos,
+  esCompartible,
   type DestinoEstadoDocumentacion,
 } from '../utils/transiciones-estado-documentacion';
 
@@ -17,6 +18,8 @@ interface Props {
   onVerAutores?: (documentacion: Documentacion) => void;
   onCambiarEstado?: (documentacion: Documentacion, destino: DestinoEstadoDocumentacion) => void;
   onDescargar?: (documentacion: Documentacion) => void;
+  onCompartir?: (documentacion: Documentacion) => void;
+  compartiendo?: boolean;
   descargando?: boolean;
 }
 
@@ -26,6 +29,8 @@ export default function AccionesDocumentacion({
   onCambiarEstado,
   onDescargar,
   descargando,
+  onCompartir,
+  compartiendo,
 }: Props) {
   const acciones = [];
   if (onDescargar) {
@@ -35,6 +40,14 @@ export default function AccionesDocumentacion({
         deshabilitada: descargando,
       }),
     );
+  }
+  if (onCompartir && esCompartible(documentacion.estadoDocumentacion.id)) {
+    acciones.push({
+      etiqueta: 'Compartir',
+      icono: Share2,
+      onSeleccionar: () => onCompartir(documentacion),
+      deshabilitada: compartiendo,
+    });
   }
   if (onVerAutores) {
     acciones.push({

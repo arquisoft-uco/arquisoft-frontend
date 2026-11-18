@@ -255,7 +255,45 @@ describe('DocumentacionesTable', () => {
     expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeDisabled();
   });
 
-  it('sin onVerAutores, onCambiarEstado ni onDescargar no hay menú de acciones por fila', () => {
+  it('con onCompartir solo la fila publicada ofrece "Compartir" y elegirla lo llama con esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { onCompartir } = renderizar({ onCompartir: vi.fn(), onDescargar: vi.fn() });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la documentación, versión 1' }),
+    );
+
+    // Assert
+    expect(screen.queryByRole('menuitem', { name: 'Compartir' })).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('menuitem', { name: 'Descargar' }));
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Compartir' }));
+
+    // Assert
+    expect(onCompartir).toHaveBeenCalledWith(DOC_1);
+  });
+
+  it('con compartiendo la opción "Compartir" aparece deshabilitada', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar({ onCompartir: vi.fn(), compartiendo: true });
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Compartir' })).toBeDisabled();
+  });
+
+  it('sin onVerAutores, onCambiarEstado, onDescargar ni onCompartir no hay menú de acciones por fila', () => {
     // Act
     renderizar();
 

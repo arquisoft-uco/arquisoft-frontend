@@ -9,3 +9,7 @@ const DESTINOS_POR_ESTADO: Record<string, DestinoEstadoDocumentacion[]> = {
 export function destinosPermitidos(estadoId: string): DestinoEstadoDocumentacion[] {
   return DESTINOS_POR_ESTADO[estadoId] ?? [];
 }
+
+export function esCompartible(estadoId: string): boolean {
+  return estadoId === 'PUBLICADO';
+}
