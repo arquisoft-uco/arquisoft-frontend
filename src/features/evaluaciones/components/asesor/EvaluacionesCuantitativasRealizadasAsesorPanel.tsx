@@ -4,6 +4,7 @@ import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuanti
 import CambiarPuntajeEvaluacionCuantitativaAsesorPanel from './CambiarPuntajeEvaluacionCuantitativaAsesorPanel';
 import ConsultarEvaluacionesCuantitativasAsesor from './ConsultarEvaluacionesCuantitativasAsesor';
 import type { ConsultaCuantitativasAsesor } from './ConsultarEvaluacionesCuantitativasAsesor';
+import RegistrarObservacionItemAsesorPanel from './RegistrarObservacionItemAsesorPanel';
 import ObservacionesEvaluacionCuantitativaAsesorPanel from './ObservacionesEvaluacionCuantitativaAsesorPanel';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -25,12 +26,19 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
 }: Props) {
   const [filaEnEdicion, setFilaEnEdicion] = useState<EvaluacionCuantitativaAsesor | null>(null);
   const [filaEnLectura, setFilaEnLectura] = useState<EvaluacionCuantitativaAsesor | null>(null);
+  const [registrandoObservacion, setRegistrandoObservacion] = useState(false);
+
+  function cerrarObservaciones() {
+    setFilaEnLectura(null);
+    setRegistrandoObservacion(false);
+  }
 
   return (
     <div className={RAIZ}>
       {finalizada && (
         <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden cambiar valoraciones.
+          La evaluación ya fue finalizada; no se pueden cambiar valoraciones ni registrar
+          observaciones.
         </Notice>
       )}
       <ConsultarEvaluacionesCuantitativasAsesor
@@ -50,7 +58,15 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
       {filaEnLectura && (
         <ObservacionesEvaluacionCuantitativaAsesorPanel
           evaluacion={filaEnLectura}
-          onCerrar={() => setFilaEnLectura(null)}
+          puedeRegistrar={!finalizada}
+          onRegistrar={() => setRegistrandoObservacion(true)}
+          onCerrar={cerrarObservaciones}
+        />
+      )}
+      {!finalizada && filaEnLectura && registrandoObservacion && (
+        <RegistrarObservacionItemAsesorPanel
+          evaluacion={filaEnLectura}
+          onCerrar={() => setRegistrandoObservacion(false)}
         />
       )}
     </div>

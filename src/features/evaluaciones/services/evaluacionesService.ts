@@ -39,6 +39,8 @@ import type { RemoverJuradosEvaluacionRequest } from '../models/RemoverJuradosEv
 import type { RegistrarEvaluacionesCualitativasAsesorRequest } from '../models/RegistrarEvaluacionesCualitativasAsesorRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
+import type { RegistrarObservacionItemAsesorRequest } from '../models/RegistrarObservacionItemAsesorRequest';
+import type { RegistrarObservacionItemAsesorResponse } from '../models/RegistrarObservacionItemAsesorResponse';
 import type { RegistrarObservacionItemJuradoRequest } from '../models/RegistrarObservacionItemJuradoRequest';
 import type { RegistrarObservacionItemJuradoResponse } from '../models/RegistrarObservacionItemJuradoResponse';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
@@ -452,6 +454,17 @@ export const evaluacionesService = {
       .post<
         Page<ObservacionItemAsesor>
       >(`/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/observaciones/asesor`, req)
+      .then((r) => r.data),
+
+  registrarObservacionItemAsesor: ({
+    evaluacionCuantitativaAsesorId,
+    descripcion,
+  }: RegistrarObservacionItemAsesorRequest): Promise<RegistrarObservacionItemAsesorResponse> =>
+    apiClient
+      .post<RegistrarObservacionItemAsesorResponse>(
+        `/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/observaciones`,
+        { descripcion },
+      )
       .then((r) => r.data),
 
   modificarObservacionItemJurado: ({
