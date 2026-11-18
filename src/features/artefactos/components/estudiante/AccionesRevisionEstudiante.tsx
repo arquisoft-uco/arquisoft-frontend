@@ -23,7 +23,7 @@ export default function AccionesRevisionEstudiante({
 
   return (
     <>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 sm:basis-0">
         <Button
           variante="secundario"
           icono={Upload}
