@@ -126,7 +126,7 @@ describe('mapasRutaService', () => {
   });
 
   describe('consultarMapaRutaEstudiante', () => {
-    it('hace GET /mapas-ruta/estudiante sin parámetros y traduce los campos del mapa', async () => {
+    it('hace GET a la ruta del proyecto de grado y traduce los campos del mapa', async () => {
       // Arrange
       get.mockResolvedValue({
         data: {
@@ -139,10 +139,10 @@ describe('mapasRutaService', () => {
       });
 
       // Act
-      const resultado = await mapasRutaService.consultarMapaRutaEstudiante();
+      const resultado = await mapasRutaService.consultarMapaRutaEstudiante('p-1');
 
       // Assert
-      expect(get).toHaveBeenCalledWith('/mapas-ruta/estudiante');
+      expect(get).toHaveBeenCalledWith('/mapas-ruta/proyectos-grado/p-1/estudiante');
       expect(resultado).toEqual({
         id: 'm-1',
         proyectoGradoId: 'p-1',
