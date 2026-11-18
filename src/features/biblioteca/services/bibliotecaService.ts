@@ -51,4 +51,9 @@ export const bibliotecaService = {
     apiClient
       .get<EnlaceDescargaVersion>(`/biblioteca/documentaciones/${documentacionId}/descarga`)
       .then((r) => r.data),
+
+  obtenerEnlaceCompartir: (documentacionId: string): Promise<EnlaceDescargaVersion> =>
+    apiClient
+      .get<EnlaceDescargaVersion>(`/biblioteca/documentaciones/${documentacionId}/enlace`)
+      .then((r) => r.data),
 };

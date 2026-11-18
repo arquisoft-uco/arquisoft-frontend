@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { destinosPermitidos } from './transiciones-estado-documentacion';
+import { destinosPermitidos, esCompartible } from './transiciones-estado-documentacion';
 
 describe('destinosPermitidos', () => {
   it('ofrece solo destinos válidos: nunca Pendiente ni el estado actual', () => {
@@ -13,5 +13,15 @@ describe('destinosPermitidos', () => {
       expect(destinosPermitidos(estado)).not.toContain('PENDIENTE');
       expect(destinosPermitidos(estado)).not.toContain(estado);
     }
+  });
+});
+
+describe('esCompartible', () => {
+  it('es verdadero solo para PUBLICADO', () => {
+    // Act / Assert
+    expect(esCompartible('PUBLICADO')).toBe(true);
+    expect(esCompartible('PENDIENTE')).toBe(false);
+    expect(esCompartible('NO_PUBLICADO')).toBe(false);
+    expect(esCompartible('DESCONOCIDO')).toBe(false);
   });
 });

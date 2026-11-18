@@ -6,6 +6,7 @@ import { useDocumentaciones } from '../hooks/useDocumentaciones';
 import { useEstadosDocumentacion } from '../hooks/useEstadosDocumentacion';
 import { useAutoresDocumentacion } from '../hooks/useAutoresDocumentacion';
 import { useDescargarDocumentacion } from '../hooks/useDescargarDocumentacion';
+import { useCompartirDocumentacion } from '../hooks/useCompartirDocumentacion';
 import { bibliotecaService } from '../services/bibliotecaService';
 import { toast } from '../../../shared/hooks/useToast';
 import type { Page } from '../../../shared/models/api-response';
@@ -23,6 +24,10 @@ vi.mock('../hooks/useAutoresDocumentacion', () => ({
 }));
 vi.mock('../hooks/useDescargarDocumentacion', () => ({
   useDescargarDocumentacion: vi.fn(),
+}));
+
+vi.mock('../hooks/useCompartirDocumentacion', () => ({
+  useCompartirDocumentacion: vi.fn(),
 }));
 
 vi.mock('../services/bibliotecaService', () => ({
@@ -107,9 +112,22 @@ function mockDescarga(parcial: Partial<ReturnType<typeof useDescargarDocumentaci
   return hook;
 }
 
+function mockCompartir(parcial: Partial<ReturnType<typeof useCompartirDocumentacion>> = {}) {
+  const hook = {
+    compartir: vi.fn(),
+    compartiendo: false,
+    enlaceManual: null,
+    cerrarEnlaceManual: vi.fn(),
+    ...parcial,
+  };
+  vi.mocked(useCompartirDocumentacion).mockReturnValue(hook);
+  return hook;
+}
+
 describe('ConsultarDocumentaciones', () => {
   beforeEach(() => {
     mockDescarga();
+    mockCompartir();
     vi.mocked(useDocumentaciones).mockReset();
     vi.mocked(useEstadosDocumentacion).mockReset();
     mockCatalogo(undefined);
@@ -331,6 +349,63 @@ describe('ConsultarDocumentaciones', () => {
     } else {
       expect(descarga.descargar).toHaveBeenCalledWith(DOCUMENTACION);
     }
+  });
+
+  it('"Compartir" invoca el hook con la documentación de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const compartir = mockCompartir();
+    mockHook({ data: crearPagina([DOCUMENTACION]) });
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Documentaciones' })).getByRole('button', {
+        name: 'Acciones de la documentación, versión 2',
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Compartir' }));
+
+    // Assert
+    expect(compartir.compartir).toHaveBeenCalledWith(DOCUMENTACION);
+  });
+
+  it('con enlaceManual abre el panel de respaldo y cerrarlo llama al hook', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const compartir = mockCompartir({
+      enlaceManual: {
+        documentacion: DOCUMENTACION,
+        enlace: { url: 'https://s3.test/d', expiraEn: '2026-11-17T10:00:00Z' },
+      },
+    });
+    mockHook({ data: crearPagina([DOCUMENTACION]) });
+
+    // Act
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByRole('textbox', { name: 'Enlace para compartir' })).toHaveValue(
+      'https://s3.test/d',
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(compartir.cerrarEnlaceManual).toHaveBeenCalled();
   });
 
   describe('cambio de estado', () => {

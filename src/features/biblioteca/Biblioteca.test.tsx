@@ -5,6 +5,7 @@ import { render, screen, within } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
 import Biblioteca from './Biblioteca';
+import { bibliotecaService } from './services/bibliotecaService';
 
 vi.mock('./services/bibliotecaService', () => ({
   bibliotecaService: {
@@ -184,6 +185,65 @@ describe('Biblioteca', () => {
 
       // Assert
       expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
+    },
+  );
+
+  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante, Rol.Bibliotecario])(
+    'el rol %s ve "Compartir" en una fila publicada',
+    async (rol) => {
+      // Arrange
+      const user = userEvent.setup();
+      entrarComo(rol);
+      renderizar();
+
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+      );
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Compartir' })).toBeInTheDocument();
+    },
+  );
+
+  it.each(['PENDIENTE', 'NO_PUBLICADO'])(
+    'el bibliotecario no ve "Compartir" en una fila %s',
+    async (estado) => {
+      // Arrange
+      const user = userEvent.setup();
+      vi.mocked(bibliotecaService.consultarDocumentaciones).mockResolvedValueOnce({
+        content: [
+          {
+            id: 'd-9',
+            tituloProyecto: 'Otro',
+            autores: [],
+            fechaPublicacion: '2026-11-01T10:00:00Z',
+            entregableProyectoGrado: { id: 'e-9', versionEntregable: 5 },
+            bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },
+            estadoDocumentacion: { id: estado, nombre: estado },
+          },
+        ],
+        page: 0,
+        size: 10,
+        totalElements: 1,
+        totalPages: 1,
+        first: true,
+        last: true,
+        empty: false,
+      });
+      entrarComo(Rol.Bibliotecario);
+      renderizar();
+
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 5' }),
+      );
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Compartir' })).not.toBeInTheDocument();
     },
   );
 
