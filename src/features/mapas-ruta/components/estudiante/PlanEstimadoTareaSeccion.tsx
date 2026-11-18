@@ -66,7 +66,7 @@ export default function PlanEstimadoTareaSeccion({
             <Button
               variante="secundario"
               icono={CalendarClock}
-              className="header-action"
+              className="header-action sm:ml-auto"
               onClick={onEditar}
             >
               Editar plan estimado
