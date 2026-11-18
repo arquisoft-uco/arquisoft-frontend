@@ -6,6 +6,12 @@ import { useItemsCuantitativosAsesor } from '../hooks/useItemsCuantitativosAseso
 import { useCategoriasItemCuantitativoAsesor } from '../hooks/useCategoriasItemCuantitativoAsesor';
 import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
 import type { CategoriaItemCuantitativoAsesor } from '../models/CategoriaItemCuantitativoAsesor';
+import { Rol } from '../../../shared/models/rol';
+import {
+  resetAllStores,
+  setActiveRole,
+  setAuthenticatedUser,
+} from '../../../test-utils/store.utils';
 
 vi.mock('../hooks/useItemsCuantitativosAsesor', () => ({
   useItemsCuantitativosAsesor: vi.fn(),
@@ -67,8 +73,15 @@ function mockCategorias(parcial: Partial<Categorias>) {
   } as Categorias);
 }
 
+function entrarComo(rol: Rol) {
+  setAuthenticatedUser({ tokenParsed: { sub: 'u', realm_access: { roles: [rol] } } });
+  setActiveRole(rol);
+}
+
 describe('ItemsCuantitativosAsesorView', () => {
   beforeEach(() => {
+    resetAllStores();
+    entrarComo(Rol.Administrador);
     vi.mocked(useItemsCuantitativosAsesor).mockReset();
     vi.mocked(useCategoriasItemCuantitativoAsesor).mockReset();
     mockCategorias({ data: CATEGORIAS });
@@ -184,5 +197,20 @@ describe('ItemsCuantitativosAsesorView', () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('con rol Asesor la lista se ve pero no hay «Registrar ítem» ni «Editar ítem»', () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    entrarComo(Rol.Asesor);
+
+    // Act
+    render(<ItemsCuantitativosAsesorView />);
+
+    // Assert
+    const tabla = screen.getByRole('table', { name: 'Ítems cuantitativos del asesor' });
+    expect(within(tabla).getByText('Rigor')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Registrar ítem' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Editar ítem/ })).not.toBeInTheDocument();
   });
 });

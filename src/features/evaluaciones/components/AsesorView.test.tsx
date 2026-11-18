@@ -15,6 +15,10 @@ vi.mock('./CategoriasItemCuantitativoAsesorPanel', () => ({
   default: () => <p>Panel de categorías</p>,
 }));
 
+vi.mock('./ItemsCuantitativosAsesorView', () => ({
+  default: () => <p>Panel de ítems cuantitativos</p>,
+}));
+
 describe('AsesorView', () => {
   it('abre en «Mis evaluaciones» y la pestaña «Categorías cuantitativas» cambia el panel', async () => {
     // Arrange
@@ -27,6 +31,19 @@ describe('AsesorView', () => {
 
     // Assert
     expect(screen.getByText('Panel de categorías')).toBeInTheDocument();
+    expect(screen.queryByText('Panel de evaluaciones')).not.toBeInTheDocument();
+  });
+
+  it('la pestaña «Ítems cuantitativos» muestra su panel y oculta el de evaluaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<AsesorView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Ítems cuantitativos' }));
+
+    // Assert
+    expect(screen.getByText('Panel de ítems cuantitativos')).toBeInTheDocument();
     expect(screen.queryByText('Panel de evaluaciones')).not.toBeInTheDocument();
   });
 });
