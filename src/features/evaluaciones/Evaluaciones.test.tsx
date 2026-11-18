@@ -97,7 +97,7 @@ describe('Evaluaciones', () => {
     expect(screen.queryByText('Vista del jurado')).not.toBeInTheDocument();
   });
 
-  it('con el rol bibliotecario, redirige a /forbidden', () => {
+  it('con el rol bibliotecario, muestra Acceso denegado', () => {
     // Arrange
     autenticarCon(Rol.Bibliotecario);
 
@@ -105,13 +105,12 @@ describe('Evaluaciones', () => {
     render(
       <Routes>
         <Route path="/evaluaciones" element={<Evaluaciones />} />
-        <Route path="/forbidden" element={<p>Pantalla de acceso denegado</p>} />
       </Routes>,
       { initialPath: '/evaluaciones' },
     );
 
     // Assert
-    expect(screen.getByText('Pantalla de acceso denegado')).toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
     expect(screen.queryByText('Vista de ítems del administrador')).not.toBeInTheDocument();
   });
 

@@ -124,8 +124,8 @@ nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/`
 `<ComingSoon />` es un stub: el estado real está en `src/features/`.
 
 - **Capa HTTP** — `src/api/axiosInstance.ts` es la única instancia de Axios: adjunta el Bearer token,
-  resuelve el 401 con un mutex de refresco compartido y reintenta, y ante un 403 navega a
-  `/forbidden` importando el router de forma dinámica (evita el ciclo de imports).
+  resuelve el 401 con un mutex de refresco compartido y reintenta, y ante un 403 no navega: marca la
+  sección en `accesoDenegadoStore` y `AppLayout` pinta «Acceso denegado» en el contenido, con el menú visible.
 - **Sesión** — `useAuthStore` vive **solo en memoria**; el interceptor lo lee con `getState()`, no con
   hooks. `useRoleStore` persiste en `localStorage` **únicamente** el string del rol activo. Los roles
   salen de `realm_access.roles`, y el rol activo es derivado: léelo con `useRolActivo()`.

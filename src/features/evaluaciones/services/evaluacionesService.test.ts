@@ -219,6 +219,25 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('removerJuradosEvaluacion', () => {
+    it('llama DELETE a /evaluaciones/{id}/jurados con los ids traducidos a jurados y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerJuradosEvaluacion({
+        evaluacionId: 'e-1',
+        juradosIds: ['j-1'],
+      });
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/e-1/jurados', {
+        data: { jurados: ['j-1'] },
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('omitirEvaluacionesCuantitativasJurado', () => {
     it('llama DELETE con el prefijo /evaluaciones y los ids en data, y resuelve undefined', async () => {
       // Arrange

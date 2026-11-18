@@ -24,7 +24,7 @@ jobs:
   build:
     name: Lint, Test & Build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     # Solo ejecutar si existe package.json (el código se crea en HT-010)
     steps:

@@ -44,4 +44,20 @@ describe('useResumenEvaluacion', () => {
     );
     expect(montar({ resumen: { id: 'e-1', proyecto: 'X', version: 1 }, search: 5 })).toEqual(vacio);
   });
+
+  it('conserva finalizada cuando es booleano y la omite cuando no lo es', () => {
+    // Act
+    const finalizada = montar({
+      resumen: { id: 'e-1', proyecto: 'X', version: 1, finalizada: true },
+      search: '',
+    });
+    const invalida = montar({
+      resumen: { id: 'e-1', proyecto: 'X', version: 1, finalizada: 'si' },
+      search: '',
+    });
+
+    // Assert
+    expect(finalizada.resumen).toEqual({ id: 'e-1', proyecto: 'X', version: 1, finalizada: true });
+    expect(invalida.resumen).toEqual({ id: 'e-1', proyecto: 'X', version: 1 });
+  });
 });

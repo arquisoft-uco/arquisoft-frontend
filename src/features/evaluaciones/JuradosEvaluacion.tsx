@@ -1,71 +1,23 @@
-import { Navigate, useLocation, useNavigate, useParams } from 'react-router';
-import { useHasRole } from '../../hooks/useHasRole';
-import PageHeader from '../../shared/components/ui/PageHeader';
+import { Navigate } from 'react-router';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
+import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
-import AccionesJuradoEvaluacion from './components/estudiante/AccionesJuradoEvaluacion';
-import ListadoJuradosEvaluacion from './components/estudiante/ListadoJuradosEvaluacion';
-import { useJuradosEvaluacion } from './hooks/useJuradosEvaluacion';
-import type { EvaluacionJurado } from './models/EvaluacionJurado';
-import type { NavegacionEvaluacionJurado } from './models/NavegacionEvaluacionJurado';
-import { useResumenEvaluacion } from './hooks/useResumenEvaluacion';
+import JuradosEvaluacionCoordinadorView from './components/coordinador/JuradosEvaluacionCoordinadorView';
+import JuradosEvaluacionEstudianteView from './components/estudiante/JuradosEvaluacionEstudianteView';
 
-const ROLES_CONSULTAN = [Rol.Estudiante];
-const RAIZ = 'flex flex-col gap-6';
+const VIEW_POR_ROL: Record<string, React.ComponentType> = {
+  [Rol.Estudiante]: JuradosEvaluacionEstudianteView,
+  [Rol.Coordinador]: JuradosEvaluacionCoordinadorView,
+};
 
 export default function JuradosEvaluacion() {
-  const { evaluacionId = '' } = useParams();
-  const esEstudiante = useHasRole(ROLES_CONSULTAN);
-  const navigate = useNavigate();
-  const { search: searchJurados } = useLocation();
-  const { resumen, search } = useResumenEvaluacion(evaluacionId);
-  const listado = useJuradosEvaluacion(evaluacionId);
+  const rolActivo = useRolActivo();
 
-  function irA(jurado: EvaluacionJurado, ruta: 'cualitativas' | 'cuantitativas') {
-    const state: NavegacionEvaluacionJurado = {
-      evaluacionJuradoId: jurado.id,
-      evaluacionId,
-      jurado: jurado.jurado.nombre,
-      resumen,
-      search,
-      searchJurados,
-    };
-    navigate(`/evaluaciones/${jurado.id}/${ruta}`, { state });
-  }
+  if (!rolActivo) return <Navigate to="/seleccionar-rol" replace />;
 
-  function verCualitativa(jurado: EvaluacionJurado) {
-    irA(jurado, 'cualitativas');
-  }
+  const View = VIEW_POR_ROL[rolActivo];
 
-  function verCuantitativa(jurado: EvaluacionJurado) {
-    irA(jurado, 'cuantitativas');
-  }
+  if (!View) return <AccesoDenegado />;
 
-  if (!esEstudiante) return <Navigate to="/forbidden" replace />;
-
-  const rutaListado = `/evaluaciones${search}`;
-  const descripcion = resumen
-    ? `${resumen.proyecto} · versión ${resumen.version}`
-    : 'Consulta los jurados asignados a esta evaluación.';
-  const migas = [
-    { etiqueta: 'Evaluaciones', to: rutaListado },
-    { etiqueta: 'Evaluaciones del jurado' },
-  ];
-
-  return (
-    <div className={RAIZ}>
-      <PageHeader titulo="Evaluaciones del jurado" descripcion={descripcion} migas={migas} />
-      <ListadoJuradosEvaluacion
-        listado={listado}
-        onVolver={() => navigate(rutaListado)}
-        encabezadoAcciones="Acciones"
-        acciones={(jurado) => (
-          <AccionesJuradoEvaluacion
-            jurado={jurado}
-            onVerCualitativa={verCualitativa}
-            onVerCuantitativa={verCuantitativa}
-          />
-        )}
-      />
-    </div>
-  );
+  return <View />;
 }

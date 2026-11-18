@@ -1,10 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen, within } from '../../../test-utils/render';
+import { render, screen, waitFor, within } from '../../../test-utils/render';
 import ConsultarDocumentaciones from './ConsultarDocumentaciones';
 import { useDocumentaciones } from '../hooks/useDocumentaciones';
 import { useEstadosDocumentacion } from '../hooks/useEstadosDocumentacion';
 import { useAutoresDocumentacion } from '../hooks/useAutoresDocumentacion';
+import { useDescargarDocumentacion } from '../hooks/useDescargarDocumentacion';
+import { useCompartirDocumentacion } from '../hooks/useCompartirDocumentacion';
+import { bibliotecaService } from '../services/bibliotecaService';
+import { toast } from '../../../shared/hooks/useToast';
 import type { Page } from '../../../shared/models/api-response';
 import type { Documentacion } from '../models/Documentacion';
 
@@ -17,6 +21,20 @@ vi.mock('../hooks/useEstadosDocumentacion', () => ({
 
 vi.mock('../hooks/useAutoresDocumentacion', () => ({
   useAutoresDocumentacion: vi.fn(),
+}));
+vi.mock('../hooks/useDescargarDocumentacion', () => ({
+  useDescargarDocumentacion: vi.fn(),
+}));
+
+vi.mock('../hooks/useCompartirDocumentacion', () => ({
+  useCompartirDocumentacion: vi.fn(),
+}));
+
+vi.mock('../services/bibliotecaService', () => ({
+  bibliotecaService: { cambiarEstadoDocumentacion: vi.fn() },
+}));
+vi.mock('../../../shared/hooks/useToast', () => ({
+  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
 }));
 
 const DOCUMENTACION: Documentacion = {
@@ -88,13 +106,36 @@ function mockAutores(parcial: Partial<ReturnType<typeof useAutoresDocumentacion>
   return hook;
 }
 
+function mockDescarga(parcial: Partial<ReturnType<typeof useDescargarDocumentacion>> = {}) {
+  const hook = { descargar: vi.fn(), descargando: false, ...parcial };
+  vi.mocked(useDescargarDocumentacion).mockReturnValue(hook);
+  return hook;
+}
+
+function mockCompartir(parcial: Partial<ReturnType<typeof useCompartirDocumentacion>> = {}) {
+  const hook = {
+    compartir: vi.fn(),
+    compartiendo: false,
+    enlaceCompartido: null,
+    cerrarEnlaceCompartido: vi.fn(),
+    ...parcial,
+  };
+  vi.mocked(useCompartirDocumentacion).mockReturnValue(hook);
+  return hook;
+}
+
 describe('ConsultarDocumentaciones', () => {
   beforeEach(() => {
+    mockDescarga();
+    mockCompartir();
     vi.mocked(useDocumentaciones).mockReset();
     vi.mocked(useEstadosDocumentacion).mockReset();
     mockCatalogo(undefined);
     vi.mocked(useAutoresDocumentacion).mockReset();
     mockAutores();
+    vi.mocked(bibliotecaService.cambiarEstadoDocumentacion).mockReset();
+    vi.mocked(toast.success).mockClear();
+    vi.mocked(toast.error).mockClear();
   });
 
   it('muestra un estado de carga accesible mientras llega la primera página', () => {
@@ -102,7 +143,13 @@ describe('ConsultarDocumentaciones', () => {
     mockHook({ isLoading: true });
 
     // Act
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
 
     // Assert
     expect(screen.getByRole('status')).toBeInTheDocument();
@@ -113,7 +160,13 @@ describe('ConsultarDocumentaciones', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ isError: true, error: new Error('fallo') });
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
@@ -130,7 +183,11 @@ describe('ConsultarDocumentaciones', () => {
     // Arrange
     mockHook({ data: crearPagina([DOCUMENTACION]) });
     const { rerender } = render(
-      <ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />,
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
     );
 
     // Assert
@@ -146,7 +203,13 @@ describe('ConsultarDocumentaciones', () => {
 
     // Act
     mockHook({ data: crearPagina([DOCUMENTACION], { totalElements: 12, totalPages: 2 }) });
-    rerender(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
+    rerender(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
 
     // Assert
     expect(screen.getByText('12 documentaciones')).toBeInTheDocument();
@@ -160,7 +223,13 @@ describe('ConsultarDocumentaciones', () => {
       { id: 'PUBLICADO', nombre: 'Publicado', descripcion: '' },
     ]);
     const hook = mockHook({ data: crearPagina([DOCUMENTACION]) });
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado puedeVerAutores={false} />);
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
 
     // Act
     await user.click(
@@ -180,7 +249,13 @@ describe('ConsultarDocumentaciones', () => {
     mockHook({ data: crearPagina([DOCUMENTACION]) });
 
     // Act
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
 
     // Assert
     expect(screen.queryByRole('group', { name: 'Estado' })).not.toBeInTheDocument();
@@ -191,7 +266,13 @@ describe('ConsultarDocumentaciones', () => {
     // Arrange
     const user = userEvent.setup();
     mockHook({ data: crearPagina([DOCUMENTACION]) });
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores />);
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores
+        puedeCambiarEstado={false}
+      />,
+    );
 
     // Act
     await user.click(
@@ -212,17 +293,286 @@ describe('ConsultarDocumentaciones', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('sin permiso no hay acción "Ver autores" ni se consulta a los autores', () => {
+  it('sin permiso no hay acción "Ver autores" en el menú ni se consulta a los autores', async () => {
     // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([DOCUMENTACION]) });
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Documentaciones' })).getByRole('button', {
+        name: 'Acciones de la documentación, versión 2',
+      }),
+    );
+
+    // Assert
+    expect(screen.queryByRole('menuitem', { name: 'Ver autores' })).not.toBeInTheDocument();
+    expect(useAutoresDocumentacion).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { descargando: false, caso: 'invoca la descarga con la documentación de esa fila' },
+    { descargando: true, caso: 'queda deshabilitada mientras descarga' },
+  ])('"Descargar" $caso', async ({ descargando }) => {
+    // Arrange
+    const user = userEvent.setup();
+    const descarga = mockDescarga({ descargando });
+    mockHook({ data: crearPagina([DOCUMENTACION]) });
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Documentaciones' })).getByRole('button', {
+        name: 'Acciones de la documentación, versión 2',
+      }),
+    );
+    const opcion = screen.getByRole('menuitem', { name: 'Descargar' });
+    await user.click(opcion);
+
+    // Assert
+    if (descargando) {
+      expect(opcion).toBeDisabled();
+      expect(descarga.descargar).not.toHaveBeenCalled();
+    } else {
+      expect(descarga.descargar).toHaveBeenCalledWith(DOCUMENTACION);
+    }
+  });
+
+  it('"Compartir" invoca el hook con la documentación de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const compartir = mockCompartir();
+    mockHook({ data: crearPagina([DOCUMENTACION]) });
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
+
+    // Act
+    await user.click(
+      within(screen.getByRole('table', { name: 'Documentaciones' })).getByRole('button', {
+        name: 'Acciones de la documentación, versión 2',
+      }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Compartir' }));
+
+    // Assert
+    expect(compartir.compartir).toHaveBeenCalledWith(DOCUMENTACION);
+  });
+
+  it('con enlaceCompartido abre el panel y cerrarlo llama al hook', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const compartir = mockCompartir({
+      enlaceCompartido: {
+        documentacion: DOCUMENTACION,
+        enlace: { url: 'https://s3.test/d', expiraEn: '2026-11-17T10:00:00Z' },
+      },
+    });
     mockHook({ data: crearPagina([DOCUMENTACION]) });
 
     // Act
-    render(<ConsultarDocumentaciones puedeFiltrarPorEstado={false} puedeVerAutores={false} />);
+    render(
+      <ConsultarDocumentaciones
+        puedeFiltrarPorEstado={false}
+        puedeVerAutores={false}
+        puedeCambiarEstado={false}
+      />,
+    );
 
     // Assert
-    expect(
-      screen.queryByRole('button', { name: /Acciones de la documentación/ }),
-    ).not.toBeInTheDocument();
-    expect(useAutoresDocumentacion).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: 'Enlace para compartir' })).toHaveValue(
+      'https://s3.test/d',
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+
+    // Assert
+    expect(compartir.cerrarEnlaceCompartido).toHaveBeenCalled();
+  });
+
+  describe('cambio de estado', () => {
+    function mockMutacion(resultado: 'exito' | 'error') {
+      const cambiar = vi.mocked(bibliotecaService.cambiarEstadoDocumentacion);
+      if (resultado === 'exito') cambiar.mockResolvedValue(undefined);
+      else cambiar.mockRejectedValue(new Error('fallo'));
+      return cambiar;
+    }
+
+    async function abrirDialogo(user: ReturnType<typeof userEvent.setup>) {
+      render(
+        <ConsultarDocumentaciones
+          puedeFiltrarPorEstado={false}
+          puedeVerAutores={false}
+          puedeCambiarEstado
+        />,
+      );
+      await user.click(
+        within(screen.getByRole('table', { name: 'Documentaciones' })).getByRole('button', {
+          name: 'Acciones de la documentación, versión 2',
+        }),
+      );
+      await user.click(screen.getByRole('menuitem', { name: 'Marcar como no publicada' }));
+    }
+
+    beforeEach(() => {
+      mockHook({ data: crearPagina([DOCUMENTACION]) });
+    });
+
+    it('elegir una acción abre el diálogo con título y versión, y cancelar no cambia nada', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mutate = mockMutacion('exito');
+
+      // Act
+      await abrirDialogo(user);
+
+      // Assert
+      const dialogo = within(screen.getByRole('alertdialog'));
+      expect(dialogo.getByText('¿Marcar como no publicada?')).toBeInTheDocument();
+      expect(dialogo.getByText('Sistema de Gestión Académica · Versión 2')).toBeInTheDocument();
+
+      // Act
+      await user.click(dialogo.getByRole('button', { name: 'Cancelar' }));
+
+      // Assert
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(mutate).not.toHaveBeenCalled();
+    });
+
+    it('confirmar envía el destino, avisa con un toast de éxito y cierra el diálogo', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mutate = mockMutacion('exito');
+      await abrirDialogo(user);
+
+      // Act
+      await user.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', {
+          name: 'Marcar como no publicada',
+        }),
+      );
+
+      // Assert
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+      expect(mutate).toHaveBeenCalledWith('d-1', { estado: 'NO_PUBLICADO' });
+      expect(toast.success).toHaveBeenCalledWith(
+        'Documentación marcada como no publicada',
+        'Sistema de Gestión Académica',
+      );
+    });
+
+    it('si el cambio falla muestra un toast de error y cierra el diálogo', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      mockMutacion('error');
+      await abrirDialogo(user);
+
+      // Act
+      await user.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', {
+          name: 'Marcar como no publicada',
+        }),
+      );
+
+      // Assert
+      await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudo marcar como no publicada',
+        expect.any(String),
+      );
+    });
+
+    it.each([
+      {
+        caso: 'sale por el filtro y era la única de una página posterior',
+        page: 1,
+        estadoIds: ['PUBLICADO'],
+        filas: 1,
+        retrocede: true,
+      },
+      {
+        caso: 'sale por el filtro pero está en la primera página',
+        page: 0,
+        estadoIds: ['PUBLICADO'],
+        filas: 1,
+        retrocede: false,
+      },
+      {
+        caso: 'el filtro incluye el estado destino',
+        page: 1,
+        estadoIds: ['NO_PUBLICADO'],
+        filas: 1,
+        retrocede: false,
+      },
+      {
+        caso: 'quedan más filas en la página',
+        page: 1,
+        estadoIds: ['PUBLICADO'],
+        filas: 2,
+        retrocede: false,
+      },
+    ])(
+      'al confirmar, retrocede de página solo cuando $caso: $retrocede',
+      async ({ page, estadoIds, filas, retrocede }) => {
+        // Arrange
+        const user = userEvent.setup();
+        mockMutacion('exito');
+        const otra: Documentacion = {
+          ...DOCUMENTACION,
+          id: 'd-2',
+          entregableProyectoGrado: { id: 'e-2', versionEntregable: 3 },
+        };
+        const contenido = filas === 1 ? [DOCUMENTACION] : [DOCUMENTACION, otra];
+        const hook = mockHook({ data: crearPagina(contenido), page, estadoIds });
+        await abrirDialogo(user);
+
+        // Act
+        await user.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', {
+            name: 'Marcar como no publicada',
+          }),
+        );
+
+        // Assert
+        await waitFor(() => expect(toast.success).toHaveBeenCalled());
+        if (retrocede) expect(hook.goToPage).toHaveBeenCalledWith(0);
+        else expect(hook.goToPage).not.toHaveBeenCalled();
+      },
+    );
+
+    it('sin permiso no hay acciones de estado', () => {
+      // Arrange
+      mockMutacion('exito');
+
+      // Act
+      render(
+        <ConsultarDocumentaciones
+          puedeFiltrarPorEstado={false}
+          puedeVerAutores
+          puedeCambiarEstado={false}
+        />,
+      );
+
+      // Assert
+      expect(screen.queryByRole('menuitem', { name: 'Publicar' })).not.toBeInTheDocument();
+    });
   });
 });

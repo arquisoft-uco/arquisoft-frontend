@@ -5,8 +5,11 @@ import Sidebar from './Sidebar';
 import PageSkeleton from '../shared/components/PageSkeleton';
 import { ChunkErrorBoundary } from '../shared/components/ChunkErrorBoundary';
 import Toaster from '../shared/components/Toaster';
+import AccesoDenegado from '../shared/components/AccesoDenegado';
+import { useAccesoDenegado } from '../hooks/useAccesoDenegado';
 
 export default function AppLayout() {
+  const { denegado, reintentar } = useAccesoDenegado();
   // On desktop the sidebar starts open; on mobile it starts closed.
   const [sidenavOpen, setSidenavOpen] = useState(() => window.innerWidth >= 1024);
 
@@ -53,20 +56,20 @@ export default function AppLayout() {
       {/* Main content column */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Header onMenuToggle={() => setSidenavOpen((v) => !v)} isSidenavOpen={sidenavOpen} />
-        <main
-          className="flex-1 overflow-y-auto bg-background p-4 sm:p-6 lg:p-8"
-          id="main-content"
-        >
+        <main className="flex-1 overflow-y-auto bg-background p-4 sm:p-6 lg:p-8" id="main-content">
           {/* Skip-to-content anchor target */}
-          <ChunkErrorBoundary>
-            <Suspense fallback={<PageSkeleton />}>
-              <Outlet />
-            </Suspense>
-          </ChunkErrorBoundary>
+          {denegado ? (
+            <AccesoDenegado onReintentar={reintentar} />
+          ) : (
+            <ChunkErrorBoundary>
+              <Suspense fallback={<PageSkeleton />}>
+                <Outlet />
+              </Suspense>
+            </ChunkErrorBoundary>
+          )}
         </main>
       </div>
       <Toaster />
     </div>
   );
 }
-

@@ -188,6 +188,18 @@ describe('RevisionesMiFichaPanel', () => {
       ).not.toBeInTheDocument();
     });
 
+    it('el botón muestra el texto «Marcar como visualizada» además del icono', () => {
+      // Arrange
+      conRevisiones({ filas: [NUEVA], totalElements: 1, totalPages: 1 });
+
+      // Act
+      render(<RevisionesMiFichaPanel />);
+
+      // Assert
+      const [boton] = screen.getAllByRole('button', { name: /^Marcar como visualizada/ });
+      expect(boton).toHaveTextContent('Marcar como visualizada');
+    });
+
     it('al pulsar llama a la mutación con el id de la revisión y al éxito avisa con un toast', async () => {
       // Arrange
       const user = userEvent.setup();
@@ -258,6 +270,7 @@ describe('RevisionesMiFichaPanel', () => {
       // Assert
       for (const boton of screen.getAllByRole('button', { name: /revisión de Objetivo general/ })) {
         expect(boton).toBeDisabled();
+        expect(boton).toHaveAttribute('aria-busy', 'true');
       }
       for (const boton of screen.getAllByRole('button', { name: /revisión de Alcance/ })) {
         expect(boton).toBeEnabled();

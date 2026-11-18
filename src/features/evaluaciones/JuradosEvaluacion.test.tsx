@@ -1,154 +1,80 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
-import { Route, Routes, useLocation } from 'react-router';
+import { Route, Routes } from 'react-router';
 import { render, screen } from '../../test-utils/render';
+import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-utils/store.utils';
 import JuradosEvaluacion from './JuradosEvaluacion';
-import { useHasRole } from '../../hooks/useHasRole';
-import { useResumenEvaluacion } from './hooks/useResumenEvaluacion';
+import { Rol } from '../../shared/models/rol';
 
-vi.mock('../../hooks/useHasRole', () => ({ useHasRole: vi.fn() }));
-vi.mock('./hooks/useJuradosEvaluacion', () => ({ useJuradosEvaluacion: vi.fn() }));
-vi.mock('./components/estudiante/ListadoJuradosEvaluacion', () => ({
-  default: ({
-    acciones,
-  }: {
-    acciones?: (jurado: {
-      id: string;
-      jurado: { id: string; nombre: string; email: string };
-    }) => ReactNode;
-  }) => (
-    <div>
-      <p>Listado de jurados</p>
-      {acciones?.({
-        id: 'ej-1',
-        jurado: { id: 'j-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
-      })}
-    </div>
-  ),
+vi.mock('./components/estudiante/JuradosEvaluacionEstudianteView', () => ({
+  default: () => <p>Vista del estudiante</p>,
 }));
-vi.mock('./hooks/useResumenEvaluacion', () => ({ useResumenEvaluacion: vi.fn() }));
-
-let stateDestino: unknown;
-
-function Destino() {
-  const location = useLocation();
-  const ultimo = location.pathname.split('/').pop();
-  stateDestino = location.state;
-  return <p>Destino {ultimo}</p>;
-}
+vi.mock('./components/coordinador/JuradosEvaluacionCoordinadorView', () => ({
+  default: () => <p>Vista del coordinador</p>,
+}));
 
 function montar() {
   return render(
     <Routes>
       <Route path="/evaluaciones/:evaluacionId/jurados" element={<JuradosEvaluacion />} />
-      <Route path="/evaluaciones/:id/cualitativas" element={<Destino />} />
-      <Route path="/evaluaciones/:id/cuantitativas" element={<Destino />} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
+      <Route path="/seleccionar-rol" element={<p>Seleccionar rol</p>} />
     </Routes>,
-    { initialPath: '/evaluaciones/e-1/jurados?pagina=2' },
+    { initialPath: '/evaluaciones/e-1/jurados' },
   );
+}
+
+function autenticarCon(roles: Rol[], activo?: Rol) {
+  setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles } } });
+  if (activo) setActiveRole(activo);
 }
 
 describe('JuradosEvaluacion', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(useHasRole).mockReturnValue(true);
+    resetAllStores();
   });
 
-  it('el estudiante ve migas con el search del listado, el proyecto con su versión y los jurados', () => {
+  it('el estudiante ve su vista y no la del coordinador', () => {
     // Arrange
-    vi.mocked(useResumenEvaluacion).mockReturnValue({
-      resumen: { id: 'e-1', proyecto: 'Sistema de monitoreo', version: 3 },
-      search: '?q=sis&pagina=2',
-    });
+    autenticarCon([Rol.Estudiante], Rol.Estudiante);
 
     // Act
     montar();
 
     // Assert
-    expect(screen.getByRole('heading', { name: 'Evaluaciones del jurado' })).toBeInTheDocument();
-    expect(screen.getByText('Sistema de monitoreo · versión 3')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toHaveAttribute(
-      'href',
-      '/evaluaciones?q=sis&pagina=2',
-    );
-    expect(screen.getByText('Listado de jurados')).toBeInTheDocument();
+    expect(screen.getByText('Vista del estudiante')).toBeInTheDocument();
+    expect(screen.queryByText('Vista del coordinador')).not.toBeInTheDocument();
   });
 
-  it('sin state de navegación muestra la descripción genérica y la miga sin search', () => {
+  it('el coordinador ve su vista y no la del estudiante', () => {
     // Arrange
-    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+    autenticarCon([Rol.Coordinador], Rol.Coordinador);
 
     // Act
     montar();
 
     // Assert
-    expect(
-      screen.getByText('Consulta los jurados asignados a esta evaluación.'),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toHaveAttribute(
-      'href',
-      '/evaluaciones',
-    );
+    expect(screen.getByText('Vista del coordinador')).toBeInTheDocument();
+    expect(screen.queryByText('Vista del estudiante')).not.toBeInTheDocument();
   });
 
-  it('un rol distinto de estudiante es redirigido a /forbidden', () => {
+  it('un rol fuera del mapa muestra Acceso denegado y sin rol activo va a /seleccionar-rol', () => {
     // Arrange
-    vi.mocked(useHasRole).mockReturnValue(false);
-    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+    autenticarCon([Rol.Jurado], Rol.Jurado);
 
     // Act
-    montar();
+    const { unmount } = montar();
 
     // Assert
     expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
-    expect(screen.queryByText('Listado de jurados')).not.toBeInTheDocument();
-  });
 
-  it('«Ver evaluación cualitativa» navega a la ruta del jurado con el contexto en el state', async () => {
     // Arrange
-    const resumen = { id: 'e-1', proyecto: 'Sistema de monitoreo', version: 3 };
-    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen, search: '?q=sis' });
-    montar();
+    unmount();
+    resetAllStores();
+    autenticarCon([Rol.Estudiante, Rol.Coordinador]);
 
     // Act
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Ver evaluación cualitativa de Ana Pérez' }),
-    );
-
-    // Assert
-    expect(screen.getByText('Destino cualitativas')).toBeInTheDocument();
-    expect(stateDestino).toEqual({
-      evaluacionJuradoId: 'ej-1',
-      evaluacionId: 'e-1',
-      jurado: 'Ana Pérez',
-      resumen,
-      search: '?q=sis',
-      searchJurados: '?pagina=2',
-    });
-  });
-
-  it('«Ver evaluación cuantitativa» navega a la ruta del jurado con el mismo contexto en el state', async () => {
-    // Arrange
-    const resumen = { id: 'e-1', proyecto: 'Sistema de monitoreo', version: 3 };
-    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen, search: '?q=sis' });
     montar();
 
-    // Act
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Ver evaluación cuantitativa de Ana Pérez' }),
-    );
-
     // Assert
-    expect(screen.getByText('Destino cuantitativas')).toBeInTheDocument();
-    expect(stateDestino).toEqual({
-      evaluacionJuradoId: 'ej-1',
-      evaluacionId: 'e-1',
-      jurado: 'Ana Pérez',
-      resumen,
-      search: '?q=sis',
-      searchJurados: '?pagina=2',
-    });
+    expect(screen.getByText('Seleccionar rol')).toBeInTheDocument();
   });
 });

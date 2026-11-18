@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Route, Routes } from 'react-router';
+import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../test-utils/render';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../../test-utils/store.utils';
 import { Rol } from '../../shared/models/rol';
 import Biblioteca from './Biblioteca';
+import { bibliotecaService } from './services/bibliotecaService';
 
 vi.mock('./services/bibliotecaService', () => ({
   bibliotecaService: {
@@ -32,6 +34,7 @@ vi.mock('./services/bibliotecaService', () => ({
       empty: false,
     }),
     consultarAutoresDocumentacion: vi.fn().mockResolvedValue([]),
+    cambiarEstadoDocumentacion: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -40,7 +43,6 @@ function renderizar() {
     <Routes>
       <Route path="/biblioteca" element={<Biblioteca />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/biblioteca' },
   );
@@ -86,7 +88,7 @@ describe('Biblioteca', () => {
     },
   );
 
-  it('un rol sin vista redirige a /forbidden', async () => {
+  it('un rol sin vista muestra Acceso denegado', async () => {
     // Arrange
     entrarComo(Rol.Administrador);
 
@@ -150,20 +152,117 @@ describe('Biblioteca', () => {
     ).toBeInTheDocument();
   });
 
-  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante])(
-    'el rol %s no ve la acción "Ver autores"',
+  it('el bibliotecario ve en una fila publicada la acción para marcarla como no publicada', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    entrarComo(Rol.Bibliotecario);
+    renderizar();
+
+    // Act
+    const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+    await user.click(
+      tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Marcar como no publicada' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Publicar' })).not.toBeInTheDocument();
+  });
+
+  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante, Rol.Bibliotecario])(
+    'el rol %s ve "Descargar" en el menú de la fila',
     async (rol) => {
       // Arrange
+      const user = userEvent.setup();
       entrarComo(rol);
-
-      // Act
       renderizar();
 
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+      );
+
       // Assert
-      await screen.findByRole('table', { name: 'Documentaciones' });
-      expect(
-        screen.queryByRole('button', { name: /Acciones de la documentación/ }),
-      ).not.toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
+    },
+  );
+
+  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante, Rol.Bibliotecario])(
+    'el rol %s ve "Compartir" en una fila publicada',
+    async (rol) => {
+      // Arrange
+      const user = userEvent.setup();
+      entrarComo(rol);
+      renderizar();
+
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+      );
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Compartir' })).toBeInTheDocument();
+    },
+  );
+
+  it.each(['PENDIENTE', 'NO_PUBLICADO'])(
+    'el bibliotecario no ve "Compartir" en una fila %s',
+    async (estado) => {
+      // Arrange
+      const user = userEvent.setup();
+      vi.mocked(bibliotecaService.consultarDocumentaciones).mockResolvedValueOnce({
+        content: [
+          {
+            id: 'd-9',
+            tituloProyecto: 'Otro',
+            autores: [],
+            fechaPublicacion: '2026-11-01T10:00:00Z',
+            entregableProyectoGrado: { id: 'e-9', versionEntregable: 5 },
+            bibliotecario: { id: 'b-1', nombre: 'Laura Gómez' },
+            estadoDocumentacion: { id: estado, nombre: estado },
+          },
+        ],
+        page: 0,
+        size: 10,
+        totalElements: 1,
+        totalPages: 1,
+        first: true,
+        last: true,
+        empty: false,
+      });
+      entrarComo(Rol.Bibliotecario);
+      renderizar();
+
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 5' }),
+      );
+
+      // Assert
+      expect(screen.getByRole('menuitem', { name: 'Descargar' })).toBeInTheDocument();
+      expect(screen.queryByRole('menuitem', { name: 'Compartir' })).not.toBeInTheDocument();
+    },
+  );
+
+  it.each([Rol.Asesor, Rol.Coordinador, Rol.Estudiante])(
+    'el rol %s no ve la acción "Ver autores" en el menú',
+    async (rol) => {
+      // Arrange
+      const user = userEvent.setup();
+      entrarComo(rol);
+      renderizar();
+
+      // Act
+      const tabla = within(await screen.findByRole('table', { name: 'Documentaciones' }));
+      await user.click(
+        tabla.getByRole('button', { name: 'Acciones de la documentación, versión 2' }),
+      );
+
+      // Assert
+      expect(screen.queryByRole('menuitem', { name: 'Ver autores' })).not.toBeInTheDocument();
     },
   );
 });

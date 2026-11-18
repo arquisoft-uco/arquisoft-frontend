@@ -5,7 +5,6 @@ import { guarded } from './guards/guarded';
 import AppLayout from './layout/AppLayout';
 import { rutasEvaluaciones } from './features/evaluaciones/rutas';
 import IniciarSesion from './features/iniciar-sesion/IniciarSesion';
-import ForbiddenPage from './shared/components/ForbiddenPage';
 import RouteErrorPage from './shared/components/RouteErrorPage';
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'));
 const FichasPerfil = lazy(() => import('./features/fichas-perfil/FichasPerfil'));
@@ -30,12 +29,13 @@ const VersionesRepositorio = lazy(
   () => import('./features/repositorio-artefactos/VersionesRepositorio'),
 );
 const Biblioteca = lazy(() => import('./features/biblioteca/Biblioteca'));
+const BibliotecaDisponibles = lazy(() => import('./features/biblioteca/BibliotecaDisponibles'));
 const Solicitudes = lazy(() => import('./features/solicitudes/Solicitudes'));
 const SeleccionarRol = lazy(() => import('./features/seleccionar-rol/SeleccionarRol'));
 const Usuarios = lazy(() => import('./features/usuarios/Usuarios'));
 const Seguridad = lazy(() => import('./features/seguridad/Seguridad'));
 
-// Exportado para que el interceptor de Axios navegue a /forbidden fuera del árbol de React.
+// Exportado para main.tsx.
 export const router = createBrowserRouter([
   {
     element: <AuthGuard />,
@@ -112,7 +112,14 @@ export const router = createBrowserRouter([
               { path: ':repositorioId/versiones', element: <VersionesRepositorio /> },
             ],
           },
-          { path: 'biblioteca', element: guarded('biblioteca', <Biblioteca />) },
+          {
+            path: 'biblioteca',
+            element: guarded('biblioteca', <Outlet />),
+            children: [
+              { index: true, element: <Biblioteca /> },
+              { path: 'disponibles', element: <BibliotecaDisponibles /> },
+            ],
+          },
           { path: 'solicitudes', element: guarded('solicitudes', <Solicitudes />) },
           { path: 'usuarios', element: guarded('usuarios', <Usuarios />) },
           { path: 'seguridad', element: guarded('seguridad', <Seguridad />) },
@@ -123,6 +130,5 @@ export const router = createBrowserRouter([
     ],
   },
   { path: 'iniciar-sesion', element: <IniciarSesion /> },
-  { path: 'forbidden', element: <ForbiddenPage /> },
   { path: '*', element: <Navigate to="/" replace /> },
 ]);

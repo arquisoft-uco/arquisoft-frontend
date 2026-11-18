@@ -4,6 +4,9 @@ import { useRoleStore } from './roleStore';
 import type { ProveedorId, SesionRestaurada } from './proveedores/proveedor';
 import { fijarProveedorActivo, proveedorActivo } from './proveedores/proveedorActivo';
 import { crearProveedor, proveedoresDisponibles } from './proveedores/proveedores';
+import { monitoring } from '../shared/utils/monitoring';
+
+export type ResultadoRestauracion = 'restaurada' | 'login-en-curso' | 'requiere-eleccion';
 
 function alActualizar(sesion: SesionRestaurada): void {
   useAuthStore.setState({ token: sesion.token, tokenParsed: sesion.tokenParsed });
@@ -18,17 +21,39 @@ export function resolverProveedor(): ProveedorId | null {
   return null;
 }
 
+// Única definición de cuándo se muestra el selector; razona por conteo, nunca por proveedor concreto.
+export function requiereElegirProveedor(): boolean {
+  return resolverProveedor() === null;
+}
+
+// Con varios proveedores y uno recordado de una carga anterior se intenta recuperar en silencio; sin sesión se pide elegir.
 // Si el proveedor deja el login en curso (redirección), el store queda sin escribir.
-export async function restaurarSesion(): Promise<void> {
+export async function restaurarSesion(): Promise<ResultadoRestauracion> {
   const id = resolverProveedor();
   if (!id) throw new Error('[auth] No hay un proveedor de identidad elegido.');
+
+  const silencioso =
+    proveedoresDisponibles().length > 1 && !useProveedorStore.getState().confirmadoEnEstaCarga;
 
   useProveedorStore.getState().elegirProveedor(id);
   const proveedor = crearProveedor(id);
   fijarProveedorActivo(proveedor);
 
-  const sesion = await proveedor.restaurarSesion(alActualizar);
-  if (!sesion) return;
+  let sesion: SesionRestaurada | null;
+  if (silencioso) {
+    try {
+      sesion = await proveedor.recuperarSesionSilenciosa(alActualizar);
+    } catch (error) {
+      monitoring.captureError(error instanceof Error ? error : new Error(String(error)), {
+        context: 'recuperacion-silenciosa',
+      });
+      sesion = null;
+    }
+    if (!sesion) return 'requiere-eleccion';
+  } else {
+    sesion = await proveedor.restaurarSesion(alActualizar);
+    if (!sesion) return 'login-en-curso';
+  }
 
   useAuthStore.getState().setAuth({
     authenticated: true,
@@ -36,6 +61,7 @@ export async function restaurarSesion(): Promise<void> {
     tokenParsed: sesion.tokenParsed,
     username: sesion.username,
   });
+  return 'restaurada';
 }
 
 export async function verificarSesionActiva(): Promise<void> {

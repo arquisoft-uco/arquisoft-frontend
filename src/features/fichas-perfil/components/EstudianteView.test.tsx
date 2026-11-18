@@ -9,6 +9,7 @@ import { useEvaluacionesMiFicha } from '../hooks/useEvaluacionesMiFicha';
 import { useRevisionesMiFicha } from '../hooks/useRevisionesMiFicha';
 import { useObservacionesMiFicha } from '../hooks/useObservacionesMiFicha';
 import { useEstadosObservacionRevision } from '../hooks/useEstadosObservacionRevision';
+import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 
 vi.mock('../hooks/useMiFichaPerfil', () => ({ useMiFichaPerfil: vi.fn() }));
@@ -32,6 +33,9 @@ vi.mock('../hooks/useObservacionesEvaluacionMiFicha', () => ({
 vi.mock('../hooks/useEstadosObservacionRevision', () => ({
   useEstadosObservacionRevision: vi.fn(),
 }));
+vi.mock('../services/fichasPerfilService', () => ({
+  fichasPerfilService: { consultarCompanerosFichaPerfil: vi.fn() },
+}));
 vi.mock('./TiposItemPanel', () => ({ default: () => <div>Catálogo de tipos</div> }));
 
 type Mi = ReturnType<typeof useMiFichaPerfil>;
@@ -46,7 +50,6 @@ const FICHA: MiFichaPerfilResponse = {
     nombre: 'En construccion',
     fechaActualizacion: '2026-09-01T10:00:00Z',
   },
-  integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
 };
 
 const OTRA: MiFichaPerfilResponse = { ...FICHA, id: 'f-2', tituloProyecto: 'Otro proyecto' };
@@ -147,6 +150,9 @@ describe('EstudianteView', () => {
       reintentar: vi.fn(),
     });
     conEstadosObservacion();
+    vi.mocked(fichasPerfilService.consultarCompanerosFichaPerfil).mockResolvedValue([
+      { idVinculo: 'v-2', id: 'e-2', nombre: 'Marta Gómez', email: 'marta@uco.edu.co' },
+    ]);
     vi.mocked(useEvaluacionesMiFicha).mockReturnValue({
       evaluaciones: [],
       isLoading: false,
@@ -200,7 +206,7 @@ describe('EstudianteView', () => {
     expect(reintentar).toHaveBeenCalledTimes(1);
   });
 
-  it('muestra la cabecera con título, estado y «Editar título», y el resumen con estado, asesor y equipo', () => {
+  it('muestra la cabecera con título, estado y «Editar título», y el resumen con estado, asesor y compañeros del endpoint', async () => {
     // Arrange
     conFicha();
 
@@ -215,9 +221,25 @@ describe('EstudianteView', () => {
     const resumen = screen.getByRole('complementary', { name: 'Resumen de la ficha' });
     expect(within(resumen).getByText('En construccion')).toBeInTheDocument();
     expect(within(resumen).getByText('Ana Ruiz')).toBeInTheDocument();
-    expect(within(resumen).getByRole('list', { name: 'Equipo de la ficha' })).toHaveTextContent(
-      'Luis Pérez',
+    expect(within(resumen).getByText('Compañeros')).toBeInTheDocument();
+    expect(within(resumen).queryByText('Equipo')).not.toBeInTheDocument();
+    expect(await within(resumen).findByRole('list', { name: 'Compañeros' })).toHaveTextContent(
+      'Marta Gómez',
     );
+    expect(fichasPerfilService.consultarCompanerosFichaPerfil).toHaveBeenCalledWith('f-1');
+  });
+
+  it('los compañeros se consultan con la ficha activa cuando cambia', async () => {
+    // Arrange
+    conFicha({ ficha: OTRA, fichas: [FICHA, OTRA] });
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    await screen.findByRole('list', { name: 'Compañeros' });
+    expect(fichasPerfilService.consultarCompanerosFichaPerfil).toHaveBeenCalledWith('f-2');
+    expect(fichasPerfilService.consultarCompanerosFichaPerfil).not.toHaveBeenCalledWith('f-1');
   });
 
   it('hay seis pestañas, con contador de ítems una vez cargados, y se cambia con el teclado', async () => {

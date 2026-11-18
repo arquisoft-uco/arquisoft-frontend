@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cerrarSesion, resolverProveedor, restaurarSesion, verificarSesionActiva } from './session';
+import {
+  cerrarSesion,
+  requiereElegirProveedor,
+  resolverProveedor,
+  restaurarSesion,
+  verificarSesionActiva,
+} from './session';
 import { useAuthStore } from './authStore';
 import { useProveedorStore } from './proveedorStore';
 import { useRoleStore } from './roleStore';
@@ -7,8 +13,12 @@ import type { ProveedorIdentidad, SesionRestaurada } from './proveedores/proveed
 import { fijarProveedorActivo, proveedorActivo } from './proveedores/proveedorActivo';
 import { crearProveedor, proveedoresDisponibles } from './proveedores/proveedores';
 import { Rol } from '../shared/models/rol';
+import { monitoring } from '../shared/utils/monitoring';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../test-utils/store.utils';
 
+vi.mock('../shared/utils/monitoring', () => ({
+  monitoring: { captureError: vi.fn(), captureHttpError: vi.fn() },
+}));
 vi.mock('./proveedores/proveedores', () => ({
   proveedoresDisponibles: vi.fn(),
   crearProveedor: vi.fn(),
@@ -25,6 +35,7 @@ function doble(id: string, sesion: SesionRestaurada | null = SESION) {
   return {
     id,
     restaurarSesion: vi.fn().mockResolvedValue(sesion),
+    recuperarSesionSilenciosa: vi.fn().mockResolvedValue(sesion),
     iniciarSesion: vi.fn(),
     cerrarSesion: vi.fn().mockResolvedValue(undefined),
     credencialesHttp: vi.fn(),
@@ -66,6 +77,21 @@ describe('session', () => {
     });
   });
 
+  describe('requiereElegirProveedor', () => {
+    it('exige elegir con varios disponibles y ninguno válido recordado, y no con uno recordado o con uno solo', () => {
+      // Arrange
+      disponibles('alfa', 'beta');
+
+      // Act / Assert
+      expect(requiereElegirProveedor()).toBe(true);
+      useProveedorStore.setState({ proveedor: 'beta' });
+      expect(requiereElegirProveedor()).toBe(false);
+      useProveedorStore.setState({ proveedor: null });
+      disponibles('alfa');
+      expect(requiereElegirProveedor()).toBe(false);
+    });
+  });
+
   describe('restaurarSesion', () => {
     it('con un solo proveedor lo elige, lo fija como activo y escribe el store una sola vez', async () => {
       // Arrange
@@ -76,9 +102,11 @@ describe('session', () => {
       useAuthStore.subscribe(cambios);
 
       // Act
-      await restaurarSesion();
+      const resultado = await restaurarSesion();
 
       // Assert
+      expect(resultado).toBe('restaurada');
+      expect(keycloak.recuperarSesionSilenciosa).not.toHaveBeenCalled();
       expect(useProveedorStore.getState().proveedor).toBe('keycloak');
       expect(proveedorActivo()).toBe(keycloak);
       expect(cambios).toHaveBeenCalledTimes(1);
@@ -119,14 +147,73 @@ describe('session', () => {
       vi.mocked(crearProveedor).mockReturnValue(keycloak);
 
       // Act
-      await restaurarSesion();
+      const resultado = await restaurarSesion();
       const alActualizar = keycloak.restaurarSesion.mock.calls[0][0];
       const sinEscribir = useAuthStore.getState().authenticated;
       alActualizar({ ...SESION, token: 'tk-nuevo' });
 
       // Assert
+      expect(resultado).toBe('login-en-curso');
       expect(sinEscribir).toBe(false);
       expect(useAuthStore.getState().token).toBe('tk-nuevo');
+    });
+  });
+
+  describe('restaurarSesion con varios proveedores y uno recordado', () => {
+    it('recupera en silencio sin usar la restauración normal y escribe el store una sola vez', async () => {
+      // Arrange
+      const beta = doble('beta');
+      disponibles('alfa', 'beta');
+      useProveedorStore.setState({ proveedor: 'beta' });
+      vi.mocked(crearProveedor).mockReturnValue(beta);
+      const cambios = vi.fn();
+      useAuthStore.subscribe(cambios);
+
+      // Act
+      const resultado = await restaurarSesion();
+
+      // Assert
+      expect(resultado).toBe('restaurada');
+      expect(beta.recuperarSesionSilenciosa).toHaveBeenCalledTimes(1);
+      expect(beta.restaurarSesion).not.toHaveBeenCalled();
+      expect(cambios).toHaveBeenCalledTimes(1);
+    });
+
+    it('sin sesión recuperable, o si la recuperación rechaza, pide elegir sin escribir el store', async () => {
+      // Arrange
+      const beta = doble('beta');
+      beta.recuperarSesionSilenciosa.mockResolvedValueOnce(null);
+      beta.recuperarSesionSilenciosa.mockRejectedValueOnce(new Error('sin red'));
+      disponibles('alfa', 'beta');
+      vi.mocked(crearProveedor).mockReturnValue(beta);
+
+      // Act
+      useProveedorStore.setState({ proveedor: 'beta', confirmadoEnEstaCarga: false });
+      const sinSesion = await restaurarSesion();
+      useProveedorStore.setState({ confirmadoEnEstaCarga: false });
+      const conFallo = await restaurarSesion();
+
+      // Assert
+      expect(sinSesion).toBe('requiere-eleccion');
+      expect(conFallo).toBe('requiere-eleccion');
+      expect(monitoring.captureError).toHaveBeenCalledTimes(1);
+      expect(useAuthStore.getState().authenticated).toBe(false);
+    });
+
+    it('con el proveedor ya confirmado en esta carga usa la restauración normal', async () => {
+      // Arrange
+      const beta = doble('beta');
+      disponibles('alfa', 'beta');
+      useProveedorStore.getState().elegirProveedor('beta');
+      vi.mocked(crearProveedor).mockReturnValue(beta);
+
+      // Act
+      const resultado = await restaurarSesion();
+
+      // Assert
+      expect(resultado).toBe('restaurada');
+      expect(beta.restaurarSesion).toHaveBeenCalledTimes(1);
+      expect(beta.recuperarSesionSilenciosa).not.toHaveBeenCalled();
     });
   });
 

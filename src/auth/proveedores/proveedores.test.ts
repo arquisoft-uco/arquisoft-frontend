@@ -5,6 +5,7 @@ function doble(id: string): ProveedorIdentidad {
   return {
     id,
     restaurarSesion: vi.fn(),
+    recuperarSesionSilenciosa: vi.fn(),
     iniciarSesion: vi.fn(),
     cerrarSesion: vi.fn(),
     credencialesHttp: vi.fn(),

@@ -30,7 +30,6 @@ export const BASELINE: BaselineArquitectura = {
     'auth/keycloak.ts': 4,
     'auth/roleStore.ts': 3,
     'config/env.ts': 1,
-    'guards/RoleGuard.tsx': 2,
     'hooks/useHasRole.ts': 1,
     'shared/models/api-response.ts': 3,
     'shared/models/rol.ts': 2,

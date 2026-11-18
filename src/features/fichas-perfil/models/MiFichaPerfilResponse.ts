@@ -1,5 +1,4 @@
 import type { Asesor } from '../../../shared/models/Asesor';
-import type { Estudiante } from './Estudiante';
 
 export interface MiFichaPerfilEstadoActual {
   id: string;
@@ -12,5 +11,4 @@ export interface MiFichaPerfilResponse {
   tituloProyecto: string;
   asesor: Asesor;
   estadoActual: MiFichaPerfilEstadoActual;
-  integrantes: Estudiante[];
 }

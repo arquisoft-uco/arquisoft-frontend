@@ -155,7 +155,7 @@ describe('Usuarios', () => {
     expect(screen.queryByRole('button', { name: /registrar usuario/i })).not.toBeInTheDocument();
   });
 
-  it('redirige a forbidden cuando el rol activo no está en el mapa de vistas', () => {
+  it('muestra Acceso denegado cuando el rol activo no está en el mapa de vistas', () => {
     // Arrange
     autenticarCon(Rol.Estudiante);
 

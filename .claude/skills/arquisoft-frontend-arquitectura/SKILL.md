@@ -68,9 +68,9 @@ compone una query y una mutación porque su consumidor las necesita juntas.
 ## Fan-out por rol
 
 `FichasPerfil.tsx` es el patrón, con tres ramas en orden: `useRolActivo()` es `null` → `/seleccionar-rol`;
-el rol no está en `VIEW_POR_ROL` → `/forbidden`; hay vista → se renderiza.
+el rol no está en `VIEW_POR_ROL` → `<AccesoDenegado />`; hay vista → se renderiza.
 
-Excepción: el inicio (`Dashboard`) cae a una vista básica en lugar de `/forbidden`, porque ningún rol sobra.
+Excepción: el inicio (`Dashboard`) cae a una vista básica en lugar de `<AccesoDenegado />`, porque ningún rol sobra.
 
 El mapa se declara a nivel de módulo (`Record<string, React.ComponentType>` con claves del enum
 `Rol`), nunca como `switch` ni ternarios dentro del componente.
@@ -82,7 +82,7 @@ dos se declaran.
 
 `src/router.tsx`, tres capas anidadas: `AuthGuard` (con `errorElement`) → `AppLayout` (shell +
 `<Suspense fallback={<PageSkeleton />}>` dentro de `ChunkErrorBoundary`) → rutas de feature, **todas
-perezosas**. `/forbidden` cuelga de la raíz, fuera de `AuthGuard`: un 403 no debe volver a pedir sesión.
+perezosas**.
 
 **Las restricciones por rol no se escriben en el router.** Se declaran en `NAV_ITEMS[].roles`
 (`src/layout/nav-items.ts`), de ahí se deriva `ROLES_POR_RUTA`, y el helper `guarded(path, element)`
@@ -92,9 +92,7 @@ la ruta diverjan.
 `NavItem.disponible: false` marca un módulo sin pantalla: `agruparNavItems` lo manda al grupo «Próximamente»
 del menú (sin enlace) y `navItemsDelRol` y `estaDisponible` lo distinguen. Al entregar la pantalla se quita la bandera.
 
-`export const router` está exportado para que el interceptor de Axios navegue fuera del árbol de
-React. Su import allí es **dinámico**: uno estático crea el ciclo `router → features → axiosInstance
-→ router`.
+`export const router` solo lo importa `main.tsx`.
 
 **Rutas hijas de un módulo.** Cuelgan de un padre con `guarded('{modulo}', <Outlet />)`, no llevan
 `NavItem` ni guardia propia, y el contenido que cambia por rol hace su fan-out dentro del hijo (ejemplo:
@@ -111,7 +109,7 @@ token, refresco y ruteo de errores.
    nunca un hook: el interceptor corre fuera del árbol de React.
 2. **401:** mutex compartido (`let refreshPromise`) para que N respuestas 401 concurrentes disparen
    un solo `keycloak.updateToken(-1)`; marca `config._retry` y reintenta. Si el refresco falla, `logout`.
-3. **403:** `import('../router').then(({ router }) => router.navigate('/forbidden'))`.
+3. **403:** no navega: `useAccesoDenegadoStore.getState().marcar(config._rutaOrigen)` (la ruta desde la que nació la petición). `AppLayout` lo lee con `useAccesoDenegado()` y pinta `<AccesoDenegado />` en el contenido, con el menú visible; cualquier navegación o cambio de rol lo limpia.
 4. Siempre: `monitoring.captureHttpError(...)` y `Promise.reject(error)`.
 
 El interceptor no traga el error: llega al service, de ahí a React Query y a `isError`/`onError`.
@@ -121,6 +119,7 @@ El interceptor no traga el error: llega al service, de ahí a React Query y a `i
 | Store | Persistencia | Contenido |
 |---|---|---|
 | `useAuthStore` | **Solo memoria**, sin `persist` | `isInitializing`, `authenticated`, `token`, `tokenParsed`, `username` |
+| `useAccesoDenegadoStore` | **Solo memoria** | Ruta de la sección con 403 de red; lo escribe el interceptor, lo lee `useAccesoDenegado` |
 | `useRoleStore` | `localStorage`, clave `arquisoft_rol_activo`, vía `safeStorage` con `try/catch` | Solo el string del rol seleccionado |
 
 Nada sensible se escribe en `localStorage` ni `sessionStorage`. El `safeStorage` existe porque
@@ -233,7 +232,7 @@ deduce del nombre:
 | `shared/hooks/` | `useDebouncedValue` (retardo de 300 ms de las búsquedas), `useTextoConRetardo` (borrador de texto con retardo de los filtros), `useCombobox` (filtrado y teclado de listas con búsqueda), `useEstudiantesVigentes` y `useAsesoresFichaVigentes` (catálogos que consumen dos features), `useClicFuera` (cierre por clic fuera de menús y paneles) y `useTrampaDeFoco` (foco inicial, Tab, Esc y retorno del foco de paneles, diálogos y hojas, con pila de capas) |
 | `shared/utils/estado-variante.ts` | Tabla estado → variante de `Badge` por `id` del backend: ficha, evaluación y usuario |
 | `shared/stores/toastStore.ts` | Store del toaster, duración por nivel |
-| `shared/components/` | Estados de página (`PageSkeleton`, `AvisoNoDisponible`, `ComingSoon`, `ForbiddenPage`), error boundaries, `AppLoader` (pantalla de arranque mientras Keycloak inicia; no es para páginas), `ConfirmDialog`, `Toaster`, `PaginadorListado` |
+| `shared/components/` | Estados de página (`PageSkeleton`, `AvisoNoDisponible`, `ComingSoon`, `AccesoDenegado`), error boundaries, `AppLoader` (pantalla de arranque mientras Keycloak inicia; no es para páginas), `ConfirmDialog`, `Toaster`, `PaginadorListado` |
 | `shared/components/ui/` | El kit de UI (`Button`, `Badge`, `Field`, `Notice`, `Tabs`, `DataTable`, `FilterBar`, `RowMenu`, `Skeleton`, `EmptyState`, `ErrorState`, `SidePanel`…): lista la carpeta antes de escribir un botón, una insignia o un estado a mano; las recetas están en la skill `arquisoft-frontend-ui-ux` |
 
 Un componente sube a `src/shared/components/` solo con **dos consumidores de features distintas**.

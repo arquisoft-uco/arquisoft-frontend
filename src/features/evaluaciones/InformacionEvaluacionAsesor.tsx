@@ -1,4 +1,5 @@
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
@@ -17,7 +18,7 @@ export default function InformacionEvaluacionAsesor() {
   const navegacion = useNavegacionCualitativasAsesor(evaluacionAsesorId);
   const consulta = useEvaluacionAsesorRealizada(evaluacionAsesorId);
 
-  if (!esAsesor) return <Navigate to="/forbidden" replace />;
+  if (!esAsesor) return <AccesoDenegado />;
 
   const rutaListado = `/evaluaciones${navegacion?.search ?? ''}`;
   const entregable = navegacion?.resumen ?? consulta.data?.evaluacion.entregable;

@@ -40,6 +40,7 @@ describe('useAsignarJuradosEvaluacion', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(asignar).toHaveBeenCalledWith({ evaluacionId: 'e-1', juradosIds: ['j-1', 'j-2'] });
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluaciones', 'coordinador'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluaciones', 'e-1', 'jurados'] });
   });
 
   it('no invalida el listado cuando la asignación falla', async () => {

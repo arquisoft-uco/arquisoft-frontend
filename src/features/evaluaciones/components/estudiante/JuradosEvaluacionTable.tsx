@@ -13,6 +13,9 @@ import type { EvaluacionJurado } from '../../models/EvaluacionJurado';
 const NOMBRE = 'font-medium text-on-surface';
 const CORREO = 'text-[13px] text-on-surface-secondary';
 
+const DESCRIPCION_VACIO_POR_DEFECTO =
+  'Aparecerán aquí cuando el coordinador asigne jurados a esta evaluación.';
+
 const COLUMNAS: ColumnaTabla<EvaluacionJurado>[] = [
   {
     id: 'jurado',
@@ -37,6 +40,8 @@ interface Props {
   onLimpiarFiltros: () => void;
   acciones?: (jurado: EvaluacionJurado) => ReactNode;
   encabezadoAcciones?: string;
+  descripcionVacio?: string;
+  accionVacio?: ReactNode;
 }
 
 export default function JuradosEvaluacionTable({
@@ -48,6 +53,8 @@ export default function JuradosEvaluacionTable({
   onLimpiarFiltros,
   acciones,
   encabezadoAcciones,
+  descripcionVacio = DESCRIPCION_VACIO_POR_DEFECTO,
+  accionVacio,
 }: Props) {
   function ordenar(clave: string, direccion: DireccionOrden) {
     if (clave === 'jurado') onOrdenar(direccion);
@@ -68,7 +75,8 @@ export default function JuradosEvaluacionTable({
     <EmptyState
       icono={Users}
       titulo="Aún no hay jurados asignados"
-      descripcion="Aparecerán aquí cuando el coordinador asigne jurados a esta evaluación."
+      descripcion={descripcionVacio}
+      accion={accionVacio}
     />
   );
 

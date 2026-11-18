@@ -20,7 +20,6 @@ function montar() {
         path="/evaluaciones/:evaluacionJuradoId/cuantitativas"
         element={<EvaluacionesCuantitativasJurado />}
       />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/evaluaciones/ej-1/cuantitativas' },
   );
@@ -77,7 +76,7 @@ describe('EvaluacionesCuantitativasJurado', () => {
     );
   });
 
-  it('un rol distinto de estudiante es redirigido a /forbidden', () => {
+  it('un rol distinto de estudiante es muestra Acceso denegado', () => {
     // Arrange
     vi.mocked(useHasRole).mockReturnValue(false);
     vi.mocked(useNavegacionEvaluacionJurado).mockReturnValue(null);

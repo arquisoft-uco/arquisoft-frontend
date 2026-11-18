@@ -16,7 +16,6 @@ function renderizar() {
         path="/mapas-ruta/proyectos/:proyectoGradoId/planes-estimados"
         element={<PlanesEstimadosProyecto />}
       />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
       <Route path="/seleccionar-rol" element={<p>Selecciona un rol</p>} />
     </Routes>,
     { initialPath: '/mapas-ruta/proyectos/p-1/planes-estimados' },
@@ -45,7 +44,7 @@ describe('PlanesEstimadosProyecto', () => {
     expect(screen.queryByText('Acceso denegado')).not.toBeInTheDocument();
   });
 
-  it('con un rol sin vista redirige a /forbidden', () => {
+  it('con un rol sin vista muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Estudiante);
 

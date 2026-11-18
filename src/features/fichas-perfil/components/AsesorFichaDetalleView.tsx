@@ -1,11 +1,13 @@
-import { Navigate, useNavigate, useParams } from 'react-router';
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router';
 import Button from '../../../shared/components/ui/Button';
 import { useResumenFichaAsesor } from '../hooks/useResumenFichaAsesor';
+import { admiteCambioDeEstado } from '../utils/transiciones-estado-ficha';
 import DetalleFichaEstructura from './DetalleFichaEstructura';
 
 export default function AsesorFichaDetalleView() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { resumen, search } = useResumenFichaAsesor(id);
 
   if (!id) return <Navigate to="/fichas-perfil" replace />;
@@ -18,15 +20,20 @@ export default function AsesorFichaDetalleView() {
     { id: 'estados', etiqueta: 'Estados', to: `${base}/estados` },
   ];
 
+  const enEstados = pathname.startsWith(`${base}/estados`);
+  const ofrecerCambio = !enEstados && admiteCambioDeEstado(resumen?.estadoId);
+
   return (
     <DetalleFichaEstructura
       resumen={resumen}
       search={search}
       pestanas={pestanas}
       accion={
-        <Button variante="secundario" onClick={() => navigate(`${base}/estados`)}>
-          Cambiar estado
-        </Button>
+        ofrecerCambio ? (
+          <Button variante="secundario" onClick={() => navigate(`${base}/estados`)}>
+            Cambiar estado
+          </Button>
+        ) : undefined
       }
     />
   );

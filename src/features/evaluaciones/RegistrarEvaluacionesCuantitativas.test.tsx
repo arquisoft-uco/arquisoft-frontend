@@ -72,7 +72,6 @@ function montar(id: string) {
         element={<RegistrarEvaluacionesCuantitativas />}
       />
       <Route path="/evaluaciones" element={<p>Pantalla Mis evaluaciones</p>} />
-      <Route path="/forbidden" element={<p>Pantalla prohibida</p>} />
     </Routes>,
     { initialPath: `/evaluaciones/${id}/evaluar-cuantitativas` },
   );
@@ -100,7 +99,7 @@ describe('RegistrarEvaluacionesCuantitativas', () => {
     expect(screen.getByText('Formulario de ej-1')).toBeInTheDocument();
   });
 
-  it('redirige a /forbidden cuando el rol activo no es jurado', () => {
+  it('muestra Acceso denegado cuando el rol activo no es jurado', () => {
     // Arrange
     autenticarCon(Rol.Coordinador);
     mockLista({ data: [PENDIENTE] });
@@ -109,7 +108,7 @@ describe('RegistrarEvaluacionesCuantitativas', () => {
     montar('ej-1');
 
     // Assert
-    expect(screen.getByText('Pantalla prohibida')).toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
     expect(screen.queryByText('Formulario de ej-1')).not.toBeInTheDocument();
   });
 
@@ -168,7 +167,7 @@ describe('RegistrarEvaluacionesCuantitativas', () => {
     expect(screen.getByRole('button', { name: 'Volver a mis evaluaciones' })).toBeInTheDocument();
   });
 
-  it.each([Rol.Coordinador, Rol.Administrador])('con el rol %s redirige a /forbidden', (rol) => {
+  it.each([Rol.Coordinador, Rol.Administrador])('con el rol %s muestra Acceso denegado', (rol) => {
     // Arrange
     resetAllStores();
     autenticarCon(rol);
@@ -178,7 +177,7 @@ describe('RegistrarEvaluacionesCuantitativas', () => {
     montar('ej-1');
 
     // Assert
-    expect(screen.getByText('Pantalla prohibida')).toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
     expect(screen.queryByText(/Formulario de/)).not.toBeInTheDocument();
   });
 });

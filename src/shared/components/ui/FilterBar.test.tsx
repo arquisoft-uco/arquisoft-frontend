@@ -611,4 +611,15 @@ describe('FilterBar', () => {
     // Assert
     expect(screen.getByRole('textbox', { name: 'Buscar usuarios' })).toBeDisabled();
   });
+
+  it('busqueda.maxLength limita la longitud del campo', () => {
+    // Act
+    render(<FilterBar {...crearProps({ busqueda: crearBusqueda({ maxLength: 100 }) })} />);
+
+    // Assert
+    expect(screen.getByRole('textbox', { name: 'Buscar usuarios' })).toHaveAttribute(
+      'maxlength',
+      '100',
+    );
+  });
 });
