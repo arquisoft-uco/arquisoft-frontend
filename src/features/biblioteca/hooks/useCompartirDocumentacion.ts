@@ -6,11 +6,9 @@ import {
   hasApiErrorCode,
   isApiErrorWithStatus,
 } from '../../../shared/utils/api-error';
-import { formatearFechaCreacion } from '../../../shared/utils/formato-version';
 import type { Documentacion } from '../models/Documentacion';
-import type { EnlaceManualDocumentacion } from '../models/EnlaceManualDocumentacion';
+import type { EnlaceCompartidoDocumentacion } from '../models/EnlaceCompartidoDocumentacion';
 import { bibliotecaService } from '../services/bibliotecaService';
-import { copiarAlPortapapeles } from '../utils/copiar-al-portapapeles';
 
 const CLAVE_DOCUMENTACIONES = ['biblioteca', 'documentaciones'];
 const CODIGO_NO_COMPARTIBLE = 'DOCUMENTACION_NO_COMPARTIBLE';
@@ -24,24 +22,17 @@ function mensajeDeError(error: unknown): string {
 
 export function useCompartirDocumentacion() {
   const queryClient = useQueryClient();
-  const [enlaceManual, setEnlaceManual] = useState<EnlaceManualDocumentacion | null>(null);
+  const [enlaceCompartido, setEnlaceCompartido] = useState<EnlaceCompartidoDocumentacion | null>(
+    null,
+  );
 
   const mutation = useMutation({
     mutationFn: async (documentacion: Documentacion) => {
       const enlace = await bibliotecaService.obtenerEnlaceCompartir(documentacion.id);
-      const copiado = await copiarAlPortapapeles(enlace.url);
-      return { documentacion, enlace, copiado };
+      return { documentacion, enlace };
     },
-    onSuccess: ({ documentacion, enlace, copiado }) => {
-      if (copiado) {
-        toast.success(
-          'Enlace copiado',
-          `El enlace vence el ${formatearFechaCreacion(enlace.expiraEn)}`,
-        );
-        return;
-      }
-      setEnlaceManual({ documentacion, enlace });
-      toast.info('No se pudo copiar automáticamente', 'Copia el enlace desde la ventana');
+    onSuccess: (compartido) => {
+      setEnlaceCompartido(compartido);
     },
     onError: (error) => {
       toast.error('No se pudo compartir la documentación', mensajeDeError(error));
@@ -53,13 +44,13 @@ export function useCompartirDocumentacion() {
 
   function compartir(documentacion: Documentacion): void {
     if (mutation.isPending) return;
-    setEnlaceManual(null);
+    setEnlaceCompartido(null);
     mutation.mutate(documentacion);
   }
 
-  function cerrarEnlaceManual(): void {
-    setEnlaceManual(null);
+  function cerrarEnlaceCompartido(): void {
+    setEnlaceCompartido(null);
   }
 
-  return { compartir, compartiendo: mutation.isPending, enlaceManual, cerrarEnlaceManual };
+  return { compartir, compartiendo: mutation.isPending, enlaceCompartido, cerrarEnlaceCompartido };
 }

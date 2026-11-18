@@ -116,8 +116,8 @@ function mockCompartir(parcial: Partial<ReturnType<typeof useCompartirDocumentac
   const hook = {
     compartir: vi.fn(),
     compartiendo: false,
-    enlaceManual: null,
-    cerrarEnlaceManual: vi.fn(),
+    enlaceCompartido: null,
+    cerrarEnlaceCompartido: vi.fn(),
     ...parcial,
   };
   vi.mocked(useCompartirDocumentacion).mockReturnValue(hook);
@@ -376,11 +376,11 @@ describe('ConsultarDocumentaciones', () => {
     expect(compartir.compartir).toHaveBeenCalledWith(DOCUMENTACION);
   });
 
-  it('con enlaceManual abre el panel de respaldo y cerrarlo llama al hook', async () => {
+  it('con enlaceCompartido abre el panel y cerrarlo llama al hook', async () => {
     // Arrange
     const user = userEvent.setup();
     const compartir = mockCompartir({
-      enlaceManual: {
+      enlaceCompartido: {
         documentacion: DOCUMENTACION,
         enlace: { url: 'https://s3.test/d', expiraEn: '2026-11-17T10:00:00Z' },
       },
@@ -405,7 +405,7 @@ describe('ConsultarDocumentaciones', () => {
     await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
 
     // Assert
-    expect(compartir.cerrarEnlaceManual).toHaveBeenCalled();
+    expect(compartir.cerrarEnlaceCompartido).toHaveBeenCalled();
   });
 
   describe('cambio de estado', () => {

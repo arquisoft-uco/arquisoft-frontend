@@ -106,11 +106,11 @@ export default function ConsultarDocumentaciones({
         />
       )}
 
-      {compartir.enlaceManual && (
+      {compartir.enlaceCompartido && (
         <EnlaceCompartirDocumentacionPanel
-          documentacion={compartir.enlaceManual.documentacion}
-          enlace={compartir.enlaceManual.enlace}
-          onCerrar={compartir.cerrarEnlaceManual}
+          documentacion={compartir.enlaceCompartido.documentacion}
+          enlace={compartir.enlaceCompartido.enlace}
+          onCerrar={compartir.cerrarEnlaceCompartido}
         />
       )}
 

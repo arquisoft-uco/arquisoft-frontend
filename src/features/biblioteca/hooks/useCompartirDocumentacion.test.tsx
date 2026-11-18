@@ -7,21 +7,17 @@ import { toast } from '../../../shared/hooks/useToast';
 import type { EnlaceDescargaVersion } from '../../../shared/models/EnlaceDescargaVersion';
 import type { Documentacion } from '../models/Documentacion';
 import { bibliotecaService } from '../services/bibliotecaService';
-import { copiarAlPortapapeles } from '../utils/copiar-al-portapapeles';
 import { useCompartirDocumentacion } from './useCompartirDocumentacion';
 
 vi.mock('../services/bibliotecaService', () => ({
   bibliotecaService: { obtenerEnlaceCompartir: vi.fn() },
 }));
 
-vi.mock('../utils/copiar-al-portapapeles', () => ({ copiarAlPortapapeles: vi.fn() }));
-
 vi.mock('../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), dismiss: vi.fn() },
 }));
 
 const obtenerEnlace = vi.mocked(bibliotecaService.obtenerEnlaceCompartir);
-const copiar = vi.mocked(copiarAlPortapapeles);
 
 const ENLACE: EnlaceDescargaVersion = { url: 'https://s3.test/d', expiraEn: '2026-11-17T10:00Z' };
 
@@ -48,10 +44,9 @@ describe('useCompartirDocumentacion', () => {
     vi.clearAllMocks();
   });
 
-  it('en éxito con copia avisa con el vencimiento y no abre el respaldo', async () => {
+  it('en éxito expone el enlace compartido sin copiar ni avisar', async () => {
     // Arrange
     obtenerEnlace.mockResolvedValue(ENLACE);
-    copiar.mockResolvedValue(true);
     const { wrapper } = crearWrapper();
     const { result } = renderHook(() => useCompartirDocumentacion(), { wrapper });
 
@@ -60,48 +55,52 @@ describe('useCompartirDocumentacion', () => {
 
     // Assert
     await waitFor(() =>
-      expect(toast.success).toHaveBeenCalledWith(
-        'Enlace copiado',
-        expect.stringContaining('El enlace vence el'),
-      ),
+      expect(result.current.enlaceCompartido).toEqual({
+        documentacion: DOCUMENTACION,
+        enlace: ENLACE,
+      }),
     );
     expect(obtenerEnlace).toHaveBeenCalledWith('d-1');
-    expect(copiar).toHaveBeenCalledWith('https://s3.test/d');
-    expect(result.current.enlaceManual).toBeNull();
+    expect(toast.success).not.toHaveBeenCalled();
+    expect(toast.info).not.toHaveBeenCalled();
   });
 
-  it('si la copia falla guarda el respaldo con el enlace, avisa y cerrarlo lo limpia', async () => {
+  it('cerrarEnlaceCompartido lo limpia y compartir de nuevo descarta el anterior antes de pedir otro', async () => {
     // Arrange
+    let resolver: (enlace: EnlaceDescargaVersion) => void = () => undefined;
     obtenerEnlace.mockResolvedValue(ENLACE);
-    copiar.mockResolvedValue(false);
     const { wrapper } = crearWrapper();
     const { result } = renderHook(() => useCompartirDocumentacion(), { wrapper });
-
-    // Act
     act(() => result.current.compartir(DOCUMENTACION));
-
-    // Assert
-    await waitFor(() =>
-      expect(result.current.enlaceManual).toEqual({ documentacion: DOCUMENTACION, enlace: ENLACE }),
-    );
-    expect(toast.info).toHaveBeenCalledWith(
-      'No se pudo copiar automáticamente',
-      'Copia el enlace desde la ventana',
-    );
-    expect(toast.success).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.enlaceCompartido).not.toBeNull());
 
     // Act
-    act(() => result.current.cerrarEnlaceManual());
+    act(() => result.current.cerrarEnlaceCompartido());
 
     // Assert
-    expect(result.current.enlaceManual).toBeNull();
+    expect(result.current.enlaceCompartido).toBeNull();
+
+    // Arrange
+    act(() => result.current.compartir(DOCUMENTACION));
+    await waitFor(() => expect(result.current.enlaceCompartido).not.toBeNull());
+    obtenerEnlace.mockReturnValueOnce(new Promise((resolve) => (resolver = resolve)));
+
+    // Act
+    act(() => result.current.compartir({ ...DOCUMENTACION, id: 'd-2' }));
+
+    // Assert
+    await waitFor(() => expect(result.current.compartiendo).toBe(true));
+    expect(result.current.enlaceCompartido).toBeNull();
+    expect(obtenerEnlace).toHaveBeenLastCalledWith('d-2');
+
+    // Act
+    await act(async () => resolver(ENLACE));
   });
 
   it('compartiendo es true mientras está pendiente y un segundo clic no pide otro enlace', async () => {
     // Arrange
     let resolver: (enlace: EnlaceDescargaVersion) => void = () => undefined;
     obtenerEnlace.mockReturnValue(new Promise((resolve) => (resolver = resolve)));
-    copiar.mockResolvedValue(true);
     const { wrapper } = crearWrapper();
     const { result } = renderHook(() => useCompartirDocumentacion(), { wrapper });
 
@@ -143,7 +142,6 @@ describe('useCompartirDocumentacion', () => {
       ),
     );
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['biblioteca', 'documentaciones'] });
-    expect(copiar).not.toHaveBeenCalled();
   });
 
   it('ante 422 ARCHIVO_NO_DISPONIBLE muestra el mensaje del backend sin invalidar', async () => {
@@ -187,6 +185,6 @@ describe('useCompartirDocumentacion', () => {
         'El servicio de archivos no responde. Inténtalo de nuevo en unos minutos',
       ),
     );
-    expect(result.current.enlaceManual).toBeNull();
+    expect(result.current.enlaceCompartido).toBeNull();
   });
 });
