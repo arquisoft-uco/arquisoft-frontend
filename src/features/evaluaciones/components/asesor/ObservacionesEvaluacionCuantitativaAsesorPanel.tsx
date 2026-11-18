@@ -1,5 +1,6 @@
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Plus } from 'lucide-react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
+import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
@@ -34,11 +35,15 @@ function textoResumen(total?: number): string {
 
 interface Props {
   evaluacion: EvaluacionCuantitativaAsesor;
+  puedeRegistrar?: boolean;
+  onRegistrar?: () => void;
   onCerrar: () => void;
 }
 
 export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
   evaluacion,
+  puedeRegistrar = false,
+  onRegistrar,
   onCerrar,
 }: Props) {
   const { data, isLoading, isFetching, isError, error, refetch, page, pageSize, goToPage } =
@@ -76,9 +81,16 @@ export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
     const filas = data?.content ?? [];
     return (
       <>
-        <p aria-live="polite" className={RESUMEN}>
-          {textoResumen(data?.totalElements)}
-        </p>
+        <div className="section-header">
+          <p aria-live="polite" className={RESUMEN}>
+            {textoResumen(data?.totalElements)}
+          </p>
+          {puedeRegistrar && onRegistrar && (
+            <Button icono={Plus} className="header-action" onClick={onRegistrar}>
+              Registrar observación
+            </Button>
+          )}
+        </div>
         <DataTable
           etiqueta="Observaciones de la evaluación cuantitativa"
           columnas={COLUMNAS}

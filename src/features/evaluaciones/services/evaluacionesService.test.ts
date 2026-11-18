@@ -99,6 +99,46 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('registrarObservacionItemAsesor', () => {
+    it('pone el id de la valoración en la ruta, manda solo la descripción y devuelve el id creado', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'obs-1' } });
+
+      // Act
+      const resultado = await evaluacionesService.registrarObservacionItemAsesor({
+        evaluacionCuantitativaAsesorId: 'ec-1',
+        descripcion: 'Falta rigor',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-asesor/ec-1/observaciones',
+        { descripcion: 'Falta rigor' },
+      );
+      expect(resultado).toEqual({ id: 'obs-1' });
+    });
+  });
+
+  describe('registrarObservacionItemAsesor', () => {
+    it('pone el id de la valoración en la ruta, manda solo la descripción y devuelve el id creado', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'obs-1' } });
+
+      // Act
+      const resultado = await evaluacionesService.registrarObservacionItemAsesor({
+        evaluacionCuantitativaAsesorId: 'ec-1',
+        descripcion: 'Falta rigor',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-asesor/ec-1/observaciones',
+        { descripcion: 'Falta rigor' },
+      );
+      expect(resultado).toEqual({ id: 'obs-1' });
+    });
+  });
+
   describe('getObservacionesEvaluacionCuantitativaJurado', () => {
     it('hace POST con el id en la ruta y el criterio como body, y devuelve la página', async () => {
       // Arrange

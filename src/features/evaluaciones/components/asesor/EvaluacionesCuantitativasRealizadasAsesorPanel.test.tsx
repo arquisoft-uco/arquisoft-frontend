@@ -13,6 +13,14 @@ vi.mock('../../hooks/useCambiarPuntajeEvaluacionCuantitativaAsesor', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useRegistrarObservacionItemAsesor', () => ({
+  useRegistrarObservacionItemAsesor: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
+
 vi.mock('../../hooks/useObservacionesEvaluacionCuantitativaAsesor', () => ({
   useObservacionesEvaluacionCuantitativaAsesor: () => ({
     data: undefined,
@@ -86,6 +94,32 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
 
     // Assert
     expect(screen.getByText(/Orden · 50 de 100/)).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada el aviso incluye las observaciones y no se ofrece «Registrar observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getByText(/ni registrar observaciones/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
+  });
+
+  it('sin finalizar, «Registrar observación» abre el formulario sobre el panel de observaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(false));
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Registrar observación' }));
+
+    // Assert
+    expect(screen.getByRole('form', { name: 'Registro de observación' })).toBeInTheDocument();
   });
 
   it('sin finalizar, pulsar la acción de una fila abre el panel con ese ítem', async () => {

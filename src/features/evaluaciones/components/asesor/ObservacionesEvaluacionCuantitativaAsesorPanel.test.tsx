@@ -48,7 +48,10 @@ function pagina(descripciones: string[]) {
   };
 }
 
-function montar(estado: Record<string, unknown> = {}) {
+function montar(
+  estado: Record<string, unknown> = {},
+  acciones: { puedeRegistrar?: boolean; onRegistrar?: () => void } = {},
+) {
   const refetch = vi.fn();
   const onCerrar = vi.fn();
   usarHook.mockReturnValue({
@@ -64,7 +67,11 @@ function montar(estado: Record<string, unknown> = {}) {
     ...estado,
   } as never);
   render(
-    <ObservacionesEvaluacionCuantitativaAsesorPanel evaluacion={EVALUACION} onCerrar={onCerrar} />,
+    <ObservacionesEvaluacionCuantitativaAsesorPanel
+      evaluacion={EVALUACION}
+      onCerrar={onCerrar}
+      {...acciones}
+    />,
   );
   return { refetch, onCerrar };
 }
@@ -145,6 +152,37 @@ describe('ObservacionesEvaluacionCuantitativaAsesorPanel', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No puedes consultar esta evaluación');
     expect(screen.queryByRole('button', { name: /Reintentar/ })).not.toBeInTheDocument();
+  });
+
+  it('con puedeRegistrar ofrece «Registrar observación» y al pulsarlo llama a onRegistrar', async () => {
+    // Arrange
+    const onRegistrar = vi.fn();
+    montar({ data: pagina([]) }, { puedeRegistrar: true, onRegistrar });
+
+    // Act
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar observación' }));
+
+    // Assert
+    expect(onRegistrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('sin puedeRegistrar no ofrece «Registrar observación»', () => {
+    // Arrange / Act
+    montar({ data: pagina(['Falta rigor']) }, { onRegistrar: vi.fn() });
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
+  });
+
+  it('con un error de carga no ofrece «Registrar observación» aunque puedeRegistrar sea verdadero', () => {
+    // Arrange / Act
+    montar(
+      { isError: true, error: crearError(500, 'X', 'Servidor caído') },
+      { puedeRegistrar: true, onRegistrar: vi.fn() },
+    );
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
   });
 
   it('«Cerrar panel» llama a onCerrar', async () => {
