@@ -43,8 +43,8 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
     <div className={RAIZ}>
       {finalizada && (
         <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden cambiar valoraciones ni registrar o
-          modificar observaciones.
+          La evaluación ya fue finalizada; no se pueden cambiar valoraciones ni registrar, modificar
+          o remover observaciones.
         </Notice>
       )}
       <ConsultarEvaluacionesCuantitativasAsesor
@@ -68,6 +68,7 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
           onRegistrar={() => setRegistrandoObservacion(true)}
           puedeModificar={!finalizada}
           onModificar={setObservacionEnEdicion}
+          puedeRemover={!finalizada}
           onCerrar={cerrarObservaciones}
         />
       )}

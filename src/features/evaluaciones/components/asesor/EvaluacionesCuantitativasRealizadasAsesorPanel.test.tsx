@@ -29,6 +29,14 @@ vi.mock('../../hooks/useModificarObservacionItemAsesor', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useRemoverObservacionItemAsesor', () => ({
+  useRemoverObservacionItemAsesor: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
+
 vi.mock('../../hooks/useObservacionesEvaluacionCuantitativaAsesor', () => ({
   useObservacionesEvaluacionCuantitativaAsesor: () => ({
     data: {
@@ -119,7 +127,7 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
 
     // Assert
-    expect(screen.getByText(/ni registrar o modificar observaciones/)).toBeInTheDocument();
+    expect(screen.getByText(/ni registrar, modificar o remover observaciones/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
   });
 
@@ -159,6 +167,32 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
 
     // Assert
     expect(screen.getByRole('form', { name: 'Modificación de observación' })).toBeInTheDocument();
+  });
+
+  it('sin finalizar, «Remover observación» abre la confirmación sobre el panel de observaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(false));
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Remover observación' })[0]);
+
+    // Assert
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('¿Remover observación?');
+  });
+
+  it('con la evaluación finalizada no ofrece «Remover observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getAllByText('Falta rigor').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: /Remover observación/ })).not.toBeInTheDocument();
   });
 
   it('con la evaluación finalizada no ofrece «Modificar observación»', async () => {

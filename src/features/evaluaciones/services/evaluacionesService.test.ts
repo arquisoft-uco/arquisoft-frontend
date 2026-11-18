@@ -234,6 +234,20 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('removerObservacionItemAsesor', () => {
+    it('hace DELETE con el id en la ruta, sin body, y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerObservacionItemAsesor('obs-1');
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/observaciones-item-asesor/obs-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrarEvaluacionesCuantitativasJurado', () => {
     it('envía a la ruta con prefijo /evaluaciones, traduce itemId a item y resuelve undefined', async () => {
       // Arrange

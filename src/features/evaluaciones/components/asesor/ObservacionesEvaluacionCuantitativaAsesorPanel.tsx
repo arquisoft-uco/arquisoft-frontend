@@ -1,19 +1,16 @@
+import { useState } from 'react';
 import { MessageSquare, Plus } from 'lucide-react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable, { type ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import ErrorState from '../../../../shared/components/ui/ErrorState';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
-import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { useObservacionesEvaluacionCuantitativaAsesor } from '../../hooks/useObservacionesEvaluacionCuantitativaAsesor';
 import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuantitativaAsesor';
 import type { ObservacionItemAsesor } from '../../models/ObservacionItemAsesor';
-import {
-  EVALUACION_CUALITATIVA_ASESOR_NO_PERTENECE_ASESOR,
-  OBSERVACION_ITEM_ASESOR_EVALUACION_NO_ENCONTRADA,
-} from '../../utils/codigos-error-evaluaciones';
+import ErrorObservacionesAsesor from './ErrorObservacionesAsesor';
 import AccionesObservacionItemAsesor from './AccionesObservacionItemAsesor';
+import RemoverObservacionItemAsesorDialog from './RemoverObservacionItemAsesorDialog';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -38,6 +35,7 @@ interface Props {
   onRegistrar?: () => void;
   puedeModificar?: boolean;
   onModificar?: (observacion: ObservacionItemAsesor) => void;
+  puedeRemover?: boolean;
   onCerrar: () => void;
 }
 
@@ -47,40 +45,20 @@ export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
   onRegistrar,
   puedeModificar = false,
   onModificar,
+  puedeRemover = false,
   onCerrar,
 }: Props) {
+  const [porRemover, setPorRemover] = useState<ObservacionItemAsesor | null>(null);
   const { data, isLoading, isFetching, isError, error, refetch, page, pageSize, goToPage } =
     useObservacionesEvaluacionCuantitativaAsesor(evaluacion.id);
   const descripcion = `${evaluacion.item.nombre} · ${evaluacion.puntaje} de ${evaluacion.item.valor}`;
 
   function contenido() {
-    if (isError) {
-      if (hasApiErrorCode(error, OBSERVACION_ITEM_ASESOR_EVALUACION_NO_ENCONTRADA)) {
-        return (
-          <ErrorState
-            titulo="Esta evaluación no está disponible"
-            descripcion="Puede que ya no exista. Cierra el panel e inténtalo con otra."
-          />
-        );
-      }
-      if (hasApiErrorCode(error, EVALUACION_CUALITATIVA_ASESOR_NO_PERTENECE_ASESOR)) {
-        return (
-          <ErrorState
-            titulo="No puedes consultar esta evaluación"
-            descripcion="Esta evaluación no está asignada a tu usuario."
-          />
-        );
-      }
-      return (
-        <ErrorState
-          titulo="No se pudieron cargar las observaciones"
-          descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
-          onReintentar={() => void refetch()}
-        />
-      );
-    }
+    if (isError)
+      return <ErrorObservacionesAsesor error={error} onReintentar={() => void refetch()} />;
     const filas = data?.content ?? [];
     const alModificar = puedeModificar ? onModificar : undefined;
+    const hayAcciones = !!alModificar || puedeRemover;
     return (
       <>
         <div className="section-header">
@@ -99,16 +77,18 @@ export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
           filas={filas}
           idDeFila={(fila) => fila.id}
           cargando={isLoading}
-          encabezadoAcciones={alModificar && 'Acciones'}
+          encabezadoAcciones={hayAcciones ? 'Acciones' : undefined}
           acciones={
-            alModificar &&
-            ((fila) => (
-              <AccionesObservacionItemAsesor
-                observacion={fila}
-                conVarias={filas.length > 1}
-                onModificar={alModificar}
-              />
-            ))
+            hayAcciones
+              ? (fila) => (
+                  <AccionesObservacionItemAsesor
+                    observacion={fila}
+                    conVarias={filas.length > 1}
+                    onModificar={alModificar}
+                    onRemover={puedeRemover ? setPorRemover : undefined}
+                  />
+                )
+              : undefined
           }
           vacio={
             <EmptyState
@@ -139,11 +119,23 @@ export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
     );
   }
 
+  function handleRemovida() {
+    if ((data?.content.length ?? 0) === 1 && page > 0) goToPage(page - 1);
+  }
+
   return (
     <SidePanel titulo="Observaciones" descripcion={descripcion} onCerrar={onCerrar}>
       <div aria-busy={isFetching} className={RAIZ}>
         {contenido()}
       </div>
+      {porRemover && (
+        <RemoverObservacionItemAsesorDialog
+          observacion={porRemover}
+          nombreItem={evaluacion.item.nombre}
+          onRemovida={handleRemovida}
+          onCerrar={() => setPorRemover(null)}
+        />
+      )}
     </SidePanel>
   );
 }
