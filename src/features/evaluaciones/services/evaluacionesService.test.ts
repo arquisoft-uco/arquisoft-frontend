@@ -182,6 +182,25 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('modificarObservacionItemAsesor', () => {
+    it('pone el id en la ruta, manda solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.modificarObservacionItemAsesor({
+        observacionId: 'obs-1',
+        descripcion: 'Nuevo texto',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/evaluaciones/observaciones-item-asesor/obs-1', {
+        descripcion: 'Nuevo texto',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarObservacionItemJurado', () => {
     it('pone el id en la ruta, manda solo la descripción y resuelve undefined', async () => {
       // Arrange

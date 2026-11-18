@@ -1,8 +1,7 @@
 import { MessageSquare, Plus } from 'lucide-react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import Button from '../../../../shared/components/ui/Button';
-import DataTable from '../../../../shared/components/ui/DataTable';
-import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
+import DataTable, { type ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
@@ -14,12 +13,12 @@ import {
   EVALUACION_CUALITATIVA_ASESOR_NO_PERTENECE_ASESOR,
   OBSERVACION_ITEM_ASESOR_EVALUACION_NO_ENCONTRADA,
 } from '../../utils/codigos-error-evaluaciones';
+import AccionesObservacionItemAsesor from './AccionesObservacionItemAsesor';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 const ROTULO = 'text-xs font-medium text-on-surface-secondary';
 const TEXTO = 'break-words text-on-surface';
-
 const COLUMNAS: ColumnaTabla<ObservacionItemAsesor>[] = [
   {
     id: 'descripcion',
@@ -37,6 +36,8 @@ interface Props {
   evaluacion: EvaluacionCuantitativaAsesor;
   puedeRegistrar?: boolean;
   onRegistrar?: () => void;
+  puedeModificar?: boolean;
+  onModificar?: (observacion: ObservacionItemAsesor) => void;
   onCerrar: () => void;
 }
 
@@ -44,11 +45,12 @@ export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
   evaluacion,
   puedeRegistrar = false,
   onRegistrar,
+  puedeModificar = false,
+  onModificar,
   onCerrar,
 }: Props) {
   const { data, isLoading, isFetching, isError, error, refetch, page, pageSize, goToPage } =
     useObservacionesEvaluacionCuantitativaAsesor(evaluacion.id);
-
   const descripcion = `${evaluacion.item.nombre} · ${evaluacion.puntaje} de ${evaluacion.item.valor}`;
 
   function contenido() {
@@ -77,8 +79,8 @@ export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
         />
       );
     }
-
     const filas = data?.content ?? [];
+    const alModificar = puedeModificar ? onModificar : undefined;
     return (
       <>
         <div className="section-header">
@@ -97,6 +99,17 @@ export default function ObservacionesEvaluacionCuantitativaAsesorPanel({
           filas={filas}
           idDeFila={(fila) => fila.id}
           cargando={isLoading}
+          encabezadoAcciones={alModificar && 'Acciones'}
+          acciones={
+            alModificar &&
+            ((fila) => (
+              <AccionesObservacionItemAsesor
+                observacion={fila}
+                conVarias={filas.length > 1}
+                onModificar={alModificar}
+              />
+            ))
+          }
           vacio={
             <EmptyState
               icono={MessageSquare}

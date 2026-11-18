@@ -30,6 +30,7 @@ import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoAsesorRequest } from '../models/ModificarItemCuantitativoAsesorRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { ModificarObservacionItemAsesorRequest } from '../models/ModificarObservacionItemAsesorRequest';
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
 import type { ObservacionItemAsesor } from '../models/ObservacionItemAsesor';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
@@ -466,6 +467,14 @@ export const evaluacionesService = {
         { descripcion },
       )
       .then((r) => r.data),
+
+  modificarObservacionItemAsesor: ({
+    observacionId,
+    descripcion,
+  }: ModificarObservacionItemAsesorRequest): Promise<void> =>
+    apiClient
+      .patch<void>(`/evaluaciones/observaciones-item-asesor/${observacionId}`, { descripcion })
+      .then(() => undefined),
 
   modificarObservacionItemJurado: ({
     observacionId,
