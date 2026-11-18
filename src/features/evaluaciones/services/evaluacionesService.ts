@@ -15,6 +15,7 @@ import type { EvaluacionCuantitativaAsesor } from '../models/EvaluacionCuantitat
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
+import type { CambiarCriterioEvaluacionCualitativaAsesorRequest } from '../models/CambiarCriterioEvaluacionCualitativaAsesorRequest';
 import type { CambiarCriterioEvaluacionCualitativaJuradoRequest } from '../models/CambiarCriterioEvaluacionCualitativaJuradoRequest';
 import type { CambiarPuntajeEvaluacionCuantitativaAsesorRequest } from '../models/CambiarPuntajeEvaluacionCuantitativaAsesorRequest';
 import type { CambiarPuntajeEvaluacionCuantitativaJuradoRequest } from '../models/CambiarPuntajeEvaluacionCuantitativaJuradoRequest';
@@ -229,6 +230,17 @@ export const evaluacionesService = {
       .patch<void>(
         `/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/puntaje`,
         { puntaje },
+      )
+      .then(() => undefined),
+
+  cambiarCriterioEvaluacionCualitativaAsesor: ({
+    evaluacionCualitativaAsesorId,
+    criterioId,
+  }: CambiarCriterioEvaluacionCualitativaAsesorRequest): Promise<void> =>
+    apiClient
+      .patch<void>(
+        `/evaluaciones/evaluaciones-cualitativas-asesor/${evaluacionCualitativaAsesorId}/criterio`,
+        { criterio: criterioId },
       )
       .then(() => undefined),
 

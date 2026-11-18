@@ -389,6 +389,26 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('cambiarCriterioEvaluacionCualitativaAsesor', () => {
+    it('llama PATCH con el id de la evaluación cualitativa y traduce criterioId a { criterio }', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.cambiarCriterioEvaluacionCualitativaAsesor({
+        evaluacionCualitativaAsesorId: 'ec-1',
+        criterioId: 'crit-2',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cualitativas-asesor/ec-1/criterio',
+        { criterio: 'crit-2' },
+      );
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('cambiarPuntajeEvaluacionCuantitativaJurado', () => {
     it('llama PATCH con el id de la valoración y solo { puntaje } en el body, y resuelve undefined', async () => {
       // Arrange
