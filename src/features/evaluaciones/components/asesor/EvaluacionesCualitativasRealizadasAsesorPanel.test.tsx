@@ -5,6 +5,21 @@ import EvaluacionesCualitativasRealizadasAsesorPanel from './EvaluacionesCualita
 import type { ConsultaCualitativasAsesor } from './ConsultarEvaluacionesCualitativasAsesor';
 import type { EvaluacionCualitativaAsesor } from '../../models/EvaluacionCualitativaAsesor';
 
+vi.mock('../../hooks/useCriteriosItemCualitativoAsesor', () => ({
+  useCriteriosItemCualitativoAsesor: () => ({
+    isLoading: true,
+    isError: false,
+    data: undefined,
+    refetch: vi.fn(),
+  }),
+}));
+vi.mock('../../hooks/useCambiarCriterioEvaluacionCualitativaAsesor', () => ({
+  useCambiarCriterioEvaluacionCualitativaAsesor: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
 vi.mock('../../hooks/useOmitirEvaluacionesCualitativasAsesor', () => ({
   useOmitirEvaluacionesCualitativasAsesor: () => ({ isPending: false, mutate: vi.fn() }),
 }));
@@ -47,7 +62,7 @@ describe('EvaluacionesCualitativasRealizadasAsesorPanel', () => {
 
     // Assert
     expect(
-      screen.getByText(/ya fue finalizada; no se pueden omitir valoraciones/),
+      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar valoraciones/),
     ).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
@@ -69,6 +84,27 @@ describe('EvaluacionesCualitativasRealizadasAsesorPanel', () => {
 
     // Assert
     expect(screen.getByRole('button', { name: 'Omitir (0)' })).toBeDisabled();
+  });
+
+  it('pulsar «Cambiar criterio» abre el panel del ítem; con la evaluación finalizada no hay acción', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { unmount } = render(panel([CLARIDAD]));
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: /Cambiar criterio del ítem Claridad/ })[0],
+    );
+
+    // Assert
+    expect(await screen.findByText('Ítem: Claridad')).toBeInTheDocument();
+
+    // Act
+    unmount();
+    render(panel([CLARIDAD], true));
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Cambiar criterio/ })).not.toBeInTheDocument();
   });
 
   it('sin filas no muestra la barra y sí el estado vacío', () => {

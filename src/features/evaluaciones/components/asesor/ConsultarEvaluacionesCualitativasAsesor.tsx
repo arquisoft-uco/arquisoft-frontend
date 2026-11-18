@@ -31,6 +31,7 @@ interface Props {
   etiquetaVolver: string;
   onVolver: () => void;
   seleccion?: SeleccionCualitativas;
+  onCambiarCriterio?: (fila: EvaluacionCualitativaAsesor) => void;
 }
 
 export default function ConsultarEvaluacionesCualitativasAsesor({
@@ -38,6 +39,7 @@ export default function ConsultarEvaluacionesCualitativasAsesor({
   etiquetaVolver,
   onVolver,
   seleccion,
+  onCambiarCriterio,
 }: Props) {
   const { data, isLoading, isError, error, refetch } = consulta;
 
@@ -90,6 +92,7 @@ export default function ConsultarEvaluacionesCualitativasAsesor({
         evaluaciones={data ?? []}
         cargando={isLoading}
         seleccion={seleccion}
+        onCambiarCriterio={onCambiarCriterio}
       />
     </div>
   );

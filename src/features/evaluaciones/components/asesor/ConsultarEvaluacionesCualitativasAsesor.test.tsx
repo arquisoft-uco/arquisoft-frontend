@@ -144,6 +144,47 @@ describe('ConsultarEvaluacionesCualitativasAsesor', () => {
     expect(onAlternar).toHaveBeenCalledWith('i-1');
   });
 
+  it('con `onCambiarCriterio` el botón de la fila lo invoca con la fila; sin él no hay botón', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onCambiarCriterio = vi.fn();
+    const consulta: ConsultaCualitativasAsesor = {
+      data: [FILA],
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    };
+    const { rerender } = render(
+      <ConsultarEvaluacionesCualitativasAsesor
+        consulta={consulta}
+        etiquetaVolver="Volver"
+        onVolver={vi.fn()}
+        onCambiarCriterio={onCambiarCriterio}
+      />,
+    );
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: /Cambiar criterio del ítem Claridad/ })[0],
+    );
+
+    // Assert
+    expect(onCambiarCriterio).toHaveBeenCalledWith(FILA);
+
+    // Act
+    rerender(
+      <ConsultarEvaluacionesCualitativasAsesor
+        consulta={consulta}
+        etiquetaVolver="Volver"
+        onVolver={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Cambiar criterio/ })).not.toBeInTheDocument();
+  });
+
   it('sin `seleccion` no pinta casillas', () => {
     // Act
     montar({ data: [FILA] });
