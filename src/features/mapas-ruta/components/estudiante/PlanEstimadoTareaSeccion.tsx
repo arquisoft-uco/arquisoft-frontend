@@ -12,17 +12,17 @@ const VALOR = 'break-words text-base font-medium text-on-surface';
 
 interface Props {
   consulta: ConsultaPlanEstimado;
+  puedeGestionar: boolean;
   onAgregar: () => void;
   onEditar: () => void;
-  puedeEliminar: boolean;
   onEliminar: () => void;
 }
 
 export default function PlanEstimadoTareaSeccion({
   consulta,
+  puedeGestionar,
   onAgregar,
   onEditar,
-  puedeEliminar,
   onEliminar,
 }: Props) {
   const { plan, cargando, hayError, reintentar } = consulta;
@@ -38,8 +38,16 @@ export default function PlanEstimadoTareaSeccion({
       <EmptyState
         icono={CalendarClock}
         titulo="Esta tarea aún no tiene plan estimado"
-        descripcion="Indica en cuántos días calculas terminarla para que tu asesor pueda seguirla."
-        accion={<Button onClick={onAgregar}>Agregar plan estimado</Button>}
+        descripcion={
+          puedeGestionar
+            ? 'Indica en cuántos días calculas terminarla para que tu asesor pueda seguirla.'
+            : 'La tarea está finalizada, por eso ya no se le puede agregar un plan estimado.'
+        }
+        accion={
+          <Button disabled={!puedeGestionar} onClick={onAgregar}>
+            Agregar plan estimado
+          </Button>
+        }
       />
     );
   }
@@ -53,23 +61,25 @@ export default function PlanEstimadoTareaSeccion({
         <h2 id="plan-estimado-titulo" className="text-lg font-semibold text-on-surface">
           Plan estimado
         </h2>
-        <Button
-          variante="secundario"
-          icono={CalendarClock}
-          className="header-action"
-          onClick={onEditar}
-        >
-          Editar plan estimado
-        </Button>
-        {puedeEliminar && (
-          <Button
-            variante="peligroContorno"
-            icono={Trash2}
-            className="header-action"
-            onClick={onEliminar}
-          >
-            Remover plan estimado
-          </Button>
+        {puedeGestionar && (
+          <>
+            <Button
+              variante="secundario"
+              icono={CalendarClock}
+              className="header-action"
+              onClick={onEditar}
+            >
+              Editar plan estimado
+            </Button>
+            <Button
+              variante="peligroContorno"
+              icono={Trash2}
+              className="header-action"
+              onClick={onEliminar}
+            >
+              Remover plan estimado
+            </Button>
+          </>
         )}
       </div>
       <dl className="grid gap-4 sm:grid-cols-2">

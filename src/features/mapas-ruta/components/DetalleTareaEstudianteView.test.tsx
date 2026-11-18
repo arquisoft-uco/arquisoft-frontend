@@ -312,9 +312,10 @@ describe('DetalleTareaEstudianteView', () => {
     renderizar();
     expect(screen.queryByRole('button', { name: 'Editar tarea' })).not.toBeInTheDocument();
   });
-  it('Agregar plan estimado abre el panel, también con una tarea finalizada', async () => {
+
+  it('Agregar plan estimado abre el panel con una tarea en progreso', async () => {
     // Arrange
-    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+    simular({ tarea: { ...TAREA, estado: { id: 'EN_PROGRESO', nombre: 'En progreso' } } });
     const user = userEvent.setup();
     renderizar();
 
@@ -324,6 +325,20 @@ describe('DetalleTareaEstudianteView', () => {
     // Assert
     expect(screen.getByRole('dialog', { name: 'Panel de plan estimado' })).toBeInTheDocument();
     expect(usePlan).toHaveBeenCalledWith('t-1', true);
+  });
+
+  it('con la tarea finalizada y sin plan deshabilita todas las formas de agregar el plan estimado', () => {
+    // Arrange
+    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+
+    // Act
+    renderizar();
+
+    // Assert
+    const botones = screen.getAllByRole('button', { name: 'Agregar plan estimado' });
+    expect(botones).toHaveLength(2);
+    botones.forEach((boton) => expect(boton).toBeDisabled());
+    expect(screen.queryByRole('button', { name: 'Editar plan estimado' })).not.toBeInTheDocument();
   });
 
   it('no ofrece Agregar plan estimado cuando la tarea ya tiene plan y muestra la sección', () => {

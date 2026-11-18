@@ -30,7 +30,7 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ cargando: true })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
-        puedeEliminar={false}
+        puedeGestionar
         onEliminar={vi.fn()}
       />,
     );
@@ -46,7 +46,7 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ plan: PLAN })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
-        puedeEliminar={false}
+        puedeGestionar
         onEliminar={vi.fn()}
       />,
     );
@@ -64,7 +64,7 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ plan: { ...PLAN, tiempoEstimadoDias: 1, descripcionEstimado: null } })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
-        puedeEliminar={false}
+        puedeGestionar
         onEliminar={vi.fn()}
       />,
     );
@@ -72,6 +72,23 @@ describe('PlanEstimadoTareaSeccion', () => {
     // Assert
     expect(screen.getByText('1 día')).toBeInTheDocument();
     expect(screen.getByText('Sin descripción')).toBeInTheDocument();
+  });
+
+  it('sin plan y sin permiso para agregar deshabilita Agregar plan estimado y explica el motivo', () => {
+    // Arrange / Act
+    render(
+      <PlanEstimadoTareaSeccion
+        consulta={consulta({ puedeAgregar: true })}
+        onAgregar={vi.fn()}
+        onEditar={vi.fn()}
+        puedeGestionar={false}
+        onEliminar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Agregar plan estimado' })).toBeDisabled();
+    expect(screen.getByText(/La tarea está finalizada/)).toBeInTheDocument();
   });
 
   it('sin plan ofrece Agregar plan estimado', async () => {
@@ -83,7 +100,7 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ puedeAgregar: true })}
         onAgregar={onAgregar}
         onEditar={vi.fn()}
-        puedeEliminar={false}
+        puedeGestionar
         onEliminar={vi.fn()}
       />,
     );
@@ -105,7 +122,7 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ hayError: true, reintentar })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
-        puedeEliminar={false}
+        puedeGestionar
         onEliminar={vi.fn()}
       />,
     );
@@ -134,7 +151,7 @@ describe('PlanEstimadoTareaSeccion', () => {
           consulta={caso}
           onAgregar={vi.fn()}
           onEditar={onEditar}
-          puedeEliminar={false}
+          puedeGestionar
           onEliminar={vi.fn()}
         />,
       );
@@ -146,7 +163,7 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ plan: PLAN })}
         onAgregar={vi.fn()}
         onEditar={onEditar}
-        puedeEliminar={false}
+        puedeGestionar
         onEliminar={vi.fn()}
       />,
     );
@@ -158,7 +175,7 @@ describe('PlanEstimadoTareaSeccion', () => {
     expect(onEditar).toHaveBeenCalledTimes(1);
   });
 
-  it('Remover plan estimado solo aparece con puedeEliminar y al pulsarlo llama a onEliminar', async () => {
+  it('Editar y Remover plan estimado solo aparecen con puedeGestionar y Remover llama a onEliminar', async () => {
     // Arrange
     const onEliminar = vi.fn();
     const user = userEvent.setup();
@@ -167,18 +184,19 @@ describe('PlanEstimadoTareaSeccion', () => {
         consulta={consulta({ plan: PLAN })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
-        puedeEliminar={false}
+        puedeGestionar={false}
         onEliminar={onEliminar}
       />,
     );
     expect(screen.queryByRole('button', { name: 'Remover plan estimado' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Editar plan estimado' })).not.toBeInTheDocument();
     sinPermiso.unmount();
     render(
       <PlanEstimadoTareaSeccion
         consulta={consulta({ plan: PLAN })}
         onAgregar={vi.fn()}
         onEditar={vi.fn()}
-        puedeEliminar
+        puedeGestionar
         onEliminar={onEliminar}
       />,
     );

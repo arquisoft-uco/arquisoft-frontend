@@ -10,6 +10,7 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { OrdenCampoPlanEstimadoProyecto } from '../../models/OrdenCampoPlanEstimadoProyecto';
 import type { PlanEstimadoProyecto } from '../../models/PlanEstimadoProyecto';
 import { formatearDias } from '../../utils/plan-estimado';
+import AportarPlanEstimadoAccion from './AportarPlanEstimadoAccion';
 
 const TAREA = 'font-medium text-on-surface';
 const SIN_DESCRIPCION = 'text-on-surface-secondary';
@@ -105,16 +106,7 @@ export default function PlanesEstimadosProyectoTable({
       onOrdenar={ordenar}
       acciones={
         onAportar
-          ? (plan) => (
-              <Button
-                variante="secundario"
-                tamano="sm"
-                aria-label={`Aportar al plan de ${plan.descripcionTarea}`}
-                onClick={() => onAportar(plan)}
-              >
-                Aportar
-              </Button>
-            )
+          ? (plan) => <AportarPlanEstimadoAccion plan={plan} onAportar={onAportar} />
           : undefined
       }
       cargando={cargando}
