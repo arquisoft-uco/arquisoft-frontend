@@ -12,4 +12,5 @@ export interface ObservacionItemFila {
   observacion: ObservacionItem;
   item: Item | undefined;
   revisionCerrada: boolean;
+  revisionCorreccionDisponible: boolean;
 }
