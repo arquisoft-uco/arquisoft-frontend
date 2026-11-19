@@ -541,6 +541,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('reabrirObservacionItem', () => {
+    it('hace PATCH /fichas-perfil/observaciones-item/{id}/reapertura sin body y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await fichasPerfilService.reabrirObservacionItem('o-1');
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/fichas-perfil/observaciones-item/o-1/reapertura');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('consultarRevisionesItemAsesor', () => {
     it('envía el body tal cual a POST /fichas-perfil/revisiones-item/asesor, traduce el DTO y conserva la paginación', async () => {
       // Arrange

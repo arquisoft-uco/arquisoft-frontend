@@ -12,5 +12,7 @@ export function mensajeErrorObservacionItem(err: unknown, respaldo: string): str
   if (hasApiErrorCode(err, 'REVISION_ITEM_NO_CORRECCION_DISPONIBLE')) {
     return 'El estudiante aún no ha enviado las correcciones de esta revisión.';
   }
+  if (hasApiErrorCode(err, 'OBSERVACION_ITEM_NO_CERRADA'))
+    return 'La observación ya no está cerrada.';
   return getApiErrorMessage(err, respaldo);
 }

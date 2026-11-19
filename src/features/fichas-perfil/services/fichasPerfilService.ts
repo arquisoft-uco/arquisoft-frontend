@@ -585,6 +585,11 @@ export const fichasPerfilService = {
       .patch(`/fichas-perfil/observaciones-item/${observacionItemId}/cierre`)
       .then(() => undefined),
 
+  reabrirObservacionItem: (observacionItemId: string): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-item/${observacionItemId}/reapertura`)
+      .then(() => undefined),
+
   consultarObservacionesItemAsesor: (
     req: ConsultaCriteriaRequest,
   ): Promise<Page<ObservacionItem>> =>
