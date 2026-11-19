@@ -12,6 +12,7 @@ import CriteriosItemCualitativoAsesorPanel from './CriteriosItemCualitativoAseso
 import ItemsCualitativosAsesorTable from './ItemsCualitativosAsesorTable';
 import ModificarItemCualitativoAsesorPanel from './ModificarItemCualitativoAsesorPanel';
 import RegistrarItemCualitativoAsesorPanel from './RegistrarItemCualitativoAsesorPanel';
+import RemoverItemCualitativoAsesorDialog from './RemoverItemCualitativoAsesorDialog';
 
 const ROLES_ADMINISTRAN = [Rol.Administrador];
 
@@ -21,6 +22,7 @@ export default function ItemsCualitativosAsesorView() {
   const [criteriosAbiertos, setCriteriosAbiertos] = useState(false);
   const [registrando, setRegistrando] = useState(false);
   const [itemEnEdicion, setItemEnEdicion] = useState<ItemCualitativoAsesor | null>(null);
+  const [itemARemover, setItemARemover] = useState<ItemCualitativoAsesor | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -59,6 +61,7 @@ export default function ItemsCualitativosAsesorView() {
         <ItemsCualitativosAsesorTable
           items={data}
           onEditar={esAdministrador ? setItemEnEdicion : undefined}
+          onRemover={esAdministrador ? setItemARemover : undefined}
         />
       )}
 
@@ -71,6 +74,14 @@ export default function ItemsCualitativosAsesorView() {
           key={itemEnEdicion.id}
           item={itemEnEdicion}
           onCerrar={() => setItemEnEdicion(null)}
+        />
+      )}
+
+      {esAdministrador && itemARemover && (
+        <RemoverItemCualitativoAsesorDialog
+          key={itemARemover.id}
+          item={itemARemover}
+          onCerrar={() => setItemARemover(null)}
         />
       )}
 

@@ -108,6 +108,11 @@ export const evaluacionesService = {
       .patch<void>(`/evaluaciones/items-cualitativos-asesor/${itemId}`, { descripcion })
       .then(() => undefined),
 
+  removerItemCualitativoAsesor: (itemId: string): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/items-cualitativos-asesor/${itemId}`)
+      .then(() => undefined),
+
   getCriteriosItemCualitativoAsesor: (): Promise<CriterioItemCualitativoAsesor[]> =>
     apiClient
       .get<CriterioItemCualitativoAsesor[]>('/evaluaciones/criterios-item-cualitativo-asesor')

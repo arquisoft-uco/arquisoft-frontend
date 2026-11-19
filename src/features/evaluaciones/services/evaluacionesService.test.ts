@@ -516,6 +516,20 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('removerItemCualitativoAsesor', () => {
+    it('llama DELETE con el itemId en la ruta y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerItemCualitativoAsesor('item-1');
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/items-cualitativos-asesor/item-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('removerItemCuantitativoAsesor', () => {
     it('llama DELETE con el itemId en la ruta y resuelve undefined', async () => {
       // Arrange
