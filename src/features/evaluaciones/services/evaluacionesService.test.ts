@@ -496,6 +496,20 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('removerItemCuantitativoAsesor', () => {
+    it('llama DELETE con el itemId en la ruta y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerItemCuantitativoAsesor('item-1');
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/items-cuantitativos-asesor/item-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('registrarItemCuantitativoJurado', () => {
     it('llama POST enviando categoria (no categoriaId) y el valor numérico, y resuelve { id }', async () => {
       // Arrange
