@@ -30,6 +30,7 @@ import type { RegistrarEvaluacionesCuantitativasAsesorRequest } from '../models/
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { OmitirEvaluacionesCuantitativasAsesorRequest } from '../models/OmitirEvaluacionesCuantitativasAsesorRequest';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
+import type { ModificarItemCualitativoAsesorRequest } from '../models/ModificarItemCualitativoAsesorRequest';
 import type { ModificarItemCuantitativoAsesorRequest } from '../models/ModificarItemCuantitativoAsesorRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
 import type { ModificarObservacionItemAsesorRequest } from '../models/ModificarObservacionItemAsesorRequest';
@@ -98,6 +99,14 @@ export const evaluacionesService = {
     apiClient
       .post<RegistrarItemCualitativoAsesorResponse>('/evaluaciones/items-cualitativos-asesor', req)
       .then((r) => r.data),
+
+  modificarItemCualitativoAsesor: ({
+    itemId,
+    descripcion,
+  }: ModificarItemCualitativoAsesorRequest): Promise<void> =>
+    apiClient
+      .patch<void>(`/evaluaciones/items-cualitativos-asesor/${itemId}`, { descripcion })
+      .then(() => undefined),
 
   getCriteriosItemCualitativoAsesor: (): Promise<CriterioItemCualitativoAsesor[]> =>
     apiClient

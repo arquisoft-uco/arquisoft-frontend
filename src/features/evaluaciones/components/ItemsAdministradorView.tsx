@@ -23,7 +23,7 @@ const PANEL_POR_PESTANA: Record<Pestana, React.ReactNode> = {
   'cualitativos-jurado': <ItemsCualitativosJuradoView />,
   'cuantitativos-jurado': <ItemsCuantitativosJuradoView />,
   'cuantitativos-asesor': <ItemsCuantitativosAsesorView />,
-  'cualitativos-asesor': <ItemsCualitativosAsesorView puedeRegistrar />,
+  'cualitativos-asesor': <ItemsCualitativosAsesorView />,
 };
 
 export default function ItemsAdministradorView() {

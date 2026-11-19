@@ -4,6 +4,12 @@ import { render, screen, within } from '../../../test-utils/render';
 import ItemsCualitativosAsesorView from './ItemsCualitativosAsesorView';
 import { useItemsCualitativosAsesor } from '../hooks/useItemsCualitativosAsesor';
 import { useCriteriosItemCualitativoAsesor } from '../hooks/useCriteriosItemCualitativoAsesor';
+import { Rol } from '../../../shared/models/rol';
+import {
+  resetAllStores,
+  setActiveRole,
+  setAuthenticatedUser,
+} from '../../../test-utils/store.utils';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 
 vi.mock('../hooks/useItemsCualitativosAsesor', () => ({
@@ -15,6 +21,12 @@ vi.mock('./RegistrarItemCualitativoAsesorPanel', () => ({
     <button type="button" onClick={onCerrar}>
       Panel de registro
     </button>
+  ),
+}));
+
+vi.mock('./ModificarItemCualitativoAsesorPanel', () => ({
+  default: ({ item }: { item: ItemCualitativoAsesor }) => (
+    <div>Panel de edición de {item.nombre}</div>
   ),
 }));
 
@@ -38,8 +50,14 @@ function mockConsulta(parcial: Partial<ReturnType<typeof useItemsCualitativosAse
   } as ReturnType<typeof useItemsCualitativosAsesor>);
 }
 
+function entrarComo(rol: Rol) {
+  setAuthenticatedUser({ tokenParsed: { sub: 'u', realm_access: { roles: [rol] } } });
+  setActiveRole(rol);
+}
+
 describe('ItemsCualitativosAsesorView', () => {
   beforeEach(() => {
+    resetAllStores();
     vi.mocked(useItemsCualitativosAsesor).mockReset();
     vi.mocked(useCriteriosItemCualitativoAsesor).mockReset();
     const parcial: Partial<ReturnType<typeof useCriteriosItemCualitativoAsesor>> = {
@@ -69,11 +87,12 @@ describe('ItemsCualitativosAsesorView', () => {
     expect(screen.getByText('Aplicabilidad')).toBeInTheDocument();
   });
 
-  it('con puedeRegistrar ofrece «Registrar ítem», abre el panel y lo cierra', async () => {
+  it('como administrador ofrece «Registrar ítem», abre el panel y lo cierra', async () => {
     // Arrange
     mockConsulta({ data: ITEMS });
+    entrarComo(Rol.Administrador);
     const user = userEvent.setup();
-    render(<ItemsCualitativosAsesorView puedeRegistrar />);
+    render(<ItemsCualitativosAsesorView />);
     expect(screen.queryByText('Panel de registro')).toBeNull();
 
     // Act
@@ -83,6 +102,34 @@ describe('ItemsCualitativosAsesorView', () => {
     expect(screen.getByText('Panel de registro')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Panel de registro' }));
     expect(screen.queryByText('Panel de registro')).toBeNull();
+  });
+
+  it('como administrador, «Editar» abre el panel con el ítem de esa fila', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    entrarComo(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<ItemsCualitativosAsesorView />);
+
+    // Act
+    const tabla = screen.getByRole('table', { name: 'Ítems cualitativos del asesor' });
+    await user.click(within(tabla).getByRole('button', { name: 'Editar ítem Rigor' }));
+
+    // Assert
+    expect(screen.getByText('Panel de edición de Rigor')).toBeInTheDocument();
+  });
+
+  it('como asesor no ofrece «Editar» ni «Registrar ítem»', () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    entrarComo(Rol.Asesor);
+
+    // Act
+    render(<ItemsCualitativosAsesorView />);
+
+    // Assert
+    expect(screen.getAllByRole('row')).toHaveLength(3);
+    expect(screen.queryByRole('button', { name: /editar|registrar ítem/i })).toBeNull();
   });
 
   it('mientras carga, muestra el skeleton accesible', () => {
