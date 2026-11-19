@@ -28,7 +28,16 @@ export function useItemsMiFicha() {
 
   const modificar = useMutation({
     mutationFn: (req: ModificarItemRequest) => fichasPerfilService.modificarItem(req),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ITEMS_KEY }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ITEMS_KEY }),
+        queryClient.invalidateQueries({
+          queryKey: ['fichas-perfil', 'estudiante', fichaPerfilId, 'revisiones'],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['fichas-perfil', 'estudiante', fichaPerfilId, 'observaciones'],
+        }),
+      ]),
   });
 
   const remover = useMutation({

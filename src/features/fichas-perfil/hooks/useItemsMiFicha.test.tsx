@@ -238,6 +238,12 @@ describe('useItemsMiFicha', () => {
       expect(invalidar).toHaveBeenCalledWith({
         queryKey: ['fichas-perfil', 'estudiante', 'f-1', 'items'],
       });
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['fichas-perfil', 'estudiante', 'f-1', 'revisiones'],
+      });
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['fichas-perfil', 'estudiante', 'f-1', 'observaciones'],
+      });
       await waitFor(() => expect(consultar).toHaveBeenCalledTimes(2));
     });
 
