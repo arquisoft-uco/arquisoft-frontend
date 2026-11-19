@@ -1,15 +1,18 @@
-import { useId } from 'react';
-import { ClipboardList } from 'lucide-react';
+import { useId, useState } from 'react';
+import { ClipboardList, MessageSquare } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { useEvaluacionesCuantitativasAsesorEstudiante } from '../../hooks/useEvaluacionesCuantitativasAsesorEstudiante';
+import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuantitativaAsesor';
 import {
   EVALUACION_ASESOR_NO_PERTENECE_ESTUDIANTE,
   EVALUACION_CUALITATIVA_ASESOR_EVALUACION_ASESOR_NO_ENCONTRADA,
 } from '../../utils/codigos-error-evaluaciones';
 import EvaluacionesCuantitativasJuradoTable from '../EvaluacionesCuantitativasJuradoTable';
+import ObservacionesEvaluacionCuantitativaAsesorEstudiantePanel from './ObservacionesEvaluacionCuantitativaAsesorEstudiantePanel';
 
 const RAIZ = 'flex flex-col gap-3';
 const TITULO = 'text-base font-semibold text-on-surface';
@@ -32,6 +35,7 @@ export default function ConsultarEvaluacionesCuantitativasAsesorEstudiante({
   onVolver,
 }: Props) {
   const idTitulo = useId();
+  const [abierta, setAbierta] = useState<EvaluacionCuantitativaAsesor | null>(null);
   const { data, isLoading, isError, error, refetch } =
     useEvaluacionesCuantitativasAsesorEstudiante(evaluacionAsesorId);
 
@@ -88,6 +92,14 @@ export default function ConsultarEvaluacionesCuantitativasAsesorEstudiante({
           evaluaciones={data ?? []}
           cargando={isLoading}
           etiqueta={ETIQUETA_TABLA}
+          acciones={(fila) => (
+            <IconButton
+              etiqueta={`Ver observaciones de ${fila.item.nombre}`}
+              rotulo="Ver observaciones"
+              icono={MessageSquare}
+              onClick={() => setAbierta(fila)}
+            />
+          )}
           vacio={
             <EmptyState
               icono={ClipboardList}
@@ -96,6 +108,12 @@ export default function ConsultarEvaluacionesCuantitativasAsesorEstudiante({
             />
           }
         />
+        {abierta && (
+          <ObservacionesEvaluacionCuantitativaAsesorEstudiantePanel
+            evaluacion={abierta}
+            onCerrar={() => setAbierta(null)}
+          />
+        )}
       </>
     );
   }
