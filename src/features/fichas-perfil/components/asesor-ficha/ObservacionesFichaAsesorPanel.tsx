@@ -1,27 +1,21 @@
 import { useState } from 'react';
-import { LockKeyhole, Pencil, Trash2 } from 'lucide-react';
+import { LockKeyhole, LockKeyholeOpen, Pencil, Trash2 } from 'lucide-react';
 import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
 import Notice from '../../../../shared/components/ui/Notice';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useObservacionesFichaAsesor } from '../../hooks/useObservacionesFichaAsesor';
 import { useRemoverObservacionItem } from '../../hooks/useRemoverObservacionItem';
-import type { ObservacionItem, ObservacionItemFila } from '../../models/ObservacionItem';
-import { ESTADO_OBSERVACION_EN_PROGRESO } from '../../utils/estado-revision';
+import type { ObservacionItem } from '../../models/ObservacionItem';
+import { ESTADO_OBSERVACION_CERRADO, puedeCerrar } from '../../utils/estado-revision';
 import { mensajeErrorObservacionItem } from '../../utils/errores-observacion-item';
 import ObservacionesFichaTabla from '../ObservacionesFichaTabla';
 import CerrarObservacionItemDialog from './CerrarObservacionItemDialog';
 import EditarObservacionItemPanel from './EditarObservacionItemPanel';
+import ReabrirObservacionItemDialog from './ReabrirObservacionItemDialog';
 
 interface Props {
   fichaPerfilId: string;
-}
-
-function puedeCerrar(fila: ObservacionItemFila) {
-  return (
-    fila.observacion.estadoId === ESTADO_OBSERVACION_EN_PROGRESO &&
-    fila.revisionCorreccionDisponible
-  );
 }
 
 export default function ObservacionesFichaAsesorPanel({ fichaPerfilId }: Props) {
@@ -29,6 +23,7 @@ export default function ObservacionesFichaAsesorPanel({ fichaPerfilId }: Props) 
   const remover = useRemoverObservacionItem(fichaPerfilId);
   const [observacionARemover, setObservacionARemover] = useState<string | null>(null);
   const [observacionACerrar, setObservacionACerrar] = useState<string | null>(null);
+  const [observacionAReabrir, setObservacionAReabrir] = useState<string | null>(null);
   const [enEdicion, setEnEdicion] = useState<{
     observacion: ObservacionItem;
     nombreItem: string;
@@ -55,7 +50,10 @@ export default function ObservacionesFichaAsesorPanel({ fichaPerfilId }: Props) 
   }
 
   const hayCierreNoDisponible = observaciones.filas.some(
-    (fila) => !fila.revisionCerrada && !puedeCerrar(fila),
+    (fila) =>
+      !fila.revisionCerrada &&
+      fila.observacion.estadoId !== ESTADO_OBSERVACION_CERRADO &&
+      !puedeCerrar(fila),
   );
 
   return (
@@ -82,12 +80,18 @@ export default function ObservacionesFichaAsesorPanel({ fichaPerfilId }: Props) 
                   icono: Pencil,
                   onSeleccionar: () => setEnEdicion({ observacion: fila.observacion, nombreItem }),
                 },
-                {
-                  etiqueta: 'Cerrar observación',
-                  icono: LockKeyhole,
-                  deshabilitada: !puedeCerrar(fila),
-                  onSeleccionar: () => setObservacionACerrar(fila.observacion.id),
-                },
+                fila.observacion.estadoId === ESTADO_OBSERVACION_CERRADO
+                  ? {
+                      etiqueta: 'Reabrir observación',
+                      icono: LockKeyholeOpen,
+                      onSeleccionar: () => setObservacionAReabrir(fila.observacion.id),
+                    }
+                  : {
+                      etiqueta: 'Cerrar observación',
+                      icono: LockKeyhole,
+                      deshabilitada: !puedeCerrar(fila),
+                      onSeleccionar: () => setObservacionACerrar(fila.observacion.id),
+                    },
                 {
                   etiqueta: 'Remover observación',
                   icono: Trash2,
@@ -114,6 +118,13 @@ export default function ObservacionesFichaAsesorPanel({ fichaPerfilId }: Props) 
           observacionId={observacionACerrar}
           fichaPerfilId={fichaPerfilId}
           onCerrar={() => setObservacionACerrar(null)}
+        />
+      )}
+      {observacionAReabrir && (
+        <ReabrirObservacionItemDialog
+          observacionId={observacionAReabrir}
+          fichaPerfilId={fichaPerfilId}
+          onCerrar={() => setObservacionAReabrir(null)}
         />
       )}
       {observacionARemover && (

@@ -28,6 +28,10 @@ describe('mensajeErrorObservacionItem', () => {
       errorApi(422, { errorCode: 'REVISION_ITEM_NO_CORRECCION_DISPONIBLE', message: 'x' }),
       respaldo,
     );
+    const noCerrada = mensajeErrorObservacionItem(
+      errorApi(422, { errorCode: 'OBSERVACION_ITEM_NO_CERRADA', message: 'x' }),
+      respaldo,
+    );
     const sinCodigo = mensajeErrorObservacionItem(new Error('red'), respaldo);
 
     // Assert
@@ -40,6 +44,7 @@ describe('mensajeErrorObservacionItem', () => {
     expect(sinCorreccion).toBe(
       'El estudiante aún no ha enviado las correcciones de esta revisión.',
     );
+    expect(noCerrada).toBe('La observación ya no está cerrada.');
     expect(sinCodigo).toBe(respaldo);
   });
 });
