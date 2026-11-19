@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ClipboardList, Pencil } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
@@ -41,6 +42,8 @@ interface Props {
   cargando: boolean;
   seleccion?: SeleccionCualitativas;
   onCambiarCriterio?: (fila: EvaluacionCualitativaAsesor) => void;
+  etiqueta?: string;
+  vacio?: ReactNode;
 }
 
 export default function EvaluacionesCualitativasAsesorTable({
@@ -48,6 +51,8 @@ export default function EvaluacionesCualitativasAsesorTable({
   cargando,
   seleccion,
   onCambiarCriterio,
+  etiqueta,
+  vacio,
 }: Props) {
   const casilla = (fila: EvaluacionCualitativaAsesor) =>
     seleccion ? (
@@ -63,7 +68,7 @@ export default function EvaluacionesCualitativasAsesorTable({
 
   return (
     <DataTable
-      etiqueta="Evaluaciones cualitativas del asesor"
+      etiqueta={etiqueta ?? 'Evaluaciones cualitativas del asesor'}
       columnas={columnas}
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
@@ -82,11 +87,13 @@ export default function EvaluacionesCualitativasAsesorTable({
         ))
       }
       vacio={
-        <EmptyState
-          icono={ClipboardList}
-          titulo="Aún no hay evaluaciones cualitativas"
-          descripcion="Aparecerán aquí cuando registres tus valoraciones cualitativas."
-        />
+        vacio ?? (
+          <EmptyState
+            icono={ClipboardList}
+            titulo="Aún no hay evaluaciones cualitativas"
+            descripcion="Aparecerán aquí cuando registres tus valoraciones cualitativas."
+          />
+        )
       }
       tarjeta={(fila) => (
         <>

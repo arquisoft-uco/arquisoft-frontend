@@ -16,6 +16,11 @@ vi.mock('./components/estudiante/ConsultarEvaluacionesCuantitativasAsesorEstudia
     <p>{`Cuantitativas del asesor ${evaluacionAsesorId}`}</p>
   ),
 }));
+vi.mock('./components/estudiante/ConsultarEvaluacionesCualitativasAsesorEstudiante', () => ({
+  default: ({ evaluacionAsesorId }: { evaluacionAsesorId: string }) => (
+    <p>{`Cualitativas del asesor ${evaluacionAsesorId}`}</p>
+  ),
+}));
 vi.mock('./hooks/useResumenEvaluacion', () => ({ useResumenEvaluacion: vi.fn() }));
 
 function montar() {
@@ -78,7 +83,7 @@ describe('EvaluacionDelAsesor', () => {
     );
   });
 
-  it('con evaluación del asesor monta la sección de cuantitativas', () => {
+  it('con evaluación del asesor monta las secciones de cuantitativas y cualitativas', () => {
     // Arrange
     vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
     const parcial: Partial<ReturnType<typeof useEvaluacionAsesor>> = {
@@ -97,9 +102,10 @@ describe('EvaluacionDelAsesor', () => {
 
     // Assert
     expect(screen.getByText('Cuantitativas del asesor ea-1')).toBeInTheDocument();
+    expect(screen.getByText('Cualitativas del asesor ea-1')).toBeInTheDocument();
   });
 
-  it('sin evaluación del asesor no monta la sección de cuantitativas', () => {
+  it('sin evaluación del asesor no monta las secciones de cuantitativas y cualitativas', () => {
     // Arrange
     vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
 
@@ -109,6 +115,7 @@ describe('EvaluacionDelAsesor', () => {
     // Assert
     expect(screen.getByText('Cuerpo del asesor')).toBeInTheDocument();
     expect(screen.queryByText(/Cuantitativas del asesor/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cualitativas del asesor/)).not.toBeInTheDocument();
   });
 
   it('un rol distinto de estudiante es muestra Acceso denegado', () => {
