@@ -24,7 +24,7 @@ export default function AccionesRevision({
   return (
     <>
       <Button variante="peligroContorno" icono={Trash2} onClick={onEliminarRevision}>
-        Eliminar revisión
+        Eliminar
       </Button>
       <Button
         variante="secundario"
@@ -33,7 +33,7 @@ export default function AccionesRevision({
         aria-describedby={!puedeCerrar && hayNotaCierre ? ID_NOTA_PIE_REVISION : undefined}
         onClick={onCerrarRevision}
       >
-        Dar por completado
+        Completar
       </Button>
       <Button
         icono={Send}
@@ -41,7 +41,7 @@ export default function AccionesRevision({
         aria-describedby={!habilitado && mostrarNota ? ID_NOTA_PIE_REVISION : undefined}
         onClick={onEnviar}
       >
-        Enviar revisión
+        Enviar
       </Button>
     </>
   );

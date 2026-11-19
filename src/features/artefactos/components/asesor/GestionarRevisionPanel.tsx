@@ -86,6 +86,7 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
           )
         }
         notaPie={revision.notaPie}
+        cerrarEnPie={!editable}
         accionesPie={
           editable && (
             <AccionesRevision
