@@ -20,19 +20,33 @@ vi.mock('../../hooks/useRemoverObservacionItem', () => ({
   useRemoverObservacionItem: vi.fn(),
 }));
 
+vi.mock('../../hooks/useCerrarObservacionItem', () => ({
+  useCerrarObservacionItem: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
+
+vi.mock('../../hooks/useReabrirObservacionItem', () => ({
+  useReabrirObservacionItem: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
+
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
 
 type Resultado = ReturnType<typeof useObservacionesFichaAsesor>;
 
-function fila(id: string, nombreItem: string, revisionCerrada: boolean) {
+function fila(
+  id: string,
+  nombreItem: string,
+  revisionCerrada: boolean,
+  estadoId = 'PENDIENTE',
+  revisionCorreccionDisponible = false,
+) {
   return {
     observacion: {
       id,
       revisionItemId: `r-${id}`,
       observacion: `Texto ${id}`,
-      estadoId: 'PENDIENTE',
+      estadoId,
       estadoNombre: 'Pendiente',
     },
     item: {
@@ -42,6 +56,7 @@ function fila(id: string, nombreItem: string, revisionCerrada: boolean) {
       contenido: 'Contenido',
     },
     revisionCerrada,
+    revisionCorreccionDisponible,
   };
 }
 
@@ -117,6 +132,7 @@ describe('ObservacionesFichaAsesorPanel', () => {
             contenido: 'Medir el impacto',
           },
           revisionCerrada: false,
+          revisionCorreccionDisponible: false,
         },
       ],
       totalElements: 1,
@@ -247,6 +263,83 @@ describe('ObservacionesFichaAsesorPanel', () => {
     expect(toast.error).toHaveBeenCalledWith('No se pudo remover la observación', motivo);
     expect(toast.success).not.toHaveBeenCalled();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('habilita Cerrar observación solo con la observación en progreso y la corrección disponible', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFilas([fila('1', 'Objetivo general', false, 'EN_PROGRESO', true)]);
+    render(<ObservacionesFichaAsesorPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: /Acciones de la observación de Objetivo general/ })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Cerrar observación' })).toBeEnabled();
+    expect(screen.queryByText(/Puedes cerrar una observación cuando/)).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('menuitem', { name: 'Cerrar observación' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: '¿Cerrar esta observación?' })).toBeInTheDocument();
+  });
+
+  it('deshabilita Cerrar observación y explica cuándo se habilita si la observación no está en progreso', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFilas([fila('1', 'Objetivo general', false, 'PENDIENTE', true)]);
+    render(<ObservacionesFichaAsesorPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: /Acciones de la observación de Objetivo general/ })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Cerrar observación' })).toBeDisabled();
+    expect(screen.getByText(/Puedes cerrar una observación cuando/)).toBeInTheDocument();
+  });
+
+  it('una fila CERRADO con revisión abierta ofrece Reabrir y no Cerrar, y la elección abre la confirmación', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFilas([fila('1', 'Objetivo general', false, 'CERRADO', true)]);
+    render(<ObservacionesFichaAsesorPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: /Acciones de la observación de Objetivo general/ })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Reabrir observación' })).toBeEnabled();
+    expect(screen.queryByRole('menuitem', { name: 'Cerrar observación' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Puedes cerrar una observación cuando/)).not.toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('menuitem', { name: 'Reabrir observación' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: '¿Reabrir esta observación?' })).toBeInTheDocument();
+  });
+
+  it('una fila EN_PROGRESO ofrece Cerrar y no Reabrir', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFilas([fila('1', 'Objetivo general', false, 'EN_PROGRESO', true)]);
+    render(<ObservacionesFichaAsesorPanel fichaPerfilId="f-1" />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: /Acciones de la observación de Objetivo general/ })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Cerrar observación' })).toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Reabrir observación' })).not.toBeInTheDocument();
   });
 
   it('una fila con revisión cerrada no ofrece ninguna acción', () => {

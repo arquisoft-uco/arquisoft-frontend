@@ -1,0 +1,49 @@
+import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { render, screen } from '../../../test-utils/render';
+import AsesorView from './AsesorView';
+
+vi.mock('./asesor/ConsultarEvaluacionesAsesor', () => ({
+  default: () => <p>Panel de evaluaciones</p>,
+}));
+
+vi.mock('./ItemsCualitativosAsesorView', () => ({
+  default: () => <p>Panel de ítems cualitativos</p>,
+}));
+
+vi.mock('./CategoriasItemCuantitativoAsesorPanel', () => ({
+  default: () => <p>Panel de categorías</p>,
+}));
+
+vi.mock('./ItemsCuantitativosAsesorView', () => ({
+  default: () => <p>Panel de ítems cuantitativos</p>,
+}));
+
+describe('AsesorView', () => {
+  it('abre en «Mis evaluaciones» y la pestaña «Categorías cuantitativas» cambia el panel', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<AsesorView />);
+    expect(screen.getByText('Panel de evaluaciones')).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Categorías cuantitativas' }));
+
+    // Assert
+    expect(screen.getByText('Panel de categorías')).toBeInTheDocument();
+    expect(screen.queryByText('Panel de evaluaciones')).not.toBeInTheDocument();
+  });
+
+  it('la pestaña «Ítems cuantitativos» muestra su panel y oculta el de evaluaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<AsesorView />);
+
+    // Act
+    await user.click(screen.getByRole('tab', { name: 'Ítems cuantitativos' }));
+
+    // Assert
+    expect(screen.getByText('Panel de ítems cuantitativos')).toBeInTheDocument();
+    expect(screen.queryByText('Panel de evaluaciones')).not.toBeInTheDocument();
+  });
+});

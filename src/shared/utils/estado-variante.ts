@@ -54,9 +54,9 @@ const VARIANTE_OBSERVACION: TablaDeVariantes = {
 
 const VARIANTE_PROYECTO: TablaDeVariantes = {
   EN_PROCESO: 'info',
-  LISTO_PARA_REVISION: 'advertencia',
   ATRASADO: 'peligro',
   FINALIZADO: 'exito',
+  CANCELADO: 'peligro',
 };
 
 const VARIANTE_ASESOR_PROYECTO: TablaDeVariantes = {
@@ -80,6 +80,7 @@ const VARIANTE_OBSERVACION_ARTEFACTO: TablaDeVariantes = {
 };
 
 const VARIANTE_ENTREGABLE: TablaDeVariantes = {
+  NUEVO: 'info',
   DISPONIBLE_EVALUACION: 'advertencia',
   EN_EVALUACION: 'info',
   APROBADO_CON_OBSERVACIONES: 'advertencia',
@@ -93,6 +94,12 @@ const VARIANTE_TAREA: TablaDeVariantes = {
   NUEVA: 'info',
   EN_PROGRESO: 'advertencia',
   FINALIZADA: 'exito',
+};
+
+const VARIANTE_DOCUMENTACION: TablaDeVariantes = {
+  PENDIENTE: 'advertencia',
+  PUBLICADO: 'exito',
+  NO_PUBLICADO: 'neutro',
 };
 
 function buscarVariante(tabla: TablaDeVariantes, id: string): VarianteBadge {
@@ -150,4 +157,8 @@ export function varianteEstadoEntregable(id: string): VarianteBadge {
 
 export function varianteEstadoTarea(id: string): VarianteBadge {
   return buscarVariante(VARIANTE_TAREA, id);
+}
+
+export function varianteEstadoDocumentacion(id: string): VarianteBadge {
+  return buscarVariante(VARIANTE_DOCUMENTACION, id);
 }

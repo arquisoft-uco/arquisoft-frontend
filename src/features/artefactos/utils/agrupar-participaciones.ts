@@ -4,10 +4,23 @@ export interface ProyectoConParticipaciones {
   proyectoGrado: string;
   nombreProyecto: string;
   participaciones: ParticipacionArtefacto[];
+  proyectoFinalizado: boolean;
+  proyectoCancelado: boolean;
 }
+
+export type EstadoCierreProyecto = Pick<
+  ProyectoConParticipaciones,
+  'proyectoFinalizado' | 'proyectoCancelado'
+>;
+
+const PROYECTO_ABIERTO: EstadoCierreProyecto = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
+};
 
 export function agruparPorProyecto(
   participaciones: ParticipacionArtefacto[],
+  cierrePorProyecto: ReadonlyMap<string, EstadoCierreProyecto> = new Map(),
 ): ProyectoConParticipaciones[] {
   const grupos = new Map<string, ProyectoConParticipaciones>();
 
@@ -20,6 +33,7 @@ export function agruparPorProyecto(
         proyectoGrado: participacion.proyectoGrado,
         nombreProyecto: participacion.nombreProyecto,
         participaciones: [participacion],
+        ...(cierrePorProyecto.get(participacion.proyectoGrado) ?? PROYECTO_ABIERTO),
       });
     }
   }

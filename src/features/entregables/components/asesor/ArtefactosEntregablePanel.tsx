@@ -1,11 +1,16 @@
-import { FileText } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
+import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
+import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useDescargarVersionRepositorio } from '../../../../shared/hooks/useDescargarVersionRepositorio';
 import { useArtefactosEntregable } from '../../hooks/useArtefactosEntregable';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
+import { mensajeErrorConsultaEntregable } from '../../utils/errores-entregable';
+import { proyectoCerrado } from '../../utils/estado-proyecto';
+import { ESTADO_NUEVO } from '../../utils/estados-entregable';
 
 interface Props {
   entregable: EntregableProyectoGrado;
@@ -22,6 +27,8 @@ export default function ArtefactosEntregablePanel({ entregable, onCerrar }: Prop
     error,
     refetch,
   } = useArtefactosEntregable(entregable.id);
+  const { descargar, descargando } = useDescargarVersionRepositorio('artefacto');
+  const cerrado = proyectoCerrado(entregable);
 
   function contenido() {
     if (isLoading) {
@@ -32,7 +39,7 @@ export default function ArtefactosEntregablePanel({ entregable, onCerrar }: Prop
       return (
         <ErrorState
           titulo="No se pudieron cargar los artefactos"
-          descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
+          descripcion={mensajeErrorConsultaEntregable(error)}
           onReintentar={() => void refetch()}
         />
       );
@@ -42,29 +49,55 @@ export default function ArtefactosEntregablePanel({ entregable, onCerrar }: Prop
       return (
         <EmptyState
           icono={FileText}
-          titulo="Este entregable aún no tiene artefactos"
-          descripcion="Cuando se vinculen artefactos al entregable, aparecerán aquí."
+          titulo="Este entregable no tiene documentos"
+          descripcion={
+            entregable.estadoEntregable.id === ESTADO_NUEVO
+              ? 'Puedes cancelarlo desde la lista de entregables y generar uno nuevo.'
+              : undefined
+          }
         />
       );
     }
 
     return (
-      <ul aria-label="Artefactos del entregable" className="flex flex-col gap-3">
-        {artefactos.map((artefacto) => (
-          <li
-            key={artefacto.id}
-            className="flex flex-col gap-0.5 rounded-xl border border-border p-3.5"
-          >
-            <span className="text-sm font-semibold break-words text-on-surface">
-              {artefacto.nombreDocumento}
-            </span>
-            <span className={TEXTO_SECUNDARIO}>Repositorio: {artefacto.nombreRepositorio}</span>
-            <span className={TEXTO_SECUNDARIO}>
-              Ubicación del archivo: <span className="break-all">{artefacto.uriArchivo}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col gap-3">
+        {cerrado && (
+          <Notice variante="info">
+            El proyecto de este entregable ya está cerrado. Puedes consultar los artefactos, pero
+            sus archivos ya no están disponibles para descargar.
+          </Notice>
+        )}
+        <ul aria-label="Artefactos del entregable" className="flex flex-col gap-3">
+          {artefactos.map((artefacto) => (
+            <li
+              key={artefacto.id}
+              className="flex flex-col gap-0.5 rounded-xl border border-border p-3.5"
+            >
+              <span className="text-sm font-semibold break-words text-on-surface">
+                {artefacto.nombreDocumento}
+              </span>
+              <span className={TEXTO_SECUNDARIO}>Versión {artefacto.numeroVersion}</span>
+              <span className={TEXTO_SECUNDARIO}>Repositorio: {artefacto.nombreRepositorio}</span>
+              <span className={TEXTO_SECUNDARIO}>
+                Ubicación del archivo: <span className="break-all">{artefacto.uriArchivo}</span>
+              </span>
+              {!cerrado && (
+                <Button
+                  variante="secundario"
+                  tamano="sm"
+                  icono={Download}
+                  className="mt-2 self-start"
+                  aria-label={`Descargar ${artefacto.nombreDocumento}`}
+                  disabled={descargando}
+                  onClick={() => descargar(artefacto.versionArtefacto, artefacto.nombreDocumento)}
+                >
+                  Descargar
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   }
 

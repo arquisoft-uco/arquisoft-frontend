@@ -6,7 +6,7 @@ import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useAsignarJuradosEvaluacion } from '../../hooks/useAsignarJuradosEvaluacion';
-import type { Evaluacion } from '../../models/Evaluacion';
+import type { EntregableEvaluacion, Evaluacion } from '../../models/Evaluacion';
 import type { JuradoVigente } from '../../models/JuradoVigente';
 import { mensajeErrorAsignacionJurados } from '../../utils/errores-asignacion-jurados';
 import JuradosDisponiblesLista from './JuradosDisponiblesLista';
@@ -15,8 +15,12 @@ const ID_FORMULARIO = 'form-asignar-jurados-evaluacion';
 const CUERPO = 'flex flex-col gap-6';
 const AYUDA = 'text-sm text-on-surface-secondary';
 
+type EvaluacionAsignable = Pick<Evaluacion, 'id'> & {
+  entregable: Pick<EntregableEvaluacion, 'proyecto' | 'version'>;
+};
+
 interface Props {
-  evaluacion: Evaluacion;
+  evaluacion: EvaluacionAsignable;
   onCerrar: () => void;
 }
 

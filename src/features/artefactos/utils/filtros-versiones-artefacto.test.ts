@@ -156,6 +156,22 @@ describe('filtros de versiones de artefactos', () => {
     expect(nodos[4]).toMatchObject({ tipo: 'GRUPO', conector: 'OR' });
   });
 
+  it('estadoProyecto añade sus predicados solo cuando se envía (el estudiante no lo envía)', () => {
+    // Assert
+    expect(construirFiltros({ ...BASE, estadoProyecto: 'cancelados' })).toEqual({
+      tipo: 'PREDICADO',
+      campo: 'proyectoCancelado',
+      operador: 'ES',
+      valor: 'true',
+    });
+    expect(construirFiltros({ ...BASE, estadoProyecto: '' })).toMatchObject({
+      tipo: 'GRUPO',
+      conector: 'AND',
+      nodos: [{ campo: 'proyectoFinalizado' }, { campo: 'proyectoCancelado' }],
+    });
+    expect(JSON.stringify(construirFiltros({ ...BASE, texto: 'acta' }))).not.toContain('proyecto');
+  });
+
   it('leerArtefacto acepta un UUID y descarta lo demás', () => {
     // Assert
     expect(leerArtefacto(ARTEFACTO)).toBe(ARTEFACTO);

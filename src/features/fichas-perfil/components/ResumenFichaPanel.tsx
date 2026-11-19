@@ -45,7 +45,7 @@ export default function ResumenFichaPanel({ resumen, accion, equipo }: Props) {
       )}
       {equipo && (
         <div className={FILA}>
-          <span className={ETIQUETA}>Equipo</span>
+          <span className={ETIQUETA}>Compañeros</span>
           {equipo}
         </div>
       )}

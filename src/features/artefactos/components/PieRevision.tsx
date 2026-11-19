@@ -6,10 +6,11 @@ export const ID_NOTA_PIE_REVISION = 'nota-pie-revision';
 interface Props {
   nota?: string;
   onCerrar: () => void;
+  conCerrar?: boolean;
   children?: ReactNode;
 }
 
-export default function PieRevision({ nota, onCerrar, children }: Props) {
+export default function PieRevision({ nota, onCerrar, conCerrar = true, children }: Props) {
   return (
     <div className="sticky bottom-0 z-10 border-t border-border bg-surface p-4 sm:px-6">
       {nota && (
@@ -17,10 +18,12 @@ export default function PieRevision({ nota, onCerrar, children }: Props) {
           {nota}
         </p>
       )}
-      <div className="actions-row">
-        <Button variante="secundario" onClick={onCerrar}>
-          Cerrar
-        </Button>
+      <div className="actions-row sm:flex-wrap">
+        {conCerrar && (
+          <Button variante="secundario" onClick={onCerrar}>
+            Cerrar
+          </Button>
+        )}
         {children}
       </div>
     </div>

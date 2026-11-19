@@ -145,7 +145,8 @@ function aEvaluacionAsesor(
 }
 
 // Forma cruda de ObservacionEvaluacionResponseDTO (GET .../observaciones/estudiante,
-// .../observaciones/representante y .../observaciones-evaluacion/coordinador).
+// .../observaciones/representante, .../observaciones/asesor y
+// .../observaciones-evaluacion/coordinador).
 interface ObservacionEvaluacionResponseDTO {
   id: string;
   evaluacionFichaPerfil: string;
@@ -187,11 +188,6 @@ function aFicha(dto: FichaPerfilEstudianteResponseDTO): MiFichaPerfilResponse {
       nombre: dto.estado.nombre,
       fechaActualizacion: dto.estado.fechaActualizacion,
     },
-    integrantes: dto.estudiantes.map((e) => ({
-      id: e.estudianteId,
-      nombre: e.nombre,
-      email: e.email,
-    })),
   };
 }
 
@@ -468,6 +464,15 @@ export const fichasPerfilService = {
       >(`/fichas-perfil/evaluaciones/${evaluacionId}/observaciones/representante`)
       .then((r) => r.data.map(aObservacionEvaluacion)),
 
+  consultarObservacionesEvaluacionAsesor: (
+    evaluacionId: string,
+  ): Promise<ObservacionEvaluacion[]> =>
+    apiClient
+      .get<
+        ObservacionEvaluacionResponseDTO[]
+      >(`/fichas-perfil/evaluaciones/${evaluacionId}/observaciones/asesor`)
+      .then((r) => r.data.map(aObservacionEvaluacion)),
+
   consultarObservacionesEvaluacionesFichaCoordinador: (
     fichaPerfilId: string,
   ): Promise<ObservacionEvaluacion[]> =>
@@ -552,6 +557,11 @@ export const fichasPerfilService = {
       .patch(`/fichas-perfil/revisiones/${revisionItemId}/visualizada`)
       .then(() => undefined),
 
+  enviarCorreccionesRevisionItem: (revisionItemId: string): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/revisiones/${revisionItemId}/correcciones`)
+      .then(() => undefined),
+
   removerRevisionItem: (revisionItemId: string): Promise<void> =>
     apiClient.delete(`/fichas-perfil/revisiones/${revisionItemId}`).then(() => undefined),
 
@@ -578,6 +588,16 @@ export const fichasPerfilService = {
   removerObservacionItem: (observacionItemId: string): Promise<void> =>
     apiClient
       .delete(`/fichas-perfil/observaciones-item/${observacionItemId}`)
+      .then(() => undefined),
+
+  cerrarObservacionItem: (observacionItemId: string): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-item/${observacionItemId}/cierre`)
+      .then(() => undefined),
+
+  reabrirObservacionItem: (observacionItemId: string): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/observaciones-item/${observacionItemId}/reapertura`)
       .then(() => undefined),
 
   consultarObservacionesItemAsesor: (

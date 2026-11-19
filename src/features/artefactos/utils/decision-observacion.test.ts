@@ -16,6 +16,8 @@ const VERSION: VersionArtefacto = {
   estadoRevision: 'RESUELTA',
   nombreEstadoRevision: 'Resuelta',
   fechaCreacionRevision: null,
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function ultima(parcial: Partial<VersionArtefacto>): VersionArtefacto {

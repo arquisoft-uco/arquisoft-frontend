@@ -22,7 +22,6 @@ function renderizar() {
           </CapacidadGuard>
         }
       />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/seguridad' },
   );
@@ -57,7 +56,7 @@ describe('CapacidadGuard', () => {
   it.each([
     ['el proveedor no la ofrece', () => proveedorConCapacidades([])],
     ['no hay proveedor recordado', () => undefined],
-  ])('redirige a /forbidden si %s', (_caso, preparar) => {
+  ])('muestra Acceso denegado si %s', (_caso, preparar) => {
     preparar();
 
     renderizar();

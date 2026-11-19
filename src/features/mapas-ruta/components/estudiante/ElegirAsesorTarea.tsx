@@ -2,6 +2,7 @@ import { useId, type Ref } from 'react';
 import { CircleAlert } from 'lucide-react';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import OpcionRadio from '../../../../shared/components/ui/OpcionRadio';
+import Notice from '../../../../shared/components/ui/Notice';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import type { AsesorProyecto } from '../../models/AsesorProyecto';
 
@@ -16,6 +17,7 @@ interface Props {
   cargando: boolean;
   hayError: boolean;
   onReintentar: () => void;
+  descripcionError: string;
   error?: string;
   grupoRef?: Ref<HTMLDivElement>;
 }
@@ -27,6 +29,7 @@ export default function ElegirAsesorTarea({
   cargando,
   hayError,
   onReintentar,
+  descripcionError,
   error,
   grupoRef,
 }: Props) {
@@ -62,10 +65,16 @@ export default function ElegirAsesorTarea({
             />
           ))}
       </div>
+      {!cargando && !hayError && opciones.length === 0 && (
+        <Notice variante="info">
+          Tu proyecto de grado aún no tiene asesores asignados. Cuando los tenga, podrás elegirlos
+          aquí.
+        </Notice>
+      )}
       {hayError && (
         <ErrorState
           titulo="No pudimos cargar los asesores de tu proyecto"
-          descripcion="Puedes seguir editando la descripción; el asesor actual se conserva."
+          descripcion={descripcionError}
           onReintentar={onReintentar}
         />
       )}

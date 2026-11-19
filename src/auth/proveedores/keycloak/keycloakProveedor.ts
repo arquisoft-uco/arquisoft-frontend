@@ -19,9 +19,9 @@ export function crearKeycloakProveedor(): ProveedorIdentidad {
   });
 
   // keycloak.init() solo puede llamarse una vez por instancia: las llamadas siguientes reutilizan su resultado.
-  const inicializar = (): Promise<boolean> => {
+  const inicializar = (modo: 'check-sso' | 'login-required'): Promise<boolean> => {
     inicializacion ??= keycloak.init({
-      onLoad: 'login-required',
+      onLoad: modo,
       checkLoginIframe: false,
       pkceMethod: 'S256',
       scope: 'openid',
@@ -29,19 +29,33 @@ export function crearKeycloakProveedor(): ProveedorIdentidad {
     return inicializacion;
   };
 
+  const comenzarSesion = (): SesionRestaurada => {
+    cancelarRefresco?.();
+    cancelarRefresco = scheduleRefresh(
+      () => notificar?.(sesionActual()),
+      () => logout(),
+    );
+    return sesionActual();
+  };
+
   return {
     id: ID_KEYCLOAK,
 
+    async recuperarSesionSilenciosa(alActualizar) {
+      notificar = alActualizar;
+      const autenticado = await inicializar('check-sso');
+      return autenticado ? comenzarSesion() : null;
+    },
+
     async restaurarSesion(alActualizar) {
       notificar = alActualizar;
-      const autenticado = await inicializar();
-      if (!autenticado) return null;
-      cancelarRefresco?.();
-      cancelarRefresco = scheduleRefresh(
-        () => notificar?.(sesionActual()),
-        () => logout(),
-      );
-      return sesionActual();
+      // Un check-sso previo sin sesión ya inicializó keycloak-js: otro init lanzaría.
+      if (keycloak.didInitialize && !keycloak.authenticated) {
+        void keycloak.login({ redirectUri: window.location.href });
+        return null;
+      }
+      const autenticado = await inicializar('login-required');
+      return autenticado ? comenzarSesion() : null;
     },
 
     iniciarSesion(destino) {

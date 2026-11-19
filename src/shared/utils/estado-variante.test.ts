@@ -6,6 +6,7 @@ import {
   varianteEstadoObservacion,
   varianteEstadoObservacionArtefacto,
   varianteEstadoTarea,
+  varianteEstadoDocumentacion,
   varianteEstadoAsesorProyecto,
   varianteEstadoProyecto,
   varianteEstadoRespuesta,
@@ -111,9 +112,9 @@ describe('varianteEstadoProyecto', () => {
   it('mapea cada estado de proyecto de grado a su variante y un id desconocido cae en neutro', () => {
     // Act / Assert
     expect(varianteEstadoProyecto('EN_PROCESO')).toBe('info');
-    expect(varianteEstadoProyecto('LISTO_PARA_REVISION')).toBe('advertencia');
     expect(varianteEstadoProyecto('ATRASADO')).toBe('peligro');
     expect(varianteEstadoProyecto('FINALIZADO')).toBe('exito');
+    expect(varianteEstadoProyecto('CANCELADO')).toBe('peligro');
     expect(varianteEstadoProyecto('ESTADO_INEXISTENTE')).toBe('neutro');
   });
 });
@@ -156,6 +157,7 @@ describe('varianteEstadoEntregable', () => {
   it('asigna su variante a cada estado del catálogo y deja en neutro lo desconocido', () => {
     // Arrange
     const esperadas = {
+      NUEVO: 'info',
       DISPONIBLE_EVALUACION: 'advertencia',
       EN_EVALUACION: 'info',
       APROBADO_CON_OBSERVACIONES: 'advertencia',
@@ -185,5 +187,16 @@ describe('varianteEstadoTarea', () => {
     expect(varianteEstadoTarea('FINALIZADA')).toBe('exito');
     expect(varianteEstadoTarea('ESTADO_INEXISTENTE')).toBe('neutro');
     expect(varianteEstadoTarea('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteEstadoDocumentacion', () => {
+  it('asigna su variante a cada estado de la documentación y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteEstadoDocumentacion('PENDIENTE')).toBe('advertencia');
+    expect(varianteEstadoDocumentacion('PUBLICADO')).toBe('exito');
+    expect(varianteEstadoDocumentacion('NO_PUBLICADO')).toBe('neutro');
+    expect(varianteEstadoDocumentacion('ESTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteEstadoDocumentacion('constructor')).toBe('neutro');
   });
 });

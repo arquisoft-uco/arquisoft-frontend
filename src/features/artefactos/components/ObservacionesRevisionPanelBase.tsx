@@ -23,6 +23,7 @@ interface Props {
   barra?: ReactNode;
   notaPie?: string;
   accionesPie?: ReactNode;
+  cerrarEnPie?: boolean;
   acciones?: (observacion: ObservacionRevision) => ReactNode;
   seccionAnterior?: ReactNode;
 }
@@ -41,6 +42,7 @@ export default function ObservacionesRevisionPanelBase({
   barra,
   notaPie,
   accionesPie,
+  cerrarEnPie = true,
   acciones,
   seccionAnterior,
 }: Props) {
@@ -50,7 +52,7 @@ export default function ObservacionesRevisionPanelBase({
       descripcion={descripcion}
       onCerrar={onCerrar}
       pie={(solicitarCierre) => (
-        <PieRevision nota={notaPie} onCerrar={solicitarCierre}>
+        <PieRevision nota={notaPie} onCerrar={solicitarCierre} conCerrar={cerrarEnPie}>
           {accionesPie}
         </PieRevision>
       )}

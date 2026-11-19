@@ -8,6 +8,11 @@ export interface RevisionItem {
   fechaCreacion: string;
 }
 
+export interface ResumenObservacionesRevision {
+  total: number;
+  pendientes: number;
+}
+
 export interface RevisionItemFila {
   revision: RevisionItem;
   item: Item | undefined;

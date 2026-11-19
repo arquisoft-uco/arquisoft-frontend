@@ -85,7 +85,6 @@ function renderizar(ruta = '/artefactos') {
     <Routes>
       <Route path="/artefactos" element={<Artefactos />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: ruta },
   );
@@ -335,7 +334,7 @@ describe('Artefactos', () => {
     );
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('un rol sin vista muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Coordinador);
     setActiveRole(Rol.Coordinador);

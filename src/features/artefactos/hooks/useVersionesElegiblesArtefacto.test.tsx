@@ -20,6 +20,8 @@ const ARTEFACTO: ArtefactoAsesor = {
   versionDocumento: 2,
   nombreRepositorio: 'Repo base',
   omitido: false,
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 describe('useVersionesElegiblesArtefacto', () => {

@@ -1,6 +1,7 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 
 export { leerVersion, ORDEN_POR_DEFECTO, ordenamientoDe } from './filtros-artefactos-estudiante';
+import { filtrosEstadoProyecto, type EstadoProyectoListado } from './estado-proyecto';
 import { leerVersion } from './filtros-artefactos-estudiante';
 
 export interface FiltrosArtefactosAsesor {
@@ -9,6 +10,7 @@ export interface FiltrosArtefactosAsesor {
   documento: string;
   repositorio: string;
   version: string;
+  estadoProyecto: EstadoProyectoListado;
 }
 
 export const CAMPOS_BUSQUEDA = ['nombreDocumento', 'nombreProyecto', 'nombreRepositorio'] as const;
@@ -28,7 +30,7 @@ function contiene(campo: string, valor: string): NodoFiltroDTO {
   return { tipo: 'PREDICADO', campo, operador: 'CONTIENE', valor };
 }
 
-export function construirFiltros(filtros: FiltrosArtefactosAsesor): NodoFiltroDTO | undefined {
+export function construirFiltros(filtros: FiltrosArtefactosAsesor): NodoFiltroDTO {
   const nodos: NodoFiltroDTO[] = [];
   const texto = filtros.texto.trim();
   if (texto) {
@@ -50,7 +52,7 @@ export function construirFiltros(filtros: FiltrosArtefactosAsesor): NodoFiltroDT
   if (version) {
     nodos.push({ tipo: 'PREDICADO', campo: 'versionDocumento', operador: 'ES', valor: version });
   }
-  if (nodos.length === 0) return undefined;
+  nodos.push(...filtrosEstadoProyecto(filtros.estadoProyecto));
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };
 }

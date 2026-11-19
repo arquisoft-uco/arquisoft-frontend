@@ -1,11 +1,15 @@
-import { ClipboardX } from 'lucide-react';
+import { useState } from 'react';
+import { ClipboardX, MessageSquare } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
 import { useEvaluacionesCuantitativasJurado } from '../../hooks/useEvaluacionesCuantitativasJurado';
+import type { EvaluacionCuantitativaJurado } from '../../models/EvaluacionCuantitativaJurado';
 import { EVALUACION_CUALITATIVA_JURADO_EVALUACION_JURADO_NO_ENCONTRADA } from '../../utils/codigos-error-evaluaciones';
-import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
+import EvaluacionesCuantitativasJuradoTable from '../EvaluacionesCuantitativasJuradoTable';
+import ObservacionesEvaluacionCuantitativaEstudiantePanel from './ObservacionesEvaluacionCuantitativaEstudiantePanel';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -24,6 +28,7 @@ export default function ConsultarEvaluacionesCuantitativasJurado({
   evaluacionJuradoId,
   onVolver,
 }: Props) {
+  const [abierta, setAbierta] = useState<EvaluacionCuantitativaJurado | null>(null);
   const { data, isLoading, isError, error, refetch } =
     useEvaluacionesCuantitativasJurado(evaluacionJuradoId);
 
@@ -60,7 +65,24 @@ export default function ConsultarEvaluacionesCuantitativasJurado({
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.length)}
       </p>
-      <EvaluacionesCuantitativasJuradoTable evaluaciones={data ?? []} cargando={isLoading} />
+      <EvaluacionesCuantitativasJuradoTable
+        evaluaciones={data ?? []}
+        cargando={isLoading}
+        acciones={(fila) => (
+          <IconButton
+            etiqueta={`Ver observaciones de ${fila.item.nombre}`}
+            rotulo="Ver observaciones"
+            icono={MessageSquare}
+            onClick={() => setAbierta(fila)}
+          />
+        )}
+      />
+      {abierta && (
+        <ObservacionesEvaluacionCuantitativaEstudiantePanel
+          evaluacion={abierta}
+          onCerrar={() => setAbierta(null)}
+        />
+      )}
     </div>
   );
 }

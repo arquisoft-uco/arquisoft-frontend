@@ -5,8 +5,12 @@ import { resetAllStores, setAuthenticatedUser, setActiveRole } from '../../test-
 import Evaluaciones from './Evaluaciones';
 import { Rol } from '../../shared/models/rol';
 
-vi.mock('./components/ItemsJuradoView', () => ({
-  default: () => <p>Vista de ítems del jurado</p>,
+vi.mock('./components/ItemsAdministradorView', () => ({
+  default: () => <p>Vista de ítems del administrador</p>,
+}));
+
+vi.mock('./components/AsesorView', () => ({
+  default: () => <p>Vista del asesor</p>,
 }));
 
 vi.mock('./components/EstudianteView', () => ({
@@ -31,7 +35,7 @@ describe('Evaluaciones', () => {
     resetAllStores();
   });
 
-  it('con el rol administrador, renderiza la vista de ítems del jurado', () => {
+  it('con el rol administrador, renderiza la vista de ítems del administrador', () => {
     // Arrange
     autenticarCon(Rol.Administrador);
 
@@ -39,11 +43,11 @@ describe('Evaluaciones', () => {
     render(<Evaluaciones />, { initialPath: '/evaluaciones' });
 
     // Assert
-    expect(screen.getByText('Vista de ítems del jurado')).toBeInTheDocument();
+    expect(screen.getByText('Vista de ítems del administrador')).toBeInTheDocument();
     expect(screen.queryByText('Vista del jurado')).not.toBeInTheDocument();
   });
 
-  it('con el rol jurado, renderiza su vista y no la de ítems del jurado', () => {
+  it('con el rol jurado, renderiza su vista y no la de ítems del administrador', () => {
     // Arrange
     autenticarCon(Rol.Jurado);
 
@@ -52,10 +56,10 @@ describe('Evaluaciones', () => {
 
     // Assert
     expect(screen.getByText('Vista del jurado')).toBeInTheDocument();
-    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del administrador')).not.toBeInTheDocument();
   });
 
-  it('con el rol coordinador, renderiza su vista y no la de ítems del jurado', () => {
+  it('con el rol coordinador, renderiza su vista y no la de ítems del administrador', () => {
     // Arrange
     autenticarCon(Rol.Coordinador);
 
@@ -64,7 +68,7 @@ describe('Evaluaciones', () => {
 
     // Assert
     expect(screen.getByText('Vista del coordinador')).toBeInTheDocument();
-    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del administrador')).not.toBeInTheDocument();
   });
 
   it('con el rol estudiante, renderiza su vista y no las de otros roles', () => {
@@ -80,22 +84,34 @@ describe('Evaluaciones', () => {
     expect(screen.queryByText('Vista del jurado')).not.toBeInTheDocument();
   });
 
-  it.each([Rol.Asesor, Rol.Bibliotecario])('con el rol %s, redirige a /forbidden', (rol) => {
+  it('con el rol asesor, renderiza su vista y no las de otros roles', () => {
     // Arrange
-    autenticarCon(rol);
+    autenticarCon(Rol.Asesor);
+
+    // Act
+    render(<Evaluaciones />, { initialPath: '/evaluaciones' });
+
+    // Assert
+    expect(screen.getByText('Vista del asesor')).toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del administrador')).not.toBeInTheDocument();
+    expect(screen.queryByText('Vista del jurado')).not.toBeInTheDocument();
+  });
+
+  it('con el rol bibliotecario, muestra Acceso denegado', () => {
+    // Arrange
+    autenticarCon(Rol.Bibliotecario);
 
     // Act
     render(
       <Routes>
         <Route path="/evaluaciones" element={<Evaluaciones />} />
-        <Route path="/forbidden" element={<p>Pantalla de acceso denegado</p>} />
       </Routes>,
       { initialPath: '/evaluaciones' },
     );
 
     // Assert
-    expect(screen.getByText('Pantalla de acceso denegado')).toBeInTheDocument();
-    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del administrador')).not.toBeInTheDocument();
   });
 
   it('sin rol activo, redirige a seleccionar-rol', () => {
@@ -110,6 +126,6 @@ describe('Evaluaciones', () => {
 
     // Assert
     expect(screen.getByText('Pantalla de selección de rol')).toBeInTheDocument();
-    expect(screen.queryByText('Vista de ítems del jurado')).not.toBeInTheDocument();
+    expect(screen.queryByText('Vista de ítems del administrador')).not.toBeInTheDocument();
   });
 });

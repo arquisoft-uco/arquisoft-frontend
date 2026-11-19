@@ -26,7 +26,7 @@ export interface NavItem {
   disponible?: boolean;
 }
 
-// Roles que ven los módulos generales; AsesorFicha queda fuera (solo Fichas, Biblioteca y Solicitudes).
+// Roles que ven los módulos generales; AsesorFicha queda fuera (solo Fichas y Solicitudes).
 const ROLES_GENERALES = [Rol.Administrador, Rol.Asesor, Rol.Estudiante, Rol.Coordinador];
 
 // Definición estática del menú; un módulo con disponible: false aún no tiene pantalla.
@@ -71,14 +71,14 @@ export const NAV_ITEMS: NavItem[] = [
     icon: ClipboardCheck,
     path: '/evaluaciones',
     order: 5,
-    roles: [Rol.Administrador, Rol.Coordinador, Rol.Estudiante, Rol.Jurado],
+    roles: [Rol.Administrador, Rol.Asesor, Rol.Coordinador, Rol.Estudiante, Rol.Jurado],
   },
   {
     label: 'Mapas de ruta',
     icon: Map,
     path: '/mapas-ruta',
     order: 6,
-    roles: [Rol.Coordinador, Rol.Estudiante],
+    roles: [Rol.Coordinador, Rol.Estudiante, Rol.Asesor],
   },
   {
     label: 'Repositorio',
@@ -92,13 +92,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: BookOpen,
     path: '/biblioteca',
     order: 8,
-    roles: [
-      ...ROLES_GENERALES,
-      Rol.AsesorFicha,
-      Rol.RepresentanteComiteCurriculum,
-      Rol.Bibliotecario,
-    ],
-    disponible: false,
+    roles: [Rol.Asesor, Rol.Bibliotecario, Rol.Coordinador, Rol.Estudiante],
   },
   {
     label: 'Solicitudes',

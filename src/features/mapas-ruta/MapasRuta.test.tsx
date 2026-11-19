@@ -13,12 +13,15 @@ vi.mock('./components/EstudianteView', () => ({
   default: () => <p>Vista estudiante</p>,
 }));
 
+vi.mock('./components/AsesorView', () => ({
+  default: () => <p>Vista asesor</p>,
+}));
+
 function renderizar() {
   return render(
     <Routes>
       <Route path="/mapas-ruta" element={<MapasRuta />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/mapas-ruta' },
   );
@@ -69,10 +72,23 @@ describe('MapasRuta', () => {
     expect(screen.queryByText('Acceso denegado')).not.toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('el asesor ve su vista y no es redirigido', () => {
     // Arrange
     entrarComo(Rol.Asesor);
     setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('Vista asesor')).toBeInTheDocument();
+    expect(screen.queryByText('Acceso denegado')).not.toBeInTheDocument();
+  });
+
+  it('un rol sin vista muestra Acceso denegado', () => {
+    // Arrange
+    entrarComo(Rol.Jurado);
+    setActiveRole(Rol.Jurado);
 
     // Act
     renderizar();

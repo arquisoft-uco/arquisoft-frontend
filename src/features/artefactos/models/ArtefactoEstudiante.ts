@@ -9,4 +9,6 @@ export interface ArtefactoEstudiante {
   asesor: string;
   nombreAsesor: string;
   omitido: boolean;
+  proyectoFinalizado: boolean;
+  proyectoCancelado: boolean;
 }

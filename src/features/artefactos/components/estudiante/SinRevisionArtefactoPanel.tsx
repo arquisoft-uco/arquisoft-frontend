@@ -78,7 +78,7 @@ export default function SinRevisionArtefactoPanel({
         </div>
         {isError ? (
           <ErrorState
-            titulo="No pudimos cargar la última versión"
+            titulo="No pudimos cargar las versiones del artefacto"
             descripcion="Inténtalo nuevamente."
             onReintentar={onReintentar}
           />

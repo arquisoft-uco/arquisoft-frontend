@@ -7,6 +7,11 @@ export const DESTINOS_POR_ESTADO: Record<string, readonly string[]> = {
   DESCARTADA: ['EN_CONSTRUCCION'],
 };
 
+export function admiteCambioDeEstado(estadoId: string | undefined): boolean {
+  if (!estadoId) return false;
+  return (DESTINOS_POR_ESTADO[estadoId]?.length ?? 0) > 0;
+}
+
 export function estadosDestino(estadoActualId: string, catalogo: EstadoFicha[]): EstadoFicha[] {
   const destinos = DESTINOS_POR_ESTADO[estadoActualId] ?? [];
   return catalogo.filter((estado) => destinos.includes(estado.id));

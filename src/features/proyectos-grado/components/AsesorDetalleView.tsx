@@ -10,7 +10,9 @@ import Tabs from '../../../shared/components/ui/Tabs';
 import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
 import { useDetalleProyectoGradoAsesor } from '../hooks/useDetalleProyectoGradoAsesor';
 import { useResumenProyectoGrado } from '../hooks/useResumenProyectoGrado';
+import { puedeFinalizarProyecto } from '../utils/estados-proyecto';
 import { aResumen } from '../utils/resumen-proyecto-grado';
+import AccionesProyectoGradoAsesor from './asesor/AccionesProyectoGradoAsesor';
 import EstudiantesAsesoradosResumen from './asesor/EstudiantesAsesoradosResumen';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
 import { DISPOSICION } from './disposicion';
@@ -18,8 +20,6 @@ import ResumenProyectoGradoPanel from './ResumenProyectoGradoPanel';
 
 const RAIZ = 'flex flex-col gap-6';
 const TITULO_GENERICO = 'Proyecto de grado';
-// Las HU futuras del asesor agregan aquí su pestaña (con `to`) y su subruta en router.tsx.
-const PESTANAS: ItemPestana<string>[] = [];
 
 export default function AsesorDetalleView() {
   const { id = '' } = useParams();
@@ -71,12 +71,23 @@ export default function AsesorDetalleView() {
   }
 
   const titulo = proyecto.tituloProyecto;
-  const hayPestanas = PESTANAS.length > 0;
-  const activa = PESTANAS.find((p) => p.to && pathname.startsWith(p.to)) ?? PESTANAS[0];
+  const pestanas: ItemPestana<string>[] = [
+    { id: 'estados', etiqueta: 'Estados', to: `/proyectos-grado/${id}/estados` },
+  ];
+  const activa = pestanas.find((p) => p.to && pathname.startsWith(p.to)) ?? pestanas[0];
   const panel = (
     <ResumenProyectoGradoPanel
       resumen={aResumen(proyecto)}
       estudiantes={<EstudiantesAsesoradosResumen proyectoGradoId={proyecto.id} />}
+      accion={
+        puedeFinalizarProyecto(proyecto.estado.id) ? (
+          <AccionesProyectoGradoAsesor
+            proyectoGradoId={proyecto.id}
+            titulo={titulo}
+            onFinalizado={() => navigate(rutaListado)}
+          />
+        ) : undefined
+      }
     />
   );
 
@@ -89,20 +100,13 @@ export default function AsesorDetalleView() {
           <InsigniaEstadoProyecto estadoId={proyecto.estado.id} nombre={proyecto.estado.nombre} />
         }
       />
-      {hayPestanas ? (
-        <div className={DISPOSICION.contenedor}>
-          <div className={DISPOSICION.principal}>
-            <Tabs items={PESTANAS} valor={activa.id} etiqueta="Secciones del proyecto de grado" />
-            <Outlet />
-          </div>
-          <div className={DISPOSICION.lateral}>{panel}</div>
-        </div>
-      ) : (
-        <>
-          {panel}
+      <div className={DISPOSICION.contenedor}>
+        <div className={DISPOSICION.principal}>
+          <Tabs items={pestanas} valor={activa.id} etiqueta="Secciones del proyecto de grado" />
           <Outlet />
-        </>
-      )}
+        </div>
+        <div className={DISPOSICION.lateral}>{panel}</div>
+      </div>
     </div>
   );
 }

@@ -25,22 +25,21 @@ function entrarComo(...roles: Rol[]) {
 const RESUMEN = {
   id: 'f-1',
   titulo: 'Ficha del asesor',
-  estadoId: 'e-1',
+  estadoId: 'EN_CONSTRUCCION',
   estadoNombre: 'En Construccion',
 };
 
-function Origen() {
-  return (
-    <Link to="/fichas-perfil/f-1/items" state={{ resumen: RESUMEN, search: '' }}>
-      Abrir
-    </Link>
-  );
-}
-
-function renderizar(rutaInicial: string) {
+function renderizar(rutaInicial: string, resumen: typeof RESUMEN = RESUMEN) {
   return render(
     <Routes>
-      <Route path="/origen" element={<Origen />} />
+      <Route
+        path="/origen"
+        element={
+          <Link to="/fichas-perfil/f-1/items" state={{ resumen, search: '' }}>
+            Abrir
+          </Link>
+        }
+      />
       <Route path="/fichas-perfil/:id" element={<AsesorFichaDetalleView />}>
         <Route path="items" element={<div>Panel ítems</div>} />
         <Route path="estados" element={<div>Panel estados</div>} />
@@ -107,13 +106,37 @@ describe('AsesorFichaDetalleView', () => {
   it('«Cambiar estado» del panel lateral lleva a la pestaña Estados', async () => {
     // Arrange
     const user = userEvent.setup();
-    renderizar('/fichas-perfil/f-1/items');
+    renderizar('/origen');
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Cambiar estado' }));
 
     // Assert
     expect(screen.getByText('Panel estados')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+  });
+
+  it('no ofrece «Cambiar estado» si la ficha está en un estado final', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar('/origen', { ...RESUMEN, estadoId: 'APROBADA', estadoNombre: 'Aprobada' });
+
+    // Act
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+
+    // Assert
+    expect(screen.getByText('Panel ítems')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Acciones')).not.toBeInTheDocument();
+  });
+
+  it('sin resumen no ofrece «Cambiar estado»', () => {
+    // Act
+    renderizar('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
   });
 
   it('sin state muestra el título genérico y el aviso, sin consultar el equipo', () => {
@@ -123,6 +146,6 @@ describe('AsesorFichaDetalleView', () => {
     // Assert
     expect(screen.getByRole('heading', { level: 1, name: 'Ficha de perfil' })).toBeInTheDocument();
     expect(screen.getByText(/No tenemos el resumen de esta ficha/)).toBeInTheDocument();
-    expect(screen.queryByText('Equipo')).not.toBeInTheDocument();
+    expect(screen.queryByText('Compañeros')).not.toBeInTheDocument();
   });
 });

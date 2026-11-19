@@ -1,12 +1,15 @@
 import { Navigate } from 'react-router';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
+import AsesorView from './components/AsesorView';
 import CoordinadorView from './components/CoordinadorView';
 import EstudianteView from './components/EstudianteView';
 
 const VIEW_POR_ROL: Record<string, React.ComponentType> = {
   [Rol.Coordinador]: CoordinadorView,
   [Rol.Estudiante]: EstudianteView,
+  [Rol.Asesor]: AsesorView,
 };
 
 export default function MapasRuta() {
@@ -16,7 +19,7 @@ export default function MapasRuta() {
 
   const View = VIEW_POR_ROL[rolActivo];
 
-  if (!View) return <Navigate to="/forbidden" replace />;
+  if (!View) return <AccesoDenegado />;
 
   return <View />;
 }

@@ -22,6 +22,7 @@ vi.mock('./services/entregablesService', () => ({
   entregablesService: {
     getEstadosEntregable: vi.fn().mockResolvedValue([]),
     consultarProyectosAsesor: vi.fn().mockResolvedValue([]),
+    consultarProyectosConEntregableVigente: vi.fn().mockResolvedValue([]),
     consultarEntregablesJurado: vi.fn().mockResolvedValue({
       content: [],
       page: 0,
@@ -50,7 +51,6 @@ function renderizar(ruta = '/entregables') {
     <Routes>
       <Route path="/entregables" element={<Entregables />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: ruta },
   );
@@ -124,7 +124,7 @@ describe('Entregables', () => {
     await user.click(await screen.findByRole('button', { name: 'Generar entregable' }));
 
     // Assert
-    expect(await screen.findByText('Aún no tienes proyectos de grado')).toBeInTheDocument();
+    expect(await screen.findByText('Aún no tienes proyectos en curso')).toBeInTheDocument();
     unmount();
 
     // Arrange
@@ -178,7 +178,7 @@ describe('Entregables', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('un rol sin vista muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Coordinador);
     setActiveRole(Rol.Coordinador);

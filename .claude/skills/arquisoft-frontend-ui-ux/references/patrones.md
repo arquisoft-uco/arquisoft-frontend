@@ -128,15 +128,15 @@ Layout       principal                                  | lateral (resumen)
 - **`Tabs` no lleva `state`.** Si el resumen viaja en el `state` del `Link` del listado, se lee una vez en el
   contenedor de `:id`; sin `state` (URL directa o recarga en otra pestaña) la pantalla muestra el título genérico y
   solo lo que depende del id, sin inventar datos.
-- **Panel lateral de resumen:** estado actual con su `Badge`, asesor, equipo (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante lo toma de `integrantes` de «mi ficha» porque su rol no tiene el permiso del endpoint de compañeros, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
-  (asesor: «Cambiar estado»; representante: «Iniciar evaluación»; estudiante: ninguna).
-- **Pestañas solo de lo que existe.** Solo la pestaña Evaluaciones del asesor espera su historia. El
+- **Panel lateral de resumen:** estado actual con su `Badge`, asesor, compañeros (`equipo?: ReactNode` de `ResumenFichaPanel`; el estudiante los toma del endpoint de compañeros de la ficha activa, y se omite en un rol que no pueda consultarlo) y, según el rol, **su** acción
+  (asesor: «Cambiar estado», solo si la ficha admite transiciones y no se está en la pestaña Estados; representante: «Iniciar evaluación»; estudiante: ninguna).
+- **Pestañas solo de lo que existe.** Las evaluaciones de las fichas del asesor viven como pestaña del listado «Mis fichas de perfil» (`?vista=evaluaciones`), no del detalle. El
   catálogo «Tipos de ítem» no es una pestaña: es una ayuda («¿Qué tipos de ítem existen?», diálogo) y, en el
   formulario de ítem, los tipos que aún no se usan como atajos.
 - **Ítems:** tarjetas con el tipo (`Badge neutro`), el contenido y `IconButton` de editar y eliminar (44 px);
   «Agregar ítem» abre un `SidePanel` (formulario corto). Eliminar pide confirmación («No se puede deshacer»). En el asesor, cada tarjeta lleva «Agregar revisión» (`IconButton`) o, si el ítem ya tiene revisión, la insignia con su estado.
 - **El estudiante** ve su ficha en la raíz del módulo (`EstudianteView`, sin ruta propia: las pestañas «Ítems», «Revisiones»,
-  «Historial de estados» y «Evaluaciones» son estado de React; en «Revisiones», cada fila en estado «Nueva» lleva «Marcar como visualizada» (`IconButton`) y las demás solo muestran su estado). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
+  «Historial de estados» y «Evaluaciones» son estado de React; en «Revisiones», cada fila en estado «Nueva» lleva «Marcar como visualizada» (`Button` `fantasma` `sm` con icono y texto visible; «Visualizada» bajo 640 px) y las demás solo muestran su estado). Con varias fichas, un `select` nativo dentro de `Field` (`max-w-sm`) cambia
   de ficha; no se usa `Segmented`. «Editar título», «Agregar ítem» y «Editar ítem» abren un `SidePanel`; el historial es
   una línea de tiempo (`LineaTiempoEstados`, un `<ol>`) con «Actual» en el estado más reciente. En el diagrama, la
   pestaña se llama «Historial de estados» solo para el estudiante.
@@ -152,11 +152,28 @@ Layout       principal                                  | lateral (resumen)
 - **Cada cifra sale de un listado que ya existe** (`totalElements` con el filtro del rol y el tamaño de página
   mínimo). Nunca un número escrito a mano. La feature `dashboard` tiene su propio service y sus hooks para esas
   consultas: **no importa hooks de otra feature**.
-- **Estudiante:** tarjeta «Tu ficha de perfil» (título, `Badge` de estado, asesor, equipo, «Abrir ficha»), actividad
-  reciente, «Tu ruta académica» (pasos del flujo de gestión: el que existe «En curso», los demás «Pronto») y
-  atajos (enviar una solicitud). **Representante:** bandeja «Fichas por evaluar» (título, asesor, `Badge`, fecha,
-  «Revisar») y dos cifras. **Administrador:** usuarios vigentes y dados de baja, «Registrar usuario» y los
-  usuarios por rol. Los demás roles reciben su bandeja cuando su módulo exista.
+- **Una vista por cada rol del enum** (`Record<Rol, …>`, sin vista básica de respaldo): columna principal con la
+  bandeja de lo que el rol debe atender, columna lateral con cifras y atajos.
+- **Piezas del inicio** (en `features/dashboard/components/`): `BandejaInicio` (carga, error con «Reintentar»,
+  vacío y «Ver todos» hacia el listado completo, ya filtrado si el listado lee el filtro de la URL), `CifrasPanel`
+  (cifras de `useConteos` por `RecursoContable`, en rejilla o lista; cada cifra enlaza a su módulo y una que falló
+  se ve «—», nunca 0), `AtajosPanel` y `ListaFichas`. Un conteo nuevo es una entrada en `RUTA_CONTEO` del
+  `dashboardService`, nunca un hook nuevo.
+- **Atajos y cifras solo hacia pantallas que el rol ya usa** (su `VIEW_POR_ROL` en la feature destino): un módulo que
+  para ese rol renderiza `ComingSoon` (Solicitudes del jurado, del bibliotecario, del asesor de ficha y del
+  representante) no se ofrece.
+- **Por rol:**
+
+  | Rol | Bandeja | Cifras y atajos |
+  |---|---|---|
+  | Estudiante | Tarjeta «Tu ficha de perfil» y actividad reciente | «Tu avance» (artefactos, evaluaciones), ruta académica y tres atajos |
+  | Coordinador | — | «Resumen del programa» (fichas, proyectos, evaluaciones, mapas de ruta) y «Solicitudes recibidas» por tipo |
+  | Asesor | «Artefactos sin avance» (15 días, proyectos habilitados) | Resumen de proyectos, artefactos, entregables y evaluaciones; novedades recibidas |
+  | Asesor de ficha | «Tus fichas de perfil» con «Abrir» | Fichas asesoradas y evaluaciones de fichas |
+  | Jurado | «Evaluaciones por evaluar» | Evaluaciones y entregables asignados |
+  | Bibliotecario | «Entregables por publicar» | Documentos de la biblioteca y entregables por publicar |
+  | Representante | «Fichas por evaluar» con «Revisar» | Por evaluar y total de fichas |
+  | Administrador | Usuarios por rol y «Registrar usuario» | Vigentes y bajas; repositorios y solicitudes recibidas |
 - Al reescribir `Dashboard.tsx` (HT-UX-08) se borraron de `index.css` las clases que dejaron de usarse (`hero-gradient`,
   `hero-pattern`, `quick-card`); no las reintroduzcas.
 
@@ -180,6 +197,7 @@ Layout       principal                                  | lateral (resumen)
 | Sin resultados | `EmptyState` | Solo con filtros activos; «Limpiar filtros» |
 | Todavía no disponible | `EmptyState` o `Notice advertencia` | «Esta opción aún no está disponible.» Sustituye a `AvisoNoDisponible` y a `ComingSoon` dentro de una pantalla; el envío sigue deshabilitado como pide la skill de arquitectura |
 | Error al cargar | `ErrorState` con `onReintentar` | El detalle técnico, si hay, va en texto pequeño bajo el botón |
+| Acceso denegado (403) | `AccesoDenegado` (sobre `ErrorState`) | Se pinta dentro del contenido de la sección, con el menú y el encabezado visibles; nunca una pantalla completa ni una redirección. «Reintentar» solo si viene de un 403 de red |
 | Error en una sección o campo | `Notice peligro` / `Field error` | El envío fallido además da toast y `ErrorSummary` |
 
 Los atributos ARIA de cada estado (`role="status"`, `role="alert"`, `aria-busy`) son los de los estándares y los

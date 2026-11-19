@@ -13,7 +13,7 @@ import { candidatosAsignables, cupoDisponible } from '../../utils/cupo-estudiant
 interface Props {
   idFormulario: string;
   vinculados: EstudianteProyectoGrado[];
-  finalizado: boolean;
+  soloLectura: boolean;
   seleccion: string[];
   onCambiar: (ids: string[]) => void;
   onEnviar: () => void;
@@ -22,7 +22,7 @@ interface Props {
 export default function AsignarEstudiantesProyectoGradoSeccion({
   idFormulario,
   vinculados,
-  finalizado,
+  soloLectura,
   seleccion,
   onCambiar,
   onEnviar,
@@ -37,10 +37,10 @@ export default function AsignarEstudiantesProyectoGradoSeccion({
   }
 
   function contenido() {
-    if (finalizado) {
+    if (soloLectura) {
       return (
         <Notice variante="info">
-          Este proyecto de grado está finalizado y no admite nuevos estudiantes.
+          Este proyecto de grado está finalizado o cancelado y no admite nuevos estudiantes.
         </Notice>
       );
     }

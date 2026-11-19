@@ -6,14 +6,18 @@ import type { AsesorProyectoGradoResponse } from '../models/AsesorProyectoGradoR
 import type { AsignarAsesorProyectoGradoRequest } from '../models/AsignarAsesorProyectoGradoRequest';
 import type { AsignarEstudiantesProyectoGradoRequest } from '../models/AsignarEstudiantesProyectoGradoRequest';
 import type { CambiarEstadoAsesorProyectoGradoRequest } from '../models/CambiarEstadoAsesorProyectoGradoRequest';
+import type { CancelarProyectoGradoRequest } from '../models/CancelarProyectoGradoRequest';
 import type { CompaneroProyectoGrado } from '../models/CompaneroProyectoGrado';
 import type { DestituirEstudianteProyectoGradoRequest } from '../models/DestituirEstudianteProyectoGradoRequest';
+import type { FinalizarProyectoGradoRequest } from '../models/FinalizarProyectoGradoRequest';
 import type { EstadoAsesorProyectoGrado } from '../models/EstadoAsesorProyectoGrado';
 import type { EstadoProyectoGradoResponse } from '../models/EstadoProyectoGradoResponse';
 import type { EstudianteAsesoradoProyectoGrado } from '../models/EstudianteAsesoradoProyectoGrado';
 import type { EstudianteProyectoGrado } from '../models/EstudianteProyectoGrado';
 import type { HistorialEstadoProyectoGrado } from '../models/HistorialEstadoProyectoGrado';
 import type { ProyectoGrado } from '../models/ProyectoGrado';
+import type { UltimoEntregableProyectoGrado } from '../models/UltimoEntregableProyectoGrado';
+import { ESTADO_FINALIZADO } from '../utils/estados-proyecto';
 
 function aAsesorProyectoGrado(r: AsesorProyectoGradoResponse): AsesorProyectoGrado {
   return {
@@ -37,6 +41,7 @@ function aHistorialEstadoProyectoGrado(
     id: r.id,
     estado: { id: r.estadoProyecto, nombre: r.estadoProyectoNombre },
     fechaActualizacion: r.fechaActualizacion,
+    motivo: r.motivo ?? null,
   };
 }
 
@@ -80,6 +85,12 @@ export const proyectosGradoService = {
   getEstadosProyecto(proyectoGradoId: string): Promise<HistorialEstadoProyectoGrado[]> {
     return apiClient
       .get<EstadoProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/estados`)
+      .then((r) => r.data.map(aHistorialEstadoProyectoGrado));
+  },
+
+  getHistorialEstadosProyecto(proyectoGradoId: string): Promise<HistorialEstadoProyectoGrado[]> {
+    return apiClient
+      .get<EstadoProyectoGradoResponse[]>(`/proyectos-grado/${proyectoGradoId}/historial-estados`)
       .then((r) => r.data.map(aHistorialEstadoProyectoGrado));
   },
 
@@ -127,5 +138,48 @@ export const proyectosGradoService = {
     return apiClient
       .delete(`/proyectos-grado/${req.proyectoGradoId}/estudiantes/${req.estudianteId}`)
       .then(() => undefined);
+  },
+
+  cancelarProyecto(req: CancelarProyectoGradoRequest): Promise<void> {
+    return apiClient
+      .patch(`/proyectos-grado/${req.proyectoGradoId}/cancelacion`, { motivo: req.motivo })
+      .then(() => undefined);
+  },
+
+  finalizarProyecto(req: FinalizarProyectoGradoRequest): Promise<void> {
+    return apiClient
+      .patch(`/proyectos-grado/${req.proyectoGradoId}/estado`, {
+        estadoProyecto: ESTADO_FINALIZADO,
+      })
+      .then(() => undefined);
+  },
+
+  consultarUltimoEntregable(
+    proyectoGradoId: string,
+  ): Promise<UltimoEntregableProyectoGrado | null> {
+    const criterios: ConsultaCriteriaRequest = {
+      pagina: 0,
+      tamanio: 1,
+      ordenamiento: ['versionEntregable:DESC'],
+      filtros: {
+        tipo: 'PREDICADO',
+        campo: 'proyectoGradoId',
+        operador: 'ES',
+        valor: proyectoGradoId,
+      },
+    };
+    return apiClient
+      .post<Page<UltimoEntregableProyectoGrado>>('/entregables-proyecto-grado/asesor', criterios)
+      .then((r) => {
+        const ultimo = r.data.content[0];
+        if (!ultimo) return null;
+        return {
+          versionEntregable: ultimo.versionEntregable,
+          estadoEntregable: {
+            id: ultimo.estadoEntregable.id,
+            nombre: ultimo.estadoEntregable.nombre,
+          },
+        };
+      });
   },
 };

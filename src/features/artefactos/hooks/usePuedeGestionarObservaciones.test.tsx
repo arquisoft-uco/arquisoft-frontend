@@ -25,6 +25,8 @@ function version(parcial: Partial<VersionArtefacto>): VersionArtefacto {
     estadoRevision: 'PENDIENTE',
     nombreEstadoRevision: 'Pendiente',
     fechaCreacionRevision: null,
+    proyectoFinalizado: false,
+    proyectoCancelado: false,
     ...parcial,
   };
 }

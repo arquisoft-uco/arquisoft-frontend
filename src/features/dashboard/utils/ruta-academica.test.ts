@@ -12,6 +12,14 @@ describe('pasosRutaAcademica', () => {
     expect(pasos.find((p) => p.path === '/fichas-perfil')?.disponible).toBe(true);
   });
 
+  it('para el estudiante, Biblioteca queda disponible', () => {
+    // Act
+    const pasos = pasosRutaAcademica(Rol.Estudiante);
+
+    // Assert
+    expect(pasos.find((p) => p.path === '/biblioteca')?.disponible).toBe(true);
+  });
+
   it('para el jurado, Evaluaciones queda disponible', () => {
     // Act
     const pasos = pasosRutaAcademica(Rol.Jurado);

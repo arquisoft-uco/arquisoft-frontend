@@ -1,4 +1,4 @@
-import { CheckCheck, Send } from 'lucide-react';
+import { CheckCheck, Send, Trash2 } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import { ID_NOTA_PIE_REVISION } from '../PieRevision';
 
@@ -9,6 +9,7 @@ interface Props {
   hayNotaCierre: boolean;
   onEnviar: () => void;
   onCerrarRevision: () => void;
+  onEliminarRevision: () => void;
 }
 
 export default function AccionesRevision({
@@ -18,9 +19,13 @@ export default function AccionesRevision({
   hayNotaCierre,
   onEnviar,
   onCerrarRevision,
+  onEliminarRevision,
 }: Props) {
   return (
     <>
+      <Button variante="peligroContorno" icono={Trash2} onClick={onEliminarRevision}>
+        Eliminar
+      </Button>
       <Button
         variante="secundario"
         icono={CheckCheck}
@@ -28,7 +33,7 @@ export default function AccionesRevision({
         aria-describedby={!puedeCerrar && hayNotaCierre ? ID_NOTA_PIE_REVISION : undefined}
         onClick={onCerrarRevision}
       >
-        Dar por completado
+        Completar
       </Button>
       <Button
         icono={Send}
@@ -36,7 +41,7 @@ export default function AccionesRevision({
         aria-describedby={!habilitado && mostrarNota ? ID_NOTA_PIE_REVISION : undefined}
         onClick={onEnviar}
       >
-        Enviar revisión
+        Enviar
       </Button>
     </>
   );

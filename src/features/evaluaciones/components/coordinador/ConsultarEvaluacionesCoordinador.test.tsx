@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { Route, Routes, useLocation } from 'react-router';
 import { render, screen, within } from '../../../../test-utils/render';
 import ConsultarEvaluacionesCoordinador from './ConsultarEvaluacionesCoordinador';
 import { useEvaluacionesCoordinador } from '../../hooks/useEvaluacionesCoordinador';
@@ -23,6 +24,23 @@ vi.mock('./AsignarJuradosEvaluacionPanel', () => ({
     </div>
   ),
 }));
+
+vi.mock('./AsignarAsesorEvaluacionPanel', () => ({
+  default: ({ evaluacion, onCerrar }: { evaluacion: { id: string }; onCerrar: () => void }) => (
+    <div role="dialog" aria-label={`Panel de asesor de ${evaluacion.id}`}>
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel de asesor
+      </button>
+    </div>
+  ),
+}));
+
+let stateDestino: unknown;
+
+function Destino() {
+  stateDestino = useLocation().state;
+  return <p>Destino jurados</p>;
+}
 
 const EVALUACION: Evaluacion = {
   id: 'e-1',
@@ -170,7 +188,7 @@ describe('ConsultarEvaluacionesCoordinador', () => {
     expect(catalogo.refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('ofrece "Asignar jurados" por fila, abre el panel de esa evaluación y lo cierra volviendo al listado', async () => {
+  it('desde el menú de la fila, "Asignar jurados" abre el panel de esa evaluación y lo cierra volviendo al listado', async () => {
     // Arrange
     const user = userEvent.setup();
     mockHook({ data: crearPagina([EVALUACION]) });
@@ -178,8 +196,9 @@ describe('ConsultarEvaluacionesCoordinador', () => {
 
     // Act
     await user.click(
-      screen.getAllByRole('button', { name: 'Asignar jurados a Sistema de monitoreo' })[0],
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
     );
+    await user.click(screen.getByRole('menuitem', { name: 'Asignar jurados' }));
 
     // Assert
     expect(screen.getByRole('dialog', { name: 'Panel de e-1' })).toBeInTheDocument();
@@ -192,7 +211,7 @@ describe('ConsultarEvaluacionesCoordinador', () => {
     expect(screen.getByRole('table', { name: 'Evaluaciones' })).toBeInTheDocument();
   });
 
-  it('con la evaluación FINALIZADA la acción "Asignar jurados" queda deshabilitada y no abre el panel', async () => {
+  it('con la evaluación FINALIZADA "Asignar jurados" queda deshabilitada y no abre el panel', async () => {
     // Arrange
     const user = userEvent.setup();
     mockHook({
@@ -201,13 +220,76 @@ describe('ConsultarEvaluacionesCoordinador', () => {
     render(<ConsultarEvaluacionesCoordinador />);
 
     // Act
-    const boton = screen.getAllByRole('button', {
-      name: 'Asignar jurados a Sistema de monitoreo',
-    })[0];
-    await user.click(boton);
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+    const opcion = screen.getByRole('menuitem', { name: 'Asignar jurados' });
+    await user.click(opcion);
 
     // Assert
-    expect(boton).toBeDisabled();
+    expect(opcion).toBeDisabled();
     expect(screen.queryByRole('dialog', { name: 'Panel de e-1' })).not.toBeInTheDocument();
+  });
+
+  it('"Asignar asesor" abre el panel de esa evaluación, lo cierra y queda deshabilitada si está FINALIZADA', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([EVALUACION]) });
+    const { rerender } = render(<ConsultarEvaluacionesCoordinador />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Asignar asesor' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de asesor de e-1' })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel de asesor' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Act
+    mockHook({
+      data: crearPagina([{ ...EVALUACION, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } }]),
+    });
+    rerender(<ConsultarEvaluacionesCoordinador />);
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Asignar asesor' })).toBeDisabled();
+  });
+
+  it('"Ver jurados" navega a la ruta de jurados con el resumen, finalizada y el search del listado', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({
+      data: crearPagina([{ ...EVALUACION, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } }]),
+    });
+    render(
+      <Routes>
+        <Route path="/evaluaciones" element={<ConsultarEvaluacionesCoordinador />} />
+        <Route path="/evaluaciones/:id/jurados" element={<Destino />} />
+      </Routes>,
+      { initialPath: '/evaluaciones?q=sis' },
+    );
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver jurados' }));
+
+    // Assert
+    expect(screen.getByText('Destino jurados')).toBeInTheDocument();
+    expect(stateDestino).toEqual({
+      resumen: { id: 'e-1', proyecto: 'Sistema de monitoreo', version: 1, finalizada: true },
+      search: '?q=sis',
+    });
   });
 });

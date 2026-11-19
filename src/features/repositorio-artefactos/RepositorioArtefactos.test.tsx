@@ -26,7 +26,6 @@ function renderizar() {
     <Routes>
       <Route path="/repositorio-artefactos" element={<RepositorioArtefactos />} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
-      <Route path="/forbidden" element={<p>Acceso denegado</p>} />
     </Routes>,
     { initialPath: '/repositorio-artefactos' },
   );
@@ -80,7 +79,7 @@ describe('RepositorioArtefactos', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('un rol sin vista redirige a /forbidden', () => {
+  it('un rol sin vista muestra Acceso denegado', () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);

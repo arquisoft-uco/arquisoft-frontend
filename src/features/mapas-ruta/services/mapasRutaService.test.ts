@@ -3,12 +3,13 @@ import apiClient from '../../../api/axiosInstance';
 import { mapasRutaService } from './mapasRutaService';
 
 vi.mock('../../../api/axiosInstance', () => ({
-  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn() },
+  default: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
 
 const get = vi.mocked(apiClient.get);
 const post = vi.mocked(apiClient.post);
 const patch = vi.mocked(apiClient.patch);
+const eliminar = vi.mocked(apiClient.delete);
 
 describe('mapasRutaService', () => {
   beforeEach(() => {
@@ -125,7 +126,7 @@ describe('mapasRutaService', () => {
   });
 
   describe('consultarMapaRutaEstudiante', () => {
-    it('hace GET /mapas-ruta/estudiante sin parámetros y traduce los campos del mapa', async () => {
+    it('hace GET a la ruta del proyecto de grado y traduce los campos del mapa', async () => {
       // Arrange
       get.mockResolvedValue({
         data: {
@@ -138,10 +139,10 @@ describe('mapasRutaService', () => {
       });
 
       // Act
-      const resultado = await mapasRutaService.consultarMapaRutaEstudiante();
+      const resultado = await mapasRutaService.consultarMapaRutaEstudiante('p-1');
 
       // Assert
-      expect(get).toHaveBeenCalledWith('/mapas-ruta/estudiante');
+      expect(get).toHaveBeenCalledWith('/mapas-ruta/proyectos-grado/p-1/estudiante');
       expect(resultado).toEqual({
         id: 'm-1',
         proyectoGradoId: 'p-1',
@@ -288,6 +289,26 @@ describe('mapasRutaService', () => {
     });
   });
 
+  describe('asignarTarea', () => {
+    it('traduce asesorId a asesor en POST /mapas-ruta/{id}/tareas y devuelve el id', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 't-9' } });
+
+      // Act
+      const resultado = await mapasRutaService.asignarTarea('m-1', {
+        descripcion: 'Redactar capítulo',
+        asesorId: 'a-2',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/mapas-ruta/m-1/tareas', {
+        descripcion: 'Redactar capítulo',
+        asesor: 'a-2',
+      });
+      expect(resultado).toEqual({ id: 't-9' });
+    });
+  });
+
   describe('modificarInformacionTarea', () => {
     it('traduce asesorId a asesor en PATCH /tareas/{id} y resuelve undefined', async () => {
       // Arrange
@@ -304,6 +325,20 @@ describe('mapasRutaService', () => {
         descripcion: 'Nueva descripción',
         asesor: 'a-2',
       });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarTarea', () => {
+    it('hace DELETE /tareas/{id} sin body y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.eliminarTarea('t-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/tareas/t-1');
       expect(resultado).toBeUndefined();
     });
   });
@@ -336,6 +371,258 @@ describe('mapasRutaService', () => {
           email: 'ana@uco.edu.co',
           estadoId: 'ASIGNADO',
           actual: true,
+        },
+      ]);
+    });
+  });
+  describe('agregarPlanEstimado', () => {
+    it('hace POST /tareas/{id}/planes-estimados con el tareaId solo en el path', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'p-1' } });
+
+      // Act
+      const resultado = await mapasRutaService.agregarPlanEstimado('t-1', {
+        tiempoEstimadoDias: 5,
+        descripcionEstimado: 'Redacción',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/tareas/t-1/planes-estimados', {
+        tiempoEstimadoDias: 5,
+        descripcionEstimado: 'Redacción',
+      });
+      expect(resultado).toEqual({ id: 'p-1' });
+    });
+  });
+
+  describe('modificarPlanEstimado', () => {
+    it('hace PATCH /planes-estimados/{id} con solo la descripcion, tambien vacia, y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.modificarPlanEstimado('p-1', {
+        descripcionEstimado: '',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/planes-estimados/p-1', { descripcionEstimado: '' });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('aportarPlanEstimado', () => {
+    it('hace PATCH /mapas-ruta/planes-estimados/{id}/asesor con solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.aportarPlanEstimado('p-1', {
+        descripcionEstimado: 'Aporte',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/mapas-ruta/planes-estimados/p-1/asesor', {
+        descripcionEstimado: 'Aporte',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('aportarPlanReal', () => {
+    it('hace PATCH /mapas-ruta/planes-reales/{id}/asesor con solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.aportarPlanReal('r-1', {
+        descripcionReal: 'Aporte',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/mapas-ruta/planes-reales/r-1/asesor', {
+        descripcionReal: 'Aporte',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('modificarPlanReal', () => {
+    it('hace PATCH /mapas-ruta/planes-reales/{id} con días y descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.modificarPlanReal('r-1', {
+        tiempoRealDias: 4,
+        descripcionReal: '',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/mapas-ruta/planes-reales/r-1', {
+        tiempoRealDias: 4,
+        descripcionReal: '',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarPlanEstimado', () => {
+    it('hace DELETE /mapas-ruta/planes-estimados/{id} y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.eliminarPlanEstimado('p-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/mapas-ruta/planes-estimados/p-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminarPlanReal', () => {
+    it('hace DELETE /mapas-ruta/planes-reales/{id} y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await mapasRutaService.eliminarPlanReal('r-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/mapas-ruta/planes-reales/r-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('consultarPlanesEstimadosTarea', () => {
+    it('hace POST con el body recibido y traduce tarea a tareaId conservando la página', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [{ id: 'p-1', tarea: 't-1', tiempoEstimadoDias: 5, descripcionEstimado: null }],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesEstimadosTarea('t-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/tareas/t-1/planes-estimados/estudiante', req);
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 5, descripcionEstimado: null },
+      ]);
+    });
+  });
+
+  describe('consultarPlanesEstimadosProyectoAsesor', () => {
+    it('hace POST a la ruta del proyecto y traduce tarea y mapaRuta conservando la página', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [
+            {
+              id: 'p-1',
+              tarea: 't-1',
+              descripcionTarea: 'Informe',
+              mapaRuta: 'm-1',
+              tiempoEstimadoDias: 5,
+              descripcionEstimado: null,
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesEstimadosProyectoAsesor('pg-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/mapas-ruta/proyectos-grado/pg-1/planes-estimados/asesor',
+        req,
+      );
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        {
+          id: 'p-1',
+          tareaId: 't-1',
+          descripcionTarea: 'Informe',
+          mapaRutaId: 'm-1',
+          tiempoEstimadoDias: 5,
+          descripcionEstimado: null,
+        },
+      ]);
+    });
+  });
+
+  describe('consultarPlanesRealesTarea', () => {
+    it('hace POST con el body recibido y traduce tarea a tareaId conservando null y la página', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [{ id: 'r-1', tarea: 't-1', tiempoRealDias: 3, descripcionReal: null }],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesRealesTarea('t-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/mapas-ruta/tareas/t-1/planes-reales/estudiante', req);
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: null },
+      ]);
+    });
+  });
+
+  describe('consultarPlanesRealesProyectoAsesor', () => {
+    it('hace POST a la ruta del proyecto, traduce tarea a tareaId y descarta mapaRuta', async () => {
+      // Arrange
+      post.mockResolvedValue({
+        data: {
+          content: [
+            {
+              id: 'r-1',
+              tarea: 't-1',
+              descripcionTarea: 'Entregar informe',
+              mapaRuta: 'm-1',
+              tiempoRealDias: 3,
+              descripcionReal: null,
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+        },
+      });
+      const req = { pagina: 0, tamanio: 10 };
+
+      // Act
+      const pagina = await mapasRutaService.consultarPlanesRealesProyectoAsesor('p-1', req);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/mapas-ruta/proyectos-grado/p-1/planes-reales/asesor',
+        req,
+      );
+      expect(pagina.totalElements).toBe(1);
+      expect(pagina.content).toEqual([
+        {
+          id: 'r-1',
+          tareaId: 't-1',
+          descripcionTarea: 'Entregar informe',
+          tiempoRealDias: 3,
+          descripcionReal: null,
         },
       ]);
     });

@@ -1,19 +1,60 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { Link, Route, Routes, useLocation } from 'react-router';
-import { render, screen } from '../../../test-utils/render';
+import { render, screen, within } from '../../../test-utils/render';
+import { usePlanEstimadoTarea } from '../hooks/usePlanEstimadoTarea';
+import { usePlanRealTarea } from '../hooks/usePlanRealTarea';
 import { useTarea } from '../hooks/useTarea';
 import DetalleTareaEstudianteView from './DetalleTareaEstudianteView';
 
 vi.mock('../hooks/useTarea', () => ({ useTarea: vi.fn() }));
+vi.mock('../hooks/usePlanRealTarea', () => ({ usePlanRealTarea: vi.fn() }));
+vi.mock('../hooks/usePlanEstimadoTarea', () => ({ usePlanEstimadoTarea: vi.fn() }));
 vi.mock('./estudiante/CambiarEstadoTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de cambio de estado" />,
+}));
+vi.mock('./estudiante/AgregarPlanEstimadoPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de plan estimado" />,
+}));
+vi.mock('./estudiante/ModificarPlanEstimadoPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de edición del plan estimado" />,
+}));
+vi.mock('./estudiante/ModificarPlanRealPanel', () => ({
+  default: () => <div role="dialog" aria-label="Panel de edición del plan real" />,
 }));
 vi.mock('./estudiante/ModificarInformacionTareaPanel', () => ({
   default: () => <div role="dialog" aria-label="Panel de edición de la tarea" />,
 }));
 
+vi.mock('./estudiante/EliminarPlanEstimadoDialog', () => ({
+  default: () => <div role="dialog" aria-label="Diálogo de remoción del plan estimado" />,
+}));
+vi.mock('./estudiante/EliminarPlanRealDialog', () => ({
+  default: () => <div role="dialog" aria-label="Diálogo de remoción del plan real" />,
+}));
+vi.mock('./estudiante/EliminarTareaDialog', () => ({
+  default: ({ onCerrar, onEliminada }: { onCerrar: () => void; onEliminada: () => void }) => (
+    <div role="dialog" aria-label="Diálogo de eliminación">
+      <button type="button" onClick={onCerrar}>
+        Cerrar diálogo
+      </button>
+      <button type="button" onClick={onEliminada}>
+        Simular eliminada
+      </button>
+    </div>
+  ),
+}));
+
 const useDetalle = vi.mocked(useTarea);
+const usePlan = vi.mocked(usePlanEstimadoTarea);
+
+const CONSULTA_SIN_PLAN = {
+  plan: undefined,
+  cargando: false,
+  hayError: false,
+  reintentar: vi.fn(),
+  puedeAgregar: true,
+};
 
 const TAREA = {
   id: 't-1',
@@ -63,6 +104,13 @@ function renderizar(initialPath = '/mapas-ruta/tareas/t-1') {
 describe('DetalleTareaEstudianteView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    usePlan.mockReturnValue(CONSULTA_SIN_PLAN);
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: undefined,
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
   });
 
   it('muestra descripción, estado, asesor con correo y las fechas del mapa de ruta', () => {
@@ -180,6 +228,74 @@ describe('DetalleTareaEstudianteView', () => {
     expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
   });
 
+  it.each(['NUEVA', 'EN_PROGRESO'])(
+    'Eliminar tarea abre el diálogo con una tarea %s',
+    async (id) => {
+      // Arrange
+      simular({ tarea: { ...TAREA, estado: { id, nombre: id } } });
+      const user = userEvent.setup();
+      renderizar();
+
+      // Act
+      await user.click(screen.getByRole('button', { name: 'Eliminar tarea' }));
+
+      // Assert
+      expect(screen.getByRole('dialog', { name: 'Diálogo de eliminación' })).toBeInTheDocument();
+    },
+  );
+
+  it('no ofrece Eliminar tarea finalizada, cargando, con error ni sin encontrar', () => {
+    // Arrange / Act / Assert
+    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+    const finalizada = renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+    finalizada.unmount();
+
+    simular({ tarea: undefined, cargando: true });
+    const cargando = renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+    cargando.unmount();
+
+    simular({ tarea: undefined, hayError: true });
+    const conError = renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+    conError.unmount();
+
+    simular({ tarea: undefined, noEncontrada: true });
+    renderizar();
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea' })).not.toBeInTheDocument();
+  });
+
+  it('cerrar el diálogo lo quita y deja el detalle', async () => {
+    // Arrange
+    simular();
+    const user = userEvent.setup();
+    renderizar();
+    await user.click(screen.getByRole('button', { name: 'Eliminar tarea' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar diálogo' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Entregar informe' })).toBeInTheDocument();
+  });
+
+  it('al eliminar vuelve al listado conservando el search recibido en el state', async () => {
+    // Arrange
+    simular();
+    const user = userEvent.setup();
+    renderizar('/mapas-ruta');
+    await user.click(screen.getByRole('link', { name: 'Abrir detalle' }));
+    await user.click(screen.getByRole('button', { name: 'Eliminar tarea' }));
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Simular eliminada' }));
+
+    // Assert
+    expect(screen.getByText('Listado?pagina=2')).toBeInTheDocument();
+  });
+
   it('no ofrece Editar tarea cargando, con error ni sin encontrar', () => {
     // Arrange / Act / Assert
     simular({ tarea: undefined, cargando: true });
@@ -195,5 +311,189 @@ describe('DetalleTareaEstudianteView', () => {
     simular({ tarea: undefined, noEncontrada: true });
     renderizar();
     expect(screen.queryByRole('button', { name: 'Editar tarea' })).not.toBeInTheDocument();
+  });
+
+  it('Agregar plan estimado abre el panel con una tarea en progreso', async () => {
+    // Arrange
+    simular({ tarea: { ...TAREA, estado: { id: 'EN_PROGRESO', nombre: 'En progreso' } } });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Agregar plan estimado' })[0]);
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de plan estimado' })).toBeInTheDocument();
+    expect(usePlan).toHaveBeenCalledWith('t-1', true);
+  });
+
+  it('con la tarea finalizada y sin plan deshabilita todas las formas de agregar el plan estimado', () => {
+    // Arrange
+    simular({ tarea: { ...TAREA, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } } });
+
+    // Act
+    renderizar();
+
+    // Assert
+    const botones = screen.getAllByRole('button', { name: 'Agregar plan estimado' });
+    expect(botones).toHaveLength(2);
+    botones.forEach((boton) => expect(boton).toBeDisabled());
+    expect(screen.queryByRole('button', { name: 'Editar plan estimado' })).not.toBeInTheDocument();
+  });
+
+  it('no ofrece Agregar plan estimado cuando la tarea ya tiene plan y muestra la sección', () => {
+    // Arrange
+    simular();
+    usePlan.mockReturnValue({
+      plan: { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 3, descripcionEstimado: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+      puedeAgregar: false,
+    });
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Agregar plan estimado' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Plan estimado' })).toBeInTheDocument();
+    expect(screen.getByText('3 días')).toBeInTheDocument();
+  });
+
+  it('Editar plan estimado solo existe con el plan cargado y abre el panel', async () => {
+    // Arrange
+    simular();
+    const boton = () => screen.queryByRole('button', { name: 'Editar plan estimado' });
+    const sinPlan = renderizar();
+    expect(boton()).not.toBeInTheDocument();
+    sinPlan.unmount();
+    usePlan.mockReturnValue({ ...CONSULTA_SIN_PLAN, cargando: true });
+    const cargando = renderizar();
+    expect(boton()).not.toBeInTheDocument();
+    cargando.unmount();
+    usePlan.mockReturnValue({ ...CONSULTA_SIN_PLAN, hayError: true });
+    const conError = renderizar();
+    expect(boton()).not.toBeInTheDocument();
+    conError.unmount();
+    usePlan.mockReturnValue({
+      plan: { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 3, descripcionEstimado: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+      puedeAgregar: false,
+    });
+    const user = userEvent.setup();
+    renderizar();
+
+    const region = within(screen.getByRole('region', { name: 'Plan estimado' }));
+    expect(screen.getAllByRole('button', { name: 'Editar plan estimado' })).toHaveLength(1);
+
+    // Act
+    await user.click(region.getByRole('button', { name: 'Editar plan estimado' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Panel de edición del plan estimado' }),
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    ['NUEVA', true],
+    ['EN_PROGRESO', true],
+    ['FINALIZADA', false],
+  ])('Remover plan estimado con una tarea %s: visible=%s', async (id, visible) => {
+    // Arrange
+    simular({ tarea: { ...TAREA, estado: { id, nombre: id } } });
+    usePlan.mockReturnValue({
+      plan: { id: 'p-1', tareaId: 't-1', tiempoEstimadoDias: 3, descripcionEstimado: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+      puedeAgregar: false,
+    });
+    const user = userEvent.setup();
+    renderizar();
+    const boton = screen.queryByRole('button', { name: 'Remover plan estimado' });
+
+    // Act
+    if (boton) await user.click(boton);
+
+    // Assert
+    expect(Boolean(boton)).toBe(visible);
+    expect(
+      Boolean(screen.queryByRole('dialog', { name: 'Diálogo de remoción del plan estimado' })),
+    ).toBe(visible);
+  });
+
+  it('Editar plan real abre el panel cuando el plan real está cargado', async () => {
+    // Arrange
+    simular();
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Editar plan real' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Panel de edición del plan real' }),
+    ).toBeInTheDocument();
+  });
+
+  it('Remover plan real abre el diálogo cuando el plan real está cargado', async () => {
+    // Arrange
+    simular();
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: null },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
+    const user = userEvent.setup();
+    renderizar();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Remover plan real' }));
+
+    // Assert
+    expect(
+      screen.getByRole('dialog', { name: 'Diálogo de remoción del plan real' }),
+    ).toBeInTheDocument();
+  });
+
+  it('monta la sección Plan real solo cuando hay tarea', () => {
+    // Arrange
+    vi.mocked(usePlanRealTarea).mockReturnValue({
+      plan: { id: 'r-1', tareaId: 't-1', tiempoRealDias: 3, descripcionReal: 'Informe entregado' },
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    });
+    const casos = [
+      { parcial: {}, visible: true },
+      { parcial: { tarea: undefined, cargando: true }, visible: false },
+      { parcial: { tarea: undefined, hayError: true }, visible: false },
+      { parcial: { tarea: undefined, noEncontrada: true }, visible: false },
+    ];
+
+    for (const { parcial, visible } of casos) {
+      simular(parcial);
+
+      // Act
+      const { unmount } = renderizar();
+
+      // Assert
+      expect(Boolean(screen.queryByRole('heading', { name: 'Plan real' }))).toBe(visible);
+      unmount();
+    }
+    expect(usePlanRealTarea).toHaveBeenCalledWith('t-1', true);
+    expect(usePlanRealTarea).toHaveBeenCalledWith('t-1', false);
   });
 });

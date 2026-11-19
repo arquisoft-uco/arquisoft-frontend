@@ -6,29 +6,29 @@ import CoordinadorDetalleView from './CoordinadorDetalleView';
 
 vi.mock('./coordinador/EstudiantesProyectoGradoPanel', () => ({ default: () => null }));
 
-const state = {
-  search: '?q=monitoreo',
-  resumen: {
-    id: 'p-1',
-    titulo: 'Sistema de monitoreo',
-    estadoId: 'EN_PROCESO',
-    estadoNombre: 'En proceso',
-  },
-};
+function crearState(estadoId: string, estadoNombre: string) {
+  return {
+    search: '?q=monitoreo',
+    resumen: { id: 'p-1', titulo: 'Sistema de monitoreo', estadoId, estadoNombre },
+  };
+}
 
-function renderizar(initialPath: string) {
+const state = crearState('EN_PROCESO', 'En proceso');
+
+function renderizar(initialPath: string, stateEnlace = state) {
   return render(
     <Routes>
       <Route
         path="/proyectos-grado"
         element={
-          <Link to="/proyectos-grado/p-1/asesores" state={state}>
+          <Link to="/proyectos-grado/p-1/asesores" state={stateEnlace}>
             Abrir proyecto
           </Link>
         }
       />
       <Route path="/proyectos-grado/:id" element={<CoordinadorDetalleView />}>
         <Route path="asesores" element={<p>Panel de asesores</p>} />
+        <Route path="estados" element={<p>Panel de estados</p>} />
       </Route>
     </Routes>,
     { initialPath },
@@ -71,5 +71,36 @@ describe('CoordinadorDetalleView', () => {
       'href',
       '/proyectos-grado',
     );
+  });
+
+  it('muestra las pestañas Asesores y Estados y marca como activa la de la URL', () => {
+    // Act
+    renderizar('/proyectos-grado/p-1/estados');
+
+    // Assert
+    expect(screen.getByRole('link', { name: 'Asesores' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Estados' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByText('Panel de estados')).toBeInTheDocument();
+  });
+
+  it('con un proyecto EN_PROCESO ofrece cancelarlo y con uno CANCELADO no, manteniendo «Ver estudiantes»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { unmount } = renderizar('/proyectos-grado');
+
+    // Act
+    await user.click(screen.getByRole('link', { name: 'Abrir proyecto' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Cancelar proyecto' })).toBeInTheDocument();
+
+    // Act
+    unmount();
+    renderizar('/proyectos-grado', crearState('CANCELADO', 'Cancelado'));
+    await user.click(screen.getByRole('link', { name: 'Abrir proyecto' }));
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Cancelar proyecto' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
   });
 });

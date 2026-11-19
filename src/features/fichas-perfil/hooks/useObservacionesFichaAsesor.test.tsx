@@ -127,6 +127,7 @@ describe('useObservacionesFichaAsesor', () => {
       observacion: OBSERVACION,
       item: ITEM_1,
       revisionCerrada: false,
+      revisionCorreccionDisponible: false,
     });
     expect(result.current.totalElements).toBe(1);
     expect(result.current.sinObservables).toBe(false);
@@ -152,6 +153,31 @@ describe('useObservacionesFichaAsesor', () => {
     // Assert
     await waitFor(() => expect(result.current.filas).toHaveLength(2));
     expect(result.current.filas.map((fila) => fila.revisionCerrada)).toEqual([false, true]);
+  });
+
+  it('marca revisionCorreccionDisponible solo en las filas cuya revisión está CORRECCION_DISPONIBLE', async () => {
+    // Arrange
+    const otra = { ...OBSERVACION, id: 'o-2', revisionItemId: 'r-2' };
+    conItems({ data: [ITEM_1, { ...ITEM_1, id: 'i-2' }] });
+    conRevisiones(
+      new Map([
+        ['i-1', { ...REVISION_1, estadoId: 'CORRECCION_DISPONIBLE' }],
+        ['i-2', REVISION_2],
+      ]),
+    );
+    consultar.mockResolvedValue(pagina([OBSERVACION, otra]));
+
+    // Act
+    const { result } = renderHook(() => useObservacionesFichaAsesor('f-1'), {
+      wrapper: crearWrapper(),
+    });
+
+    // Assert
+    await waitFor(() => expect(result.current.filas).toHaveLength(2));
+    expect(result.current.filas.map((fila) => fila.revisionCorreccionDisponible)).toEqual([
+      true,
+      false,
+    ]);
   });
 
   it('ordenar DESC envía estadoObservacionRevision:DESC y vuelve a la página 0', async () => {

@@ -23,6 +23,15 @@ const PAGINA_VACIA = {
   empty: true,
 };
 
+const SOLO_HABILITADOS = {
+  tipo: 'GRUPO',
+  conector: 'AND',
+  nodos: [
+    { tipo: 'PREDICADO', campo: 'proyectoFinalizado', operador: 'ES', valor: 'false' },
+    { tipo: 'PREDICADO', campo: 'proyectoCancelado', operador: 'ES', valor: 'false' },
+  ],
+};
+
 function crearWrapper(queryClient: QueryClient, ruta = '/artefactos') {
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -58,7 +67,7 @@ describe('useArtefactosAsesor', () => {
       pagina: 0,
       tamanio: 10,
       ordenamiento: ['nombreProyecto:ASC', 'nombreDocumento:ASC'],
-      filtros: undefined,
+      filtros: SOLO_HABILITADOS,
     });
     expect(result.current.hayFiltros).toBe(false);
     expect(
@@ -78,6 +87,7 @@ describe('useArtefactosAsesor', () => {
       '',
       '',
       'nombreProyecto:ASC',
+      '',
     ]);
   });
 
@@ -97,7 +107,11 @@ describe('useArtefactosAsesor', () => {
       expect(consultar).toHaveBeenLastCalledWith(
         expect.objectContaining({
           pagina: 0,
-          filtros: expect.objectContaining({ tipo: 'GRUPO', conector: 'OR' }),
+          filtros: expect.objectContaining({
+            tipo: 'GRUPO',
+            conector: 'AND',
+            nodos: expect.arrayContaining([expect.objectContaining({ conector: 'OR' })]),
+          }),
         }),
       ),
     );
@@ -141,6 +155,7 @@ describe('useArtefactosAsesor', () => {
       documento: 'acta',
       repositorio: 'base',
       version: '2',
+      estadoProyecto: '',
     });
     expect(consultar).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -155,8 +170,61 @@ describe('useArtefactosAsesor', () => {
     await waitFor(() => expect(result.current.listado.hayFiltros).toBe(false));
     expect(result.current.ubicacion.search).toBe('');
     await waitFor(() =>
-      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined })),
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({ filtros: SOLO_HABILITADOS }),
+      ),
     );
+  });
+
+  it('el estado del proyecto de la URL reemplaza los dos false, y limpiarFiltros vuelve a habilitados', async () => {
+    // Arrange
+    const { result } = renderHook(usarHookConUbicacion, {
+      wrapper: crearWrapper(queryClient, '/artefactos?estadoProyecto=cancelados&pagina=2'),
+    });
+    await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.listado.filtros.estadoProyecto).toBe('cancelados');
+    expect(result.current.listado.hayFiltros).toBe(true);
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: { tipo: 'PREDICADO', campo: 'proyectoCancelado', operador: 'ES', valor: 'true' },
+      }),
+    );
+
+    // Act
+    act(() => result.current.listado.limpiarFiltros());
+
+    // Assert
+    await waitFor(() => expect(result.current.listado.hayFiltros).toBe(false));
+    expect(result.current.ubicacion.search).toBe('');
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({ filtros: SOLO_HABILITADOS }),
+      ),
+    );
+
+    // Act
+    act(() => result.current.listado.setEstadoProyecto('finalizados'));
+
+    // Assert
+    await waitFor(() =>
+      expect(result.current.ubicacion.search).toBe('?estadoProyecto=finalizados'),
+    );
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filtros: {
+            tipo: 'PREDICADO',
+            campo: 'proyectoFinalizado',
+            operador: 'ES',
+            valor: 'true',
+          },
+        }),
+      ),
+    );
+    act(() => result.current.listado.setEstadoProyecto(''));
+    await waitFor(() => expect(result.current.ubicacion.search).toBe(''));
   });
 
   it('cambiar un filtro vuelve a la página 0', async () => {

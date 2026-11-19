@@ -8,9 +8,12 @@ vi.mock('../../../../shared/hooks/useDescargarVersionRepositorio', () => ({
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 
 const ARTEFACTO: ArtefactoAsesor = {
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
   id: '3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
   proyectoGrado: 'p-1',
   nombreProyecto: 'Sistema de riego',
@@ -24,6 +27,7 @@ const ARTEFACTO: ArtefactoAsesor = {
 function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosAsesorTable>> = {}) {
   const props = {
     artefactos: [ARTEFACTO],
+    ultimaVersion: () => undefined,
     cargando: false,
     hayFiltros: false,
     orden: { clave: 'nombreProyecto', direccion: 'ASC' as const },
@@ -194,5 +198,77 @@ describe('ArtefactosAsesorTable', () => {
     // Assert
     expect(descargar).toHaveBeenCalledWith('r-1', 'Acta de inicio');
     expect(descargar).toHaveBeenCalledWith('r-2', 'Anteproyecto');
+  });
+
+  it('muestra la insignia del proyecto cancelado o finalizado y ninguna en el habilitado', () => {
+    // Arrange / Act
+    renderizar({
+      artefactos: [
+        ARTEFACTO,
+        { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', proyectoCancelado: true },
+        { ...ARTEFACTO, id: 'a-3', nombreDocumento: 'Plano', proyectoFinalizado: true },
+      ],
+    });
+
+    // Assert
+    expect(tabla().getAllByText('Proyecto cancelado')).toHaveLength(1);
+    expect(tabla().getAllByText('Proyecto finalizado')).toHaveLength(1);
+  });
+
+  it('en un proyecto cerrado no ofrece cambiar, omitir ni reactivar y deja los estudiantes en lectura', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    renderizar({ artefactos: [{ ...ARTEFACTO, proyectoCancelado: true }] });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' }));
+
+    // Assert
+    const items = screen.getAllByRole('menuitem').map((i) => i.textContent);
+    expect(items).toEqual(['Descargar', 'Ver estudiantes']);
+  });
+
+  it('muestra la guía y la insignia de la última versión; omitido o proyecto cerrado no llevan guía', () => {
+    // Arrange
+    const cerrada = {
+      estadoRevision: 'CERRADA',
+      nombreEstadoRevision: 'Cerrada',
+    } as VersionArtefacto;
+    const omitido = { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true };
+    const cancelado = {
+      ...ARTEFACTO,
+      id: 'a-3',
+      nombreDocumento: 'Plano',
+      proyectoCancelado: true,
+    };
+
+    // Act
+    renderizar({ artefactos: [ARTEFACTO, omitido, cancelado], ultimaVersion: () => cerrada });
+
+    // Assert
+    expect(tabla().getAllByText('Cerrada')).toHaveLength(2);
+    expect(
+      tabla().getAllByText('Cerraste este artefacto: ya no admite nuevas versiones.'),
+    ).toHaveLength(1);
+  });
+
+  it('sin versiones indica la espera del estudiante y mientras carga no muestra guía ni insignia', () => {
+    // Act
+    renderizar({ ultimaVersion: () => null });
+
+    // Assert
+    expect(tabla().getByText('Sin versiones')).toBeInTheDocument();
+    expect(
+      tabla().getByText('Esperando que el estudiante suba la primera versión.'),
+    ).toBeInTheDocument();
+  });
+
+  it('mientras llega la última versión no muestra guía ni insignia', () => {
+    // Act
+    renderizar({ ultimaVersion: () => undefined });
+
+    // Assert
+    expect(tabla().queryByText('Sin versiones')).not.toBeInTheDocument();
+    expect(tabla().queryByText(/Esperando que el estudiante/)).not.toBeInTheDocument();
   });
 });

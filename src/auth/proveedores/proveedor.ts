@@ -23,6 +23,9 @@ export interface ProveedorIdentidad {
   restaurarSesion: (
     alActualizar: (sesion: SesionRestaurada) => void,
   ) => Promise<SesionRestaurada | null>;
+  recuperarSesionSilenciosa: (
+    alActualizar: (sesion: SesionRestaurada) => void,
+  ) => Promise<SesionRestaurada | null>;
   iniciarSesion: (destino: string) => void;
   cerrarSesion: (redirectUri: string) => Promise<void>;
   credencialesHttp: () => CredencialesHttp;

@@ -10,6 +10,7 @@ export function useAsignarJuradosEvaluacion(evaluacionId: string) {
       evaluacionesService.asignarJuradosEvaluacion({ evaluacionId, juradosIds }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['evaluaciones', 'coordinador'] });
+      queryClient.invalidateQueries({ queryKey: ['evaluaciones', evaluacionId, 'jurados'] });
     },
   });
 }

@@ -1,4 +1,5 @@
 import { SearchX, Send } from 'lucide-react';
+import InsigniaProyectoCerrado from '../../../../shared/components/InsigniaProyectoCerrado';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
@@ -11,6 +12,7 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { varianteEstadoEntregable } from '../../../../shared/utils/estado-variante';
 import type { EntregableProyectoGrado } from '../../models/EntregableProyectoGrado';
 import type { OrdenCampoEntregableJurado } from '../../models/OrdenCampoEntregableJurado';
+import type { EstadoProyectoListado } from '../../utils/estado-proyecto';
 
 const TARJETA_DATOS = 'flex flex-wrap items-center gap-1.5';
 const NOMBRE = 'font-medium text-on-surface';
@@ -26,6 +28,7 @@ interface Props {
   entregables: EntregableProyectoGrado[];
   cargando: boolean;
   hayFiltros: boolean;
+  estadoProyecto: EstadoProyectoListado;
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoEntregableJurado, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
@@ -33,9 +36,15 @@ interface Props {
 
 function InsigniaEstado({ entregable }: { entregable: EntregableProyectoGrado }) {
   return (
-    <Badge variante={varianteEstadoEntregable(entregable.estadoEntregable.id)}>
-      {entregable.estadoEntregable.nombre}
-    </Badge>
+    <div className="flex flex-wrap gap-1.5">
+      <Badge variante={varianteEstadoEntregable(entregable.estadoEntregable.id)}>
+        {entregable.estadoEntregable.nombre}
+      </Badge>
+      <InsigniaProyectoCerrado
+        proyectoFinalizado={entregable.proyectoFinalizado}
+        proyectoCancelado={entregable.proyectoCancelado}
+      />
+    </div>
   );
 }
 
@@ -72,6 +81,7 @@ export default function EntregablesJuradoTable({
   entregables,
   cargando,
   hayFiltros,
+  estadoProyecto,
   orden,
   onOrdenar,
   onLimpiarFiltros,
@@ -94,8 +104,16 @@ export default function EntregablesJuradoTable({
   ) : (
     <EmptyState
       icono={Send}
-      titulo="Aún no hay entregables por evaluar"
-      descripcion="Cuando un entregable quede disponible para evaluación, aparecerá aquí."
+      titulo={
+        estadoProyecto === 'finalizados'
+          ? 'Sin entregables de proyectos finalizados'
+          : 'Aún no hay entregables por evaluar'
+      }
+      descripcion={
+        estadoProyecto === 'finalizados'
+          ? 'Cuando finalice uno de los proyectos que evalúes, sus entregables aparecerán aquí.'
+          : 'Cuando un entregable quede disponible para evaluación, aparecerá aquí.'
+      }
     />
   );
 

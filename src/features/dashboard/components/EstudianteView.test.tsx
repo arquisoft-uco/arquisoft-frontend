@@ -5,11 +5,13 @@ import { render, screen, within } from '../../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser } from '../../../test-utils/store.utils';
 import type { FichaDelEstudiante } from '../models/FichaDelEstudiante';
 import { useActividadFichaEstudiante } from '../hooks/useActividadFichaEstudiante';
+import { useConteos } from '../hooks/useConteos';
 import { useFichaDelEstudiante } from '../hooks/useFichaDelEstudiante';
 import EstudianteView from './EstudianteView';
 
 vi.mock('../hooks/useFichaDelEstudiante', () => ({ useFichaDelEstudiante: vi.fn() }));
 vi.mock('../hooks/useActividadFichaEstudiante', () => ({ useActividadFichaEstudiante: vi.fn() }));
+vi.mock('../hooks/useConteos', () => ({ useConteos: vi.fn() }));
 
 const ficha: FichaDelEstudiante = {
   id: 'f-1',
@@ -48,6 +50,39 @@ describe('EstudianteView', () => {
     setAuthenticatedUser({ username: 'ana.gomez', tokenParsed: { sub: 'u', given_name: 'Ana' } });
     actividadMock();
     fichaMock();
+    vi.mocked(useConteos).mockImplementation((recursos) => ({
+      valores: recursos.map((_, i) => i + 4),
+      total: undefined,
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    }));
+  });
+
+  it('«Tu avance» cuenta artefactos y evaluaciones y los atajos llevan a solicitudes, mapa de ruta y biblioteca', async () => {
+    const user = userEvent.setup();
+    render(
+      <Routes>
+        <Route path="/dashboard" element={<EstudianteView />} />
+        <Route path="/mapas-ruta" element={<p>Pantalla de mapas</p>} />
+      </Routes>,
+      { initialPath: '/dashboard' },
+    );
+
+    const avance = screen.getByRole('region', { name: 'Tu avance' });
+    expect(within(avance).getByRole('link', { name: /Artefactos asignados/ })).toHaveTextContent(
+      '4',
+    );
+    expect(within(avance).getByRole('link', { name: /Evaluaciones/ })).toHaveAttribute(
+      'href',
+      '/evaluaciones',
+    );
+    const atajos = screen.getByRole('region', { name: 'Atajos' });
+    expect(within(atajos).getAllByRole('button')).toHaveLength(3);
+
+    await user.click(within(atajos).getByRole('button', { name: 'Ver tu mapa de ruta' }));
+
+    expect(screen.getByText('Pantalla de mapas')).toBeInTheDocument();
   });
 
   it('saluda con el nombre, resume la ficha y «Abrir ficha» navega a /fichas-perfil', async () => {
@@ -112,13 +147,13 @@ describe('EstudianteView', () => {
     expect(hora).toHaveAttribute('dateTime', '2026-03-01T10:00:00Z');
   });
 
-  it('la ruta académica marca «En curso» los pasos disponibles (ficha, proyecto de grado, artefactos, entregables y evaluaciones) y los demás «Pronto» sin enlace', () => {
+  it('la ruta académica marca «En curso» los pasos disponibles (ficha, proyecto de grado, artefactos, entregables, evaluaciones y biblioteca) y ninguno queda «Pronto»', () => {
     render(<EstudianteView />);
 
     const seccion = screen.getByRole('region', { name: 'Tu ruta académica' });
-    expect(within(seccion).getAllByText('En curso')).toHaveLength(5);
-    expect(within(seccion).getAllByText('Pronto')).toHaveLength(1);
-    expect(within(seccion).getAllByRole('link')).toHaveLength(5);
+    expect(within(seccion).getAllByText('En curso')).toHaveLength(6);
+    expect(within(seccion).queryByText('Pronto')).not.toBeInTheDocument();
+    expect(within(seccion).getAllByRole('link')).toHaveLength(6);
   });
 
   it('un error de la ficha muestra alerta con «Reintentar» sin tumbar el resto del inicio', async () => {

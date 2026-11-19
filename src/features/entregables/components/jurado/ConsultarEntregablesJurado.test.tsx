@@ -20,6 +20,8 @@ const ENTREGABLE: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
   estadoEntregable: { id: 'EN_EVALUACION', nombre: 'En Evaluacion' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function crearPagina(
@@ -58,6 +60,8 @@ function mockHook(parcial: Partial<ReturnType<typeof useEntregablesJurado>> = {}
     ordenDireccion: 'ASC',
     setOrden: vi.fn(),
     limpiarFiltros: vi.fn(),
+    estadoProyecto: 'activos',
+    setEstadoProyecto: vi.fn(),
     ...parcial,
   } as ReturnType<typeof useEntregablesJurado>;
   vi.mocked(useEntregablesJurado).mockReturnValue(hook);
@@ -103,7 +107,7 @@ describe('ConsultarEntregablesJurado', () => {
     const { rerender } = render(<ConsultarEntregablesJurado />);
 
     // Assert
-    expect(screen.getByText('1 entregable')).toBeInTheDocument();
+    expect(screen.getByText('1 entregable · de proyectos activos')).toBeInTheDocument();
     expect(
       within(screen.getByRole('table', { name: 'Entregables por evaluar' })).getByText(
         'Sistema de riego',
@@ -115,7 +119,21 @@ describe('ConsultarEntregablesJurado', () => {
     rerender(<ConsultarEntregablesJurado />);
 
     // Assert
-    expect(screen.getByText('12 entregables')).toBeInTheDocument();
+    expect(screen.getByText('12 entregables · de proyectos activos')).toBeInTheDocument();
+  });
+
+  it('elegir otro alcance lo cambia y el resumen nombra el alcance actual', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const hook = mockHook({ data: crearPagina([ENTREGABLE]), estadoProyecto: 'finalizados' });
+    render(<ConsultarEntregablesJurado />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Activos' }));
+
+    // Assert
+    expect(hook.setEstadoProyecto).toHaveBeenCalledWith('activos');
+    expect(screen.getByText('1 entregable · de proyectos finalizados')).toBeInTheDocument();
   });
 
   it('con asesor aplicado muestra su chip y quitarlo limpia el asesor; no usa el catálogo de estados', async () => {

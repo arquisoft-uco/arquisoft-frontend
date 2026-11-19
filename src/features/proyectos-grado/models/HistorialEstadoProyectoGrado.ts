@@ -4,4 +4,5 @@ export interface HistorialEstadoProyectoGrado {
   id: string;
   estado: EstadoProyecto;
   fechaActualizacion: string;
+  motivo: string | null;
 }

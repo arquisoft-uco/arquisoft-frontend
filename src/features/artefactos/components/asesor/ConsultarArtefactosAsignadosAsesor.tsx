@@ -3,7 +3,12 @@ import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
+import { useUltimasVersionesArtefacto } from '../../hooks/useUltimasVersionesArtefacto';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import {
+  textoAlcanceEstadoProyecto,
+  type EstadoProyectoListado,
+} from '../../utils/estado-proyecto';
 import AsignarArtefactoPanel from './AsignarArtefactoPanel';
 import EstudiantesArtefactoPanel from './EstudiantesArtefactoPanel';
 import CambiarAsesorArtefactoPanel from './CambiarAsesorArtefactoPanel';
@@ -15,9 +20,10 @@ import OmitirArtefactoDialog from './OmitirArtefactoDialog';
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 
-function textoResumen(total?: number): string {
+function textoResumen(total: number | undefined, estado: EstadoProyectoListado): string {
   if (total === undefined) return '';
-  return `${total} ${total === 1 ? 'artefacto' : 'artefactos'}`;
+  const cantidad = `${total} ${total === 1 ? 'artefacto' : 'artefactos'}`;
+  return `${cantidad} · ${textoAlcanceEstadoProyecto(estado)}`;
 }
 
 export default function ConsultarArtefactosAsignadosAsesor() {
@@ -29,13 +35,16 @@ export default function ConsultarArtefactosAsignadosAsesor() {
   const [aGestionarEstudiantes, setAGestionarEstudiantes] = useState<ArtefactoAsesor | null>(null);
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
+  const { ultimaVersion } = useUltimasVersionesArtefacto(
+    artefactos.filter((a) => !a.omitido).map((a) => a.id),
+  );
 
   return (
     <div className={RAIZ}>
       <FiltrosArtefactosAsesor listado={listado} />
 
       <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements)}
+        {textoResumen(data?.totalElements, listado.filtros.estadoProyecto)}
       </p>
 
       <div aria-busy={isFetching}>
@@ -48,6 +57,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
         ) : (
           <ArtefactosAsesorTable
             artefactos={artefactos}
+            ultimaVersion={ultimaVersion}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}

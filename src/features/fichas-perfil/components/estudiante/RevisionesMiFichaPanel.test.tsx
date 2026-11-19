@@ -3,12 +3,20 @@ import userEvent from '@testing-library/user-event';
 import { render, screen } from '../../../../test-utils/render';
 import { toast } from '../../../../shared/hooks/useToast';
 import { errorApi } from '../../../../test-utils/errores-api';
+import { useEnviarCorreccionesRevisionItem } from '../../hooks/useEnviarCorreccionesRevisionItem';
 import { useMarcarRevisionItemVisualizada } from '../../hooks/useMarcarRevisionItemVisualizada';
+import { useObservacionesDeRevisionesMiFicha } from '../../hooks/useObservacionesDeRevisionesMiFicha';
 import { useRevisionesMiFicha } from '../../hooks/useRevisionesMiFicha';
 import RevisionesMiFichaPanel from './RevisionesMiFichaPanel';
 
 vi.mock('../../hooks/useMarcarRevisionItemVisualizada', () => ({
   useMarcarRevisionItemVisualizada: vi.fn(),
+}));
+vi.mock('../../hooks/useEnviarCorreccionesRevisionItem', () => ({
+  useEnviarCorreccionesRevisionItem: vi.fn(),
+}));
+vi.mock('../../hooks/useObservacionesDeRevisionesMiFicha', () => ({
+  useObservacionesDeRevisionesMiFicha: vi.fn(),
 }));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), dismiss: vi.fn() },
@@ -44,6 +52,24 @@ function conMutacion(parcial: Partial<ReturnType<typeof useMarcarRevisionItemVis
   return mutacion;
 }
 
+type OpcionesEnvio = Parameters<ReturnType<typeof useEnviarCorreccionesRevisionItem>['mutate']>[1];
+
+function conEnvio(parcial: Partial<ReturnType<typeof useEnviarCorreccionesRevisionItem>> = {}) {
+  const mutacion = { mutate: vi.fn(), isPending: false, variables: undefined, ...parcial };
+  vi.mocked(useEnviarCorreccionesRevisionItem).mockReturnValue(
+    mutacion as ReturnType<typeof useEnviarCorreccionesRevisionItem>,
+  );
+  return mutacion;
+}
+
+function conObservaciones(resumenes: Record<string, { total: number; pendientes: number }> = {}) {
+  vi.mocked(useObservacionesDeRevisionesMiFicha).mockReturnValue({
+    resumenPorRevision: new Map(Object.entries(resumenes)),
+    cargando: false,
+    verificable: true,
+  });
+}
+
 const FILA = {
   revision: {
     id: 'r-1',
@@ -64,6 +90,8 @@ describe('RevisionesMiFichaPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     conMutacion();
+    conEnvio();
+    conObservaciones();
   });
 
   it('muestra el estado de carga y no pinta el vacío', () => {
@@ -184,8 +212,20 @@ describe('RevisionesMiFichaPanel', () => {
         }).length,
       ).toBeGreaterThan(0);
       expect(
-        screen.queryByRole('button', { name: /la revisión de Alcance/ }),
+        screen.queryByRole('button', { name: /^Marcar como visualizada la revisión de Alcance/ }),
       ).not.toBeInTheDocument();
+    });
+
+    it('el botón muestra el texto «Marcar como visualizada» además del icono', () => {
+      // Arrange
+      conRevisiones({ filas: [NUEVA], totalElements: 1, totalPages: 1 });
+
+      // Act
+      render(<RevisionesMiFichaPanel />);
+
+      // Assert
+      const [boton] = screen.getAllByRole('button', { name: /^Marcar como visualizada/ });
+      expect(boton).toHaveTextContent('Marcar como visualizada');
     });
 
     it('al pulsar llama a la mutación con el id de la revisión y al éxito avisa con un toast', async () => {
@@ -258,10 +298,128 @@ describe('RevisionesMiFichaPanel', () => {
       // Assert
       for (const boton of screen.getAllByRole('button', { name: /revisión de Objetivo general/ })) {
         expect(boton).toBeDisabled();
+        expect(boton).toHaveAttribute('aria-busy', 'true');
       }
-      for (const boton of screen.getAllByRole('button', { name: /revisión de Alcance/ })) {
+      for (const boton of screen.getAllByRole('button', {
+        name: /^Marcar como visualizada la revisión de Alcance/,
+      })) {
         expect(boton).toBeEnabled();
       }
+    });
+  });
+
+  describe('enviar correcciones', () => {
+    const fila = (id: string, estadoId: string, item: string) => ({
+      revision: { ...FILA.revision, id, estadoId },
+      item: { ...FILA.item, tipoItem: { id: `t-${id}`, nombre: item } },
+    });
+    const botonesEnvio = (item: string) =>
+      screen.getAllByRole('button', {
+        name: `Enviar correcciones de la revisión de ${item}`,
+      });
+
+    it('fila «Visualizada»: botón deshabilitado con la instrucción de editar el ítem', () => {
+      // Arrange
+      conRevisiones({
+        filas: [fila('r-v', 'VISUALIZADA', 'Alcance')],
+        totalElements: 1,
+        totalPages: 1,
+      });
+
+      // Act
+      render(<RevisionesMiFichaPanel />);
+
+      // Assert
+      for (const boton of botonesEnvio('Alcance')) expect(boton).toBeDisabled();
+      expect(
+        screen.getAllByText(/Edita el ítem para atender las observaciones/).length,
+      ).toBeGreaterThan(0);
+    });
+
+    it('fila «En progreso» resuelta: habilita, envía con el id y avisa el éxito; el error muestra el mensaje del código', async () => {
+      // Arrange
+      const user = userEvent.setup();
+      const mutate = vi
+        .fn()
+        .mockImplementationOnce((_id: string, opts?: OpcionesEnvio) =>
+          opts?.onSuccess?.(undefined, 'r-p', undefined, {} as never),
+        )
+        .mockImplementationOnce((_id: string, opts?: OpcionesEnvio) =>
+          opts?.onError?.(
+            errorApi(422, {
+              errorCode: 'REVISION_ITEM_CON_OBSERVACIONES_PENDIENTES',
+              message: 'backend',
+            }) as never,
+            'r-p',
+            undefined,
+            {} as never,
+          ),
+        );
+      conEnvio({ mutate });
+      conObservaciones({ 'r-p': { total: 2, pendientes: 0 } });
+      conRevisiones({
+        filas: [fila('r-p', 'EN_PROGRESO', 'Alcance')],
+        totalElements: 1,
+        totalPages: 1,
+      });
+      render(<RevisionesMiFichaPanel />);
+
+      // Act
+      await user.click(botonesEnvio('Alcance')[0]);
+      await user.click(botonesEnvio('Alcance')[0]);
+
+      // Assert
+      expect(botonesEnvio('Alcance')[0]).toBeEnabled();
+      expect(mutate).toHaveBeenCalledWith('r-p', expect.any(Object));
+      expect(toast.success).toHaveBeenCalledWith(
+        'Correcciones enviadas',
+        'Tu asesor ya puede validarlas.',
+      );
+      expect(toast.error).toHaveBeenCalledWith(
+        'No se pudieron enviar las correcciones',
+        'Aún tienes observaciones pendientes: edita el ítem para atenderlas.',
+      );
+    });
+
+    it('fila «En progreso» con pendientes: deshabilitado con la cantidad', () => {
+      // Arrange
+      conObservaciones({ 'r-p': { total: 3, pendientes: 2 } });
+      conRevisiones({
+        filas: [fila('r-p', 'EN_PROGRESO', 'Alcance')],
+        totalElements: 1,
+        totalPages: 1,
+      });
+
+      // Act
+      render(<RevisionesMiFichaPanel />);
+
+      // Assert
+      for (const boton of botonesEnvio('Alcance')) expect(boton).toBeDisabled();
+      expect(screen.getAllByText(/Tienes 2 observaciones pendientes/).length).toBeGreaterThan(0);
+    });
+
+    it('«Nueva» conserva solo «Marcar como visualizada»; «Corrección disponible» y «Cerrada» no ofrecen acción', () => {
+      // Arrange
+      conRevisiones({
+        filas: [
+          fila('r-n', 'NUEVA', 'Alcance'),
+          fila('r-c', 'CORRECCION_DISPONIBLE', 'Justificación'),
+          fila('r-x', 'CERRADA', 'Metodología'),
+        ],
+        totalElements: 3,
+        totalPages: 1,
+      });
+
+      // Act
+      render(<RevisionesMiFichaPanel />);
+
+      // Assert
+      expect(
+        screen.getAllByRole('button', { name: /^Marcar como visualizada/ }).length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.queryByRole('button', { name: /^Enviar correcciones/ }),
+      ).not.toBeInTheDocument();
     });
   });
 });

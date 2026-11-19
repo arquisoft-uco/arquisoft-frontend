@@ -14,10 +14,14 @@ import AsignarAsesorProyectoGradoPanel from './AsignarAsesorProyectoGradoPanel';
 interface Props {
   proyectoGradoId: string;
   titulo: string;
-  finalizado: boolean;
+  soloLectura: boolean;
 }
 
-export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, finalizado }: Props) {
+export default function AsesoresProyectoGradoPanel({
+  proyectoGradoId,
+  titulo,
+  soloLectura,
+}: Props) {
   const [abierto, setAbierto] = useState(false);
   const { data, isLoading, isFetching, isError, error, refetch } =
     useAsesoresProyectoGrado(proyectoGradoId);
@@ -53,7 +57,7 @@ export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, fi
           asesores={data ?? []}
           cargando={isLoading}
           ultimoRegistroId={sinAsesor?.id}
-          onFinalizar={finalizado ? undefined : solicitar}
+          onFinalizar={soloLectura ? undefined : solicitar}
         />
       )}
       {pendiente && (
@@ -77,7 +81,7 @@ export default function AsesoresProyectoGradoPanel({ proyectoGradoId, titulo, fi
           proyectoGradoId={proyectoGradoId}
           titulo={titulo}
           asesores={data ?? []}
-          finalizado={finalizado}
+          soloLectura={soloLectura}
           onCerrar={() => setAbierto(false)}
         />
       )}

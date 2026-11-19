@@ -3,6 +3,7 @@ import { accionDescargar } from '../../../../shared/components/accionDescargar';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { useDescargarVersionRepositorio } from '../../../../shared/hooks/useDescargarVersionRepositorio';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import { estaCerrado } from '../../utils/estado-proyecto';
 
 interface Props {
   artefacto: ArtefactoAsesor;
@@ -22,9 +23,11 @@ export default function ArtefactoAsesorRowMenu({
   onReactivar,
 }: Props) {
   const { omitido } = artefacto;
+  const proyectoCerrado = estaCerrado(artefacto);
+  const soloLectura = omitido || proyectoCerrado;
   const { descargar, descargando } = useDescargarVersionRepositorio();
   const acciones = [
-    ...(omitido
+    ...(soloLectura
       ? []
       : [
           {
@@ -44,15 +47,19 @@ export default function ArtefactoAsesorRowMenu({
       deshabilitada: descargando,
     }),
     {
-      etiqueta: omitido ? 'Ver estudiantes' : 'Gestionar estudiantes',
+      etiqueta: soloLectura ? 'Ver estudiantes' : 'Gestionar estudiantes',
       icono: Users,
       onSeleccionar: () => onGestionarEstudiantes(artefacto),
     },
-    {
-      etiqueta: omitido ? 'Reactivar artefacto' : 'Omitir artefacto',
-      icono: omitido ? RotateCcw : EyeOff,
-      onSeleccionar: () => (omitido ? onReactivar(artefacto) : onOmitir(artefacto)),
-    },
+    ...(proyectoCerrado
+      ? []
+      : [
+          {
+            etiqueta: omitido ? 'Reactivar artefacto' : 'Omitir artefacto',
+            icono: omitido ? RotateCcw : EyeOff,
+            onSeleccionar: () => (omitido ? onReactivar(artefacto) : onOmitir(artefacto)),
+          },
+        ]),
   ];
   return <RowMenu etiqueta={`Acciones de ${artefacto.nombreDocumento}`} acciones={acciones} />;
 }

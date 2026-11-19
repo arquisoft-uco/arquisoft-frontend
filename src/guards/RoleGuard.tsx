@@ -1,22 +1,14 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router';
 import { useRolActivo, useRolesDisponibles } from '../hooks/useAuth';
+import AccesoDenegado from '../shared/components/AccesoDenegado';
 import type { Rol } from '../shared/models/rol';
 
 interface Props {
-  /** Roles allowed to access the wrapped content. Empty = no restriction. */
   roles: Rol[];
   children: ReactNode;
 }
 
-/**
- * RoleGuard — component wrapper for role-based access control.
- *
- * Behaviour matches Angular's roleGuard:
- * - No roles required → render children.
- * - rolActivo is null → redirect to /seleccionar-rol.
- * - rolActivo not in allowed roles → redirect to /forbidden.
- */
 export default function RoleGuard({ roles, children }: Props) {
   const rolActivo = useRolActivo();
   const rolesDisponibles = useRolesDisponibles();
@@ -30,5 +22,5 @@ export default function RoleGuard({ roles, children }: Props) {
 
   if (rolActivo && roles.includes(rolActivo)) return <>{children}</>;
 
-  return <Navigate to="/forbidden" replace />;
+  return <AccesoDenegado />;
 }

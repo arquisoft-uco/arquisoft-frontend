@@ -3,14 +3,32 @@ import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { AgregarMapaRutaRequest } from '../models/AgregarMapaRutaRequest';
 import type { AgregarMapaRutaResponse } from '../models/AgregarMapaRutaResponse';
+import type { AgregarPlanEstimadoRequest } from '../models/AgregarPlanEstimadoRequest';
+import type { AgregarPlanEstimadoResponse } from '../models/AgregarPlanEstimadoResponse';
+import type { AportarPlanEstimadoRequest } from '../models/AportarPlanEstimadoRequest';
+import type { AportarPlanRealRequest } from '../models/AportarPlanRealRequest';
+import type { AsignarTareaRequest } from '../models/AsignarTareaRequest';
+import type { AsignarTareaResponse } from '../models/AsignarTareaResponse';
 import type { CambiarEstadoTareaRequest } from '../models/CambiarEstadoTareaRequest';
 import type { AsesorProyecto } from '../models/AsesorProyecto';
 import type { AsesorProyectoResponse } from '../models/AsesorProyectoResponse';
 import type { CambiarFechaFinMapaRutaRequest } from '../models/CambiarFechaFinMapaRutaRequest';
 import type { ModificarInformacionTareaRequest } from '../models/ModificarInformacionTareaRequest';
+import type { ModificarPlanEstimadoRequest } from '../models/ModificarPlanEstimadoRequest';
+import type { ModificarPlanRealRequest } from '../models/ModificarPlanRealRequest';
 import type { MapaRuta } from '../models/MapaRuta';
 import type { MapaRutaResponse } from '../models/MapaRutaResponse';
 import type { EstadoTarea } from '../models/mapas-ruta';
+import type { PlanEstimado } from '../models/PlanEstimado';
+import type { PlanEstimadoResponse } from '../models/PlanEstimadoResponse';
+import type { PlanEstimadoProyecto } from '../models/PlanEstimadoProyecto';
+import type { PlanEstimadoProyectoResponse } from '../models/PlanEstimadoProyectoResponse';
+import type { PlanReal } from '../models/PlanReal';
+import type { PlanRealProyecto } from '../models/PlanRealProyecto';
+import type { PlanRealProyectoResponse } from '../models/PlanRealProyectoResponse';
+import type { PlanRealResponse } from '../models/PlanRealResponse';
+import type { ProyectoAsesorado } from '../models/ProyectoAsesorado';
+import type { ProyectoAsesoradoResponse } from '../models/ProyectoAsesoradoResponse';
 import type { PaginaProyectosElegibles } from '../models/PaginaProyectosElegibles';
 import type { ProyectoElegibleResponse } from '../models/ProyectoElegibleResponse';
 import type { Tarea } from '../models/Tarea';
@@ -38,6 +56,45 @@ function aTarea(dto: TareaResponse): Tarea {
     fechaFinMapaRuta: dto.fechaFinMapaRuta,
     estado: { id: dto.estadoItem, nombre: dto.nombreEstadoItem },
     asesor: { id: dto.asesor, nombre: dto.nombreAsesor, email: dto.emailAsesor },
+  };
+}
+
+function aPlanEstimado(dto: PlanEstimadoResponse): PlanEstimado {
+  return {
+    id: dto.id,
+    tareaId: dto.tarea,
+    tiempoEstimadoDias: dto.tiempoEstimadoDias,
+    descripcionEstimado: dto.descripcionEstimado,
+  };
+}
+
+function aPlanEstimadoProyecto(dto: PlanEstimadoProyectoResponse): PlanEstimadoProyecto {
+  return {
+    id: dto.id,
+    tareaId: dto.tarea,
+    descripcionTarea: dto.descripcionTarea,
+    mapaRutaId: dto.mapaRuta,
+    tiempoEstimadoDias: dto.tiempoEstimadoDias,
+    descripcionEstimado: dto.descripcionEstimado,
+  };
+}
+
+function aPlanReal(dto: PlanRealResponse): PlanReal {
+  return {
+    id: dto.id,
+    tareaId: dto.tarea,
+    tiempoRealDias: dto.tiempoRealDias,
+    descripcionReal: dto.descripcionReal,
+  };
+}
+
+function aPlanRealProyecto(dto: PlanRealProyectoResponse): PlanRealProyecto {
+  return {
+    id: dto.id,
+    tareaId: dto.tarea,
+    descripcionTarea: dto.descripcionTarea,
+    tiempoRealDias: dto.tiempoRealDias,
+    descripcionReal: dto.descripcionReal,
   };
 }
 
@@ -89,8 +146,25 @@ export const mapasRutaService = {
     }));
   },
 
-  consultarMapaRutaEstudiante(): Promise<MapaRuta> {
-    return apiClient.get<MapaRutaResponse>('/mapas-ruta/estudiante').then((r) => aMapaRuta(r.data));
+  consultarMapaRutaEstudiante(proyectoGradoId: string): Promise<MapaRuta> {
+    return apiClient
+      .get<MapaRutaResponse>(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/estudiante`)
+      .then((r) => aMapaRuta(r.data));
+  },
+
+  consultarMapaRutaProyectoAsesor(proyectoGradoId: string): Promise<MapaRuta> {
+    return apiClient
+      .get<MapaRutaResponse>(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/asesor`)
+      .then((r) => aMapaRuta(r.data));
+  },
+
+  consultarProyectosAsesor(req: ConsultaCriteriaRequest): Promise<Page<ProyectoAsesorado>> {
+    return apiClient
+      .post<Page<ProyectoAsesoradoResponse>>('/proyectos-grado/asesor', req)
+      .then((r) => ({
+        ...r.data,
+        content: r.data.content.map((dto) => ({ id: dto.id, titulo: dto.tituloProyecto })),
+      }));
   },
 
   cambiarFechaFin(mapaRutaId: string, req: CambiarFechaFinMapaRutaRequest): Promise<void> {
@@ -105,6 +179,26 @@ export const mapasRutaService = {
       .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
   },
 
+  consultarTareasMapaRutaAsesor(
+    mapaRutaId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<Tarea>> {
+    return apiClient
+      .post<Page<TareaResponse>>(`/mapas-ruta/${mapaRutaId}/tareas/asesor`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aTarea) }));
+  },
+
+  consultarPlanesRealesProyectoAsesor(
+    proyectoGradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<PlanRealProyecto>> {
+    return apiClient
+      .post<
+        Page<PlanRealProyectoResponse>
+      >(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/planes-reales/asesor`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aPlanRealProyecto) }));
+  },
+
   consultarTarea(tareaId: string): Promise<Tarea> {
     return apiClient.get<TareaResponse>(`/tareas/${tareaId}`).then((r) => aTarea(r.data));
   },
@@ -115,10 +209,105 @@ export const mapasRutaService = {
       .then(() => undefined);
   },
 
+  asignarTarea(mapaRutaId: string, req: AsignarTareaRequest): Promise<AsignarTareaResponse> {
+    return apiClient
+      .post<AsignarTareaResponse>(`/mapas-ruta/${mapaRutaId}/tareas`, {
+        descripcion: req.descripcion,
+        asesor: req.asesorId,
+      })
+      .then((r) => r.data);
+  },
+
+  agregarPlanEstimado(
+    tareaId: string,
+    req: AgregarPlanEstimadoRequest,
+  ): Promise<AgregarPlanEstimadoResponse> {
+    return apiClient
+      .post<AgregarPlanEstimadoResponse>(`/tareas/${tareaId}/planes-estimados`, {
+        tiempoEstimadoDias: req.tiempoEstimadoDias,
+        descripcionEstimado: req.descripcionEstimado,
+      })
+      .then((r) => r.data);
+  },
+
+  consultarPlanesEstimadosTarea(
+    tareaId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<PlanEstimado>> {
+    return apiClient
+      .post<Page<PlanEstimadoResponse>>(`/tareas/${tareaId}/planes-estimados/estudiante`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aPlanEstimado) }));
+  },
+
+  consultarPlanesEstimadosProyectoAsesor(
+    proyectoGradoId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<PlanEstimadoProyecto>> {
+    return apiClient
+      .post<
+        Page<PlanEstimadoProyectoResponse>
+      >(`/mapas-ruta/proyectos-grado/${proyectoGradoId}/planes-estimados/asesor`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aPlanEstimadoProyecto) }));
+  },
+
+  consultarPlanesRealesTarea(
+    tareaId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<PlanReal>> {
+    return apiClient
+      .post<Page<PlanRealResponse>>(`/mapas-ruta/tareas/${tareaId}/planes-reales/estudiante`, req)
+      .then((r) => ({ ...r.data, content: r.data.content.map(aPlanReal) }));
+  },
+
+  modificarPlanEstimado(planEstimadoId: string, req: ModificarPlanEstimadoRequest): Promise<void> {
+    return apiClient
+      .patch(`/planes-estimados/${planEstimadoId}`, {
+        descripcionEstimado: req.descripcionEstimado,
+      })
+      .then(() => undefined);
+  },
+
+  aportarPlanEstimado(planEstimadoId: string, req: AportarPlanEstimadoRequest): Promise<void> {
+    return apiClient
+      .patch(`/mapas-ruta/planes-estimados/${planEstimadoId}/asesor`, {
+        descripcionEstimado: req.descripcionEstimado,
+      })
+      .then(() => undefined);
+  },
+
+  aportarPlanReal(planRealId: string, req: AportarPlanRealRequest): Promise<void> {
+    return apiClient
+      .patch(`/mapas-ruta/planes-reales/${planRealId}/asesor`, {
+        descripcionReal: req.descripcionReal,
+      })
+      .then(() => undefined);
+  },
+
+  modificarPlanReal(planRealId: string, req: ModificarPlanRealRequest): Promise<void> {
+    return apiClient
+      .patch(`/mapas-ruta/planes-reales/${planRealId}`, {
+        tiempoRealDias: req.tiempoRealDias,
+        descripcionReal: req.descripcionReal,
+      })
+      .then(() => undefined);
+  },
+
+  eliminarPlanEstimado(planEstimadoId: string): Promise<void> {
+    return apiClient.delete(`/mapas-ruta/planes-estimados/${planEstimadoId}`).then(() => undefined);
+  },
+
+  eliminarPlanReal(planRealId: string): Promise<void> {
+    return apiClient.delete(`/mapas-ruta/planes-reales/${planRealId}`).then(() => undefined);
+  },
+
   modificarInformacionTarea(tareaId: string, req: ModificarInformacionTareaRequest): Promise<void> {
     return apiClient
       .patch(`/tareas/${tareaId}`, { descripcion: req.descripcion, asesor: req.asesorId })
       .then(() => undefined);
+  },
+
+  eliminarTarea(tareaId: string): Promise<void> {
+    return apiClient.delete(`/tareas/${tareaId}`).then(() => undefined);
   },
 
   consultarAsesoresProyecto(proyectoGradoId: string): Promise<AsesorProyecto[]> {

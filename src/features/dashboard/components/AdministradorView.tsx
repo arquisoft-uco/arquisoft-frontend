@@ -5,7 +5,21 @@ import { useResumenUsuarios } from '../hooks/useResumenUsuarios';
 import CifrasUsuariosPanel from './administrador/CifrasUsuariosPanel';
 import UsuariosPorRolPanel from './administrador/UsuariosPorRolPanel';
 import { COLUMNA_LATERAL, COLUMNA_PRINCIPAL, CONTENEDOR, PAGINA } from './disposicion';
+import CifrasPanel, { type Cifra } from './CifrasPanel';
 import EncabezadoInicio from './EncabezadoInicio';
+
+const GESTION: readonly Cifra[] = [
+  {
+    recurso: 'repositorios-artefactos',
+    etiqueta: 'Repositorios de artefactos',
+    destino: '/repositorio-artefactos',
+  },
+  {
+    recurso: 'solicitudes-registro-usuarios-recibidas',
+    etiqueta: 'Solicitudes recibidas',
+    destino: '/solicitudes',
+  },
+];
 
 function fraseDeUsuarios(vigentes?: number): string | undefined {
   if (vigentes === undefined) return undefined;
@@ -32,6 +46,7 @@ export default function AdministradorView() {
         </div>
         <div className={COLUMNA_LATERAL}>
           <CifrasUsuariosPanel />
+          <CifrasPanel titulo="Gestión" cifras={GESTION} />
         </div>
       </div>
     </div>

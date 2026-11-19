@@ -3,12 +3,11 @@ import { AxiosError, type AxiosAdapter } from 'axios';
 import apiClient from './axiosInstance';
 import type { CredencialesHttp, ProveedorIdentidad } from '../auth/proveedores/proveedor';
 import { fijarProveedorActivo } from '../auth/proveedores/proveedorActivo';
-import { router } from '../router';
+import { useAccesoDenegadoStore } from '../auth/accesoDenegadoStore';
 import { resetAllStores, setAuthenticatedUser } from '../test-utils/store.utils';
 import { useAuthStore } from '../auth/authStore';
 
 vi.mock('../config/env', () => ({ API_URL: 'http://api.test' }));
-vi.mock('../router', () => ({ router: { navigate: vi.fn() } }));
 vi.mock('../shared/utils/monitoring', () => ({
   monitoring: { captureError: vi.fn(), captureHttpError: vi.fn() },
 }));
@@ -43,6 +42,7 @@ function proveedorDoble(
   return {
     id: 'doble',
     restaurarSesion: vi.fn(),
+    recuperarSesionSilenciosa: vi.fn(),
     iniciarSesion: vi.fn(),
     cerrarSesion: vi.fn(),
     credencialesHttp: vi.fn(() => credenciales),
@@ -134,29 +134,63 @@ describe('axiosInstance: _omitirManejoAuth', () => {
     expect(adapter).toHaveBeenCalledTimes(1);
   });
 
-  it('con la bandera, un 403 no navega a /forbidden', async () => {
+  it('con la bandera, un 403 no marca el acceso denegado', async () => {
     // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion');
     apiClient.defaults.adapter = adapterConStatus(403);
 
     // Act
     await expect(
       apiClient.post('/auth/logout', undefined, { _omitirManejoAuth: true }),
     ).rejects.toThrow();
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Assert
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
   });
 
-  it('sin la bandera, un 403 sigue navegando a /forbidden', async () => {
+  it('sin la bandera, un 403 marca la ruta de origen', async () => {
     // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion');
     apiClient.defaults.adapter = adapterConStatus(403);
 
     // Act
     await expect(apiClient.get('/algo')).rejects.toThrow();
 
     // Assert
-    await vi.waitFor(() => expect(router.navigate).toHaveBeenCalledWith('/forbidden'));
+    expect(useAccesoDenegadoStore.getState().ruta).toBe('/seccion');
+  });
+});
+
+describe('axiosInstance: 403 y acceso denegado', () => {
+  it('sin sesión, un 403 no marca el acceso denegado', async () => {
+    // Arrange
+    window.history.pushState({}, '', '/seccion');
+    apiClient.defaults.adapter = adapterConStatus(403);
+
+    // Act
+    await expect(apiClient.get('/algo')).rejects.toThrow();
+
+    // Assert
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
+  });
+
+  it('un 403 de una petición enviada desde otra ruta no marca el acceso denegado', async () => {
+    // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion-lenta');
+    const adapter403 = adapterConStatus(403);
+    apiClient.defaults.adapter = async (config) => {
+      window.history.pushState({}, '', '/otra');
+      return adapter403(config);
+    };
+
+    // Act
+    await expect(apiClient.get('/algo')).rejects.toThrow();
+
+    // Assert
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
   });
 });
 
@@ -249,6 +283,8 @@ describe('axiosInstance: _sinCredenciales', () => {
 
   it('con la opción, un 401 y un 403 no refrescan el token ni navegan', async () => {
     // Arrange
+    setAuthenticatedUser();
+    window.history.pushState({}, '', '/seccion');
     const proveedor = proveedorDoble();
     fijarProveedorActivo(proveedor);
     const adapter401 = adapterConStatus(401);
@@ -262,12 +298,11 @@ describe('axiosInstance: _sinCredenciales', () => {
     await expect(
       apiClient.post('http://minio.test/b', undefined, { _sinCredenciales: true }),
     ).rejects.toThrow();
-    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Assert
     expect(proveedor.renovarSesion).not.toHaveBeenCalled();
     expect(adapter401).toHaveBeenCalledTimes(1);
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(useAccesoDenegadoStore.getState().ruta).toBeNull();
   });
 });
 

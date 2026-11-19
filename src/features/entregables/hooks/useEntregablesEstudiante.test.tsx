@@ -22,6 +22,8 @@ const entregable: EntregableProyectoGrado = {
   proyectoGrado: { id: 'p-1', nombre: 'Sistema de riego' },
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
   estadoEntregable: { id: 'APROBADO', nombre: 'Aprobado' },
+  proyectoFinalizado: false,
+  proyectoCancelado: false,
 };
 
 function crearPagina(numero: number): Page<EntregableProyectoGrado> {
@@ -113,5 +115,32 @@ describe('useEntregablesEstudiante', () => {
     // Assert
     await waitFor(() => expect(result.current.hook.isError).toBe(true));
     expect(result.current.hook.data).toBeUndefined();
+  });
+
+  it('con ?estadoProyecto=finalizados envía el predicado y setEstadoProyecto actualiza la URL y reinicia la página', async () => {
+    // Arrange
+    const { result } = montarEn('/?estadoProyecto=finalizados&pagina=2');
+
+    // Assert
+    await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
+    expect(result.current.hook.estadoProyecto).toBe('finalizados');
+    expect(consultar).toHaveBeenLastCalledWith(
+      'p-1',
+      expect.objectContaining({
+        filtros: { tipo: 'PREDICADO', campo: 'proyectoFinalizado', operador: 'ES', valor: 'true' },
+      }),
+    );
+
+    // Act
+    act(() => result.current.hook.setEstadoProyecto('activos'));
+
+    // Assert
+    await waitFor(() => expect(result.current.hook.estadoProyecto).toBe('activos'));
+    expect(result.current.url).not.toContain('estadoProyecto');
+    expect(result.current.url).not.toContain('pagina');
+    expect(consultar).toHaveBeenLastCalledWith(
+      'p-1',
+      expect.objectContaining({ pagina: 0, filtros: undefined }),
+    );
   });
 });

@@ -215,7 +215,6 @@ describe('fichasPerfilService', () => {
             nombre: 'En revisión',
             fechaActualizacion: '2026-09-01T10:00:00',
           },
-          integrantes: [{ id: 'e-1', nombre: 'Luis Pérez', email: 'luis@uco.edu.co' }],
         },
       ]);
     });
@@ -462,6 +461,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('enviarCorreccionesRevisionItem', () => {
+    it('hace PATCH /fichas-perfil/revisiones/{id}/correcciones sin cuerpo y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await fichasPerfilService.enviarCorreccionesRevisionItem('r-1');
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/fichas-perfil/revisiones/r-1/correcciones');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('removerRevisionItem', () => {
     it('hace DELETE /fichas-perfil/revisiones/{id} y resuelve undefined', async () => {
       // Arrange
@@ -524,6 +537,20 @@ describe('fichasPerfilService', () => {
 
       // Assert
       expect(eliminar).toHaveBeenCalledWith('/fichas-perfil/observaciones-item/o-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('reabrirObservacionItem', () => {
+    it('hace PATCH /fichas-perfil/observaciones-item/{id}/reapertura sin body y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await fichasPerfilService.reabrirObservacionItem('o-1');
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/fichas-perfil/observaciones-item/o-1/reapertura');
       expect(resultado).toBeUndefined();
     });
   });

@@ -26,6 +26,7 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
   const [aEliminar, setAEliminar] = useState<ObservacionRevision | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [cerrando, setCerrando] = useState(false);
+  const [eliminandoRevision, setEliminandoRevision] = useState(false);
   const [decision, setDecision] = useState<Decision | null>(null);
 
   if (agregando) {
@@ -85,6 +86,7 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
           )
         }
         notaPie={revision.notaPie}
+        cerrarEnPie={!editable}
         accionesPie={
           editable && (
             <AccionesRevision
@@ -94,6 +96,7 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
               hayNotaCierre={!!revision.cierre.motivo}
               onEnviar={() => setEnviando(true)}
               onCerrarRevision={() => setCerrando(true)}
+              onEliminarRevision={() => setEliminandoRevision(true)}
             />
           )
         }
@@ -112,6 +115,8 @@ export default function GestionarRevisionPanel({ revisionAsesorId, version, onCe
         decision={decision}
         enviando={enviando}
         cerrando={cerrando}
+        eliminandoRevision={eliminandoRevision}
+        onCerrarEliminarRevision={() => setEliminandoRevision(false)}
         onCerrarEliminar={() => setAEliminar(null)}
         onCerrarDecision={() => setDecision(null)}
         onCerrarEnvio={() => setEnviando(false)}

@@ -5,7 +5,7 @@ import FormSection from '../../../shared/components/ui/FormSection';
 import { LIMITES } from '../../../shared/validation';
 import type { CategoriaItemCuantitativoJurado } from '../models/CategoriaItemCuantitativoJurado';
 import type { RegistrarItemCuantitativoJuradoValues as Values } from '../utils/registrar-item-cuantitativo-jurado-schema';
-import SelectorCategoriaItemCuantitativoJurado from './SelectorCategoriaItemCuantitativoJurado';
+import SelectorCategoriaItemCuantitativo from './SelectorCategoriaItemCuantitativo';
 
 export const ETIQUETAS_CAMPO = {
   nombre: 'Nombre',
@@ -66,7 +66,7 @@ export default function RegistrarItemCuantitativoJuradoCampos({
           />
         )}
       </Field>
-      <SelectorCategoriaItemCuantitativoJurado
+      <SelectorCategoriaItemCuantitativo
         categorias={categorias}
         cargando={cargandoCategorias}
         error={errors.categoriaId?.message}

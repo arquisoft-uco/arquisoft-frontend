@@ -299,6 +299,12 @@ describe('artefactosService', () => {
         pagina: 0,
         tamanio: 100,
         ordenamiento: ['tituloProyecto:ASC'],
+        filtros: {
+          tipo: 'PREDICADO_MULTIVALOR',
+          campo: 'estadoProyectoGrado',
+          operador: 'IN',
+          valores: ['EN_PROCESO', 'ATRASADO'],
+        },
       });
       expect(primera).toEqual({ proyectos: [{ id: 'p-1', titulo: 'Riego' }], siguientePagina: 1 });
       expect(ultima.siguientePagina).toBeNull();
@@ -383,6 +389,20 @@ describe('artefactosService', () => {
 
       // Assert
       expect(patch).toHaveBeenCalledWith('/artefactos/revisiones/r-1/envio');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('eliminar revisión (HU-115)', () => {
+    it('eliminarRevision envía DELETE a la ruta de la revisión y resuelve undefined', async () => {
+      // Arrange
+      eliminar.mockResolvedValue({ status: 204 });
+
+      // Act
+      const resultado = await artefactosService.eliminarRevision('r-1');
+
+      // Assert
+      expect(eliminar).toHaveBeenCalledWith('/artefactos/revisiones/r-1');
       expect(resultado).toBeUndefined();
     });
   });

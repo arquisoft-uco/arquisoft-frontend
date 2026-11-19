@@ -36,6 +36,7 @@ const FILA = {
     contenido: 'Medir el impacto',
   },
   revisionCerrada: false,
+  revisionCorreccionDisponible: false,
 };
 
 describe('ObservacionesFichaTabla', () => {

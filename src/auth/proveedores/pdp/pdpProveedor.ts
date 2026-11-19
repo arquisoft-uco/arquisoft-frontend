@@ -1,12 +1,12 @@
 import apiClient from '../../../api/axiosInstance';
 import { PDP_CONFIG } from '../../../config/env';
-import { Rol } from '../../../shared/models/rol';
 import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
 import type { ProveedorIdentidad, SesionRestaurada } from '../proveedor';
 
 const ID_PDP = 'pdp';
 const PROVEEDOR_API = 'sesion-pdp';
 const RUTA_SESION = '/api/v1/session';
+const RUTA_PERFIL = '/usuarios/mi/perfil';
 const RUTA_LOGIN = '/oauth2/authorization/keycloak';
 const RUTA_LOGOUT = '/api/v1/session/logout';
 const NOMBRE_COOKIE_CSRF = 'XSRF-TOKEN';
@@ -21,9 +21,8 @@ interface SesionPdpResponse {
   correlationId: string;
 }
 
-// Temporal hasta que el backend exponga «mi perfil» (B10 de docs/pendientes.md): solo UI, la autorización real es del PEP; para retirarlo, borra esta función y su llamada en restaurarSesion.
-function rolesMockPdp(): string[] {
-  return import.meta.env.DEV ? Object.values(Rol) : [];
+interface PerfilUsuarioResponse {
+  roles: { id: string; nombre: string }[];
 }
 
 export function crearPdpProveedor(): ProveedorIdentidad {
@@ -41,6 +40,46 @@ export function crearPdpProveedor(): ProveedorIdentidad {
       _omitirProveedorApi: true,
     });
 
+  // 403 y 422: sesión válida de un usuario sin perfil vigente; el resto se relanza (un 401 aquí no es «sin sesión»: evita el bucle de login).
+  const consultarRolesDePerfil = async (): Promise<string[]> => {
+    try {
+      const { data } = await apiClient.get<PerfilUsuarioResponse>(RUTA_PERFIL, {
+        _omitirManejoAuth: true,
+      });
+      return data.roles.map((rol) => rol.id);
+    } catch (error) {
+      if (isApiErrorWithStatus(error, 403) || isApiErrorWithStatus(error, 422)) return [];
+      throw error;
+    }
+  };
+
+  const consultarDatosSesion = async () => {
+    try {
+      const { data } = await consultarSesion();
+      return data.data;
+    } catch (error) {
+      if (isApiErrorWithStatus(error, 401)) return null;
+      throw error;
+    }
+  };
+
+  const sesionDePdp = async (): Promise<SesionRestaurada | null> => {
+    const datos = await consultarDatosSesion();
+    if (!datos) return null;
+    const { subject, name, email } = datos;
+    const roles = await consultarRolesDePerfil();
+    return {
+      tokenParsed: {
+        sub: subject,
+        preferred_username: email,
+        email,
+        name,
+        realm_access: { roles },
+      },
+      username: email,
+    };
+  };
+
   const iniciarSesion = (destino: string) => {
     window.location.assign(`${url}${RUTA_LOGIN}?return_to=${encodeURIComponent(destino)}`);
   };
@@ -48,28 +87,12 @@ export function crearPdpProveedor(): ProveedorIdentidad {
   return {
     id: ID_PDP,
 
+    recuperarSesionSilenciosa: sesionDePdp,
+
     async restaurarSesion(): Promise<SesionRestaurada | null> {
-      try {
-        const { data } = await consultarSesion();
-        const { subject, name, email } = data.data;
-        return {
-          // Pendiente: b) los roles vendrán del endpoint «mi perfil»; mientras tanto los provee rolesMockPdp.
-          tokenParsed: {
-            sub: subject,
-            preferred_username: email,
-            email,
-            name,
-            realm_access: { roles: rolesMockPdp() },
-          },
-          username: email,
-        };
-      } catch (error) {
-        if (isApiErrorWithStatus(error, 401)) {
-          iniciarSesion(window.location.href);
-          return null;
-        }
-        throw error;
-      }
+      const sesion = await sesionDePdp();
+      if (!sesion) iniciarSesion(window.location.href);
+      return sesion;
     },
 
     iniciarSesion,

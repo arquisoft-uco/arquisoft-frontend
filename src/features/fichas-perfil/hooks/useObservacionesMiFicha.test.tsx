@@ -135,6 +135,7 @@ describe('useObservacionesMiFicha', () => {
       observacion: OBSERVACION,
       item: ITEM_1,
       revisionCerrada: false,
+      revisionCorreccionDisponible: false,
     });
     expect(result.current.sinObservables).toBe(false);
     expect(
