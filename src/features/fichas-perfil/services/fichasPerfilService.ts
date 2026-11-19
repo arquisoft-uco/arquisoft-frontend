@@ -547,6 +547,11 @@ export const fichasPerfilService = {
       .patch(`/fichas-perfil/revisiones/${revisionItemId}/visualizada`)
       .then(() => undefined),
 
+  enviarCorreccionesRevisionItem: (revisionItemId: string): Promise<void> =>
+    apiClient
+      .patch(`/fichas-perfil/revisiones/${revisionItemId}/correcciones`)
+      .then(() => undefined),
+
   removerRevisionItem: (revisionItemId: string): Promise<void> =>
     apiClient.delete(`/fichas-perfil/revisiones/${revisionItemId}`).then(() => undefined),
 

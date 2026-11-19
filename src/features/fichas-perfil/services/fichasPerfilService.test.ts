@@ -461,6 +461,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('enviarCorreccionesRevisionItem', () => {
+    it('hace PATCH /fichas-perfil/revisiones/{id}/correcciones sin cuerpo y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await fichasPerfilService.enviarCorreccionesRevisionItem('r-1');
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/fichas-perfil/revisiones/r-1/correcciones');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('removerRevisionItem', () => {
     it('hace DELETE /fichas-perfil/revisiones/{id} y resuelve undefined', async () => {
       // Arrange
