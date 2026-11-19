@@ -47,6 +47,8 @@ import type { RegistrarObservacionItemAsesorRequest } from '../models/RegistrarO
 import type { RegistrarObservacionItemAsesorResponse } from '../models/RegistrarObservacionItemAsesorResponse';
 import type { RegistrarObservacionItemJuradoRequest } from '../models/RegistrarObservacionItemJuradoRequest';
 import type { RegistrarObservacionItemJuradoResponse } from '../models/RegistrarObservacionItemJuradoResponse';
+import type { RegistrarItemCualitativoAsesorRequest } from '../models/RegistrarItemCualitativoAsesorRequest';
+import type { RegistrarItemCualitativoAsesorResponse } from '../models/RegistrarItemCualitativoAsesorResponse';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
 import type { RegistrarItemCualitativoJuradoResponse } from '../models/RegistrarItemCualitativoJuradoResponse';
 import type { RegistrarItemCuantitativoAsesorRequest } from '../models/RegistrarItemCuantitativoAsesorRequest';
@@ -88,6 +90,13 @@ export const evaluacionesService = {
   getItemsCualitativosAsesor: (): Promise<ItemCualitativoAsesor[]> =>
     apiClient
       .get<ItemCualitativoAsesor[]>('/evaluaciones/items-cualitativos-asesor')
+      .then((r) => r.data),
+
+  registrarItemCualitativoAsesor: (
+    req: RegistrarItemCualitativoAsesorRequest,
+  ): Promise<RegistrarItemCualitativoAsesorResponse> =>
+    apiClient
+      .post<RegistrarItemCualitativoAsesorResponse>('/evaluaciones/items-cualitativos-asesor', req)
       .then((r) => r.data),
 
   getCriteriosItemCualitativoAsesor: (): Promise<CriterioItemCualitativoAsesor[]> =>
