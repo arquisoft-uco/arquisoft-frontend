@@ -42,9 +42,12 @@ export interface SeleccionCuantitativas {
   onAlternar: (id: string) => void;
 }
 
+const ETIQUETA_POR_DEFECTO = 'Evaluaciones cuantitativas del jurado';
+
 interface Props {
   evaluaciones: EvaluacionCuantitativaJurado[];
   cargando: boolean;
+  etiqueta?: string;
   vacio?: ReactNode;
   acciones?: (fila: EvaluacionCuantitativaJurado) => ReactNode;
   seleccion?: SeleccionCuantitativas;
@@ -53,6 +56,7 @@ interface Props {
 export default function EvaluacionesCuantitativasJuradoTable({
   evaluaciones,
   cargando,
+  etiqueta,
   vacio,
   acciones,
   seleccion,
@@ -71,7 +75,7 @@ export default function EvaluacionesCuantitativasJuradoTable({
 
   return (
     <DataTable
-      etiqueta="Evaluaciones cuantitativas del jurado"
+      etiqueta={etiqueta ?? ETIQUETA_POR_DEFECTO}
       columnas={columnas}
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}

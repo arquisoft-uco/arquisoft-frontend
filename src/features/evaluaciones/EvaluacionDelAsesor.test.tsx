@@ -4,11 +4,17 @@ import { render, screen } from '../../test-utils/render';
 import EvaluacionDelAsesor from './EvaluacionDelAsesor';
 import { useHasRole } from '../../hooks/useHasRole';
 import { useResumenEvaluacion } from './hooks/useResumenEvaluacion';
+import { useEvaluacionAsesor } from './hooks/useEvaluacionAsesor';
 
 vi.mock('../../hooks/useHasRole', () => ({ useHasRole: vi.fn() }));
 vi.mock('./hooks/useEvaluacionAsesor', () => ({ useEvaluacionAsesor: vi.fn() }));
 vi.mock('./components/estudiante/ConsultarEvaluacionAsesor', () => ({
   default: () => <p>Cuerpo del asesor</p>,
+}));
+vi.mock('./components/estudiante/ConsultarEvaluacionesCuantitativasAsesorEstudiante', () => ({
+  default: ({ evaluacionAsesorId }: { evaluacionAsesorId: string }) => (
+    <p>{`Cuantitativas del asesor ${evaluacionAsesorId}`}</p>
+  ),
 }));
 vi.mock('./hooks/useResumenEvaluacion', () => ({ useResumenEvaluacion: vi.fn() }));
 
@@ -25,6 +31,16 @@ describe('EvaluacionDelAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useHasRole).mockReturnValue(true);
+    const parcial: Partial<ReturnType<typeof useEvaluacionAsesor>> = {
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    };
+    vi.mocked(useEvaluacionAsesor).mockReturnValue({
+      ...parcial,
+    } as ReturnType<typeof useEvaluacionAsesor>);
   });
 
   it('el estudiante ve migas con el search del listado, el proyecto con su versión y el cuerpo', () => {
@@ -60,6 +76,39 @@ describe('EvaluacionDelAsesor', () => {
       'href',
       '/evaluaciones',
     );
+  });
+
+  it('con evaluación del asesor monta la sección de cuantitativas', () => {
+    // Arrange
+    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+    const parcial: Partial<ReturnType<typeof useEvaluacionAsesor>> = {
+      data: { id: 'ea-1', asesor: { id: 'a-1', nombre: 'Ana', email: 'ana@uco.edu.co' } },
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    };
+    vi.mocked(useEvaluacionAsesor).mockReturnValue(
+      parcial as ReturnType<typeof useEvaluacionAsesor>,
+    );
+
+    // Act
+    montar();
+
+    // Assert
+    expect(screen.getByText('Cuantitativas del asesor ea-1')).toBeInTheDocument();
+  });
+
+  it('sin evaluación del asesor no monta la sección de cuantitativas', () => {
+    // Arrange
+    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+
+    // Act
+    montar();
+
+    // Assert
+    expect(screen.getByText('Cuerpo del asesor')).toBeInTheDocument();
+    expect(screen.queryByText(/Cuantitativas del asesor/)).not.toBeInTheDocument();
   });
 
   it('un rol distinto de estudiante es muestra Acceso denegado', () => {
