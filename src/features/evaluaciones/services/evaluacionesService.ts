@@ -340,6 +340,15 @@ export const evaluacionesService = {
       >(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cuantitativas/estudiante`)
       .then((r) => r.data),
 
+  getEvaluacionesCualitativasAsesorEstudiante: (
+    evaluacionAsesorId: string,
+  ): Promise<EvaluacionCualitativaAsesor[]> =>
+    apiClient
+      .get<
+        EvaluacionCualitativaAsesor[]
+      >(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cualitativas/estudiante`)
+      .then((r) => r.data),
+
   getJuradosEvaluacion: (
     evaluacionId: string,
     req: ConsultaCriteriaRequest,

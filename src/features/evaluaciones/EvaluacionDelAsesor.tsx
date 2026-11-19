@@ -5,6 +5,7 @@ import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
 import ConsultarEvaluacionAsesor from './components/estudiante/ConsultarEvaluacionAsesor';
 import ConsultarEvaluacionesCuantitativasAsesorEstudiante from './components/estudiante/ConsultarEvaluacionesCuantitativasAsesorEstudiante';
+import ConsultarEvaluacionesCualitativasAsesorEstudiante from './components/estudiante/ConsultarEvaluacionesCualitativasAsesorEstudiante';
 import { useEvaluacionAsesor } from './hooks/useEvaluacionAsesor';
 import { useResumenEvaluacion } from './hooks/useResumenEvaluacion';
 
@@ -37,10 +38,16 @@ export default function EvaluacionDelAsesor() {
       <PageHeader titulo="Evaluación del asesor" descripcion={descripcion} migas={migas} />
       <ConsultarEvaluacionAsesor consulta={consulta} onVolver={irAlListado} />
       {consulta.data && (
-        <ConsultarEvaluacionesCuantitativasAsesorEstudiante
-          evaluacionAsesorId={consulta.data.id}
-          onVolver={irAlListado}
-        />
+        <>
+          <ConsultarEvaluacionesCuantitativasAsesorEstudiante
+            evaluacionAsesorId={consulta.data.id}
+            onVolver={irAlListado}
+          />
+          <ConsultarEvaluacionesCualitativasAsesorEstudiante
+            evaluacionAsesorId={consulta.data.id}
+            onVolver={irAlListado}
+          />
+        </>
       )}
     </div>
   );
