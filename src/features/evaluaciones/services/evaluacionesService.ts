@@ -2,6 +2,7 @@ import apiClient from '../../../api/axiosInstance';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest, NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import type { EstadoEvaluacion } from '../models/EstadoEvaluacion';
+import type { AsignarAsesorEvaluacionRequest } from '../models/AsignarAsesorEvaluacionRequest';
 import type { AsignarJuradosEvaluacionRequest } from '../models/AsignarJuradosEvaluacionRequest';
 import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosEvaluacionResponse';
 import type { Evaluacion } from '../models/Evaluacion';
@@ -426,6 +427,14 @@ export const evaluacionesService = {
         jurados: juradosIds,
       })
       .then((r) => r.data),
+
+  asignarAsesorEvaluacion: ({
+    evaluacionId,
+    asesorId,
+  }: AsignarAsesorEvaluacionRequest): Promise<void> =>
+    apiClient
+      .patch<void>(`/evaluaciones/${evaluacionId}/asesor`, { asesor: asesorId })
+      .then(() => undefined),
 
   removerJuradosEvaluacion: ({
     evaluacionId,
