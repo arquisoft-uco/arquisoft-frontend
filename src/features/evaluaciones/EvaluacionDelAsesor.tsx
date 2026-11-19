@@ -4,6 +4,7 @@ import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
 import ConsultarEvaluacionAsesor from './components/estudiante/ConsultarEvaluacionAsesor';
+import ConsultarEvaluacionesCuantitativasAsesorEstudiante from './components/estudiante/ConsultarEvaluacionesCuantitativasAsesorEstudiante';
 import { useEvaluacionAsesor } from './hooks/useEvaluacionAsesor';
 import { useResumenEvaluacion } from './hooks/useResumenEvaluacion';
 
@@ -23,6 +24,9 @@ export default function EvaluacionDelAsesor() {
   const descripcion = resumen
     ? `${resumen.proyecto} · versión ${resumen.version}`
     : 'Consulta el asesor que evaluó este entregable.';
+  function irAlListado() {
+    navigate(rutaListado);
+  }
   const migas = [
     { etiqueta: 'Evaluaciones', to: rutaListado },
     { etiqueta: 'Evaluación del asesor' },
@@ -31,7 +35,13 @@ export default function EvaluacionDelAsesor() {
   return (
     <div className={RAIZ}>
       <PageHeader titulo="Evaluación del asesor" descripcion={descripcion} migas={migas} />
-      <ConsultarEvaluacionAsesor consulta={consulta} onVolver={() => navigate(rutaListado)} />
+      <ConsultarEvaluacionAsesor consulta={consulta} onVolver={irAlListado} />
+      {consulta.data && (
+        <ConsultarEvaluacionesCuantitativasAsesorEstudiante
+          evaluacionAsesorId={consulta.data.id}
+          onVolver={irAlListado}
+        />
+      )}
     </div>
   );
 }
