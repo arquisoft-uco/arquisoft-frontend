@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useEvaluacionesFichasAsesor } from '../../hooks/useEvaluacionesFichasAsesor';
+import type { EvaluacionFichaPerfilAsesor } from '../../models/EvaluacionFichaPerfilAsesor';
 import EvaluacionesAsesorTable from './EvaluacionesAsesorTable';
+import ObservacionesEvaluacionAsesorPanel from './ObservacionesEvaluacionAsesorPanel';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -15,6 +18,9 @@ function textoResumen(total?: number): string {
 
 export default function ConsultarEvaluacionesAsesor() {
   const listado = useEvaluacionesFichasAsesor();
+  const [evaluacionAbierta, setEvaluacionAbierta] = useState<EvaluacionFichaPerfilAsesor | null>(
+    null,
+  );
 
   const { data, isLoading, isError, error, isFetching, isPlaceholderData, refetch } = listado;
   const evaluaciones = data?.content ?? [];
@@ -52,6 +58,7 @@ export default function ConsultarEvaluacionesAsesor() {
             hayFiltros={hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
+            onVerObservaciones={setEvaluacionAbierta}
             onLimpiarFiltros={listado.limpiarFiltros}
           />
         )}
@@ -66,6 +73,13 @@ export default function ConsultarEvaluacionesAsesor() {
           cantidadEnPagina={evaluaciones.length}
           etiquetaPlural="evaluaciones"
           onPageChange={listado.goToPage}
+        />
+      )}
+
+      {evaluacionAbierta && (
+        <ObservacionesEvaluacionAsesorPanel
+          evaluacion={evaluacionAbierta}
+          onCerrar={() => setEvaluacionAbierta(null)}
         />
       )}
     </div>
