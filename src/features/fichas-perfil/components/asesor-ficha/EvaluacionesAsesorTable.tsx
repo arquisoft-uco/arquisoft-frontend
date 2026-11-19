@@ -1,9 +1,10 @@
-import { ClipboardCheck, SearchX } from 'lucide-react';
+import { ClipboardCheck, MessageSquare, SearchX } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla, OrdenTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import RowMenu from '../../../../shared/components/ui/RowMenu';
 import { varianteEstadoEvaluacion } from '../../../../shared/utils/estado-variante';
 import type {
   EvaluacionFichaPerfilAsesor,
@@ -12,7 +13,6 @@ import type {
 import { FechaDeEstado, TituloFicha } from '../FichaCeldas';
 
 type Direccion = 'ASC' | 'DESC';
-
 const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';
 
 function esOrdenCampo(clave: string): clave is OrdenCampoEvaluacionAsesor {
@@ -75,6 +75,7 @@ interface Props {
   hayFiltros: boolean;
   orden: OrdenTabla;
   onOrdenar: (campo: OrdenCampoEvaluacionAsesor, direccion: Direccion) => void;
+  onVerObservaciones: (evaluacion: EvaluacionFichaPerfilAsesor) => void;
   onLimpiarFiltros: () => void;
 }
 
@@ -84,6 +85,7 @@ export default function EvaluacionesAsesorTable({
   hayFiltros,
   orden,
   onOrdenar,
+  onVerObservaciones,
   onLimpiarFiltros,
 }: Props) {
   function ordenar(clave: string, direccion: Direccion) {
@@ -119,6 +121,18 @@ export default function EvaluacionesAsesorTable({
       onOrdenar={ordenar}
       cargando={cargando}
       vacio={vacio}
+      acciones={(evaluacion) => (
+        <RowMenu
+          etiqueta={`Acciones de la evaluación de ${evaluacion.tituloProyecto}`}
+          acciones={[
+            {
+              etiqueta: 'Ver observaciones',
+              icono: MessageSquare,
+              onSeleccionar: () => onVerObservaciones(evaluacion),
+            },
+          ]}
+        />
+      )}
       tarjeta={(evaluacion) => (
         <>
           {tituloDe(evaluacion)}

@@ -11,6 +11,17 @@ vi.mock('../../hooks/useEvaluacionesFichasAsesor', () => ({
   useEvaluacionesFichasAsesor: vi.fn(),
 }));
 
+vi.mock('./ObservacionesEvaluacionAsesorPanel', () => ({
+  default: ({ evaluacion, onCerrar }: { evaluacion: { id: string }; onCerrar: () => void }) => (
+    <div role="dialog" aria-label="Panel de observaciones">
+      {`panel:${evaluacion.id}`}
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel
+      </button>
+    </div>
+  ),
+}));
+
 const EVALUACION: EvaluacionFichaPerfilAsesor = {
   id: 'ev-1',
   fichaPerfilId: 'f-1',
@@ -205,5 +216,23 @@ describe('ConsultarEvaluacionesAsesor', () => {
 
     // Assert
     expect(hook.goToPage).toHaveBeenCalledWith(1);
+  });
+
+  it('«Ver observaciones» abre el panel de esa evaluación y cerrarlo lo quita', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([EVALUACION]) });
+    render(<ConsultarEvaluacionesAsesor />);
+
+    // Act
+    await user.click(
+      tabla().getByRole('button', { name: 'Acciones de la evaluación de Sistema de monitoreo' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Ver observaciones' }));
+
+    // Assert
+    expect(screen.getByText('panel:ev-1')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
+    expect(screen.queryByText('panel:ev-1')).not.toBeInTheDocument();
   });
 });
