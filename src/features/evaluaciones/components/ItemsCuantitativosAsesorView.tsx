@@ -4,6 +4,8 @@ import Button from '../../../shared/components/ui/Button';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import Notice from '../../../shared/components/ui/Notice';
 import Skeleton from '../../../shared/components/ui/Skeleton';
+import { useHasRole } from '../../../hooks/useHasRole';
+import { Rol } from '../../../shared/models/rol';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useCategoriasItemCuantitativoAsesor } from '../hooks/useCategoriasItemCuantitativoAsesor';
 import { useItemsCuantitativosAsesor } from '../hooks/useItemsCuantitativosAsesor';
@@ -13,7 +15,10 @@ import ItemsCuantitativosAsesorTable from './ItemsCuantitativosAsesorTable';
 import RemoverItemCuantitativoAsesorDialog from './RemoverItemCuantitativoAsesorDialog';
 import RegistrarItemCuantitativoAsesorPanel from './RegistrarItemCuantitativoAsesorPanel';
 
+const ROLES_ADMINISTRAN = [Rol.Administrador];
+
 export default function ItemsCuantitativosAsesorView() {
+  const esAdministrador = useHasRole(ROLES_ADMINISTRAN);
   const { data, isLoading, isError, error, refetch } = useItemsCuantitativosAsesor();
   const categorias = useCategoriasItemCuantitativoAsesor();
   const [registrando, setRegistrando] = useState(false);
@@ -26,9 +31,11 @@ export default function ItemsCuantitativosAsesorView() {
         <p className="text-sm text-on-surface-secondary">
           Valores máximos con los que el asesor puntúa cada proyecto.
         </p>
-        <Button icono={Plus} className="header-action" onClick={() => setRegistrando(true)}>
-          Registrar ítem
-        </Button>
+        {esAdministrador && (
+          <Button icono={Plus} className="header-action" onClick={() => setRegistrando(true)}>
+            Registrar ítem
+          </Button>
+        )}
       </div>
 
       {isLoading && (
@@ -52,16 +59,16 @@ export default function ItemsCuantitativosAsesorView() {
           items={data}
           categorias={categorias.data}
           cargandoCategorias={categorias.isLoading}
-          onEditar={setItemEnEdicion}
-          onRemover={setItemARemover}
+          onEditar={esAdministrador ? setItemEnEdicion : undefined}
+          onRemover={esAdministrador ? setItemARemover : undefined}
         />
       )}
 
-      {registrando && (
+      {esAdministrador && registrando && (
         <RegistrarItemCuantitativoAsesorPanel onCerrar={() => setRegistrando(false)} />
       )}
 
-      {itemEnEdicion && (
+      {esAdministrador && itemEnEdicion && (
         <ModificarItemCuantitativoAsesorPanel
           key={itemEnEdicion.id}
           item={itemEnEdicion}
@@ -69,7 +76,7 @@ export default function ItemsCuantitativosAsesorView() {
         />
       )}
 
-      {itemARemover && (
+      {esAdministrador && itemARemover && (
         <RemoverItemCuantitativoAsesorDialog
           key={itemARemover.id}
           item={itemARemover}

@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-11-17.
+Última revisión: 2026-11-18.
 
 ## Bloqueados por el backend
 
@@ -186,6 +186,7 @@ Client roles a confirmar en el realm desplegado:
 - `mapas-ruta:plan-estimado-asesor:update` para el asesor (aportar a un plan estimado, HU-143). Es composite del realm role `asesor` en el `realm-arquisoft.json` del backend y no está verificado en el realm desplegado: si falta, con login real «Aportar» responde 403 y muestra «Acceso denegado» en la sección; con `VITE_AUTH_BYPASS=true` no se nota.
 - `mapas-ruta:plan-real-proyecto-asesor:view` para el asesor (consulta de los planes reales de un proyecto, HU-156). Es composite del realm role `asesor` en el `realm-arquisoft.json` del backend y no está verificado en el realm desplegado: un 403 con login real muestra «Acceso denegado» en la sección y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:item-cualitativo-asesor:view` para el asesor (lista de ítems cualitativos del asesor, HU-132): presente en el `realm-arquisoft.json` del backend, sin verificar en el realm desplegado: un 403 con login real muestra «Acceso denegado» en la sección y con `VITE_AUTH_BYPASS=true` no se nota.
+- `evaluaciones:item-cuantitativo-asesor:view` para el asesor (lista de ítems cuantitativos del asesor, HU-133): presente en el composite del realm role `asesor` del `realm-arquisoft.json` del backend (`origin/develop`), sin verificar en el realm desplegado: un 403 con login real muestra «Acceso denegado» en la sección y con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:criterio-item-cualitativo-asesor:view` para el asesor (criterios de los ítems cualitativos, HU-119): composite de `asesor` y `administrador` en el `realm-arquisoft.json` del backend, sin verificar en el realm desplegado: un 403 con login real muestra «Acceso denegado» en la sección y con `VITE_AUTH_BYPASS=true` no se nota.
 - `mapas-ruta:plan-real-asesor:update` para el asesor (aportar a un plan real, HU-145). Es composite del realm role `asesor` en el `realm-arquisoft.json` del backend y no está verificado en el realm desplegado: si falta, con login real «Aportar» responde 403 y muestra «Acceso denegado» en la sección; con `VITE_AUTH_BYPASS=true` no se nota.
 - `evaluaciones:observacion-item-jurado:update` para el jurado (modificar la observación de un ítem cuantitativo, HU-228). Es composite del realm role `jurado` en el `realm-arquisoft.json` del backend y no está verificado en el realm desplegado: si falta, con login real «Modificar observación» responde 403 y muestra «Acceso denegado» en la sección; el backend deja pendiente crearlo en Keycloak y correr `catalogo/cargar.sh`. Con `VITE_AUTH_BYPASS=true` no se nota.
