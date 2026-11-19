@@ -28,6 +28,7 @@ import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
 import type { CategoriaItemCuantitativoAsesor } from '../models/CategoriaItemCuantitativoAsesor';
 import type { RegistrarEvaluacionesCuantitativasAsesorRequest } from '../models/RegistrarEvaluacionesCuantitativasAsesorRequest';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
+import type { OmitirEvaluacionesCuantitativasAsesorRequest } from '../models/OmitirEvaluacionesCuantitativasAsesorRequest';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoAsesorRequest } from '../models/ModificarItemCuantitativoAsesorRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
@@ -544,4 +545,17 @@ export const evaluacionesService = {
         data: { evaluaciones },
       })
       .then(() => undefined),
+
+  omitirEvaluacionesCuantitativasAsesor: ({
+    evaluacionAsesorId,
+    items,
+  }: OmitirEvaluacionesCuantitativasAsesorRequest): Promise<void> => {
+    const params = new URLSearchParams();
+    items.forEach((item) => params.append('item', item));
+    return apiClient
+      .delete<void>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cuantitativas`, {
+        params,
+      })
+      .then(() => undefined);
+  },
 };

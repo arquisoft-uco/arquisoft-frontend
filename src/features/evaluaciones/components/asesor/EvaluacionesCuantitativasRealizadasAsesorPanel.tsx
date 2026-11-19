@@ -6,6 +6,7 @@ import CambiarPuntajeEvaluacionCuantitativaAsesorPanel from './CambiarPuntajeEva
 import ConsultarEvaluacionesCuantitativasAsesor from './ConsultarEvaluacionesCuantitativasAsesor';
 import type { ConsultaCuantitativasAsesor } from './ConsultarEvaluacionesCuantitativasAsesor';
 import ModificarObservacionItemAsesorPanel from './ModificarObservacionItemAsesorPanel';
+import OmitirEvaluacionesCuantitativasAsesorBarra from './OmitirEvaluacionesCuantitativasAsesorBarra';
 import RegistrarObservacionItemAsesorPanel from './RegistrarObservacionItemAsesorPanel';
 import ObservacionesEvaluacionCuantitativaAsesorPanel from './ObservacionesEvaluacionCuantitativaAsesorPanel';
 
@@ -26,12 +27,22 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
   etiquetaVolver,
   onVolver,
 }: Props) {
+  const [marcados, setMarcados] = useState<string[]>([]);
   const [filaEnEdicion, setFilaEnEdicion] = useState<EvaluacionCuantitativaAsesor | null>(null);
   const [filaEnLectura, setFilaEnLectura] = useState<EvaluacionCuantitativaAsesor | null>(null);
   const [registrandoObservacion, setRegistrandoObservacion] = useState(false);
   const [observacionEnEdicion, setObservacionEnEdicion] = useState<ObservacionItemAsesor | null>(
     null,
   );
+
+  const idsTodas = (consulta.data ?? []).map((fila) => fila.item.id);
+  const seleccionadas = marcados.filter((id) => idsTodas.includes(id));
+
+  function alternar(id: string) {
+    setMarcados((previos) =>
+      previos.includes(id) ? previos.filter((previo) => previo !== id) : [...previos, id],
+    );
+  }
 
   function cerrarObservaciones() {
     setFilaEnLectura(null);
@@ -43,14 +54,26 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
     <div className={RAIZ}>
       {finalizada && (
         <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden cambiar valoraciones ni registrar, modificar
-          o remover observaciones.
+          La evaluación ya fue finalizada; no se pueden omitir ni cambiar valoraciones, ni
+          registrar, modificar o remover observaciones.
         </Notice>
+      )}
+      {!finalizada && idsTodas.length > 0 && (
+        <OmitirEvaluacionesCuantitativasAsesorBarra
+          evaluacionAsesorId={evaluacionAsesorId}
+          idsTodas={idsTodas}
+          seleccionadas={seleccionadas}
+          onSeleccionarTodas={() => setMarcados(idsTodas)}
+          onLimpiarSeleccion={() => setMarcados([])}
+        />
       )}
       <ConsultarEvaluacionesCuantitativasAsesor
         consulta={consulta}
         etiquetaVolver={etiquetaVolver}
         onVolver={onVolver}
+        seleccion={
+          finalizada ? undefined : { seleccionados: new Set(seleccionadas), onAlternar: alternar }
+        }
         onVerObservaciones={setFilaEnLectura}
         onCambiarPuntaje={finalizada ? undefined : setFilaEnEdicion}
       />

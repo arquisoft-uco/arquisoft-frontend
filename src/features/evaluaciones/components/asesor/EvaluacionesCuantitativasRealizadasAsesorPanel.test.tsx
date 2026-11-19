@@ -5,6 +5,10 @@ import EvaluacionesCuantitativasRealizadasAsesorPanel from './EvaluacionesCuanti
 import type { ConsultaCuantitativasAsesor } from './ConsultarEvaluacionesCuantitativasAsesor';
 import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuantitativaAsesor';
 
+vi.mock('../hooks/useOmitirEvaluacionesCuantitativasAsesor', () => ({
+  useOmitirEvaluacionesCuantitativasAsesor: () => ({ isPending: false, mutate: vi.fn() }),
+}));
+
 vi.mock('../../hooks/useCambiarPuntajeEvaluacionCuantitativaAsesor', () => ({
   useCambiarPuntajeEvaluacionCuantitativaAsesor: () => ({
     isPending: false,
@@ -101,9 +105,47 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
 
     // Assert
     expect(
-      screen.getByText(/ya fue finalizada; no se pueden cambiar valoraciones/),
+      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar valoraciones/),
     ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada no hay casillas ni barra de omitir', () => {
+    // Arrange / Act
+    render(panel(true));
+
+    // Assert
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
+  });
+
+  it('sin finalizar, marcar una fila habilita «Omitir (1)»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(false));
+    expect(screen.getByRole('button', { name: 'Omitir (0)' })).toBeDisabled();
+
+    // Act
+    await user.click(screen.getAllByRole('checkbox', { name: 'Seleccionar Orden' })[0]);
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Omitir (1)' })).toBeEnabled();
+  });
+
+  it('sin finalizar y sin filas no se pinta la barra', () => {
+    // Arrange / Act
+    render(
+      <EvaluacionesCuantitativasRealizadasAsesorPanel
+        evaluacionAsesorId="ea-1"
+        consulta={consulta([])}
+        finalizada={false}
+        etiquetaVolver="Volver a mis evaluaciones"
+        onVolver={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
   });
 
   it('con la evaluación finalizada sigue ofreciendo «Ver observaciones» y abre el panel del ítem', async () => {
