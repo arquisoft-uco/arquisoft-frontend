@@ -306,15 +306,17 @@ describe('GestionarRevisionPanel', () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('llama a onCerrar al pulsar Cerrar', async () => {
+  it('editable, el pie no ofrece Cerrar y el panel se cierra desde su cabecera', async () => {
     // Arrange
     const onCerrar = vi.fn();
     hook.mockReturnValue(estado({ data: [] }));
+    simularOmitidos(new Set(), true);
     const user = userEvent.setup();
 
     // Act
     render(<GestionarRevisionPanel {...PROPS} onCerrar={onCerrar} />);
-    await user.click(screen.getByRole('button', { name: 'Cerrar' }));
+    expect(screen.queryByRole('button', { name: 'Cerrar' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel' }));
 
     // Assert
     await waitFor(() => expect(onCerrar).toHaveBeenCalled());
@@ -357,7 +359,7 @@ describe('GestionarRevisionPanel', () => {
     renderEditable();
 
     // Assert
-    const enviar = screen.getByRole('button', { name: 'Enviar revisión' });
+    const enviar = screen.getByRole('button', { name: 'Enviar' });
     expect(enviar).toBeDisabled();
     expect(enviar).toHaveAccessibleDescription(
       'Agrega al menos una observación para enviar la revisión.',
@@ -377,7 +379,7 @@ describe('GestionarRevisionPanel', () => {
       renderEditable();
 
       // Assert
-      expect(screen.getByRole('button', { name: 'Enviar revisión' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled();
       expect(
         screen.queryByText('Agrega al menos una observación para enviar la revisión.'),
       ).not.toBeInTheDocument();
@@ -396,7 +398,7 @@ describe('GestionarRevisionPanel', () => {
     renderEditable();
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Enviar revisión' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
     const dialogo = screen.getByRole('dialog', { name: '¿Enviar revisión?' });
     await user.click(within(dialogo).getByRole('button', { name: 'Enviar revisión' }));
 
@@ -428,7 +430,7 @@ describe('GestionarRevisionPanel', () => {
     render(<GestionarRevisionPanel {...PROPS} onCerrar={onCerrar} />);
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Enviar revisión' }));
+    await user.click(screen.getByRole('button', { name: 'Enviar' }));
     await user.click(
       within(screen.getByRole('dialog', { name: '¿Enviar revisión?' })).getByRole('button', {
         name: 'Enviar revisión',
@@ -456,7 +458,7 @@ describe('GestionarRevisionPanel', () => {
     render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
     // Assert
-    expect(screen.queryByRole('button', { name: 'Enviar revisión' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Enviar' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument();
   });
 
@@ -740,7 +742,7 @@ describe('GestionarRevisionPanel', () => {
       render(<GestionarRevisionPanel {...PRIMERA} onCerrar={vi.fn()} />);
 
       // Act
-      await user.click(screen.getByRole('button', { name: 'Dar por completado' }));
+      await user.click(screen.getByRole('button', { name: 'Completar' }));
       const dialogo = screen.getByRole('dialog', { name: '¿Dar por completado este artefacto?' });
       await user.click(within(dialogo).getByRole('button', { name: 'Dar por completado' }));
 
@@ -756,12 +758,12 @@ describe('GestionarRevisionPanel', () => {
       renderEditable();
 
       // Assert
-      const cerrar = screen.getByRole('button', { name: 'Dar por completado' });
+      const cerrar = screen.getByRole('button', { name: 'Completar' });
       expect(cerrar).toBeDisabled();
       expect(cerrar).toHaveAccessibleDescription(
         'Para dar por completado, elimina primero las observaciones de esta revisión.',
       );
-      expect(screen.getByRole('button', { name: 'Enviar revisión' })).toBeEnabled();
+      expect(screen.getByRole('button', { name: 'Enviar' })).toBeEnabled();
     });
 
     it('con observaciones sin cerrar en la versión anterior se deshabilita con el conteo', () => {
@@ -773,7 +775,7 @@ describe('GestionarRevisionPanel', () => {
       renderEditable();
 
       // Assert
-      const cerrar = screen.getByRole('button', { name: 'Dar por completado' });
+      const cerrar = screen.getByRole('button', { name: 'Completar' });
       expect(cerrar).toBeDisabled();
       expect(cerrar).toHaveAccessibleDescription(
         expect.stringContaining(
@@ -791,7 +793,7 @@ describe('GestionarRevisionPanel', () => {
       render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
       // Assert
-      expect(screen.queryByRole('button', { name: 'Dar por completado' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Completar' })).not.toBeInTheDocument();
     });
   });
 
@@ -810,7 +812,7 @@ describe('GestionarRevisionPanel', () => {
       renderEditable();
 
       // Act
-      await user.click(screen.getByRole('button', { name: 'Eliminar revisión' }));
+      await user.click(screen.getByRole('button', { name: 'Eliminar' }));
 
       // Assert
       expect(
@@ -828,7 +830,7 @@ describe('GestionarRevisionPanel', () => {
       render(<GestionarRevisionPanel {...PROPS} onCerrar={vi.fn()} />);
 
       // Assert
-      expect(screen.queryByRole('button', { name: 'Eliminar revisión' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Eliminar' })).not.toBeInTheDocument();
     });
   });
 });

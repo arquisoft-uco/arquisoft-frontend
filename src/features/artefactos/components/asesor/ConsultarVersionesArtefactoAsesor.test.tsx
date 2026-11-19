@@ -586,7 +586,7 @@ describe('ConsultarVersionesArtefactoAsesor', () => {
       render(<ConsultarVersionesArtefactoAsesor />);
       await abrirMenu(user, 'Acta de inicio');
       await user.click(await screen.findByRole('menuitem', { name: 'Gestionar revisión' }));
-      const enviar = await screen.findByRole('button', { name: 'Enviar revisión' });
+      const enviar = await screen.findByRole('button', { name: 'Enviar' });
       await waitFor(() => expect(enviar).toBeEnabled());
 
       // Act
