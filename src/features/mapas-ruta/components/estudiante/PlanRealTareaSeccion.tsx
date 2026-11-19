@@ -42,7 +42,12 @@ export default function PlanRealTareaSeccion({ consulta, onEditar, onRemover }: 
         <h2 id="plan-real-titulo" className="text-lg font-semibold text-on-surface">
           Plan real
         </h2>
-        <Button variante="secundario" icono={Pencil} className="header-action" onClick={onEditar}>
+        <Button
+          variante="secundario"
+          icono={Pencil}
+          className="header-action sm:ml-auto"
+          onClick={onEditar}
+        >
           Editar plan real
         </Button>
         <Button

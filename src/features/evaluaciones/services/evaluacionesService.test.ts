@@ -99,6 +99,46 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('registrarObservacionItemAsesor', () => {
+    it('pone el id de la valoración en la ruta, manda solo la descripción y devuelve el id creado', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'obs-1' } });
+
+      // Act
+      const resultado = await evaluacionesService.registrarObservacionItemAsesor({
+        evaluacionCuantitativaAsesorId: 'ec-1',
+        descripcion: 'Falta rigor',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-asesor/ec-1/observaciones',
+        { descripcion: 'Falta rigor' },
+      );
+      expect(resultado).toEqual({ id: 'obs-1' });
+    });
+  });
+
+  describe('registrarObservacionItemAsesor', () => {
+    it('pone el id de la valoración en la ruta, manda solo la descripción y devuelve el id creado', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 201, data: { id: 'obs-1' } });
+
+      // Act
+      const resultado = await evaluacionesService.registrarObservacionItemAsesor({
+        evaluacionCuantitativaAsesorId: 'ec-1',
+        descripcion: 'Falta rigor',
+      });
+
+      // Assert
+      expect(post).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cuantitativas-asesor/ec-1/observaciones',
+        { descripcion: 'Falta rigor' },
+      );
+      expect(resultado).toEqual({ id: 'obs-1' });
+    });
+  });
+
   describe('getObservacionesEvaluacionCuantitativaJurado', () => {
     it('hace POST con el id en la ruta y el criterio como body, y devuelve la página', async () => {
       // Arrange
@@ -142,6 +182,25 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('modificarObservacionItemAsesor', () => {
+    it('pone el id en la ruta, manda solo la descripción y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.modificarObservacionItemAsesor({
+        observacionId: 'obs-1',
+        descripcion: 'Nuevo texto',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/evaluaciones/observaciones-item-asesor/obs-1', {
+        descripcion: 'Nuevo texto',
+      });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarObservacionItemJurado', () => {
     it('pone el id en la ruta, manda solo la descripción y resuelve undefined', async () => {
       // Arrange
@@ -171,6 +230,20 @@ describe('evaluacionesService', () => {
 
       // Assert
       expect(del).toHaveBeenCalledWith('/evaluaciones/observaciones-item-jurado/obs-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('removerObservacionItemAsesor', () => {
+    it('hace DELETE con el id en la ruta, sin body, y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerObservacionItemAsesor('obs-1');
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/observaciones-item-asesor/obs-1');
       expect(resultado).toBeUndefined();
     });
   });
@@ -215,6 +288,26 @@ describe('evaluacionesService', () => {
       expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/ej-1/cualitativas', {
         data: { evaluaciones: ['ec-1', 'ec-2'] },
       });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('omitirEvaluacionesCualitativasAsesor', () => {
+    it('llama DELETE sin body y con el query item repetido, y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.omitirEvaluacionesCualitativasAsesor({
+        evaluacionAsesorId: 'ea-1',
+        items: ['i-1', 'i-2'],
+      });
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/evaluaciones-asesor/ea-1/cualitativas', {
+        params: expect.any(URLSearchParams),
+      });
+      expect(del.mock.calls[0][1]?.params.toString()).toBe('item=i-1&item=i-2');
       expect(resultado).toBeUndefined();
     });
   });
@@ -290,6 +383,26 @@ describe('evaluacionesService', () => {
       // Assert
       expect(patch).toHaveBeenCalledWith(
         '/evaluaciones/evaluaciones-cualitativas-jurado/ec-1/criterio',
+        { criterio: 'crit-2' },
+      );
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('cambiarCriterioEvaluacionCualitativaAsesor', () => {
+    it('llama PATCH con el id de la evaluación cualitativa y traduce criterioId a { criterio }', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.cambiarCriterioEvaluacionCualitativaAsesor({
+        evaluacionCualitativaAsesorId: 'ec-1',
+        criterioId: 'crit-2',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith(
+        '/evaluaciones/evaluaciones-cualitativas-asesor/ec-1/criterio',
         { criterio: 'crit-2' },
       );
       expect(resultado).toBeUndefined();
@@ -379,6 +492,20 @@ describe('evaluacionesService', () => {
 
       // Assert
       expect(del).toHaveBeenCalledWith('/evaluaciones/items-cuantitativos-jurado/item-1');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
+  describe('removerItemCuantitativoAsesor', () => {
+    it('llama DELETE con el itemId en la ruta y resuelve undefined', async () => {
+      // Arrange
+      del.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.removerItemCuantitativoAsesor('item-1');
+
+      // Assert
+      expect(del).toHaveBeenCalledWith('/evaluaciones/items-cuantitativos-asesor/item-1');
       expect(resultado).toBeUndefined();
     });
   });

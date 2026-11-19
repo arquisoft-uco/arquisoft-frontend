@@ -13,6 +13,50 @@ vi.mock('../../hooks/useCambiarPuntajeEvaluacionCuantitativaAsesor', () => ({
   }),
 }));
 
+vi.mock('../../hooks/useRegistrarObservacionItemAsesor', () => ({
+  useRegistrarObservacionItemAsesor: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
+
+vi.mock('../../hooks/useModificarObservacionItemAsesor', () => ({
+  useModificarObservacionItemAsesor: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
+
+vi.mock('../../hooks/useRemoverObservacionItemAsesor', () => ({
+  useRemoverObservacionItemAsesor: () => ({
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+}));
+
+vi.mock('../../hooks/useObservacionesEvaluacionCuantitativaAsesor', () => ({
+  useObservacionesEvaluacionCuantitativaAsesor: () => ({
+    data: {
+      content: [{ id: 'o-1', descripcion: 'Falta rigor' }],
+      totalElements: 1,
+      totalPages: 1,
+      number: 0,
+      size: 10,
+    },
+    isLoading: false,
+    isFetching: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+    page: 0,
+    pageSize: 10,
+    goToPage: vi.fn(),
+  }),
+}));
+
 function fila(id: string, nombre: string): EvaluacionCuantitativaAsesor {
   return {
     id,
@@ -62,6 +106,44 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
   });
 
+  it('con la evaluación finalizada sigue ofreciendo «Ver observaciones» y abre el panel del ítem', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getByText(/Orden · 50 de 100/)).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada el aviso incluye las observaciones y no se ofrece «Registrar observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getByText(/ni registrar, modificar o remover observaciones/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
+  });
+
+  it('sin finalizar, «Registrar observación» abre el formulario sobre el panel de observaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(false));
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Registrar observación' }));
+
+    // Assert
+    expect(screen.getByRole('form', { name: 'Registro de observación' })).toBeInTheDocument();
+  });
+
   it('sin finalizar, pulsar la acción de una fila abre el panel con ese ítem', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -72,5 +154,57 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
 
     // Assert
     expect(screen.getByText('Ítem: Orden')).toBeInTheDocument();
+  });
+
+  it('sin finalizar, «Modificar observación» abre el formulario sobre el panel de observaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(false));
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Modificar observación' })[0]);
+
+    // Assert
+    expect(screen.getByRole('form', { name: 'Modificación de observación' })).toBeInTheDocument();
+  });
+
+  it('sin finalizar, «Remover observación» abre la confirmación sobre el panel de observaciones', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(false));
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: 'Remover observación' })[0]);
+
+    // Assert
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('¿Remover observación?');
+  });
+
+  it('con la evaluación finalizada no ofrece «Remover observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getAllByText('Falta rigor').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: /Remover observación/ })).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada no ofrece «Modificar observación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel(true));
+
+    // Act
+    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
+
+    // Assert
+    expect(screen.getAllByText('Falta rigor').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: /Modificar observación/ })).not.toBeInTheDocument();
   });
 });

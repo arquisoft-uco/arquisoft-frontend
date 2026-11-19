@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import Notice from '../../../../shared/components/ui/Notice';
 import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuantitativaAsesor';
+import type { ObservacionItemAsesor } from '../../models/ObservacionItemAsesor';
 import CambiarPuntajeEvaluacionCuantitativaAsesorPanel from './CambiarPuntajeEvaluacionCuantitativaAsesorPanel';
 import ConsultarEvaluacionesCuantitativasAsesor from './ConsultarEvaluacionesCuantitativasAsesor';
 import type { ConsultaCuantitativasAsesor } from './ConsultarEvaluacionesCuantitativasAsesor';
+import ModificarObservacionItemAsesorPanel from './ModificarObservacionItemAsesorPanel';
+import RegistrarObservacionItemAsesorPanel from './RegistrarObservacionItemAsesorPanel';
+import ObservacionesEvaluacionCuantitativaAsesorPanel from './ObservacionesEvaluacionCuantitativaAsesorPanel';
 
 const RAIZ = 'flex flex-col gap-4';
 
@@ -23,35 +27,62 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
   onVolver,
 }: Props) {
   const [filaEnEdicion, setFilaEnEdicion] = useState<EvaluacionCuantitativaAsesor | null>(null);
+  const [filaEnLectura, setFilaEnLectura] = useState<EvaluacionCuantitativaAsesor | null>(null);
+  const [registrandoObservacion, setRegistrandoObservacion] = useState(false);
+  const [observacionEnEdicion, setObservacionEnEdicion] = useState<ObservacionItemAsesor | null>(
+    null,
+  );
 
-  if (finalizada) {
-    return (
-      <div className={RAIZ}>
-        <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden cambiar valoraciones.
-        </Notice>
-        <ConsultarEvaluacionesCuantitativasAsesor
-          consulta={consulta}
-          etiquetaVolver={etiquetaVolver}
-          onVolver={onVolver}
-        />
-      </div>
-    );
+  function cerrarObservaciones() {
+    setFilaEnLectura(null);
+    setRegistrandoObservacion(false);
+    setObservacionEnEdicion(null);
   }
 
   return (
     <div className={RAIZ}>
+      {finalizada && (
+        <Notice variante="advertencia">
+          La evaluación ya fue finalizada; no se pueden cambiar valoraciones ni registrar, modificar
+          o remover observaciones.
+        </Notice>
+      )}
       <ConsultarEvaluacionesCuantitativasAsesor
         consulta={consulta}
         etiquetaVolver={etiquetaVolver}
         onVolver={onVolver}
-        onCambiarPuntaje={setFilaEnEdicion}
+        onVerObservaciones={setFilaEnLectura}
+        onCambiarPuntaje={finalizada ? undefined : setFilaEnEdicion}
       />
-      {filaEnEdicion && (
+      {!finalizada && filaEnEdicion && (
         <CambiarPuntajeEvaluacionCuantitativaAsesorPanel
           fila={filaEnEdicion}
           evaluacionAsesorId={evaluacionAsesorId}
           onCerrar={() => setFilaEnEdicion(null)}
+        />
+      )}
+      {filaEnLectura && (
+        <ObservacionesEvaluacionCuantitativaAsesorPanel
+          evaluacion={filaEnLectura}
+          puedeRegistrar={!finalizada}
+          onRegistrar={() => setRegistrandoObservacion(true)}
+          puedeModificar={!finalizada}
+          onModificar={setObservacionEnEdicion}
+          puedeRemover={!finalizada}
+          onCerrar={cerrarObservaciones}
+        />
+      )}
+      {!finalizada && filaEnLectura && registrandoObservacion && (
+        <RegistrarObservacionItemAsesorPanel
+          evaluacion={filaEnLectura}
+          onCerrar={() => setRegistrandoObservacion(false)}
+        />
+      )}
+      {!finalizada && filaEnLectura && observacionEnEdicion && (
+        <ModificarObservacionItemAsesorPanel
+          observacion={observacionEnEdicion}
+          nombreItem={filaEnLectura.item.nombre}
+          onCerrar={() => setObservacionEnEdicion(null)}
         />
       )}
     </div>

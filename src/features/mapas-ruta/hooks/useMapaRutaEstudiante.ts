@@ -27,6 +27,9 @@ export function useMapaRutaEstudiante() {
   }
 
   return {
+    proyecto: misProyectos.proyecto,
+    proyectos: misProyectos.proyectos,
+    seleccionarProyecto: misProyectos.seleccionarProyecto,
     mapa: query.data,
     cargando: !misProyectos.hayError && (!misProyectos.cargado || cargandoMapa),
     sinMapa,

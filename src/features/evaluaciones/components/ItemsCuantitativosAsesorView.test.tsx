@@ -41,6 +41,16 @@ vi.mock('./ModificarItemCuantitativoAsesorPanel', () => ({
   ),
 }));
 
+vi.mock('./RemoverItemCuantitativoAsesorDialog', () => ({
+  default: ({ onCerrar }: { onCerrar: () => void }) => (
+    <div role="alertdialog" aria-label="Confirmar remoción">
+      <button type="button" onClick={onCerrar}>
+        Cerrar diálogo
+      </button>
+    </div>
+  ),
+}));
+
 const ITEMS: ItemCuantitativoAsesor[] = [
   { id: 'i-2', nombre: 'Rigor', descripcion: 'Calidad del método.', categoriaId: 'c-1', valor: 30 },
   { id: 'i-1', nombre: 'Impacto', descripcion: 'Alcance esperado.', categoriaId: 'c-9', valor: 20 },
@@ -199,7 +209,24 @@ describe('ItemsCuantitativosAsesorView', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('con rol Asesor la lista se ve pero no hay «Registrar ítem» ni «Editar ítem»', () => {
+  it('«Remover» por fila abre la confirmación y al cerrarla desaparece', async () => {
+    // Arrange
+    mockItems({ data: ITEMS });
+    const user = userEvent.setup();
+
+    // Act
+    render(<ItemsCuantitativosAsesorView />);
+    const tabla = screen.getByRole('table', { name: 'Ítems cuantitativos del asesor' });
+    expect(within(tabla).getAllByRole('button', { name: /^Remover ítem/ })).toHaveLength(2);
+    await user.click(within(tabla).getByRole('button', { name: 'Remover ítem Rigor' }));
+
+    // Assert
+    expect(screen.getByRole('alertdialog', { name: 'Confirmar remoción' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cerrar diálogo' }));
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('con rol Asesor la lista se ve pero no hay «Registrar ítem», «Editar ítem» ni «Remover ítem»', () => {
     // Arrange
     mockItems({ data: ITEMS });
     entrarComo(Rol.Asesor);
@@ -212,5 +239,6 @@ describe('ItemsCuantitativosAsesorView', () => {
     expect(within(tabla).getByText('Rigor')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Registrar ítem' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Editar ítem/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Remover ítem/ })).not.toBeInTheDocument();
   });
 });

@@ -12,6 +12,7 @@ import { useItemsCuantitativosAsesor } from '../hooks/useItemsCuantitativosAseso
 import type { ItemCuantitativoAsesor } from '../models/ItemCuantitativoAsesor';
 import ModificarItemCuantitativoAsesorPanel from './ModificarItemCuantitativoAsesorPanel';
 import ItemsCuantitativosAsesorTable from './ItemsCuantitativosAsesorTable';
+import RemoverItemCuantitativoAsesorDialog from './RemoverItemCuantitativoAsesorDialog';
 import RegistrarItemCuantitativoAsesorPanel from './RegistrarItemCuantitativoAsesorPanel';
 
 const ROLES_ADMINISTRAN = [Rol.Administrador];
@@ -22,6 +23,7 @@ export default function ItemsCuantitativosAsesorView() {
   const categorias = useCategoriasItemCuantitativoAsesor();
   const [registrando, setRegistrando] = useState(false);
   const [itemEnEdicion, setItemEnEdicion] = useState<ItemCuantitativoAsesor | null>(null);
+  const [itemARemover, setItemARemover] = useState<ItemCuantitativoAsesor | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -58,6 +60,7 @@ export default function ItemsCuantitativosAsesorView() {
           categorias={categorias.data}
           cargandoCategorias={categorias.isLoading}
           onEditar={esAdministrador ? setItemEnEdicion : undefined}
+          onRemover={esAdministrador ? setItemARemover : undefined}
         />
       )}
 
@@ -70,6 +73,14 @@ export default function ItemsCuantitativosAsesorView() {
           key={itemEnEdicion.id}
           item={itemEnEdicion}
           onCerrar={() => setItemEnEdicion(null)}
+        />
+      )}
+
+      {esAdministrador && itemARemover && (
+        <RemoverItemCuantitativoAsesorDialog
+          key={itemARemover.id}
+          item={itemARemover}
+          onCerrar={() => setItemARemover(null)}
         />
       )}
     </div>

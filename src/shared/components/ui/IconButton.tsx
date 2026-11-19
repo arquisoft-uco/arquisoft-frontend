@@ -15,13 +15,21 @@ const TONOS: Record<TonoIconButton, string> = {
 
 const CON_ROTULO = 'group relative';
 const ROTULO =
-  'pointer-events-none absolute right-full top-1/2 z-10 mr-2 -translate-y-1/2 whitespace-nowrap rounded-lg border border-border bg-surface-elevated px-2 py-1 text-xs font-medium text-on-surface opacity-0 shadow-dropdown transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100';
+  'pointer-events-none absolute z-10 whitespace-nowrap rounded-lg border border-border bg-surface-elevated px-2 py-1 text-xs font-medium text-on-surface opacity-0 shadow-dropdown transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100';
+
+type PosicionRotulo = 'izquierda' | 'arriba';
+
+const POSICIONES_ROTULO: Record<PosicionRotulo, string> = {
+  izquierda: 'right-full top-1/2 mr-2 -translate-y-1/2',
+  arriba: 'bottom-full right-0 mb-1',
+};
 
 interface Props extends Omit<ComponentProps<'button'>, 'children'> {
   etiqueta: string;
   icono: LucideIcon;
   tono?: TonoIconButton;
   rotulo?: string;
+  rotuloPosicion?: PosicionRotulo;
 }
 
 export default function IconButton({
@@ -29,6 +37,7 @@ export default function IconButton({
   icono: Icono,
   tono = 'neutro',
   rotulo,
+  rotuloPosicion = 'izquierda',
   type = 'button',
   className,
   ...resto
@@ -39,7 +48,7 @@ export default function IconButton({
     <button {...resto} type={type} aria-label={etiqueta} className={clases}>
       <Icono size={16} aria-hidden />
       {rotulo && (
-        <span aria-hidden className={ROTULO}>
+        <span aria-hidden className={`${ROTULO} ${POSICIONES_ROTULO[rotuloPosicion]}`}>
           {rotulo}
         </span>
       )}

@@ -29,6 +29,7 @@ interface Props {
   consulta: ConsultaCuantitativasAsesor;
   etiquetaVolver: string;
   onVolver: () => void;
+  onVerObservaciones: (fila: EvaluacionCuantitativaAsesor) => void;
   onCambiarPuntaje?: (fila: EvaluacionCuantitativaAsesor) => void;
 }
 
@@ -36,6 +37,7 @@ export default function ConsultarEvaluacionesCuantitativasAsesor({
   consulta,
   etiquetaVolver,
   onVolver,
+  onVerObservaciones,
   onCambiarPuntaje,
 }: Props) {
   const { data, isLoading, isError, error, refetch } = consulta;
@@ -88,6 +90,7 @@ export default function ConsultarEvaluacionesCuantitativasAsesor({
       <EvaluacionesCuantitativasAsesorTable
         evaluaciones={data ?? []}
         cargando={isLoading}
+        onVerObservaciones={onVerObservaciones}
         onCambiarPuntaje={onCambiarPuntaje}
       />
     </div>

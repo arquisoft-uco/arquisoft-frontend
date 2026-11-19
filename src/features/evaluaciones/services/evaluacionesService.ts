@@ -15,6 +15,7 @@ import type { EvaluacionCuantitativaAsesor } from '../models/EvaluacionCuantitat
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { EvaluacionJurado } from '../models/EvaluacionJurado';
 import type { JuradoVigente } from '../models/JuradoVigente';
+import type { CambiarCriterioEvaluacionCualitativaAsesorRequest } from '../models/CambiarCriterioEvaluacionCualitativaAsesorRequest';
 import type { CambiarCriterioEvaluacionCualitativaJuradoRequest } from '../models/CambiarCriterioEvaluacionCualitativaJuradoRequest';
 import type { CambiarPuntajeEvaluacionCuantitativaAsesorRequest } from '../models/CambiarPuntajeEvaluacionCuantitativaAsesorRequest';
 import type { CambiarPuntajeEvaluacionCuantitativaJuradoRequest } from '../models/CambiarPuntajeEvaluacionCuantitativaJuradoRequest';
@@ -30,14 +31,19 @@ import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
 import type { ModificarItemCualitativoJuradoRequest } from '../models/ModificarItemCualitativoJuradoRequest';
 import type { ModificarItemCuantitativoAsesorRequest } from '../models/ModificarItemCuantitativoAsesorRequest';
 import type { ModificarItemCuantitativoJuradoRequest } from '../models/ModificarItemCuantitativoJuradoRequest';
+import type { ModificarObservacionItemAsesorRequest } from '../models/ModificarObservacionItemAsesorRequest';
 import type { ModificarObservacionItemJuradoRequest } from '../models/ModificarObservacionItemJuradoRequest';
+import type { ObservacionItemAsesor } from '../models/ObservacionItemAsesor';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
+import type { OmitirEvaluacionesCualitativasAsesorRequest } from '../models/OmitirEvaluacionesCualitativasAsesorRequest';
 import type { OmitirEvaluacionesCualitativasJuradoRequest } from '../models/OmitirEvaluacionesCualitativasJuradoRequest';
 import type { OmitirEvaluacionesCuantitativasJuradoRequest } from '../models/OmitirEvaluacionesCuantitativasJuradoRequest';
 import type { RemoverJuradosEvaluacionRequest } from '../models/RemoverJuradosEvaluacionRequest';
 import type { RegistrarEvaluacionesCualitativasAsesorRequest } from '../models/RegistrarEvaluacionesCualitativasAsesorRequest';
 import type { RegistrarEvaluacionesCualitativasJuradoRequest } from '../models/RegistrarEvaluacionesCualitativasJuradoRequest';
 import type { RegistrarEvaluacionesCuantitativasJuradoRequest } from '../models/RegistrarEvaluacionesCuantitativasJuradoRequest';
+import type { RegistrarObservacionItemAsesorRequest } from '../models/RegistrarObservacionItemAsesorRequest';
+import type { RegistrarObservacionItemAsesorResponse } from '../models/RegistrarObservacionItemAsesorResponse';
 import type { RegistrarObservacionItemJuradoRequest } from '../models/RegistrarObservacionItemJuradoRequest';
 import type { RegistrarObservacionItemJuradoResponse } from '../models/RegistrarObservacionItemJuradoResponse';
 import type { RegistrarItemCualitativoJuradoRequest } from '../models/RegistrarItemCualitativoJuradoRequest';
@@ -227,6 +233,17 @@ export const evaluacionesService = {
       )
       .then(() => undefined),
 
+  cambiarCriterioEvaluacionCualitativaAsesor: ({
+    evaluacionCualitativaAsesorId,
+    criterioId,
+  }: CambiarCriterioEvaluacionCualitativaAsesorRequest): Promise<void> =>
+    apiClient
+      .patch<void>(
+        `/evaluaciones/evaluaciones-cualitativas-asesor/${evaluacionCualitativaAsesorId}/criterio`,
+        { criterio: criterioId },
+      )
+      .then(() => undefined),
+
   removerItemCualitativoJurado: (itemId: string): Promise<void> =>
     apiClient
       .delete<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`)
@@ -238,6 +255,11 @@ export const evaluacionesService = {
   }: ModificarItemCuantitativoAsesorRequest): Promise<void> =>
     apiClient
       .patch<void>(`/evaluaciones/items-cuantitativos-asesor/${itemId}`, { descripcion })
+      .then(() => undefined),
+
+  removerItemCuantitativoAsesor: (itemId: string): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/items-cuantitativos-asesor/${itemId}`)
       .then(() => undefined),
 
   modificarItemCuantitativoJurado: ({
@@ -443,6 +465,40 @@ export const evaluacionesService = {
       >(`/evaluaciones/evaluaciones-cuantitativas-jurado/${evaluacionCuantitativaJuradoId}/observaciones/estudiante`, req)
       .then((r) => r.data),
 
+  getObservacionesEvaluacionCuantitativaAsesor: (
+    evaluacionCuantitativaAsesorId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItemAsesor>> =>
+    apiClient
+      .post<
+        Page<ObservacionItemAsesor>
+      >(`/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/observaciones/asesor`, req)
+      .then((r) => r.data),
+
+  registrarObservacionItemAsesor: ({
+    evaluacionCuantitativaAsesorId,
+    descripcion,
+  }: RegistrarObservacionItemAsesorRequest): Promise<RegistrarObservacionItemAsesorResponse> =>
+    apiClient
+      .post<RegistrarObservacionItemAsesorResponse>(
+        `/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/observaciones`,
+        { descripcion },
+      )
+      .then((r) => r.data),
+
+  modificarObservacionItemAsesor: ({
+    observacionId,
+    descripcion,
+  }: ModificarObservacionItemAsesorRequest): Promise<void> =>
+    apiClient
+      .patch<void>(`/evaluaciones/observaciones-item-asesor/${observacionId}`, { descripcion })
+      .then(() => undefined),
+
+  removerObservacionItemAsesor: (observacionId: string): Promise<void> =>
+    apiClient
+      .delete<void>(`/evaluaciones/observaciones-item-asesor/${observacionId}`)
+      .then(() => undefined),
+
   modificarObservacionItemJurado: ({
     observacionId,
     descripcion,
@@ -465,6 +521,19 @@ export const evaluacionesService = {
         data: { evaluaciones },
       })
       .then(() => undefined),
+
+  omitirEvaluacionesCualitativasAsesor: ({
+    evaluacionAsesorId,
+    items,
+  }: OmitirEvaluacionesCualitativasAsesorRequest): Promise<void> => {
+    const params = new URLSearchParams();
+    items.forEach((item) => params.append('item', item));
+    return apiClient
+      .delete<void>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}/cualitativas`, {
+        params,
+      })
+      .then(() => undefined);
+  },
 
   omitirEvaluacionesCuantitativasJurado: ({
     evaluacionJuradoId,
