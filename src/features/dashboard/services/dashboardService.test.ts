@@ -123,4 +123,122 @@ describe('dashboardService', () => {
     expect(get).toHaveBeenCalledWith('/fichas-perfil/estudiante');
     expect(fichas[0]).toMatchObject({ id: 'f-7', titulo: 'Mi ficha', integrantes: ['Uno', 'Dos'] });
   });
+
+  it('contar pide una página de tamaño 1 a la ruta del recurso y devuelve totalElements', async () => {
+    // Arrange
+    post.mockResolvedValue({ data: { content: [], totalElements: 12 } });
+
+    // Act
+    const total = await dashboardService.contar('solicitudes-novedad-asesor-recibidas');
+
+    // Assert
+    expect(post).toHaveBeenCalledWith('/solicitudes/novedad-asesor/recibidas', {
+      pagina: 0,
+      tamanio: 1,
+    });
+    expect(total).toBe(12);
+  });
+
+  it('consultarEvaluacionesPorEvaluar filtra por estadoJurado PENDIENTE_POR_EVALUAR y aplana el entregable', async () => {
+    // Arrange
+    post.mockResolvedValue({
+      data: {
+        content: [
+          {
+            id: 'ej-1',
+            estado: { id: 'PENDIENTE_POR_EVALUAR', nombre: 'Pendiente por evaluar' },
+            evaluacion: { id: 'ev-1', estado: { id: 'X', nombre: 'X' } },
+            entregable: { id: 'en-1', proyecto: 'Riego', version: 2 },
+          },
+        ],
+        totalElements: 3,
+      },
+    });
+
+    // Act
+    const pagina = await dashboardService.consultarEvaluacionesPorEvaluar();
+
+    // Assert
+    expect(post).toHaveBeenCalledWith('/evaluaciones/evaluaciones-jurado/jurado', {
+      pagina: 0,
+      tamanio: 5,
+      filtros: {
+        tipo: 'PREDICADO_MULTIVALOR',
+        campo: 'estadoJurado',
+        operador: 'IN',
+        valores: ['PENDIENTE_POR_EVALUAR'],
+      },
+    });
+    expect(pagina.totalElements).toBe(3);
+    expect(pagina.content[0]).toEqual({
+      id: 'ej-1',
+      proyecto: 'Riego',
+      versionEntregable: 2,
+      estadoId: 'PENDIENTE_POR_EVALUAR',
+      estadoNombre: 'Pendiente por evaluar',
+    });
+  });
+
+  it('consultarArtefactosSinAvance envía 15 días y solo proyectos habilitados, del más antiguo al más reciente', async () => {
+    // Arrange
+    post.mockResolvedValue({ data: { content: [], totalElements: 0 } });
+
+    // Act
+    await dashboardService.consultarArtefactosSinAvance();
+
+    // Assert
+    expect(post).toHaveBeenCalledWith('/artefactos/asesor/sin-avance', {
+      diasSinAvance: 15,
+      criterio: {
+        pagina: 0,
+        tamanio: 5,
+        ordenamiento: ['fechaUltimaVersion:ASC'],
+        filtros: {
+          tipo: 'GRUPO',
+          conector: 'AND',
+          nodos: [
+            { tipo: 'PREDICADO', campo: 'proyectoFinalizado', operador: 'ES', valor: 'false' },
+            { tipo: 'PREDICADO', campo: 'proyectoCancelado', operador: 'ES', valor: 'false' },
+          ],
+        },
+      },
+    });
+  });
+
+  it('consultarEntregablesPorPublicar deja solo el nombre de cada autor', async () => {
+    // Arrange
+    post.mockResolvedValue({
+      data: {
+        content: [
+          {
+            id: 'd-1',
+            proyectoGrado: 'p-1',
+            tituloProyecto: 'Riego',
+            versionEntregable: 1,
+            nombreArchivo: 'riego.zip',
+            autores: [
+              { id: 'a', identificador: '1', nombre: 'Ana' },
+              { id: 'b', identificador: '2', nombre: 'Luis' },
+            ],
+          },
+        ],
+        totalElements: 1,
+      },
+    });
+
+    // Act
+    const pagina = await dashboardService.consultarEntregablesPorPublicar();
+
+    // Assert
+    expect(post).toHaveBeenCalledWith('/biblioteca/entregables-proyecto-grado/consultar', {
+      pagina: 0,
+      tamanio: 5,
+    });
+    expect(pagina.content[0]).toEqual({
+      id: 'd-1',
+      tituloProyecto: 'Riego',
+      versionEntregable: 1,
+      autores: ['Ana', 'Luis'],
+    });
+  });
 });

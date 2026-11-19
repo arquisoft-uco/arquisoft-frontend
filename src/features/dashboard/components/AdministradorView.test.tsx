@@ -5,11 +5,13 @@ import { render, screen, within } from '../../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser } from '../../../test-utils/store.utils';
 import { Rol } from '../../../shared/models/rol';
 import { useResumenUsuarios } from '../hooks/useResumenUsuarios';
+import { useConteos } from '../hooks/useConteos';
 import { useUsuariosPorRol } from '../hooks/useUsuariosPorRol';
 import AdministradorView from './AdministradorView';
 
 vi.mock('../hooks/useResumenUsuarios', () => ({ useResumenUsuarios: vi.fn() }));
 vi.mock('../hooks/useUsuariosPorRol', () => ({ useUsuariosPorRol: vi.fn() }));
+vi.mock('../hooks/useConteos', () => ({ useConteos: vi.fn() }));
 
 const ROLES = [
   Rol.Estudiante,
@@ -48,6 +50,29 @@ describe('AdministradorView', () => {
     setAuthenticatedUser({ tokenParsed: { sub: 'u', given_name: 'Admin' } });
     resumenMock();
     porRolMock();
+    vi.mocked(useConteos).mockImplementation((recursos) => ({
+      valores: recursos.map((_, i) => i + 2),
+      total: undefined,
+      cargando: false,
+      hayError: false,
+      reintentar: vi.fn(),
+    }));
+  });
+
+  it('la sección «Gestión» cuenta repositorios y solicitudes recibidas y cada cifra lleva a su módulo', () => {
+    render(<AdministradorView />);
+
+    const gestion = screen.getByRole('region', { name: 'Gestión' });
+    expect(vi.mocked(useConteos)).toHaveBeenCalledWith([
+      'repositorios-artefactos',
+      'solicitudes-registro-usuarios-recibidas',
+    ]);
+    expect(
+      within(gestion).getByRole('link', { name: /Repositorios de artefactos/ }),
+    ).toHaveAttribute('href', '/repositorio-artefactos');
+    expect(within(gestion).getByRole('link', { name: /Solicitudes recibidas/ })).toHaveTextContent(
+      '3',
+    );
   });
 
   it('muestra vigentes y bajas, los siete roles sin jurado, y «Registrar usuario» navega a /usuarios', async () => {

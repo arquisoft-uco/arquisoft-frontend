@@ -1,4 +1,4 @@
-export interface FichaPorEvaluar {
+export interface FichaResumen {
   id: string;
   titulo: string;
   asesorNombre: string;

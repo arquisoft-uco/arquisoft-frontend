@@ -3,7 +3,7 @@ import { Route, Routes, useLocation } from 'react-router';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser } from '../../../test-utils/store.utils';
-import type { FichaPorEvaluar } from '../models/FichaPorEvaluar';
+import type { FichaResumen } from '../models/FichaResumen';
 import { useFichasPorEvaluar } from '../hooks/useFichasPorEvaluar';
 import { useTotalFichas } from '../hooks/useTotalFichas';
 import RepresentanteView from './RepresentanteView';
@@ -11,7 +11,7 @@ import RepresentanteView from './RepresentanteView';
 vi.mock('../hooks/useFichasPorEvaluar', () => ({ useFichasPorEvaluar: vi.fn() }));
 vi.mock('../hooks/useTotalFichas', () => ({ useTotalFichas: vi.fn() }));
 
-const fila: FichaPorEvaluar = {
+const fila: FichaResumen = {
   id: 'f-9',
   titulo: 'Sistema de alertas',
   asesorNombre: 'Asesor Dos',
@@ -79,7 +79,7 @@ describe('RepresentanteView', () => {
       { initialPath: '/dashboard' },
     );
 
-    await user.click(screen.getByRole('button', { name: 'Revisar' }));
+    await user.click(screen.getByRole('button', { name: 'Revisar la ficha Sistema de alertas' }));
 
     const destino = JSON.parse(screen.getByRole('status', { name: 'Destino' }).textContent!);
     expect(destino.pathname).toBe('/fichas-perfil/f-9/items');

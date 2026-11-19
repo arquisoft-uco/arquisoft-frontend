@@ -8,11 +8,44 @@ import type {
 import { Rol } from '../../../shared/models/rol';
 import type { EstadoDeFicha } from '../models/EstadoDeFicha';
 import type { FichaDelEstudiante } from '../models/FichaDelEstudiante';
-import type { FichaPorEvaluar } from '../models/FichaPorEvaluar';
+import type { ArtefactoSinAvance } from '../models/ArtefactoSinAvance';
+import type { EntregablePorPublicar } from '../models/EntregablePorPublicar';
+import type { EvaluacionPorEvaluar } from '../models/EvaluacionPorEvaluar';
+import type { FichaResumen } from '../models/FichaResumen';
+import type { RecursoContable } from '../models/RecursoContable';
 
 // Clave primaria del catálogo estado_ficha (migración V20260624215912); B2 de docs/pendientes.md.
 const ESTADO_POR_EVALUAR = 'DISPONIBLE_PARA_EVALUACION';
+export const ESTADO_JURADO_POR_EVALUAR = 'PENDIENTE_POR_EVALUAR';
 const TAMANIO_BANDEJA = 5;
+// Igual al valor por defecto del reporte de artefactos sin avance (artefactos/utils/dias-sin-avance.ts).
+export const DIAS_SIN_AVANCE = 15;
+
+const RUTA_CONTEO: Record<RecursoContable, string> = {
+  'fichas-coordinador': '/fichas-perfil/coordinador',
+  'fichas-asesor': '/fichas-perfil/asesor',
+  'evaluaciones-fichas-asesor': '/fichas-perfil/evaluaciones/asesor',
+  'proyectos-coordinador': '/proyectos-grado/coordinador',
+  'proyectos-asesor': '/proyectos-grado/asesor',
+  'evaluaciones-coordinador': '/evaluaciones/coordinador',
+  'evaluaciones-estudiante': '/evaluaciones/estudiante',
+  'evaluaciones-asesor': '/evaluaciones/evaluaciones-asesor/asesor',
+  'evaluaciones-jurado': '/evaluaciones/evaluaciones-jurado/jurado',
+  'mapas-ruta-coordinador': '/mapas-ruta/coordinador',
+  'artefactos-asesor': '/artefactos/asesor',
+  'artefactos-estudiante': '/artefactos/estudiante',
+  'entregables-asesor': '/entregables-proyecto-grado/asesor',
+  'entregables-jurado': '/entregables-proyecto-grado/jurado',
+  documentaciones: '/biblioteca/documentaciones/consultar',
+  'entregables-por-publicar': '/biblioteca/entregables-proyecto-grado/consultar',
+  'repositorios-artefactos': '/repositorio-artefactos/administrador',
+  'solicitudes-novedad-coordinador-recibidas': '/solicitudes/novedad-coordinador/recibidas',
+  'solicitudes-cambio-asesor-recibidas': '/solicitudes/cambio-asesor/recibidas',
+  'solicitudes-ampliacion-plazo-recibidas': '/solicitudes/ampliacion-plazo/recibidas',
+  'solicitudes-novedad-asesor-recibidas': '/solicitudes/novedad-asesor/recibidas',
+  'solicitudes-registro-usuarios-recibidas':
+    '/solicitudes/registro-modificacion-usuarios/recibidas',
+};
 
 const CAMPO_POR_ROL: Partial<Record<Rol, string>> = {
   [Rol.Estudiante]: 'esEstudiante',
@@ -40,6 +73,28 @@ interface FichaCoordinadorDTO {
   tituloProyecto: string;
   asesorFicha: { nombre: string; email: string };
   estado: { id: string; nombre: string; fechaActualizacion: string };
+}
+
+interface EvaluacionJuradoDTO {
+  id: string;
+  estado: { id: string; nombre: string };
+  entregable: { id: string; proyecto: string; version: number };
+}
+
+interface ArtefactoSinAvanceDTO {
+  id: string;
+  nombreProyecto: string;
+  nombreDocumento: string;
+  versionDocumento: number;
+  diasSinAvance?: number;
+  estadoUltimaRevision?: string;
+}
+
+interface EntregableDisponibleDTO {
+  id: string;
+  tituloProyecto: string | null;
+  versionEntregable: number;
+  autores: { id: string; nombre: string }[];
 }
 
 interface FiltroUsuarios {
@@ -73,7 +128,7 @@ function aFichaDelEstudiante(dto: FichaEstudianteDTO): FichaDelEstudiante {
   };
 }
 
-function aFichaPorEvaluar(dto: FichaCoordinadorDTO): FichaPorEvaluar {
+function aFichaResumen(dto: FichaCoordinadorDTO): FichaResumen {
   return {
     id: dto.id,
     titulo: dto.tituloProyecto,
@@ -83,6 +138,40 @@ function aFichaPorEvaluar(dto: FichaCoordinadorDTO): FichaPorEvaluar {
     estadoNombre: dto.estado.nombre,
     fechaActualizacion: dto.estado.fechaActualizacion,
   };
+}
+
+function aEvaluacionPorEvaluar(dto: EvaluacionJuradoDTO): EvaluacionPorEvaluar {
+  return {
+    id: dto.id,
+    proyecto: dto.entregable.proyecto,
+    versionEntregable: dto.entregable.version,
+    estadoId: dto.estado.id,
+    estadoNombre: dto.estado.nombre,
+  };
+}
+
+function aArtefactoSinAvance(dto: ArtefactoSinAvanceDTO): ArtefactoSinAvance {
+  return {
+    id: dto.id,
+    nombreDocumento: dto.nombreDocumento,
+    versionDocumento: dto.versionDocumento,
+    nombreProyecto: dto.nombreProyecto,
+    diasSinAvance: dto.diasSinAvance,
+    estadoUltimaRevision: dto.estadoUltimaRevision,
+  };
+}
+
+function aEntregablePorPublicar(dto: EntregableDisponibleDTO): EntregablePorPublicar {
+  return {
+    id: dto.id,
+    tituloProyecto: dto.tituloProyecto,
+    versionEntregable: dto.versionEntregable,
+    autores: dto.autores.map((autor) => autor.nombre),
+  };
+}
+
+function conContenido<D, M>(pagina: Page<D>, mapear: (dto: D) => M): Page<M> {
+  return { ...pagina, content: pagina.content.map(mapear) };
 }
 
 export const dashboardService = {
@@ -96,7 +185,7 @@ export const dashboardService = {
       .get<EstadoDeFicha[]>(`/fichas-perfil/${fichaId}/estados-ficha/estudiante`)
       .then((r) => r.data),
 
-  consultarFichasPorEvaluar: (): Promise<Page<FichaPorEvaluar>> => {
+  consultarFichasPorEvaluar: (): Promise<Page<FichaResumen>> => {
     const body: ConsultaCriteriaRequest = {
       pagina: 0,
       tamanio: TAMANIO_BANDEJA,
@@ -110,8 +199,64 @@ export const dashboardService = {
     };
     return apiClient
       .post<Page<FichaCoordinadorDTO>>('/fichas-perfil/coordinador', body)
-      .then(({ data }) => ({ ...data, content: data.content.map(aFichaPorEvaluar) }));
+      .then(({ data }) => conContenido(data, aFichaResumen));
   },
+
+  consultarFichasAsesoradas: (): Promise<Page<FichaResumen>> =>
+    apiClient
+      .post<Page<FichaCoordinadorDTO>>('/fichas-perfil/asesor', {
+        pagina: 0,
+        tamanio: TAMANIO_BANDEJA,
+      })
+      .then(({ data }) => conContenido(data, aFichaResumen)),
+
+  consultarEvaluacionesPorEvaluar: (): Promise<Page<EvaluacionPorEvaluar>> => {
+    const body: ConsultaCriteriaRequest = {
+      pagina: 0,
+      tamanio: TAMANIO_BANDEJA,
+      filtros: {
+        tipo: 'PREDICADO_MULTIVALOR',
+        campo: 'estadoJurado',
+        operador: 'IN',
+        valores: [ESTADO_JURADO_POR_EVALUAR],
+      },
+    };
+    return apiClient
+      .post<Page<EvaluacionJuradoDTO>>('/evaluaciones/evaluaciones-jurado/jurado', body)
+      .then(({ data }) => conContenido(data, aEvaluacionPorEvaluar));
+  },
+
+  consultarArtefactosSinAvance: (): Promise<Page<ArtefactoSinAvance>> => {
+    const criterio: ConsultaCriteriaRequest = {
+      pagina: 0,
+      tamanio: TAMANIO_BANDEJA,
+      ordenamiento: ['fechaUltimaVersion:ASC'],
+      filtros: {
+        tipo: 'GRUPO',
+        conector: 'AND',
+        nodos: [predicado('proyectoFinalizado', 'false'), predicado('proyectoCancelado', 'false')],
+      },
+    };
+    return apiClient
+      .post<Page<ArtefactoSinAvanceDTO>>('/artefactos/asesor/sin-avance', {
+        diasSinAvance: DIAS_SIN_AVANCE,
+        criterio,
+      })
+      .then(({ data }) => conContenido(data, aArtefactoSinAvance));
+  },
+
+  consultarEntregablesPorPublicar: (): Promise<Page<EntregablePorPublicar>> =>
+    apiClient
+      .post<Page<EntregableDisponibleDTO>>('/biblioteca/entregables-proyecto-grado/consultar', {
+        pagina: 0,
+        tamanio: TAMANIO_BANDEJA,
+      })
+      .then(({ data }) => conContenido(data, aEntregablePorPublicar)),
+
+  contar: (recurso: RecursoContable): Promise<number> =>
+    apiClient
+      .post<Page<unknown>>(RUTA_CONTEO[recurso], { pagina: 0, tamanio: 1 })
+      .then((r) => r.data.totalElements),
 
   contarFichas: (): Promise<number> =>
     apiClient

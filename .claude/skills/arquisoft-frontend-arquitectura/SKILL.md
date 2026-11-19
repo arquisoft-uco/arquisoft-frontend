@@ -70,7 +70,8 @@ compone una query y una mutación porque su consumidor las necesita juntas.
 `FichasPerfil.tsx` es el patrón, con tres ramas en orden: `useRolActivo()` es `null` → `/seleccionar-rol`;
 el rol no está en `VIEW_POR_ROL` → `<AccesoDenegado />`; hay vista → se renderiza.
 
-Excepción: el inicio (`Dashboard`) cae a una vista básica en lugar de `<AccesoDenegado />`, porque ningún rol sobra.
+Excepción: el inicio (`Dashboard`) declara su mapa como `Record<Rol, …>`: cada rol tiene su vista y el compilador
+exige la del rol que se agregue al enum, así que no hay rama de `<AccesoDenegado />`.
 
 El mapa se declara a nivel de módulo (`Record<string, React.ComponentType>` con claves del enum
 `Rol`), nunca como `switch` ni ternarios dentro del componente.

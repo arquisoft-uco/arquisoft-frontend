@@ -152,11 +152,28 @@ Layout       principal                                  | lateral (resumen)
 - **Cada cifra sale de un listado que ya existe** (`totalElements` con el filtro del rol y el tamaño de página
   mínimo). Nunca un número escrito a mano. La feature `dashboard` tiene su propio service y sus hooks para esas
   consultas: **no importa hooks de otra feature**.
-- **Estudiante:** tarjeta «Tu ficha de perfil» (título, `Badge` de estado, asesor, equipo, «Abrir ficha»), actividad
-  reciente, «Tu ruta académica» (pasos del flujo de gestión: el que existe «En curso», los demás «Pronto») y
-  atajos (enviar una solicitud). **Representante:** bandeja «Fichas por evaluar» (título, asesor, `Badge`, fecha,
-  «Revisar») y dos cifras. **Administrador:** usuarios vigentes y dados de baja, «Registrar usuario» y los
-  usuarios por rol. Los demás roles reciben su bandeja cuando su módulo exista.
+- **Una vista por cada rol del enum** (`Record<Rol, …>`, sin vista básica de respaldo): columna principal con la
+  bandeja de lo que el rol debe atender, columna lateral con cifras y atajos.
+- **Piezas del inicio** (en `features/dashboard/components/`): `BandejaInicio` (carga, error con «Reintentar»,
+  vacío y «Ver todos» hacia el listado completo, ya filtrado si el listado lee el filtro de la URL), `CifrasPanel`
+  (cifras de `useConteos` por `RecursoContable`, en rejilla o lista; cada cifra enlaza a su módulo y una que falló
+  se ve «—», nunca 0), `AtajosPanel` y `ListaFichas`. Un conteo nuevo es una entrada en `RUTA_CONTEO` del
+  `dashboardService`, nunca un hook nuevo.
+- **Atajos y cifras solo hacia pantallas que el rol ya usa** (su `VIEW_POR_ROL` en la feature destino): un módulo que
+  para ese rol renderiza `ComingSoon` (Solicitudes del jurado, del bibliotecario, del asesor de ficha y del
+  representante) no se ofrece.
+- **Por rol:**
+
+  | Rol | Bandeja | Cifras y atajos |
+  |---|---|---|
+  | Estudiante | Tarjeta «Tu ficha de perfil» y actividad reciente | «Tu avance» (artefactos, evaluaciones), ruta académica y tres atajos |
+  | Coordinador | — | «Resumen del programa» (fichas, proyectos, evaluaciones, mapas de ruta) y «Solicitudes recibidas» por tipo |
+  | Asesor | «Artefactos sin avance» (15 días, proyectos habilitados) | Resumen de proyectos, artefactos, entregables y evaluaciones; novedades recibidas |
+  | Asesor de ficha | «Tus fichas de perfil» con «Abrir» | Fichas asesoradas y evaluaciones de fichas |
+  | Jurado | «Evaluaciones por evaluar» | Evaluaciones y entregables asignados |
+  | Bibliotecario | «Entregables por publicar» | Documentos de la biblioteca y entregables por publicar |
+  | Representante | «Fichas por evaluar» con «Revisar» | Por evaluar y total de fichas |
+  | Administrador | Usuarios por rol y «Registrar usuario» | Vigentes y bajas; repositorios y solicitudes recibidas |
 - Al reescribir `Dashboard.tsx` (HT-UX-08) se borraron de `index.css` las clases que dejaron de usarse (`hero-gradient`,
   `hero-pattern`, `quick-card`); no las reintroduzcas.
 
