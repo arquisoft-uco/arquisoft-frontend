@@ -526,6 +526,16 @@ export const evaluacionesService = {
       >(`/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/observaciones/asesor`, req)
       .then((r) => r.data),
 
+  getObservacionesEvaluacionCuantitativaAsesorEstudiante: (
+    evaluacionCuantitativaAsesorId: string,
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ObservacionItemAsesor>> =>
+    apiClient
+      .post<
+        Page<ObservacionItemAsesor>
+      >(`/evaluaciones/evaluaciones-cuantitativas-asesor/${evaluacionCuantitativaAsesorId}/observaciones/estudiante`, req)
+      .then((r) => r.data),
+
   registrarObservacionItemAsesor: ({
     evaluacionCuantitativaAsesorId,
     descripcion,
