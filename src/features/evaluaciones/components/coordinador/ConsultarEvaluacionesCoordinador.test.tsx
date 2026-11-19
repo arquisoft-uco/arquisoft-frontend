@@ -25,6 +25,16 @@ vi.mock('./AsignarJuradosEvaluacionPanel', () => ({
   ),
 }));
 
+vi.mock('./AsignarAsesorEvaluacionPanel', () => ({
+  default: ({ evaluacion, onCerrar }: { evaluacion: { id: string }; onCerrar: () => void }) => (
+    <div role="dialog" aria-label={`Panel de asesor de ${evaluacion.id}`}>
+      <button type="button" onClick={onCerrar}>
+        Cerrar panel de asesor
+      </button>
+    </div>
+  ),
+}));
+
 let stateDestino: unknown;
 
 function Destino() {
@@ -219,6 +229,40 @@ describe('ConsultarEvaluacionesCoordinador', () => {
     // Assert
     expect(opcion).toBeDisabled();
     expect(screen.queryByRole('dialog', { name: 'Panel de e-1' })).not.toBeInTheDocument();
+  });
+
+  it('"Asignar asesor" abre el panel de esa evaluación, lo cierra y queda deshabilitada si está FINALIZADA', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockHook({ data: crearPagina([EVALUACION]) });
+    const { rerender } = render(<ConsultarEvaluacionesCoordinador />);
+
+    // Act
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Asignar asesor' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Panel de asesor de e-1' })).toBeInTheDocument();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Cerrar panel de asesor' }));
+
+    // Assert
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // Act
+    mockHook({
+      data: crearPagina([{ ...EVALUACION, estado: { id: 'FINALIZADA', nombre: 'Finalizada' } }]),
+    });
+    rerender(<ConsultarEvaluacionesCoordinador />);
+    await user.click(
+      screen.getAllByRole('button', { name: 'Acciones de Sistema de monitoreo' })[0],
+    );
+
+    // Assert
+    expect(screen.getByRole('menuitem', { name: 'Asignar asesor' })).toBeDisabled();
   });
 
   it('"Ver jurados" navega a la ruta de jurados con el resumen, finalizada y el search del listado', async () => {

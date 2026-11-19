@@ -713,6 +713,23 @@ describe('evaluacionesService', () => {
     });
   });
 
+  describe('asignarAsesorEvaluacion', () => {
+    it('llama PATCH con el id en la ruta, traduce asesorId a { asesor } y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: undefined });
+
+      // Act
+      const resultado = await evaluacionesService.asignarAsesorEvaluacion({
+        evaluacionId: 'e-1',
+        asesorId: 'a-1',
+      });
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/evaluaciones/e-1/asesor', { asesor: 'a-1' });
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('getEvaluacionesCualitativasRealizadasJurado', () => {
     it('llama GET a la ruta de cualitativas del jurado y resuelve la lista', async () => {
       // Arrange
