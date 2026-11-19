@@ -30,6 +30,16 @@ vi.mock('./ModificarItemCualitativoAsesorPanel', () => ({
   ),
 }));
 
+vi.mock('./RemoverItemCualitativoAsesorDialog', () => ({
+  default: ({ onCerrar }: { onCerrar: () => void }) => (
+    <div role="alertdialog" aria-label="Confirmar remoción">
+      <button type="button" onClick={onCerrar}>
+        Cerrar diálogo
+      </button>
+    </div>
+  ),
+}));
+
 vi.mock('../hooks/useCriteriosItemCualitativoAsesor', () => ({
   useCriteriosItemCualitativoAsesor: vi.fn(),
 }));
@@ -119,6 +129,24 @@ describe('ItemsCualitativosAsesorView', () => {
     expect(screen.getByText('Panel de edición de Rigor')).toBeInTheDocument();
   });
 
+  it('como administrador, «Remover» por fila abre la confirmación y al cerrarla desaparece', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    entrarComo(Rol.Administrador);
+    const user = userEvent.setup();
+    render(<ItemsCualitativosAsesorView />);
+
+    // Act
+    const tabla = screen.getByRole('table', { name: 'Ítems cualitativos del asesor' });
+    expect(within(tabla).getAllByRole('button', { name: /^Remover ítem/ })).toHaveLength(2);
+    await user.click(within(tabla).getByRole('button', { name: 'Remover ítem Rigor' }));
+
+    // Assert
+    expect(screen.getByRole('alertdialog', { name: 'Confirmar remoción' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cerrar diálogo' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
   it('como asesor no ofrece «Editar» ni «Registrar ítem»', () => {
     // Arrange
     mockConsulta({ data: ITEMS });
@@ -129,7 +157,7 @@ describe('ItemsCualitativosAsesorView', () => {
 
     // Assert
     expect(screen.getAllByRole('row')).toHaveLength(3);
-    expect(screen.queryByRole('button', { name: /editar|registrar ítem/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /editar|registrar ítem|remover/i })).toBeNull();
   });
 
   it('mientras carga, muestra el skeleton accesible', () => {
