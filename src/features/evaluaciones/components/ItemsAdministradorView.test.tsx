@@ -16,9 +16,7 @@ vi.mock('./ItemsCuantitativosAsesorView', () => ({
 }));
 
 vi.mock('./ItemsCualitativosAsesorView', () => ({
-  default: ({ puedeRegistrar }: { puedeRegistrar?: boolean }) => (
-    <p>Contenido cualitativos del asesor {puedeRegistrar ? 'con registro' : 'sin registro'}</p>
-  ),
+  default: () => <p>Contenido cualitativos del asesor</p>,
 }));
 
 describe('ItemsAdministradorView', () => {
@@ -48,6 +46,6 @@ describe('ItemsAdministradorView', () => {
     expect(screen.queryByText('Contenido cuantitativos del jurado')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Cualitativos del asesor' }));
-    expect(screen.getByText('Contenido cualitativos del asesor con registro')).toBeInTheDocument();
+    expect(screen.getByText('Contenido cualitativos del asesor')).toBeInTheDocument();
   });
 });

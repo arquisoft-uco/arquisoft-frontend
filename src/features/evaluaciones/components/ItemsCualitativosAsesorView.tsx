@@ -3,20 +3,24 @@ import { ListChecks, Plus } from 'lucide-react';
 import Button from '../../../shared/components/ui/Button';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../shared/components/ui/Skeleton';
+import { useHasRole } from '../../../hooks/useHasRole';
+import { Rol } from '../../../shared/models/rol';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import { useItemsCualitativosAsesor } from '../hooks/useItemsCualitativosAsesor';
+import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import CriteriosItemCualitativoAsesorPanel from './CriteriosItemCualitativoAsesorPanel';
 import ItemsCualitativosAsesorTable from './ItemsCualitativosAsesorTable';
+import ModificarItemCualitativoAsesorPanel from './ModificarItemCualitativoAsesorPanel';
 import RegistrarItemCualitativoAsesorPanel from './RegistrarItemCualitativoAsesorPanel';
 
-interface Props {
-  puedeRegistrar?: boolean;
-}
+const ROLES_ADMINISTRAN = [Rol.Administrador];
 
-export default function ItemsCualitativosAsesorView({ puedeRegistrar = false }: Props) {
+export default function ItemsCualitativosAsesorView() {
+  const esAdministrador = useHasRole(ROLES_ADMINISTRAN);
   const { data, isLoading, isError, error, refetch } = useItemsCualitativosAsesor();
   const [criteriosAbiertos, setCriteriosAbiertos] = useState(false);
   const [registrando, setRegistrando] = useState(false);
+  const [itemEnEdicion, setItemEnEdicion] = useState<ItemCualitativoAsesor | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -34,7 +38,7 @@ export default function ItemsCualitativosAsesorView({ puedeRegistrar = false }: 
         >
           Ver criterios
         </Button>
-        {puedeRegistrar && (
+        {esAdministrador && (
           <Button icono={Plus} className="header-action" onClick={() => setRegistrando(true)}>
             Registrar ítem
           </Button>
@@ -51,10 +55,23 @@ export default function ItemsCualitativosAsesorView({ puedeRegistrar = false }: 
         />
       )}
 
-      {data && <ItemsCualitativosAsesorTable items={data} />}
+      {data && (
+        <ItemsCualitativosAsesorTable
+          items={data}
+          onEditar={esAdministrador ? setItemEnEdicion : undefined}
+        />
+      )}
 
-      {registrando && (
+      {esAdministrador && registrando && (
         <RegistrarItemCualitativoAsesorPanel onCerrar={() => setRegistrando(false)} />
+      )}
+
+      {esAdministrador && itemEnEdicion && (
+        <ModificarItemCualitativoAsesorPanel
+          key={itemEnEdicion.id}
+          item={itemEnEdicion}
+          onCerrar={() => setItemEnEdicion(null)}
+        />
       )}
 
       {criteriosAbiertos && (
