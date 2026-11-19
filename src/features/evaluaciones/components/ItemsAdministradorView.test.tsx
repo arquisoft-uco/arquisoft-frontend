@@ -15,6 +15,12 @@ vi.mock('./ItemsCuantitativosAsesorView', () => ({
   default: () => <p>Contenido cuantitativos del asesor</p>,
 }));
 
+vi.mock('./ItemsCualitativosAsesorView', () => ({
+  default: ({ puedeRegistrar }: { puedeRegistrar?: boolean }) => (
+    <p>Contenido cualitativos del asesor {puedeRegistrar ? 'con registro' : 'sin registro'}</p>
+  ),
+}));
+
 describe('ItemsAdministradorView', () => {
   it('abre en Cualitativos del jurado con un único título y alterna entre las pestañas', async () => {
     // Arrange
@@ -40,5 +46,8 @@ describe('ItemsAdministradorView', () => {
     await user.click(screen.getByRole('tab', { name: 'Cuantitativos del asesor' }));
     expect(screen.getByText('Contenido cuantitativos del asesor')).toBeInTheDocument();
     expect(screen.queryByText('Contenido cuantitativos del jurado')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Cualitativos del asesor' }));
+    expect(screen.getByText('Contenido cualitativos del asesor con registro')).toBeInTheDocument();
   });
 });

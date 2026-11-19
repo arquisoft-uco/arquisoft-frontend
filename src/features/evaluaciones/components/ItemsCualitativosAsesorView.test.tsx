@@ -10,6 +10,14 @@ vi.mock('../hooks/useItemsCualitativosAsesor', () => ({
   useItemsCualitativosAsesor: vi.fn(),
 }));
 
+vi.mock('./RegistrarItemCualitativoAsesorPanel', () => ({
+  default: ({ onCerrar }: { onCerrar: () => void }) => (
+    <button type="button" onClick={onCerrar}>
+      Panel de registro
+    </button>
+  ),
+}));
+
 vi.mock('../hooks/useCriteriosItemCualitativoAsesor', () => ({
   useCriteriosItemCualitativoAsesor: vi.fn(),
 }));
@@ -59,6 +67,22 @@ describe('ItemsCualitativosAsesorView', () => {
     // Assert
     expect(screen.getByText('Criterios de los ítems')).toBeInTheDocument();
     expect(screen.getByText('Aplicabilidad')).toBeInTheDocument();
+  });
+
+  it('con puedeRegistrar ofrece «Registrar ítem», abre el panel y lo cierra', async () => {
+    // Arrange
+    mockConsulta({ data: ITEMS });
+    const user = userEvent.setup();
+    render(<ItemsCualitativosAsesorView puedeRegistrar />);
+    expect(screen.queryByText('Panel de registro')).toBeNull();
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Registrar ítem' }));
+
+    // Assert
+    expect(screen.getByText('Panel de registro')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Panel de registro' }));
+    expect(screen.queryByText('Panel de registro')).toBeNull();
   });
 
   it('mientras carga, muestra el skeleton accesible', () => {
