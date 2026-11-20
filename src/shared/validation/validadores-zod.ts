@@ -200,6 +200,12 @@ export function esFechaIsoReal(valor: string): boolean {
   );
 }
 
+// Coherencia de un filtro de fechas (no hay regla espejo en el backend): hasta no antecede a desde.
+export function validarRangoFechas(desde: string, hasta: string): string | undefined {
+  if (!esFechaIsoReal(desde) || !esFechaIsoReal(hasta)) return undefined;
+  return hasta < desde ? MENSAJES_VALIDACION.rangoFechasInvertido : undefined;
+}
+
 // Espejo de las reglas MAPA_RUTA_FECHA_*_REQUERIDA/_INVALIDA del backend: requerida, formato
 // yyyy-MM-dd y fecha real, en ese orden.
 export function fechaIso() {

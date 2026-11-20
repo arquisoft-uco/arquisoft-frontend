@@ -30,7 +30,7 @@ export default function FiltrosArtefactosSinAvance({ listado, estados }: Props) 
 
   const opcionesEstado: OpcionFiltro[] = [
     { id: '', etiqueta: 'Todos' },
-    ...(estados ?? []).map((estado) => ({ id: estado.nombre, etiqueta: estado.nombre })),
+    ...(estados ?? []).map((estado) => ({ id: estado.id, etiqueta: estado.nombre })),
   ];
 
   const secciones: SeccionFiltro[] = [
@@ -54,12 +54,13 @@ export default function FiltrosArtefactosSinAvance({ listado, estados }: Props) 
   const etiquetaEstadoProyecto = OPCIONES_ESTADO_PROYECTO.find(
     (opcion) => opcion.id === filtros.estadoProyecto,
   )?.etiqueta;
+  const nombreEstado = estados?.find((estado) => estado.id === filtros.estado)?.nombre;
   const aplicados = [
     ...(filtros.estado
       ? [
           {
             id: 'estado',
-            etiqueta: `Estado: ${filtros.estado}`,
+            etiqueta: `Estado: ${nombreEstado ?? filtros.estado}`,
             onQuitar: () => listado.setEstado(''),
           },
         ]

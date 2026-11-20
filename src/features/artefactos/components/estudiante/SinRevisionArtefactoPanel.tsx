@@ -58,7 +58,10 @@ export default function SinRevisionArtefactoPanel({
       descripcion={`«${artefacto.nombreDocumento}» · ${artefacto.nombreProyecto}`}
       onCerrar={onCerrar}
       pie={(solicitarCierre) => (
-        <PieRevision onCerrar={solicitarCierre}>
+        <PieRevision
+          onCerrar={solicitarCierre}
+          motivoAccion={!puedeSubir && motivoSubida ? motivoSubida : undefined}
+        >
           {!isLoading && !isError && (
             <AccionesRevisionEstudiante
               puedeSubir={puedeSubir}

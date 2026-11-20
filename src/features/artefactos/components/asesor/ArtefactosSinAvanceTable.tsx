@@ -8,6 +8,7 @@ import type {
 import { formatearFechaOpcional } from '../../../../shared/utils/formato-version';
 import type { ArtefactoSinAvance } from '../../models/ArtefactoSinAvance';
 import type { EstadoRevisionAsesor } from '../../models/artefactos';
+import { textoDias } from '../../utils/dias-sin-avance';
 import { varianteEstadoUltimaRevision } from '../../utils/estado-ultima-revision';
 
 import VacioArtefactosSinAvance from './VacioArtefactosSinAvance';
@@ -46,7 +47,7 @@ export default function ArtefactosSinAvanceTable({
   function diasSinAvance(artefacto: ArtefactoSinAvance) {
     return artefacto.diasSinAvance === undefined
       ? SIN_VERSIONES
-      : `${artefacto.diasSinAvance} días`;
+      : textoDias(artefacto.diasSinAvance);
   }
 
   function estado(artefacto: ArtefactoSinAvance) {

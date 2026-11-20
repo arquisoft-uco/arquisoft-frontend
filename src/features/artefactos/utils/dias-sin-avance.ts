@@ -7,6 +7,10 @@ const validadorDias = enteroEntre(
   LIMITES.ARTEFACTO_DIAS_SIN_AVANCE_MAX,
 );
 
+export function textoDias(dias: number): string {
+  return `${dias} ${dias === 1 ? 'día' : 'días'}`;
+}
+
 export function validarDiasSinAvance(texto: string): { dias: number | null; error?: string } {
   const resultado = validadorDias.safeParse(texto);
   if (!resultado.success) return { dias: null, error: resultado.error.issues[0].message };

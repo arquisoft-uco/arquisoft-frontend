@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
+import { validarRangoFechas } from '../../../shared/validation';
 import type { Page } from '../../../shared/models/api-response';
 import type { ConsultaCriteriaRequest } from '../../../shared/models/query-criteria';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
@@ -34,6 +35,7 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
   const texto = parametros.texto('q');
   const desde = leerFecha(parametros.texto('desde'));
   const hasta = leerFecha(parametros.texto('hasta'));
+  const errorFechas = validarRangoFechas(desde, hasta);
   const estadoIds = parametros.lista('estado');
   const artefacto = leerArtefacto(parametros.texto('artefacto'));
   const admiteEstadoProyecto = rol === 'asesor';
@@ -118,6 +120,7 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
         ordenamiento: [orden],
         filtros: construirFiltros({ texto, desde, hasta, estadoIds, artefacto, estadoProyecto }),
       }),
+    enabled: errorFechas === undefined,
     placeholderData: keepPreviousData,
   });
 
@@ -129,6 +132,7 @@ export function useListadoVersionesArtefacto({ rol, consultar }: Opciones) {
     texto,
     desde,
     hasta,
+    errorFechas,
     estadoIds,
     artefacto,
     admiteEstadoProyecto,
