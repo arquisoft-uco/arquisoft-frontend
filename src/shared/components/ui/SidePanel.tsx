@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { useAltoPiePanel } from '../../hooks/useAltoPiePanel';
 import { useTrampaDeFoco } from '../../hooks/useTrampaDeFoco';
 import ConfirmDialog from '../ConfirmDialog';
 import IconButton from './IconButton';
@@ -48,6 +49,7 @@ export default function SidePanel({
   const idDescripcion = useId();
   const panel = useRef<HTMLDivElement>(null);
   const cuerpo = useRef<HTMLDivElement>(null);
+  const piePanel = useRef<HTMLDivElement>(null);
   const [confirmando, setConfirmando] = useState(false);
 
   function solicitarCierre() {
@@ -78,6 +80,8 @@ export default function SidePanel({
       delete document.body.dataset.panelAbierto;
     };
   }, []);
+
+  useAltoPiePanel(piePanel, Boolean(pie));
 
   return createPortal(
     <>
@@ -118,7 +122,11 @@ export default function SidePanel({
         <div ref={cuerpo} className={CUERPO}>
           {children}
         </div>
-        {pie && <div className={PIE}>{pie(solicitarCierre)}</div>}
+        {pie && (
+          <div ref={piePanel} className={PIE}>
+            {pie(solicitarCierre)}
+          </div>
+        )}
       </div>
       {confirmando && (
         <ConfirmDialog

@@ -54,7 +54,7 @@ export default function AsesorView() {
           </Button>
         }
         titulo="Artefactos"
-        descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones las versiones de repositorio disponibles para asignar y el reporte de artefactos sin avance."
+        descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones, las versiones de repositorio disponibles para asignar y el reporte de artefactos sin avance."
       />
       <Tabs
         etiqueta="Secciones de artefactos"

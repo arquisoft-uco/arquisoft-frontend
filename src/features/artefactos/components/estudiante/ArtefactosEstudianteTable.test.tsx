@@ -76,7 +76,7 @@ describe('ArtefactosEstudianteTable', () => {
 
     // Act
     await user.click(tabla().getByRole('button', { name: 'Documento' }));
-    await user.click(tabla().getByRole('button', { name: 'Versión' }));
+    await user.click(tabla().getByRole('button', { name: 'Versión del documento' }));
     await user.click(tabla().getByRole('button', { name: 'Asesor' }));
 
     // Assert

@@ -35,6 +35,7 @@ export default function DetalleRevisionEstudianteContenido({
       onCerrar={onCerrar}
       encabezado={<EncabezadoRevisionEstudiante revision={revision} />}
       notaPie={gestion.notaPie}
+      motivoPie={editable && !gestion.puedeSubir ? (gestion.motivoSubida ?? undefined) : undefined}
       accionesPie={
         editable && (
           <AccionesRevisionEstudiante

@@ -1,6 +1,7 @@
 import { FileStack, SearchX } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
+import { textoDias } from '../../utils/dias-sin-avance';
 
 interface Props {
   hayFiltros: boolean;
@@ -26,7 +27,7 @@ export default function VacioArtefactosSinAvance({ hayFiltros, dias, onLimpiarFi
   return (
     <EmptyState
       icono={FileStack}
-      titulo={`Ningún artefacto supera ${dias} días sin avance`}
+      titulo={`Ningún artefacto supera ${textoDias(dias)} sin avance`}
       descripcion="Prueba con un plazo menor para ver artefactos con avances más recientes."
     />
   );

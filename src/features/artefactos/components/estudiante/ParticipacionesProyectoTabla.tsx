@@ -45,7 +45,7 @@ function columnasDe(
     },
     {
       id: 'version',
-      encabezado: 'Versión',
+      encabezado: 'Versión del documento',
       clave: 'versionDocumento',
       celda: (participacion) => <Badge variante="neutro">{etiquetaVersion(participacion)}</Badge>,
     },
@@ -139,7 +139,7 @@ export default function ParticipacionesProyectoTabla({
             />
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
             <p className={TARJETA_DATO}>
-              {participacion.nombreAsesor} · {etiquetaVersion(participacion)}
+              {participacion.nombreAsesor} · {etiquetaVersion(participacion)} del documento
             </p>
           </>
         )}

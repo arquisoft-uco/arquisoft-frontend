@@ -14,6 +14,7 @@ export const MENSAJES_VALIDACION = {
   valorEntre: (min: number, max: number) => `Debe estar entre ${min} y ${max}`,
   fechaInvalida: 'Ingresa una fecha válida',
   fechaFinPosterior: 'La fecha de fin debe ser posterior a la de inicio',
+  rangoFechasInvertido: 'La fecha final no puede ser anterior a la inicial',
   archivoRequerido: 'Selecciona un archivo',
   formatoArchivo: (extensiones: readonly string[]) => {
     const nombres = extensiones.map((e) => e.toUpperCase());

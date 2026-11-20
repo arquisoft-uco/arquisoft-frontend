@@ -93,7 +93,8 @@ export default function VersionesArtefactoTable({
             proyectoCancelado={version.proyectoCancelado}
           />
           <p className={TARJETA_DATO}>
-            {etiquetaVersion(version)} · {formatearFechaCreacion(version.fechaCreacion)}
+            {etiquetaVersion(version)} del artefacto ·{' '}
+            {formatearFechaCreacion(version.fechaCreacion)}
           </p>
           {mostrarAsesor && <p className={TARJETA_DATO}>{version.nombreAsesor}</p>}
           {version.fechaCreacionRevision !== null && (

@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { CalendarX } from 'lucide-react';
 import PaginadorListado from '../../../shared/components/PaginadorListado';
 import type { AccionMenu } from '../../../shared/components/ui/RowMenu';
 import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
+import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
 import type { ListadoVersionesArtefacto } from '../hooks/useListadoVersionesArtefacto';
@@ -40,7 +42,7 @@ export default function ConsultarVersionesArtefacto({
   opcionesEstado,
   accionesAdicionales,
 }: Props) {
-  const { data, isLoading, isError, error, isFetching, refetch } = listado;
+  const { data, isLoading, isError, error, isFetching, refetch, errorFechas } = listado;
   const versiones = data?.content ?? [];
   const [versionAbierta, setVersionAbierta] = useState<VersionArtefacto | null>(null);
 
@@ -53,11 +55,17 @@ export default function ConsultarVersionesArtefacto({
       />
 
       <p aria-live="polite" className={RESUMEN}>
-        {textoResumen(data?.totalElements, listado.estadoProyecto)}
+        {errorFechas ? '' : textoResumen(data?.totalElements, listado.estadoProyecto)}
       </p>
 
       <div aria-busy={isFetching}>
-        {isError ? (
+        {errorFechas ? (
+          <EmptyState
+            icono={CalendarX}
+            titulo="Revisa el rango de fechas"
+            descripcion={`${errorFechas}. Corrígelo para consultar las versiones.`}
+          />
+        ) : isError ? (
           <ErrorState
             titulo="No se pudieron cargar las versiones"
             descripcion={getApiErrorMessage(error, 'Inténtalo nuevamente.')}
@@ -81,7 +89,7 @@ export default function ConsultarVersionesArtefacto({
         )}
       </div>
 
-      {!isError && (
+      {!isError && !errorFechas && (
         <PaginadorListado
           page={listado.page}
           pageSize={listado.pageSize}

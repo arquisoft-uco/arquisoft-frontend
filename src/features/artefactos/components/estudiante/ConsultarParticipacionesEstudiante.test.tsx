@@ -220,7 +220,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     const tabla = screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' });
     expect(within(tabla).getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
     expect(within(tabla).getAllByText('Laura Gómez').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Laura Gómez · Versión 2').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Laura Gómez · Versión 2 del documento').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Anteproyecto').length).toBeGreaterThan(0);
   });
 

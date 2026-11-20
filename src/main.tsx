@@ -6,13 +6,14 @@ import { RouterProvider } from 'react-router';
 import './index.css';
 import { router } from './router';
 import { RootErrorBoundary } from './shared/components/RootErrorBoundary';
+import { debeReintentarConsulta } from './shared/utils/reintentar-consulta';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
       gcTime: 30 * 60 * 1000,
-      retry: 2,
+      retry: debeReintentarConsulta,
     },
   },
 });

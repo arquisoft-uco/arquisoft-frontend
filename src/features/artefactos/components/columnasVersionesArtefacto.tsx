@@ -61,7 +61,7 @@ export function construirColumnas({
   columnas.push(
     {
       id: 'version',
-      encabezado: 'Versión',
+      encabezado: 'Versión del artefacto',
       clave: 'version',
       ordenable: true,
       celda: (version) => <Badge variante="neutro">{etiquetaVersion(version)}</Badge>,
