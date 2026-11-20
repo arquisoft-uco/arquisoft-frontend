@@ -6,7 +6,7 @@ de `arquisoft-frontend-estandares`.
 
 ## 1. Identidad institucional (HT-UX-10)
 
-Primera pasada: la paleta sale del «Manual de diseño institucional UCO, lineamientos-desarrollo v8.0».
+La paleta sale del «Manual de diseño institucional UCO (lineamientos de desarrollo)».
 Los valores institucionales viven **una sola vez** en `src/uco-tokens.css` (`--uco-*`, copia literal del
 manual, sin ajustar) y `@theme` los referencia con `var(--uco-*)`; los derivados (tintes, grises,
 `danger-strong`, `primary-hover`) están en `@theme` como hex de 6 dígitos. Nunca se escribe un hex

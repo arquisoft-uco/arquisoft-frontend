@@ -13,7 +13,7 @@ import EnlaceRepositorio from './EnlaceRepositorio';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const TARJETA_ENLACE =
-  'hover:text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
+  'inline-block min-h-6 hover:text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';

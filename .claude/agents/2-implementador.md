@@ -134,7 +134,7 @@ agregues entradas a `src/test-utils/arquitectura.baseline.ts`**. Si `format:chec
 `npx prettier --write` solo los archivos que listó.
 
 Si el plan declara cambios visuales y hay Claude in Chrome disponible, verifica además la pantalla
-real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red) y repasa el «Checklist de una pantalla»
+real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red) en los cuatro formatos y con teclado (`identidad-uco.md` §8 de `arquisoft-frontend-ui-ux`) y repasa el «Checklist de una pantalla»
 de `arquisoft-frontend-ui-ux`. Una pantalla que no viste no se reporta como verificada.
 
 Sin esto, la fila `Desarrollo` mentiría a `@3-tester` y a `@4a-validator-analyze`.

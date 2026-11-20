@@ -1,9 +1,8 @@
 # Identidad institucional UCO
 
-Fuente de color, tipografía y marca del producto. Sale del «Manual de diseño institucional UCO,
-lineamientos-desarrollo v8.0» (el manual no se versiona en este repo). **Primera pasada (HT-UX-10):** cuando
-Comunicaciones entregue los archivos oficiales (SVG del logo, favicon y `uco-tokens.css`) se reemplaza lo
-provisional; el pendiente está en `docs/pendientes.md` (F10). Esta referencia manda en color, tipografía y marca
+Fuente de color, tipografía y marca del producto. Sale del «Manual de diseño institucional UCO (lineamientos
+de desarrollo)» (el manual no se versiona en este repo). Los archivos de marca vienen del Área de Comunicaciones
+y Posicionamiento. Esta referencia manda en color, tipografía y marca
 sobre el lienzo de 2026-10-03; el lienzo sigue valiendo para estructura, patrones y medidas.
 
 ## 1. Paleta y pares verificados
@@ -49,8 +48,7 @@ estado nunca recibe colores distintos en dos vistas; ninguna vista decide el col
 ## 4. Foco
 
 Anillo de 2 px en verde (`focus`), separado 2 px del elemento (`focus-visible:outline-focus` con offset de 2 px).
-Sobre fondo blanco da 4,37 (mínimo 3). Donde el verde no alcanza (sobre verde oscuro: 2,59) se usa el amarillo
-del tema. Nunca se quita el indicador sin un reemplazo equivalente.
+Sobre fondo blanco da 4,37 (mínimo 3). Nunca se quita el indicador sin un reemplazo equivalente.
 
 ## 5. Fuentes
 
@@ -63,7 +61,8 @@ interfaz.
 
 - **Logo:** se lee de una sola ruta, `public/brand/` (constante en `src/config/marca.ts`). Ningún componente
   escribe la ruta a mano ni referencia otra copia. No se recolorea, no se recorta, no se deforma; mínimo
-  2,5 × 0,77 cm en pantalla equivalente y sobre fondo que lo haga visible. Provisional: PNG hasta recibir el SVG.
+  2,5 × 0,77 cm en pantalla equivalente y sobre fondo que lo haga visible. La variante por defecto en interfaz es `letras-negro` (fondo claro); otras variantes
+  solo se agregan cuando haya un fondo oscuro o un correo que las use.
 - **Favicon:** el institucional completo, `public/favicon.ico` (seis resoluciones), declarado con
   `<link rel="icon" href="/favicon.ico" sizes="any">`. No se sustituye por un ícono propio ni por el del andamiaje.
 
@@ -76,7 +75,20 @@ interfaz.
   contraste se ajusta el valor, nunca la prueba.
 - Sin tema oscuro.
 
-## 8. Qué se revisa
+## 8. Formatos y accesibilidad mínima
+
+- **Cuatro formatos, ninguno se da por bueno sin mirarlo:** teléfono 390 px (y 320 px, el mínimo del proyecto),
+  tableta 768 px, escritorio compacto 1366 px y escritorio 1920 px. La medida es el **área visible real**: la
+  ventana descuenta 130 a 150 px de alto por las barras del sistema y del navegador. Son anchos de comprobación,
+  no puntos de corte nuevos: el único breakpoint del proyecto sigue siendo 640 px. Para anchos que la ventana no
+  alcanza se monta la ruta en un `iframe` del ancho exacto (ver «Mobile first» de `arquisoft-frontend-estandares`).
+- **Objetivo de interacción mínimo de WCAG 2.2 (2.5.8, AA): 24 × 24 px CSS**, en cualquier formato. El proyecto
+  da 44 px en celular y 32 a 40 px desde `sm` a botones y campos; la casilla y el radio (`.checkbox-control`) miden 24 px en todos los formatos y `.tap-target` no baja de 24 px desde `sm`; lo que quede por debajo de 24 px incumple, salvo las excepciones
+  de la norma.
+- **Todo lo que se hace con el puntero se hace con teclado:** abrir, cerrar, elegir, arrastrar o descartar tiene
+  su equivalente por teclado, con el foco visible y en orden lógico.
+
+## 9. Qué se revisa
 
 Un plan o un PR con UI no pasa si: introduce un rojo; usa texto blanco sobre verde, amarillo como texto o blanco
 sobre naranja; pinta un estado fuera de `estado-variante.ts`; carga fuentes de una CDN; referencia el logo fuera

@@ -329,8 +329,9 @@ decisión y se desincroniza el día que cambie: usa la clase.
 | Clase global | Qué resuelve |
 |---|---|
 | `.field-label` / `.field-input` / `.field-error` / `.field-hint` | El campo completo: etiqueta, control, mensaje y ayuda bajo el campo; `.field-input--icono` y `.field-input--accion` dan sitio a un icono o un botón dentro del input. El input va a 16 px en celular (menos hace que iOS acerque la pantalla al enfocar) y baja a 14 px desde `sm`; `[aria-invalid='true']` ya pinta el borde de error |
-| `.tap-target` | Área táctil de 44 px en celular, sin mínimo desde `sm` — para la etiqueta que envuelve una casilla o un radio |
-| `.checkbox-control` | Casilla de 20 px para el dedo, 16 px desde `sm` |
+| `.tap-target` | Área táctil de 44 px en celular; nunca menos de 24 px desde `sm` — para la etiqueta que envuelve una casilla o un radio |
+| `.checkbox-control` | Casilla de 24 px en todos los formatos |
+| `.enlace-celda` | Enlace o botón con el nombre de una fila: una línea con puntos suspensivos y nunca menos de 24 px de alto |
 | `.actions-row` | Fila de botones: apilada y de ancho completo en celular, con la acción principal arriba; en fila a la derecha desde `sm` |
 | `.section-header` + `.header-action` | Cabecera de título más acción: apilada con botón de ancho completo en celular, en fila y separada desde `sm` |
 
@@ -344,7 +345,7 @@ segunda vista, sube a `index.css`:
 | Icono-botón | la pieza `IconButton`; a mano, `h-11 w-11 sm:h-9 sm:w-9` |
 | Tabla o bloque ancho | envuelto en un contenedor con `overflow-x-auto`; el resto de la página nunca desplaza en horizontal |
 
-**Verificación obligatoria antes de entregar una pantalla nueva:** a 390 px y a 320 px no debe haber
+**Verificación obligatoria antes de entregar una pantalla nueva:** además de los cuatro formatos de `identidad-uco.md` §8 de `arquisoft-frontend-ui-ux`, a 390 px y a 320 px no debe haber
 desplazamiento horizontal ni elementos que se salgan de su contenedor. El contenedor que desplaza en la
 aplicación es `main` (no el documento), así que `document.documentElement.scrollWidth` igual a
 `window.innerWidth` da falsos negativos: mide también `main.scrollWidth - main.clientWidth` y los elementos
