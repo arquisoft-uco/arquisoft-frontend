@@ -9,6 +9,7 @@ Aplicación web de gestión académica construida con **React 19**, **TypeScript
 | Framework       | React 19 + TypeScript                                           |
 | Bundler         | Vite 6                                                          |
 | Estilos         | Tailwind CSS v4                                                 |
+| Tipografía      | Montserrat y Poppins (`@fontsource`, servidas desde el propio despliegue) |
 | Routing         | React Router 7                                                  |
 | Estado global   | Zustand 5                                                       |
 | Estado servidor | TanStack React Query 5                                          |
@@ -52,6 +53,8 @@ npm run dev
 
 `src/arquitectura.test.ts` hace cumplir las reglas de capas, el cliente HTTP único y otras
 convenciones; su deuda previa está en `src/test-utils/arquitectura.baseline.ts` y solo puede decrecer.
+`src/tema-contraste.test.ts` mide el contraste WCAG de los tokens del tema y rechaza colores literales
+fuera de `@theme`. Los valores institucionales viven en `src/uco-tokens.css`.
 El CI ejecuta `format:check`, `lint`, `test` y `build`.
 
 ## Variables de entorno

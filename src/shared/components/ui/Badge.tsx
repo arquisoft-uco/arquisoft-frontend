@@ -8,7 +8,7 @@ const PUNTO = 'size-1.5 rounded-full bg-current';
 
 const VARIANTES: Record<VarianteBadge, string> = {
   neutro: 'bg-muted text-muted-foreground',
-  info: 'bg-primary-muted text-primary-muted-foreground',
+  info: 'bg-info text-info-foreground',
   exito: 'bg-secondary-muted text-secondary-muted-foreground',
   advertencia: 'bg-tertiary-muted text-tertiary-muted-foreground',
   peligro: 'bg-danger-muted text-danger-muted-foreground',
