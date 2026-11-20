@@ -469,22 +469,48 @@ describe('evaluacionesService', () => {
     });
   });
 
-  describe('modificarItemCualitativoJurado', () => {
-    it('llama PATCH con el itemId en la ruta y solo { descripcion } en el body, y resuelve undefined', async () => {
+  describe('modificarItemCualitativo', () => {
+    it.each([
+      ['Jurado', 'jurado', evaluacionesService.modificarItemCualitativoJurado],
+      ['Asesor', 'asesor', evaluacionesService.modificarItemCualitativoAsesor],
+    ])(
+      'de %s llama PATCH con el itemId en la ruta y { descripcion, peso } en el body',
+      async (_rol, ruta, metodo) => {
+        // Arrange
+        patch.mockResolvedValue({ status: 204, data: undefined });
+
+        // Act
+        const resultado = await metodo({
+          itemId: 'item-1',
+          descripcion: 'Nueva descripción',
+          peso: 25,
+        });
+
+        // Assert
+        expect(patch).toHaveBeenCalledWith(`/evaluaciones/items-cualitativos-${ruta}/item-1`, {
+          descripcion: 'Nueva descripción',
+          peso: 25,
+        });
+        expect(resultado).toBeUndefined();
+      },
+    );
+  });
+
+  describe('registrarItemCualitativo', () => {
+    it.each([
+      ['Jurado', 'jurado', evaluacionesService.registrarItemCualitativoJurado],
+      ['Asesor', 'asesor', evaluacionesService.registrarItemCualitativoAsesor],
+    ])('de %s envía el peso en el POST', async (_rol, ruta, metodo) => {
       // Arrange
-      patch.mockResolvedValue({ status: 204, data: undefined });
+      post.mockResolvedValue({ status: 201, data: { id: 'item-1' } });
+      const req = { nombre: 'Claridad', descripcion: 'Descripción', peso: 10 };
 
       // Act
-      const resultado = await evaluacionesService.modificarItemCualitativoJurado({
-        itemId: 'item-1',
-        descripcion: 'Nueva descripción',
-      });
+      const resultado = await metodo(req);
 
       // Assert
-      expect(patch).toHaveBeenCalledWith('/evaluaciones/items-cualitativos-jurado/item-1', {
-        descripcion: 'Nueva descripción',
-      });
-      expect(resultado).toBeUndefined();
+      expect(post).toHaveBeenCalledWith(`/evaluaciones/items-cualitativos-${ruta}`, req);
+      expect(resultado).toEqual({ id: 'item-1' });
     });
   });
 

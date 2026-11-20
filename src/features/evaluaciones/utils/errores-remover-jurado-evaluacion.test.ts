@@ -25,7 +25,7 @@ describe('mensajeErrorRemoverJurado', () => {
       'Ana',
     );
     const conEvaluaciones = mensajeErrorRemoverJurado(
-      errorApi('EVALUACION_JURADO_JURADOS_CON_EVALUACIONES'),
+      errorApi('EVALUACION_JURADO_JURADOS_EVALUADOS'),
       'Ana',
     );
     const otro = mensajeErrorRemoverJurado(errorApi('OTRO', 'Texto del backend'), 'Ana');
@@ -35,7 +35,9 @@ describe('mensajeErrorRemoverJurado', () => {
     expect(noExiste).toBe('La evaluación ya no existe.');
     expect(finalizada).toBe('La evaluación está finalizada y no admite cambios de jurados.');
     expect(noAsignado).toBe('Ana ya no está asignado a esta evaluación.');
-    expect(conEvaluaciones).toBe('No se puede remover a Ana porque ya registró evaluaciones.');
+    expect(conEvaluaciones).toBe(
+      'No se puede remover a Ana porque ya completó su evaluación y no puede retirarse.',
+    );
     expect(otro).toBe('Texto del backend');
     expect(sinRespuesta).toBe('Inténtalo nuevamente.');
   });

@@ -19,7 +19,7 @@ type Consulta = ReturnType<typeof useEvaluacionesCualitativasAsesor>;
 
 const FILA = {
   id: 'ec-1',
-  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Qué tan claro es el documento' },
+  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Qué tan claro es el documento', peso: 100 },
   criterio: { id: 'c-1', nombre: 'Excelente', descripcion: 'Supera lo esperado' },
 };
 

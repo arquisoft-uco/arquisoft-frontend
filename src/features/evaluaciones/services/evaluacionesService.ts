@@ -104,9 +104,10 @@ export const evaluacionesService = {
   modificarItemCualitativoAsesor: ({
     itemId,
     descripcion,
+    peso,
   }: ModificarItemCualitativoAsesorRequest): Promise<void> =>
     apiClient
-      .patch<void>(`/evaluaciones/items-cualitativos-asesor/${itemId}`, { descripcion })
+      .patch<void>(`/evaluaciones/items-cualitativos-asesor/${itemId}`, { descripcion, peso })
       .then(() => undefined),
 
   removerItemCualitativoAsesor: (itemId: string): Promise<void> =>
@@ -220,9 +221,10 @@ export const evaluacionesService = {
   modificarItemCualitativoJurado: ({
     itemId,
     descripcion,
+    peso,
   }: ModificarItemCualitativoJuradoRequest): Promise<void> =>
     apiClient
-      .patch<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`, { descripcion })
+      .patch<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`, { descripcion, peso })
       .then(() => undefined),
 
   cambiarCriterioEvaluacionCualitativaJurado: ({

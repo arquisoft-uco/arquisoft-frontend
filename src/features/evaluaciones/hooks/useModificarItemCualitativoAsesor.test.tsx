@@ -18,6 +18,7 @@ const modificar = vi.mocked(evaluacionesService.modificarItemCualitativoAsesor);
 const request: ModificarItemCualitativoAsesorRequest = {
   itemId: 'i-1',
   descripcion: 'Nueva descripción.',
+  peso: 10,
 };
 
 const KEY = { queryKey: ['evaluaciones', 'items-cualitativos-asesor'] };

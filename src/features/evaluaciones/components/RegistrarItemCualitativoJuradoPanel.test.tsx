@@ -53,6 +53,7 @@ function mockMutacion(mutate = vi.fn(), isPending = false) {
 async function llenarValido(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText('Nombre'), 'Claridad');
   await user.type(screen.getByLabelText('Descripción'), 'Se comprende sin ambigüedades.');
+  await user.type(screen.getByLabelText('Peso'), '120');
 }
 
 describe('RegistrarItemCualitativoJuradoPanel', () => {
@@ -85,6 +86,27 @@ describe('RegistrarItemCualitativoJuradoPanel', () => {
     );
   });
 
+  it('arranca con el peso vacío y con ayuda, y no envía un peso inválido', async () => {
+    // Arrange
+    const mutate = mockMutacion();
+    const user = userEvent.setup();
+    render(<RegistrarItemCualitativoJuradoPanel onCerrar={vi.fn()} />);
+    const peso = screen.getByLabelText('Peso');
+
+    // Act
+    const inicial = (peso as HTMLInputElement).value;
+    await user.type(screen.getByLabelText('Nombre'), 'Claridad');
+    await user.type(screen.getByLabelText('Descripción'), 'Se comprende.');
+    await user.type(peso, '501');
+    await user.click(screen.getByRole('button', { name: 'Registrar ítem' }));
+
+    // Assert
+    expect(inicial).toBe('');
+    expect(peso).toHaveAccessibleDescription(MENSAJES_VALIDACION.valorEntre(1, 500));
+    expect(peso).toHaveAttribute('aria-invalid', 'true');
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
   it('envía con datos válidos, notifica el éxito y cierra el formulario', async () => {
     // Arrange
     const mutate = vi.fn((_req: unknown, opciones?: MutateOptions) => opciones?.onSuccess?.());
@@ -99,7 +121,7 @@ describe('RegistrarItemCualitativoJuradoPanel', () => {
 
     // Assert
     expect(mutate).toHaveBeenCalledWith(
-      { nombre: 'Claridad', descripcion: 'Se comprende sin ambigüedades.' },
+      { nombre: 'Claridad', descripcion: 'Se comprende sin ambigüedades.', peso: 120 },
       expect.anything(),
     );
     expect(toast.success).toHaveBeenCalledWith(
@@ -149,7 +171,7 @@ describe('RegistrarItemCualitativoJuradoPanel', () => {
           error: 'Bad Request',
           message: 'Datos inválidos',
           status: 400,
-          fieldErrors: [{ field: 'descripcion', message: 'Descripción no permitida' }],
+          fieldErrors: [{ field: 'peso', message: 'Peso fuera de rango' }],
         }),
       ),
     );
@@ -163,11 +185,9 @@ describe('RegistrarItemCualitativoJuradoPanel', () => {
 
     // Assert
     await waitFor(() =>
-      expect(screen.getByLabelText('Descripción')).toHaveAttribute('aria-invalid', 'true'),
+      expect(screen.getByLabelText('Peso')).toHaveAttribute('aria-invalid', 'true'),
     );
-    expect(screen.getByLabelText('Descripción')).toHaveAccessibleDescription(
-      'Descripción no permitida',
-    );
+    expect(screen.getByLabelText('Peso')).toHaveAccessibleDescription('Peso fuera de rango');
     expect(screen.getByLabelText('Nombre')).toHaveAttribute('aria-invalid', 'false');
     expect(toast.error).toHaveBeenCalledWith('No se pudo registrar el ítem', 'Datos inválidos');
   });

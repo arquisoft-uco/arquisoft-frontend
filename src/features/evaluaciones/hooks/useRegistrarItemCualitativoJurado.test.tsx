@@ -17,6 +17,7 @@ const registrar = vi.mocked(evaluacionesService.registrarItemCualitativoJurado);
 const request: RegistrarItemCualitativoJuradoRequest = {
   nombre: 'Claridad',
   descripcion: 'El documento se comprende sin ambigüedades.',
+  peso: 10,
 };
 
 function crearContexto() {

@@ -19,6 +19,7 @@ const ITEM: ItemCualitativoJurado = {
   id: 'i-1',
   nombre: 'Claridad',
   descripcion: 'El documento se comprende sin ambigüedades.',
+  peso: 100,
 };
 
 type MutateOptions = {

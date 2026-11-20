@@ -35,8 +35,8 @@ const ASIGNACION: EvaluacionAsignadaJurado = {
 };
 
 const ITEMS = [
-  { id: ID_CLARIDAD, nombre: 'Claridad', descripcion: 'Se entiende' },
-  { id: ID_ORDEN, nombre: 'Orden', descripcion: 'Está ordenado' },
+  { id: ID_CLARIDAD, nombre: 'Claridad', descripcion: 'Se entiende', peso: 100 },
+  { id: ID_ORDEN, nombre: 'Orden', descripcion: 'Está ordenado', peso: 50 },
 ];
 const CRITERIOS = [{ id: ID_SUFICIENTE, nombre: 'Suficiente', descripcion: 'Cumple' }];
 
