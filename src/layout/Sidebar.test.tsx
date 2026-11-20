@@ -6,6 +6,7 @@ import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../test-uti
 import { Rol } from '../shared/models/rol';
 import { NAV_ITEMS, estaDisponible, navItemsDelRol, type NavItem } from './nav-items';
 import Sidebar from './Sidebar';
+import { LOGO_INSTITUCIONAL } from '../config/marca';
 
 vi.mock('./nav-items', async (importOriginal) => {
   const real = await importOriginal<typeof import('./nav-items')>();
@@ -112,6 +113,15 @@ describe('Sidebar', () => {
 
     expect(screen.getByRole('list', { name: 'Trabajo' })).toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Próximamente' })).not.toBeInTheDocument();
+  });
+
+  it('el encabezado muestra el logo institucional con su texto alternativo', () => {
+    entrarComo(Rol.Estudiante);
+
+    renderizar();
+
+    const logo = screen.getByRole('img', { name: 'Universidad Católica de Oriente' });
+    expect(logo).toHaveAttribute('src', LOGO_INSTITUCIONAL.src);
   });
 
   it('el botón de ocultar llama onClose', async () => {

@@ -98,7 +98,9 @@ y, en `router.tsx`, `lazy(...)` + `guarded('{path}', <Pagina />)`. Nunca `<RoleG
 **Kit primero** (UI). Antes de escribir clases a mano para un botón, insignia, campo, aviso, vacío, error
 o tabla, lista `src/shared/components/ui/`: si la pieza existe, úsala. Si el plan declara una pieza nueva,
 créala con la receta de `arquisoft-frontend-ui-ux` (`references/componentes.md`) y su prueba de
-comportamiento. Un caso que la skill no cubre es una ambigüedad, no una variante nueva.
+comportamiento. Un caso que la skill no cubre es una ambigüedad, no una variante nueva. Color,
+tipografía, logo y estados salen de `references/identidad-uco.md` (sin rojo, pares de contraste, fuentes y
+logo propios).
 
 ## FASE 4 — Auto-corrección
 

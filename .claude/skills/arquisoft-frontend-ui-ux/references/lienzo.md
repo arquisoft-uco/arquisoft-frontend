@@ -1,5 +1,8 @@
 # El lienzo de diseño (solo lectura)
 
+> **Precedencia (HT-UX-10):** los colores y las fuentes de este lienzo quedaron superados por el manual de la UCO; ver `tokens.md` §1. Estructura, patrones y medidas siguen vigentes.
+
+
 **URL:** https://claude.ai/artifact/TPmx9vR2cnHtkbt75NkAFC · título «Análisis UI/UX Arquisoft» · creado el
 2026-10-03 con `/design` a partir del análisis del código del frontend.
 

@@ -122,6 +122,7 @@ cuando es una buena práctica o una recomendación. Son preguntas guía, no una 
 - **Diseño UI/UX** (solo si el plan toca algo que se ve). ¿Usa las piezas del kit y el patrón que el plan
   declara en `arquisoft-frontend-ui-ux`? ¿Cumple su «Checklist de una pantalla»? ¿Reintroduce algo de «Lo
   que un plan o un PR nunca hace»? Una pieza nueva del kit se compara con su receta de `componentes.md`.
+- **Identidad UCO** (solo si toca UI; `references/identidad-uco.md`). Sin rojo (peligro = naranja con texto negro, texto de error con `danger-strong`); pares de contraste (nada de blanco sobre verde o naranja, ni amarillo como texto); estado pintado solo desde `estado-variante.ts`; fuentes Montserrat y Poppins servidas del despliegue, nunca de una CDN; foco verde de 2 px; logo desde `public/brand/` y favicon institucional con `sizes="any"`; ningún hex institucional fuera de `src/uco-tokens.css` y `src/tailwind.css`. `src/tema-contraste.test.ts` es el sensor; el juicio revisa lo que él no ve.
 
 Lo preexistente fuera de la HU sigue siendo observación, nunca bloqueante.
 

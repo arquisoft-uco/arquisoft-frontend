@@ -51,7 +51,7 @@ GitHub, donde el usuario aprueba el merge.
 |---|---|
 | `arquisoft-frontend-arquitectura` | **Siempre** antes de crear o mover algo en `src/`. Capas, enrutamiento, capa HTTP, stores, contrato con el backend |
 | `arquisoft-frontend-estandares` | **Siempre junto con la anterior** al escribir código. Nomenclatura, componentes, formularios, validación, errores, a11y, estilos, TypeScript, testing, git |
-| `arquisoft-frontend-ui-ux` | **Junto con las dos anteriores** cuando la tarea cree o cambie algo que se ve: pantallas, listados, filtros, formularios, estados vacíos o de error, navegación o piezas de `shared/components/ui/`. Tokens, kit de componentes, patrones de pantalla y voz. El lienzo de diseño aprobado (público, solo lectura) se describe en su `references/lienzo.md` |
+| `arquisoft-frontend-ui-ux` | **Junto con las dos anteriores** cuando la tarea cree o cambie algo que se ve: pantallas, listados, filtros, formularios, estados vacíos o de error, navegación o piezas de `shared/components/ui/`. Identidad UCO (fuente de color, tipografía y marca: paleta sin rojo, contraste, Montserrat y Poppins, logo y favicon), tokens, kit de componentes, patrones de pantalla y voz. El lienzo de diseño aprobado (público, solo lectura) se describe en su `references/lienzo.md` |
 | `context7-stack-frontend` | **Solo al explorar un tema nuevo** (librería, API o patrón que el proyecto aún no usa): IDs ya resueltos y trampas de versión (el proyecto está en **Zod 3**). Para lo ya definido, la fuente es el código existente y las skills, no Context7 |
 | `gh-docs-reader` | Al buscar una HU/HT, el contrato real de un endpoint o los valores de un catálogo |
 | `arquisoft-frontend-mcps` | Al decidir qué MCP usar y cuál es su fallback |

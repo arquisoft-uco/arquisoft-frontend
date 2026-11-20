@@ -10,7 +10,7 @@ import DecisionFichaDialogo, { type Decision } from './DecisionFichaDialogo';
 import ResumenEvaluacionesDecision from './ResumenEvaluacionesDecision';
 
 const GRUPO =
-  'flex flex-col gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-primary';
+  'flex flex-col gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-focus';
 
 interface Props {
   fichaPerfilId: string;

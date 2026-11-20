@@ -291,9 +291,11 @@ Solo clases semánticas, nunca un color crudo de la paleta:
 | Superficies | `bg-surface`, `bg-surface-secondary`, `bg-surface-elevated`, `bg-background`, `bg-muted` |
 | Texto | `text-on-surface`, `text-on-surface-secondary`, `text-muted-foreground` |
 | Bordes | `border-border`, `border-border-strong`, `border-border-input` |
-| Marca | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted`, `text-primary-muted-foreground` |
+| Marca (verde oscuro institucional) | `bg-primary`, `text-primary`, `bg-primary-hover`, `text-primary-foreground`, `bg-primary-muted`, `text-primary-muted-foreground` |
 | Secundario / terciario | misma familia de sufijos con `-secondary` / `-tertiary` |
-| Peligro | `bg-danger`, `text-danger`, `text-danger-foreground`, `bg-danger-muted`, `text-danger-muted-foreground` |
+| Peligro (naranja, sin rojo) | `bg-danger` y `text-danger-foreground` (negro) como relleno; `text-danger-strong` y `border-danger-strong` para texto y borde de error sobre fondo claro; `bg-danger-muted`, `text-danger-muted-foreground` |
+| Info (en curso) | `bg-info`, `text-info-foreground` |
+| Foco | `outline-focus`, `ring-focus` (nunca `outline-primary`) |
 | Navegación | `bg-nav-active-bg`, `text-nav-active-text`, `bg-nav-hover-bg` |
 | Sombras | `shadow-card`, `shadow-card-hover`, `shadow-dropdown`, `shadow-lg` |
 | Animaciones | `animate-fade-up`, `animate-fade-in`, `animate-slide-in-left`, `animate-slide-in-right`, `animate-scale-in`, `animate-shimmer` (`Skeleton`), `animate-toast-in` y `animate-toast-out` (solo `Toaster`) |
@@ -444,7 +446,7 @@ Un archivo suelto: `npx vitest run src/features/<feature>/<Archivo>.test.tsx`.
 `npm run build` repite el type-check, así que `lint` verde con `build` rojo significa fallo de
 bundling, no de tipos. `.github/workflows/ci.yml` corre los cuatro en cada push y PR con Node 20.
 
-`npm test` incluye `src/arquitectura.test.ts` (capas, HTTP, query keys por feature, tipos inseguros,
+`npm test` incluye `src/tema-contraste.test.ts` (contraste WCAG de los pares de tokens y ningún color literal fuera de `@theme`) y `src/arquitectura.test.ts` (capas, HTTP, query keys por feature, tipos inseguros,
 tamaño de componente, colores crudos, JSDoc, colores sin token en `@theme`, un solo spinner, nada por debajo de
 12 px y tablas solo con `DataTable`). Si falla, el mensaje dice qué corregir; la deuda previa
 vive en `src/test-utils/arquitectura.baseline.ts` y **no se amplía**. `format:check` no revisa el código

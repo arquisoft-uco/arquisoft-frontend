@@ -14,6 +14,8 @@ migradas**. Hoy hay un solo caso: en un formulario nuevo, el momento de validar 
 (`mode: 'onTouched'` y sin deshabilitar por validez; ver `references/patrones.md` §2). Lo ya escrito se migra
 cuando se toca por otra razón, nunca en una pasada aparte.
 
+**Color, tipografía y marca: manda el manual de la UCO.** Desde HT-UX-10 la identidad institucional (paleta verde, azul y naranja, sin rojo; Montserrat y Poppins; logo y favicon propios), recogida en `references/identidad-uco.md`, gana sobre el lienzo de 2026-10-03 en color, tipografía y marca; el lienzo sigue valiendo para estructura, patrones y medidas. Es una primera pasada: habrá otra cuando lleguen los archivos oficiales de la UCO (`references/tokens.md` §1).
+
 **El diseño está aprobado** (2026-10-03) y vive en un lienzo público de solo lectura:
 https://claude.ai/artifact/TPmx9vR2cnHtkbt75NkAFC. Sirve de documentación y de ejemplo vivo (los tableros
 interactivos se pueden probar), pero **esta skill y sus referencias lo recogen completo**: no hace falta abrirlo
@@ -23,6 +25,7 @@ para implementar. Nunca publiques sobre él ni lo borres. Detalle y mapa de tabl
 
 | Si la tarea… | Abre |
 |---|---|
+| Toca color, tipografía, logo, favicon, colores de estado o foco (identidad UCO) | `references/identidad-uco.md` |
 | Toca color, tipografía, espaciado, contraste o redacción de textos | `references/tokens.md` |
 | Usa o crea una pieza del kit (botón, campo, tabla, panel, aviso…) | `references/componentes.md` |
 | Es un listado, un formulario, un detalle, el inicio, el menú o un estado | `references/patrones.md` |
@@ -110,7 +113,7 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
 ## Checklist de una pantalla
 
 1. Un solo `<h1>`, dentro de `PageHeader`, en sentence case; la acción principal a la derecha.
-2. Solo tokens semánticos; ningún color crudo; texto de 12 px o más; radios de 12 y 16 px.
+2. Solo tokens semánticos; ningún color crudo ni rojo; texto de 12 px o más; radios de 12 y 16 px. Identidad UCO (`references/identidad-uco.md`): pares de contraste, estado en `estado-variante.ts`, foco verde.
 3. Piezas del kit en lugar de clases sueltas para botón, insignia, campo y aviso.
 4. Los tres estados y el degradado: esqueleto con la forma de la pantalla, vacío con siguiente paso, error con
    «Reintentar».
