@@ -5,8 +5,13 @@ import FormSection from '../../../shared/components/ui/FormSection';
 import { LIMITES } from '../../../shared/validation';
 import type { RegistrarItemCualitativoJuradoValues as Values } from '../utils/registrar-item-cualitativo-jurado-schema';
 import CampoDescripcionItemCualitativoJurado from './CampoDescripcionItemCualitativoJurado';
+import CampoPesoItemCualitativo from './CampoPesoItemCualitativo';
 
-export const ETIQUETAS_CAMPO = { nombre: 'Nombre', descripcion: 'Descripción' } as const;
+export const ETIQUETAS_CAMPO = {
+  nombre: 'Nombre',
+  descripcion: 'Descripción',
+  peso: 'Peso',
+} as const;
 
 interface Props {
   register: UseFormRegister<Values>;
@@ -23,7 +28,7 @@ export default function RegistrarItemCualitativoJuradoCampos({
     control: controlFormulario,
     name: ['nombre', 'descripcion'],
   });
-  const longitudes: Record<keyof Values, number> = {
+  const longitudes: Record<'nombre' | 'descripcion', number> = {
     nombre: nombre.length,
     descripcion: descripcion.length,
   };
@@ -49,6 +54,12 @@ export default function RegistrarItemCualitativoJuradoCampos({
         registro={register('descripcion')}
         longitud={longitudes.descripcion}
         error={errors.descripcion?.message}
+      />
+      <CampoPesoItemCualitativo
+        registro={register('peso')}
+        min={LIMITES.ITEM_CUALITATIVO_PESO_MIN}
+        max={LIMITES.ITEM_CUALITATIVO_PESO_MAX}
+        error={errors.peso?.message}
       />
     </FormSection>
   );

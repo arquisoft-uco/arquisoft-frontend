@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import ErrorSummary, { resumirErrores } from '../../../shared/components/ui/ErrorSummary';
 import Field from '../../../shared/components/ui/Field';
 import FormActions from '../../../shared/components/ui/FormActions';
@@ -13,19 +12,19 @@ import {
   getApiFieldErrors,
   hasApiErrorCode,
 } from '../../../shared/utils/api-error';
-import { LIMITES, textoRequerido } from '../../../shared/validation';
+import { LIMITES } from '../../../shared/validation';
+import {
+  modificarItemCualitativoAsesorSchema as schema,
+  type ModificarItemCualitativoAsesorValues as FormValues,
+} from '../utils/registrar-item-cualitativo-asesor-schema';
+import CampoPesoItemCualitativo from './CampoPesoItemCualitativo';
 import { useModificarItemCualitativoAsesor } from '../hooks/useModificarItemCualitativoAsesor';
 import type { ItemCualitativoAsesor } from '../models/ItemCualitativoAsesor';
 import { ITEM_CUALITATIVO_ASESOR_NO_ENCONTRADO } from '../utils/codigos-error-evaluaciones';
 
 const ID_FORMULARIO = 'modificar-item-cualitativo-asesor';
-const ETIQUETAS_CAMPO = { descripcion: 'Descripción' };
-
-const schema = z.object({
-  descripcion: textoRequerido(LIMITES.ITEM_CUALITATIVO_ASESOR_DESCRIPCION_MAX),
-});
-
-type FormValues = z.infer<typeof schema>;
+const ETIQUETAS_CAMPO = { descripcion: 'Descripción', peso: 'Peso' };
+const MAX_DESCRIPCION = LIMITES.ITEM_CUALITATIVO_ASESOR_DESCRIPCION_MAX;
 
 interface Props {
   item: ItemCualitativoAsesor;
@@ -44,7 +43,7 @@ export default function ModificarItemCualitativoAsesorPanel({ item, onCerrar }: 
     formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { descripcion: item.descripcion },
+    defaultValues: { descripcion: item.descripcion, peso: String(item.peso) },
     mode: 'onTouched',
   });
 
@@ -59,12 +58,12 @@ export default function ModificarItemCualitativoAsesorPanel({ item, onCerrar }: 
   }
 
   function irAlCampo(campo: string) {
-    if (campo === 'descripcion') setFocus(campo);
+    if (campo === 'descripcion' || campo === 'peso') setFocus(campo);
   }
 
   function enviar(values: FormValues) {
     mutate(
-      { itemId: item.id, descripcion: values.descripcion },
+      { itemId: item.id, descripcion: values.descripcion, peso: Number(values.peso) },
       {
         onSuccess: () => {
           toast.success('Ítem modificado', `"${item.nombre}" fue actualizado correctamente.`);
@@ -79,7 +78,9 @@ export default function ModificarItemCualitativoAsesorPanel({ item, onCerrar }: 
             return;
           }
           getApiFieldErrors(err).forEach((fe) => {
-            if (fe.field === 'descripcion') setError('descripcion', { message: fe.message });
+            if (fe.field === 'descripcion' || fe.field === 'peso') {
+              setError(fe.field, { message: fe.message });
+            }
           });
           setResumenVisible(true);
         },
@@ -90,7 +91,7 @@ export default function ModificarItemCualitativoAsesorPanel({ item, onCerrar }: 
   return (
     <SidePanel
       titulo="Modificar ítem"
-      descripcion="Solo puedes cambiar la descripción; el nombre no se modifica."
+      descripcion="Puedes cambiar la descripción y el peso; el nombre no se modifica."
       sucio={isDirty}
       ocupado={isPending}
       onCerrar={cerrar}
@@ -123,21 +124,24 @@ export default function ModificarItemCualitativoAsesorPanel({ item, onCerrar }: 
           <Field
             etiqueta={ETIQUETAS_CAMPO.descripcion}
             error={errors.descripcion?.message}
-            contador={{
-              actual: descripcion.length,
-              max: LIMITES.ITEM_CUALITATIVO_ASESOR_DESCRIPCION_MAX,
-            }}
+            contador={{ actual: descripcion.length, max: MAX_DESCRIPCION }}
           >
             {(campo) => (
               <textarea
                 {...campo}
                 rows={4}
-                maxLength={LIMITES.ITEM_CUALITATIVO_ASESOR_DESCRIPCION_MAX}
+                maxLength={MAX_DESCRIPCION}
                 className="field-input"
                 {...register('descripcion')}
               />
             )}
           </Field>
+          <CampoPesoItemCualitativo
+            registro={register('peso')}
+            min={LIMITES.ITEM_CUALITATIVO_ASESOR_PESO_MIN}
+            max={LIMITES.ITEM_CUALITATIVO_ASESOR_PESO_MAX}
+            error={errors.peso?.message}
+          />
         </FormSection>
         <ErrorSummary errores={errores} onIrAlCampo={irAlCampo} />
       </form>

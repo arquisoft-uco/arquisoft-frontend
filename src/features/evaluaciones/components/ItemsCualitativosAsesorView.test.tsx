@@ -45,8 +45,18 @@ vi.mock('../hooks/useCriteriosItemCualitativoAsesor', () => ({
 }));
 
 const ITEMS: ItemCualitativoAsesor[] = [
-  { id: 'i-2', nombre: 'Claridad', descripcion: 'El documento se comprende sin ambigüedades.' },
-  { id: 'i-1', nombre: 'Rigor', descripcion: 'El método es consistente con los objetivos.' },
+  {
+    id: 'i-2',
+    nombre: 'Claridad',
+    descripcion: 'El documento se comprende sin ambigüedades.',
+    peso: 250,
+  },
+  {
+    id: 'i-1',
+    nombre: 'Rigor',
+    descripcion: 'El método es consistente con los objetivos.',
+    peso: 40,
+  },
 ];
 
 function mockConsulta(parcial: Partial<ReturnType<typeof useItemsCualitativosAsesor>>) {
@@ -184,6 +194,7 @@ describe('ItemsCualitativosAsesorView', () => {
     expect(filas).toHaveLength(2);
     expect(within(filas[0]).getByText('Claridad')).toBeInTheDocument();
     expect(within(filas[0]).getByText(ITEMS[0].descripcion)).toBeInTheDocument();
+    expect(within(filas[0]).getByText(String(ITEMS[0].peso))).toBeInTheDocument();
     expect(within(filas[1]).getByText('Rigor')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /registrar|editar|remover/i })).toBeNull();
   });

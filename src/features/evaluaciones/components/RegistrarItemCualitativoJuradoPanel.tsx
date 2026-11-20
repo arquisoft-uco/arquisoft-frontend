@@ -20,7 +20,7 @@ import RegistrarItemCualitativoJuradoCampos, {
 } from './RegistrarItemCualitativoJuradoCampos';
 
 const ID_FORMULARIO = 'registrar-item-cualitativo-jurado';
-const CAMPOS = ['nombre', 'descripcion'] as const;
+const CAMPOS = ['nombre', 'descripcion', 'peso'] as const;
 
 interface Props {
   onCerrar: () => void;
@@ -38,7 +38,7 @@ export default function RegistrarItemCualitativoJuradoPanel({ onCerrar }: Props)
     formState: { errors, isDirty },
   } = useForm<RegistrarItemCualitativoJuradoValues>({
     resolver: zodResolver(registrarItemCualitativoJuradoSchema),
-    defaultValues: { nombre: '', descripcion: '' },
+    defaultValues: { nombre: '', descripcion: '', peso: '' },
     mode: 'onTouched',
   });
 
@@ -57,26 +57,29 @@ export default function RegistrarItemCualitativoJuradoPanel({ onCerrar }: Props)
   }
 
   function enviar(values: RegistrarItemCualitativoJuradoValues) {
-    mutate(values, {
-      onSuccess: () => {
-        toast.success('Ítem registrado', `"${values.nombre}" fue registrado correctamente.`);
-        cerrar();
-      },
-      onError: (err) => {
-        const mensaje = getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
-        toast.error('No se pudo registrar el ítem', mensaje);
+    mutate(
+      { ...values, peso: Number(values.peso) },
+      {
+        onSuccess: () => {
+          toast.success('Ítem registrado', `"${values.nombre}" fue registrado correctamente.`);
+          cerrar();
+        },
+        onError: (err) => {
+          const mensaje = getApiErrorMessage(err, 'Verifica los datos e inténtalo nuevamente.');
+          toast.error('No se pudo registrar el ítem', mensaje);
 
-        if (hasApiErrorCode(err, 'ITEM_CUALITATIVO_JURADO_NOMBRE_DUPLICADO')) {
-          setError('nombre', { message: mensaje });
-        }
-        getApiFieldErrors(err).forEach((fe) => {
-          if (fe.field === 'nombre' || fe.field === 'descripcion') {
-            setError(fe.field, { message: fe.message });
+          if (hasApiErrorCode(err, 'ITEM_CUALITATIVO_JURADO_NOMBRE_DUPLICADO')) {
+            setError('nombre', { message: mensaje });
           }
-        });
-        setResumenVisible(true);
+          getApiFieldErrors(err).forEach((fe) => {
+            if (fe.field === 'nombre' || fe.field === 'descripcion' || fe.field === 'peso') {
+              setError(fe.field, { message: fe.message });
+            }
+          });
+          setResumenVisible(true);
+        },
       },
-    });
+    );
   }
 
   return (

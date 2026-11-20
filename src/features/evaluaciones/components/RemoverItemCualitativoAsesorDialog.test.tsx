@@ -19,6 +19,7 @@ const ITEM: ItemCualitativoAsesor = {
   id: 'i-1',
   nombre: 'Rigor',
   descripcion: 'Calidad del método.',
+  peso: 100,
 };
 
 type MutateOptions = {

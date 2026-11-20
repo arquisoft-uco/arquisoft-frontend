@@ -25,7 +25,7 @@ const ID_SUFICIENTE = '22222222-2222-4222-8222-222222222222';
 
 const FILA: EvaluacionCualitativaAsesor = {
   id: 'ec-1',
-  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Se entiende' },
+  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Se entiende', peso: 100 },
   criterio: { id: ID_EXCELENTE, nombre: 'Excelente', descripcion: 'Supera lo esperado' },
 };
 const CRITERIOS = [

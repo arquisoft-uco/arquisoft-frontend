@@ -31,7 +31,7 @@ describe('useEvaluacionesCualitativasAsesorEstudiante', () => {
     consultar.mockResolvedValue([
       {
         id: 'ec-1',
-        item: { id: 'i-1', nombre: 'Claridad', descripcion: 'd' },
+        item: { id: 'i-1', nombre: 'Claridad', descripcion: 'd', peso: 10 },
         criterio: { id: 'cr-1', nombre: 'Alto', descripcion: 'd' },
       },
     ]);

@@ -27,7 +27,7 @@ vi.mock('../../hooks/useOmitirEvaluacionesCualitativasAsesor', () => ({
 function fila(id: string, item: string): EvaluacionCualitativaAsesor {
   return {
     id,
-    item: { id: `i-${id}`, nombre: item, descripcion: `Descripción de ${item}` },
+    item: { id: `i-${id}`, nombre: item, descripcion: `Descripción de ${item}`, peso: 100 },
     criterio: { id: `c-${id}`, nombre: 'Excelente', descripcion: 'Supera lo esperado' },
   };
 }

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useForm, useWatch, type Control, type UseFormRegisterReturn } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import ErrorSummary, { resumirErrores } from '../../../shared/components/ui/ErrorSummary';
 import Field from '../../../shared/components/ui/Field';
 import FormActions from '../../../shared/components/ui/FormActions';
 import FormSection from '../../../shared/components/ui/FormSection';
 import SidePanel from '../../../shared/components/ui/SidePanel';
+import { LIMITES } from '../../../shared/validation';
 import { toast } from '../../../shared/hooks/useToast';
 import {
   getApiErrorMessage,
@@ -14,33 +14,21 @@ import {
   hasApiErrorCode,
 } from '../../../shared/utils/api-error';
 import CampoDescripcionItemCualitativoJurado from './CampoDescripcionItemCualitativoJurado';
+import CampoPesoItemCualitativo from './CampoPesoItemCualitativo';
 import { useModificarItemCualitativoJurado } from '../hooks/useModificarItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
 import { ITEM_CUALITATIVO_JURADO_NO_ENCONTRADO } from '../utils/codigos-error-evaluaciones';
-import { descripcionItemCualitativoJurado } from '../utils/item-cualitativo-jurado-schema';
+import {
+  modificarItemCualitativoJuradoSchema as schema,
+  type ModificarItemCualitativoJuradoValues as FormValues,
+} from '../utils/item-cualitativo-jurado-schema';
 
 const ID_FORMULARIO = 'modificar-item-cualitativo-jurado';
-const ETIQUETAS_CAMPO = { descripcion: 'Descripción' };
-
-const schema = z.object({ descripcion: descripcionItemCualitativoJurado });
-
-type FormValues = z.infer<typeof schema>;
+const ETIQUETAS_CAMPO = { descripcion: 'Descripción', peso: 'Peso' };
 
 interface Props {
   item: ItemCualitativoJurado;
   onCerrar: () => void;
-}
-
-interface DescripcionConContadorProps {
-  control: Control<FormValues>;
-  registro: UseFormRegisterReturn;
-  error?: string;
-}
-
-function DescripcionConContador({ control, ...campo }: DescripcionConContadorProps) {
-  const descripcion = useWatch({ control, name: 'descripcion' });
-
-  return <CampoDescripcionItemCualitativoJurado {...campo} longitud={descripcion.length} />;
 }
 
 export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: Props) {
@@ -55,10 +43,11 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
     formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { descripcion: item.descripcion },
+    defaultValues: { descripcion: item.descripcion, peso: String(item.peso) },
     mode: 'onTouched',
   });
 
+  const descripcion = useWatch({ control, name: 'descripcion' });
   const { mutate, isPending, reset: resetMutation } = useModificarItemCualitativoJurado();
   const errores = resumenVisible ? resumirErrores(errors, ETIQUETAS_CAMPO) : [];
 
@@ -69,12 +58,12 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
   }
 
   function irAlCampo(campo: string) {
-    if (campo === 'descripcion') setFocus(campo);
+    if (campo === 'descripcion' || campo === 'peso') setFocus(campo);
   }
 
   function enviar(values: FormValues) {
     mutate(
-      { itemId: item.id, descripcion: values.descripcion },
+      { itemId: item.id, descripcion: values.descripcion, peso: Number(values.peso) },
       {
         onSuccess: () => {
           toast.success('Ítem modificado', `"${item.nombre}" fue actualizado correctamente.`);
@@ -89,7 +78,9 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
             return;
           }
           getApiFieldErrors(err).forEach((fe) => {
-            if (fe.field === 'descripcion') setError('descripcion', { message: fe.message });
+            if (fe.field === 'descripcion' || fe.field === 'peso') {
+              setError(fe.field, { message: fe.message });
+            }
           });
           setResumenVisible(true);
         },
@@ -100,7 +91,7 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
   return (
     <SidePanel
       titulo="Modificar ítem"
-      descripcion="Solo puedes cambiar la descripción; el nombre no se modifica."
+      descripcion="Puedes cambiar la descripción y el peso; el nombre no se modifica."
       sucio={isDirty}
       ocupado={isPending}
       onCerrar={cerrar}
@@ -136,10 +127,16 @@ export default function ModificarItemCualitativoJuradoPanel({ item, onCerrar }: 
               />
             )}
           </Field>
-          <DescripcionConContador
-            control={control}
+          <CampoDescripcionItemCualitativoJurado
             registro={register('descripcion')}
+            longitud={descripcion.length}
             error={errors.descripcion?.message}
+          />
+          <CampoPesoItemCualitativo
+            registro={register('peso')}
+            min={LIMITES.ITEM_CUALITATIVO_PESO_MIN}
+            max={LIMITES.ITEM_CUALITATIVO_PESO_MAX}
+            error={errors.peso?.message}
           />
         </FormSection>
         <ErrorSummary errores={errores} onIrAlCampo={irAlCampo} />

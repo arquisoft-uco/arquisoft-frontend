@@ -36,11 +36,17 @@ vi.mock('../hooks/useModificarItemCualitativoJurado', () => ({
 }));
 
 const ITEMS: ItemCualitativoJurado[] = [
-  { id: 'i-2', nombre: 'Claridad', descripcion: 'El documento se comprende sin ambigüedades.' },
+  {
+    id: 'i-2',
+    nombre: 'Claridad',
+    descripcion: 'El documento se comprende sin ambigüedades.',
+    peso: 250,
+  },
   {
     id: 'i-1',
     nombre: 'Aplicabilidad',
     descripcion: 'La propuesta resuelve un problema real del contexto.',
+    peso: 40,
   },
 ];
 
@@ -76,6 +82,7 @@ describe('ItemsCualitativosJuradoView', () => {
     expect(filas).toHaveLength(2);
     expect(within(filas[0]).getByText('Claridad')).toBeInTheDocument();
     expect(within(filas[0]).getByText(ITEMS[0].descripcion)).toBeInTheDocument();
+    expect(within(filas[0]).getByText(String(ITEMS[0].peso))).toBeInTheDocument();
     expect(within(filas[1]).getByText('Aplicabilidad')).toBeInTheDocument();
     expect(within(filas[1]).getByText(ITEMS[1].descripcion)).toBeInTheDocument();
   });

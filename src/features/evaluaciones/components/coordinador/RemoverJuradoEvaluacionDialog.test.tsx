@@ -102,7 +102,7 @@ describe('RemoverJuradoEvaluacionDialog', () => {
     // Arrange
     mockMutacion(
       vi.fn((_id: string, opciones?: MutateOptions) =>
-        opciones?.onError?.(errorApi('EVALUACION_JURADO_JURADOS_CON_EVALUACIONES')),
+        opciones?.onError?.(errorApi('EVALUACION_JURADO_JURADOS_EVALUADOS')),
       ),
     );
     const { onCerrar, onRetroceder } = montar({ retrocederPagina: true });
@@ -113,7 +113,7 @@ describe('RemoverJuradoEvaluacionDialog', () => {
     // Assert
     expect(toast.error).toHaveBeenCalledWith(
       'No se pudo remover el jurado',
-      'No se puede remover a Ana Pérez porque ya registró evaluaciones.',
+      'No se puede remover a Ana Pérez porque ya completó su evaluación y no puede retirarse.',
     );
     expect(toast.success).not.toHaveBeenCalled();
     expect(onRetroceder).not.toHaveBeenCalled();
