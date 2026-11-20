@@ -1,4 +1,4 @@
-/* Identidad visual de la Universidad Católica de Oriente -- valores institucionales.
+/* Identidad visual de la Universidad Católica de Oriente — valores institucionales.
  *
  * Copiar a los estilos del proyecto y referenciar desde ahí. Los valores NO se
  * ajustan: un verde «casi» institucional aparece distinto al lado de una pieza
@@ -6,10 +6,10 @@
  *
  * Qué combinación de color cumple contraste está medido en `manual-de-diseno.md`.
  * Resumen de lo que más se equivoca:
- * - Texto blanco sobre --uco-verde NO cumple para texto normal (4,37).
- *   Para un botón de tamaño corriente, usar --uco-verde-oscuro.
- * - Texto blanco sobre --uco-naranja NO cumple en ningún tamaño (2,82).
- * - --uco-amarillo solo admite texto negro encima.
+ *   - Texto blanco sobre --uco-verde NO cumple para texto normal (4,37).
+ *     Para un botón de tamaño corriente, usar --uco-verde-oscuro.
+ *   - Texto blanco sobre --uco-naranja NO cumple en ningún tamaño (2,82).
+ *   - --uco-amarillo solo admite texto negro encima.
  *
  * Procedencia: lineamientos-desarrollo/institucional/tokens/
  */
@@ -27,7 +27,6 @@
 
   /* Pares verificados: fondo y el texto que cumple AA encima.
    * Usar estos en lugar de elegir el color de texto a ojo. */
-
   --uco-sobre-verde: #000000;
   --uco-sobre-verde-oscuro: #ffffff;
   --uco-sobre-amarillo: #000000;
@@ -37,7 +36,6 @@
 
   /* Tipografía. Las fuentes se sirven desde el propio despliegue,
    * nunca desde una red de distribución externa. */
-
   --uco-fuente-titulos: 'Montserrat', system-ui, sans-serif;
   --uco-fuente-texto: 'Poppins', system-ui, sans-serif;
 }

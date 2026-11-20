@@ -12,7 +12,7 @@ const ROLES_VISIBLES = 2;
 const IDENTIDAD = 'flex min-w-0 items-center gap-3 sm:max-w-56';
 const TEXTOS = 'flex min-w-0 flex-col';
 const TITULO =
-  'block truncate text-left font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
+  'enlace-celda font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
 const SUBTEXTO = 'block truncate text-[13px] text-on-surface-secondary';
 const ROLES = 'flex flex-wrap items-center gap-1.5';
 const SIN_ROLES = 'text-sm text-on-surface-secondary';

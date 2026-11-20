@@ -94,7 +94,7 @@ Button.primario | border-transparent bg-primary text-primary-foreground hover:bg
 Button.secundario | border-border-strong bg-surface text-on-surface hover:bg-muted
 Button.fantasma | border-transparent text-primary hover:bg-primary-muted
 Button.peligro | border-transparent bg-danger text-danger-foreground hover:bg-danger/90
-Button.peligroContorno | border-danger bg-surface text-danger-muted-foreground hover:bg-danger-muted
+Button.peligroContorno | border-danger-strong bg-surface text-danger-muted-foreground hover:bg-danger-muted
 Button.spinner | size-4 animate-spin rounded-full border-2 border-current border-t-transparent
 ```
 

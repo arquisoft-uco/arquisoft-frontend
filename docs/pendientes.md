@@ -4,7 +4,7 @@ Registro de lo que quedó abierto en el frontend. No es fuente de contrato: el c
 endpoint sale de `../arquisoft-backend` y las historias y reportes viven en `arquisoft-uco/arquisoft-docs`.
 Al resolver un pendiente, se borra de aquí.
 
-Última revisión: 2026-11-19.
+Última revisión: 2026-11-20.
 
 ## Bloqueados por el backend
 
@@ -235,7 +235,6 @@ Client roles a confirmar en el realm desplegado:
 | F7  | **Prueba funcional manual**                           | Checklist en `.workspace/pruebas/prueba-funcional-representante.md` (HU-036, 160, 182, 185, 186, 187, 190 y 191). Falta ejecutarla con un usuario que tenga el rol `representante-comite`                                                                                                                                                                                                                                                                                                                                                                 |
 | F8  | **Verificación visual a 390 px**                      | Solo falta medir el detalle de ficha del representante a 390 px; los listados, el detalle del asesor, las evaluaciones y el inicio ya se midieron a 390 y 320 px                                                                                                                                                                                                                                                                                                                                                                                          |
 | F9  | **Deuda tolerada por el test de arquitectura**        | `src/test-utils/arquitectura.baseline.ts` lista lo que `src/arquitectura.test.ts` acepta por ser anterior al test, y solo puede decrecer: 2 `as unknown as` (`api/axiosInstance.test.ts` y `auth/devAuth.ts`), 1 spinner fuera de `shared/components/ui/` (`AppLoader`, la pantalla de arranque) y JSDoc previo en 12 archivos (29 bloques, en `auth/`, `config/`, `guards/`, `hooks/` y `shared/`). Ya no hay deuda de query keys, componentes grandes, colores crudos, textos de menos de 12 px ni tablas. Al corregir un archivo se elimina su entrada |
-| F10 | **Identidad visual: segunda pasada** | HT-UX-10 fue una primera pasada. Cuando Comunicaciones entregue los archivos oficiales de la UCO (SVG del logo `logo-uco-acreditacion-letras-negro.svg`, favicon y `uco-tokens.css`) se reemplazan el logo y el favicon provisionales de `public/brand/` y `public/favicon.ico`, se actualiza `src/uco-tokens.css` y se revisa el resto del manual de diseño (los SVG los entrega Comunicaciones) |
 
 ## Gestión (tablero y documentación)
 

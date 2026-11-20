@@ -9,7 +9,7 @@ const formatoFecha = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', tim
 const IDENTIDAD = 'flex min-w-0 items-center gap-3';
 const TEXTOS = 'flex min-w-0 flex-col';
 const TITULO =
-  'block truncate text-left font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
+  'enlace-celda font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
 const TITULO_PLANO = 'block truncate font-semibold text-on-surface';
 const INSIGNIAS_TARJETA = 'flex flex-wrap items-center gap-1.5';
 const DATO_TARJETA = 'text-[13px] text-on-surface-secondary';

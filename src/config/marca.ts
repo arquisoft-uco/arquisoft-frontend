@@ -1,6 +1,6 @@
 export const LOGO_INSTITUCIONAL = {
-  src: '/brand/lgo-uco-acred-01.png',
+  src: '/brand/logo-uco-acreditacion-letras-negro.svg',
   alt: 'Universidad Católica de Oriente',
-  ancho: 1741,
-  alto: 473,
+  ancho: 1080,
+  alto: 316,
 };

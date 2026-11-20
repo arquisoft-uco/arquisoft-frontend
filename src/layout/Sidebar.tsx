@@ -33,7 +33,7 @@ export default function Sidebar({ onClose }: Props) {
           alt={LOGO_INSTITUCIONAL.alt}
           width={LOGO_INSTITUCIONAL.ancho}
           height={LOGO_INSTITUCIONAL.alto}
-          className="h-9 w-auto max-w-full min-w-0 object-contain object-left"
+          className="h-10 w-auto sm:h-12 max-w-full min-w-0 object-contain object-left"
         />
 
         <button

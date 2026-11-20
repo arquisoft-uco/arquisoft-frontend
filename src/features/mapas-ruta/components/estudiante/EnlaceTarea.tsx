@@ -3,7 +3,7 @@ import type { NavegacionDetalleTarea } from '../../models/NavegacionDetalleTarea
 import type { Tarea } from '../../models/Tarea';
 
 const ENLACE =
-  'block text-left font-medium text-on-surface hover:text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
+  'block min-h-6 text-left font-medium leading-6 text-on-surface hover:text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
 
 interface Props {
   tarea: Tarea;

@@ -15,6 +15,7 @@ const ENCABEZADO_CON_INSIGNIA = 'flex flex-wrap items-center gap-x-3 gap-y-1';
 const META = 'mt-1 text-sm text-on-surface-secondary';
 const MIGAS = 'flex flex-wrap items-center gap-1.5 text-[13px] text-on-surface-secondary';
 const MIGA_ACTUAL = 'font-medium text-on-surface';
+const MIGA_ENLACE = 'inline-flex min-h-6 items-center hover:text-on-surface hover:underline';
 
 interface Props {
   titulo: string;
@@ -43,7 +44,7 @@ export default function PageHeader({
               return (
                 <li key={etiqueta} className="inline-flex items-center gap-1.5">
                   {to && !actual ? (
-                    <Link to={to} className="hover:text-on-surface hover:underline">
+                    <Link to={to} className={MIGA_ENLACE}>
                       {etiqueta}
                     </Link>
                   ) : (
