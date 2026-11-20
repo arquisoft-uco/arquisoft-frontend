@@ -1,5 +1,6 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 
+import type { EstadoRevisionAsesor } from '../models/artefactos';
 import { filtrosEstadoProyecto, type EstadoProyectoListado } from './estado-proyecto';
 
 export { ordenamientoDe } from './filtros-artefactos-estudiante';
@@ -28,6 +29,18 @@ export const ORDENES = [
 ] as const;
 
 export const ORDEN_POR_DEFECTO = 'fechaUltimaVersion:ASC';
+
+export function resolverEstadoRevision(
+  estados: EstadoRevisionAsesor[] | undefined,
+  valor: string,
+): EstadoRevisionAsesor | undefined {
+  const buscado = valor.trim();
+  if (!buscado || !estados) return undefined;
+  return (
+    estados.find((estado) => estado.id === buscado) ??
+    estados.find((estado) => estado.nombre.toLowerCase() === buscado.toLowerCase())
+  );
+}
 
 export function construirFiltros(filtros: FiltrosArtefactosSinAvance): NodoFiltroDTO {
   const nodos: NodoFiltroDTO[] = [];

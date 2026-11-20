@@ -7,7 +7,7 @@ import type { Toast, ToastLevel } from '../stores/toastStore';
 const DURACION_SALIDA = 200;
 
 const REGION =
-  'fixed inset-x-4 bottom-4 z-[9999] flex flex-col gap-2 sm:left-auto sm:right-4 sm:w-96 max-sm:in-data-[panel-abierto]:top-4 max-sm:in-data-[panel-abierto]:bottom-auto sm:in-data-[panel-abierto]:bottom-24';
+  'fixed inset-x-4 bottom-4 z-[9999] flex flex-col gap-2 sm:left-auto sm:right-4 sm:w-96 max-sm:in-data-[panel-abierto]:top-4 max-sm:in-data-[panel-abierto]:bottom-auto sm:in-data-[panel-abierto]:bottom-[calc(var(--alto-pie-panel,5rem)+1rem)]';
 const TARJETA =
   'flex items-start gap-3 rounded-xl border border-border bg-surface p-3 pr-1.5 shadow-dropdown';
 const ICONO = 'flex size-8 shrink-0 items-center justify-center rounded-full';

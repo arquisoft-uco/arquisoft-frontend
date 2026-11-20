@@ -5,11 +5,13 @@ import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParame
 import { artefactosService } from '../services/artefactosService';
 import { DIAS_SIN_AVANCE_POR_DEFECTO, validarDiasSinAvance } from '../utils/dias-sin-avance';
 import { leerEstadoProyecto } from '../utils/estado-proyecto';
+import { useEstadosRevisionAsesor } from './useEstadosRevisionAsesor';
 import {
   construirFiltros,
   ordenamientoDe,
   ORDEN_POR_DEFECTO,
   ORDENES,
+  resolverEstadoRevision,
   type FiltrosArtefactosSinAvance,
 } from '../utils/filtros-artefactos-sin-avance';
 
@@ -20,9 +22,12 @@ type DireccionOrden = 'ASC' | 'DESC';
 export function useArtefactosSinAvanceAsesor() {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
+  const estadoParametro = parametros.texto('estado').trim();
+  const { data: estados, isPending: estadosCargando } = useEstadosRevisionAsesor();
+  const estadoResuelto = resolverEstadoRevision(estados, estadoParametro);
   const filtros: FiltrosArtefactosSinAvance = {
     texto: parametros.texto('q').trim(),
-    estado: parametros.texto('estado').trim(),
+    estado: estadoResuelto?.id ?? '',
     estadoProyecto: leerEstadoProyecto(parametros.texto('estadoProyecto')),
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
@@ -84,10 +89,10 @@ export function useArtefactosSinAvanceAsesor() {
           pagina: page,
           tamanio: PAGE_SIZE,
           ordenamiento: ordenamientoDe(orden),
-          filtros: construirFiltros(filtros),
+          filtros: construirFiltros({ ...filtros, estado: estadoResuelto?.nombre ?? '' }),
         },
       }),
-    enabled: dias !== null,
+    enabled: dias !== null && (estadoParametro === '' || !estadosCargando),
     placeholderData: keepPreviousData,
   });
 

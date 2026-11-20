@@ -18,6 +18,7 @@ import {
   validarParDeNombres,
   fechaIso,
   validarFechaFinPosterior,
+  validarRangoFechas,
   archivoPermitido,
 } from './validadores-zod';
 
@@ -444,5 +445,19 @@ describe('archivoPermitido', () => {
     expect(mensaje(archivo('a.pdf', 0))).toBe(MENSAJES_VALIDACION.archivoVacio);
     expect(mensaje(archivo('a.pdf', 11))).toBe(MENSAJES_VALIDACION.archivoMuyGrande(10));
     expect(mensaje(archivo('A.PDF', 10))).toBeNull();
+  });
+});
+
+describe('validarRangoFechas', () => {
+  it('rechaza un rango invertido y acepta igual, correcto, incompleto o irreal', () => {
+    // Assert
+    expect(validarRangoFechas('2026-11-10', '2026-11-01')).toBe(
+      MENSAJES_VALIDACION.rangoFechasInvertido,
+    );
+    expect(validarRangoFechas('2026-11-10', '2026-11-10')).toBeUndefined();
+    expect(validarRangoFechas('2026-11-01', '2026-11-10')).toBeUndefined();
+    expect(validarRangoFechas('2026-11-10', '')).toBeUndefined();
+    expect(validarRangoFechas('', '2026-11-01')).toBeUndefined();
+    expect(validarRangoFechas('2026-02-31', '2026-01-01')).toBeUndefined();
   });
 });

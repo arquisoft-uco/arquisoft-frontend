@@ -33,6 +33,7 @@ interface Props {
     hasta: string;
     onCambiarDesde: (valor: string) => void;
     onCambiarHasta: (valor: string) => void;
+    error?: string;
   };
   popover?: { secciones: SeccionFiltro[] };
   alineacionPanel?: AlineacionPanel;

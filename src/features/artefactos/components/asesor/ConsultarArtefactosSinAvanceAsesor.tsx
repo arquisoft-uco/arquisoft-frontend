@@ -5,6 +5,7 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { LIMITES } from '../../../../shared/validation';
 import { useArtefactosSinAvanceAsesor } from '../../hooks/useArtefactosSinAvanceAsesor';
+import { textoDias } from '../../utils/dias-sin-avance';
 import { useEstadosRevisionAsesor } from '../../hooks/useEstadosRevisionAsesor';
 import {
   textoAlcanceEstadoProyecto,
@@ -24,7 +25,7 @@ function textoResumen(
   if (total === undefined || dias === null) return '';
   const cantidad = `${total} ${total === 1 ? 'artefacto' : 'artefactos'}`;
   const alcance = textoAlcanceEstadoProyecto(estadoProyecto);
-  return `${cantidad} con más de ${dias} días sin avance · ${alcance}`;
+  return `${cantidad} con más de ${textoDias(dias)} sin avance · ${alcance}`;
 }
 
 export default function ConsultarArtefactosSinAvanceAsesor() {

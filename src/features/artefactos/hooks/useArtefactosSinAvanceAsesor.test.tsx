@@ -7,7 +7,10 @@ import { artefactosService } from '../services/artefactosService';
 import { useArtefactosSinAvanceAsesor } from './useArtefactosSinAvanceAsesor';
 
 vi.mock('../services/artefactosService', () => ({
-  artefactosService: { consultarArtefactosSinAvanceAsesor: vi.fn() },
+  artefactosService: {
+    consultarArtefactosSinAvanceAsesor: vi.fn(),
+    getEstadosRevisionAsesor: vi.fn(),
+  },
 }));
 
 const consultar = vi.mocked(artefactosService.consultarArtefactosSinAvanceAsesor);
@@ -48,6 +51,7 @@ describe('useArtefactosSinAvanceAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockResolvedValue(PAGINA_VACIA);
+    vi.mocked(artefactosService.getEstadosRevisionAsesor).mockResolvedValue([]);
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
@@ -147,5 +151,82 @@ describe('useArtefactosSinAvanceAsesor', () => {
       expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ diasSinAvance: 30 })),
     );
     expect(result.current.dias).toBe(30);
+  });
+
+  it('el estado va como id en la URL y como nombre en el filtro, también con un enlace antiguo', async () => {
+    // Arrange
+    vi.mocked(artefactosService.getEstadosRevisionAsesor).mockResolvedValue([
+      { id: 'CERRADA', nombre: 'Cerrada', descripcion: '' },
+    ]);
+    const esperado = expect.objectContaining({
+      criterio: expect.objectContaining({
+        filtros: {
+          tipo: 'GRUPO',
+          conector: 'AND',
+          nodos: [
+            { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES', valor: 'Cerrada' },
+            ...SOLO_HABILITADOS.nodos,
+          ],
+        },
+      }),
+    });
+
+    // Act
+    const porId = renderHook(() => useArtefactosSinAvanceAsesor(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?vista=sin-avance&estado=CERRADA'),
+    });
+    await waitFor(() => expect(porId.result.current.isSuccess).toBe(true));
+    const porNombre = renderHook(() => useArtefactosSinAvanceAsesor(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?vista=sin-avance&estado=Cerrada'),
+    });
+    await waitFor(() => expect(porNombre.result.current.isSuccess).toBe(true));
+
+    // Assert
+    expect(consultar).toHaveBeenCalledTimes(2);
+    expect(consultar).toHaveBeenNthCalledWith(1, esperado);
+    expect(consultar).toHaveBeenNthCalledWith(2, esperado);
+    expect(porId.result.current.filtros.estado).toBe('CERRADA');
+    expect(porNombre.result.current.filtros.estado).toBe('CERRADA');
+    expect(porNombre.result.current.hayFiltros).toBe(true);
+  });
+
+  it('setEstado escribe el id en la URL', async () => {
+    // Arrange
+    const { result } = renderHook(
+      () => ({ listado: useArtefactosSinAvanceAsesor(), ubicacion: useLocation() }),
+      { wrapper: crearWrapper(queryClient) },
+    );
+    await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
+
+    // Act
+    act(() => result.current.listado.setEstado('CERRADA'));
+
+    // Assert
+    await waitFor(() => expect(result.current.ubicacion.search).toContain('estado=CERRADA'));
+  });
+
+  it('con un enlace antiguo no consulta hasta cargar el catálogo de estados', async () => {
+    // Arrange
+    let resolverCatalogo: (estados: []) => void = () => undefined;
+    vi.mocked(artefactosService.getEstadosRevisionAsesor).mockReturnValue(
+      new Promise((resolver) => {
+        resolverCatalogo = resolver;
+      }),
+    );
+
+    // Act
+    const { result } = renderHook(() => useArtefactosSinAvanceAsesor(), {
+      wrapper: crearWrapper(queryClient, '/artefactos?vista=sin-avance&estado=Cerrada'),
+    });
+
+    // Assert
+    expect(consultar).not.toHaveBeenCalled();
+
+    // Act
+    resolverCatalogo([]);
+
+    // Assert
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.filtros.estado).toBe('');
   });
 });
