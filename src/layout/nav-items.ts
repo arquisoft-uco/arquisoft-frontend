@@ -26,7 +26,7 @@ export interface NavItem {
   disponible?: boolean;
 }
 
-// Roles que ven los módulos generales; AsesorFicha queda fuera (solo Fichas y Solicitudes).
+// Roles que ven los módulos generales; AsesorFicha queda fuera porque solo ve «Fichas de perfil».
 const ROLES_GENERALES = [Rol.Administrador, Rol.Asesor, Rol.Estudiante, Rol.Coordinador];
 
 // Definición estática del menú; un módulo con disponible: false aún no tiene pantalla.
@@ -99,13 +99,8 @@ export const NAV_ITEMS: NavItem[] = [
     icon: ClipboardList,
     path: '/solicitudes',
     order: 9,
-    roles: [
-      ...ROLES_GENERALES,
-      Rol.AsesorFicha,
-      Rol.RepresentanteComiteCurriculum,
-      Rol.Jurado,
-      Rol.Bibliotecario,
-    ],
+    // Los roles que reconoce SolicitudesRoles del backend
+    roles: ROLES_GENERALES,
   },
   { label: 'Usuarios', icon: Users, path: '/usuarios', order: 10, roles: [Rol.Administrador] },
   {

@@ -488,12 +488,12 @@ describe('Solicitudes', () => {
     expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
   });
 
-  it('muestra ComingSoon cuando el rol activo no tiene vista real de solicitudes', () => {
+  it('el rol activo sin vista de solicitudes ve «Acceso denegado»', () => {
     autenticarCon(Rol.Jurado);
     render(<Solicitudes />, { initialPath: '/solicitudes' });
 
-    expect(screen.getByRole('heading', { name: 'Solicitudes' })).toBeInTheDocument();
-    expect(screen.getByText('Esta opción aún no está disponible.')).toBeInTheDocument();
+    expect(screen.getByText('Acceso denegado')).toBeInTheDocument();
+    expect(screen.queryByText('Esta opción aún no está disponible.')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: /Enviar solicitud de novedad al coordinador/i }),
     ).not.toBeInTheDocument();
