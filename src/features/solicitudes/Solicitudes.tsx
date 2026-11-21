@@ -1,8 +1,7 @@
 import { Navigate } from 'react-router';
-import { ClipboardList } from 'lucide-react';
 import { useRolActivo } from '../../hooks/useAuth';
 import { Rol } from '../../shared/models/rol';
-import ComingSoon from '../../shared/components/ComingSoon';
+import AccesoDenegado from '../../shared/components/AccesoDenegado';
 import AdministradorView from './components/AdministradorView';
 import AsesorView from './components/AsesorView';
 import CoordinadorView from './components/CoordinadorView';
@@ -22,15 +21,7 @@ export default function Solicitudes() {
 
   const View = VIEW_POR_ROL[rolActivo];
 
-  if (!View) {
-    return (
-      <ComingSoon
-        title="Solicitudes"
-        description="Gestión de trámites y solicitudes institucionales"
-        icon={ClipboardList}
-      />
-    );
-  }
+  if (!View) return <AccesoDenegado />;
 
   return <View />;
 }
