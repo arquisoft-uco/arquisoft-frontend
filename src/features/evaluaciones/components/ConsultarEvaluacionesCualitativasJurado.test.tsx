@@ -145,4 +145,33 @@ describe('ConsultarEvaluacionesCualitativasJurado', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Id inválido');
     expect(refetch).toHaveBeenCalledTimes(1);
   });
+
+  it('con «celdaCriterio» y «acciones» las usa en la fila y recurre al valor cuando la celda no se sustituye', () => {
+    // Arrange
+    const otra = { ...FILA, id: 'ec-2', item: { ...FILA.item, id: 'i-2', nombre: 'Orden' } };
+    const consulta: ConsultaCualitativas = {
+      data: [FILA, otra],
+      error: null,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    };
+
+    // Act
+    render(
+      <ConsultarEvaluacionesCualitativasJurado
+        consulta={consulta}
+        etiquetaVolver="Volver"
+        onVolver={vi.fn()}
+        celdaCriterio={(fila) => (fila.id === 'ec-2' ? <p>Editor de Orden</p> : null)}
+        acciones={(fila) => <button type="button">Acción de {fila.item.nombre}</button>}
+      />,
+    );
+
+    // Assert
+    expect(screen.getAllByText('Editor de Orden').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Excelente').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Acción de Claridad' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('columnheader', { name: 'Acciones' })).toHaveLength(1);
+  });
 });

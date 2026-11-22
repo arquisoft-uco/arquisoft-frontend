@@ -39,7 +39,14 @@ function incumplen(pares: Par[], minimo: number): string[] {
 }
 
 const SUPERFICIES = ['surface', 'surface-secondary', 'background'];
-const FONDOS_DE_TEXTO = [...SUPERFICIES, 'muted', 'primary-muted', 'nav-hover-bg', 'nav-active-bg'];
+const FONDOS_DE_TEXTO = [
+  ...SUPERFICIES,
+  'muted',
+  'primary-muted',
+  'tertiary-muted',
+  'nav-hover-bg',
+  'nav-active-bg',
+];
 
 const PARES_DE_TEXTO: Par[] = [
   ['primary-foreground', 'primary'],

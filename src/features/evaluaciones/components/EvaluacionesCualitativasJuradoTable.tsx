@@ -1,8 +1,8 @@
-import { ClipboardList, Pencil } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
+import type { ReactNode } from 'react';
 import DataTable from '../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../shared/components/ui/DataTable';
 import EmptyState from '../../../shared/components/ui/EmptyState';
-import IconButton from '../../../shared/components/ui/IconButton';
 import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
 import CasillaEvaluacionCualitativa from './CasillaEvaluacionCualitativa';
 
@@ -20,20 +20,33 @@ function Bloque({ nombre, descripcion }: { nombre: string; descripcion: string }
   );
 }
 
-const COLUMNAS: ColumnaTabla<EvaluacionCualitativaJurado>[] = [
-  {
-    id: 'item',
-    encabezado: 'Ítem',
-    celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
-  },
-  {
-    id: 'criterio',
-    encabezado: 'Criterio',
-    celda: (fila) => (
+function columnasBase(
+  celdaCriterio?: (fila: EvaluacionCualitativaJurado) => ReactNode,
+): ColumnaTabla<EvaluacionCualitativaJurado>[] {
+  return [
+    {
+      id: 'item',
+      encabezado: 'Ítem',
+      celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
+    },
+    {
+      id: 'criterio',
+      encabezado: 'Criterio',
+      celda: (fila) => criterioDe(fila, celdaCriterio),
+    },
+  ];
+}
+
+function criterioDe(
+  fila: EvaluacionCualitativaJurado,
+  celdaCriterio?: (fila: EvaluacionCualitativaJurado) => ReactNode,
+) {
+  return (
+    celdaCriterio?.(fila) ?? (
       <Bloque nombre={fila.criterio.nombre} descripcion={fila.criterio.descripcion} />
-    ),
-  },
-];
+    )
+  );
+}
 
 export interface SeleccionCualitativas {
   seleccionados: ReadonlySet<string>;
@@ -44,14 +57,16 @@ interface Props {
   evaluaciones: EvaluacionCualitativaJurado[];
   cargando: boolean;
   seleccion?: SeleccionCualitativas;
-  onCambiarCriterio?: (fila: EvaluacionCualitativaJurado) => void;
+  acciones?: (fila: EvaluacionCualitativaJurado) => ReactNode;
+  celdaCriterio?: (fila: EvaluacionCualitativaJurado) => ReactNode;
 }
 
 export default function EvaluacionesCualitativasJuradoTable({
   evaluaciones,
   cargando,
   seleccion,
-  onCambiarCriterio,
+  acciones,
+  celdaCriterio,
 }: Props) {
   const casilla = (fila: EvaluacionCualitativaJurado) =>
     seleccion ? (
@@ -62,8 +77,11 @@ export default function EvaluacionesCualitativasJuradoTable({
       />
     ) : null;
   const columnas: ColumnaTabla<EvaluacionCualitativaJurado>[] = seleccion
-    ? [{ id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla }, ...COLUMNAS]
-    : COLUMNAS;
+    ? [
+        { id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla },
+        ...columnasBase(celdaCriterio),
+      ]
+    : columnasBase(celdaCriterio);
 
   return (
     <DataTable
@@ -72,19 +90,8 @@ export default function EvaluacionesCualitativasJuradoTable({
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
-      acciones={
-        onCambiarCriterio &&
-        ((fila) => (
-          <div className="flex shrink-0 items-center justify-end gap-1">
-            <IconButton
-              etiqueta={`Cambiar criterio del ítem ${fila.item.nombre}`}
-              icono={Pencil}
-              rotulo="Cambiar criterio"
-              onClick={() => onCambiarCriterio(fila)}
-            />
-          </div>
-        ))
-      }
+      acciones={acciones}
+      encabezadoAcciones={acciones ? 'Acciones' : undefined}
       vacio={
         <EmptyState
           icono={ClipboardList}
@@ -98,7 +105,7 @@ export default function EvaluacionesCualitativasJuradoTable({
           <span className={ROTULO}>Ítem</span>
           <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />
           <span className={ROTULO}>Criterio</span>
-          <Bloque nombre={fila.criterio.nombre} descripcion={fila.criterio.descripcion} />
+          {criterioDe(fila, celdaCriterio)}
         </>
       )}
     />
