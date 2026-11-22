@@ -1,8 +1,8 @@
-import { ListChecks, MessageSquare, Pencil } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { ListChecks } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuantitativaAsesor';
 import CasillaEvaluacionCuantitativa from '../CasillaEvaluacionCuantitativa';
 import type { SeleccionCuantitativas } from '../EvaluacionesCuantitativasJuradoTable';
@@ -25,33 +25,37 @@ function textoPuntaje(fila: EvaluacionCuantitativaAsesor): string {
   return `${fila.puntaje} de ${fila.item.valor}`;
 }
 
-const COLUMNAS: ColumnaTabla<EvaluacionCuantitativaAsesor>[] = [
-  {
-    id: 'item',
-    encabezado: 'Ítem',
-    celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
-  },
-  {
-    id: 'puntaje',
-    encabezado: 'Puntaje',
-    celda: (fila) => textoPuntaje(fila),
-  },
-];
+function columnasBase(
+  celdaPuntaje?: (fila: EvaluacionCuantitativaAsesor) => ReactNode,
+): ColumnaTabla<EvaluacionCuantitativaAsesor>[] {
+  return [
+    {
+      id: 'item',
+      encabezado: 'Ítem',
+      celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
+    },
+    {
+      id: 'puntaje',
+      encabezado: 'Puntaje',
+      celda: (fila) => celdaPuntaje?.(fila) ?? textoPuntaje(fila),
+    },
+  ];
+}
 
 interface Props {
   evaluaciones: EvaluacionCuantitativaAsesor[];
   cargando: boolean;
   seleccion?: SeleccionCuantitativas;
-  onVerObservaciones: (fila: EvaluacionCuantitativaAsesor) => void;
-  onCambiarPuntaje?: (fila: EvaluacionCuantitativaAsesor) => void;
+  acciones?: (fila: EvaluacionCuantitativaAsesor) => ReactNode;
+  celdaPuntaje?: (fila: EvaluacionCuantitativaAsesor) => ReactNode;
 }
 
 export default function EvaluacionesCuantitativasAsesorTable({
   evaluaciones,
   cargando,
   seleccion,
-  onVerObservaciones,
-  onCambiarPuntaje,
+  acciones,
+  celdaPuntaje,
 }: Props) {
   const casilla = (fila: EvaluacionCuantitativaAsesor) =>
     seleccion ? (
@@ -62,8 +66,11 @@ export default function EvaluacionesCuantitativasAsesorTable({
       />
     ) : null;
   const columnas: ColumnaTabla<EvaluacionCuantitativaAsesor>[] = seleccion
-    ? [{ id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla }, ...COLUMNAS]
-    : COLUMNAS;
+    ? [
+        { id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla },
+        ...columnasBase(celdaPuntaje),
+      ]
+    : columnasBase(celdaPuntaje);
 
   return (
     <DataTable
@@ -72,25 +79,8 @@ export default function EvaluacionesCuantitativasAsesorTable({
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
-      encabezadoAcciones="Acciones"
-      acciones={(fila) => (
-        <div className="flex shrink-0 items-center justify-end gap-1">
-          <IconButton
-            etiqueta={`Ver observaciones de ${fila.item.nombre}`}
-            icono={MessageSquare}
-            rotulo="Ver observaciones"
-            onClick={() => onVerObservaciones(fila)}
-          />
-          {onCambiarPuntaje && (
-            <IconButton
-              etiqueta={`Cambiar puntaje del ítem ${fila.item.nombre}`}
-              icono={Pencil}
-              rotulo="Cambiar puntaje"
-              onClick={() => onCambiarPuntaje(fila)}
-            />
-          )}
-        </div>
-      )}
+      acciones={acciones}
+      encabezadoAcciones={acciones ? 'Acciones' : undefined}
       vacio={
         <EmptyState
           icono={ListChecks}
@@ -104,7 +94,7 @@ export default function EvaluacionesCuantitativasAsesorTable({
           <span className={ROTULO}>Ítem</span>
           <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />
           <span className={ROTULO}>Puntaje</span>
-          <span className={NOMBRE}>{textoPuntaje(fila)}</span>
+          {celdaPuntaje?.(fila) ?? <span className={NOMBRE}>{textoPuntaje(fila)}</span>}
         </>
       )}
     />

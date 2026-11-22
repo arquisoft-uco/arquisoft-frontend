@@ -8,7 +8,7 @@ import type { EvaluacionCualitativaJurado } from '../../models/EvaluacionCualita
 import { enfocarElementoVisible } from '../../utils/enfocar-visible';
 import ConsultarEvaluacionesCualitativasJurado from '../ConsultarEvaluacionesCualitativasJurado';
 import type { ConsultaCualitativas } from '../ConsultarEvaluacionesCualitativasJurado';
-import EditorCriterioEnLineaJurado from './EditorCriterioEnLineaJurado';
+import EditorCriterioEnLinea from '../EditorCriterioEnLinea';
 import OmitirEvaluacionesCualitativasJuradoBarra from './OmitirEvaluacionesCualitativasJuradoBarra';
 
 const RAIZ = 'flex flex-col gap-4';
@@ -54,7 +54,7 @@ export default function EvaluacionesCualitativasRealizadasJuradoPanel({
 
   const celdaCriterio = (fila: EvaluacionCualitativaJurado) =>
     edicion?.filaId === fila.id ? (
-      <EditorCriterioEnLineaJurado
+      <EditorCriterioEnLinea
         nombreItem={edicion.nombreItem}
         criterios={criterios.data ?? []}
         valor={edicion.valor}

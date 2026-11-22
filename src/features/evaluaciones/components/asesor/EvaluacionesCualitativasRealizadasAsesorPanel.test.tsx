@@ -7,9 +7,9 @@ import type { EvaluacionCualitativaAsesor } from '../../models/EvaluacionCualita
 
 vi.mock('../../hooks/useCriteriosItemCualitativoAsesor', () => ({
   useCriteriosItemCualitativoAsesor: () => ({
-    isLoading: true,
+    isLoading: false,
     isError: false,
-    data: undefined,
+    data: [{ id: 'c-ec-1', nombre: 'Excelente', descripcion: 'Supera lo esperado' }],
     refetch: vi.fn(),
   }),
 }));
@@ -56,16 +56,15 @@ describe('EvaluacionesCualitativasRealizadasAsesorPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('con la evaluación finalizada muestra el aviso y no hay casillas ni barra', () => {
+  it('con la evaluación finalizada no hay casillas, barra ni acción para cambiar', () => {
     // Arrange / Act
     render(panel([CLARIDAD], true));
 
     // Assert
-    expect(
-      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar valoraciones/),
-    ).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Cambiar criterio/ })).not.toBeInTheDocument();
+    expect(screen.getAllByText('Excelente').length).toBeGreaterThan(0);
   });
 
   it('marcar una fila habilita «Omitir (1)» y la selección se descarta cuando el ítem ya no está en los datos', async () => {
@@ -86,25 +85,29 @@ describe('EvaluacionesCualitativasRealizadasAsesorPanel', () => {
     expect(screen.getByRole('button', { name: 'Omitir (0)' })).toBeDisabled();
   });
 
-  it('pulsar «Cambiar criterio» abre el panel del ítem; con la evaluación finalizada no hay acción', async () => {
+  it('«Cambiar criterio» convierte la celda en editor, Esc lo cierra y el foco vuelve a la acción', async () => {
     // Arrange
     const user = userEvent.setup();
-    const { unmount } = render(panel([CLARIDAD]));
+    render(panel([CLARIDAD]));
+    const accion = screen.getAllByRole('button', { name: /Cambiar criterio del ítem Claridad/ })[0];
 
     // Act
-    await user.click(
+    await user.click(accion);
+
+    // Assert
+    expect(screen.getAllByRole('combobox', { name: 'Criterio para Claridad' })[0]).toBeVisible();
+    expect(
+      screen.getAllByRole('button', { name: 'Guardar criterio de Claridad' })[0],
+    ).toBeInTheDocument();
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('combobox', { name: 'Criterio para Claridad' })).toBeNull();
+    expect(
       screen.getAllByRole('button', { name: /Cambiar criterio del ítem Claridad/ })[0],
-    );
-
-    // Assert
-    expect(await screen.findByText('Ítem: Claridad')).toBeInTheDocument();
-
-    // Act
-    unmount();
-    render(panel([CLARIDAD], true));
-
-    // Assert
-    expect(screen.queryByRole('button', { name: /Cambiar criterio/ })).not.toBeInTheDocument();
+    ).toBeInTheDocument();
   });
 
   it('sin filas no muestra la barra y sí el estado vacío', () => {

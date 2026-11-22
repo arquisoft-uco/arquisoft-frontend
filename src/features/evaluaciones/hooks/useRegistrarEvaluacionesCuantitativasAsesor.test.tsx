@@ -77,9 +77,28 @@ describe('useRegistrarEvaluacionesCuantitativasAsesor', () => {
     });
   });
 
-  it('no invalida catálogos ante otros errores', async () => {
+  it('invalida las realizadas cuando el backend dice que algún ítem ya estaba registrado', async () => {
     // Arrange
     registrar.mockRejectedValue(errorApi('EVALUACION_CUANTITATIVA_ASESOR_ITEMS_YA_REGISTRADOS'));
+    const { Wrapper, invalidar } = crearContexto();
+    const { result } = renderHook(() => useRegistrarEvaluacionesCuantitativasAsesor('ea-1'), {
+      wrapper: Wrapper,
+    });
+
+    // Act
+    act(() => result.current.mutate(PARES));
+
+    // Assert
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['evaluaciones', 'asesor', 'ea-1', 'cuantitativas'],
+    });
+  });
+
+  it('no invalida catálogos ante otros errores', async () => {
+    // Arrange
+    registrar.mockRejectedValue(errorApi('EVALUACION_CUANTITATIVA_ASESOR_NO_PERTENECE_ASESOR'));
     const { Wrapper, invalidar } = crearContexto();
     const { result } = renderHook(() => useRegistrarEvaluacionesCuantitativasAsesor('ea-1'), {
       wrapper: Wrapper,

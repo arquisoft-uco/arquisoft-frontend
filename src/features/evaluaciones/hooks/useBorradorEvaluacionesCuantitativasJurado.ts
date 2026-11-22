@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from '../../../shared/hooks/useToast';
 import { enteroEntre, LIMITES, textoRequerido } from '../../../shared/validation';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
-import type { ItemEvaluacionJurado } from '../models/ItemEvaluacionJurado';
+import type { ItemEvaluacion } from '../models/ItemEvaluacion';
 import type { ParEvaluacionCuantitativaJurado } from '../models/ParEvaluacionCuantitativaJurado';
 import {
   mensajeErrorRegistroEvaluacionesCuantitativas,
@@ -30,7 +30,7 @@ type CampoBorrador = keyof ValoracionBorrador;
 interface Opciones {
   evaluacionJuradoId: string;
   proyecto: string;
-  filas: ItemEvaluacionJurado<ItemCuantitativoJurado>[];
+  filas: ItemEvaluacion<ItemCuantitativoJurado>[];
 }
 
 const VACIA: ValoracionBorrador = { puntaje: '', observacion: '' };

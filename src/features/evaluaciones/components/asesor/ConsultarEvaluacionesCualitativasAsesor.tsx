@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Button from '../../../../shared/components/ui/Button';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
@@ -31,7 +32,8 @@ interface Props {
   etiquetaVolver: string;
   onVolver: () => void;
   seleccion?: SeleccionCualitativas;
-  onCambiarCriterio?: (fila: EvaluacionCualitativaAsesor) => void;
+  acciones?: (fila: EvaluacionCualitativaAsesor) => ReactNode;
+  celdaCriterio?: (fila: EvaluacionCualitativaAsesor) => ReactNode;
 }
 
 export default function ConsultarEvaluacionesCualitativasAsesor({
@@ -39,7 +41,8 @@ export default function ConsultarEvaluacionesCualitativasAsesor({
   etiquetaVolver,
   onVolver,
   seleccion,
-  onCambiarCriterio,
+  acciones,
+  celdaCriterio,
 }: Props) {
   const { data, isLoading, isError, error, refetch } = consulta;
 
@@ -92,7 +95,8 @@ export default function ConsultarEvaluacionesCualitativasAsesor({
         evaluaciones={data ?? []}
         cargando={isLoading}
         seleccion={seleccion}
-        onCambiarCriterio={onCambiarCriterio}
+        acciones={acciones}
+        celdaCriterio={celdaCriterio}
       />
     </div>
   );

@@ -11,7 +11,3 @@ export const registrarEvaluacionesCuantitativasAsesorSchema = z.object({
     (par) => par.itemId,
   ),
 });
-
-export type RegistrarEvaluacionesCuantitativasAsesorValues = z.infer<
-  typeof registrarEvaluacionesCuantitativasAsesorSchema
->;

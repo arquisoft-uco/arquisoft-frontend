@@ -8,7 +8,7 @@ import type {
   ValoracionBorrador,
 } from '../../hooks/useBorradorEvaluacionesCuantitativasJurado';
 import type { ItemCuantitativoJurado } from '../../models/ItemCuantitativoJurado';
-import type { ItemEvaluacionJurado } from '../../models/ItemEvaluacionJurado';
+import type { ItemEvaluacion } from '../../models/ItemEvaluacion';
 import ValoracionCuantitativaEnLinea from './ValoracionCuantitativaEnLinea';
 
 const NOMBRE = 'font-medium text-on-surface';
@@ -16,7 +16,7 @@ const DESCRIPCION = 'text-[13px] text-on-surface-secondary';
 const BLOQUE = 'flex flex-col gap-0.5';
 const ROTULO = 'text-xs font-medium text-on-surface-secondary';
 
-type Fila = ItemEvaluacionJurado<ItemCuantitativoJurado>;
+type Fila = ItemEvaluacion<ItemCuantitativoJurado>;
 
 interface Props {
   filas: Fila[];

@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import Notice from '../../../../shared/components/ui/Notice';
+import { useEffect, useRef, useState } from 'react';
+import { MessageSquare, Pencil } from 'lucide-react';
+import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EvaluacionCuantitativaAsesor } from '../../models/EvaluacionCuantitativaAsesor';
+import { useEdicionPuntajeEnLineaAsesor } from '../../hooks/useEdicionPuntajeEnLineaAsesor';
 import type { ObservacionItemAsesor } from '../../models/ObservacionItemAsesor';
-import CambiarPuntajeEvaluacionCuantitativaAsesorPanel from './CambiarPuntajeEvaluacionCuantitativaAsesorPanel';
+import { enfocarElementoVisible } from '../../utils/enfocar-visible';
+import EditorPuntajeEnLinea from '../EditorPuntajeEnLinea';
 import ConsultarEvaluacionesCuantitativasAsesor from './ConsultarEvaluacionesCuantitativasAsesor';
 import type { ConsultaCuantitativasAsesor } from './ConsultarEvaluacionesCuantitativasAsesor';
 import ModificarObservacionItemAsesorPanel from './ModificarObservacionItemAsesorPanel';
@@ -11,6 +14,7 @@ import RegistrarObservacionItemAsesorPanel from './RegistrarObservacionItemAseso
 import ObservacionesEvaluacionCuantitativaAsesorPanel from './ObservacionesEvaluacionCuantitativaAsesorPanel';
 
 const RAIZ = 'flex flex-col gap-4';
+const ACCIONES = 'flex shrink-0 items-center justify-end gap-1';
 
 interface Props {
   evaluacionAsesorId: string;
@@ -28,7 +32,10 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
   onVolver,
 }: Props) {
   const [marcados, setMarcados] = useState<string[]>([]);
-  const [filaEnEdicion, setFilaEnEdicion] = useState<EvaluacionCuantitativaAsesor | null>(null);
+  const raiz = useRef<HTMLDivElement>(null);
+  const filaAnterior = useRef<string | null>(null);
+  const { edicion, iniciar, cambiar, cancelar, guardar, guardando } =
+    useEdicionPuntajeEnLineaAsesor(evaluacionAsesorId);
   const [filaEnLectura, setFilaEnLectura] = useState<EvaluacionCuantitativaAsesor | null>(null);
   const [registrandoObservacion, setRegistrandoObservacion] = useState(false);
   const [observacionEnEdicion, setObservacionEnEdicion] = useState<ObservacionItemAsesor | null>(
@@ -37,6 +44,15 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
 
   const idsTodas = (consulta.data ?? []).map((fila) => fila.item.id);
   const seleccionadas = marcados.filter((id) => idsTodas.includes(id));
+
+  const filaEnEdicion = edicion?.filaId ?? null;
+
+  useEffect(() => {
+    if (filaAnterior.current && !filaEnEdicion) {
+      enfocarElementoVisible(raiz.current, `[data-accion-fila="${filaAnterior.current}"]`);
+    }
+    filaAnterior.current = filaEnEdicion;
+  }, [filaEnEdicion]);
 
   function alternar(id: string) {
     setMarcados((previos) =>
@@ -50,14 +66,42 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
     setObservacionEnEdicion(null);
   }
 
-  return (
-    <div className={RAIZ}>
-      {finalizada && (
-        <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden omitir ni cambiar valoraciones, ni
-          registrar, modificar o remover observaciones.
-        </Notice>
+  const celdaPuntaje = (fila: EvaluacionCuantitativaAsesor) =>
+    edicion?.filaId === fila.id ? (
+      <EditorPuntajeEnLinea
+        nombreItem={edicion.nombreItem}
+        valorMaximo={edicion.valorMaximo}
+        valor={edicion.valor}
+        error={edicion.error}
+        guardando={guardando}
+        onCambiar={cambiar}
+        onGuardar={guardar}
+        onCancelar={cancelar}
+      />
+    ) : null;
+
+  const acciones = (fila: EvaluacionCuantitativaAsesor) => (
+    <div className={ACCIONES}>
+      <IconButton
+        etiqueta={`Ver observaciones de ${fila.item.nombre}`}
+        icono={MessageSquare}
+        rotulo="Ver observaciones"
+        onClick={() => setFilaEnLectura(fila)}
+      />
+      {!finalizada && edicion?.filaId !== fila.id && (
+        <IconButton
+          etiqueta={`Cambiar puntaje del ítem ${fila.item.nombre}`}
+          icono={Pencil}
+          rotulo="Cambiar puntaje"
+          data-accion-fila={fila.id}
+          onClick={() => iniciar(fila)}
+        />
       )}
+    </div>
+  );
+
+  return (
+    <div ref={raiz} className={RAIZ}>
       {!finalizada && idsTodas.length > 0 && (
         <OmitirEvaluacionesCuantitativasAsesorBarra
           evaluacionAsesorId={evaluacionAsesorId}
@@ -74,16 +118,9 @@ export default function EvaluacionesCuantitativasRealizadasAsesorPanel({
         seleccion={
           finalizada ? undefined : { seleccionados: new Set(seleccionadas), onAlternar: alternar }
         }
-        onVerObservaciones={setFilaEnLectura}
-        onCambiarPuntaje={finalizada ? undefined : setFilaEnEdicion}
+        acciones={acciones}
+        celdaPuntaje={finalizada ? undefined : celdaPuntaje}
       />
-      {!finalizada && filaEnEdicion && (
-        <CambiarPuntajeEvaluacionCuantitativaAsesorPanel
-          fila={filaEnEdicion}
-          evaluacionAsesorId={evaluacionAsesorId}
-          onCerrar={() => setFilaEnEdicion(null)}
-        />
-      )}
       {filaEnLectura && (
         <ObservacionesEvaluacionCuantitativaAsesorPanel
           evaluacion={filaEnLectura}

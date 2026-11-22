@@ -13,14 +13,11 @@ const GestionarEvaluacionesCualitativasJurado = lazy(
 const GestionarEvaluacionesCuantitativasJurado = lazy(
   () => import('./GestionarEvaluacionesCuantitativasJurado'),
 );
-const InformacionEvaluacionAsesor = lazy(() => import('./InformacionEvaluacionAsesor'));
-const EvaluacionesCualitativasAsesor = lazy(() => import('./EvaluacionesCualitativasAsesor'));
-const EvaluacionesCuantitativasAsesor = lazy(() => import('./EvaluacionesCuantitativasAsesor'));
-const RegistrarEvaluacionesCualitativasAsesor = lazy(
-  () => import('./RegistrarEvaluacionesCualitativasAsesor'),
+const GestionarEvaluacionesCualitativasAsesor = lazy(
+  () => import('./GestionarEvaluacionesCualitativasAsesor'),
 );
-const RegistrarEvaluacionesCuantitativasAsesor = lazy(
-  () => import('./RegistrarEvaluacionesCuantitativasAsesor'),
+const GestionarEvaluacionesCuantitativasAsesor = lazy(
+  () => import('./GestionarEvaluacionesCuantitativasAsesor'),
 );
 
 export const rutasEvaluaciones: RouteObject = {
@@ -29,12 +26,12 @@ export const rutasEvaluaciones: RouteObject = {
   children: [
     { index: true, element: <Evaluaciones /> },
     {
-      path: ':evaluacionAsesorId/evaluar-asesor',
-      element: <RegistrarEvaluacionesCualitativasAsesor />,
+      path: ':evaluacionAsesorId/gestionar-cualitativas-asesor',
+      element: <GestionarEvaluacionesCualitativasAsesor />,
     },
     {
-      path: ':evaluacionAsesorId/evaluar-cuantitativas-asesor',
-      element: <RegistrarEvaluacionesCuantitativasAsesor />,
+      path: ':evaluacionAsesorId/gestionar-cuantitativas-asesor',
+      element: <GestionarEvaluacionesCuantitativasAsesor />,
     },
     {
       path: ':evaluacionJuradoId/gestionar-cualitativas',
@@ -49,18 +46,6 @@ export const rutasEvaluaciones: RouteObject = {
     {
       path: ':evaluacionJuradoId/cualitativas',
       element: <EvaluacionesCualitativasJurado />,
-    },
-    {
-      path: ':evaluacionAsesorId/informacion',
-      element: <InformacionEvaluacionAsesor />,
-    },
-    {
-      path: ':evaluacionAsesorId/cualitativas-asesor',
-      element: <EvaluacionesCualitativasAsesor />,
-    },
-    {
-      path: ':evaluacionAsesorId/cuantitativas-asesor',
-      element: <EvaluacionesCuantitativasAsesor />,
     },
     {
       path: ':evaluacionJuradoId/cuantitativas',
