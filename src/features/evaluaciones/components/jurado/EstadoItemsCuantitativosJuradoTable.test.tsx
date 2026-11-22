@@ -2,10 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { ItemCuantitativoJurado } from '../../models/ItemCuantitativoJurado';
-import type { ItemEvaluacionJurado } from '../../models/ItemEvaluacionJurado';
+import type { ItemEvaluacion } from '../../models/ItemEvaluacion';
 import EstadoItemsCuantitativosJuradoTable from './EstadoItemsCuantitativosJuradoTable';
 
-const FILAS: ItemEvaluacionJurado<ItemCuantitativoJurado>[] = [
+const FILAS: ItemEvaluacion<ItemCuantitativoJurado>[] = [
   {
     item: {
       id: 'i-1',

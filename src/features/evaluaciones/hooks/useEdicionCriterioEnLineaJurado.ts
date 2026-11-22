@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiFieldErrors } from '../../../shared/utils/api-error';
+import type { EdicionCriterioEnLinea } from '../models/EdicionCriterioEnLinea';
 import type { EvaluacionCualitativaJurado } from '../models/EvaluacionCualitativaJurado';
 import { cambiarCriterioEvaluacionCualitativaJuradoSchema } from '../utils/cambiar-criterio-evaluacion-cualitativa-jurado-schema';
 import {
@@ -8,14 +9,6 @@ import {
   mensajeErrorCambiarCriterioEvaluacionCualitativaJurado,
 } from '../utils/errores-cambiar-criterio-evaluacion-cualitativa-jurado';
 import { useCambiarCriterioEvaluacionCualitativaJurado } from './useCambiarCriterioEvaluacionCualitativaJurado';
-
-export interface EdicionCriterioEnLinea {
-  filaId: string;
-  valor: string;
-  error?: string;
-  nombreItem: string;
-  valorInicial: string;
-}
 
 export function useEdicionCriterioEnLineaJurado(evaluacionJuradoId: string) {
   const [edicion, setEdicion] = useState<EdicionCriterioEnLinea | null>(null);

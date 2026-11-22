@@ -7,7 +7,3 @@ export const registrarEvaluacionesCualitativasAsesorSchema = z.object({
     (par) => par.itemId,
   ),
 });
-
-export type RegistrarEvaluacionesCualitativasAsesorValues = z.infer<
-  typeof registrarEvaluacionesCualitativasAsesorSchema
->;

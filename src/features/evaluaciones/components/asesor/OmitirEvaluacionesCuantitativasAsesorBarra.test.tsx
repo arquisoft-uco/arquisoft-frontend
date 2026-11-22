@@ -85,7 +85,7 @@ describe('OmitirEvaluacionesCuantitativasAsesorBarra', () => {
     expect(onLimpiarSeleccion).toHaveBeenCalledTimes(1);
   });
 
-  it('con selección abre el diálogo con el conteo y la advertencia de observaciones; «Cancelar» no llama a la mutación', async () => {
+  it('con selección abre el diálogo con el conteo y la frase de las observaciones; «Cancelar» no llama a la mutación', async () => {
     // Arrange
     const mutate = mockMutacion();
     montar(['i-1']);
@@ -95,7 +95,9 @@ describe('OmitirEvaluacionesCuantitativasAsesorBarra', () => {
 
     // Assert
     expect(screen.getByRole('alertdialog')).toHaveTextContent('¿Omitir 1 evaluación cuantitativa?');
-    expect(screen.getByRole('alertdialog')).toHaveTextContent('junto con sus observaciones');
+    expect(screen.getByRole('alertdialog')).toHaveTextContent(
+      'También se eliminarán las observaciones asociadas a esos ítems',
+    );
 
     // Act
     await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));

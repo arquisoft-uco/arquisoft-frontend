@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, renderHook } from '../../../test-utils/render';
 import { toast } from '../../../shared/hooks/useToast';
 import type { ItemCuantitativoJurado } from '../models/ItemCuantitativoJurado';
-import type { ItemEvaluacionJurado } from '../models/ItemEvaluacionJurado';
+import type { ItemEvaluacion } from '../models/ItemEvaluacion';
 import { useBorradorEvaluacionesCuantitativasJurado } from './useBorradorEvaluacionesCuantitativasJurado';
 import {
   useRegistrarEvaluacionCuantitativaConObservaciones,
@@ -34,7 +34,7 @@ const item = (id: string, nombre: string): ItemCuantitativoJurado => ({
   valor: 10,
 });
 
-const FILAS: ItemEvaluacionJurado<ItemCuantitativoJurado>[] = [
+const FILAS: ItemEvaluacion<ItemCuantitativoJurado>[] = [
   { item: item(ITEM_1, 'Claridad'), pendiente: true },
   { item: item(ITEM_2, 'Rigor'), pendiente: true },
   { item: item(ITEM_3, 'Aporte'), pendiente: false },

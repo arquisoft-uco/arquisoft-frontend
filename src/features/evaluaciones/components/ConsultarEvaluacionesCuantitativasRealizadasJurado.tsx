@@ -5,7 +5,7 @@ import IconButton from '../../../shared/components/ui/IconButton';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
 import type { useEdicionPuntajeEnLineaJurado } from '../hooks/useEdicionPuntajeEnLineaJurado';
-import EditorPuntajeEnLineaJurado from './jurado/EditorPuntajeEnLineaJurado';
+import EditorPuntajeEnLinea from './EditorPuntajeEnLinea';
 import ErrorConsultaCuantitativasRealizadasJurado from './ErrorConsultaCuantitativasRealizadasJurado';
 import ModificarObservacionItemJuradoPanel from './jurado/ModificarObservacionItemJuradoPanel';
 import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
@@ -71,7 +71,7 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
   const celdaPuntaje = edicionPuntaje
     ? (fila: EvaluacionCuantitativaJurado) =>
         edicion?.filaId === fila.id ? (
-          <EditorPuntajeEnLineaJurado
+          <EditorPuntajeEnLinea
             nombreItem={edicion.nombreItem}
             valorMaximo={edicion.valorMaximo}
             valor={edicion.valor}

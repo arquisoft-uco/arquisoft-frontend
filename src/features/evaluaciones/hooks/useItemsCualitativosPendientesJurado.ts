@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { marcarItemsPendientes, soloPendientes } from '../utils/items-pendientes-jurado';
+import { marcarItemsPendientes, soloPendientes } from '../utils/items-pendientes';
 import { useEvaluacionesCualitativasRealizadasJurado } from './useEvaluacionesCualitativasRealizadasJurado';
 import { useItemsCualitativosJurado } from './useItemsCualitativosJurado';
 

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen } from '../../../../test-utils/render';
@@ -35,8 +36,8 @@ function error422(errorCode: string) {
 function montar(
   parcial: Partial<ConsultaCuantitativasAsesor>,
   onVolver = vi.fn(),
-  onVerObservaciones = vi.fn(),
   seleccion?: SeleccionCuantitativas,
+  celdaPuntaje?: (fila: typeof FILA) => ReactNode,
 ) {
   const consulta: ConsultaCuantitativasAsesor = {
     data: undefined,
@@ -52,7 +53,8 @@ function montar(
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
       seleccion={seleccion}
-      onVerObservaciones={onVerObservaciones}
+      acciones={(fila) => <button type="button">Acción de {fila.item.nombre}</button>}
+      celdaPuntaje={celdaPuntaje}
     />,
   );
   return { consulta, onVolver };
@@ -71,17 +73,16 @@ describe('ConsultarEvaluacionesCuantitativasAsesor', () => {
     expect(screen.getByText('1 evaluación cuantitativa')).toBeInTheDocument();
   });
 
-  it('la acción «Ver observaciones» de la fila la entrega a onVerObservaciones', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const onVerObservaciones = vi.fn();
-    montar({ data: [FILA] }, vi.fn(), onVerObservaciones);
-
+  it('renderiza las acciones por fila y reemplaza el puntaje con celdaPuntaje cuando se entrega', () => {
     // Act
-    await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Claridad/ })[0]);
+    montar({ data: [FILA] }, vi.fn(), undefined, (fila) => (
+      <span>Editor de {fila.item.nombre}</span>
+    ));
 
     // Assert
-    expect(onVerObservaciones).toHaveBeenCalledWith(FILA);
+    expect(screen.getAllByRole('button', { name: 'Acción de Claridad' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Editor de Claridad').length).toBeGreaterThan(0);
+    expect(screen.queryByText('80 de 100')).not.toBeInTheDocument();
   });
 
   it('con lista vacía muestra el estado vacío y no un error', () => {
@@ -154,7 +155,7 @@ describe('ConsultarEvaluacionesCuantitativasAsesor', () => {
     // Arrange
     const user = userEvent.setup();
     const onAlternar = vi.fn();
-    montar({ data: [FILA] }, vi.fn(), vi.fn(), { seleccionados: new Set(['i-1']), onAlternar });
+    montar({ data: [FILA] }, vi.fn(), { seleccionados: new Set(['i-1']), onAlternar });
 
     // Act
     const casilla = screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0];

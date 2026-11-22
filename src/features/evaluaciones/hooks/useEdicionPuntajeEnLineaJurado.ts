@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiFieldErrors } from '../../../shared/utils/api-error';
+import type { EdicionPuntajeEnLinea } from '../models/EdicionPuntajeEnLinea';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import { cambiarPuntajeEvaluacionCuantitativaJuradoSchema } from '../utils/cambiar-puntaje-evaluacion-cuantitativa-jurado-schema';
 import {
@@ -8,15 +9,6 @@ import {
   mensajeErrorCambiarPuntajeEvaluacionCuantitativaJurado,
 } from '../utils/errores-cambiar-puntaje-evaluacion-cuantitativa-jurado';
 import { useCambiarPuntajeEvaluacionCuantitativaJurado } from './useCambiarPuntajeEvaluacionCuantitativaJurado';
-
-export interface EdicionPuntajeEnLinea {
-  filaId: string;
-  valor: string;
-  error?: string;
-  nombreItem: string;
-  valorInicial: string;
-  valorMaximo: number;
-}
 
 export function useEdicionPuntajeEnLineaJurado(evaluacionJuradoId: string) {
   const [edicion, setEdicion] = useState<EdicionPuntajeEnLinea | null>(null);

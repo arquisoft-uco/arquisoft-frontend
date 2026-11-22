@@ -5,202 +5,92 @@ import { render, screen } from '../../../../test-utils/render';
 import AccionesEvaluacionAsignadaAsesor from './AccionesEvaluacionAsignadaAsesor';
 import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
 
-function asignacion(
-  tieneCualitativas: boolean,
-  tieneCuantitativas = false,
-  estadoId = 'e-1',
-): EvaluacionAsignadaAsesor {
+function asignacion(estadoId = 'e-1', tiene = false): EvaluacionAsignadaAsesor {
   return {
     id: 'ea-1',
     evaluacion: { id: 'ev-1', estado: { id: estadoId, nombre: 'En curso' } },
     entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
-    tieneEvaluacionesCualitativas: tieneCualitativas,
-    tieneEvaluacionesCuantitativas: tieneCuantitativas,
-  } as EvaluacionAsignadaAsesor;
+    tieneEvaluacionesCualitativas: tiene,
+    tieneEvaluacionesCuantitativas: tiene,
+  };
 }
 
 function Destino() {
-  const { pathname, state } = useLocation();
+  const { pathname, search, state } = useLocation();
   return (
     <>
-      <h1>Destino cualitativas</h1>
       <p>{pathname}</p>
-      <p>{JSON.stringify(state)}</p>
+      <p>{search}</p>
+      <p>{state === null ? 'sin state' : 'con state'}</p>
     </>
   );
 }
 
-function montar(tieneCualitativas: boolean, tieneCuantitativas = false, estadoId = 'e-1') {
+function montar(estadoId = 'e-1', tiene = false) {
   return render(
     <Routes>
       <Route
         path="/evaluaciones"
-        element={
-          <AccionesEvaluacionAsignadaAsesor
-            asignacion={asignacion(tieneCualitativas, tieneCuantitativas, estadoId)}
-          />
-        }
+        element={<AccionesEvaluacionAsignadaAsesor asignacion={asignacion(estadoId, tiene)} />}
       />
-      <Route path="/evaluaciones/:id/informacion" element={<Destino />} />
-      <Route path="/evaluaciones/:id/cualitativas-asesor" element={<Destino />} />
-      <Route path="/evaluaciones/:id/cuantitativas-asesor" element={<Destino />} />
-      <Route path="/evaluaciones/:id/evaluar-asesor" element={<Destino />} />
-      <Route path="/evaluaciones/:id/evaluar-cuantitativas-asesor" element={<Destino />} />
+      <Route path="/evaluaciones/:id/gestionar-cualitativas-asesor" element={<Destino />} />
+      <Route path="/evaluaciones/:id/gestionar-cuantitativas-asesor" element={<Destino />} />
     </Routes>,
     { initialPath: '/evaluaciones?q=sis' },
   );
 }
 
 describe('AccionesEvaluacionAsignadaAsesor', () => {
-  it('con cualitativas muestra la acción y navega a la pantalla con el state esperado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    montar(true);
-
+  it.each([
+    ['sin evaluaciones', 'e-1', false],
+    ['con evaluaciones', 'e-1', true],
+    ['con la evaluación finalizada', 'FINALIZADA', true],
+  ])('%s ofrece siempre exactamente los dos botones de gestión', (_caso, estadoId, tiene) => {
     // Act
-    await user.click(
-      screen.getByRole('button', { name: 'Ver cualitativas de Sistema de monitoreo' }),
-    );
+    montar(estadoId, tiene);
 
     // Assert
+    expect(screen.getAllByRole('button')).toHaveLength(2);
     expect(
-      await screen.findByRole('heading', { name: 'Destino cualitativas' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('/evaluaciones/ea-1/cualitativas-asesor')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        JSON.stringify({
-          evaluacionAsesorId: 'ea-1',
-          search: '?q=sis',
-          evaluacionFinalizada: false,
-          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
-        }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('con cuantitativas navega a su pantalla con el state esperado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    montar(false, true);
-
-    // Act
-    await user.click(
-      screen.getByRole('button', { name: 'Ver cuantitativas de Sistema de monitoreo' }),
-    );
-
-    // Assert
-    expect(await screen.findByText('/evaluaciones/ea-1/cuantitativas-asesor')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        JSON.stringify({
-          evaluacionAsesorId: 'ea-1',
-          search: '?q=sis',
-          evaluacionFinalizada: false,
-          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
-        }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('"Ver información" navega a informacion con el state esperado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    montar(false);
-
-    // Act
-    await user.click(
-      screen.getByRole('button', { name: 'Ver información de Sistema de monitoreo' }),
-    );
-
-    // Assert
-    expect(await screen.findByText('/evaluaciones/ea-1/informacion')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        JSON.stringify({
-          evaluacionAsesorId: 'ea-1',
-          search: '?q=sis',
-          evaluacionFinalizada: false,
-          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
-        }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('sin ninguna bandera ofrece "Ver información", "Evaluar" y "Evaluar cuantitativas"', () => {
-    // Act
-    montar(false);
-
-    // Assert
-    expect(screen.getAllByRole('button')).toHaveLength(3);
-    expect(
-      screen.getByRole('button', { name: 'Ver información de Sistema de monitoreo' }),
+      screen.getByRole('button', { name: 'Gestionar cualitativas de Sistema de monitoreo' }),
     ).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' })).toBeEnabled();
     expect(
-      screen.getByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' }),
+      screen.getByRole('button', { name: 'Gestionar cuantitativas de Sistema de monitoreo' }),
     ).toBeEnabled();
   });
 
-  it('"Evaluar" navega a evaluar-asesor con el state esperado', async () => {
+  it('cada botón navega a su página conservando la búsqueda del listado', async () => {
     // Arrange
     const user = userEvent.setup();
-    montar(false);
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' }));
-
-    // Assert
-    expect(await screen.findByText('/evaluaciones/ea-1/evaluar-asesor')).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        JSON.stringify({
-          evaluacionAsesorId: 'ea-1',
-          search: '?q=sis',
-          evaluacionFinalizada: false,
-          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
-        }),
-      ),
-    ).toBeInTheDocument();
-  });
-
-  it('"Evaluar cuantitativas" navega a su pantalla con el state esperado', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    montar(false);
+    montar();
 
     // Act
     await user.click(
-      screen.getByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' }),
+      screen.getByRole('button', { name: 'Gestionar cualitativas de Sistema de monitoreo' }),
     );
 
     // Assert
     expect(
-      await screen.findByText('/evaluaciones/ea-1/evaluar-cuantitativas-asesor'),
+      await screen.findByText('/evaluaciones/ea-1/gestionar-cualitativas-asesor'),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        JSON.stringify({
-          evaluacionAsesorId: 'ea-1',
-          search: '?q=sis',
-          evaluacionFinalizada: false,
-          resumen: { proyecto: 'Sistema de monitoreo', version: 2 },
-        }),
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText('?q=sis')).toBeInTheDocument();
+    expect(screen.getByText('sin state')).toBeInTheDocument();
   });
 
-  it('con la evaluación finalizada deshabilita "Evaluar" pero conserva "Ver información"', () => {
+  it('«Gestionar cuantitativas» navega a la página de cuantitativas', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    montar();
+
     // Act
-    montar(false, false, 'FINALIZADA');
+    await user.click(
+      screen.getByRole('button', { name: 'Gestionar cuantitativas de Sistema de monitoreo' }),
+    );
 
     // Assert
     expect(
-      screen.getByRole('button', { name: 'Ver información de Sistema de monitoreo' }),
-    ).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Evaluar Sistema de monitoreo' })).toBeDisabled();
-    expect(
-      screen.getByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' }),
-    ).toBeDisabled();
+      await screen.findByText('/evaluaciones/ea-1/gestionar-cuantitativas-asesor'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('?q=sis')).toBeInTheDocument();
   });
 });

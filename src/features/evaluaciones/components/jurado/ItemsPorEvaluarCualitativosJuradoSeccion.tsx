@@ -5,7 +5,7 @@ import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useBorradorEvaluacionesCualitativasJurado } from '../../hooks/useBorradorEvaluacionesCualitativasJurado';
 import { useCriteriosItemCualitativoJurado } from '../../hooks/useCriteriosItemCualitativoJurado';
 import type { useItemsCualitativosPendientesJurado } from '../../hooks/useItemsCualitativosPendientesJurado';
-import EstadoItemsCualitativosJuradoTable from './EstadoItemsCualitativosJuradoTable';
+import EstadoItemsCualitativosTable from '../EstadoItemsCualitativosTable';
 
 const RAIZ = 'flex flex-col gap-4';
 const TITULO = 'text-base font-semibold text-on-surface';
@@ -91,7 +91,7 @@ export default function ItemsPorEvaluarCualitativosJuradoSeccion({
           onReintentar={reintentar}
         />
       ) : (
-        <EstadoItemsCualitativosJuradoTable
+        <EstadoItemsCualitativosTable
           filas={consulta.filas}
           criterios={criterios.data ?? []}
           cargando={cargando}

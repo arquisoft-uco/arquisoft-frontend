@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from '../../../shared/hooks/useToast';
 import type { CriterioItemCualitativoJurado } from '../models/CriterioItemCualitativoJurado';
 import type { ItemCualitativoJurado } from '../models/ItemCualitativoJurado';
-import type { ItemEvaluacionJurado } from '../models/ItemEvaluacionJurado';
+import type { ItemEvaluacion } from '../models/ItemEvaluacion';
 import type { ParEvaluacionCualitativaJurado } from '../models/ParEvaluacionCualitativaJurado';
 import { mensajeErrorRegistroEvaluacionesCualitativas } from '../utils/errores-registro-evaluaciones-cualitativas';
 import { registrarEvaluacionesCualitativasJuradoSchema } from '../utils/registrar-evaluaciones-cualitativas-jurado-schema';
@@ -11,7 +11,7 @@ import { useRegistrarEvaluacionesCualitativasJurado } from './useRegistrarEvalua
 interface Opciones {
   evaluacionJuradoId: string;
   proyecto: string;
-  filas: ItemEvaluacionJurado<ItemCualitativoJurado>[];
+  filas: ItemEvaluacion<ItemCualitativoJurado>[];
   criterios: CriterioItemCualitativoJurado[];
 }
 

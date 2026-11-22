@@ -99,14 +99,11 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('con la evaluación finalizada muestra el aviso y ninguna acción «Cambiar puntaje»', () => {
+  it('con la evaluación finalizada no ofrece ninguna acción «Cambiar puntaje»', () => {
     // Arrange / Act
     render(panel(true));
 
     // Assert
-    expect(
-      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar valoraciones/),
-    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
   });
 
@@ -160,7 +157,7 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     expect(screen.getByText(/Orden · 50 de 100/)).toBeInTheDocument();
   });
 
-  it('con la evaluación finalizada el aviso incluye las observaciones y no se ofrece «Registrar observación»', async () => {
+  it('con la evaluación finalizada no se ofrece «Registrar observación»', async () => {
     // Arrange
     const user = userEvent.setup();
     render(panel(true));
@@ -169,7 +166,7 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     await user.click(screen.getAllByRole('button', { name: /Ver observaciones de Orden/ })[0]);
 
     // Assert
-    expect(screen.getByText(/ni registrar, modificar o remover observaciones/)).toBeInTheDocument();
+    expect(screen.getAllByText('Falta rigor').length).toBeGreaterThan(0);
     expect(screen.queryByRole('button', { name: 'Registrar observación' })).not.toBeInTheDocument();
   });
 
@@ -186,7 +183,7 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     expect(screen.getByRole('form', { name: 'Registro de observación' })).toBeInTheDocument();
   });
 
-  it('sin finalizar, pulsar la acción de una fila abre el panel con ese ítem', async () => {
+  it('sin finalizar, «Cambiar puntaje» abre el editor de la fila y Esc lo cancela', async () => {
     // Arrange
     const user = userEvent.setup();
     render(panel(false));
@@ -195,7 +192,13 @@ describe('EvaluacionesCuantitativasRealizadasAsesorPanel', () => {
     await user.click(screen.getAllByRole('button', { name: /Cambiar puntaje del ítem Orden/ })[0]);
 
     // Assert
-    expect(screen.getByText('Ítem: Orden')).toBeInTheDocument();
+    expect(screen.getAllByRole('textbox', { name: 'Puntaje de Orden' })[0]).toHaveValue('50');
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(screen.queryByRole('textbox', { name: 'Puntaje de Orden' })).toBeNull();
   });
 
   it('sin finalizar, «Modificar observación» abre el formulario sobre el panel de observaciones', async () => {

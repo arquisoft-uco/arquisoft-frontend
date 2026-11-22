@@ -76,7 +76,7 @@ describe('ConsultarEvaluacionesAsesor', () => {
     } as ReturnType<typeof useCatalogoEstadosEvaluacion>);
   });
 
-  it('lista proyecto, versión y estado con la columna de acciones, sin botones si no hay cualitativas', () => {
+  it('lista proyecto, versión y estado con la columna de acciones y sus dos botones de gestión aunque no haya evaluaciones', () => {
     // Arrange
     mockHook({ data: crearPagina([EVALUACION]) });
 
@@ -90,8 +90,8 @@ describe('ConsultarEvaluacionesAsesor', () => {
     expect(tabla.getByText('Pendiente')).toBeInTheDocument();
     expect(tabla.getAllByRole('columnheader')).toHaveLength(4);
     expect(
-      tabla.queryByRole('button', { name: /Ver evaluaciones|Asignar|Ver cualitativas/ }),
-    ).not.toBeInTheDocument();
+      tabla.getAllByRole('button', { name: /^Gestionar (cuali|cuanti)tativas de/ }),
+    ).toHaveLength(2);
   });
 
   it('sin evaluaciones muestra el vacío con el texto del asesor, no un error', () => {
