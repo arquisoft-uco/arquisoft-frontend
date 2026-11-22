@@ -6,6 +6,7 @@ interface Props {
   onCambiar: (texto: string) => void;
   error?: string;
   deshabilitado?: boolean;
+  etiqueta?: string;
 }
 
 export default function CampoObservacionEvaluacionCuantitativa({
@@ -13,10 +14,11 @@ export default function CampoObservacionEvaluacionCuantitativa({
   onCambiar,
   error,
   deshabilitado,
+  etiqueta = 'Observación',
 }: Props) {
   return (
     <Field
-      etiqueta="Observación"
+      etiqueta={etiqueta}
       opcional
       error={error}
       contador={{ actual: valor.length, max: LIMITES.OBSERVACION_ITEM_JURADO_DESCRIPCION_MAX }}

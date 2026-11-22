@@ -54,10 +54,12 @@ describe('useRegistrarEvaluacionesCualitativasJurado', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(registrar).toHaveBeenCalledWith({ evaluacionJuradoId: 'ej-1', evaluaciones: PARES });
-    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledTimes(3);
     expect(invalidar).toHaveBeenCalledWith({
       queryKey: ['evaluaciones', 'jurado', 'ej-1', 'cualitativas'],
     });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluaciones', 'jurado', 'asignada'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluaciones', 'jurado', 'asignadas'] });
   });
 
   it('invalida el catálogo de ítems o de criterios que el backend dice que ya no existe', async () => {
@@ -94,7 +96,7 @@ describe('useRegistrarEvaluacionesCualitativasJurado', () => {
     expect(invalidar).toHaveBeenCalledTimes(1);
   });
 
-  it('no invalida catálogos ante otros errores', async () => {
+  it('invalida las realizadas cuando algún ítem ya estaba registrado, sin tocar los catálogos', async () => {
     // Arrange
     registrar.mockRejectedValue(errorApi('EVALUACION_CUALITATIVA_JURADO_ITEMS_YA_REGISTRADOS'));
     const { Wrapper, invalidar } = crearContexto();
@@ -107,6 +109,9 @@ describe('useRegistrarEvaluacionesCualitativasJurado', () => {
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(invalidar).not.toHaveBeenCalled();
+    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledWith({
+      queryKey: ['evaluaciones', 'jurado', 'ej-1', 'cualitativas'],
+    });
   });
 });

@@ -13,6 +13,7 @@ vi.mock('../services/evaluacionesService', () => ({
 const omitir = vi.mocked(evaluacionesService.omitirEvaluacionesCualitativasJurado);
 
 const LISTA = { queryKey: ['evaluaciones', 'jurado', 'ej-1', 'cualitativas'] };
+const ASIGNADA = { queryKey: ['evaluaciones', 'jurado', 'asignada'] };
 const ASIGNADAS = { queryKey: ['evaluaciones', 'jurado', 'asignadas'] };
 
 function errorApi(errorCode: string, status = 422) {
@@ -44,7 +45,7 @@ describe('useOmitirEvaluacionesCualitativasJurado', () => {
     vi.clearAllMocks();
   });
 
-  it('envía el id de la evaluación y los ids, e invalida la lista y «Mis evaluaciones» en éxito', async () => {
+  it('envía el id de la evaluación y los ids, e invalida la lista, la cabecera y «Mis evaluaciones» en éxito', async () => {
     // Arrange
     omitir.mockResolvedValue(undefined);
     const { result, invalidar } = montar();
@@ -58,8 +59,9 @@ describe('useOmitirEvaluacionesCualitativasJurado', () => {
       evaluacionJuradoId: 'ej-1',
       evaluaciones: ['ec-1', 'ec-2'],
     });
-    expect(invalidar).toHaveBeenCalledTimes(2);
+    expect(invalidar).toHaveBeenCalledTimes(3);
     expect(invalidar).toHaveBeenCalledWith(LISTA);
+    expect(invalidar).toHaveBeenCalledWith(ASIGNADA);
     expect(invalidar).toHaveBeenCalledWith(ASIGNADAS);
   });
 

@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
@@ -79,16 +80,6 @@ vi.mock('./jurado/ModificarObservacionItemJuradoPanel', () => ({
   ),
 }));
 
-vi.mock('./jurado/CambiarPuntajeEvaluacionCuantitativaJuradoPanel', () => ({
-  default: ({ fila, onCerrar }: { fila: EvaluacionCuantitativaJurado; onCerrar: () => void }) => (
-    <div role="dialog" aria-label={`Cambio de puntaje de ${fila.item.nombre}`}>
-      <button type="button" onClick={onCerrar}>
-        Cerrar cambio
-      </button>
-    </div>
-  ),
-}));
-
 function crearError(status: number, errorCode?: string, message = 'Falla del servidor') {
   return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
     data: { status, errorCode, message },
@@ -99,14 +90,29 @@ function crearError(status: number, errorCode?: string, message = 'Falla del ser
   });
 }
 
+type EdicionPuntaje = NonNullable<
+  ComponentProps<typeof ConsultarEvaluacionesCuantitativasRealizadasJurado>['edicionPuntaje']
+>;
+
+function crearEdicion(parcial: Partial<EdicionPuntaje> = {}): EdicionPuntaje {
+  return {
+    edicion: null,
+    iniciar: vi.fn(),
+    cambiar: vi.fn(),
+    cancelar: vi.fn(),
+    guardar: vi.fn(),
+    guardando: false,
+    ...parcial,
+  };
+}
+
 function montar(
   parcial: Partial<ConsultaCuantitativas> = {},
-  conEvaluar = false,
+  edicionPuntaje?: EdicionPuntaje,
   evaluacionFinalizada = false,
 ) {
   const refetch = vi.fn();
   const onVolver = vi.fn();
-  const onEvaluar = vi.fn();
   const consulta: ConsultaCuantitativas = {
     data: undefined,
     error: null,
@@ -120,12 +126,11 @@ function montar(
       consulta={consulta}
       etiquetaVolver="Volver a mis evaluaciones"
       onVolver={onVolver}
-      onEvaluar={conEvaluar ? onEvaluar : undefined}
-      evaluacionJuradoId="ej-1"
       evaluacionFinalizada={evaluacionFinalizada}
+      edicionPuntaje={edicionPuntaje}
     />,
   );
-  return { refetch, onVolver, onEvaluar };
+  return { refetch, onVolver };
 }
 
 describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
@@ -176,23 +181,13 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('con lista vacía ofrece «Evaluar cuantitativas» solo si hay onEvaluar', async () => {
-    // Arrange
+  it('con lista vacía muestra el vacío explicativo sin acción de evaluar', () => {
+    // Arrange / Act
     montar({ data: [] });
 
     // Assert
     expect(screen.getByText('Aún no registraste evaluaciones cuantitativas')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Evaluar cuantitativas' })).not.toBeInTheDocument();
-
-    // Arrange
-    cleanup();
-    const { onEvaluar } = montar({ data: [] }, true);
-
-    // Act
-    await userEvent.click(screen.getByRole('button', { name: 'Evaluar cuantitativas' }));
-
-    // Assert
-    expect(onEvaluar).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /Evaluar/ })).not.toBeInTheDocument();
   });
 
   it('el 422 de evaluación inexistente muestra su error sin reintento y permite volver', async () => {
@@ -258,7 +253,7 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
   it('con la evaluación finalizada la lectura no ofrece «Modificar observación»', async () => {
     // Arrange
     const user = userEvent.setup();
-    montar({ data: [FILA] }, false, true);
+    montar({ data: [FILA] }, undefined, true);
 
     // Act
     await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
@@ -275,7 +270,7 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
     expect(screen.getByRole('button', { name: 'Remover observación' })).toBeInTheDocument();
     cleanup();
-    montar({ data: [FILA] }, false, true);
+    montar({ data: [FILA] }, undefined, true);
 
     // Act
     await user.click(screen.getAllByRole('button', { name: 'Ver observaciones de Claridad' })[0]);
@@ -285,67 +280,54 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
     expect(screen.queryByRole('button', { name: 'Remover observación' })).not.toBeInTheDocument();
   });
 
-  it('«Cambiar puntaje» abre el panel de esa fila, cerrarlo lo desmonta y «Ver observaciones» sigue disponible', async () => {
+  it('«Cambiar puntaje» inicia la edición de esa fila y el editor guarda y cancela en la propia fila', async () => {
     // Arrange
     const usuario = userEvent.setup();
-    montar({ data: [FILA, OTRA_FILA] });
+    const edicion = crearEdicion();
+    montar({ data: [FILA, OTRA_FILA] }, edicion);
 
     // Act
     await usuario.click(screen.getAllByRole('button', { name: 'Cambiar puntaje de Rigor' })[0]);
 
     // Assert
-    expect(screen.getByRole('dialog', { name: 'Cambio de puntaje de Rigor' })).toBeInTheDocument();
+    expect(edicion.iniciar).toHaveBeenCalledWith(OTRA_FILA);
+    cleanup();
+
+    // Arrange
+    const enEdicion = crearEdicion({
+      edicion: {
+        filaId: 'ec-2',
+        valor: '12',
+        valorInicial: '10',
+        nombreItem: 'Rigor',
+        valorMaximo: 50,
+      },
+    });
+    montar({ data: [FILA, OTRA_FILA] }, enEdicion);
+
+    // Act
+    await usuario.click(screen.getAllByRole('button', { name: 'Guardar puntaje de Rigor' })[0]);
+    await usuario.click(
+      screen.getAllByRole('button', { name: 'Cancelar cambio de puntaje de Rigor' })[0],
+    );
+
+    // Assert
+    expect(enEdicion.guardar).toHaveBeenCalledTimes(1);
+    expect(enEdicion.cancelar).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole('button', { name: 'Cambiar puntaje de Rigor' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getAllByRole('button', { name: 'Ver observaciones de Rigor' }).length,
     ).toBeGreaterThan(0);
-    await usuario.click(screen.getByRole('button', { name: 'Cerrar cambio' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('sin «seleccion» no hay casillas y con ella hay una por fila que avisa el id al alternarla', async () => {
-    // Arrange
-    const onAlternar = vi.fn();
-    const consulta: ConsultaCuantitativas = {
-      data: [FILA],
-      error: null,
-      isLoading: false,
-      isError: false,
-      refetch: vi.fn(),
-    };
-    const propiedades = {
-      consulta,
-      etiquetaVolver: 'Volver a mis evaluaciones',
-      onVolver: vi.fn(),
-      evaluacionJuradoId: 'ej-1',
-    };
-    const { unmount } = render(
-      <ConsultarEvaluacionesCuantitativasRealizadasJurado {...propiedades} />,
-    );
-
-    // Assert
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
-    unmount();
-
-    // Act
-    render(
-      <ConsultarEvaluacionesCuantitativasRealizadasJurado
-        {...propiedades}
-        seleccion={{ seleccionados: new Set(), onAlternar }}
-      />,
-    );
-    await userEvent.click(screen.getAllByRole('checkbox', { name: 'Seleccionar Claridad' })[0]);
-
-    // Assert
-    expect(onAlternar).toHaveBeenCalledWith('ec-1');
-  });
-
-  it('con la evaluación finalizada no ofrece «Cambiar puntaje» y muestra el aviso', () => {
+  it('sin controlador de edición no ofrece «Cambiar puntaje»', () => {
     // Arrange / Act
-    montar({ data: [FILA] }, false, true);
+    montar({ data: [FILA] }, undefined, true);
 
     // Assert
     expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
-    expect(screen.getByText(/no se pueden omitir ni cambiar puntajes/)).toBeInTheDocument();
   });
 
   it('sin seleccion no hay casillas; con seleccion hay una por fila y alternarla entrega el id', async () => {
@@ -369,7 +351,6 @@ describe('ConsultarEvaluacionesCuantitativasRealizadasJurado', () => {
         }}
         etiquetaVolver="Volver a mis evaluaciones"
         onVolver={vi.fn()}
-        evaluacionJuradoId="ej-1"
         seleccion={{ seleccionados: new Set(['ec-1']), onAlternar }}
       />,
     );

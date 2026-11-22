@@ -59,9 +59,14 @@ export function useRegistrarEvaluacionCuantitativaConObservaciones(evaluacionJur
     }
   }
 
+  function descartarPendientes() {
+    setPendientes([]);
+  }
+
   return {
     registrar,
     reintentar,
+    descartarPendientes,
     pendientes,
     enviando: puntajes.isPending || observaciones.isPending,
     reintentando,

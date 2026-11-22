@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import EvaluacionesCualitativasRealizadasJuradoPanel from './EvaluacionesCualitativasRealizadasJuradoPanel';
 import type { ConsultaCualitativas } from '../ConsultarEvaluacionesCualitativasJurado';
 import type { EvaluacionCualitativaJurado } from '../../models/EvaluacionCualitativaJurado';
@@ -9,16 +9,25 @@ vi.mock('../../hooks/useOmitirEvaluacionesCualitativasJurado', () => ({
   useOmitirEvaluacionesCualitativasJurado: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 
+const { cambiarCriterio } = vi.hoisted(() => ({ cambiarCriterio: vi.fn() }));
+
 vi.mock('../../hooks/useCambiarCriterioEvaluacionCualitativaJurado', () => ({
   useCambiarCriterioEvaluacionCualitativaJurado: () => ({
     isPending: false,
-    mutate: vi.fn(),
+    mutate: cambiarCriterio,
     reset: vi.fn(),
   }),
 }));
 vi.mock('../../hooks/useCriteriosItemCualitativoJurado', () => ({
   useCriteriosItemCualitativoJurado: () => ({
-    data: [{ id: 'c-ec-1', nombre: 'Excelente', descripcion: 'Supera lo esperado' }],
+    data: [
+      { id: 'c-ec-1', nombre: 'Excelente', descripcion: 'Supera lo esperado' },
+      {
+        id: '3f1c2d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f',
+        nombre: 'Aceptable',
+        descripcion: 'Cumple lo esperado',
+      },
+    ],
     isLoading: false,
     isError: false,
     refetch: vi.fn(),
@@ -57,14 +66,11 @@ describe('EvaluacionesCualitativasRealizadasJuradoPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('con la evaluación finalizada muestra el aviso y no hay casillas ni barra', () => {
+  it('con la evaluación finalizada no hay casillas, barra ni acción de cambiar', () => {
     // Arrange / Act
     render(panel([CLARIDAD], true));
 
     // Assert
-    expect(
-      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar valoraciones/),
-    ).toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Cambiar criterio/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
@@ -97,15 +103,38 @@ describe('EvaluacionesCualitativasRealizadasJuradoPanel', () => {
     expect(screen.getByText('Aún no hay evaluaciones cualitativas')).toBeInTheDocument();
   });
 
-  it('sin finalizar ofrece «Cambiar criterio» por fila y al pulsarlo abre el panel de esa fila', async () => {
+  it('«Cambiar criterio» abre el editor en la propia fila y «Guardar» envía el criterio elegido', async () => {
     // Arrange
     const user = userEvent.setup();
     render(panel([CLARIDAD, ORDEN]));
+    const tabla = within(screen.getByRole('table'));
 
     // Act
-    await user.click(screen.getAllByRole('button', { name: /Cambiar criterio del ítem Orden/ })[0]);
+    await user.click(tabla.getByRole('button', { name: /Cambiar criterio del ítem Orden/ }));
+    const selector = tabla.getByRole('combobox', { name: 'Criterio para Orden' });
+    await user.selectOptions(selector, 'Aceptable');
+    await user.click(tabla.getByRole('button', { name: 'Guardar criterio de Orden' }));
 
     // Assert
-    expect(screen.getByText('Ítem: Orden')).toBeInTheDocument();
+    expect(cambiarCriterio).toHaveBeenCalledWith(
+      { evaluacionCualitativaJuradoId: 'ec-2', criterioId: '3f1c2d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f' },
+      expect.any(Object),
+    );
+  });
+
+  it('Esc cancela la edición y devuelve el foco a la acción de esa fila', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel([CLARIDAD, ORDEN]));
+    const tabla = within(screen.getByRole('table'));
+    await user.click(tabla.getByRole('button', { name: /Cambiar criterio del ítem Orden/ }));
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(tabla.queryByRole('combobox', { name: 'Criterio para Orden' })).not.toBeInTheDocument();
+    expect(tabla.getByRole('button', { name: /Cambiar criterio del ítem Orden/ })).toHaveFocus();
+    expect(cambiarCriterio).not.toHaveBeenCalled();
   });
 });
