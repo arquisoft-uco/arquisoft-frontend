@@ -102,7 +102,7 @@ export default function SubirVersionCampos({
       <FormSection titulo="Archivo">
         <Field
           etiqueta={ETIQUETAS_CAMPO_VERSION.archivo}
-          ayuda="PDF, DOCX, XLSX o PPTX. Máximo 5 MB."
+          ayuda="PDF, DOCX, XLSX o PPTX. Máximo 50 MB."
           error={errors.archivo?.message}
         >
           {(control) => (

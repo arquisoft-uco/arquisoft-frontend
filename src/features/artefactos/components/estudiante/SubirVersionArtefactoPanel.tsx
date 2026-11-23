@@ -77,7 +77,7 @@ export default function SubirVersionArtefactoPanel({ artefacto, onCerrar }: Prop
         <FormSection titulo="Archivo">
           <Field
             etiqueta={ETIQUETAS_CAMPO_VERSION_ARTEFACTO.archivo}
-            ayuda="PDF, DOCX, XLSX, PPTX, MD, TXT, DRAWIO, PNG o JPG. Máximo 5 MB."
+            ayuda="PDF, DOCX, XLSX, PPTX, MD, TXT, DRAWIO, PNG o JPG. Máximo 50 MB."
             error={form.formState.errors.archivo?.message}
           >
             {(control) => (
