@@ -62,8 +62,8 @@ export const LIMITES = {
   // Espejo de RepositorioArtefactosLimits.VersionRepositorioArtefacto (NOMBRE_DOCUMENTO_MAX, NOMBRE_ARCHIVO_MAX).
   VERSION_NOMBRE_DOCUMENTO_MAX: 100,
   VERSION_NOMBRE_ARCHIVO_MAX: 255,
-  // repositorio-artefactos.almacenamiento.tamano-maximo-bytes (application.yml del backend).
-  VERSION_ARCHIVO_TAMANO_MAX_BYTES: 5_242_880,
+  // repositorio-artefactos y artefactos .almacenamiento.tamano-maximo-bytes (application.yml del backend).
+  VERSION_ARCHIVO_TAMANO_MAX_BYTES: 52_428_800,
   // MapasRutaLimits.Tarea.DESCRIPCION_MAX (tarea.descripcion VARCHAR(200)).
   TAREA_DESCRIPCION_MAX: 200,
   // MapasRutaLimits.PlanEstimado.TIEMPO_ESTIMADO_DIAS_MIN
