@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import type { AccionRevisionAsesor } from '../../utils/accion-revision-asesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 
 const ARTEFACTO: ArtefactoAsesor = {
@@ -33,6 +34,8 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosAseso
     orden: { clave: 'nombreProyecto', direccion: 'ASC' as const },
     onOrdenar: vi.fn(),
     onLimpiarFiltros: vi.fn(),
+    revisionDe: () => null,
+    onRevision: vi.fn(),
     onOmitir: vi.fn(),
     onReactivar: vi.fn(),
     onGestionarEstudiantes: vi.fn(),
@@ -175,6 +178,45 @@ describe('ArtefactosAsesorTable', () => {
 
     // Assert
     expect(onCambiarAsesor).toHaveBeenCalledWith(ARTEFACTO);
+  });
+
+  it('el menú ofrece primero la acción de revisión que corresponda y la entrega; sin revisión vigente no la ofrece', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const otro = { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto' };
+    const sinVersiones = { ...ARTEFACTO, id: 'a-3', nombreDocumento: 'Plano' };
+    const version = { id: 'v-1', revisionAsesor: 'r-1' } as VersionArtefacto;
+    const gestionar = { tipo: 'gestionar' as const, version, revisionAsesorId: 'r-1' };
+    const registrar = { tipo: 'registrar' as const, version };
+    const acciones = new Map<string, AccionRevisionAsesor>([
+      [ARTEFACTO.id, gestionar],
+      [otro.id, registrar],
+    ]);
+    const { onRevision } = renderizar({
+      artefactos: [ARTEFACTO, otro, sinVersiones],
+      revisionDe: (artefacto) => acciones.get(artefacto.id) ?? null,
+    });
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Acta de inicio' }));
+
+    // Assert
+    expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Gestionar revisión');
+
+    // Act
+    await user.click(screen.getByRole('menuitem', { name: 'Gestionar revisión' }));
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Anteproyecto' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Registrar revisión' }));
+
+    // Assert
+    expect(onRevision).toHaveBeenNthCalledWith(1, gestionar);
+    expect(onRevision).toHaveBeenNthCalledWith(2, registrar);
+
+    // Act
+    await user.click(tabla().getByRole('button', { name: 'Acciones de Plano' }));
+
+    // Assert
+    expect(screen.queryByRole('menuitem', { name: /revisión/ })).not.toBeInTheDocument();
   });
 
   it('Descargar sale en el menú de la fila activa y de la omitida con la versión de repositorio, no el id del artefacto', async () => {

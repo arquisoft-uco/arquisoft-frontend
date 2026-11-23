@@ -6,6 +6,11 @@ import { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
 import { useUltimasVersionesArtefacto } from '../../hooks/useUltimasVersionesArtefacto';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import {
+  accionRevisionDelArtefacto,
+  type AccionRevisionAsesor,
+} from '../../utils/accion-revision-asesor';
+import {
+  estaCerrado,
   textoAlcanceEstadoProyecto,
   type EstadoProyectoListado,
 } from '../../utils/estado-proyecto';
@@ -16,6 +21,7 @@ import CambiarVersionRepositorioPanel from './CambiarVersionRepositorioPanel';
 import FiltrosArtefactosAsesor from './FiltrosArtefactosAsesor';
 import ArtefactosAsesorTable from './ArtefactosAsesorTable';
 import OmitirArtefactoDialog from './OmitirArtefactoDialog';
+import RevisionAsesorDialogo from './RevisionAsesorDialogo';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
@@ -35,9 +41,19 @@ export default function ConsultarArtefactosAsignadosAsesor() {
   const [aGestionarEstudiantes, setAGestionarEstudiantes] = useState<ArtefactoAsesor | null>(null);
   const { data, isLoading, isError, error, isFetching, refetch } = listado;
   const artefactos = data?.content ?? [];
-  const { ultimaVersion } = useUltimasVersionesArtefacto(
+  const { ultimaVersion, versionAnterior } = useUltimasVersionesArtefacto(
     artefactos.filter((a) => !a.omitido).map((a) => a.id),
   );
+  const [revision, setRevision] = useState<AccionRevisionAsesor | null>(null);
+
+  function revisionDe(artefacto: ArtefactoAsesor): AccionRevisionAsesor | null {
+    return accionRevisionDelArtefacto({
+      ultima: ultimaVersion(artefacto.id),
+      anterior: versionAnterior(artefacto.id),
+      artefactoOmitido: artefacto.omitido,
+      proyectoCerrado: estaCerrado(artefacto),
+    });
+  }
 
   return (
     <div className={RAIZ}>
@@ -63,6 +79,8 @@ export default function ConsultarArtefactosAsignadosAsesor() {
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
             onOrdenar={listado.setOrden}
             onLimpiarFiltros={listado.limpiarFiltros}
+            revisionDe={revisionDe}
+            onRevision={setRevision}
             onOmitir={setAOmitir}
             onReactivar={setAReactivar}
             onGestionarEstudiantes={setAGestionarEstudiantes}
@@ -84,6 +102,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
         />
       )}
 
+      {revision && <RevisionAsesorDialogo accion={revision} onCambiar={setRevision} />}
       {aOmitir && <OmitirArtefactoDialog artefacto={aOmitir} onCerrar={() => setAOmitir(null)} />}
       {aReactivar && (
         <AsignarArtefactoPanel

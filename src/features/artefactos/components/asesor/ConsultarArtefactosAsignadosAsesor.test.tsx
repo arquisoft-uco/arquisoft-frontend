@@ -34,6 +34,14 @@ vi.mock('./AsignarArtefactoPanel', () => ({
   ),
 }));
 
+vi.mock('./RevisionAsesorDialogo', () => ({
+  default: ({ accion }: { accion: { tipo: string; version: { version: number } } }) => (
+    <div role="dialog" aria-label="Revisión">
+      {`${accion.tipo} · versión ${accion.version.version}`}
+    </div>
+  ),
+}));
+
 vi.mock('./EstudiantesArtefactoPanel', () => ({
   default: ({ artefacto }: { artefacto: { nombreDocumento: string } }) => (
     <div role="dialog" aria-label="Estudiantes del artefacto">
@@ -80,6 +88,7 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     consultar.mockResolvedValue(pagina([ARTEFACTO]));
     vi.mocked(useUltimasVersionesArtefacto).mockReturnValue({
       ultimaVersion: () => undefined,
+      versionAnterior: () => undefined,
       isError: false,
       isLoading: false,
     } as never);
@@ -309,6 +318,7 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     );
     vi.mocked(useUltimasVersionesArtefacto).mockReturnValue({
       ultimaVersion: () => undefined,
+      versionAnterior: () => undefined,
       isError: true,
       isLoading: false,
     } as never);
@@ -321,5 +331,35 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
     expect(await within(tabla).findByText('Anteproyecto')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(useUltimasVersionesArtefacto).toHaveBeenLastCalledWith([ARTEFACTO.id]);
+  });
+  it('la acción de revisión de la fila sale de sus últimas versiones y abre el diálogo de esa revisión', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const ultima = { id: 'v-2', version: 2, revisionAsesor: null, estadoRevision: null };
+    const anterior = {
+      id: 'v-1',
+      version: 1,
+      revisionAsesor: 'r-1',
+      estadoRevision: 'EN_PROGRESO',
+    };
+    vi.mocked(useUltimasVersionesArtefacto).mockReturnValue({
+      ultimaVersion: () => ultima,
+      versionAnterior: () => anterior,
+      isError: false,
+      isLoading: false,
+    } as never);
+    render(<ConsultarArtefactosAsignadosAsesor />);
+    const tabla = await screen.findByRole('table', { name: 'Artefactos asignados' });
+
+    // Act
+    await user.click(
+      await within(tabla).findByRole('button', { name: 'Acciones de Acta de inicio' }),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Gestionar revisión' }));
+
+    // Assert
+    expect(screen.getByRole('dialog', { name: 'Revisión' })).toHaveTextContent(
+      'gestionar · versión 1',
+    );
   });
 });

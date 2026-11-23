@@ -5,7 +5,7 @@ import type {
   OrdenTabla,
 } from '../../../../shared/components/ui/DataTable';
 import ArtefactosAsesorVacio from './ArtefactosAsesorVacio';
-import ArtefactoAsesorRowMenu from './ArtefactoAsesorRowMenu';
+import ArtefactoAsesorRowMenu, { type AccionesArtefactoAsesor } from './ArtefactoAsesorRowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { estaCerrado } from '../../utils/estado-proyecto';
@@ -14,14 +14,13 @@ import { etiquetaVersionDocumento } from '../../utils/version-documento';
 import EstadoUltimaRevision from '../EstadoUltimaRevision';
 import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
 import InsigniaOmitido from '../InsigniaOmitido';
-
 import ProyectoConInsignia from '../ProyectoConInsignia';
 
 const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const DETALLE = 'block text-[13px] text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
-interface Props {
+interface Props extends AccionesArtefactoAsesor {
   artefactos: ArtefactoAsesor[];
   ultimaVersion: (artefactoId: string) => VersionArtefacto | null | undefined;
   cargando: boolean;
@@ -29,11 +28,6 @@ interface Props {
   orden: OrdenTabla;
   onOrdenar: (clave: string, direccion: DireccionOrden) => void;
   onLimpiarFiltros: () => void;
-  onOmitir: (artefacto: ArtefactoAsesor) => void;
-  onReactivar: (artefacto: ArtefactoAsesor) => void;
-  onGestionarEstudiantes: (artefacto: ArtefactoAsesor) => void;
-  onCambiarAsesor: (artefacto: ArtefactoAsesor) => void;
-  onCambiarVersionRepositorio: (artefacto: ArtefactoAsesor) => void;
 }
 
 export default function ArtefactosAsesorTable({
@@ -44,11 +38,7 @@ export default function ArtefactosAsesorTable({
   orden,
   onOrdenar,
   onLimpiarFiltros,
-  onOmitir,
-  onReactivar,
-  onGestionarEstudiantes,
-  onCambiarAsesor,
-  onCambiarVersionRepositorio,
+  ...accionesFila
 }: Props) {
   function enlaceVersiones(artefacto: ArtefactoAsesor) {
     return (
@@ -120,16 +110,7 @@ export default function ArtefactosAsesorTable({
       onOrdenar={onOrdenar}
       cargando={cargando}
       vacio={<ArtefactosAsesorVacio hayFiltros={hayFiltros} onLimpiarFiltros={onLimpiarFiltros} />}
-      acciones={(artefacto) => (
-        <ArtefactoAsesorRowMenu
-          artefacto={artefacto}
-          onCambiarAsesor={onCambiarAsesor}
-          onCambiarVersionRepositorio={onCambiarVersionRepositorio}
-          onGestionarEstudiantes={onGestionarEstudiantes}
-          onOmitir={onOmitir}
-          onReactivar={onReactivar}
-        />
-      )}
+      acciones={(artefacto) => <ArtefactoAsesorRowMenu artefacto={artefacto} {...accionesFila} />}
       tarjeta={(artefacto) => (
         <>
           <p className="font-semibold">{enlaceVersiones(artefacto)}</p>
