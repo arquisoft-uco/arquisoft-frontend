@@ -12,15 +12,23 @@ vi.mock('../../hooks/useRegistrarEvaluacion', () => ({ useRegistrarEvaluacion: v
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
-vi.mock('./AgregarEstadoEvaluacionPanel', () => ({
-  default: ({ evaluacionId }: { evaluacionId: string }) => (
-    <div>Agregar estado a {evaluacionId}</div>
+vi.mock('./AsistenteEvaluacion', () => ({
+  default: ({
+    evaluacion,
+    onVerObservaciones,
+  }: {
+    evaluacion: { id: string };
+    onVerObservaciones: () => void;
+  }) => (
+    <div>
+      <p>Asistente de {evaluacion.id}</p>
+      <button type="button" onClick={onVerObservaciones}>
+        Ver observaciones
+      </button>
+    </div>
   ),
 }));
 vi.mock('./EstadosEvaluacionPanel', () => ({ default: () => <div>Catálogo de estados</div> }));
-vi.mock('./AgregarObservacionEvaluacionPanel', () => ({
-  default: () => <div>Agregar observación</div>,
-}));
 vi.mock('./ObservacionesEvaluacionRepresentantePanel', () => ({
   default: ({ evaluacion }: { evaluacion: { id: string } }) => (
     <div>Observaciones de {evaluacion.id}</div>
@@ -49,7 +57,7 @@ const antigua: EvaluacionFichaPerfil = {
   id: 'ev-1',
   fichaPerfilId: 'f-1',
   fechaCreacion: '2026-10-01',
-  estadoEvaluacionId: 'st-1',
+  estadoEvaluacionId: 'APROBADA',
   estadoEvaluacionNombre: 'Aprobada',
 };
 const reciente: EvaluacionFichaPerfil = {
@@ -122,7 +130,7 @@ describe('RegistrarEvaluacionPanel', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('muestra los datos de la última evaluación y "Sin estado" cuando su nombre es null', () => {
+  it('con la última evaluación abierta monta el asistente y deja las anteriores aparte', () => {
     // Arrange
     mockConsulta({ data: [antigua, reciente] });
 
@@ -130,17 +138,13 @@ describe('RegistrarEvaluacionPanel', () => {
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getAllByText(/2026/)[0]).toHaveAttribute('datetime', '2026-10-02');
-    expect(screen.queryByText(/ID:/)).not.toBeInTheDocument();
-    expect(screen.queryByText('ev-2')).not.toBeInTheDocument();
-    expect(screen.getByText('Sin estado')).toBeInTheDocument();
-    expect(screen.getByText('Agregar estado a ev-2')).toBeInTheDocument();
-    expect(screen.queryByText('Agregar estado a ev-1')).not.toBeInTheDocument();
+    expect(screen.getByText('Asistente de ev-2')).toBeInTheDocument();
+    expect(screen.queryByText('Asistente de ev-1')).not.toBeInTheDocument();
     expect(screen.getByText('Evaluaciones anteriores')).toBeInTheDocument();
     expect(screen.getByText('Aprobada')).toBeInTheDocument();
   });
 
-  it('muestra el nombre del estado cuando la última evaluación lo tiene', () => {
+  it('con la última evaluación en estado final muestra el resultado y no el asistente', () => {
     // Arrange
     mockConsulta({ data: [antigua] });
 
@@ -148,7 +152,9 @@ describe('RegistrarEvaluacionPanel', () => {
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Assert
+    expect(screen.getByText('Evaluación registrada')).toBeInTheDocument();
     expect(screen.getByText('Aprobada')).toBeInTheDocument();
+    expect(screen.queryByText(/Asistente de/)).not.toBeInTheDocument();
   });
 
   it('«Ver observaciones» de la vigente abre el panel con esa evaluación', async () => {

@@ -45,8 +45,15 @@ function mockMutacion(overrides: Record<string, unknown> = {}) {
   } as never);
 }
 
-function renderizar() {
-  return render(<AgregarEstadoEvaluacionPanel evaluacionId="ev-1" fichaPerfilId="f-1" />);
+function renderizar(cantidadObservaciones = 0, onVolver = vi.fn()) {
+  return render(
+    <AgregarEstadoEvaluacionPanel
+      evaluacionId="ev-1"
+      fichaPerfilId="f-1"
+      cantidadObservaciones={cantidadObservaciones}
+      onVolver={onVolver}
+    />,
+  );
 }
 
 async function confirmar(user: ReturnType<typeof userEvent.setup>) {
@@ -56,7 +63,7 @@ async function confirmar(user: ReturnType<typeof userEvent.setup>) {
 }
 
 async function elegirYRegistrar(user: ReturnType<typeof userEvent.setup>) {
-  await user.selectOptions(screen.getByRole('combobox', { name: 'Estado' }), 'APROBADA');
+  await user.click(screen.getByRole('radio', { name: 'Aprobada' }));
   await user.click(screen.getByRole('button', { name: 'Registrar estado' }));
 }
 
@@ -68,22 +75,38 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     mockMutacion();
   });
 
-  it('ofrece solo los tres estados finales y no deshabilita el envío por validez', () => {
+  it('sin observaciones ofrece solo Aprobada y No Aprobada y lo explica bajo el título', () => {
     // Act
-    renderizar();
+    renderizar(0);
 
     // Assert
-    const opciones = screen.getAllByRole('option').map((o) => o.textContent);
-    expect(opciones).toEqual([
-      'Selecciona un estado...',
-      'Aprobada',
-      'Aprobada Con Observaciones',
-      'No Aprobada',
+    expect(screen.getAllByRole('radio').map((r) => r.getAttribute('value'))).toEqual([
+      'APROBADA',
+      'NO_APROBADA',
     ]);
+    expect(
+      screen.getByText('No registraste observaciones, así que puedes aprobarla o no aprobarla.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Registrar estado' })).toBeEnabled();
   });
 
-  it('al enviar sin elegir estado muestra el resumen de errores, lleva al campo y no pide confirmación', async () => {
+  it('con observaciones ofrece solo Aprobada Con Observaciones y No Aprobada y muestra la cantidad', () => {
+    // Act
+    renderizar(2);
+
+    // Assert
+    expect(screen.getAllByRole('radio').map((r) => r.getAttribute('value'))).toEqual([
+      'APROBADA_CON_OBSERVACIONES',
+      'NO_APROBADA',
+    ]);
+    expect(
+      screen.getByText(
+        'Registraste 2 observaciones, así que puedes aprobarla con observaciones o no aprobarla.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('al enviar sin elegir estado muestra el resumen de errores y no pide confirmación', async () => {
     // Arrange
     const user = userEvent.setup();
     renderizar();
@@ -95,12 +118,6 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     expect(screen.getByText('Revisa 1 campo antes de continuar')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(mutate).not.toHaveBeenCalled();
-
-    // Act
-    await user.click(screen.getByRole('button', { name: /^Estado: / }));
-
-    // Assert
-    expect(screen.getByRole('combobox', { name: 'Estado' })).toHaveFocus();
   });
 
   it('pide confirmación y, al confirmar, muta con los ids de la evaluación y el estado', async () => {
@@ -125,6 +142,19 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     );
   });
 
+  it('«Atrás» llama a onVolver', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const onVolver = vi.fn();
+    renderizar(0, onVolver);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Atrás' }));
+
+    // Assert
+    expect(onVolver).toHaveBeenCalledTimes(1);
+  });
+
   it('notifica el éxito, cierra el diálogo y reinicia la selección', async () => {
     // Arrange
     mutate.mockImplementation((_req, opts) => opts.onSuccess());
@@ -141,7 +171,7 @@ describe('AgregarEstadoEvaluacionPanel', () => {
       expect.stringContaining('Aprobada'),
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Estado' })).toHaveValue('');
+    expect(screen.getByRole('radio', { name: 'Aprobada' })).not.toBeChecked();
   });
 
   it('notifica el error de la API con un toast, cierra el diálogo y conserva la selección', async () => {
@@ -157,7 +187,7 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     // Assert
     expect(toast.error).toHaveBeenCalledWith('Error al registrar el estado', expect.any(String));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Estado' })).toHaveValue('APROBADA');
+    expect(screen.getByRole('radio', { name: 'Aprobada' })).toBeChecked();
   });
 
   it('al cancelar el diálogo no muta y reinicia la mutación', async () => {
@@ -175,7 +205,7 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('muestra el envío en curso con el selector y el botón deshabilitados', () => {
+  it('muestra el envío en curso con las opciones, «Atrás» y el botón deshabilitados', () => {
     // Arrange
     mockMutacion({ isPending: true });
 
@@ -183,7 +213,8 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     renderizar();
 
     // Assert
-    expect(screen.getByRole('combobox', { name: 'Estado' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: 'Aprobada' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Atrás' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Registrando...' })).toBeDisabled();
   });
 
@@ -205,7 +236,9 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     const { unmount: unmountError } = renderizar();
 
     // Assert
-    expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar los estados');
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'No se pudieron cargar los estados disponibles. Intenta nuevamente.',
+    );
     unmountError();
 
     // Arrange

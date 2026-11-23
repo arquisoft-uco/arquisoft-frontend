@@ -31,7 +31,10 @@ const RESUMEN = {
   asesorEmail: 'ana@uco.edu.co',
 };
 
-function mockEvaluaciones(parcial: { data?: Array<{ id: string }>; isSuccess: boolean }) {
+function mockEvaluaciones(parcial: {
+  data?: Array<{ id: string; estadoEvaluacionId?: string | null }>;
+  isSuccess: boolean;
+}) {
   vi.mocked(useEvaluacionFicha).mockReturnValue(parcial as ReturnType<typeof useEvaluacionFicha>);
 }
 
@@ -94,36 +97,59 @@ describe('RepresentanteDetalleView', () => {
     expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
   });
 
-  it('ofrece «Iniciar evaluación» solo si la consulta terminó sin evaluaciones y abre la confirmación', async () => {
-    // Arrange
-    const user = userEvent.setup();
+  it('sin evaluación ofrece «Iniciar evaluación» y no «Evaluar ficha»', () => {
+    // Act
     renderizar('/fichas-perfil/f-1/items');
 
-    // Act
-    await user.click(screen.getByRole('button', { name: 'Iniciar evaluación' }));
-
     // Assert
-    expect(screen.getByRole('dialog')).toHaveTextContent('¿Iniciar evaluación?');
+    expect(screen.getByRole('button', { name: 'Iniciar evaluación' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
   });
 
-  it('no ofrece «Iniciar evaluación» con una evaluación existente ni mientras carga', () => {
+  it('con una evaluación abierta ofrece «Evaluar ficha» y lleva a la pestaña Evaluaciones', async () => {
     // Arrange
-    mockEvaluaciones({ data: [{ id: 'ev-1' }], isSuccess: true });
+    const user = userEvent.setup();
+    mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: null }], isSuccess: true });
+    renderizar('/fichas-perfil/f-1/items');
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
 
     // Act
-    const conEvaluacion = renderizar('/fichas-perfil/f-1/items');
+    await user.click(screen.getByRole('button', { name: 'Evaluar ficha' }));
 
     // Assert
-    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
-    conEvaluacion.unmount();
+    expect(screen.getByText('Panel evaluaciones')).toBeInTheDocument();
+  });
+
+  it('no ofrece acciones con una evaluación final, mientras carga ni en la pestaña Evaluaciones', () => {
+    // Arrange
+    mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: 'DESCARTADA' }], isSuccess: true });
+
+    // Act
+    const conFinal = renderizar('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
+    conFinal.unmount();
 
     // Arrange
     mockEvaluaciones({ data: undefined, isSuccess: false });
 
     // Act
-    renderizar('/fichas-perfil/f-1/items');
+    const cargando = renderizar('/fichas-perfil/f-1/items');
 
     // Assert
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
+    cargando.unmount();
+
+    // Arrange
+    mockEvaluaciones({ data: [], isSuccess: true });
+
+    // Act
+    renderizar('/fichas-perfil/f-1/evaluaciones');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
   });
 

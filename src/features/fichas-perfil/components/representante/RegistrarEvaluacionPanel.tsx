@@ -1,24 +1,18 @@
 import { useState } from 'react';
-import { ClipboardCheck, MessageSquare } from 'lucide-react';
+import { ClipboardCheck } from 'lucide-react';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
-import Badge from '../../../../shared/components/ui/Badge';
-import Button from '../../../../shared/components/ui/Button';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
-import { varianteEstadoEvaluacion } from '../../../../shared/utils/estado-variante';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
-import { FechaDeEstado } from '../FichaCeldas';
-import AgregarEstadoEvaluacionPanel from './AgregarEstadoEvaluacionPanel';
-import AgregarObservacionEvaluacionPanel from './AgregarObservacionEvaluacionPanel';
+import { evaluacionEnEstadoFinal } from '../../utils/evaluacion-asistente';
+import AsistenteEvaluacion from './AsistenteEvaluacion';
 import EstadosEvaluacionPanel from './EstadosEvaluacionPanel';
 import EvaluacionesAnterioresPanel from './EvaluacionesAnterioresPanel';
+import EvaluacionRegistradaTarjeta from './EvaluacionRegistradaTarjeta';
 import IniciarEvaluacionBoton from './IniciarEvaluacionBoton';
 import ObservacionesEvaluacionRepresentantePanel from './ObservacionesEvaluacionRepresentantePanel';
-
-const TARJETA = 'flex flex-col gap-2 rounded-xl border border-border bg-surface p-4 shadow-card';
-const CABECERA = 'flex flex-wrap items-center gap-3';
-const DATO = 'text-sm text-on-surface-secondary';
+import PasosEvaluacionIndicador from './PasosEvaluacionIndicador';
 
 interface Props {
   fichaPerfilId: string;
@@ -47,10 +41,11 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
   if (!vigente) {
     return (
       <div className="flex flex-col gap-4">
+        <PasosEvaluacionIndicador paso="iniciar" />
         <EmptyState
           icono={ClipboardCheck}
           titulo="Aún no se ha iniciado la evaluación"
-          descripcion="Inicia la evaluación para registrar su estado y sus observaciones."
+          descripcion="Inicia la evaluación para registrar sus observaciones y su estado."
           accion={<IniciarEvaluacionBoton fichaPerfilId={fichaPerfilId} />}
         />
         <EstadosEvaluacionPanel />
@@ -58,38 +53,23 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
     );
   }
 
+  const verObservaciones = () => setAbierta(vigente);
+
   return (
     <div className="flex flex-col gap-4 animate-fade-up">
-      <div className={TARJETA}>
-        <div className={CABECERA}>
-          <ClipboardCheck size={20} className="shrink-0 text-primary" aria-hidden />
-          <p className="text-sm font-semibold text-on-surface">Evaluación registrada</p>
-          <Badge
-            variante={
-              vigente.estadoEvaluacionId
-                ? varianteEstadoEvaluacion(vigente.estadoEvaluacionId)
-                : 'neutro'
-            }
-          >
-            {vigente.estadoEvaluacionNombre ?? 'Sin estado'}
-          </Badge>
-        </div>
-        <p className={DATO}>
-          Creada el <FechaDeEstado iso={vigente.fechaCreacion} />
-        </p>
-        <div>
-          <Button
-            variante="secundario"
-            tamano="sm"
-            icono={MessageSquare}
-            onClick={() => setAbierta(vigente)}
-          >
-            Ver observaciones
-          </Button>
-        </div>
-      </div>
-      <AgregarEstadoEvaluacionPanel evaluacionId={vigente.id} fichaPerfilId={fichaPerfilId} />
-      <AgregarObservacionEvaluacionPanel evaluacionId={vigente.id} fichaPerfilId={fichaPerfilId} />
+      {evaluacionEnEstadoFinal(vigente) ? (
+        <EvaluacionRegistradaTarjeta
+          titulo="Evaluación registrada"
+          evaluacion={vigente}
+          onVerObservaciones={verObservaciones}
+        />
+      ) : (
+        <AsistenteEvaluacion
+          evaluacion={vigente}
+          fichaPerfilId={fichaPerfilId}
+          onVerObservaciones={verObservaciones}
+        />
+      )}
       <EvaluacionesAnterioresPanel evaluaciones={anteriores} onVerObservaciones={setAbierta} />
       <EstadosEvaluacionPanel />
       {abierta && (
