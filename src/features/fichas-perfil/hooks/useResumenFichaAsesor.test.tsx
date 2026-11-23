@@ -18,6 +18,9 @@ const RESUMEN = {
   estadoId: 'EN_CONSTRUCCION',
   estadoNombre: 'En Construccion',
   fechaActualizacion: '2026-01-01T10:00:00',
+  asesorId: 'a-1',
+  asesorNombre: 'Ana Gómez',
+  asesorEmail: 'ana@uco.edu.co',
 };
 
 function simularHistorial(data: unknown) {
@@ -81,7 +84,7 @@ describe('useResumenFichaAsesor', () => {
     expect(sinResumen.result.current.resumen).toBeNull();
   });
 
-  it('reescribe el snapshot con el estado nuevo del historial para la siguiente recarga', () => {
+  it('reescribe el snapshot con el estado nuevo del historial conservando el asesor', () => {
     // Arrange
     simularHistorial([
       { id: 'DESCARTADA', nombre: 'Descartada', fechaActualizacion: '2026-02-01T10:00:00' },

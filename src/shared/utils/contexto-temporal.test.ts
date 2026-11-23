@@ -36,14 +36,14 @@ describe('contextoTemporal', () => {
     // Act
     const guardado = contextoTemporal.guardar(
       CLAVE,
-      { titulo: 'Ficha', correo: 'ana@uco.edu.co' } as { titulo: string },
+      { titulo: 'Ficha', extra: 'dato-extra' } as { titulo: string },
       OPCIONES,
     );
 
     // Assert
     expect(guardado).toBe(true);
     expect(contextoTemporal.leer(CLAVE, OPCIONES)).toEqual({ titulo: 'Ficha' });
-    expect(sessionStorage.getItem(CLAVE_STORAGE)).not.toContain('ana@uco.edu.co');
+    expect(sessionStorage.getItem(CLAVE_STORAGE)).not.toContain('dato-extra');
   });
 
   it('descarta y borra el dato vencido o del futuro, y respeta la vigencia que recibe', () => {

@@ -175,7 +175,7 @@ describe('RepresentanteDetalleView', () => {
     expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
   });
 
-  it('sin state pero con snapshot vigente pinta el detalle sin el asesor', () => {
+  it('sin state pero con snapshot vigente pinta el detalle con el asesor', () => {
     // Arrange
     renderizarConContexto('/fichas-perfil/f-1/items').unmount();
 
@@ -185,6 +185,6 @@ describe('RepresentanteDetalleView', () => {
     // Assert
     expect(screen.getByRole('heading', { level: 1, name: 'Ficha del comité' })).toBeInTheDocument();
     expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
-    expect(screen.queryByText('ana@uco.edu.co')).not.toBeInTheDocument();
+    expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
   });
 });

@@ -37,12 +37,6 @@ const RESUMEN = {
   asesorEmail: 'ana@uco.edu.co',
 };
 
-const SIN_ASESOR_PERSONAL = {
-  ...RESUMEN,
-  asesorNombre: undefined,
-  asesorEmail: undefined,
-};
-
 describe('useResumenFicha', () => {
   beforeEach(() => {
     resetAllStores();
@@ -75,7 +69,7 @@ describe('useResumenFicha', () => {
     expect(result.current.detalle.search).toBe('');
   });
 
-  it('sin state recupera del snapshot que escribió el state, sin nombre ni correo del asesor', () => {
+  it('sin state recupera del snapshot que escribió el state, con nombre y correo del asesor y sin token ni claims', () => {
     // Arrange
     renderizar({ resumen: RESUMEN, search: '?q=ana' }).unmount();
 
@@ -83,12 +77,27 @@ describe('useResumenFicha', () => {
     const { result } = renderizar();
 
     // Assert
-    expect(result.current.detalle.resumen).toEqual(SIN_ASESOR_PERSONAL);
+    expect(result.current.detalle.resumen).toEqual(RESUMEN);
     expect(result.current.detalle.search).toBe('?q=ana');
     const guardado = sessionStorage.getItem('arquisoft:ctx:ficha:f-1') ?? '';
     expect(guardado).toContain('a-9');
-    expect(guardado).not.toContain('Ana Gómez');
-    expect(guardado).not.toContain('ana@uco.edu.co');
+    expect(guardado).toContain('Ana Gómez');
+    expect(guardado).toContain('ana@uco.edu.co');
+    expect(guardado).not.toMatch(/token|claims|telefono/i);
+  });
+
+  it('lee un snapshot escrito sin nombre ni correo del asesor, como los anteriores al ajuste', () => {
+    // Arrange
+    const sinPersonal = { id: 'f-1', titulo: 'Ficha de prueba', asesorId: 'a-9' };
+    renderizar({ resumen: sinPersonal, search: '?q=a' }).unmount();
+
+    // Act
+    const { result } = renderizar();
+
+    // Assert
+    expect(result.current.detalle.resumen).toMatchObject(sinPersonal);
+    expect(result.current.detalle.resumen?.asesorNombre).toBeUndefined();
+    expect(result.current.detalle.search).toBe('?q=a');
   });
 
   it('descarta el snapshot que supera la vigencia por defecto', () => {
@@ -135,6 +144,8 @@ describe('useResumenFicha', () => {
     expect(recargada.result.current.detalle.resumen).toMatchObject({
       estadoId: 'e-2',
       estadoNombre: 'Nueva',
+      asesorNombre: 'Ana Gómez',
+      asesorEmail: 'ana@uco.edu.co',
     });
   });
 

@@ -122,11 +122,11 @@ El interceptor no traga el error: llega al service, de ahí a React Query y a `i
 | `useAuthStore` | **Solo memoria**, sin `persist` | `isInitializing`, `authenticated`, `token`, `tokenParsed`, `username` |
 | `useAccesoDenegadoStore` | **Solo memoria** | Ruta de la sección con 403 de red; lo escribe el interceptor, lo lee `useAccesoDenegado` |
 | `useRoleStore` | `localStorage`, clave `arquisoft_rol_activo`, vía `safeStorage` con `try/catch` | Solo el string del rol seleccionado |
-| Contexto temporal (`shared/utils/contexto-temporal.ts`) | `sessionStorage`, claves `arquisoft:ctx:{tipo}:{id}`, con vigencia (15 o 5 min) y ámbito usuario+rol | Resumen no sensible de un detalle para sobrevivir a una recarga; se borra al cerrar sesión |
+| Contexto temporal (`shared/utils/contexto-temporal.ts`) | `sessionStorage`, claves `arquisoft:ctx:{tipo}:{id}`, con vigencia (15 o 5 min) y ámbito usuario+rol | Resumen del detalle (sin token, claims ni teléfono; con nombre y correo del asesor de la ficha) para sobrevivir a una recarga; se borra al cerrar sesión |
 
 Nada sensible se escribe en `localStorage` ni `sessionStorage`: el token y la sesión viven solo en
 memoria. Las dos únicas excepciones son `safeStorage` (`localStorage`, rol y proveedor) y el contexto
-temporal (`sessionStorage`, datos de UI no sensibles: nunca correo, teléfono, token ni claims), y el test
+temporal (`sessionStorage`, datos de UI: nunca token, claims ni teléfono; el correo solo el del asesor de una ficha), y el test
 de arquitectura las fija como un mapa cerrado. El `safeStorage` existe porque `localStorage` lanza en
 navegación privada de Safari y con la cuota llena.
 

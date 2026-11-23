@@ -129,7 +129,7 @@ describe('CoordinadorDetalleView', () => {
     expect(screen.queryByRole('button', { name: 'Ver estudiantes' })).not.toBeInTheDocument();
   });
 
-  it('sin state pero con snapshot vigente pinta el detalle sin el nombre ni el correo del asesor', async () => {
+  it('sin state pero con snapshot vigente pinta el detalle con el nombre y el correo del asesor', async () => {
     // Arrange
     const user = userEvent.setup();
     const primera = renderizar('/origen');
@@ -144,7 +144,8 @@ describe('CoordinadorDetalleView', () => {
       screen.getByRole('heading', { level: 1, name: 'Sistema de monitoreo' }),
     ).toBeInTheDocument();
     expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
-    expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument();
+    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
+    expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
       'href',
       '/fichas-perfil?q=sis',
@@ -168,6 +169,7 @@ describe('CoordinadorDetalleView', () => {
     // Assert
     expect(screen.getAllByText('Aprobada').length).toBeGreaterThan(0);
     expect(screen.queryByText('En revisión')).not.toBeInTheDocument();
+    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
   });
 
   it('muestra la tarjeta de decisión aparte de las acciones cuando el historial indica que la ficha está disponible para evaluación', async () => {
@@ -203,6 +205,24 @@ describe('CoordinadorDetalleView', () => {
 
     // Assert
     expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
+    expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument();
+  });
+
+  it('tras cambiar el asesor y recargar con snapshot vigente muestra al asesor nuevo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const primera = renderizar('/origen');
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+    await user.click(screen.getByRole('button', { name: 'Cambiar asesor' }));
+    await user.click(screen.getByRole('button', { name: 'Simular cambio de asesor' }));
+    primera.unmount();
+
+    // Act
+    renderizar('/fichas-perfil/f-1/evaluaciones');
+
+    // Assert
+    expect(screen.getByText('Luis Gómez')).toBeInTheDocument();
+    expect(screen.getByText('luis@uco.edu.co')).toBeInTheDocument();
     expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument();
   });
 

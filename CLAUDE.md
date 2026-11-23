@@ -129,8 +129,8 @@ nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/`
 - **Sesión** — `useAuthStore` vive **solo en memoria**; el interceptor lo lee con `getState()`, no con
   hooks. `useRoleStore` persiste en `localStorage` **únicamente** el string del rol activo. El token y
   la sesión nunca se escriben en storage. Una única excepción de UI: `shared/utils/contexto-temporal.ts`
-  guarda en `sessionStorage`, con vigencia y ámbito usuario+rol, el contexto no sensible de un detalle
-  (lo usa `useContextoDeNavegacion`) y se borra al cerrar sesión. Los roles
+  guarda en `sessionStorage`, con vigencia y ámbito usuario+rol, el contexto de un detalle (sin token ni claims;
+  incluye nombre y correo del asesor de una ficha; lo usa `useContextoDeNavegacion`) y se borra al cerrar sesión. Los roles
   salen de `realm_access.roles`, y el rol activo es derivado: léelo con `useRolActivo()`.
 - **Enrutamiento** — todas las rutas son perezosas. La restricción por rol se declara en
   `NAV_ITEMS[].roles` (`src/layout/nav-items.ts`), no a mano en `router.tsx`.

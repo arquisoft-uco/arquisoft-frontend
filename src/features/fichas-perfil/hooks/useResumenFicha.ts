@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useContextoDeNavegacion } from '../../../shared/hooks/useContextoDeNavegacion';
 import type { OrigenNavegacion } from '../../../shared/models/OrigenNavegacion';
 import type { ResumenFicha } from '../models/ResumenFicha';
-import { esquemaEstadoFicha, esquemaSnapshotFicha } from '../utils/contexto-ficha';
+import { esquemaContextoFicha } from '../utils/contexto-ficha';
 
 interface ResultadoResumenFicha {
   resumen: ResumenFicha | null;
@@ -15,8 +15,7 @@ export function useResumenFicha(fichaId: string, ttlMs?: number): ResultadoResum
   const { contexto, actualizar } = useContextoDeNavegacion({
     tipo: 'ficha',
     id: fichaId,
-    esquemaEstado: esquemaEstadoFicha,
-    esquemaSnapshot: esquemaSnapshotFicha,
+    esquemaEstado: esquemaContextoFicha,
     coincide: (valor) => valor.resumen.id === fichaId,
     ttlMs,
   });

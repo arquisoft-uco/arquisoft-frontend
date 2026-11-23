@@ -1,4 +1,4 @@
-import { useState, type ComponentType } from 'react';
+import type { ComponentType } from 'react';
 import { GraduationCap } from 'lucide-react';
 import SelectorProyectoGrado from '../../../shared/components/SelectorProyectoGrado';
 import EmptyState from '../../../shared/components/ui/EmptyState';
@@ -6,6 +6,7 @@ import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import Tabs from '../../../shared/components/ui/Tabs';
+import { usePestanaEnUrl } from '../../../shared/hooks/usePestanaEnUrl';
 import { useMisProyectosGrado } from '../../../shared/hooks/useMisProyectosGrado';
 import { aResumen } from '../utils/resumen-proyecto-grado';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
@@ -30,10 +31,12 @@ const PESTANAS = [
   { id: 'asesores' as const, etiqueta: 'Historial de asesores' },
 ];
 
+const PESTANAS_VALIDAS = PESTANAS.map((p) => p.id);
+
 export default function EstudianteView() {
   const { proyecto, proyectos, seleccionarProyecto, cargado, sinProyecto, hayError, reintentar } =
     useMisProyectosGrado();
-  const [pestana, setPestana] = useState<Pestana>('estados');
+  const [pestana, setPestana] = usePestanaEnUrl(PESTANAS_VALIDAS, 'estados');
 
   if (hayError) {
     return (

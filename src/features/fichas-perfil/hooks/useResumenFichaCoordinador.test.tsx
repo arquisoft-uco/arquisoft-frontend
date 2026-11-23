@@ -119,7 +119,7 @@ describe('useResumenFichaCoordinador', () => {
     expect(result.current.origen).toEqual(origen);
   });
 
-  it('reescribe el snapshot con el estado nuevo del historial y con el asesor nuevo, sin sus datos personales', () => {
+  it('reescribe el snapshot con el estado nuevo del historial y con el asesor nuevo y sin los datos del anterior', () => {
     // Arrange
     simularHistorial([
       { id: 'APROBADA', nombre: 'Aprobada', fechaActualizacion: '2026-02-01T10:00:00' },
@@ -146,10 +146,12 @@ describe('useResumenFichaCoordinador', () => {
       estadoNombre: 'Aprobada',
       fechaActualizacion: '2026-02-01T10:00:00',
       asesorId: 'a-2',
+      asesorNombre: 'Luis Mora',
+      asesorEmail: 'l@uco.edu.co',
     });
     expect(recargada.result.current.search).toBe('?q=a');
     const guardado = sessionStorage.getItem('arquisoft:ctx:ficha:f-1') ?? '';
-    expect(guardado).not.toContain('Luis Mora');
-    expect(guardado).not.toContain('l@uco.edu.co');
+    expect(guardado).not.toContain('Ana Gómez');
+    expect(guardado).not.toContain('ana@uco.edu.co');
   });
 });

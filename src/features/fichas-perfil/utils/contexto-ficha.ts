@@ -10,23 +10,12 @@ const campos = {
   estadoNombre: z.string().optional().catch(undefined),
   fechaActualizacion: z.string().optional().catch(undefined),
   asesorId: z.string().optional().catch(undefined),
+  asesorNombre: z.string().optional().catch(undefined),
+  asesorEmail: z.string().optional().catch(undefined),
 };
 
-const origen = esquemaOrigen.optional().catch(undefined);
-
-export const esquemaEstadoFicha: ZodType<NavegacionDetalleFicha, ZodTypeDef, unknown> = z.object({
-  resumen: z.object({
-    ...campos,
-    asesorNombre: z.string().optional().catch(undefined),
-    asesorEmail: z.string().optional().catch(undefined),
-  }),
-  search: esquemaSearch,
-  origen,
-});
-
-// El snapshot omite nombre y correo del asesor: son datos personales.
-export const esquemaSnapshotFicha: ZodType<NavegacionDetalleFicha, ZodTypeDef, unknown> = z.object({
+export const esquemaContextoFicha: ZodType<NavegacionDetalleFicha, ZodTypeDef, unknown> = z.object({
   resumen: z.object(campos),
   search: esquemaSearch,
-  origen,
+  origen: esquemaOrigen.optional().catch(undefined),
 });

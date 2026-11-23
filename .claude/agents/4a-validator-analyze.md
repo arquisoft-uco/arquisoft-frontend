@@ -277,8 +277,8 @@ hallazgo de esta HU.
 | Check | Sev |
 |---|:---:|
 | Storage fuera de `auth/safeStorage.ts` y `shared/utils/contexto-temporal.ts` | ❌ |
-| El contexto temporal guarda correo, token o claims | ❌ |
-| Token, `tokenParsed`, correo o dato personal persistido o logueado | ❌ |
+| El contexto temporal guarda token, claims, teléfono o un correo que no sea el del asesor de la ficha | ❌ |
+| Token, `tokenParsed`, correo o dato personal persistido o logueado (salvo lo que declara el contexto temporal: nombre y correo del asesor de la ficha y nombre del jurado) | ❌ |
 | Secreto en una variable `VITE_*` — queda embebido en el bundle | ❌ |
 | `config/env.ts` relajado (sin `requireEnv` o sin el bloqueo de bypass en producción) | ❌ |
 | `dangerouslySetInnerHTML` sin sanitizar y sin justificación | ❌ |

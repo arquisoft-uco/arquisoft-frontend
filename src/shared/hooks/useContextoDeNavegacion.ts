@@ -10,7 +10,6 @@ interface OpcionesContextoDeNavegacion<T> {
   tipo: string;
   id: string;
   esquemaEstado: Esquema<T>;
-  esquemaSnapshot?: Esquema<T>;
   coincide?: (valor: T) => boolean;
   ttlMs?: number;
 }
@@ -26,13 +25,11 @@ export function useContextoDeNavegacion<T>({
   tipo,
   id,
   esquemaEstado,
-  esquemaSnapshot,
   coincide,
   ttlMs,
 }: OpcionesContextoDeNavegacion<T>): ResultadoContextoDeNavegacion<T> {
   const location = useLocation();
   const ambito = useAmbitoDeSesion();
-  const esquemaGuardado = esquemaSnapshot ?? esquemaEstado;
 
   const [inicial] = useState<{ valor: T | null; fuente: Fuente }>(() => {
     const delState = esquemaEstado.safeParse(location.state);
@@ -41,7 +38,7 @@ export function useContextoDeNavegacion<T>({
     }
     const delSnapshot = contextoTemporal.leer<T>(
       { tipo, id },
-      { esquema: esquemaGuardado, ambito, ttlMs },
+      { esquema: esquemaEstado, ambito, ttlMs },
     );
     if (delSnapshot !== null && (!coincide || coincide(delSnapshot))) {
       return { valor: delSnapshot, fuente: 'snapshot' };
@@ -54,9 +51,9 @@ export function useContextoDeNavegacion<T>({
 
   useEffect(() => {
     if (inicial.fuente === 'state' && vigente.current !== null) {
-      contextoTemporal.guardar({ tipo, id }, vigente.current, { esquema: esquemaGuardado, ambito });
+      contextoTemporal.guardar({ tipo, id }, vigente.current, { esquema: esquemaEstado, ambito });
     }
-  }, [inicial.fuente, tipo, id, esquemaGuardado, ambito]);
+  }, [inicial.fuente, tipo, id, esquemaEstado, ambito]);
 
   const actualizar = useCallback(
     (cambiar: (previo: T) => T) => {
@@ -64,9 +61,9 @@ export function useContextoDeNavegacion<T>({
       const siguiente = cambiar(vigente.current);
       vigente.current = siguiente;
       setContexto(siguiente);
-      contextoTemporal.guardar({ tipo, id }, siguiente, { esquema: esquemaGuardado, ambito });
+      contextoTemporal.guardar({ tipo, id }, siguiente, { esquema: esquemaEstado, ambito });
     },
-    [tipo, id, esquemaGuardado, ambito],
+    [tipo, id, esquemaEstado, ambito],
   );
 
   return { contexto, actualizar };
