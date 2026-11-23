@@ -44,7 +44,7 @@ jobs:
       #     rama por defecto (main), no al commit de develop que se construyó ──
       - name: Descargar tag de la imagen
         if: ${{ github.event_name == 'workflow_run' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: image-tag
           run-id: ${{ github.event.workflow_run.id }}
