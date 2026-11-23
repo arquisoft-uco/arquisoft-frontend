@@ -124,6 +124,30 @@ describe('EstudianteView', () => {
     expect(screen.getByText('Asesor actual de p-1')).toBeInTheDocument();
   });
 
+  it('abre la pestaña indicada en ?pestana= y, ante un valor inválido, la primera', () => {
+    // Arrange
+    mockearHook();
+
+    // Act
+    const indicada = render(<EstudianteView />, { initialPath: '/?pestana=asesores' });
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Historial de asesores' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    indicada.unmount();
+
+    // Act
+    render(<EstudianteView />, { initialPath: '/?pestana=inexistente' });
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Historial de estados' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
   it('el panel del historial sigue al proyecto elegido', () => {
     // Arrange
     mockearHook({ proyecto: DOS, proyectos: [UNO, DOS] });

@@ -10,7 +10,6 @@ import ResumenFichaPanel from './ResumenFichaPanel';
 
 const ETIQUETA_LISTADO = 'Fichas de perfil';
 const RUTA_LISTADO = '/fichas-perfil';
-const TITULO_GENERICO = 'Ficha de perfil';
 
 export interface PestanaDetalle {
   id: string;
@@ -19,7 +18,7 @@ export interface PestanaDetalle {
 }
 
 interface Props {
-  resumen: ResumenFicha | null;
+  resumen: ResumenFicha;
   search: string;
   origen?: OrigenNavegacion;
   pestanas: PestanaDetalle[];
@@ -36,13 +35,13 @@ export default function DetalleFichaEstructura({
   decision,
 }: Props) {
   const { pathname } = useLocation();
-  const titulo = resumen?.titulo ?? TITULO_GENERICO;
+  const titulo = resumen.titulo;
   const activa = pestanas.find((p) => pathname.startsWith(p.to)) ?? pestanas[0];
   const insignia =
-    resumen?.estadoId && resumen.estadoNombre ? (
+    resumen.estadoId && resumen.estadoNombre ? (
       <InsigniaEstadoFicha estadoId={resumen.estadoId} nombre={resumen.estadoNombre} />
     ) : undefined;
-  const meta = resumen?.fechaActualizacion ? (
+  const meta = resumen.fechaActualizacion ? (
     <>
       Actualizada el <FechaDeEstado iso={resumen.fechaActualizacion} />
     </>

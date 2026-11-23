@@ -19,6 +19,7 @@ import {
   spinnersCopiados,
   tablasFueraDeDataTable,
   textosMenoresA12px,
+  archivosDeStorageInexistentes,
   tiposInseguros,
   tokensDeColorDeclarados,
   usosDeStorage,
@@ -136,16 +137,19 @@ describe('Arquitectura: reglas por capa', () => {
     );
   });
 
-  it('el estado persistente (localStorage / sessionStorage) vive solo en el store del rol activo', () => {
+  it('el navegador solo se toca en auth/safeStorage.ts (localStorage) y shared/utils/contexto-temporal.ts (sessionStorage)', () => {
     // Act
     const usos = usosDeStorage();
+    const huerfanos = archivosDeStorageInexistentes();
 
     // Assert
     exigir(
       usos,
-      'Nada sensible se persiste en el navegador. Si el dato debe sobrevivir a un refresh y no es sensible, ' +
-        'justifícalo en el plan y amplía la regla.',
+      'Nada sensible se persiste en el navegador: el token y la sesión viven solo en memoria. El contexto de un ' +
+        'detalle entre recargas se guarda con el hook useContextoDeNavegacion (shared/utils/contexto-temporal.ts); ' +
+        'el rol activo, con safeStorage.',
     );
+    exigir(huerfanos, 'Una excepción de storage apunta a un archivo que ya no existe: retírala.');
   });
 
   it('no hay console.log en código de producción', () => {

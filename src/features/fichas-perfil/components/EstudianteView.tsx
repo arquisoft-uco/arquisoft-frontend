@@ -10,6 +10,7 @@ import ErrorState from '../../../shared/components/ui/ErrorState';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import Tabs from '../../../shared/components/ui/Tabs';
+import { usePestanaEnUrl } from '../../../shared/hooks/usePestanaEnUrl';
 import { DISPOSICION } from './disposicion';
 import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
 import ResumenFichaPanel from './ResumenFichaPanel';
@@ -36,6 +37,8 @@ const PANEL_POR_PESTANA = {
 
 type Pestana = keyof typeof PANEL_POR_PESTANA;
 
+const PESTANAS_VALIDAS = Object.keys(PANEL_POR_PESTANA) as Pestana[];
+
 function aResumen(ficha: MiFichaPerfilResponse): ResumenFicha {
   return {
     id: ficha.id,
@@ -52,7 +55,7 @@ export default function EstudianteView() {
   const { ficha, fichas, cargada, sinFicha, errorFicha, seleccionarFicha, reintentar } =
     useMiFichaPerfil();
   const { items, itemsCargados } = useItemsMiFicha();
-  const [pestana, setPestana] = useState<Pestana>('items');
+  const [pestana, setPestana] = usePestanaEnUrl(PESTANAS_VALIDAS, 'items');
   const [editandoTitulo, setEditandoTitulo] = useState(false);
 
   if (errorFicha) {

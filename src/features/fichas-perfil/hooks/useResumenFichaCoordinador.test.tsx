@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router';
 import { act, renderHook } from '../../../test-utils/render';
+import { resetAllStores } from '../../../test-utils/store.utils';
 import { useHistorialEstadosFichaCoordinador } from './useHistorialEstadosFichaCoordinador';
 import { useResumenFichaCoordinador } from './useResumenFichaCoordinador';
 
@@ -40,6 +41,7 @@ function renderizar(state?: unknown) {
 describe('useResumenFichaCoordinador', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetAllStores();
   });
 
   it('sobrepone el estado vigente del historial y el asesor nuevo al resumen de navegación', () => {
@@ -78,14 +80,14 @@ describe('useResumenFichaCoordinador', () => {
     expect(result.current.search).toBe('?q=a');
   });
 
-  it('sin historial deja el resumen tal cual, y sin resumen devuelve null', () => {
+  it('sin historial deja el resumen tal cual, y sin state ni snapshot devuelve null', () => {
     // Arrange
-    simularHistorial(undefined);
+    simularHistorial([{ id: 'X', nombre: 'X', fechaActualizacion: '2026-02-01T10:00:00' }]);
 
     // Act
-    const conResumen = renderizar({ resumen: RESUMEN, search: '' });
-    simularHistorial([{ id: 'X', nombre: 'X', fechaActualizacion: '2026-02-01T10:00:00' }]);
     const sinResumen = renderizar();
+    simularHistorial(undefined);
+    const conResumen = renderizar({ resumen: RESUMEN, search: '' });
 
     // Assert
     expect(conResumen.result.current.resumen).toEqual(RESUMEN);
@@ -115,5 +117,41 @@ describe('useResumenFichaCoordinador', () => {
     });
     expect(result.current.resumen?.asesorNombre).toBeUndefined();
     expect(result.current.origen).toEqual(origen);
+  });
+
+  it('reescribe el snapshot con el estado nuevo del historial y con el asesor nuevo y sin los datos del anterior', () => {
+    // Arrange
+    simularHistorial([
+      { id: 'APROBADA', nombre: 'Aprobada', fechaActualizacion: '2026-02-01T10:00:00' },
+    ]);
+    const { result, unmount } = renderizar({ resumen: RESUMEN, search: '?q=a' });
+
+    // Act
+    act(() =>
+      result.current.registrarAsesorNuevo({
+        id: 'a-2',
+        nombre: 'Luis Mora',
+        email: 'l@uco.edu.co',
+      }),
+    );
+    unmount();
+    simularHistorial(undefined);
+    const recargada = renderizar();
+
+    // Assert
+    expect(recargada.result.current.resumen).toEqual({
+      id: 'f-1',
+      titulo: 'Ficha de prueba',
+      estadoId: 'APROBADA',
+      estadoNombre: 'Aprobada',
+      fechaActualizacion: '2026-02-01T10:00:00',
+      asesorId: 'a-2',
+      asesorNombre: 'Luis Mora',
+      asesorEmail: 'l@uco.edu.co',
+    });
+    expect(recargada.result.current.search).toBe('?q=a');
+    const guardado = sessionStorage.getItem('arquisoft:ctx:ficha:f-1') ?? '';
+    expect(guardado).not.toContain('Ana Gómez');
+    expect(guardado).not.toContain('ana@uco.edu.co');
   });
 });

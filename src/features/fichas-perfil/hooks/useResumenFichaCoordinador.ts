@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import type { Asesor } from '../../../shared/models/Asesor';
 import type { OrigenNavegacion } from '../../../shared/models/OrigenNavegacion';
 import type { ResumenFicha } from '../models/ResumenFicha';
@@ -13,13 +13,28 @@ interface ResultadoResumenFichaCoordinador {
 }
 
 export function useResumenFichaCoordinador(fichaId: string): ResultadoResumenFichaCoordinador {
-  const { resumen, search, origen } = useResumenFicha(fichaId);
+  const { resumen, search, origen, actualizarResumen } = useResumenFicha(fichaId);
   const { data: historial } = useHistorialEstadosFichaCoordinador(fichaId);
-  const [asesorNuevo, setAsesorNuevo] = useState<Asesor | null>(null);
   const estadoActual = historial?.[0];
+  const guardadoId = resumen?.estadoId;
+  const guardadoFecha = resumen?.fechaActualizacion;
+
+  useEffect(() => {
+    if (!estadoActual) return;
+    if (estadoActual.id === guardadoId && estadoActual.fechaActualizacion === guardadoFecha) return;
+    actualizarResumen({
+      estadoId: estadoActual.id,
+      estadoNombre: estadoActual.nombre,
+      fechaActualizacion: estadoActual.fechaActualizacion,
+    });
+  }, [estadoActual, guardadoId, guardadoFecha, actualizarResumen]);
 
   function registrarAsesorNuevo(asesor: Asesor) {
-    setAsesorNuevo(asesor);
+    actualizarResumen({
+      asesorId: asesor.id,
+      asesorNombre: asesor.nombre,
+      asesorEmail: asesor.email,
+    });
   }
 
   if (!resumen) return { resumen: null, search, origen, registrarAsesorNuevo };
@@ -31,11 +46,6 @@ export function useResumenFichaCoordinador(fichaId: string): ResultadoResumenFic
         estadoId: estadoActual.id,
         estadoNombre: estadoActual.nombre,
         fechaActualizacion: estadoActual.fechaActualizacion,
-      }),
-      ...(asesorNuevo && {
-        asesorId: asesorNuevo.id,
-        asesorNombre: asesorNuevo.nombre,
-        asesorEmail: asesorNuevo.email,
       }),
     },
     search,

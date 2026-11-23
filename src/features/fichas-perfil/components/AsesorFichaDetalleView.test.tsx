@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { Link, Route, Routes } from 'react-router';
+import { Link, Navigate, Route, Routes } from 'react-router';
 import { render, screen, within } from '../../../test-utils/render';
 import {
   resetAllStores,
@@ -29,9 +29,16 @@ const RESUMEN = {
   estadoNombre: 'En Construccion',
 };
 
-function renderizar(rutaInicial: string, resumen: typeof RESUMEN = RESUMEN) {
+function renderizar(rutaInicial: string, resumen: typeof RESUMEN = RESUMEN, entrada?: string) {
   return render(
     <Routes>
+      {entrada && (
+        <Route
+          path="/entrada"
+          element={<Navigate to={entrada} replace state={{ resumen, search: '?q=ficha' }} />}
+        />
+      )}
+      <Route path="/fichas-perfil" element={<div>Listado de fichas</div>} />
       <Route
         path="/origen"
         element={
@@ -49,6 +56,10 @@ function renderizar(rutaInicial: string, resumen: typeof RESUMEN = RESUMEN) {
   );
 }
 
+function renderizarConContexto(rutaDetalle: string) {
+  return renderizar('/entrada', RESUMEN, rutaDetalle);
+}
+
 describe('AsesorFichaDetalleView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,7 +72,7 @@ describe('AsesorFichaDetalleView', () => {
 
   it('ofrece solo las pestañas Ítems, Revisiones, Observaciones y Estados', () => {
     // Act
-    renderizar('/fichas-perfil/f-1/items');
+    renderizarConContexto('/fichas-perfil/f-1/items');
 
     // Assert
     const pestanas = screen.getByRole('navigation', { name: 'Secciones de la ficha' });
@@ -131,21 +142,28 @@ describe('AsesorFichaDetalleView', () => {
     expect(screen.queryByText('Acciones')).not.toBeInTheDocument();
   });
 
-  it('sin resumen no ofrece «Cambiar estado»', () => {
+  it('sin state ni snapshot redirige al listado de fichas', () => {
     // Act
     renderizar('/fichas-perfil/f-1/items');
 
     // Assert
-    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
+    expect(screen.queryByText('Panel ítems')).not.toBeInTheDocument();
   });
 
-  it('sin state muestra el título genérico y el aviso, sin consultar el equipo', () => {
+  it('sin state pero con snapshot vigente pinta el detalle sin redirigir', () => {
+    // Arrange
+    renderizarConContexto('/fichas-perfil/f-1/items').unmount();
+
     // Act
     renderizar('/fichas-perfil/f-1/items');
 
     // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'Ficha de perfil' })).toBeInTheDocument();
-    expect(screen.getByText(/No tenemos el resumen de esta ficha/)).toBeInTheDocument();
-    expect(screen.queryByText('Compañeros')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Ficha del asesor' })).toBeInTheDocument();
+    expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
+      'href',
+      '/fichas-perfil?q=ficha',
+    );
   });
 });

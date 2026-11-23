@@ -82,9 +82,13 @@ function Origen() {
   );
 }
 
-function renderizar(rutaInicial: string) {
+function renderizar(rutaInicial: string, conContexto = true) {
   return render(
     <Routes>
+      <Route
+        path="/entrada"
+        element={<Navigate to={rutaInicial} replace state={{ resumen: RESUMEN, search: '' }} />}
+      />
       <Route path="/origen" element={<Origen />} />
       <Route path="/fichas-perfil" element={<div>Listado de fichas</div>} />
       <Route path="/fichas-perfil/:id" element={<DetalleFicha />}>
@@ -97,7 +101,7 @@ function renderizar(rutaInicial: string) {
       </Route>
       <Route path="/seleccionar-rol" element={<div>Selecciona un rol</div>} />
     </Routes>,
-    { initialPath: rutaInicial },
+    { initialPath: conContexto ? '/entrada' : rutaInicial },
   );
 }
 
@@ -308,21 +312,52 @@ describe('DetalleFicha', () => {
     );
   });
 
-  it('sin state muestra el título genérico, el aviso, la miga sin búsqueda y las secciones por id', () => {
+  it('sin state ni snapshot redirige al listado en cada rol con vista', () => {
     // Arrange
     entrarComo(Rol.AsesorFicha);
 
     // Act
-    renderizar('/fichas-perfil/f-1/items');
+    const asesor = renderizar('/fichas-perfil/f-1/items', false);
 
     // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'Ficha de perfil' })).toBeInTheDocument();
-    expect(screen.getByText(/No tenemos el resumen de esta ficha/)).toBeInTheDocument();
-    expect(screen.queryByText(/Actualizada el/)).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
-      'href',
-      '/fichas-perfil',
-    );
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
+    asesor.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.RepresentanteComiteCurriculum);
+
+    // Act
+    const representante = renderizar('/fichas-perfil/f-1/items', false);
+
+    // Assert
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
+    representante.unmount();
+
+    // Arrange
+    resetAllStores();
+    entrarComo(Rol.Coordinador);
+
+    // Act
+    renderizar('/fichas-perfil/f-1/items', false);
+
+    // Assert
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
+  });
+
+  it('con solo el snapshot de la sesión pinta el detalle con la miga del listado', () => {
+    // Arrange
+    entrarComo(Rol.AsesorFicha);
+    renderizar('/fichas-perfil/f-1/items').unmount();
+
+    // Act
+    renderizar('/fichas-perfil/f-1/items', false);
+
+    // Assert
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Mi ficha de grado' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
     expect(screen.getByText('Ítems asesor f-1')).toBeInTheDocument();
   });
 });

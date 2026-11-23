@@ -279,6 +279,36 @@ describe('EstudianteView', () => {
     expect(screen.getByText('Tu ficha aún no tiene estados registrados')).toBeInTheDocument();
   });
 
+  it('abre la pestaña indicada en ?pestana= y, ante un valor inválido, la primera', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    conFicha();
+    const indicada = render(<EstudianteView />, { initialPath: '/?pestana=revisiones' });
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Revisiones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+
+    // Act
+    screen.getByRole('tab', { name: 'Revisiones' }).focus();
+    await user.keyboard('{ArrowRight}');
+
+    // Assert
+    expect(screen.getByRole('tab', { name: 'Observaciones' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    indicada.unmount();
+
+    // Act
+    render(<EstudianteView />, { initialPath: '/?pestana=inexistente' });
+
+    // Assert
+    expect(screen.getByRole('tab', { name: /^Ítems/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('la pestaña «Revisiones» monta el panel de revisiones de la ficha', async () => {
     // Arrange
     const user = userEvent.setup();

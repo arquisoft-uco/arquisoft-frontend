@@ -99,6 +99,7 @@ function montar() {
         path="/evaluaciones/:evaluacionId/jurados"
         element={<JuradosEvaluacionCoordinadorView />}
       />
+      <Route path="/evaluaciones" element={<div>Listado de evaluaciones</div>} />
     </Routes>,
     { initialPath: '/evaluaciones/e-1/jurados' },
   );
@@ -167,23 +168,30 @@ describe('JuradosEvaluacionCoordinadorView', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('sin resumen o con la evaluación finalizada no ofrece «Asignar jurados» en el vacío', () => {
+  it('con la evaluación finalizada no ofrece «Asignar jurados» en el vacío', () => {
     // Arrange
-    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+    mockResumen(true);
     mockListado({ data: crearPagina([]) });
-    const { unmount } = montar();
+
+    // Act
+    montar();
 
     // Assert
     expect(screen.getByText('Esta evaluación aún no tiene jurados asignados.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Asignar jurados' })).not.toBeInTheDocument();
+  });
 
+  it('sin resumen en el state ni en el snapshot redirige al listado de evaluaciones', () => {
     // Arrange
-    unmount();
-    mockResumen(true);
+    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+    mockListado({ data: crearPagina([ANA]) });
+
+    // Act
     montar();
 
     // Assert
-    expect(screen.queryByRole('button', { name: 'Asignar jurados' })).not.toBeInTheDocument();
+    expect(screen.getByText('Listado de evaluaciones')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Jurados asignados' })).not.toBeInTheDocument();
   });
 
   it('si queda una sola fila en una página posterior, el diálogo retrocede una página', async () => {

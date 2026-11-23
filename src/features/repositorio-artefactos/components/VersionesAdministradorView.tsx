@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Upload } from 'lucide-react';
 import { Navigate, useParams } from 'react-router';
+import RedirigirAlListado from '../../../shared/components/RedirigirAlListado';
 import Button from '../../../shared/components/ui/Button';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import { useContextoVersionesRepositorio } from '../hooks/useContextoVersionesRepositorio';
 import ConsultarVersionesRepositorio from './administrador/ConsultarVersionesRepositorio';
 import SubirVersionPanel from './administrador/SubirVersionPanel';
-
-const NOMBRE_GENERICO = 'Repositorio';
 
 export default function VersionesAdministradorView() {
   const { repositorioId = '' } = useParams();
@@ -15,16 +14,17 @@ export default function VersionesAdministradorView() {
   const { nombre, search } = useContextoVersionesRepositorio(repositorioId);
 
   if (!repositorioId) return <Navigate to="/repositorio-artefactos" replace />;
+  if (nombre === null) return <RedirigirAlListado destino="/repositorio-artefactos" />;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         migas={[
           { etiqueta: 'Repositorio de artefactos', to: `/repositorio-artefactos${search}` },
-          { etiqueta: nombre ?? NOMBRE_GENERICO },
+          { etiqueta: nombre },
         ]}
         titulo="Versiones del repositorio"
-        meta={nombre ?? undefined}
+        meta={nombre}
         descripcion="Consulta la información de cada versión cargada"
         acciones={
           <Button icono={Upload} onClick={() => setSubiendo(true)}>

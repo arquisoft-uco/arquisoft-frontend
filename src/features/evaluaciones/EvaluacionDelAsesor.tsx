@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router';
 import AccesoDenegado from '../../shared/components/AccesoDenegado';
+import RedirigirAlListado from '../../shared/components/RedirigirAlListado';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
@@ -20,11 +21,10 @@ export default function EvaluacionDelAsesor() {
   const consulta = useEvaluacionAsesor(evaluacionId);
 
   if (!esEstudiante) return <AccesoDenegado />;
+  if (!resumen) return <RedirigirAlListado destino="/evaluaciones" />;
 
   const rutaListado = `/evaluaciones${search}`;
-  const descripcion = resumen
-    ? `${resumen.proyecto} · versión ${resumen.version}`
-    : 'Consulta el asesor que evaluó este entregable.';
+  const descripcion = `${resumen.proyecto} · versión ${resumen.version}`;
   function irAlListado() {
     navigate(rutaListado);
   }

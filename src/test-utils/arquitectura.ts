@@ -1,6 +1,6 @@
 export type Medicion = Record<string, number>;
 
-interface Fuente {
+export interface Fuente {
   ruta: string;
   contenido: string;
 }
@@ -44,7 +44,10 @@ const RANGO_DE_CAPA: Record<Capa, number> = {
 };
 const UMBRAL_LINEAS_COMPONENTE = 150;
 const ARCHIVOS_CON_AXIOS = ['api/axiosInstance.ts', 'shared/utils/api-error.ts'];
-const ARCHIVO_CON_STORAGE = 'auth/safeStorage.ts';
+export const STORAGE_PERMITIDO: Readonly<Record<string, 'localStorage' | 'sessionStorage'>> = {
+  'auth/safeStorage.ts': 'localStorage',
+  'shared/utils/contexto-temporal.ts': 'sessionStorage',
+};
 const CARPETA_DEL_KIT = 'shared/components/ui';
 const PREFIJO_DATATABLE = 'shared/components/ui/DataTable';
 const MODELO_CON_RUNTIME_PERMITIDO = 'shared/models/rol.ts';
@@ -76,7 +79,8 @@ const PATRON_TEXTO_MENOR_A_12PX = /text-\[(?:9|10|11)px\]/g;
 const PATRON_TABLA = /<table[\s>]/g;
 const PATRON_JSDOC = /\/\*\*/g;
 const PATRON_CONSOLE_LOG = /\bconsole\.log\s*\(/;
-const PATRON_STORAGE = /\b(?:localStorage|sessionStorage)\b/;
+const PATRON_LOCAL_STORAGE = /\blocalStorage\b/;
+const PATRON_SESSION_STORAGE = /\bsessionStorage\b/;
 const PATRON_RUNTIME_EN_MODELO =
   /^\s*export\s+(?:const|let|var|function|class|enum|abstract|default)\b/m;
 
@@ -272,11 +276,24 @@ export function navegacionesAForbidden(): string[] {
     .map(({ ruta }) => ruta);
 }
 
-export function usosDeStorage(): string[] {
-  return produccion
-    .filter(({ ruta }) => ruta !== ARCHIVO_CON_STORAGE)
-    .filter(({ contenido }) => PATRON_STORAGE.test(contenido))
+export function usosIndebidosDeStorage(archivos: Fuente[]): string[] {
+  return archivos
+    .filter(({ ruta, contenido }) => {
+      const usaLocal = PATRON_LOCAL_STORAGE.test(contenido);
+      const usaSession = PATRON_SESSION_STORAGE.test(contenido);
+      const permitido = STORAGE_PERMITIDO[ruta];
+      if (!permitido) return usaLocal || usaSession;
+      return permitido === 'localStorage' ? usaSession : usaLocal;
+    })
     .map(({ ruta }) => ruta);
+}
+
+export function usosDeStorage(): string[] {
+  return usosIndebidosDeStorage(produccion);
+}
+
+export function archivosDeStorageInexistentes(): string[] {
+  return Object.keys(STORAGE_PERMITIDO).filter((ruta) => !rutasDeProduccion.has(ruta));
 }
 
 export function componentesGrandes(): Medicion {

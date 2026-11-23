@@ -1,4 +1,6 @@
 import { Navigate, useLocation, useParams } from 'react-router';
+import RedirigirAlListado from '../../../shared/components/RedirigirAlListado';
+import { TTL_CONTEXTO_CORTO_MS } from '../../../shared/utils/contexto-temporal';
 import { useEvaluacionFicha } from '../hooks/useEvaluacionFicha';
 import { useResumenFicha } from '../hooks/useResumenFicha';
 import { evaluacionEnEstadoFinal } from '../utils/evaluacion-asistente';
@@ -9,10 +11,11 @@ import IniciarEvaluacionBoton from './representante/IniciarEvaluacionBoton';
 export default function RepresentanteDetalleView() {
   const { id = '' } = useParams();
   const { pathname } = useLocation();
-  const { resumen, search } = useResumenFicha(id);
+  const { resumen, search } = useResumenFicha(id, TTL_CONTEXTO_CORTO_MS);
   const { data: evaluaciones, isSuccess } = useEvaluacionFicha(id);
 
   if (!id) return <Navigate to="/fichas-perfil" replace />;
+  if (!resumen) return <RedirigirAlListado destino="/fichas-perfil" />;
 
   const base = `/fichas-perfil/${id}`;
   const pestanas = [

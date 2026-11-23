@@ -32,11 +32,17 @@ function renderizar(state?: unknown) {
         path="/repositorio-artefactos/:repositorioId/versiones"
         element={<VersionesRepositorio />}
       />
+      <Route path="/repositorio-artefactos" element={<p>Listado de repositorios</p>} />
       <Route path="/seleccionar-rol" element={<p>Selector de rol</p>} />
     </Routes>,
     { initialPath: '/origen' },
   );
 }
+
+const STATE = {
+  search: '?q=alfa&pagina=2',
+  repositorio: { id: 'r-1', nombre: 'Repositorio Alfa' },
+};
 
 function entrarComo(...roles: Rol[]) {
   setAuthenticatedUser({ tokenParsed: { sub: 'u', realm_access: { roles } } });
@@ -69,7 +75,7 @@ describe('VersionesRepositorio', () => {
     expect(screen.getAllByText('Repositorio Alfa').length).toBeGreaterThan(0);
   });
 
-  it('sin state usa la miga genérica y el listado sin búsqueda', async () => {
+  it('sin state ni snapshot redirige al listado de repositorios', async () => {
     // Arrange
     entrarComo(Rol.Administrador);
     setActiveRole(Rol.Administrador);
@@ -78,12 +84,29 @@ describe('VersionesRepositorio', () => {
     renderizar();
 
     // Assert
+    expect(await screen.findByText('Listado de repositorios')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { level: 1, name: 'Versiones del repositorio' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('sin state pero con snapshot vigente pinta la pantalla con la miga y el nombre', async () => {
+    // Arrange
+    entrarComo(Rol.Administrador);
+    setActiveRole(Rol.Administrador);
+    renderizar(STATE).unmount();
+
+    // Act
+    renderizar();
+
+    // Assert
     await screen.findByRole('heading', { level: 1, name: 'Versiones del repositorio' });
     expect(screen.getByRole('link', { name: 'Repositorio de artefactos' })).toHaveAttribute(
       'href',
-      '/repositorio-artefactos',
+      '/repositorio-artefactos?q=alfa&pagina=2',
     );
-    expect(screen.getAllByText('Repositorio').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Repositorio Alfa').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Listado de repositorios')).not.toBeInTheDocument();
   });
 
   it('el botón de la cabecera abre el panel para subir una versión', async () => {
@@ -91,7 +114,7 @@ describe('VersionesRepositorio', () => {
     const user = userEvent.setup();
     entrarComo(Rol.Administrador);
     setActiveRole(Rol.Administrador);
-    renderizar();
+    renderizar(STATE);
 
     // Act
     await user.click(await screen.findByRole('button', { name: 'Subir versión' }));

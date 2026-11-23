@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Notice from '../../../shared/components/ui/Notice';
 import type { ResumenProyectoGrado } from '../models/ResumenProyectoGrado';
 import { InsigniaEstadoProyecto } from './coordinador/ProyectoGradoCeldas';
 import { DISPOSICION } from './disposicion';
@@ -9,24 +8,19 @@ const ETIQUETA = 'text-[13px] font-medium text-on-surface-secondary';
 const ACCIONES = 'flex flex-col items-start gap-2 border-t border-border pt-3';
 
 interface Props {
-  resumen: ResumenProyectoGrado | null;
+  resumen: ResumenProyectoGrado;
   asesor?: ReactNode;
   estudiantes?: ReactNode;
   accion?: ReactNode;
 }
 
 export default function ResumenProyectoGradoPanel({ resumen, asesor, estudiantes, accion }: Props) {
-  const tieneEstado = Boolean(resumen?.estadoId && resumen.estadoNombre);
+  const tieneEstado = Boolean(resumen.estadoId && resumen.estadoNombre);
 
   return (
     <aside className={DISPOSICION.tarjetaLateral} aria-label="Resumen del proyecto de grado">
       <h2 className={DISPOSICION.tituloLateral}>Resumen</h2>
-      {!resumen && (
-        <Notice variante="info">
-          No tenemos el resumen de este proyecto. Ábrelo desde tu listado para verlo.
-        </Notice>
-      )}
-      {resumen && tieneEstado && (
+      {tieneEstado && (
         <div className={FILA}>
           <span className={ETIQUETA}>Estado</span>
           <div>

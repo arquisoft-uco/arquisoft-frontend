@@ -88,7 +88,7 @@ La validación tiene **dos capas** y ninguna sustituye a la otra:
 | 2.4 Hooks | Query key que empieza por la feature | Que sea la del plan, la estrategia de refresco (`invalidateQueries`/`setQueryData`), `enabled`, un solo lugar para el toast |
 | 2.5 Componentes | `console.log`, tamaño por encima de 150 líneas, un spinner fuera de `shared/components/ui/`, texto de menos de 12 px y `<table>` fuera de `DataTable` | Los tres estados reales con `Skeleton`, `EmptyState` y `ErrorState` del kit, el orden interno, schema fuera del componente, claves estables |
 | 2.9 Estilos | Colores crudos nuevos, config prohibida y utilidad de color (`bg-x`, `text-x`, `border-x`…) sin su `--color-*` en `@theme` | Tokens correctos, mobile first, clases globales de `index.css` |
-| 2.10 Seguridad | Storage fuera del store del rol | Datos sensibles, `dangerouslySetInnerHTML`, secretos en `VITE_*` |
+| 2.10 Seguridad | Storage fuera de `safeStorage` y del contexto temporal | Datos sensibles, `dangerouslySetInnerHTML`, secretos en `VITE_*` |
 | 2.11 TypeScript | `any`, `@ts-ignore`, `as unknown as` y JSDoc nuevo | `!` injustificados; tipos que esconden un contrato mal modelado |
 
 ### Revisión abierta con juicio
@@ -276,8 +276,9 @@ hallazgo de esta HU.
 
 | Check | Sev |
 |---|:---:|
-| Escritura nueva en `localStorage`/`sessionStorage` que no sea el rol activo | ❌ |
-| Token, `tokenParsed`, correo o dato personal persistido o logueado | ❌ |
+| Storage fuera de `auth/safeStorage.ts` y `shared/utils/contexto-temporal.ts` | ❌ |
+| El contexto temporal guarda token, claims, teléfono o un correo que no sea el del asesor de la ficha | ❌ |
+| Token, `tokenParsed`, correo o dato personal persistido o logueado (salvo lo que declara el contexto temporal: nombre y correo del asesor de la ficha y nombre del jurado) | ❌ |
 | Secreto en una variable `VITE_*` — queda embebido en el bundle | ❌ |
 | `config/env.ts` relajado (sin `requireEnv` o sin el bloqueo de bypass en producción) | ❌ |
 | `dangerouslySetInnerHTML` sin sanitizar y sin justificación | ❌ |

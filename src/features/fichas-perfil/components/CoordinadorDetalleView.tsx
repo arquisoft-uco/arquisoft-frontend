@@ -1,4 +1,5 @@
 import { Navigate, useParams } from 'react-router';
+import RedirigirAlListado from '../../../shared/components/RedirigirAlListado';
 import { useResumenFichaCoordinador } from '../hooks/useResumenFichaCoordinador';
 import { admiteDecision } from '../utils/decision-ficha';
 import AccionesFichaCoordinador from './coordinador/AccionesFichaCoordinador';
@@ -10,6 +11,7 @@ export default function CoordinadorDetalleView() {
   const { resumen, search, origen, registrarAsesorNuevo } = useResumenFichaCoordinador(id);
 
   if (!id) return <Navigate to="/fichas-perfil" replace />;
+  if (!resumen) return <RedirigirAlListado destino="/fichas-perfil" />;
 
   const pestanas = [
     { id: 'items', etiqueta: 'Ítems', to: `/fichas-perfil/${id}/items` },
@@ -24,14 +26,12 @@ export default function CoordinadorDetalleView() {
       origen={origen}
       pestanas={pestanas}
       decision={
-        resumen && admiteDecision(resumen.estadoId) ? (
+        admiteDecision(resumen.estadoId) ? (
           <DecisionFichaPanel fichaPerfilId={resumen.id} />
         ) : undefined
       }
       accion={
-        resumen ? (
-          <AccionesFichaCoordinador resumen={resumen} onAsesorCambiado={registrarAsesorNuevo} />
-        ) : undefined
+        <AccionesFichaCoordinador resumen={resumen} onAsesorCambiado={registrarAsesorNuevo} />
       }
     />
   );

@@ -4,7 +4,7 @@ export interface NavegacionEvaluacionJurado {
   evaluacionJuradoId: string;
   evaluacionId: string;
   jurado: string;
-  resumen: ResumenEvaluacion | null;
+  resumen: ResumenEvaluacion;
   search: string;
   searchJurados: string;
 }

@@ -1,5 +1,6 @@
 import Keycloak from 'keycloak-js';
 import { KEYCLOAK_CONFIG } from '../config/env';
+import { contextoTemporal } from '../shared/utils/contexto-temporal';
 
 /** Seconds before expiry at which the proactive refresh fires. */
 const REFRESH_BUFFER_SECONDS = 30;
@@ -16,6 +17,7 @@ const REFRESH_BUFFER_SECONDS = 30;
  * the client_id parameter, which Keycloak 18+ accepts for public clients.
  */
 export function logout(redirectUri: string = window.location.origin): void {
+  contextoTemporal.borrarTodo();
   const base = KEYCLOAK_CONFIG.url.replace(/\/$/, '');
   const url = new URL(`${base}/realms/${KEYCLOAK_CONFIG.realm}/protocol/openid-connect/logout`);
   url.searchParams.set('post_logout_redirect_uri', redirectUri);

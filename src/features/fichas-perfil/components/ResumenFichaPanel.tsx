@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import Notice from '../../../shared/components/ui/Notice';
 import type { ResumenFicha } from '../models/ResumenFicha';
 import { DISPOSICION } from './disposicion';
 import { AsesorDeFicha, InsigniaEstadoFicha } from './FichaCeldas';
@@ -9,24 +8,19 @@ const ETIQUETA = 'text-[13px] font-medium text-on-surface-secondary';
 const ACCIONES = 'flex flex-col items-start gap-2 border-t border-border pt-3';
 
 interface Props {
-  resumen: ResumenFicha | null;
+  resumen: ResumenFicha;
   accion?: ReactNode;
   equipo?: ReactNode;
 }
 
 export default function ResumenFichaPanel({ resumen, accion, equipo }: Props) {
-  const tieneEstado = Boolean(resumen?.estadoId && resumen.estadoNombre);
-  const tieneAsesor = Boolean(resumen?.asesorNombre && resumen.asesorEmail);
+  const tieneEstado = Boolean(resumen.estadoId && resumen.estadoNombre);
+  const tieneAsesor = Boolean(resumen.asesorNombre && resumen.asesorEmail);
 
   return (
     <aside className={DISPOSICION.tarjetaLateral} aria-label="Resumen de la ficha">
       <h2 className={DISPOSICION.tituloLateral}>Resumen</h2>
-      {!resumen && (
-        <Notice variante="info">
-          No tenemos el resumen de esta ficha. Ábrela desde tu listado para verlo.
-        </Notice>
-      )}
-      {resumen && tieneEstado && (
+      {tieneEstado && (
         <div className={FILA}>
           <span className={ETIQUETA}>Estado</span>
           <div>
@@ -37,7 +31,7 @@ export default function ResumenFichaPanel({ resumen, accion, equipo }: Props) {
           </div>
         </div>
       )}
-      {resumen && tieneAsesor && (
+      {tieneAsesor && (
         <div className={FILA}>
           <span className={ETIQUETA}>Asesor</span>
           <AsesorDeFicha nombre={resumen.asesorNombre ?? ''} email={resumen.asesorEmail ?? ''} />

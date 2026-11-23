@@ -43,6 +43,7 @@ function montar() {
         path="/evaluaciones/:evaluacionId/jurados"
         element={<JuradosEvaluacionEstudianteView />}
       />
+      <Route path="/evaluaciones" element={<p>Listado de evaluaciones</p>} />
       <Route path="/evaluaciones/:id/cualitativas" element={<Destino />} />
       <Route path="/evaluaciones/:id/cuantitativas" element={<Destino />} />
     </Routes>,
@@ -75,7 +76,7 @@ describe('JuradosEvaluacionEstudianteView', () => {
     expect(screen.getByText('Listado de jurados')).toBeInTheDocument();
   });
 
-  it('sin state de navegación muestra la descripción genérica y la miga sin search', () => {
+  it('sin resumen en el state ni en el snapshot redirige al listado de evaluaciones', () => {
     // Arrange
     vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
 
@@ -83,13 +84,8 @@ describe('JuradosEvaluacionEstudianteView', () => {
     montar();
 
     // Assert
-    expect(
-      screen.getByText('Consulta los jurados asignados a esta evaluación.'),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toHaveAttribute(
-      'href',
-      '/evaluaciones',
-    );
+    expect(screen.getByText('Listado de evaluaciones')).toBeInTheDocument();
+    expect(screen.queryByText('Listado de jurados')).not.toBeInTheDocument();
   });
 
   it('«Ver evaluación cualitativa» navega a la ruta del jurado con el contexto en el state', async () => {

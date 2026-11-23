@@ -1,4 +1,5 @@
 import { useLocation, useNavigate, useParams } from 'react-router';
+import RedirigirAlListado from '../../../../shared/components/RedirigirAlListado';
 import PageHeader from '../../../../shared/components/ui/PageHeader';
 import { useJuradosEvaluacion } from '../../hooks/useJuradosEvaluacion';
 import { useResumenEvaluacion } from '../../hooks/useResumenEvaluacion';
@@ -16,7 +17,9 @@ export default function JuradosEvaluacionEstudianteView() {
   const { resumen, search } = useResumenEvaluacion(evaluacionId);
   const listado = useJuradosEvaluacion(evaluacionId);
 
-  function irA(jurado: EvaluacionJurado, ruta: 'cualitativas' | 'cuantitativas') {
+  if (!resumen) return <RedirigirAlListado destino="/evaluaciones" />;
+
+  const irA = (jurado: EvaluacionJurado, ruta: 'cualitativas' | 'cuantitativas') => {
     const state: NavegacionEvaluacionJurado = {
       evaluacionJuradoId: jurado.id,
       evaluacionId,
@@ -26,7 +29,7 @@ export default function JuradosEvaluacionEstudianteView() {
       searchJurados,
     };
     navigate(`/evaluaciones/${jurado.id}/${ruta}`, { state });
-  }
+  };
 
   function verCualitativa(jurado: EvaluacionJurado) {
     irA(jurado, 'cualitativas');
@@ -37,9 +40,7 @@ export default function JuradosEvaluacionEstudianteView() {
   }
 
   const rutaListado = `/evaluaciones${search}`;
-  const descripcion = resumen
-    ? `${resumen.proyecto} · versión ${resumen.version}`
-    : 'Consulta los jurados asignados a esta evaluación.';
+  const descripcion = `${resumen.proyecto} · versión ${resumen.version}`;
   const migas = [
     { etiqueta: 'Evaluaciones', to: rutaListado },
     { etiqueta: 'Evaluaciones del jurado' },
