@@ -97,19 +97,21 @@ describe('RepresentanteDetalleView', () => {
     expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
   });
 
-  it('ofrece «Evaluar ficha» sin evaluaciones o con una abierta y lleva a la pestaña Evaluaciones', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const sinEvaluaciones = renderizar('/fichas-perfil/f-1/items');
+  it('sin evaluación ofrece «Iniciar evaluación» y no «Evaluar ficha»', () => {
+    // Act
+    renderizar('/fichas-perfil/f-1/items');
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Evaluar ficha' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
-    sinEvaluaciones.unmount();
+    expect(screen.getByRole('button', { name: 'Iniciar evaluación' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
+  });
 
+  it('con una evaluación abierta ofrece «Evaluar ficha» y lleva a la pestaña Evaluaciones', async () => {
     // Arrange
+    const user = userEvent.setup();
     mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: null }], isSuccess: true });
     renderizar('/fichas-perfil/f-1/items');
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Evaluar ficha' }));
@@ -118,7 +120,7 @@ describe('RepresentanteDetalleView', () => {
     expect(screen.getByText('Panel evaluaciones')).toBeInTheDocument();
   });
 
-  it('no ofrece «Evaluar ficha» con una evaluación final, mientras carga ni en la pestaña Evaluaciones', () => {
+  it('no ofrece acciones con una evaluación final, mientras carga ni en la pestaña Evaluaciones', () => {
     // Arrange
     mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: 'DESCARTADA' }], isSuccess: true });
 
@@ -137,6 +139,7 @@ describe('RepresentanteDetalleView', () => {
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
     cargando.unmount();
 
     // Arrange
@@ -147,6 +150,7 @@ describe('RepresentanteDetalleView', () => {
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
   });
 
   it('sin state muestra el título genérico y el aviso, sin consultar el equipo', () => {
