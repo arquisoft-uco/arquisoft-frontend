@@ -10,6 +10,7 @@ import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { estaCerrado } from '../../utils/estado-proyecto';
 import { guiaArtefactoAsesor } from '../../utils/guia-artefacto';
+import { etiquetaVersionDocumento } from '../../utils/version-documento';
 import EstadoUltimaRevision from '../EstadoUltimaRevision';
 import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
 import InsigniaOmitido from '../InsigniaOmitido';
@@ -59,6 +60,10 @@ export default function ArtefactosAsesorTable({
     );
   }
 
+  function versionDelDocumento(artefacto: ArtefactoAsesor): string {
+    return etiquetaVersionDocumento(artefacto, ultimaVersion, ' del documento');
+  }
+
   function guia(artefacto: ArtefactoAsesor): string | null {
     if (artefacto.omitido || estaCerrado(artefacto)) return null;
     const ultima = ultimaVersion(artefacto.id);
@@ -74,7 +79,7 @@ export default function ArtefactosAsesorTable({
       celda: (artefacto) => (
         <>
           {enlaceVersiones(artefacto)}
-          <span className={DETALLE}>Versión {artefacto.versionDocumento} del documento</span>
+          <span className={DETALLE}>{versionDelDocumento(artefacto)}</span>
           {artefacto.omitido && <InsigniaOmitido />}
           {guia(artefacto) && <span className={DETALLE}>{guia(artefacto)}</span>}
         </>
@@ -132,7 +137,7 @@ export default function ArtefactosAsesorTable({
             <ProyectoConInsignia proyecto={artefacto} />
           </p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
-          <p className={TARJETA_DATO}>Versión {artefacto.versionDocumento} del documento</p>
+          <p className={TARJETA_DATO}>{versionDelDocumento(artefacto)}</p>
           {artefacto.omitido && <InsigniaOmitido />}
           <EstadoUltimaRevision ultima={ultimaVersion(artefacto.id)} omitido={artefacto.omitido} />
           {guia(artefacto) && <p className={TARJETA_DATO}>{guia(artefacto)}</p>}
