@@ -27,7 +27,7 @@ describe('useRegistrarEvaluacion', () => {
     vi.clearAllMocks();
   });
 
-  it('llama al service con el fichaPerfilId e invalida la consulta de evaluación al terminar', async () => {
+  it('llama al service y refresca todas las consultas de la ficha al terminar', async () => {
     // Arrange
     registrarEvaluacion.mockResolvedValue({ id: 'ev-1' });
     const { Wrapper, invalidar } = crearContexto();
@@ -39,10 +39,7 @@ describe('useRegistrarEvaluacion', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(registrarEvaluacion).toHaveBeenCalledWith({ fichaPerfilId: 'f-1' });
-    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'f-1', 'evaluacion'] });
-    expect(invalidar).toHaveBeenCalledWith({
-      queryKey: ['fichas-perfil', 'f-1', 'representante-estados'],
-    });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'f-1'] });
   });
 
   it('expone el error y no invalida cuando el service rechaza', async () => {
