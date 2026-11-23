@@ -14,7 +14,7 @@ import ItemRevisado from './ItemRevisado';
 
 const RAIZ = 'flex flex-col gap-3';
 const TARJETA = 'flex flex-col gap-2';
-const TEXTO_OBSERVACION = 'text-on-surface';
+const TEXTO_OBSERVACION = 'whitespace-pre-line break-words text-on-surface';
 const CLAVE_ESTADO = 'estadoObservacionRevision';
 
 function EstadoObservacion({ fila }: { fila: ObservacionItemFila }) {
