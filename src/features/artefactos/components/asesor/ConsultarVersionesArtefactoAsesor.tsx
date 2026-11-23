@@ -5,39 +5,20 @@ import { useOpcionesEstadoRevision } from '../../hooks/useOpcionesEstadoRevision
 import { usePuedeRegistrarRevision } from '../../hooks/usePuedeRegistrarRevision';
 import { useVersionesArtefactoAsesor } from '../../hooks/useVersionesArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import { gestionarRevision, type AccionRevisionAsesor } from '../../utils/accion-revision-asesor';
 import { estaCerrado } from '../../utils/estado-proyecto';
-import { ESTADO_REVISION_PENDIENTE, reabreArtefacto } from '../../utils/revision-version';
+import { reabreArtefacto } from '../../utils/revision-version';
 import ConsultarVersionesArtefacto from '../ConsultarVersionesArtefacto';
-import GestionarRevisionPanel from './GestionarRevisionPanel';
-import RegistrarRevisionDialog from './RegistrarRevisionDialog';
+import RevisionAsesorDialogo from './RevisionAsesorDialogo';
 
 const DESCRIPCION_VACIO =
   'Aparecerán aquí cuando se genere una versión de un artefacto que tengas asignado.';
-
-interface RevisionAbierta {
-  version: VersionArtefacto;
-  revisionAsesorId: string;
-}
 
 export default function ConsultarVersionesArtefactoAsesor() {
   const listado = useVersionesArtefactoAsesor();
   const opcionesEstado = useOpcionesEstadoRevision();
   const { puedeRegistrar } = usePuedeRegistrarRevision(listado.data?.content ?? []);
-  const [versionARegistrar, setVersionARegistrar] = useState<VersionArtefacto | null>(null);
-  const [revisionAbierta, setRevisionAbierta] = useState<RevisionAbierta | null>(null);
-
-  function abrirRevisionRecienRegistrada(version: VersionArtefacto, revisionAsesorId: string) {
-    setRevisionAbierta({
-      version: {
-        ...version,
-        revisionAsesor: revisionAsesorId,
-        estadoRevision: ESTADO_REVISION_PENDIENTE,
-        nombreEstadoRevision: 'Pendiente',
-        fechaCreacionRevision: null,
-      },
-      revisionAsesorId,
-    });
-  }
+  const [revision, setRevision] = useState<AccionRevisionAsesor | null>(null);
 
   function accionesAdicionales(version: VersionArtefacto): AccionMenu[] {
     const acciones: AccionMenu[] = [];
@@ -46,15 +27,15 @@ export default function ConsultarVersionesArtefactoAsesor() {
       acciones.push({
         etiqueta: reabre ? 'Reabrir revisión' : 'Registrar revisión',
         icono: reabre ? RotateCcw : ClipboardPlus,
-        onSeleccionar: () => setVersionARegistrar(version),
+        onSeleccionar: () => setRevision({ tipo: 'registrar', version }),
       });
     }
-    const revisionAsesorId = version.revisionAsesor;
-    if (revisionAsesorId !== null) {
+    const gestion = gestionarRevision(version);
+    if (gestion) {
       acciones.push({
         etiqueta: 'Gestionar revisión',
         icono: ClipboardList,
-        onSeleccionar: () => setRevisionAbierta({ version, revisionAsesorId }),
+        onSeleccionar: () => setRevision(gestion),
       });
     }
     return acciones;
@@ -68,20 +49,7 @@ export default function ConsultarVersionesArtefactoAsesor() {
         opcionesEstado={opcionesEstado}
         accionesAdicionales={accionesAdicionales}
       />
-      {versionARegistrar && (
-        <RegistrarRevisionDialog
-          version={versionARegistrar}
-          onCerrar={() => setVersionARegistrar(null)}
-          onRegistrada={(id) => abrirRevisionRecienRegistrada(versionARegistrar, id)}
-        />
-      )}
-      {revisionAbierta && (
-        <GestionarRevisionPanel
-          revisionAsesorId={revisionAbierta.revisionAsesorId}
-          version={revisionAbierta.version}
-          onCerrar={() => setRevisionAbierta(null)}
-        />
-      )}
+      {revision && <RevisionAsesorDialogo accion={revision} onCambiar={setRevision} />}
     </>
   );
 }

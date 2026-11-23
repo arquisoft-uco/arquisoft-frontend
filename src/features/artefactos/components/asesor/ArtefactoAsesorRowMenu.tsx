@@ -1,21 +1,55 @@
-import { EyeOff, GitCompareArrows, RotateCcw, UserRoundPen, Users } from 'lucide-react';
+import {
+  ClipboardList,
+  ClipboardPlus,
+  EyeOff,
+  GitCompareArrows,
+  RotateCcw,
+  UserRoundPen,
+  Users,
+} from 'lucide-react';
 import { accionDescargar } from '../../../../shared/components/accionDescargar';
 import RowMenu from '../../../../shared/components/ui/RowMenu';
+import type { AccionMenu } from '../../../../shared/components/ui/RowMenu';
 import { useDescargarVersionRepositorio } from '../../../../shared/hooks/useDescargarVersionRepositorio';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
+import type { AccionRevisionAsesor } from '../../utils/accion-revision-asesor';
 import { estaCerrado } from '../../utils/estado-proyecto';
 
-interface Props {
+type AlElegir = (artefacto: ArtefactoAsesor) => void;
+
+export interface AccionesArtefactoAsesor {
+  revisionDe: (artefacto: ArtefactoAsesor) => AccionRevisionAsesor | null;
+  onRevision: (accion: AccionRevisionAsesor) => void;
+  onCambiarAsesor: AlElegir;
+  onCambiarVersionRepositorio: AlElegir;
+  onGestionarEstudiantes: AlElegir;
+  onOmitir: AlElegir;
+  onReactivar: AlElegir;
+}
+
+interface Props extends AccionesArtefactoAsesor {
   artefacto: ArtefactoAsesor;
-  onCambiarAsesor: (artefacto: ArtefactoAsesor) => void;
-  onCambiarVersionRepositorio: (artefacto: ArtefactoAsesor) => void;
-  onGestionarEstudiantes: (artefacto: ArtefactoAsesor) => void;
-  onOmitir: (artefacto: ArtefactoAsesor) => void;
-  onReactivar: (artefacto: ArtefactoAsesor) => void;
+}
+
+function accionRevision(
+  revision: AccionRevisionAsesor | null,
+  onRevision: (accion: AccionRevisionAsesor) => void,
+): AccionMenu[] {
+  if (!revision) return [];
+  const registrar = revision.tipo === 'registrar';
+  return [
+    {
+      etiqueta: registrar ? 'Registrar revisión' : 'Gestionar revisión',
+      icono: registrar ? ClipboardPlus : ClipboardList,
+      onSeleccionar: () => onRevision(revision),
+    },
+  ];
 }
 
 export default function ArtefactoAsesorRowMenu({
   artefacto,
+  revisionDe,
+  onRevision,
   onCambiarAsesor,
   onCambiarVersionRepositorio,
   onGestionarEstudiantes,
@@ -27,6 +61,7 @@ export default function ArtefactoAsesorRowMenu({
   const soloLectura = omitido || proyectoCerrado;
   const { descargar, descargando } = useDescargarVersionRepositorio();
   const acciones = [
+    ...accionRevision(revisionDe(artefacto), onRevision),
     ...(soloLectura
       ? []
       : [
