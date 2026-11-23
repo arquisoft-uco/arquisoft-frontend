@@ -7,7 +7,7 @@ const LISTA = 'flex flex-col gap-3';
 const TARJETA =
   'flex items-start justify-between gap-3 rounded-xl border border-border bg-surface-secondary p-4 text-sm text-on-surface';
 const CONTENIDO = 'flex min-w-0 flex-col items-start gap-3';
-const DESCRIPCION = 'min-w-0 break-words';
+const DESCRIPCION = 'min-w-0 whitespace-pre-line break-words';
 
 interface Props {
   observaciones: ObservacionRevision[];

@@ -11,6 +11,7 @@ import EstadoUltimaRevision from '../EstadoUltimaRevision';
 import NombreArtefacto, { type MotivoBloqueo } from './NombreArtefacto';
 import MenuArtefactoEstudiante from './MenuArtefactoEstudiante';
 import type { ProyectoConParticipaciones } from '../../utils/agrupar-participaciones';
+import { etiquetaVersionDocumento } from '../../utils/version-documento';
 
 const SECCION = 'flex flex-col gap-3';
 const ENCABEZADO = 'flex flex-wrap items-center gap-2';
@@ -24,10 +25,6 @@ type UltimaVersion = (artefactoId: string) => VersionArtefacto | null | undefine
 interface Acciones {
   onGestionarRevision: AlElegir;
   onSubirVersion: AlElegir;
-}
-
-function etiquetaVersion(participacion: ParticipacionArtefacto): string {
-  return `Versión ${participacion.versionDocumento}`;
 }
 
 function columnasDe(
@@ -47,7 +44,9 @@ function columnasDe(
       id: 'version',
       encabezado: 'Versión del documento',
       clave: 'versionDocumento',
-      celda: (participacion) => <Badge variante="neutro">{etiquetaVersion(participacion)}</Badge>,
+      celda: (participacion) => (
+        <Badge variante="neutro">{etiquetaVersionDocumento(participacion, ultimaVersion)}</Badge>
+      ),
     },
     {
       id: 'revision',
@@ -139,7 +138,7 @@ export default function ParticipacionesProyectoTabla({
             />
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
             <p className={TARJETA_DATO}>
-              {participacion.nombreAsesor} · {etiquetaVersion(participacion)} del documento
+              {`${participacion.nombreAsesor} · ${etiquetaVersionDocumento(participacion, ultimaVersion, ' del documento')}`}
             </p>
           </>
         )}
