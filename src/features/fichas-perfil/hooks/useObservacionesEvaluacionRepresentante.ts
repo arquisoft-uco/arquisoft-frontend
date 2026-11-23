@@ -15,6 +15,7 @@ export function useObservacionesEvaluacionRepresentante(
     observaciones: data ?? [],
     isLoading,
     cargado: isSuccess,
+    tieneDatos: data !== undefined,
     isError,
     error,
     refetch,

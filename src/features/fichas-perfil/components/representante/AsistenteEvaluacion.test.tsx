@@ -41,6 +41,7 @@ function mockObservaciones(parcial: Record<string, unknown>) {
     observaciones: [],
     isLoading: false,
     cargado: true,
+    tieneDatos: true,
     isError: false,
     error: null,
     refetch: vi.fn(),
@@ -78,7 +79,7 @@ describe('AsistenteEvaluacion', () => {
 
   it('mientras cargan las observaciones muestra carga y no deja avanzar', () => {
     // Arrange
-    mockObservaciones({ cargado: false, isLoading: true });
+    mockObservaciones({ cargado: false, tieneDatos: false, isLoading: true });
 
     // Act
     renderizar();
@@ -92,7 +93,7 @@ describe('AsistenteEvaluacion', () => {
     // Arrange
     const user = userEvent.setup();
     const refetch = vi.fn();
-    mockObservaciones({ cargado: false, isError: true, refetch });
+    mockObservaciones({ cargado: false, tieneDatos: false, isError: true, refetch });
     renderizar();
 
     // Act
@@ -101,6 +102,18 @@ describe('AsistenteEvaluacion', () => {
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudieron cargar las observaciones');
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('si falla una recarga con observaciones ya cargadas conserva el paso', () => {
+    // Arrange
+    mockObservaciones({ cargado: false, tieneDatos: true, isError: true });
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByText('¿Deseas agregar alguna observación?')).toBeInTheDocument();
+    expect(screen.queryByText('No se pudieron cargar las observaciones')).not.toBeInTheDocument();
   });
 
   it('elegir «No» y continuar pasa al estado con cero observaciones, y «Atrás» regresa', async () => {

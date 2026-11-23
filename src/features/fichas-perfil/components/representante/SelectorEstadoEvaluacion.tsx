@@ -23,6 +23,7 @@ export default function SelectorEstadoEvaluacion({
 
   return (
     <fieldset
+      role="radiogroup"
       className="flex min-w-0 flex-col gap-2"
       aria-invalid={!!error}
       aria-describedby={error ? idError : undefined}

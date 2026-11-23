@@ -20,13 +20,13 @@ export default function AsistenteEvaluacion({
   onVerObservaciones,
 }: Props) {
   const [paso, setPaso] = useState<'observaciones' | 'estado'>('observaciones');
-  const { observaciones, cargado, isError, refetch } = useObservacionesEvaluacionRepresentante(
+  const { observaciones, tieneDatos, isError, refetch } = useObservacionesEvaluacionRepresentante(
     fichaPerfilId,
     evaluacion.id,
   );
 
   let contenido;
-  if (isError) {
+  if (isError && !tieneDatos) {
     contenido = (
       <ErrorState
         titulo="No se pudieron cargar las observaciones"
@@ -34,7 +34,7 @@ export default function AsistenteEvaluacion({
         onReintentar={refetch}
       />
     );
-  } else if (!cargado) {
+  } else if (!tieneDatos) {
     contenido = <Skeleton variante="formulario" etiqueta="Cargando observaciones…" />;
   } else if (paso === 'observaciones') {
     contenido = (
