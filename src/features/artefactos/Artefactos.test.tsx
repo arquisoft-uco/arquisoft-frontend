@@ -113,7 +113,7 @@ describe('Artefactos', () => {
     ).toBeInTheDocument();
   });
 
-  it('el asesor ve por defecto "Artefactos asignados" y sus tres pestañas, sin las retiradas', async () => {
+  it('el asesor ve por defecto "Artefactos asignados" y sus cuatro pestañas, sin la retirada', async () => {
     // Arrange
     entrarComo(Rol.Asesor);
     setActiveRole(Rol.Asesor);
@@ -130,7 +130,7 @@ describe('Artefactos', () => {
     expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Versiones de repositorio' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Revisiones realizadas' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Estados de revisión' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estados de revisión' })).toBeInTheDocument();
   });
 
   it('el asesor ve "Asignar artefacto" y al pulsarlo se abre el panel; el estudiante no lo ve', async () => {
@@ -154,23 +154,36 @@ describe('Artefactos', () => {
     expect(screen.queryByRole('button', { name: 'Asignar artefacto' })).not.toBeInTheDocument();
   });
 
-  it('?vista=estados y ?vista=revisiones terminan en "Versiones de artefactos"', async () => {
+  it('?vista=revisiones termina en "Versiones de artefactos"', async () => {
     // Arrange
     entrarComo(Rol.Asesor);
     setActiveRole(Rol.Asesor);
 
-    for (const vista of ['estados', 'revisiones']) {
-      // Act
-      const { unmount } = renderizar(`/artefactos?vista=${vista}`);
+    // Act
+    renderizar('/artefactos?vista=revisiones');
 
-      // Assert
-      expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toHaveAttribute(
-        'aria-current',
-        'page',
-      );
-      unmount();
-    }
+    // Assert
+    expect(await screen.findByText('Aún no hay versiones de artefactos')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Versiones de artefactos' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+  });
+
+  it('con ?vista=estados el asesor ve los estados de revisión con su pestaña activa', async () => {
+    // Arrange
+    entrarComo(Rol.Asesor);
+    setActiveRole(Rol.Asesor);
+
+    // Act
+    renderizar('/artefactos?vista=estados');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay estados de revisión')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estados de revisión' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('una vista desconocida cae a "Artefactos asignados"', async () => {
@@ -229,7 +242,7 @@ describe('Artefactos', () => {
     expect(screen.getByText('Selector de rol')).toBeInTheDocument();
   });
 
-  it('el estudiante entra por Mis artefactos, solo con la tabla, y ve tres pestañas en orden', async () => {
+  it('el estudiante entra por Mis artefactos, solo con la tabla, y ve cuatro pestañas en orden', async () => {
     // Arrange
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
@@ -243,15 +256,34 @@ describe('Artefactos', () => {
     expect(
       screen.queryByRole('heading', { name: 'Versiones y revisiones' }),
     ).not.toBeInTheDocument();
-    expect(screen.getAllByRole('link').map((enlace) => enlace.textContent)).toEqual(
-      expect.arrayContaining(['Mis artefactos', 'Versiones y revisiones', 'Artefactos proyecto']),
-    );
+    expect(screen.getAllByRole('link').map((enlace) => enlace.textContent)).toEqual([
+      'Mis artefactos',
+      'Versiones y revisiones',
+      'Artefactos proyecto',
+      'Estados de revisión',
+    ]);
     expect(screen.getByRole('link', { name: 'Mis artefactos' })).toHaveAttribute(
       'aria-current',
       'page',
     );
     expect(screen.queryByRole('link', { name: 'Revisiones' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Versiones de artefactos' })).not.toBeInTheDocument();
+  });
+
+  it('con ?vista=estados el estudiante ve los estados de revisión con su pestaña activa', async () => {
+    // Arrange
+    entrarComo(Rol.Estudiante);
+    setActiveRole(Rol.Estudiante);
+
+    // Act
+    renderizar('/artefactos?vista=estados');
+
+    // Assert
+    expect(await screen.findByText('Aún no hay estados de revisión')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Estados de revisión' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   it('con ?vista=versiones-revisiones el estudiante ve su historial de versiones', async () => {

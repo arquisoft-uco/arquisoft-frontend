@@ -10,19 +10,20 @@ import ConsultarArtefactosAsignadosAsesor from './asesor/ConsultarArtefactosAsig
 import ConsultarArtefactosSinAvanceAsesor from './asesor/ConsultarArtefactosSinAvanceAsesor';
 import ConsultarVersionesArtefactoAsesor from './asesor/ConsultarVersionesArtefactoAsesor';
 import ConsultarVersionesRepositorioAsesor from './asesor/ConsultarVersionesRepositorioAsesor';
+import ConsultarEstadosRevisionAsesor from './ConsultarEstadosRevisionAsesor';
 
-type Vista = 'artefactos' | 'versiones-artefactos' | 'versiones' | 'sin-avance';
+type Vista = 'artefactos' | 'versiones-artefactos' | 'versiones' | 'sin-avance' | 'estados';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
   artefactos: ConsultarArtefactosAsignadosAsesor,
   'versiones-artefactos': ConsultarVersionesArtefactoAsesor,
   versiones: ConsultarVersionesRepositorioAsesor,
   'sin-avance': ConsultarArtefactosSinAvanceAsesor,
+  estados: ConsultarEstadosRevisionAsesor,
 };
 
 const VISTAS_RETIRADAS: Record<string, Vista> = {
   revisiones: 'versiones-artefactos',
-  estados: 'versiones-artefactos',
 };
 
 function leerVista(valor: string): Vista {
@@ -54,7 +55,7 @@ export default function AsesorView() {
           </Button>
         }
         titulo="Artefactos"
-        descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones, las versiones de repositorio disponibles para asignar y el reporte de artefactos sin avance."
+        descripcion="Consulta los artefactos que tienes asignados, el estado de revisión de sus versiones, las versiones de repositorio disponibles para asignar, el reporte de artefactos sin avance y los estados de una revisión."
       />
       <Tabs
         etiqueta="Secciones de artefactos"
@@ -72,6 +73,11 @@ export default function AsesorView() {
             to: `${pathname}?vista=versiones`,
           },
           { id: 'sin-avance', etiqueta: 'Sin avance', to: `${pathname}?vista=sin-avance` },
+          {
+            id: 'estados',
+            etiqueta: 'Estados de revisión',
+            to: `${pathname}?vista=estados`,
+          },
         ]}
       />
       <Contenido />
