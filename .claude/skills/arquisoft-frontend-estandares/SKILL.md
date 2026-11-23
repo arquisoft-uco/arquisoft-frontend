@@ -29,6 +29,7 @@ entera hasta que un usuario ve dos comportamientos distintos en dos pantallas.
 | Estado de negocio → variante de `Badge` | `shared/utils/estado-variante.ts` |
 | Duración y tope de los toasts | `shared/stores/toastStore.ts` |
 | Token, refresco y ruteo de 401/403 | `api/axiosInstance.ts` |
+| Contexto de un detalle entre recargas (snapshot con vigencia) | `useContextoDeNavegacion` sobre `shared/utils/contexto-temporal.ts` |
 
 **Cuándo se sube algo.** A la segunda vista que necesita lo mismo: la primera lo resuelve local, la
 segunda lo sube y migra a la primera. Subir con un solo consumidor es abstraer de más, y ahí la regla
@@ -83,6 +84,7 @@ mezcla fetch + transformación + estado, lo que sale es un **hook**, no un sub-c
 | Datos del servidor | `useQuery`/`useMutation` en un hook de la feature |
 | Sesión y rol | `useRolActivo()` / `useRolesDisponibles()` / `useHasRole()` |
 | Compartido entre features, no del servidor | Store Zustand en `src/shared/stores/` |
+| Contexto de un detalle que debe sobrevivir a una recarga | `useContextoDeNavegacion` (state → snapshot en `sessionStorage` → redirección al listado) |
 
 **Nunca `useEffect` + `axios`/`fetch` para cargar datos.** `useEffect` es solo para sincronizar con
 algo externo a React: el `keycloak.init()` de `AuthGuard`, el listener de `Escape` de `AppLayout` y el
@@ -117,7 +119,7 @@ DTOs menores.
 - `authStore` es **de solo lectura** desde features; solo lo escribe la capa de auth (`AuthGuard`,
   `devAuth`, `session.ts`) y el interceptor de Axios al refrescar el token.
 - **`persist` solo si el dato debe sobrevivir a un refresh y no es sensible.** Hoy, únicamente el
-  string del rol activo.
+  string del rol activo. El contexto de un detalle no es un store: usa `useContextoDeNavegacion`.
 - Fuera del árbol de React se accede con `getState()`, nunca con el hook.
 
 ## Formularios
@@ -381,7 +383,7 @@ vive en `vite.config.ts`; **no crees `vitest.config.ts`**.
 
 **Importar `render` de `@testing-library/react` es un error**: sin el wrapper, un componente con
 `useQuery` o `<Navigate>` revienta. Escribir `useAuthStore.setState` a mano también: usa
-`store.utils.ts`, con `resetAllStores()` en un `beforeEach`.
+`store.utils.ts`, con `resetAllStores()` en un `beforeEach` (también limpia el contexto temporal de `sessionStorage`).
 
 **Qué se mockea:** el módulo del service o el hook de la feature. **Nunca `axios` ni `apiClient`** —
 eso prueba el interceptor, no la feature. Un test nunca llega a la red.

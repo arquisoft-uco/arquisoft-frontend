@@ -1,4 +1,5 @@
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router';
+import RedirigirAlListado from '../../../shared/components/RedirigirAlListado';
 import Button from '../../../shared/components/ui/Button';
 import { useResumenFichaAsesor } from '../hooks/useResumenFichaAsesor';
 import { admiteCambioDeEstado } from '../utils/transiciones-estado-ficha';
@@ -11,6 +12,7 @@ export default function AsesorFichaDetalleView() {
   const { resumen, search } = useResumenFichaAsesor(id);
 
   if (!id) return <Navigate to="/fichas-perfil" replace />;
+  if (!resumen) return <RedirigirAlListado destino="/fichas-perfil" />;
 
   const base = `/fichas-perfil/${id}`;
   const pestanas = [
@@ -21,7 +23,7 @@ export default function AsesorFichaDetalleView() {
   ];
 
   const enEstados = pathname.startsWith(`${base}/estados`);
-  const ofrecerCambio = !enEstados && admiteCambioDeEstado(resumen?.estadoId);
+  const ofrecerCambio = !enEstados && admiteCambioDeEstado(resumen.estadoId);
 
   return (
     <DetalleFichaEstructura

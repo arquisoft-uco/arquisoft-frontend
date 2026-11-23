@@ -27,7 +27,7 @@ export default function DetalleTareaEstudianteView() {
   const { tarea, cargando, noEncontrada, hayError, reintentar } = useTarea(tareaId);
   const planEstimado = usePlanEstimadoTarea(tareaId, !!tarea);
   const planReal = usePlanRealTarea(tareaId, !!tarea);
-  const { search } = useContextoDetalleTarea();
+  const { search } = useContextoDetalleTarea(tareaId);
   const [panelAbierto, setPanelAbierto] = useState<PanelDetalleTarea | null>(null);
 
   if (!tareaId) return <Navigate to="/mapas-ruta" replace />;

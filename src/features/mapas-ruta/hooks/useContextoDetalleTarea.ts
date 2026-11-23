@@ -1,18 +1,13 @@
-import { useState } from 'react';
-import { useLocation } from 'react-router';
+import { useContextoDeNavegacion } from '../../../shared/hooks/useContextoDeNavegacion';
 import type { NavegacionDetalleTarea } from '../models/NavegacionDetalleTarea';
+import { esquemaContextoDetalleTarea } from '../utils/contexto-detalle-tarea';
 
-function leerNavegacion(state: unknown): NavegacionDetalleTarea {
-  if (typeof state === 'object' && state !== null && 'search' in state) {
-    const { search } = state;
-    if (typeof search === 'string') return { search };
-  }
-  return { search: '' };
-}
+export function useContextoDetalleTarea(id: string): NavegacionDetalleTarea {
+  const { contexto } = useContextoDeNavegacion({
+    tipo: 'mapas-ruta',
+    id,
+    esquemaEstado: esquemaContextoDetalleTarea,
+  });
 
-export function useContextoDetalleTarea(): NavegacionDetalleTarea {
-  const location = useLocation();
-  const [navegacion] = useState(() => leerNavegacion(location.state));
-
-  return navegacion;
+  return { search: contexto?.search ?? '' };
 }

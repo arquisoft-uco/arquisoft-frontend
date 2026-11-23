@@ -128,7 +128,7 @@ src/
 │   ├── authStore.ts          # Estado de sesión (token, usuario, roles)
 │   ├── proveedorStore.ts     # Id del proveedor de identidad recordado
 │   ├── proveedores/          # Contrato, registro y las implementaciones Keycloak y PDP
-│   ├── roleStore.ts          # Rol activo seleccionado (persiste en localStorage)
+│   ├── roleStore.ts          # Rol activo seleccionado (persiste en localStorage; el contexto de detalles va en sessionStorage vía shared/utils/contexto-temporal.ts)
 │   └── devAuth.ts            # Bypass de autenticación para desarrollo local
 │
 ├── features/                 # Módulos de negocio (feature-based)
@@ -165,10 +165,10 @@ src/
 │
 ├── shared/                   # Código compartido entre features
 │   ├── components/           # Componentes reutilizables (loaders, dialogs, etc.); ui/ es el kit de piezas base
-│   ├── hooks/                # Hooks reutilizables (useToast, useTrampaDeFoco, useDebouncedValue, useTextoConRetardo, etc.)
+│   ├── hooks/                # Hooks reutilizables (useToast, useTrampaDeFoco, useDebouncedValue, useTextoConRetardo, useContextoDeNavegacion, etc.)
 │   ├── models/               # Interfaces compartidas (Page<T>, ApiResponse<T>, Rol)
 │   ├── stores/               # Estado de UI global (toastStore)
-│   ├── utils/                # Utilidades (manejo de errores de API, monitoring, estado → variante de insignia)
+│   ├── utils/                # Utilidades (manejo de errores de API, monitoring, estado → variante de insignia, contexto-temporal)
 │   └── validation/           # Validación reutilizable alineada al backend (límites, regex, mensajes, validadores Zod)
 │
 └── test-utils/               # Utilidades de testing

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { UserMinus } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
+import RedirigirAlListado from '../../../../shared/components/RedirigirAlListado';
 import Button from '../../../../shared/components/ui/Button';
 import IconButton from '../../../../shared/components/ui/IconButton';
 import Notice from '../../../../shared/components/ui/Notice';
@@ -13,7 +14,6 @@ import AsignarJuradosEvaluacionPanel from './AsignarJuradosEvaluacionPanel';
 import RemoverJuradoEvaluacionDialog from './RemoverJuradoEvaluacionDialog';
 
 const RAIZ = 'flex flex-col gap-6';
-const DESCRIPCION_SIN_RESUMEN = 'Consulta y administra los jurados asignados a esta evaluación.';
 const DESCRIPCION_VACIO = 'Esta evaluación aún no tiene jurados asignados.';
 
 export default function JuradosEvaluacionCoordinadorView() {
@@ -24,18 +24,17 @@ export default function JuradosEvaluacionCoordinadorView() {
   const [juradoARemover, setJuradoARemover] = useState<EvaluacionJurado | null>(null);
   const [asignando, setAsignando] = useState(false);
 
-  const finalizada = resumen?.finalizada === true;
+  if (!resumen) return <RedirigirAlListado destino="/evaluaciones" />;
+
+  const finalizada = resumen.finalizada === true;
   const rutaListado = `/evaluaciones${search}`;
-  const descripcion = resumen
-    ? `${resumen.proyecto} · versión ${resumen.version}`
-    : DESCRIPCION_SIN_RESUMEN;
+  const descripcion = `${resumen.proyecto} · versión ${resumen.version}`;
   const migas = [{ etiqueta: 'Evaluaciones', to: rutaListado }, { etiqueta: 'Jurados asignados' }];
   const retrocederPagina = listado.data?.content.length === 1 && listado.page > 0;
 
-  const accionVacio =
-    resumen && !finalizada ? (
-      <Button onClick={() => setAsignando(true)}>Asignar jurados</Button>
-    ) : undefined;
+  const accionVacio = !finalizada ? (
+    <Button onClick={() => setAsignando(true)}>Asignar jurados</Button>
+  ) : undefined;
 
   return (
     <div className={RAIZ}>
@@ -75,7 +74,7 @@ export default function JuradosEvaluacionCoordinadorView() {
         />
       )}
 
-      {asignando && resumen && (
+      {asignando && (
         <AsignarJuradosEvaluacionPanel
           evaluacion={{
             id: evaluacionId,

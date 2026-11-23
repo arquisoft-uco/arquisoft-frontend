@@ -4,6 +4,7 @@ import { useRoleStore } from './roleStore';
 import type { ProveedorId, SesionRestaurada } from './proveedores/proveedor';
 import { fijarProveedorActivo, proveedorActivo } from './proveedores/proveedorActivo';
 import { crearProveedor, proveedoresDisponibles } from './proveedores/proveedores';
+import { contextoTemporal } from '../shared/utils/contexto-temporal';
 import { monitoring } from '../shared/utils/monitoring';
 
 export type ResultadoRestauracion = 'restaurada' | 'login-en-curso' | 'requiere-eleccion';
@@ -73,6 +74,7 @@ export async function verificarSesionActiva(): Promise<void> {
 }
 
 export async function cerrarSesion(redirectUri: string = window.location.origin): Promise<void> {
+  contextoTemporal.borrarTodo();
   try {
     await proveedorActivo()?.cerrarSesion(redirectUri);
   } finally {

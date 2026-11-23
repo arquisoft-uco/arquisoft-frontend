@@ -1,46 +1,23 @@
-import { useState } from 'react';
-import { useLocation } from 'react-router';
-import type {
-  NavegacionDetalleProyecto,
-  ResumenProyectoGrado,
-} from '../models/ResumenProyectoGrado';
+import { useContextoDeNavegacion } from '../../../shared/hooks/useContextoDeNavegacion';
+import type { ResumenProyectoGrado } from '../models/ResumenProyectoGrado';
+import { esquemaContextoProyectoGrado } from '../utils/contexto-proyecto-grado';
 
 interface ResultadoResumenProyectoGrado {
   resumen: ResumenProyectoGrado | null;
   search: string;
 }
 
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-  return typeof valor === 'object' && valor !== null;
-}
+export function useResumenProyectoGrado(
+  proyectoId: string,
+  ttlMs?: number,
+): ResultadoResumenProyectoGrado {
+  const { contexto } = useContextoDeNavegacion({
+    tipo: 'proyecto-grado',
+    id: proyectoId,
+    esquemaEstado: esquemaContextoProyectoGrado,
+    coincide: (valor) => valor.resumen.id === proyectoId,
+    ttlMs,
+  });
 
-function cadenaOpcional(valor: unknown): string | undefined {
-  return typeof valor === 'string' ? valor : undefined;
-}
-
-function leerNavegacion(state: unknown, proyectoId: string): NavegacionDetalleProyecto | null {
-  if (!esObjeto(state) || typeof state.search !== 'string') return null;
-  const bruto = state.resumen;
-  if (!esObjeto(bruto) || bruto.id !== proyectoId || typeof bruto.titulo !== 'string') {
-    return null;
-  }
-  return {
-    search: state.search,
-    resumen: {
-      id: proyectoId,
-      titulo: bruto.titulo,
-      estadoId: cadenaOpcional(bruto.estadoId),
-      estadoNombre: cadenaOpcional(bruto.estadoNombre),
-    },
-  };
-}
-
-export function useResumenProyectoGrado(proyectoId: string): ResultadoResumenProyectoGrado {
-  const location = useLocation();
-  const [navegacion] = useState(() => leerNavegacion(location.state, proyectoId));
-
-  return {
-    resumen: navegacion?.resumen ?? null,
-    search: navegacion?.search ?? '',
-  };
+  return { resumen: contexto?.resumen ?? null, search: contexto?.search ?? '' };
 }

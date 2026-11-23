@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router';
 import AccesoDenegado from '../../shared/components/AccesoDenegado';
+import RedirigirAlListado from '../../shared/components/RedirigirAlListado';
 import { useHasRole } from '../../hooks/useHasRole';
 import PageHeader from '../../shared/components/ui/PageHeader';
 import { Rol } from '../../shared/models/rol';
@@ -19,37 +20,25 @@ export default function EvaluacionesCuantitativasJurado() {
 
   if (!esEstudiante) return <AccesoDenegado />;
 
-  const rutaListado = `/evaluaciones${navegacion?.search ?? ''}`;
-  const rutaJurados = navegacion
-    ? `/evaluaciones/${navegacion.evaluacionId}/jurados${navegacion.searchJurados}`
-    : '/evaluaciones';
+  if (!navegacion) return <RedirigirAlListado destino="/evaluaciones" />;
 
-  const migas = navegacion
-    ? [
-        { etiqueta: 'Evaluaciones', to: rutaListado },
-        { etiqueta: 'Evaluaciones del jurado', to: rutaJurados },
-        { etiqueta: TITULO },
-      ]
-    : [{ etiqueta: 'Evaluaciones', to: rutaListado }, { etiqueta: TITULO }];
+  const rutaListado = `/evaluaciones${navegacion.search}`;
+  const rutaJurados = `/evaluaciones/${navegacion.evaluacionId}/jurados${navegacion.searchJurados}`;
+  const estadoJurados: NavegacionJuradosEvaluacion = {
+    resumen: navegacion.resumen,
+    search: navegacion.search,
+  };
 
-  const descripcion = navegacion
-    ? `Jurado: ${navegacion.jurado}${
-        navegacion.resumen
-          ? ` · ${navegacion.resumen.proyecto} · versión ${navegacion.resumen.version}`
-          : ''
-      }`
-    : 'Consulta los puntajes asignados por el jurado.';
+  const migas = [
+    { etiqueta: 'Evaluaciones', to: rutaListado },
+    { etiqueta: 'Evaluaciones del jurado', to: rutaJurados, state: estadoJurados },
+    { etiqueta: TITULO },
+  ];
+
+  const descripcion = `Jurado: ${navegacion.jurado} · ${navegacion.resumen.proyecto} · versión ${navegacion.resumen.version}`;
 
   function volver() {
-    if (!navegacion?.resumen) {
-      navigate(rutaJurados);
-      return;
-    }
-    const state: NavegacionJuradosEvaluacion = {
-      resumen: navegacion.resumen,
-      search: navegacion.search,
-    };
-    navigate(rutaJurados, { state });
+    navigate(rutaJurados, { state: estadoJurados });
   }
 
   return (

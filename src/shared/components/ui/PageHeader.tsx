@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react';
 interface Miga {
   etiqueta: string;
   to?: string;
+  state?: unknown;
 }
 
 const RAIZ = 'flex flex-col gap-4';
@@ -39,12 +40,12 @@ export default function PageHeader({
       {migas && migas.length > 0 && (
         <nav aria-label="Ruta de navegación">
           <ol className={MIGAS}>
-            {migas.map(({ etiqueta, to }, indice) => {
+            {migas.map(({ etiqueta, to, state }, indice) => {
               const actual = indice === migas.length - 1;
               return (
                 <li key={etiqueta} className="inline-flex items-center gap-1.5">
                   {to && !actual ? (
-                    <Link to={to} className={MIGA_ENLACE}>
+                    <Link to={to} state={state} className={MIGA_ENLACE}>
                       {etiqueta}
                     </Link>
                   ) : (

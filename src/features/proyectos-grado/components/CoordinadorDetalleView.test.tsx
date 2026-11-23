@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { Link, Route, Routes } from 'react-router';
+import { Link, Navigate, Route, Routes } from 'react-router';
 import { render, screen, within } from '../../../test-utils/render';
+import { resetAllStores } from '../../../test-utils/store.utils';
 import CoordinadorDetalleView from './CoordinadorDetalleView';
 
 vi.mock('./coordinador/EstudiantesProyectoGradoPanel', () => ({ default: () => null }));
@@ -15,9 +16,12 @@ function crearState(estadoId: string, estadoNombre: string) {
 
 const state = crearState('EN_PROCESO', 'En proceso');
 
-function renderizar(initialPath: string, stateEnlace = state) {
+function renderizar(initialPath: string, stateEnlace = state, entrada?: string) {
   return render(
     <Routes>
+      {entrada && (
+        <Route path="/entrada" element={<Navigate to={entrada} replace state={stateEnlace} />} />
+      )}
       <Route
         path="/proyectos-grado"
         element={
@@ -35,7 +39,15 @@ function renderizar(initialPath: string, stateEnlace = state) {
   );
 }
 
+function renderizarConContexto(rutaDetalle: string) {
+  return renderizar('/entrada', state, rutaDetalle);
+}
+
 describe('CoordinadorDetalleView', () => {
+  beforeEach(() => {
+    resetAllStores();
+  });
+
   it('con el state del enlace muestra título, el estado una sola vez dentro del resumen y la miga que restaura la search', async () => {
     // Arrange
     const user = userEvent.setup();
@@ -58,24 +70,34 @@ describe('CoordinadorDetalleView', () => {
     expect(screen.getByText('Panel de asesores')).toBeInTheDocument();
   });
 
-  it('sin state muestra la cabecera genérica, el aviso del resumen, el botón de acciones y la miga sin search', () => {
+  it('sin state ni snapshot redirige al listado de proyectos', () => {
     // Act
     renderizar('/proyectos-grado/p-1/asesores');
 
     // Assert
-    expect(screen.getByRole('heading', { name: 'Proyecto de grado' })).toBeInTheDocument();
-    expect(screen.queryByText('En proceso')).not.toBeInTheDocument();
-    expect(screen.getByText(/No tenemos el resumen de este proyecto/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ver estudiantes' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Abrir proyecto' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Proyecto de grado' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ver estudiantes' })).not.toBeInTheDocument();
+  });
+
+  it('sin state pero con snapshot vigente pinta el detalle con la miga que restaura la search', () => {
+    // Arrange
+    renderizarConContexto('/proyectos-grado/p-1/asesores').unmount();
+
+    // Act
+    renderizar('/proyectos-grado/p-1/asesores');
+
+    // Assert
+    expect(screen.getByRole('heading', { name: 'Sistema de monitoreo' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Proyectos de grado' })).toHaveAttribute(
       'href',
-      '/proyectos-grado',
+      '/proyectos-grado?q=monitoreo',
     );
   });
 
   it('muestra las pestañas Asesores y Estados y marca como activa la de la URL', () => {
     // Act
-    renderizar('/proyectos-grado/p-1/estados');
+    renderizarConContexto('/proyectos-grado/p-1/estados');
 
     // Assert
     expect(screen.getByRole('link', { name: 'Asesores' })).not.toHaveAttribute('aria-current');

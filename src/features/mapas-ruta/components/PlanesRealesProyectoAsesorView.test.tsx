@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { Route, Routes } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
 import { render, screen } from '../../../test-utils/render';
+import { resetAllStores } from '../../../test-utils/store.utils';
 import { useMapaRutaProyectoAsesor } from '../hooks/useMapaRutaProyectoAsesor';
 import PlanesRealesProyectoAsesorView from './PlanesRealesProyectoAsesorView';
 
@@ -35,9 +36,15 @@ function configurarMapa(cambios: Record<string, unknown> = {}) {
   return base;
 }
 
-function renderizar() {
+const RUTA = '/mapas-ruta/proyectos/p-1/planes-reales';
+
+function renderizar(entrada = false) {
   return render(
     <Routes>
+      <Route
+        path="/entrada"
+        element={<Navigate to={RUTA} replace state={{ search: '?q=sis&pagina=2' }} />}
+      />
       <Route
         path="/mapas-ruta/proyectos/:proyectoGradoId/planes-reales"
         element={<PlanesRealesProyectoAsesorView />}
@@ -48,13 +55,14 @@ function renderizar() {
       />
       <Route path="/mapas-ruta" element={<p>Listado de mapas</p>} />
     </Routes>,
-    { initialPath: '/mapas-ruta/proyectos/p-1/planes-reales' },
+    { initialPath: entrada ? '/entrada' : RUTA },
   );
 }
 
 describe('PlanesRealesProyectoAsesorView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetAllStores();
   });
 
   it('con mapa muestra la cabecera, el título del proyecto, la miga y el listado', () => {
@@ -69,6 +77,28 @@ describe('PlanesRealesProyectoAsesorView', () => {
     expect(screen.getByText(/Sistema A · Tiempo real/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Mapas de ruta' })).toBeInTheDocument();
     expect(screen.getByText('Listado del proyecto p-1')).toBeInTheDocument();
+  });
+
+  it('conserva la búsqueda del listado tras recargar con el snapshot y sin él usa la miga plana', () => {
+    // Arrange
+    configurarMapa({ mapa: MAPA });
+    const sinContexto = renderizar();
+    expect(screen.getByRole('link', { name: 'Mapas de ruta' })).toHaveAttribute(
+      'href',
+      '/mapas-ruta',
+    );
+    sinContexto.unmount();
+    renderizar(true).unmount();
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByRole('link', { name: 'Mapas de ruta' })).toHaveAttribute(
+      'href',
+      '/mapas-ruta?q=sis&pagina=2',
+    );
+    expect(screen.queryByText('Listado de mapas')).not.toBeInTheDocument();
   });
 
   it('"Ver tareas" navega a las tareas del proyecto', async () => {

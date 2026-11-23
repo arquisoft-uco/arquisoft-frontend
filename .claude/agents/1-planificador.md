@@ -189,8 +189,8 @@ Qué se prueba por capa. El presupuesto y los anti-patrones están en la skill d
 | tests | `src/features/{feature}/**/{Archivo}.test.ts(x)` |
 
 **Lo que un plan nunca propone:** un segundo cliente HTTP · `useEffect` que llama al service ·
-`tailwind.config.js` · `vitest.config.ts` · alias `@/` (salvo que la HT sea eso) · persistir algo
-nuevo en `localStorage` · `<RoleGuard>` a mano en `router.tsx` · una variante de botón, insignia,
+`tailwind.config.js` · `vitest.config.ts` · alias `@/` (salvo que la HT sea eso) · persistir en
+`localStorage` o `sessionStorage` fuera de `safeStorage` y del módulo de contexto temporal · `<RoleGuard>` a mano en `router.tsx` · una variante de botón, insignia,
 campo o pestañas que el kit no tenga · un formulario encima de la lista · un módulo sin pantalla como
 destino del menú (la lista completa está en `arquisoft-frontend-ui-ux`).
 

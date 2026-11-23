@@ -71,6 +71,14 @@ function nombreDesdeUsuario(username: string): string {
   return primero ? primero.charAt(0).toUpperCase() + primero.slice(1) : username;
 }
 
+// Identidad del contexto temporal: usuario (sub, con el username de respaldo) y rol activo.
+export function useAmbitoDeSesion(): string {
+  const tokenParsed = useAuthStore((s) => s.tokenParsed);
+  const username = useUsername();
+  const rol = useRolActivo();
+  return `${texto(tokenParsed?.['sub']) || username}|${rol ?? ''}`;
+}
+
 export function useNombreUsuario(): { nombre: string; nombreCompleto: string } {
   const tokenParsed = useAuthStore((s) => s.tokenParsed);
   const username = useUsername();

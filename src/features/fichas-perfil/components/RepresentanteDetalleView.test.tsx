@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { Link, Route, Routes } from 'react-router';
+import { Link, Navigate, Route, Routes } from 'react-router';
 import { render, screen, within } from '../../../test-utils/render';
 import {
   resetAllStores,
@@ -46,9 +46,18 @@ function Origen() {
   );
 }
 
-function renderizar(rutaInicial: string) {
+function renderizar(rutaInicial: string, entrada?: string) {
   return render(
     <Routes>
+      {entrada && (
+        <Route
+          path="/entrada"
+          element={
+            <Navigate to={entrada} replace state={{ resumen: RESUMEN, search: '?q=comite' }} />
+          }
+        />
+      )}
+      <Route path="/fichas-perfil" element={<div>Listado de fichas</div>} />
       <Route path="/origen" element={<Origen />} />
       <Route path="/fichas-perfil/:id" element={<RepresentanteDetalleView />}>
         <Route path="items" element={<div>Panel ítems</div>} />
@@ -57,6 +66,10 @@ function renderizar(rutaInicial: string) {
     </Routes>,
     { initialPath: rutaInicial },
   );
+}
+
+function renderizarConContexto(rutaDetalle: string) {
+  return renderizar('/entrada', rutaDetalle);
 }
 
 describe('RepresentanteDetalleView', () => {
@@ -69,7 +82,7 @@ describe('RepresentanteDetalleView', () => {
 
   it('ofrece las pestañas Ítems, Estados y Evaluaciones y consulta las evaluaciones de la ficha', () => {
     // Act
-    renderizar('/fichas-perfil/f-1/items');
+    renderizarConContexto('/fichas-perfil/f-1/items');
 
     // Assert
     const pestanas = screen.getByRole('navigation', { name: 'Secciones de la ficha' });
@@ -99,7 +112,7 @@ describe('RepresentanteDetalleView', () => {
 
   it('sin evaluación ofrece «Iniciar evaluación» y no «Evaluar ficha»', () => {
     // Act
-    renderizar('/fichas-perfil/f-1/items');
+    renderizarConContexto('/fichas-perfil/f-1/items');
 
     // Assert
     expect(screen.getByRole('button', { name: 'Iniciar evaluación' })).toBeInTheDocument();
@@ -110,7 +123,7 @@ describe('RepresentanteDetalleView', () => {
     // Arrange
     const user = userEvent.setup();
     mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: null }], isSuccess: true });
-    renderizar('/fichas-perfil/f-1/items');
+    renderizarConContexto('/fichas-perfil/f-1/items');
     expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
 
     // Act
@@ -125,7 +138,7 @@ describe('RepresentanteDetalleView', () => {
     mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: 'DESCARTADA' }], isSuccess: true });
 
     // Act
-    const conFinal = renderizar('/fichas-perfil/f-1/items');
+    const conFinal = renderizarConContexto('/fichas-perfil/f-1/items');
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
@@ -135,7 +148,7 @@ describe('RepresentanteDetalleView', () => {
     mockEvaluaciones({ data: undefined, isSuccess: false });
 
     // Act
-    const cargando = renderizar('/fichas-perfil/f-1/items');
+    const cargando = renderizarConContexto('/fichas-perfil/f-1/items');
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
@@ -146,20 +159,32 @@ describe('RepresentanteDetalleView', () => {
     mockEvaluaciones({ data: [], isSuccess: true });
 
     // Act
-    renderizar('/fichas-perfil/f-1/evaluaciones');
+    renderizarConContexto('/fichas-perfil/f-1/evaluaciones');
 
     // Assert
     expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
   });
 
-  it('sin state muestra el título genérico y el aviso, sin consultar el equipo', () => {
+  it('sin state ni snapshot redirige al listado de fichas', () => {
     // Act
     renderizar('/fichas-perfil/f-1/items');
 
     // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'Ficha de perfil' })).toBeInTheDocument();
-    expect(screen.getByText(/No tenemos el resumen de esta ficha/)).toBeInTheDocument();
-    expect(screen.queryByText('Compañeros')).not.toBeInTheDocument();
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('sin state pero con snapshot vigente pinta el detalle sin el asesor', () => {
+    // Arrange
+    renderizarConContexto('/fichas-perfil/f-1/items').unmount();
+
+    // Act
+    renderizar('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByRole('heading', { level: 1, name: 'Ficha del comité' })).toBeInTheDocument();
+    expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
+    expect(screen.queryByText('ana@uco.edu.co')).not.toBeInTheDocument();
   });
 });

@@ -23,9 +23,12 @@ vi.mock('./components/estudiante/ConsultarEvaluacionesCualitativasAsesorEstudian
 }));
 vi.mock('./hooks/useResumenEvaluacion', () => ({ useResumenEvaluacion: vi.fn() }));
 
+const RESUMEN_VALIDO = { resumen: { id: 'e-1', proyecto: 'Sistema', version: 3 }, search: '' };
+
 function montar() {
   return render(
     <Routes>
+      <Route path="/evaluaciones" element={<p>Listado de evaluaciones</p>} />
       <Route path="/evaluaciones/:evaluacionId/asesor" element={<EvaluacionDelAsesor />} />
     </Routes>,
     { initialPath: '/evaluaciones/e-1/asesor' },
@@ -68,7 +71,7 @@ describe('EvaluacionDelAsesor', () => {
     expect(screen.getByText('Cuerpo del asesor')).toBeInTheDocument();
   });
 
-  it('sin state de navegación muestra la descripción genérica y la miga sin search', () => {
+  it('sin resumen en el state ni en el snapshot redirige al listado de evaluaciones', () => {
     // Arrange
     vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
 
@@ -76,16 +79,13 @@ describe('EvaluacionDelAsesor', () => {
     montar();
 
     // Assert
-    expect(screen.getByText('Consulta el asesor que evaluó este entregable.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Evaluaciones' })).toHaveAttribute(
-      'href',
-      '/evaluaciones',
-    );
+    expect(screen.getByText('Listado de evaluaciones')).toBeInTheDocument();
+    expect(screen.queryByText('Cuerpo del asesor')).not.toBeInTheDocument();
   });
 
   it('con evaluación del asesor monta las secciones de cuantitativas y cualitativas', () => {
     // Arrange
-    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+    vi.mocked(useResumenEvaluacion).mockReturnValue(RESUMEN_VALIDO);
     const parcial: Partial<ReturnType<typeof useEvaluacionAsesor>> = {
       data: { id: 'ea-1', asesor: { id: 'a-1', nombre: 'Ana', email: 'ana@uco.edu.co' } },
       isLoading: false,
@@ -107,7 +107,7 @@ describe('EvaluacionDelAsesor', () => {
 
   it('sin evaluación del asesor no monta las secciones de cuantitativas y cualitativas', () => {
     // Arrange
-    vi.mocked(useResumenEvaluacion).mockReturnValue({ resumen: null, search: '' });
+    vi.mocked(useResumenEvaluacion).mockReturnValue(RESUMEN_VALIDO);
 
     // Act
     montar();

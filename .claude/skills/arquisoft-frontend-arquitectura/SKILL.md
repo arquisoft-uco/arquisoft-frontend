@@ -122,9 +122,18 @@ El interceptor no traga el error: llega al service, de ahí a React Query y a `i
 | `useAuthStore` | **Solo memoria**, sin `persist` | `isInitializing`, `authenticated`, `token`, `tokenParsed`, `username` |
 | `useAccesoDenegadoStore` | **Solo memoria** | Ruta de la sección con 403 de red; lo escribe el interceptor, lo lee `useAccesoDenegado` |
 | `useRoleStore` | `localStorage`, clave `arquisoft_rol_activo`, vía `safeStorage` con `try/catch` | Solo el string del rol seleccionado |
+| Contexto temporal (`shared/utils/contexto-temporal.ts`) | `sessionStorage`, claves `arquisoft:ctx:{tipo}:{id}`, con vigencia (15 o 5 min) y ámbito usuario+rol | Resumen no sensible de un detalle para sobrevivir a una recarga; se borra al cerrar sesión |
 
-Nada sensible se escribe en `localStorage` ni `sessionStorage`. El `safeStorage` existe porque
-`localStorage` lanza en navegación privada de Safari y con la cuota llena.
+Nada sensible se escribe en `localStorage` ni `sessionStorage`: el token y la sesión viven solo en
+memoria. Las dos únicas excepciones son `safeStorage` (`localStorage`, rol y proveedor) y el contexto
+temporal (`sessionStorage`, datos de UI no sensibles: nunca correo, teléfono, token ni claims), y el test
+de arquitectura las fija como un mapa cerrado. El `safeStorage` existe porque `localStorage` lanza en
+navegación privada de Safari y con la cuota llena.
+
+**Detalles con contexto.** Una pantalla de detalle obtiene su contexto con `useContextoDeNavegacion`
+en este orden: `location.state` → snapshot vigente en `sessionStorage` → ninguno. Sin contexto, la
+vista devuelve `<RedirigirAlListado destino="…" />` (redirección con `replace` y aviso), salvo que todo
+salga del id del path.
 
 **Los roles se leen de `realm_access.roles`** (no de `resource_access[clientId].roles`), vía
 `parseRoles()`; `devAuth.ts` construye su `tokenParsed` falso con la misma forma. Un rol que no esté
@@ -229,6 +238,8 @@ deduce del nombre:
 | `shared/utils/api-error.ts` | `getApiErrorMessage`, `getApiErrorStatus`, `isApiErrorWithStatus`, `hasApiErrorCode`, `getApiFieldErrors`, `classifyApiError` |
 | `shared/utils/monitoring.ts` | `captureError`, `captureHttpError` — único punto de integración con Sentry |
 | `shared/validation/` | `LIMITES`, `MENSAJES_VALIDACION`, regex, builders Zod; barril en `index.ts` |
+| `shared/utils/contexto-temporal.ts`, `shared/utils/esquemas-navegacion.ts` | Único módulo con `sessionStorage` (snapshot con vigencia y ámbito) y los esquemas Zod de `search` y `origen` |
+| `shared/hooks/useContextoDeNavegacion.ts` | state → snapshot → null para los detalles; persiste y actualiza el snapshot |
 | `shared/hooks/useToast.ts` | Singleton `toast.success/info/error`, usable fuera de React |
 | `shared/hooks/` | `useDebouncedValue` (retardo de 300 ms de las búsquedas), `useTextoConRetardo` (borrador de texto con retardo de los filtros), `useCombobox` (filtrado y teclado de listas con búsqueda), `useEstudiantesVigentes` y `useAsesoresFichaVigentes` (catálogos que consumen dos features), `useClicFuera` (cierre por clic fuera de menús y paneles) y `useTrampaDeFoco` (foco inicial, Tab, Esc y retorno del foco de paneles, diálogos y hojas, con pila de capas) |
 | `shared/utils/estado-variante.ts` | Tabla estado → variante de `Badge` por `id` del backend: ficha, evaluación y usuario |

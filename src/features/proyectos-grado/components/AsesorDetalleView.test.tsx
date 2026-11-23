@@ -200,6 +200,18 @@ describe('AsesorDetalleView', () => {
     expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
   });
 
+  it('sin state ni snapshot sigue cargando con el título genérico y no redirige al listado', () => {
+    // Arrange
+    detalleCon({ isLoading: true });
+
+    // Act
+    renderizar();
+
+    // Assert
+    expect(screen.getByRole('heading', { name: 'Proyecto de grado' })).toBeInTheDocument();
+    expect(screen.queryByText('Listado de proyectos')).not.toBeInTheDocument();
+  });
+
   it('con 422 muestra "no encontrado" y la acción vuelve al listado', async () => {
     // Arrange
     const user = userEvent.setup();

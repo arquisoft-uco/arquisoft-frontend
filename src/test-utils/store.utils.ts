@@ -3,6 +3,7 @@ import { useAuthStore } from '../auth/authStore';
 import { useProveedorStore } from '../auth/proveedorStore';
 import { useRoleStore } from '../auth/roleStore';
 import { useToastStore } from '../shared/stores/toastStore';
+import { contextoTemporal } from '../shared/utils/contexto-temporal';
 import type { Rol } from '../shared/models/rol';
 
 export function resetAllStores() {
@@ -17,6 +18,7 @@ export function resetAllStores() {
   useProveedorStore.setState({ proveedor: null, confirmadoEnEstaCarga: false });
   useToastStore.setState({ toasts: [] });
   useAccesoDenegadoStore.setState({ ruta: null });
+  contextoTemporal.borrarTodo();
 }
 
 export function setAuthenticatedUser(overrides?: {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import {
   cerrarSesion,
   requiereElegirProveedor,
@@ -13,6 +14,7 @@ import type { ProveedorIdentidad, SesionRestaurada } from './proveedores/proveed
 import { fijarProveedorActivo, proveedorActivo } from './proveedores/proveedorActivo';
 import { crearProveedor, proveedoresDisponibles } from './proveedores/proveedores';
 import { Rol } from '../shared/models/rol';
+import { contextoTemporal } from '../shared/utils/contexto-temporal';
 import { monitoring } from '../shared/utils/monitoring';
 import { resetAllStores, setActiveRole, setAuthenticatedUser } from '../test-utils/store.utils';
 
@@ -55,6 +57,16 @@ function disponibles(...ids: string[]) {
     })),
   );
 }
+
+function sembrarSnapshot() {
+  contextoTemporal.guardar(
+    { tipo: 'ficha', id: 'f-1' },
+    { titulo: 'Ficha' },
+    { esquema: z.object({ titulo: z.string() }), ambito: 'u-1|coordinador' },
+  );
+}
+
+const CLAVE_SNAPSHOT = 'arquisoft:ctx:ficha:f-1';
 
 describe('session', () => {
   beforeEach(() => {
@@ -273,13 +285,35 @@ describe('session', () => {
       expect(useProveedorStore.getState().proveedor).toBeNull();
     });
 
-    it('sin proveedor (bypass) solo limpia el estado local', async () => {
+    it('borra los snapshots de contexto antes de cerrar con el proveedor, aunque este falle', async () => {
+      // Arrange
+      sembrarSnapshot();
+      const keycloak = doble('keycloak');
+      let snapshotAlCerrar: string | null = 'sin llamar';
+      keycloak.cerrarSesion.mockImplementation(async () => {
+        snapshotAlCerrar = sessionStorage.getItem(CLAVE_SNAPSHOT);
+        throw new Error('sin red');
+      });
+      fijarProveedorActivo(keycloak);
+
+      // Act
+      await expect(cerrarSesion(REDIRECT)).rejects.toThrow('sin red');
+
+      // Assert
+      expect(snapshotAlCerrar).toBeNull();
+      expect(sessionStorage.getItem(CLAVE_SNAPSHOT)).toBeNull();
+    });
+
+    it('sin proveedor (bypass) borra los snapshots y limpia el estado local', async () => {
+      sembrarSnapshot();
+
       // Act
       await cerrarSesion(REDIRECT);
 
       // Assert
       expect(useAuthStore.getState().authenticated).toBe(false);
       expect(useRoleStore.getState().rolSeleccionado).toBeNull();
+      expect(sessionStorage.getItem(CLAVE_SNAPSHOT)).toBeNull();
     });
   });
 });

@@ -70,6 +70,7 @@ function simularHistorial(data: unknown) {
 function renderizar(rutaInicial: string) {
   return render(
     <Routes>
+      <Route path="/fichas-perfil" element={<div>Listado de fichas</div>} />
       <Route path="/origen" element={<Origen />} />
       <Route path="/origen-proyectos" element={<OrigenProyectos />} />
       <Route path="/fichas-perfil/:id" element={<CoordinadorDetalleView />}>
@@ -119,13 +120,54 @@ describe('CoordinadorDetalleView', () => {
     );
   });
 
-  it('sin state muestra el título genérico', () => {
+  it('sin state ni snapshot redirige al listado de fichas', () => {
     // Act
     renderizar('/fichas-perfil/f-1/evaluaciones');
 
     // Assert
-    expect(screen.getByRole('heading', { level: 1, name: 'Ficha de perfil' })).toBeInTheDocument();
+    expect(screen.getByText('Listado de fichas')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ver estudiantes' })).not.toBeInTheDocument();
+  });
+
+  it('sin state pero con snapshot vigente pinta el detalle sin el nombre ni el correo del asesor', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const primera = renderizar('/origen');
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+    primera.unmount();
+
+    // Act
+    renderizar('/fichas-perfil/f-1/evaluaciones');
+
+    // Assert
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Sistema de monitoreo' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Listado de fichas')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ana Pérez')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Fichas de perfil' })).toHaveAttribute(
+      'href',
+      '/fichas-perfil?q=sis',
+    );
+  });
+
+  it('reescribe el snapshot con el estado nuevo del historial para la siguiente recarga', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    simularHistorial([
+      { id: 'APROBADA', nombre: 'Aprobada', fechaActualizacion: '2026-10-02T10:00:00' },
+    ]);
+    const primera = renderizar('/origen');
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+    primera.unmount();
+    simularHistorial(undefined);
+
+    // Act
+    renderizar('/fichas-perfil/f-1/evaluaciones');
+
+    // Assert
+    expect(screen.getAllByText('Aprobada').length).toBeGreaterThan(0);
+    expect(screen.queryByText('En revisión')).not.toBeInTheDocument();
   });
 
   it('muestra la tarjeta de decisión aparte de las acciones cuando el historial indica que la ficha está disponible para evaluación', async () => {

@@ -127,7 +127,10 @@ nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/`
   resuelve el 401 con un mutex de refresco compartido y reintenta, y ante un 403 no navega: marca la
   sección en `accesoDenegadoStore` y `AppLayout` pinta «Acceso denegado» en el contenido, con el menú visible.
 - **Sesión** — `useAuthStore` vive **solo en memoria**; el interceptor lo lee con `getState()`, no con
-  hooks. `useRoleStore` persiste en `localStorage` **únicamente** el string del rol activo. Los roles
+  hooks. `useRoleStore` persiste en `localStorage` **únicamente** el string del rol activo. El token y
+  la sesión nunca se escriben en storage. Una única excepción de UI: `shared/utils/contexto-temporal.ts`
+  guarda en `sessionStorage`, con vigencia y ámbito usuario+rol, el contexto no sensible de un detalle
+  (lo usa `useContextoDeNavegacion`) y se borra al cerrar sesión. Los roles
   salen de `realm_access.roles`, y el rol activo es derivado: léelo con `useRolActivo()`.
 - **Enrutamiento** — todas las rutas son perezosas. La restricción por rol se declara en
   `NAV_ITEMS[].roles` (`src/layout/nav-items.ts`), no a mano en `router.tsx`.
@@ -139,7 +142,8 @@ nunca devuelve JSX, un service nunca importa React ni React Query. `src/shared/`
 - **Guardarraíles mecánicos** — `src/arquitectura.test.ts` hace cumplir capas, HTTP, query keys y
   demás convenciones (corre con `npm test`). Su deuda previa vive en
   `src/test-utils/arquitectura.baseline.ts` y **solo puede decrecer**: si el test falla, se corrige el
-  código, nunca se agrega una entrada. `.claude/settings.json` y `.claude/hooks/` bloquean merge,
+  código, nunca se agrega una entrada. El storage del navegador solo se toca en `auth/safeStorage.ts`
+  (`localStorage`) y `shared/utils/contexto-temporal.ts` (`sessionStorage`). `.claude/settings.json` y `.claude/hooks/` bloquean merge,
   force-push, push o commit sobre `main`/`develop` (salvo `main` del clon de `arquisoft-docs`, que
   reconocen por su `origin`) y `git add` de `.env*`; al cerrar un turno con
   cambios en `src/`, un hook corre `tsc` y el test de arquitectura y devuelve el error.

@@ -15,7 +15,7 @@ export default function TareasMapaRutaAsesorView() {
   const navigate = useNavigate();
   const { mapa, cargando, sinMapa, hayError, reintentar } =
     useMapaRutaProyectoAsesor(proyectoGradoId);
-  const { search } = useContextoDetalleTarea();
+  const { search } = useContextoDetalleTarea(proyectoGradoId);
 
   if (!proyectoGradoId) return <Navigate to="/mapas-ruta" replace />;
 
