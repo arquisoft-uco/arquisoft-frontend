@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Calculator, MessageSquare, Pencil } from 'lucide-react';
-import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import IconButton from '../../../shared/components/ui/IconButton';
-import Notice from '../../../shared/components/ui/Notice';
 import type { EvaluacionCuantitativaJurado } from '../models/EvaluacionCuantitativaJurado';
 import type { ObservacionItemJurado } from '../models/ObservacionItemJurado';
-import CambiarPuntajeEvaluacionCuantitativaJuradoPanel from './jurado/CambiarPuntajeEvaluacionCuantitativaJuradoPanel';
+import type { useEdicionPuntajeEnLineaJurado } from '../hooks/useEdicionPuntajeEnLineaJurado';
+import EditorPuntajeEnLinea from './EditorPuntajeEnLinea';
 import ErrorConsultaCuantitativasRealizadasJurado from './ErrorConsultaCuantitativasRealizadasJurado';
 import ModificarObservacionItemJuradoPanel from './jurado/ModificarObservacionItemJuradoPanel';
 import EvaluacionesCuantitativasJuradoTable from './EvaluacionesCuantitativasJuradoTable';
@@ -33,14 +32,12 @@ interface Props {
   consulta: ConsultaCuantitativas;
   etiquetaVolver: string;
   onVolver: () => void;
-  onEvaluar?: () => void;
-  evaluacionJuradoId: string;
   evaluacionFinalizada?: boolean;
   seleccion?: SeleccionCuantitativas;
+  edicionPuntaje?: ReturnType<typeof useEdicionPuntajeEnLineaJurado>;
 }
 
 type PanelAbierto =
-  | { tipo: 'puntaje'; valoracion: EvaluacionCuantitativaJurado }
   | { tipo: 'lectura'; valoracion: EvaluacionCuantitativaJurado }
   | {
       tipo: 'edicion';
@@ -52,10 +49,9 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
   consulta,
   etiquetaVolver,
   onVolver,
-  onEvaluar,
-  evaluacionJuradoId,
   evaluacionFinalizada = false,
   seleccion,
+  edicionPuntaje,
 }: Props) {
   const [panel, setPanel] = useState<PanelAbierto | null>(null);
   const { data, isLoading, isError, error, refetch } = consulta;
@@ -71,12 +67,28 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
     );
   }
 
+  const edicion = edicionPuntaje?.edicion;
+  const celdaPuntaje = edicionPuntaje
+    ? (fila: EvaluacionCuantitativaJurado) =>
+        edicion?.filaId === fila.id ? (
+          <EditorPuntajeEnLinea
+            nombreItem={edicion.nombreItem}
+            valorMaximo={edicion.valorMaximo}
+            valor={edicion.valor}
+            error={edicion.error}
+            guardando={edicionPuntaje.guardando}
+            onCambiar={edicionPuntaje.cambiar}
+            onGuardar={edicionPuntaje.guardar}
+            onCancelar={edicionPuntaje.cancelar}
+          />
+        ) : null
+    : undefined;
+
   const vacio = (
     <EmptyState
       icono={Calculator}
       titulo="Aún no registraste evaluaciones cuantitativas"
       descripcion="Aparecerán aquí cuando registres tus puntajes."
-      accion={onEvaluar && <Button onClick={onEvaluar}>Evaluar cuantitativas</Button>}
     />
   );
 
@@ -85,16 +97,12 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.length)}
       </p>
-      {evaluacionFinalizada && (data?.length ?? 0) > 0 && (
-        <Notice variante="advertencia">
-          La evaluación ya fue finalizada; no se pueden omitir ni cambiar puntajes.
-        </Notice>
-      )}
       <EvaluacionesCuantitativasJuradoTable
         evaluaciones={data ?? []}
         cargando={isLoading}
         vacio={vacio}
         seleccion={seleccion}
+        celdaPuntaje={celdaPuntaje}
         acciones={(fila) => (
           <div className="flex shrink-0 items-center justify-end gap-1">
             <IconButton
@@ -103,24 +111,18 @@ export default function ConsultarEvaluacionesCuantitativasRealizadasJurado({
               icono={MessageSquare}
               onClick={() => setPanel({ tipo: 'lectura', valoracion: fila })}
             />
-            {!evaluacionFinalizada && (
+            {edicionPuntaje && edicionPuntaje.edicion?.filaId !== fila.id && (
               <IconButton
                 etiqueta={`Cambiar puntaje de ${fila.item.nombre}`}
                 rotulo="Cambiar puntaje"
                 icono={Pencil}
-                onClick={() => setPanel({ tipo: 'puntaje', valoracion: fila })}
+                data-accion-fila={fila.id}
+                onClick={() => edicionPuntaje.iniciar(fila)}
               />
             )}
           </div>
         )}
       />
-      {panel?.tipo === 'puntaje' && (
-        <CambiarPuntajeEvaluacionCuantitativaJuradoPanel
-          fila={panel.valoracion}
-          evaluacionJuradoId={evaluacionJuradoId}
-          onCerrar={() => setPanel(null)}
-        />
-      )}
       {panel?.tipo === 'lectura' && (
         <ObservacionesEvaluacionCuantitativaPanel
           evaluacion={panel.valoracion}

@@ -15,10 +15,7 @@ export default function SeleccionarRol() {
   }
 
   return (
-    <main
-      className="flex w-full flex-col items-center justify-center px-4 py-12"
-      role="main"
-    >
+    <main className="flex w-full flex-col items-center justify-center px-4 py-12" role="main">
       <header className="mb-10 text-center">
         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg">
           <University size={30} className="text-primary-foreground" aria-hidden />
@@ -49,7 +46,7 @@ export default function SeleccionarRol() {
               return (
                 <button
                   key={rol}
-                  className="group flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-4 py-6 text-center shadow-sm outline-none transition-all duration-200 hover:border-primary hover:shadow-md active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="group flex flex-col items-center gap-3 rounded-xl border border-border bg-surface px-4 py-6 text-center shadow-sm outline-none transition-all duration-200 hover:border-primary hover:shadow-md active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
                   type="button"
                   onClick={() => seleccionarRol(rol)}
                   aria-label={`Seleccionar rol: ${ETIQUETAS_ROL[rol]}`}

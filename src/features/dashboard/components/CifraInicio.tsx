@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 
 const ENLACE =
-  'group -m-2 flex flex-col gap-1 rounded-lg p-2 transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
+  'group -m-2 flex flex-col gap-1 rounded-lg p-2 transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus';
 
 interface Props {
   etiqueta: string;

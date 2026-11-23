@@ -7,9 +7,9 @@ import type { NavegacionDetalleProyecto } from '../../models/ResumenProyectoGrad
 
 const ORIGEN: OrigenNavegacion = { etiqueta: 'Proyectos de grado', to: '/proyectos-grado' };
 const TITULO =
-  'block truncate text-left font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
+  'enlace-celda font-semibold text-on-surface hover:text-primary hover:underline hover:underline-offset-4';
 const ENLACE =
-  'font-medium text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
+  'inline-block min-h-6 font-medium leading-6 text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
 
 interface PropsTitulo {
   proyecto: ProyectoGrado;

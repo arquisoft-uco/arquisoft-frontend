@@ -14,6 +14,8 @@ migradas**. Hoy hay un solo caso: en un formulario nuevo, el momento de validar 
 (`mode: 'onTouched'` y sin deshabilitar por validez; ver `references/patrones.md` §2). Lo ya escrito se migra
 cuando se toca por otra razón, nunca en una pasada aparte.
 
+**Color, tipografía y marca: manda el manual de la UCO.** Desde HT-UX-10 la identidad institucional (paleta verde, azul y naranja, sin rojo; Montserrat y Poppins; logo y favicon propios), recogida en `references/identidad-uco.md`, gana sobre el lienzo de 2026-10-03 en color, tipografía y marca; el lienzo sigue valiendo para estructura, patrones y medidas. Los valores y su justificación están en `references/tokens.md` §1.
+
 **El diseño está aprobado** (2026-10-03) y vive en un lienzo público de solo lectura:
 https://claude.ai/artifact/TPmx9vR2cnHtkbt75NkAFC. Sirve de documentación y de ejemplo vivo (los tableros
 interactivos se pueden probar), pero **esta skill y sus referencias lo recogen completo**: no hace falta abrirlo
@@ -23,6 +25,7 @@ para implementar. Nunca publiques sobre él ni lo borres. Detalle y mapa de tabl
 
 | Si la tarea… | Abre |
 |---|---|
+| Toca color, tipografía, logo, favicon, colores de estado o foco (identidad UCO) | `references/identidad-uco.md` |
 | Toca color, tipografía, espaciado, contraste o redacción de textos | `references/tokens.md` |
 | Usa o crea una pieza del kit (botón, campo, tabla, panel, aviso…) | `references/componentes.md` |
 | Es un listado, un formulario, un detalle, el inicio, el menú o un estado | `references/patrones.md` |
@@ -89,7 +92,7 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
    no está cubierto, es una ambigüedad: usa el protocolo del agente, no inventes una variante.
 3. **Un token nuevo** se comprueba con `grep -n "color-<nombre>" src/tailwind.css` antes de usarlo
    (`references/tokens.md`): una utilidad sin su variable no genera estilo.
-4. **Al cerrar una pantalla:** la lista de abajo y la verificación a 390, 320 y 1280 px de los estándares. Una
+4. **Al cerrar una pantalla:** la lista de abajo y la verificación en los cuatro formatos de `references/identidad-uco.md` §8 (más 320 px). Una
    pantalla que no viste no se reporta como verificada.
 
 ## Lo que un plan o un PR nunca hace
@@ -110,14 +113,14 @@ recetas, clases ni reglas** (el plan decide qué y dónde; el cómo está aquí)
 ## Checklist de una pantalla
 
 1. Un solo `<h1>`, dentro de `PageHeader`, en sentence case; la acción principal a la derecha.
-2. Solo tokens semánticos; ningún color crudo; texto de 12 px o más; radios de 12 y 16 px.
+2. Solo tokens semánticos; ningún color crudo ni rojo; texto de 12 px o más; radios de 12 y 16 px. Identidad UCO (`references/identidad-uco.md`): pares de contraste, estado en `estado-variante.ts`, foco verde.
 3. Piezas del kit en lugar de clases sueltas para botón, insignia, campo y aviso.
 4. Los tres estados y el degradado: esqueleto con la forma de la pantalla, vacío con siguiente paso, error con
    «Reintentar».
 5. Filtros al instante (el texto con retardo de 300 ms), lo aplicado visible y «Limpiar todo».
 6. Formulario en panel lateral; error al salir del campo; resumen al fallar el envío; una forma de guardar por
    sección y dicha en pantalla.
-7. Mobile first verificado: sin scroll horizontal, tablas como tarjetas, áreas táctiles de 44 px.
-8. Teclado: el foco entra y sale de paneles, diálogos y menús, Esc cierra y el orden es lógico.
+7. Mobile first verificado en los cuatro formatos (`references/identidad-uco.md` §8): sin scroll horizontal, tablas como tarjetas, áreas táctiles de 44 px y nunca menos de 24 px.
+8. Teclado: el foco entra y sale de paneles, diálogos y menús, Esc cierra, el orden es lógico y todo gesto de puntero tiene su equivalente.
 9. Voz: verbos exactos, sin jerga, mensajes con salida.
 10. Vista real en el navegador si hay uno (`arquisoft-frontend-mcps`).

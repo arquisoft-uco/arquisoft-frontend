@@ -12,7 +12,7 @@ import {
 
 const FILA = {
   id: 'ec-1',
-  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Qué tan claro es el documento' },
+  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Qué tan claro es el documento', peso: 100 },
   criterio: { id: 'c-1', nombre: 'Excelente', descripcion: 'Supera lo esperado' },
 };
 
@@ -144,10 +144,8 @@ describe('ConsultarEvaluacionesCualitativasAsesor', () => {
     expect(onAlternar).toHaveBeenCalledWith('i-1');
   });
 
-  it('con `onCambiarCriterio` el botón de la fila lo invoca con la fila; sin él no hay botón', async () => {
+  it('con `acciones` y `celdaCriterio` pinta lo entregado por fila; sin ellos no hay botón y se ve el criterio', () => {
     // Arrange
-    const user = userEvent.setup();
-    const onCambiarCriterio = vi.fn();
     const consulta: ConsultaCualitativasAsesor = {
       data: [FILA],
       isLoading: false,
@@ -160,17 +158,14 @@ describe('ConsultarEvaluacionesCualitativasAsesor', () => {
         consulta={consulta}
         etiquetaVolver="Volver"
         onVolver={vi.fn()}
-        onCambiarCriterio={onCambiarCriterio}
+        acciones={(fila) => <button type="button">Cambiar {fila.item.nombre}</button>}
+        celdaCriterio={(fila) => <span>Editor de {fila.item.nombre}</span>}
       />,
     );
 
-    // Act
-    await user.click(
-      screen.getAllByRole('button', { name: /Cambiar criterio del ítem Claridad/ })[0],
-    );
-
     // Assert
-    expect(onCambiarCriterio).toHaveBeenCalledWith(FILA);
+    expect(screen.getAllByRole('button', { name: 'Cambiar Claridad' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Editor de Claridad').length).toBeGreaterThan(0);
 
     // Act
     rerender(
@@ -182,7 +177,8 @@ describe('ConsultarEvaluacionesCualitativasAsesor', () => {
     );
 
     // Assert
-    expect(screen.queryByRole('button', { name: /Cambiar criterio/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Cambiar/ })).not.toBeInTheDocument();
+    expect(screen.getAllByText(FILA.criterio.nombre).length).toBeGreaterThan(0);
   });
 
   it('sin `seleccion` no pinta casillas', () => {

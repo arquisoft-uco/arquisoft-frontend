@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react';
-import { ClipboardList, Pencil } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import IconButton from '../../../../shared/components/ui/IconButton';
 import type { EvaluacionCualitativaAsesor } from '../../models/EvaluacionCualitativaAsesor';
 import CasillaEvaluacionCualitativa from '../CasillaEvaluacionCualitativa';
 import type { SeleccionCualitativas } from '../EvaluacionesCualitativasJuradoTable';
@@ -22,26 +21,36 @@ function Bloque({ nombre, descripcion }: { nombre: string; descripcion: string }
   );
 }
 
-const COLUMNAS: ColumnaTabla<EvaluacionCualitativaAsesor>[] = [
-  {
-    id: 'item',
-    encabezado: 'Ítem',
-    celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
-  },
-  {
-    id: 'criterio',
-    encabezado: 'Criterio',
-    celda: (fila) => (
+function criterioDe(
+  fila: EvaluacionCualitativaAsesor,
+  celdaCriterio?: (fila: EvaluacionCualitativaAsesor) => ReactNode,
+) {
+  return (
+    celdaCriterio?.(fila) ?? (
       <Bloque nombre={fila.criterio.nombre} descripcion={fila.criterio.descripcion} />
-    ),
-  },
-];
+    )
+  );
+}
+
+function columnasBase(
+  celdaCriterio?: (fila: EvaluacionCualitativaAsesor) => ReactNode,
+): ColumnaTabla<EvaluacionCualitativaAsesor>[] {
+  return [
+    {
+      id: 'item',
+      encabezado: 'Ítem',
+      celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
+    },
+    { id: 'criterio', encabezado: 'Criterio', celda: (fila) => criterioDe(fila, celdaCriterio) },
+  ];
+}
 
 interface Props {
   evaluaciones: EvaluacionCualitativaAsesor[];
   cargando: boolean;
   seleccion?: SeleccionCualitativas;
-  onCambiarCriterio?: (fila: EvaluacionCualitativaAsesor) => void;
+  acciones?: (fila: EvaluacionCualitativaAsesor) => ReactNode;
+  celdaCriterio?: (fila: EvaluacionCualitativaAsesor) => ReactNode;
   etiqueta?: string;
   vacio?: ReactNode;
 }
@@ -50,7 +59,8 @@ export default function EvaluacionesCualitativasAsesorTable({
   evaluaciones,
   cargando,
   seleccion,
-  onCambiarCriterio,
+  acciones,
+  celdaCriterio,
   etiqueta,
   vacio,
 }: Props) {
@@ -63,8 +73,11 @@ export default function EvaluacionesCualitativasAsesorTable({
       />
     ) : null;
   const columnas: ColumnaTabla<EvaluacionCualitativaAsesor>[] = seleccion
-    ? [{ id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla }, ...COLUMNAS]
-    : COLUMNAS;
+    ? [
+        { id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla },
+        ...columnasBase(celdaCriterio),
+      ]
+    : columnasBase(celdaCriterio);
 
   return (
     <DataTable
@@ -73,19 +86,8 @@ export default function EvaluacionesCualitativasAsesorTable({
       filas={evaluaciones}
       idDeFila={(fila) => fila.id}
       cargando={cargando}
-      acciones={
-        onCambiarCriterio &&
-        ((fila) => (
-          <div className="flex shrink-0 items-center justify-end gap-1">
-            <IconButton
-              etiqueta={`Cambiar criterio del ítem ${fila.item.nombre}`}
-              icono={Pencil}
-              rotulo="Cambiar criterio"
-              onClick={() => onCambiarCriterio(fila)}
-            />
-          </div>
-        ))
-      }
+      acciones={acciones}
+      encabezadoAcciones={acciones ? 'Acciones' : undefined}
       vacio={
         vacio ?? (
           <EmptyState
@@ -101,7 +103,7 @@ export default function EvaluacionesCualitativasAsesorTable({
           <span className={ROTULO}>Ítem</span>
           <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />
           <span className={ROTULO}>Criterio</span>
-          <Bloque nombre={fila.criterio.nombre} descripcion={fila.criterio.descripcion} />
+          {criterioDe(fila, celdaCriterio)}
         </>
       )}
     />

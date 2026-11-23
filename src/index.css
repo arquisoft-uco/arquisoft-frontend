@@ -1,13 +1,16 @@
+@import '@fontsource/montserrat/latin-400.css';
+@import '@fontsource/montserrat/latin-600.css';
+@import '@fontsource/montserrat/latin-700.css';
+@import '@fontsource/montserrat/latin-800.css';
+@import '@fontsource/poppins/latin-400.css';
+@import '@fontsource/poppins/latin-500.css';
+@import '@fontsource/poppins/latin-600.css';
 @import './tailwind.css';
 
 /* ── Base ─────────────────────────────────────────────── */
 html {
   height: 100%;
-  font-family:
-    'Inter',
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-sans);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
@@ -21,9 +24,21 @@ body {
   background-color: var(--color-background);
   /* Subtle colour-mesh gives glassmorphism surfaces something to blur against */
   background-image:
-    radial-gradient(ellipse 80% 55% at 5% -5%, oklch(88% 0.07 230 / 0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 65% 50% at 95% 110%, oklch(89% 0.09 165 / 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 45% at 55% 55%, oklch(92% 0.06 75 / 0.1) 0%, transparent 50%);
+    radial-gradient(
+      ellipse 80% 55% at 5% -5%,
+      color-mix(in srgb, var(--color-primary-muted) 70%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 65% 50% at 95% 110%,
+      color-mix(in srgb, var(--color-secondary-muted) 35%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 55% 45% at 55% 55%,
+      color-mix(in srgb, var(--color-tertiary-muted) 25%, transparent) 0%,
+      transparent 50%
+    );
 }
 
 #root {
@@ -36,7 +51,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-titulos);
   letter-spacing: -0.01em;
 }
 
@@ -66,7 +81,7 @@ h6 {
 
 /* ── Global focus baseline ────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -130,17 +145,28 @@ h6 {
    base es el de celular; la media query solo amplía hacia pantallas grandes.
    Una vista compone estas clases: no repite los breakpoints por su cuenta. */
 
-/* Área táctil cómoda (44px) en celular; en pantallas grandes basta el puntero. */
+/* Área táctil cómoda (44px) en celular; desde sm nunca baja de 24px (WCAG 2.5.8). */
 .tap-target {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
 }
 
-/* Control pequeño (casilla, radio): dedo en celular, puntero en escritorio. */
+/* Enlace o botón con el nombre de una fila: una línea con puntos suspensivos y 24px de alto como mínimo (WCAG 2.5.8). */
+.enlace-celda {
+  display: block;
+  min-height: 1.5rem;
+  line-height: 1.5rem;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Control pequeño (casilla, radio): 24px en todos los formatos (WCAG 2.5.8). */
 .checkbox-control {
-  height: 1.25rem;
-  width: 1.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
 }
 
 /* Campo de formulario: etiqueta, control y mensaje de error. */
@@ -165,18 +191,18 @@ h6 {
 }
 
 .field-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary);
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 2px var(--color-focus);
 }
 
 .field-input[aria-invalid='true'] {
-  border-color: var(--color-danger);
+  border-color: var(--color-danger-strong);
 }
 
 .field-error {
   margin-top: 0.25rem;
   font-size: 0.75rem;
-  color: var(--color-danger);
+  color: var(--color-danger-strong);
 }
 
 .field-hint {
@@ -211,12 +237,7 @@ h6 {
 
 @media (min-width: 640px) {
   .tap-target {
-    min-height: 0;
-  }
-
-  .checkbox-control {
-    height: 1rem;
-    width: 1rem;
+    min-height: 1.5rem;
   }
 
   .field-input {

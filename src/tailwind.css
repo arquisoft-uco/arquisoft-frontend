@@ -1,56 +1,67 @@
 @import 'tailwindcss';
+@import './uco-tokens.css';
 @source not "../.claude";
 @source not "../docs";
 
 @theme {
-  /* ── Brand / Primary (deep teal-navy) ── */
-  --color-primary: oklch(35% 0.08 230);
-  --color-primary-hover: oklch(30% 0.09 230);
-  --color-primary-foreground: oklch(99% 0 0);
-  --color-primary-muted: oklch(95% 0.03 230);
-  --color-primary-muted-foreground: oklch(35% 0.08 230);
+  /* ── Brand / Primary (verde oscuro institucional) ── */
+  --color-primary: var(--uco-verde-oscuro);
+  --color-primary-hover: #0a5233;
+  --color-primary-foreground: var(--uco-sobre-verde-oscuro);
+  --color-primary-muted: #eef4f1;
+  --color-primary-muted-foreground: #04331f;
 
-  /* ── Secondary (emerald) ── */
-  --color-secondary: oklch(55% 0.14 165);
-  --color-secondary-hover: oklch(48% 0.14 165);
-  --color-secondary-foreground: oklch(99% 0 0);
-  --color-secondary-muted: oklch(94% 0.04 165);
-  --color-secondary-muted-foreground: oklch(40% 0.12 165);
+  /* ── Secondary (verde: acento y éxito) ── */
+  --color-secondary: var(--uco-verde);
+  --color-secondary-foreground: var(--uco-sobre-verde);
+  --color-secondary-muted: #b3ddc7;
+  --color-secondary-muted-foreground: #04331f;
 
-  /* ── Tertiary (warm gold) ── */
-  --color-tertiary: oklch(78% 0.16 75);
-  --color-tertiary-hover: oklch(72% 0.16 75);
-  --color-tertiary-foreground: oklch(25% 0.04 75);
-  --color-tertiary-muted: oklch(95% 0.04 75);
-  --color-tertiary-muted-foreground: oklch(38% 0.09 70);
+  /* ── Tertiary (amarillo: solo relleno) ── */
+  --color-tertiary: var(--uco-amarillo);
+  --color-tertiary-foreground: var(--uco-sobre-amarillo);
+  --color-tertiary-muted: #ffe9a3;
+  --color-tertiary-muted-foreground: #3d3000;
 
-  /* ── Danger ── */
-  --color-danger: oklch(55% 0.22 27);
-  --color-danger-foreground: oklch(99% 0 0);
-  --color-danger-muted: oklch(96% 0.03 27);
-  --color-danger-muted-foreground: oklch(45% 0.19 27);
+  /* ── Danger (naranja: solo relleno; el texto y el borde usan danger-strong) ── */
+  --color-danger: var(--uco-naranja);
+  --color-danger-foreground: var(--uco-sobre-naranja);
+  --color-danger-muted: #ffd4a8;
+  --color-danger-muted-foreground: #5a3100;
+  --color-danger-strong: #5a3100;
+
+  /* ── Info (azul: en curso) ── */
+  --color-info: var(--uco-azul);
+  --color-info-foreground: var(--uco-sobre-azul);
+
+  /* ── Foco ── */
+  --color-focus: var(--uco-verde);
 
   /* ── Surfaces ── */
-  --color-surface: oklch(100% 0 0);
-  --color-surface-secondary: oklch(98% 0.004 230);
-  --color-surface-elevated: oklch(100% 0 0);
-  --color-background: oklch(97% 0.005 230);
-  --color-muted: oklch(95% 0.01 230);
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f8faf9;
+  --color-surface-elevated: #ffffff;
+  --color-background: #f4f6f5;
+  --color-muted: #e9ecea;
 
   /* ── Text ── */
-  --color-on-surface: oklch(18% 0.02 230);
-  --color-on-surface-secondary: oklch(46% 0.016 230);
-  --color-muted-foreground: oklch(40% 0.02 230);
+  --color-on-surface: #1b1b1b;
+  --color-on-surface-secondary: #555555;
+  --color-muted-foreground: #333333;
 
   /* ── Border ── */
-  --color-border: oklch(91% 0.008 230);
-  --color-border-strong: oklch(82% 0.018 230);
-  --color-border-input: oklch(62% 0.02 230);
+  --color-border: #dddddd;
+  --color-border-strong: #c4c9c6;
+  --color-border-input: #767676;
 
   /* ── Sidebar nav ── */
-  --color-nav-active-bg: oklch(93% 0.04 230);
-  --color-nav-active-text: oklch(35% 0.08 230);
-  --color-nav-hover-bg: oklch(96% 0.01 230);
+  --color-nav-active-bg: #d9efe3;
+  --color-nav-active-text: #024426;
+  --color-nav-hover-bg: #f1f3f2;
+
+  /* ── Tipografía ── */
+  --font-sans: var(--uco-fuente-texto);
+  --font-titulos: var(--uco-fuente-titulos);
 
   /* ── Radius tokens ── */
   --radius-sm: 0.375rem;
@@ -66,6 +77,7 @@
   --shadow-card: 0 1px 2px 0 oklch(0% 0 0 / 0.05), 0 1px 3px 0 oklch(0% 0 0 / 0.03);
   --shadow-card-hover: 0 4px 16px -2px oklch(0% 0 0 / 0.1), 0 2px 6px -2px oklch(0% 0 0 / 0.05);
   --shadow-dropdown: 0 8px 30px -6px oklch(0% 0 0 / 0.14), 0 4px 10px -4px oklch(0% 0 0 / 0.08);
+  --shadow-drawer: 4px 0 32px -4px oklch(0% 0 0 / 0.12);
   --shadow-lg: 0 16px 48px -8px oklch(0% 0 0 / 0.16), 0 8px 16px -4px oklch(0% 0 0 / 0.06);
 
   /* ── Animations ── */

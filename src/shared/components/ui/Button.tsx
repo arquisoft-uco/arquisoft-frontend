@@ -19,7 +19,8 @@ const VARIANTES: Record<VarianteButton, string> = {
   secundario: 'border-border-strong bg-surface text-on-surface hover:bg-muted',
   fantasma: 'border-transparent text-primary hover:bg-primary-muted',
   peligro: 'border-transparent bg-danger text-danger-foreground hover:bg-danger/90',
-  peligroContorno: 'border-danger bg-surface text-danger-muted-foreground hover:bg-danger-muted',
+  peligroContorno:
+    'border-danger-strong bg-surface text-danger-muted-foreground hover:bg-danger-muted',
 };
 
 interface Props extends ComponentProps<'button'> {

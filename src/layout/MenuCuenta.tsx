@@ -5,7 +5,7 @@ import Avatar from '../shared/components/ui/Avatar';
 import { ETIQUETAS_ROL } from '../shared/models/rol';
 
 const BOTON =
-  'flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 hover:shadow-md active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:h-9 sm:w-9';
+  'flex h-11 w-11 items-center justify-center rounded-full transition-all duration-150 hover:shadow-md active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:h-9 sm:w-9';
 const MENU =
   'animate-scale-in absolute right-0 top-full z-50 mt-1.5 min-w-[210px] overflow-hidden rounded-xl border border-white/40 bg-white/85 shadow-dropdown backdrop-blur-xl';
 
@@ -48,7 +48,7 @@ export default function MenuCuenta({ abierto, onAlternar, onCerrar }: Props) {
           </div>
           <div className="p-1">
             <button
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-on-surface transition-colors hover:bg-danger/10 hover:text-danger focus-visible:bg-danger/10 focus-visible:text-danger focus-visible:outline-none"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-on-surface transition-colors hover:bg-danger-muted hover:text-danger-muted-foreground focus-visible:bg-danger-muted focus-visible:text-danger-muted-foreground focus-visible:outline-none"
               role="menuitem"
               onClick={logout}
               type="button"

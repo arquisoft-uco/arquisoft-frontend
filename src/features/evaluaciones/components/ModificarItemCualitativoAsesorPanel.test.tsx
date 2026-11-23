@@ -22,6 +22,7 @@ const ITEM: ItemCualitativoAsesor = {
   id: 'i-1',
   nombre: 'Claridad',
   descripcion: 'El documento se comprende sin ambigüedades.',
+  peso: 120,
 };
 
 function crearErrorApi(cuerpo: ApiError) {
@@ -66,6 +67,7 @@ describe('ModificarItemCualitativoAsesorPanel', () => {
     expect(screen.getByLabelText('Nombre')).toHaveValue(ITEM.nombre);
     expect(screen.getByLabelText('Nombre')).toHaveAttribute('readonly');
     expect(screen.getByLabelText('Descripción')).toHaveValue(ITEM.descripcion);
+    expect(screen.getByLabelText('Peso')).toHaveValue(String(ITEM.peso));
     expect(screen.getByLabelText('Descripción')).toHaveAttribute(
       'maxlength',
       String(LIMITES.ITEM_CUALITATIVO_ASESOR_DESCRIPCION_MAX),
@@ -108,11 +110,13 @@ describe('ModificarItemCualitativoAsesorPanel', () => {
     // Act
     await user.clear(screen.getByLabelText('Descripción'));
     await user.type(screen.getByLabelText('Descripción'), '  Nueva descripción  ');
+    await user.clear(screen.getByLabelText('Peso'));
+    await user.type(screen.getByLabelText('Peso'), '300');
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     // Assert
     expect(mutate).toHaveBeenCalledWith(
-      { itemId: 'i-1', descripcion: 'Nueva descripción' },
+      { itemId: 'i-1', descripcion: 'Nueva descripción', peso: 300 },
       expect.anything(),
     );
     expect(toast.success).toHaveBeenCalledWith(
@@ -130,7 +134,7 @@ describe('ModificarItemCualitativoAsesorPanel', () => {
           error: 'Bad Request',
           message: 'Datos inválidos',
           status: 400,
-          fieldErrors: [{ field: 'descripcion', message: 'Descripción no permitida' }],
+          fieldErrors: [{ field: 'peso', message: 'Peso fuera de rango' }],
         }),
       ),
     );
@@ -145,11 +149,9 @@ describe('ModificarItemCualitativoAsesorPanel', () => {
 
     // Assert
     await waitFor(() =>
-      expect(screen.getByLabelText('Descripción')).toHaveAttribute('aria-invalid', 'true'),
+      expect(screen.getByLabelText('Peso')).toHaveAttribute('aria-invalid', 'true'),
     );
-    expect(screen.getByLabelText('Descripción')).toHaveAccessibleDescription(
-      'Descripción no permitida',
-    );
+    expect(screen.getByLabelText('Peso')).toHaveAccessibleDescription('Peso fuera de rango');
     expect(toast.error).toHaveBeenCalledWith('No se pudo modificar el ítem', 'Datos inválidos');
     expect(onCerrar).not.toHaveBeenCalled();
   });

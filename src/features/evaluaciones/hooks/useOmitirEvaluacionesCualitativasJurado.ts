@@ -7,6 +7,7 @@ import {
   EVALUACION_CUALITATIVA_JURADO_EVALUACION_JURADO_NO_ENCONTRADA,
 } from '../utils/codigos-error-evaluaciones';
 
+const ASIGNADA_KEY = ['evaluaciones', 'jurado', 'asignada'];
 const ASIGNADAS_KEY = ['evaluaciones', 'jurado', 'asignadas'];
 
 export function useOmitirEvaluacionesCualitativasJurado(evaluacionJuradoId: string) {
@@ -21,6 +22,7 @@ export function useOmitirEvaluacionesCualitativasJurado(evaluacionJuradoId: stri
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: listaKey });
+      queryClient.invalidateQueries({ queryKey: ASIGNADA_KEY });
       queryClient.invalidateQueries({ queryKey: ASIGNADAS_KEY });
     },
     onError: (err) => {

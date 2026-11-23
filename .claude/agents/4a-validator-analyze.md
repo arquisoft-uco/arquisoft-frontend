@@ -122,6 +122,7 @@ cuando es una buena práctica o una recomendación. Son preguntas guía, no una 
 - **Diseño UI/UX** (solo si el plan toca algo que se ve). ¿Usa las piezas del kit y el patrón que el plan
   declara en `arquisoft-frontend-ui-ux`? ¿Cumple su «Checklist de una pantalla»? ¿Reintroduce algo de «Lo
   que un plan o un PR nunca hace»? Una pieza nueva del kit se compara con su receta de `componentes.md`.
+- **Identidad UCO** (solo si toca UI; `references/identidad-uco.md`). Sin rojo (peligro = naranja con texto negro, texto de error con `danger-strong`); pares de contraste (nada de blanco sobre verde o naranja, ni amarillo como texto); estado pintado solo desde `estado-variante.ts`; fuentes Montserrat y Poppins servidas del despliegue, nunca de una CDN; foco verde de 2 px; objetivo de interacción de al menos 24 × 24 px y todo gesto de puntero operable con teclado (§8); logo desde `public/brand/` y favicon institucional con `sizes="any"`; ningún hex institucional fuera de `src/uco-tokens.css` y `src/tailwind.css`. `src/tema-contraste.test.ts` es el sensor; el juicio revisa lo que él no ve.
 
 Lo preexistente fuera de la HU sigue siendo observación, nunca bloqueante.
 
@@ -337,10 +338,10 @@ Si la HU cambia la UI y hay Claude in Chrome disponible: carga la skill `claude-
 `npm run dev`, abre `http://localhost:5173{ruta}` con `VITE_AUTH_BYPASS=true` y revisa consola y red.
 Detecta lo que ni `tsc` ni los tests ven. **Un error de consola nuevo es bloqueante.**
 
-**Responsive.** Si la HU agrega o cambia una pantalla, verifícala a 390 y a 320 px:
-`document.documentElement.scrollWidth` igual a `window.innerWidth` y nada fuera de su contenedor (si la
-ventana no se redimensiona, monta la ruta en un `iframe` de ese ancho). Anótalo en «Responsive
-verificado» de «Datos para la entrega»; si no pudiste, «No» con el motivo.
+**Responsive.** Si la HU agrega o cambia una pantalla, verifícala en los cuatro formatos de `identidad-uco.md` §8 (390, 768, 1366 y 1920 px, más 320 px), midiendo el
+área visible real: `document.documentElement.scrollWidth` igual a `window.innerWidth` y nada fuera de su
+contenedor (si la ventana no se redimensiona, monta la ruta en un `iframe` de ese ancho). Anótalo en
+«Responsive verificado» de «Datos para la entrega»: «Sí» exige los cuatro formatos; si no pudiste, «No» con el motivo.
 
 Si no la hiciste, dilo con el motivo. Es la sección que más se rellena por inercia y la que menos
 vale rellenada así.

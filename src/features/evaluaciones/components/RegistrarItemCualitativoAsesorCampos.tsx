@@ -3,9 +3,14 @@ import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form';
 import Field from '../../../shared/components/ui/Field';
 import FormSection from '../../../shared/components/ui/FormSection';
 import { LIMITES } from '../../../shared/validation';
+import CampoPesoItemCualitativo from './CampoPesoItemCualitativo';
 import type { RegistrarItemCualitativoAsesorValues as Values } from '../utils/registrar-item-cualitativo-asesor-schema';
 
-export const ETIQUETAS_CAMPO = { nombre: 'Nombre', descripcion: 'Descripción' } as const;
+export const ETIQUETAS_CAMPO = {
+  nombre: 'Nombre',
+  descripcion: 'Descripción',
+  peso: 'Peso',
+} as const;
 
 interface Props {
   register: UseFormRegister<Values>;
@@ -58,6 +63,12 @@ export default function RegistrarItemCualitativoAsesorCampos({
           />
         )}
       </Field>
+      <CampoPesoItemCualitativo
+        registro={register('peso')}
+        min={LIMITES.ITEM_CUALITATIVO_ASESOR_PESO_MIN}
+        max={LIMITES.ITEM_CUALITATIVO_ASESOR_PESO_MAX}
+        error={errors.peso?.message}
+      />
     </FormSection>
   );
 }

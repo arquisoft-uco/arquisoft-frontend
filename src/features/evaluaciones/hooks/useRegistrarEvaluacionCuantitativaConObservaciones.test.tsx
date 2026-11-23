@@ -142,4 +142,21 @@ describe('useRegistrarEvaluacionCuantitativaConObservaciones', () => {
     expect(result.current.pendientes).toEqual([]);
     expect(result.current.reintentando).toBe(false);
   });
+
+  it('descartarPendientes vacía las observaciones fallidas sin llamar al backend', async () => {
+    // Arrange
+    registrarObservacion.mockRejectedValueOnce(new Error('cae'));
+    const { result } = montar();
+    act(() => {
+      result.current.registrar(PARES, { onSuccess: vi.fn(), onError: vi.fn() });
+    });
+    await waitFor(() => expect(result.current.pendientes).toHaveLength(1));
+
+    // Act
+    act(() => result.current.descartarPendientes());
+
+    // Assert
+    expect(result.current.pendientes).toEqual([]);
+    expect(registrarObservacion).toHaveBeenCalledTimes(1);
+  });
 });

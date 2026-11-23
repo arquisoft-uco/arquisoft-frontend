@@ -6,11 +6,7 @@ export function useRegistrarEvaluacion(fichaPerfilId: string) {
 
   return useMutation({
     mutationFn: () => fichasPerfilService.registrarEvaluacion({ fichaPerfilId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', fichaPerfilId, 'evaluacion'] });
-      queryClient.invalidateQueries({
-        queryKey: ['fichas-perfil', fichaPerfilId, 'representante-estados'],
-      });
-    },
+    // Iniciar la evaluación habilita los ítems de la ficha: se refresca todo lo de esta ficha.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['fichas-perfil', fichaPerfilId] }),
   });
 }

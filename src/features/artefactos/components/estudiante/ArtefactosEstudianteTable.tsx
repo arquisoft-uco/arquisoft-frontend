@@ -45,7 +45,7 @@ const COLUMNAS: ColumnaTabla<ArtefactoEstudiante>[] = [
   },
   {
     id: 'version',
-    encabezado: 'Versión',
+    encabezado: 'Versión del documento',
     clave: 'versionDocumento',
     ordenable: true,
     celda: (artefacto) => <Badge variante="neutro">{etiquetaVersion(artefacto)}</Badge>,
@@ -123,7 +123,7 @@ export default function ArtefactosEstudianteTable({
           </p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>
-            {artefacto.nombreAsesor} · {etiquetaVersion(artefacto)}
+            {artefacto.nombreAsesor} · {etiquetaVersion(artefacto)} del documento
           </p>
         </>
       )}

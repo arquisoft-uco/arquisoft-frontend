@@ -24,18 +24,22 @@ function textoPuntaje(fila: EvaluacionCuantitativaJurado): string {
   return `${fila.puntaje} de ${fila.item.valor}`;
 }
 
-const COLUMNAS: ColumnaTabla<EvaluacionCuantitativaJurado>[] = [
-  {
-    id: 'item',
-    encabezado: 'Ítem',
-    celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
-  },
-  {
-    id: 'puntaje',
-    encabezado: 'Puntaje',
-    celda: (fila) => textoPuntaje(fila),
-  },
-];
+function columnasBase(
+  celdaPuntaje?: (fila: EvaluacionCuantitativaJurado) => ReactNode,
+): ColumnaTabla<EvaluacionCuantitativaJurado>[] {
+  return [
+    {
+      id: 'item',
+      encabezado: 'Ítem',
+      celda: (fila) => <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />,
+    },
+    {
+      id: 'puntaje',
+      encabezado: 'Puntaje',
+      celda: (fila) => celdaPuntaje?.(fila) ?? textoPuntaje(fila),
+    },
+  ];
+}
 
 export interface SeleccionCuantitativas {
   seleccionados: ReadonlySet<string>;
@@ -51,6 +55,7 @@ interface Props {
   vacio?: ReactNode;
   acciones?: (fila: EvaluacionCuantitativaJurado) => ReactNode;
   seleccion?: SeleccionCuantitativas;
+  celdaPuntaje?: (fila: EvaluacionCuantitativaJurado) => ReactNode;
 }
 
 export default function EvaluacionesCuantitativasJuradoTable({
@@ -60,6 +65,7 @@ export default function EvaluacionesCuantitativasJuradoTable({
   vacio,
   acciones,
   seleccion,
+  celdaPuntaje,
 }: Props) {
   const casilla = (fila: EvaluacionCuantitativaJurado) =>
     seleccion ? (
@@ -70,8 +76,11 @@ export default function EvaluacionesCuantitativasJuradoTable({
       />
     ) : null;
   const columnas: ColumnaTabla<EvaluacionCuantitativaJurado>[] = seleccion
-    ? [{ id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla }, ...COLUMNAS]
-    : COLUMNAS;
+    ? [
+        { id: 'seleccionar', encabezado: 'Seleccionar', celda: casilla },
+        ...columnasBase(celdaPuntaje),
+      ]
+    : columnasBase(celdaPuntaje);
 
   return (
     <DataTable
@@ -97,7 +106,7 @@ export default function EvaluacionesCuantitativasJuradoTable({
           <span className={ROTULO}>Ítem</span>
           <Bloque nombre={fila.item.nombre} descripcion={fila.item.descripcion} />
           <span className={ROTULO}>Puntaje</span>
-          <span className={NOMBRE}>{textoPuntaje(fila)}</span>
+          {celdaPuntaje?.(fila) ?? <span className={NOMBRE}>{textoPuntaje(fila)}</span>}
         </>
       )}
     />

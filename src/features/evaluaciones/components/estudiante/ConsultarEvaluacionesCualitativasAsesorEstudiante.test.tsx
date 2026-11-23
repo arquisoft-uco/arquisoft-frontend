@@ -16,7 +16,7 @@ vi.mock('../../hooks/useEvaluacionesCualitativasAsesorEstudiante', () => ({
 
 const FILA: EvaluacionCualitativaAsesor = {
   id: 'ec-1',
-  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Qué tan claro es el documento' },
+  item: { id: 'i-1', nombre: 'Claridad', descripcion: 'Qué tan claro es el documento', peso: 100 },
   criterio: { id: 'cr-1', nombre: 'Sobresaliente', descripcion: 'Cumple todo lo esperado' },
 };
 

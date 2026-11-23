@@ -209,6 +209,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
       participacion('a-2', 'p-1', 'Sistema de riego', 'Anteproyecto'),
       participacion('a-3', 'p-2', 'Domótica', 'Acta de inicio'),
     ]);
+    simularUltimas({ 'a-1': ultima('a-1', null) });
 
     // Act
     render(<ConsultarParticipacionesEstudiante />);
@@ -220,7 +221,10 @@ describe('ConsultarParticipacionesEstudiante', () => {
     const tabla = screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' });
     expect(within(tabla).getByRole('columnheader', { name: 'Asesor' })).toBeInTheDocument();
     expect(within(tabla).getAllByText('Laura Gómez').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Laura Gómez · Versión 2').length).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByText('Laura Gómez · Versión 2 del documento')).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText('Laura Gómez · Sin documento cargado').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Anteproyecto').length).toBeGreaterThan(0);
   });
 

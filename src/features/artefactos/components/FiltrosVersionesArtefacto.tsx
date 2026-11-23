@@ -64,6 +64,7 @@ export default function FiltrosVersionesArtefacto({
         hasta: listado.hasta,
         onCambiarDesde: listado.setDesde,
         onCambiarHasta: listado.setHasta,
+        error: listado.errorFechas,
       }}
       popover={
         listado.admiteEstadoProyecto
@@ -82,7 +83,7 @@ export default function FiltrosVersionesArtefacto({
       }
       aplicados={aplicados}
       onLimpiar={listado.limpiarFiltros}
-      totalResultados={listado.data?.totalElements}
+      totalResultados={listado.errorFechas ? undefined : listado.data?.totalElements}
     />
   );
 }

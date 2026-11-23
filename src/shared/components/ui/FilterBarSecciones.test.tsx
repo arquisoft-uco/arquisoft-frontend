@@ -206,6 +206,31 @@ describe('secciones de FilterBar', () => {
     expect(onHasta).toHaveBeenCalledWith('');
   });
 
+  it('la sección de fechas con error lo anuncia como alerta y marca ambos campos inválidos', async () => {
+    // Arrange
+    const user = usarTemporizadoresFalsos();
+    renderizar([
+      {
+        id: 'fechas',
+        tipo: 'fechas',
+        etiqueta: 'Fecha de creación',
+        desde: '2026-10-20',
+        hasta: '2026-10-01',
+        onCambiarDesde: vi.fn(),
+        onCambiarHasta: vi.fn(),
+        error: 'Rango inválido',
+      },
+    ]);
+
+    // Act
+    const panel = await abrirPanel(user);
+
+    // Assert
+    expect(panel.getByRole('alert')).toHaveTextContent('Rango inválido');
+    expect(panel.getByLabelText('Desde')).toBeInvalid();
+    expect(panel.getByLabelText('Hasta')).toBeInvalid();
+  });
+
   it('la sección de fecha emite el valor elegido, aplica min/max y "Limpiar" lo vacía', async () => {
     // Arrange
     const user = usarTemporizadoresFalsos();

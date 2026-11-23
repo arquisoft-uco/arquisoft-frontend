@@ -98,7 +98,9 @@ y, en `router.tsx`, `lazy(...)` + `guarded('{path}', <Pagina />)`. Nunca `<RoleG
 **Kit primero** (UI). Antes de escribir clases a mano para un botón, insignia, campo, aviso, vacío, error
 o tabla, lista `src/shared/components/ui/`: si la pieza existe, úsala. Si el plan declara una pieza nueva,
 créala con la receta de `arquisoft-frontend-ui-ux` (`references/componentes.md`) y su prueba de
-comportamiento. Un caso que la skill no cubre es una ambigüedad, no una variante nueva.
+comportamiento. Un caso que la skill no cubre es una ambigüedad, no una variante nueva. Color,
+tipografía, logo y estados salen de `references/identidad-uco.md` (sin rojo, pares de contraste, fuentes y
+logo propios).
 
 ## FASE 4 — Auto-corrección
 
@@ -132,7 +134,7 @@ agregues entradas a `src/test-utils/arquitectura.baseline.ts`**. Si `format:chec
 `npx prettier --write` solo los archivos que listó.
 
 Si el plan declara cambios visuales y hay Claude in Chrome disponible, verifica además la pantalla
-real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red) y repasa el «Checklist de una pantalla»
+real (`npm run dev`, `VITE_AUTH_BYPASS=true`, consola y red) en los cuatro formatos y con teclado (`identidad-uco.md` §8 de `arquisoft-frontend-ui-ux`) y repasa el «Checklist de una pantalla»
 de `arquisoft-frontend-ui-ux`. Una pantalla que no viste no se reporta como verificada.
 
 Sin esto, la fila `Desarrollo` mentiría a `@3-tester` y a `@4a-validator-analyze`.

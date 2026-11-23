@@ -81,7 +81,8 @@ export default function OmitirEvaluacionesCuantitativasAsesorBarra({
         <ConfirmDialog
           titulo={`¿Omitir ${cantidad} ${sustantivo}?`}
           consecuencias={[
-            'Se quitarán de tu evaluación junto con sus observaciones.',
+            'Se quitarán de tu evaluación.',
+            'También se eliminarán las observaciones asociadas a esos ítems.',
             'No se puede deshacer.',
           ]}
           labelConfirmar="Omitir"

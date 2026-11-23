@@ -7,7 +7,6 @@ import type { AsignarJuradosEvaluacionRequest } from '../models/AsignarJuradosEv
 import type { AsignarJuradosEvaluacionResponse } from '../models/AsignarJuradosEvaluacionResponse';
 import type { Evaluacion } from '../models/Evaluacion';
 import type { EvaluacionAsesor } from '../models/EvaluacionAsesor';
-import type { EvaluacionAsesorRealizada } from '../models/EvaluacionAsesorRealizada';
 import type { EvaluacionAsignadaAsesor } from '../models/EvaluacionAsignadaAsesor';
 import type { EvaluacionAsignadaJurado } from '../models/EvaluacionAsignadaJurado';
 import type { EvaluacionCualitativaAsesor } from '../models/EvaluacionCualitativaAsesor';
@@ -104,9 +103,10 @@ export const evaluacionesService = {
   modificarItemCualitativoAsesor: ({
     itemId,
     descripcion,
+    peso,
   }: ModificarItemCualitativoAsesorRequest): Promise<void> =>
     apiClient
-      .patch<void>(`/evaluaciones/items-cualitativos-asesor/${itemId}`, { descripcion })
+      .patch<void>(`/evaluaciones/items-cualitativos-asesor/${itemId}`, { descripcion, peso })
       .then(() => undefined),
 
   removerItemCualitativoAsesor: (itemId: string): Promise<void> =>
@@ -220,9 +220,10 @@ export const evaluacionesService = {
   modificarItemCualitativoJurado: ({
     itemId,
     descripcion,
+    peso,
   }: ModificarItemCualitativoJuradoRequest): Promise<void> =>
     apiClient
-      .patch<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`, { descripcion })
+      .patch<void>(`/evaluaciones/items-cualitativos-jurado/${itemId}`, { descripcion, peso })
       .then(() => undefined),
 
   cambiarCriterioEvaluacionCualitativaJurado: ({
@@ -360,11 +361,6 @@ export const evaluacionesService = {
   getEvaluacionAsesor: (evaluacionId: string): Promise<EvaluacionAsesor> =>
     apiClient
       .get<EvaluacionAsesor>(`/evaluaciones/${evaluacionId}/evaluacion-asesor`)
-      .then((r) => r.data),
-
-  getEvaluacionAsesorRealizada: (evaluacionAsesorId: string): Promise<EvaluacionAsesorRealizada> =>
-    apiClient
-      .get<EvaluacionAsesorRealizada>(`/evaluaciones/evaluaciones-asesor/${evaluacionAsesorId}`)
       .then((r) => r.data),
 
   getEvaluacionesCualitativasJurado: (

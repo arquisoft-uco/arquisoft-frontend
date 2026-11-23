@@ -11,6 +11,7 @@ const CONTENEDOR =
 const SCROLL = 'relative hidden overflow-x-auto sm:block';
 const TABLA = 'w-full text-left text-sm';
 const FILA = 'border-t border-border transition-colors hover:bg-surface-secondary';
+const FILA_RESALTADA = 'border-t border-border bg-tertiary-muted';
 const CELDA = 'px-4 py-3 align-middle';
 const CELDA_ACCIONES = 'text-right';
 
@@ -24,6 +25,7 @@ interface Props<T> {
   acciones?: (fila: T) => ReactNode;
   encabezadoAcciones?: string;
   tarjeta: (fila: T) => ReactNode;
+  resaltarFila?: (fila: T) => boolean;
   cargando?: boolean;
   vacio?: ReactNode;
 }
@@ -38,6 +40,7 @@ export default function DataTable<T>({
   acciones,
   encabezadoAcciones,
   tarjeta,
+  resaltarFila,
   cargando = false,
   vacio,
 }: Props<T>) {
@@ -59,7 +62,7 @@ export default function DataTable<T>({
           />
           <tbody>
             {filas.map((fila) => (
-              <tr key={idDeFila(fila)} className={FILA}>
+              <tr key={idDeFila(fila)} className={resaltarFila?.(fila) ? FILA_RESALTADA : FILA}>
                 {columnas.map((columna) => (
                   <td key={columna.id} className={CELDA}>
                     {columna.celda(fila)}
@@ -79,6 +82,7 @@ export default function DataTable<T>({
         etiqueta={etiqueta}
         tarjeta={tarjeta}
         acciones={acciones}
+        resaltarFila={resaltarFila}
       />
     </div>
   );

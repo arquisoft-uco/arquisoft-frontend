@@ -66,6 +66,7 @@ detecta que backend y frontend se desalinearon.
 **Componentes.** Los tres estados son tres tests, no uno: carga (`getByRole('status')`), vacío (su
 texto), error (`getByRole('alert')`).
 
+- Lo interactivo propio que se dispara con puntero se prueba también con `userEvent.keyboard` (Enter, Espacio, Esc), sin tests extra por el mismo Act.
 - Degradación por endpoint pendiente: aparece `AvisoNoDisponible` y el submit queda `toBeDisabled()`.
 - Formularios: envía con datos válidos (`toHaveBeenCalledWith`), no envía con inválidos, y el error
   del campo aparece como `role="alert"`.

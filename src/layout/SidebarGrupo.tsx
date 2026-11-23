@@ -5,7 +5,7 @@ import type { NavItem } from './nav-items';
 const ETIQUETA =
   'mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-on-surface-secondary';
 const ITEM = 'flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium';
-const ENLACE = `nav-link group ${ITEM} outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1`;
+const ENLACE = `nav-link group ${ITEM} outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1`;
 const PROXIMAMENTE = `${ITEM} cursor-default text-on-surface-secondary opacity-70`;
 
 interface Props {

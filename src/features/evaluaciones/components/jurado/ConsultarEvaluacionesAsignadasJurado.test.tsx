@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes, useLocation } from 'react-router';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import {
   resetAllStores,
   setActiveRole,
@@ -171,7 +171,7 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
     expect(hook.limpiarFiltros).toHaveBeenCalled();
   });
 
-  describe('acción «Evaluar»', () => {
+  describe('acciones por fila', () => {
     function autenticarCon(rol: Rol) {
       setAuthenticatedUser({ tokenParsed: { sub: 'user-id', realm_access: { roles: [rol] } } });
       setActiveRole(rol);
@@ -181,62 +181,66 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
       resetAllStores();
     });
 
-    it('con rol jurado ofrece «Evaluar» por fila, deshabilitado en la finalizada, y navega a la pantalla de registro', async () => {
+    it('con rol jurado cada fila ofrece exactamente «Gestionar cualitativas» y «Gestionar cuantitativas», también con la evaluación finalizada', () => {
       // Arrange
-      const user = userEvent.setup();
       autenticarCon(Rol.Jurado);
-      mockHook({ data: [ASIGNACION, FINALIZADA] });
-      render(
-        <Routes>
-          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
-          <Route path="/evaluaciones/:id/evaluar" element={<p>Pantalla de registro</p>} />
-        </Routes>,
-      );
-
-      // Assert
-      for (const boton of screen.getAllByRole('button', { name: 'Evaluar Plataforma de riego' })) {
-        expect(boton).toBeDisabled();
-      }
+      mockHook({ data: [{ ...ASIGNACION, tieneEvaluacionesCuantitativas: false }, FINALIZADA] });
 
       // Act
-      await user.click(screen.getAllByRole('button', { name: 'Evaluar Sistema de monitoreo' })[0]);
+      render(<ConsultarEvaluacionesAsignadasJurado />);
 
       // Assert
-      expect(await screen.findByText('Pantalla de registro')).toBeInTheDocument();
+      const tabla = within(screen.getByRole('table', { name: 'Evaluaciones asignadas' }));
+      for (const proyecto of ['Sistema de monitoreo', 'Plataforma de riego']) {
+        for (const tipo of ['cualitativas', 'cuantitativas']) {
+          const boton = tabla.getByRole('button', { name: `Gestionar ${tipo} de ${proyecto}` });
+          expect(boton).toBeEnabled();
+        }
+      }
+      expect(tabla.getAllByRole('button')).toHaveLength(4);
+      expect(screen.queryByRole('button', { name: /^(Evaluar|Ver )/ })).not.toBeInTheDocument();
     });
 
-    it('ofrece «Evaluar cuantitativas» por fila, deshabilitado en la finalizada, y navega a evaluar-cuantitativas', async () => {
+    it('cada botón navega a su página con la búsqueda del listado', async () => {
       // Arrange
       const user = userEvent.setup();
       autenticarCon(Rol.Jurado);
-      mockHook({ data: [ASIGNACION, FINALIZADA] });
+      mockHook({ data: [ASIGNACION] });
+      function Destino({ nombre }: { nombre: string }) {
+        const { search } = useLocation();
+        return (
+          <p>
+            {nombre}
+            {search}
+          </p>
+        );
+      }
       render(
         <Routes>
-          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
+          <Route path="/evaluaciones" element={<ConsultarEvaluacionesAsignadasJurado />} />
           <Route
-            path="/evaluaciones/:id/evaluar-cuantitativas"
-            element={<p>Pantalla de cuantitativas</p>}
+            path="/evaluaciones/:id/gestionar-cualitativas"
+            element={<Destino nombre="Cualitativas" />}
+          />
+          <Route
+            path="/evaluaciones/:id/gestionar-cuantitativas"
+            element={<Destino nombre="Cuantitativas" />}
           />
         </Routes>,
+        { initialPath: '/evaluaciones?estadoJurado=EVALUADA&page=2' },
       );
-
-      // Assert
-      for (const boton of screen.getAllByRole('button', {
-        name: 'Evaluar cuantitativas de Plataforma de riego',
-      })) {
-        expect(boton).toBeDisabled();
-      }
+      const tabla = within(screen.getByRole('table', { name: 'Evaluaciones asignadas' }));
 
       // Act
       await user.click(
-        screen.getAllByRole('button', { name: 'Evaluar cuantitativas de Sistema de monitoreo' })[0],
+        tabla.getByRole('button', { name: 'Gestionar cualitativas de Sistema de monitoreo' }),
       );
 
       // Assert
-      expect(await screen.findByText('Pantalla de cuantitativas')).toBeInTheDocument();
+      expect(await screen.findByText('Cualitativas?estadoJurado=EVALUADA&page=2')).toBeVisible();
     });
 
-    it('con otro rol activo no hay acción de evaluar', () => {
+    it('con otro rol activo no hay acciones de gestión', () => {
       // Arrange
       autenticarCon(Rol.Coordinador);
       mockHook({ data: [ASIGNACION] });
@@ -245,54 +249,11 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
       render(<ConsultarEvaluacionesAsignadasJurado />);
 
       // Assert
-      expect(screen.queryByRole('button', { name: /^Evaluar/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^Gestionar/ })).not.toBeInTheDocument();
     });
   });
 
-  describe('«Ver cuantitativas»', () => {
-    it('aparece solo si hay cuantitativas registradas y navega con el state', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      resetAllStores();
-      setAuthenticatedUser({
-        tokenParsed: { sub: 'user-id', realm_access: { roles: [Rol.Jurado] } },
-      });
-      setActiveRole(Rol.Jurado);
-      mockHook({ data: [{ ...ASIGNACION, tieneEvaluacionesCuantitativas: false }, FINALIZADA] });
-      let estado: unknown;
-      function Destino() {
-        estado = useLocation().state;
-        return <p>Pantalla de cuantitativas realizadas</p>;
-      }
-      render(
-        <Routes>
-          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
-          <Route path="/evaluaciones/:id/cuantitativas-realizadas" element={<Destino />} />
-        </Routes>,
-      );
-
-      // Assert
-      expect(
-        screen.queryByRole('button', { name: 'Ver cuantitativas de Sistema de monitoreo' }),
-      ).not.toBeInTheDocument();
-
-      // Act
-      await user.click(
-        screen.getAllByRole('button', { name: 'Ver cuantitativas de Plataforma de riego' })[0],
-      );
-
-      // Assert
-      expect(await screen.findByText('Pantalla de cuantitativas realizadas')).toBeInTheDocument();
-      expect(estado).toEqual({
-        evaluacionJuradoId: 'ej-2',
-        search: '',
-        evaluacionFinalizada: true,
-        resumen: { proyecto: 'Plataforma de riego', version: 1 },
-      });
-    });
-  });
-
-  describe('indicadores de faltante y «Ver cualitativas»', () => {
+  describe('indicadores de faltante', () => {
     beforeEach(() => {
       resetAllStores();
       setAuthenticatedUser({
@@ -312,42 +273,6 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
       const filas = screen.getAllByRole('row');
       expect(filas[1]).toHaveTextContent('Falta la cualitativa');
       expect(filas[2]).not.toHaveTextContent(/Falta|Faltan/);
-    });
-
-    it('ofrece «Ver cualitativas» solo si hay cualitativas y navega con el state', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      mockHook({ data: [ASIGNACION, FINALIZADA] });
-      let estado: unknown;
-      function Destino() {
-        estado = useLocation().state;
-        return <p>Pantalla de cualitativas</p>;
-      }
-      render(
-        <Routes>
-          <Route path="/" element={<ConsultarEvaluacionesAsignadasJurado />} />
-          <Route path="/evaluaciones/:id/cualitativas-realizadas" element={<Destino />} />
-        </Routes>,
-      );
-
-      // Assert
-      expect(
-        screen.queryByRole('button', { name: 'Ver cualitativas de Sistema de monitoreo' }),
-      ).not.toBeInTheDocument();
-
-      // Act
-      await user.click(
-        screen.getAllByRole('button', { name: 'Ver cualitativas de Plataforma de riego' })[0],
-      );
-
-      // Assert
-      expect(await screen.findByText('Pantalla de cualitativas')).toBeInTheDocument();
-      expect(estado).toEqual({
-        evaluacionJuradoId: 'ej-2',
-        search: '',
-        evaluacionFinalizada: true,
-        resumen: { proyecto: 'Plataforma de riego', version: 1 },
-      });
     });
   });
 });

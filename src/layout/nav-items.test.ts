@@ -69,6 +69,28 @@ describe('nav-items', () => {
     expect(navItemsDelRol(Rol.Administrador).map((i) => i.path)).not.toContain('/biblioteca');
   });
 
+  it('Solicitudes está disponible solo para el estudiante, el coordinador, el asesor y el administrador', () => {
+    // Arrange
+    const permitidos = [Rol.Estudiante, Rol.Coordinador, Rol.Asesor, Rol.Administrador];
+    const excluidos = [
+      Rol.AsesorFicha,
+      Rol.RepresentanteComiteCurriculum,
+      Rol.Jurado,
+      Rol.Bibliotecario,
+    ];
+    const solicitudes = NAV_ITEMS.find((i) => i.path === '/solicitudes');
+
+    // Assert
+    expect([...(solicitudes?.roles ?? [])].sort()).toEqual([...permitidos].sort());
+    expect([...(ROLES_POR_RUTA['solicitudes'] ?? [])].sort()).toEqual([...permitidos].sort());
+    permitidos.forEach((rol) => {
+      expect(navItemsDelRol(rol).map((i) => i.path)).toContain('/solicitudes');
+    });
+    excluidos.forEach((rol) => {
+      expect(navItemsDelRol(rol).map((i) => i.path)).not.toContain('/solicitudes');
+    });
+  });
+
   it('Seguridad se habilita por capacidad: sin roles, order 11 y visible solo con la capacidad', () => {
     // Arrange
     const seguridad = NAV_ITEMS.find((i) => i.path === '/seguridad');

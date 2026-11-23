@@ -45,6 +45,7 @@ export interface SeccionFechas extends SeccionBase {
   hasta: string;
   onCambiarDesde: (valor: string) => void;
   onCambiarHasta: (valor: string) => void;
+  error?: string;
 }
 
 export type SeccionFiltro =
@@ -83,6 +84,7 @@ export function SeccionDeFiltro({ seccion }: { seccion: SeccionFiltro }) {
         hasta={seccion.hasta}
         onCambiarDesde={seccion.onCambiarDesde}
         onCambiarHasta={seccion.onCambiarHasta}
+        error={seccion.error}
       />
     );
   }

@@ -9,6 +9,7 @@ Aplicación web de gestión académica construida con **React 19**, **TypeScript
 | Framework       | React 19 + TypeScript                                           |
 | Bundler         | Vite 6                                                          |
 | Estilos         | Tailwind CSS v4                                                 |
+| Tipografía      | Montserrat y Poppins (`@fontsource`, servidas desde el propio despliegue) |
 | Routing         | React Router 7                                                  |
 | Estado global   | Zustand 5                                                       |
 | Estado servidor | TanStack React Query 5                                          |
@@ -52,6 +53,8 @@ npm run dev
 
 `src/arquitectura.test.ts` hace cumplir las reglas de capas, el cliente HTTP único y otras
 convenciones; su deuda previa está en `src/test-utils/arquitectura.baseline.ts` y solo puede decrecer.
+`src/tema-contraste.test.ts` mide el contraste WCAG de los tokens del tema y rechaza colores literales
+fuera de `@theme`. Los valores institucionales viven en `src/uco-tokens.css`.
 El CI ejecuta `format:check`, `lint`, `test` y `build`.
 
 ## Variables de entorno
@@ -222,8 +225,14 @@ docker run -p 80:80 \
   -e SECURITY_UI_ORIGIN=https://security-ui.ejemplo.com \
   -e API_ORIGIN=https://api.ejemplo.com \
   -e KEYCLOAK_ORIGIN=https://keycloak.ejemplo.com \
+  -e STORAGE_ORIGIN=https://s3.ejemplo.com \
   arquisoft-frontend
 ```
 
 `nginx.conf.template` se procesa con `envsubst` al arrancar (`script-src` con `SECURITY_UI_ORIGIN`,
-`connect-src` con los otros tres). Sin definirlas quedan vacías.
+`connect-src` con los otros cuatro). Sin definirlas quedan vacías.
+
+`STORAGE_ORIGIN` es el endpoint S3 al que el navegador sube directo con el formulario firmado que
+entrega el backend (p. ej. al cargar una versión de un artefacto). No tiene `VITE_*` porque la URL
+llega en la respuesta del backend; en el deploy sale de la variable de Actions `STORAGE_URL`. Si
+falta, la CSP bloquea la subida y el navegador la reporta como error de red, sin status.

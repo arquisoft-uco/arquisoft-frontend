@@ -9,7 +9,7 @@ import type { Item } from '../models/fichas-perfil';
 const LISTA = 'flex flex-col gap-3';
 const TARJETA =
   'flex flex-col items-start gap-2 rounded-xl border border-border bg-surface p-3.5 shadow-card';
-const CONTENIDO = 'w-full min-w-0 text-sm break-words text-on-surface';
+const CONTENIDO = 'w-full min-w-0 whitespace-pre-line text-sm break-words text-on-surface';
 const CON_ACCIONES = 'flex w-full items-start justify-between gap-2';
 const TEXTOS = 'flex min-w-0 flex-1 flex-col items-start gap-2';
 const INSIGNIAS = 'flex flex-wrap items-center gap-2';

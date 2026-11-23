@@ -63,22 +63,30 @@ jobs:
 
       # ── Orígenes de la CSP de nginx: se derivan de la misma variable VITE_ENV_FILE
       #     que usa el build (esquema://host[:puerto] de cada URL), así no hay
-      #     que mantenerlos por separado ──
+      #     que mantenerlos por separado. El de almacenamiento no tiene VITE_* (la
+      #     URL del formulario firmado la entrega el backend), así que sale de su
+      #     propia variable STORAGE_URL ──
       - name: Derivar orígenes desde VITE_ENV_FILE
         id: origenes
         env:
           ENV_FILE: ${{ vars.VITE_ENV_FILE }}
+          STORAGE_URL: ${{ vars.STORAGE_URL }}
         run: |
           origen() {
             printf '%s\n' "$ENV_FILE" | tr -d '\r' \
               | sed -n "s/^$1=//p" | tail -n1 | sed -E "s/^[\"']//; s/[\"']$//" \
               | sed -nE 's#^(https?://[^/?\#]+).*#\1#p'
           }
+          storage=$(printf '%s\n' "$STORAGE_URL" | tr -d '\r' | sed -nE 's#^(https?://[^/?\#]+).*#\1#p')
+          if [ -z "$storage" ]; then
+            echo "::warning::STORAGE_URL vacía: la CSP bloqueará las subidas directas al almacenamiento."
+          fi
           {
             echo "api=$(origen VITE_API_URL)"
             echo "keycloak=$(origen VITE_KEYCLOAK_URL)"
             echo "pdp=$(origen VITE_PDP_URL)"
             echo "security_ui=$(origen VITE_SECURITY_UI_URL)"
+            echo "storage=$storage"
           } >> "$GITHUB_OUTPUT"
 
       # ── Deploy remoto ──
@@ -89,7 +97,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GHCR_ACTOR,GHCR_TOKEN,IMAGE_REPO,IMAGE_TAG,BASE_DOMAIN,API_ORIGIN,KEYCLOAK_ORIGIN,PDP_ORIGIN,SECURITY_UI_ORIGIN
+          envs: GHCR_ACTOR,GHCR_TOKEN,IMAGE_REPO,IMAGE_TAG,BASE_DOMAIN,API_ORIGIN,KEYCLOAK_ORIGIN,PDP_ORIGIN,SECURITY_UI_ORIGIN,STORAGE_ORIGIN
           script_stop: true
           script: |
             set -e
@@ -124,6 +132,7 @@ jobs:
               -e KEYCLOAK_ORIGIN="$KEYCLOAK_ORIGIN" \
               -e PDP_ORIGIN="$PDP_ORIGIN" \
               -e SECURITY_UI_ORIGIN="$SECURITY_UI_ORIGIN" \
+              -e STORAGE_ORIGIN="$STORAGE_ORIGIN" \
               --network arquisoft-network \
               --label traefik.enable=true \
               --label traefik.docker.network=arquisoft-network \
@@ -166,3 +175,4 @@ jobs:
           KEYCLOAK_ORIGIN: ${{ steps.origenes.outputs.keycloak }}
           PDP_ORIGIN: ${{ steps.origenes.outputs.pdp }}
           SECURITY_UI_ORIGIN: ${{ steps.origenes.outputs.security_ui }}
+          STORAGE_ORIGIN: ${{ steps.origenes.outputs.storage }}

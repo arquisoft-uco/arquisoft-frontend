@@ -9,5 +9,3 @@ export function crearCambiarPuntajeEvaluacionCuantitativaAsesorSchema(valorMaxim
     ),
   });
 }
-
-export type CambiarPuntajeEvaluacionCuantitativaAsesorValues = { puntaje: string };

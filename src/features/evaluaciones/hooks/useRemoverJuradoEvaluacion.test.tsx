@@ -73,7 +73,7 @@ describe('useRemoverJuradoEvaluacion', () => {
 
   it('ante el 422 de jurado con evaluaciones no invalida nada', async () => {
     // Arrange
-    remover.mockRejectedValue(errorApi('EVALUACION_JURADO_JURADOS_CON_EVALUACIONES'));
+    remover.mockRejectedValue(errorApi('EVALUACION_JURADO_JURADOS_EVALUADOS'));
     const { Wrapper, invalidar } = crearContexto();
     const { result } = renderHook(() => useRemoverJuradoEvaluacion('e-1'), { wrapper: Wrapper });
 

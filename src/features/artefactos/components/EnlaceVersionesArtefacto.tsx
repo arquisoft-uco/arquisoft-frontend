@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router';
 
 const ENLACE =
-  'font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+  'inline-block min-h-6 font-medium leading-6 text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus';
 
 interface Props {
   artefactoId: string;

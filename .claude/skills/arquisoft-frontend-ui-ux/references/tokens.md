@@ -4,61 +4,57 @@
 el de las clases globales de campo y de fila de acciones. Es la regla de «una decisión, un solo lugar»
 de `arquisoft-frontend-estandares`.
 
-## 1. Paso 0: tokens y clases de campo (aplicado en HT-UX-00)
+## 1. Identidad institucional (HT-UX-10)
 
-Aplicado en HT-UX-00: los cinco tokens (`--color-muted`, `--color-muted-foreground`,
-`--color-border-input`, `--color-danger-muted` y `--color-danger-muted-foreground`) y el valor nuevo de
-`--color-tertiary-muted-foreground` ya están en `@theme`. Tailwind descarta en silencio una utilidad cuya
-variable no existe (así se perdieron el hover de las filas, las cabeceras de tabla y las pastillas de 21
-archivos): `src/arquitectura.test.ts` lo vigila para los nombres de shadcn (`muted`, `accent`, `card`,
-`popover`, `input`, `destructive`, `success`, `warning`, `info` y `foreground`). Para cualquier otro token,
-compruébalo antes de usarlo: `grep -n "color-<nombre>" src/tailwind.css`.
+La paleta sale del «Manual de diseño institucional UCO (lineamientos de desarrollo)».
+Los valores institucionales viven **una sola vez** en `src/uco-tokens.css` (`--uco-*`, copia literal del
+manual, sin ajustar) y `@theme` los referencia con `var(--uco-*)`; los derivados (tintes, grises,
+`danger-strong`, `primary-hover`) están en `@theme` como hex de 6 dígitos. Nunca se escribe un hex
+institucional a mano fuera de esos dos archivos: `src/tema-contraste.test.ts` lo vigila.
 
 ```css
 /* src/tailwind.css · dentro de @theme */
---color-muted: oklch(95% 0.01 230);
---color-muted-foreground: oklch(40% 0.02 230);
---color-border-input: oklch(62% 0.02 230);
---color-danger-muted: oklch(96% 0.03 27);
---color-danger-muted-foreground: oklch(45% 0.19 27);
-
-/* y cambia un valor que ya existe (el texto ámbar llegaba a 4,3 : 1): */
---color-tertiary-muted-foreground: oklch(38% 0.09 70); /* antes oklch(55% 0.12 75) */
-
-/* ya declarado en HT-UX-03, con `SidePanel`: */
---animate-slide-in-right: slide-in-right 0.25s cubic-bezier(0.23, 1, 0.32, 1);
-/* con @keyframes slide-in-right { from { opacity: 0; transform: translateX(2rem); } to { opacity: 1; transform: translateX(0); } } */
+--color-primary: var(--uco-verde-oscuro);      /* #024426, texto blanco 11,31 */
+--color-secondary: var(--uco-verde);           /* #008b50: acento y éxito, texto negro 4,81 */
+--color-tertiary: var(--uco-amarillo);         /* #ffca00: solo relleno, texto negro */
+--color-danger: var(--uco-naranja);            /* #e28210: solo relleno, texto negro */
+--color-danger-strong: #5a3100;                /* texto y borde de error sobre fondo claro */
+--color-info: var(--uco-azul);                 /* #1d3475: «en curso», texto blanco */
+--color-focus: var(--uco-verde);               /* anillo de foco */
 ```
 
-```css
-/* src/index.css · clases globales de campo */
-.field-label { margin-bottom: 0.375rem; font-size: 0.8125rem; font-weight: 500; color: var(--color-on-surface); }
-.field-input { border: 1px solid var(--color-border-input); }   /* antes var(--color-border): 1,2 : 1 */
-.field-hint  { margin-top: 0.25rem; font-size: 0.75rem; color: var(--color-on-surface-secondary); }
-@media (min-width: 640px) { .field-input { min-height: 2.5rem; } }   /* dentro del bloque de 640 px que ya existe */
-```
+Reglas del manual que cambian el uso:
 
-Usos corregidos en el mismo paso: `text-warning` en `ConfirmDialog` pasó a
-`text-tertiary-muted-foreground`; la pastilla «Próximamente» de `ComingSoon` pasó de `text-secondary` a
-`text-secondary-muted-foreground`. La tabla de tokens de «Estilos» en `arquisoft-frontend-estandares` ya
-incluye los cinco tokens nuevos.
+- **Sin rojo.** El peligro es naranja con texto negro; el texto y el borde de error sobre fondo claro usan
+  `danger-strong`, porque el naranja sobre blanco da 2,82 : 1.
+- **El amarillo nunca es color de texto**, y el verde `#008b50` no admite texto blanco: solo foco, acento y éxito.
+- **Sin tema oscuro.**
+- Un token nuevo se comprueba con `grep -n "color-<nombre>" src/tailwind.css` antes de usarlo: una utilidad sin su
+  variable no genera estilo (`src/arquitectura.test.ts` lo vigila).
+- Los pares de texto, el borde de control y el foco los mide `src/tema-contraste.test.ts` en `npm test`: si un
+  token rompe el contraste, se ajusta el valor, no la prueba.
 
 ## 2. Contraste verificado
 
-Texto: mínimo 4,5 : 1 (3 : 1 desde 24 px). Borde de un control de formulario: mínimo 3 : 1. Un par nuevo
-se calcula con la fórmula de luminancia relativa de WCAG 2.2 sobre los valores oklch, no a ojo.
+Texto: mínimo 4,5 : 1 (3 : 1 desde 24 px). Borde de un control de formulario y anillo de foco: mínimo 3 : 1.
+Se calcula con la fórmula de luminancia relativa de WCAG 2.1 sobre los hex, y la prueba automática lo repite.
 
 | Par | Contraste |
 |---|---|
-| `on-surface-secondary` sobre `surface` / `background` / `muted` | 7,1 / 6,5 / 6,1 |
-| `muted-foreground` sobre `muted` / `surface` | 7,9 / 9,2 |
-| `primary-muted-foreground` sobre `primary-muted` | 9,6 |
-| `secondary-muted-foreground` sobre `secondary-muted` | 7,1 (`secondary` solo como texto: 3,7, **no se usa**) |
-| `tertiary-muted-foreground` sobre `tertiary-muted` | 8,8 (antes de HT-UX-00: 4,3) |
-| `danger-muted-foreground` sobre `danger-muted` | 7,0 |
-| `danger` (texto de error de campo) sobre `surface` | 5,4 |
-| `border-input` sobre `surface` / `background` | 3,6 / 3,3 (el `border` anterior sobre el fondo del campo: 1,2) |
-| `primary-foreground` sobre `primary` | 11,0 |
+| `primary-foreground` sobre `primary` | 11,31 |
+| `secondary-foreground` (negro) sobre `secondary` | 4,81 (**no** blanco: 4,37) |
+| `tertiary-foreground` (negro) sobre `tertiary` | 13,70 |
+| `danger-foreground` (negro) sobre `danger` | 7,43 (blanco: 2,82, no se usa) |
+| `info-foreground` sobre `info` | 11,66 |
+| `on-surface-secondary` sobre `surface` / `background` / `muted` | 7,46 / 6,87 / 6,27 |
+| `muted-foreground` sobre `muted` / `surface` | 10,62 / 12,63 |
+| `primary-muted-foreground` sobre `primary-muted` | 12,58 |
+| `secondary-muted-foreground` sobre `secondary-muted` | 9,40 |
+| `tertiary-muted-foreground` sobre `tertiary-muted` | 10,76 |
+| `danger-muted-foreground` sobre `danger-muted` | 8,13 |
+| `danger-strong` sobre `surface` | 11,21 |
+| `border-input` sobre `surface` / `background` / `muted` | 4,54 / 4,18 / 3,82 |
+| `focus` sobre `surface` / `background` / `muted` | 4,37 / 4,02 / 3,67 |
 
 ## 3. Qué clase para qué
 
@@ -70,9 +66,11 @@ se calcula con la fórmula de luminancia relativa de WCAG 2.2 sobre los valores 
 | Hover y pista neutra | `bg-muted` (o `bg-surface-secondary` en hover de filas) |
 | Tinte de marca (activo, chip, avatar) | `bg-primary-muted text-primary-muted-foreground` |
 | Texto | `text-on-surface`; secundario `text-on-surface-secondary` |
-| Error de campo | `.field-error` (`text-danger`) |
+| Error de campo | `.field-error` y borde inválido (`danger-strong`) |
+| Foco | `focus-visible:outline-focus` o `focus-visible:ring-focus`; nunca `outline-primary` |
 | Aviso o insignia de error | `bg-danger-muted text-danger-muted-foreground` |
-| Acción peligrosa | `bg-danger text-danger-foreground` |
+| Acción peligrosa | `bg-danger text-danger-foreground` (naranja con texto negro) |
+| En curso | `Badge` `info`: `bg-info text-info-foreground` |
 | Separadores | `border-border`; más marcado `border-border-strong` |
 
 Nunca un color crudo de paleta (`red-500`, `green-100`…): lo cubre `src/arquitectura.test.ts` y el
@@ -81,7 +79,7 @@ icono o punto, más texto.
 
 ## 4. Escala tipográfica
 
-Títulos en Plus Jakarta Sans (ya global para `h1`–`h6` en `index.css`) y texto en Inter. No se cambian.
+Títulos en Montserrat (400, 600, 700 y 800; ya global para `h1`–`h6` en `index.css`) y texto en Poppins (400, 500 y 600), servidos con `@fontsource` desde el propio despliegue, nunca desde Google Fonts. En Poppins, `font-bold` (700) resuelve al 600. Poppins es más ancha que la fuente anterior: revisa desbordes a 320 px.
 
 | Estilo | Clases | Dónde |
 |---|---|---|

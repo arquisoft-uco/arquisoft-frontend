@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useEdicionPuntajeEnLineaJurado } from '../../hooks/useEdicionPuntajeEnLineaJurado';
+import { enfocarElementoVisible } from '../../utils/enfocar-visible';
 import ConsultarEvaluacionesCuantitativasRealizadasJurado from '../ConsultarEvaluacionesCuantitativasRealizadasJurado';
 import type { ConsultaCuantitativas } from '../ConsultarEvaluacionesCuantitativasRealizadasJurado';
 import OmitirEvaluacionesCuantitativasJuradoBarra from './OmitirEvaluacionesCuantitativasJuradoBarra';
@@ -11,7 +13,6 @@ interface Props {
   finalizada: boolean;
   etiquetaVolver: string;
   onVolver: () => void;
-  onEvaluar?: () => void;
 }
 
 export default function EvaluacionesCuantitativasRealizadasJuradoPanel({
@@ -20,11 +21,21 @@ export default function EvaluacionesCuantitativasRealizadasJuradoPanel({
   finalizada,
   etiquetaVolver,
   onVolver,
-  onEvaluar,
 }: Props) {
   const [marcados, setMarcados] = useState<string[]>([]);
+  const raiz = useRef<HTMLDivElement>(null);
+  const filaAnterior = useRef<string | null>(null);
+  const edicionPuntaje = useEdicionPuntajeEnLineaJurado(evaluacionJuradoId);
   const idsTodas = (consulta.data ?? []).map((fila) => fila.id);
   const seleccionadas = marcados.filter((id) => idsTodas.includes(id));
+  const filaEnEdicion = edicionPuntaje.edicion?.filaId ?? null;
+
+  useEffect(() => {
+    if (filaAnterior.current && !filaEnEdicion) {
+      enfocarElementoVisible(raiz.current, `[data-accion-fila="${filaAnterior.current}"]`);
+    }
+    filaAnterior.current = filaEnEdicion;
+  }, [filaEnEdicion]);
 
   function alternar(id: string) {
     setMarcados((previos) =>
@@ -32,21 +43,9 @@ export default function EvaluacionesCuantitativasRealizadasJuradoPanel({
     );
   }
 
-  if (finalizada) {
-    return (
-      <ConsultarEvaluacionesCuantitativasRealizadasJurado
-        consulta={consulta}
-        etiquetaVolver={etiquetaVolver}
-        onVolver={onVolver}
-        evaluacionJuradoId={evaluacionJuradoId}
-        evaluacionFinalizada
-      />
-    );
-  }
-
   return (
-    <div className={RAIZ}>
-      {idsTodas.length > 0 && (
+    <div ref={raiz} className={RAIZ}>
+      {!finalizada && idsTodas.length > 0 && (
         <OmitirEvaluacionesCuantitativasJuradoBarra
           evaluacionJuradoId={evaluacionJuradoId}
           idsTodas={idsTodas}
@@ -59,9 +58,11 @@ export default function EvaluacionesCuantitativasRealizadasJuradoPanel({
         consulta={consulta}
         etiquetaVolver={etiquetaVolver}
         onVolver={onVolver}
-        onEvaluar={onEvaluar}
-        evaluacionJuradoId={evaluacionJuradoId}
-        seleccion={{ seleccionados: new Set(seleccionadas), onAlternar: alternar }}
+        evaluacionFinalizada={finalizada}
+        seleccion={
+          finalizada ? undefined : { seleccionados: new Set(seleccionadas), onAlternar: alternar }
+        }
+        edicionPuntaje={finalizada ? undefined : edicionPuntaje}
       />
     </div>
   );

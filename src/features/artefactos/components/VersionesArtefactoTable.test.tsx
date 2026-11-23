@@ -139,7 +139,7 @@ describe('VersionesArtefactoTable', () => {
     const { onOrdenar } = renderizar({ mostrarAsesor: true });
 
     // Act
-    await user.click(tabla().getByRole('button', { name: 'Versión' }));
+    await user.click(tabla().getByRole('button', { name: 'Versión del artefacto' }));
     await user.click(tabla().getByRole('button', { name: 'Fecha de creación' }));
 
     // Assert

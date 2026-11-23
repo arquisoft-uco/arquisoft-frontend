@@ -3,7 +3,7 @@ import type { NavegacionVersionesRepositorio } from '../../models/NavegacionVers
 import type { RepositorioArtefacto } from '../../models/RepositorioArtefacto';
 
 const ENLACE =
-  'block truncate text-left font-medium text-on-surface hover:text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
+  'enlace-celda font-medium text-on-surface hover:text-primary hover:underline hover:underline-offset-4 focus-visible:underline';
 
 interface Props {
   repositorio: RepositorioArtefacto;

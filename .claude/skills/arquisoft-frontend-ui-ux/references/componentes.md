@@ -94,7 +94,7 @@ Button.primario | border-transparent bg-primary text-primary-foreground hover:bg
 Button.secundario | border-border-strong bg-surface text-on-surface hover:bg-muted
 Button.fantasma | border-transparent text-primary hover:bg-primary-muted
 Button.peligro | border-transparent bg-danger text-danger-foreground hover:bg-danger/90
-Button.peligroContorno | border-danger bg-surface text-danger-muted-foreground hover:bg-danger-muted
+Button.peligroContorno | border-danger-strong bg-surface text-danger-muted-foreground hover:bg-danger-muted
 Button.spinner | size-4 animate-spin rounded-full border-2 border-current border-t-transparent
 ```
 
@@ -138,7 +138,7 @@ IconButton.peligro | text-on-surface-secondary hover:bg-danger-muted hover:text-
 Badge.base | inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap
 Badge.punto | size-1.5 rounded-full bg-current
 Badge.neutro | bg-muted text-muted-foreground
-Badge.info | bg-primary-muted text-primary-muted-foreground
+Badge.info | bg-info text-info-foreground
 Badge.exito | bg-secondary-muted text-secondary-muted-foreground
 Badge.advertencia | bg-tertiary-muted text-tertiary-muted-foreground
 Badge.peligro | bg-danger-muted text-danger-muted-foreground
@@ -238,7 +238,7 @@ pantalla lo pida.
 ### Notice
 
 - **Reemplaza:** `AvisoNoDisponible` (que pasa a ser un uso de `Notice` con la frase «Esta opción aún no
-  está disponible.»), bordes rojos hechos a mano y `<p className="text-danger">` sueltos.
+  está disponible.»), bordes de error hechos a mano y `<p className="text-danger-strong">` sueltos.
 - **API:** `variante: 'info' | 'exito' | 'advertencia' | 'peligro'`, `titulo?`, `accion?: { etiqueta; onClick }`,
   `etiqueta?` (va a `aria-label` y le da nombre accesible al aviso, por ejemplo «No disponible: asesores») y los
   `children` (el texto).
@@ -616,7 +616,7 @@ FilterBar.panelCierre | grow sm:grow-0
   reexporta. La `etiqueta` de cada acción es su `key`: no repitas una en el mismo menú. El disparador (`RowMenu.tsx`) es un
   `IconButton` con `Ellipsis`.
 - **Reglas:** la fila abre el detalle o el panel con su título; el menú ⋯ agrupa las acciones secundarias **con etiqueta**. La
-  acción que da de baja o elimina (`peligro`) va al final, en rojo, y un `role="separator"` la separa de las demás (no se dibuja si
+  acción que da de baja o elimina (`peligro`) va al final, en naranja (sin rojo), y un `role="separator"` la separa de las demás (no se dibuja si
   es la primera). Se dibuja en un portal (`createPortal`) hacia el modal abierto más cercano al disparador (`[aria-modal="true"]`) o, si no hay, a
   `document.body`: dentro de un `SidePanel` o diálogo el menú debe estar en su contexto de apilamiento, en su trampa de foco y en su
   árbol accesible. La posición se calcula para que el `overflow-x-auto` de la tabla no lo recorte; las coordenadas calculadas son el único `style={{}}` admitido. El borde derecho del

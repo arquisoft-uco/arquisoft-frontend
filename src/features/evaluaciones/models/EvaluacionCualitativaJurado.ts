@@ -3,6 +3,6 @@ import type { ItemCualitativoJurado } from './ItemCualitativoJurado';
 
 export interface EvaluacionCualitativaJurado {
   id: string;
-  item: ItemCualitativoJurado;
+  item: Omit<ItemCualitativoJurado, 'peso'>;
   criterio: CriterioItemCualitativoJurado;
 }

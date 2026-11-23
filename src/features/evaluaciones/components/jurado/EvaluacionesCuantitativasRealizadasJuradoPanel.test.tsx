@@ -1,12 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '../../../../test-utils/render';
+import { render, screen, within } from '../../../../test-utils/render';
 import EvaluacionesCuantitativasRealizadasJuradoPanel from './EvaluacionesCuantitativasRealizadasJuradoPanel';
 import type { ConsultaCuantitativas } from '../ConsultarEvaluacionesCuantitativasRealizadasJurado';
 import type { EvaluacionCuantitativaJurado } from '../../models/EvaluacionCuantitativaJurado';
 
+const { cambiarPuntaje } = vi.hoisted(() => ({ cambiarPuntaje: vi.fn() }));
+
 vi.mock('../../hooks/useOmitirEvaluacionesCuantitativasJurado', () => ({
   useOmitirEvaluacionesCuantitativasJurado: () => ({ isPending: false, mutate: vi.fn() }),
+}));
+vi.mock('../../hooks/useCambiarPuntajeEvaluacionCuantitativaJurado', () => ({
+  useCambiarPuntajeEvaluacionCuantitativaJurado: () => ({
+    isPending: false,
+    mutate: cambiarPuntaje,
+    reset: vi.fn(),
+  }),
 }));
 
 function fila(id: string, item: string): EvaluacionCuantitativaJurado {
@@ -47,14 +56,12 @@ describe('EvaluacionesCuantitativasRealizadasJuradoPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('con la evaluación finalizada muestra el aviso y no hay casillas ni barra', () => {
+  it('con la evaluación finalizada no hay casillas, barra ni acción de cambiar', () => {
     // Arrange / Act
     render(panel([CLARIDAD], true));
 
     // Assert
-    expect(
-      screen.getByText(/ya fue finalizada; no se pueden omitir ni cambiar puntajes/),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Cambiar puntaje/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
   });
@@ -84,5 +91,48 @@ describe('EvaluacionesCuantitativasRealizadasJuradoPanel', () => {
     // Assert
     expect(screen.queryByRole('button', { name: /Omitir/ })).not.toBeInTheDocument();
     expect(screen.getByText('Aún no registraste evaluaciones cuantitativas')).toBeInTheDocument();
+  });
+
+  it('«Cambiar puntaje» abre el editor en la propia fila y «Guardar» envía el puntaje nuevo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel([CLARIDAD, ORDEN]));
+    const tabla = within(screen.getByRole('table'));
+
+    // Act
+    await user.click(tabla.getByRole('button', { name: 'Cambiar puntaje de Orden' }));
+    const campo = tabla.getByRole('textbox', { name: 'Puntaje de Orden' });
+    await user.clear(campo);
+    await user.type(campo, '25{Enter}');
+
+    // Assert
+    expect(cambiarPuntaje).toHaveBeenCalledWith(
+      { evaluacionCuantitativaJuradoId: 'ec-2', puntaje: 25 },
+      expect.any(Object),
+    );
+  });
+
+  it('un puntaje fuera de rango muestra el error bajo el campo y no envía; Esc cancela y devuelve el foco', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(panel([CLARIDAD, ORDEN]));
+    const tabla = within(screen.getByRole('table'));
+    await user.click(tabla.getByRole('button', { name: 'Cambiar puntaje de Orden' }));
+    const campo = tabla.getByRole('textbox', { name: 'Puntaje de Orden' });
+
+    // Act
+    await user.clear(campo);
+    await user.type(campo, '99{Enter}');
+
+    // Assert
+    expect(tabla.getByRole('alert')).toBeInTheDocument();
+    expect(campo).toHaveAttribute('aria-invalid', 'true');
+    expect(cambiarPuntaje).not.toHaveBeenCalled();
+
+    // Act
+    await user.keyboard('{Escape}');
+
+    // Assert
+    expect(tabla.getByRole('button', { name: 'Cambiar puntaje de Orden' })).toHaveFocus();
   });
 });

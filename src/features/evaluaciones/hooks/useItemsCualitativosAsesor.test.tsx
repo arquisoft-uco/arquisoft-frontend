@@ -15,7 +15,7 @@ vi.mock('../services/evaluacionesService', () => ({
 const consultar = vi.mocked(evaluacionesService.getItemsCualitativosAsesor);
 
 const ITEMS: ItemCualitativoAsesor[] = [
-  { id: 'i-1', nombre: 'Claridad', descripcion: 'El documento se comprende.' },
+  { id: 'i-1', nombre: 'Claridad', descripcion: 'El documento se comprende.', peso: 10 },
 ];
 
 function crearContexto() {

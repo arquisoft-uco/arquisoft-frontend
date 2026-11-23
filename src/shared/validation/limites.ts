@@ -37,9 +37,13 @@ export const LIMITES = {
   // Espejo de EvaluacionesLimits.ItemCualitativoJurado del backend.
   ITEM_CUALITATIVO_NOMBRE_MAX: 100,
   ITEM_CUALITATIVO_DESCRIPCION_MAX: 300,
+  ITEM_CUALITATIVO_PESO_MIN: 1,
+  ITEM_CUALITATIVO_PESO_MAX: 500,
   // Espejo de EvaluacionesLimits.ItemCualitativoAsesor del backend.
   ITEM_CUALITATIVO_ASESOR_NOMBRE_MAX: 100,
   ITEM_CUALITATIVO_ASESOR_DESCRIPCION_MAX: 300,
+  ITEM_CUALITATIVO_ASESOR_PESO_MIN: 1,
+  ITEM_CUALITATIVO_ASESOR_PESO_MAX: 500,
   // Espejo de EvaluacionesLimits.ItemCuantitativoJurado del backend.
   ITEM_CUANTITATIVO_NOMBRE_MAX: 100,
   ITEM_CUANTITATIVO_DESCRIPCION_MAX: 300,
@@ -58,8 +62,8 @@ export const LIMITES = {
   // Espejo de RepositorioArtefactosLimits.VersionRepositorioArtefacto (NOMBRE_DOCUMENTO_MAX, NOMBRE_ARCHIVO_MAX).
   VERSION_NOMBRE_DOCUMENTO_MAX: 100,
   VERSION_NOMBRE_ARCHIVO_MAX: 255,
-  // repositorio-artefactos.almacenamiento.tamano-maximo-bytes (application.yml del backend).
-  VERSION_ARCHIVO_TAMANO_MAX_BYTES: 5_242_880,
+  // repositorio-artefactos y artefactos .almacenamiento.tamano-maximo-bytes (application.yml del backend).
+  VERSION_ARCHIVO_TAMANO_MAX_BYTES: 52_428_800,
   // MapasRutaLimits.Tarea.DESCRIPCION_MAX (tarea.descripcion VARCHAR(200)).
   TAREA_DESCRIPCION_MAX: 200,
   // MapasRutaLimits.PlanEstimado.TIEMPO_ESTIMADO_DIAS_MIN

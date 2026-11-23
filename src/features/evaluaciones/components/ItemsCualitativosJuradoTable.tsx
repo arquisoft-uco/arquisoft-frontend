@@ -22,6 +22,11 @@ const COLUMNAS: ColumnaTabla<ItemCualitativoJurado>[] = [
     encabezado: 'Descripción',
     celda: (item) => <span className="text-on-surface-secondary">{item.descripcion}</span>,
   },
+  {
+    id: 'peso',
+    encabezado: 'Peso',
+    celda: (item) => <span className="tabular-nums text-on-surface">{item.peso}</span>,
+  },
 ];
 
 export default function ItemsCualitativosJuradoTable({ items, onEditar, onRemover }: Props) {
@@ -59,6 +64,7 @@ export default function ItemsCualitativosJuradoTable({ items, onEditar, onRemove
         <>
           <p className="font-medium text-on-surface">{item.nombre}</p>
           <p className="text-sm text-on-surface-secondary">{item.descripcion}</p>
+          <p className="text-sm tabular-nums text-on-surface-secondary">Peso: {item.peso}</p>
         </>
       )}
       vacio={<EmptyState icono={ClipboardList} titulo="No hay ítems cualitativos registrados." />}

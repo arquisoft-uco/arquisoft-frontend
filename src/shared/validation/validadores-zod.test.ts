@@ -18,6 +18,7 @@ import {
   validarParDeNombres,
   fechaIso,
   validarFechaFinPosterior,
+  validarRangoFechas,
   archivoPermitido,
 } from './validadores-zod';
 
@@ -45,8 +46,12 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.USUARIO_CONTACTO_MAX).toBe(15);
     expect(LIMITES.ITEM_CUALITATIVO_NOMBRE_MAX).toBe(100);
     expect(LIMITES.ITEM_CUALITATIVO_DESCRIPCION_MAX).toBe(300);
+    expect(LIMITES.ITEM_CUALITATIVO_PESO_MIN).toBe(1);
+    expect(LIMITES.ITEM_CUALITATIVO_PESO_MAX).toBe(500);
     expect(LIMITES.ITEM_CUALITATIVO_ASESOR_NOMBRE_MAX).toBe(100);
     expect(LIMITES.ITEM_CUALITATIVO_ASESOR_DESCRIPCION_MAX).toBe(300);
+    expect(LIMITES.ITEM_CUALITATIVO_ASESOR_PESO_MIN).toBe(1);
+    expect(LIMITES.ITEM_CUALITATIVO_ASESOR_PESO_MAX).toBe(500);
     expect(LIMITES.ITEM_CUANTITATIVO_NOMBRE_MAX).toBe(100);
     expect(LIMITES.ITEM_CUANTITATIVO_DESCRIPCION_MAX).toBe(300);
     expect(LIMITES.ITEM_CUANTITATIVO_VALOR_MIN).toBe(0);
@@ -65,7 +70,7 @@ describe('límites alineados al backend', () => {
     expect(LIMITES.OBSERVACION_REVISION_ARTEFACTO_MAX).toBe(1000);
     expect(LIMITES.VERSION_NOMBRE_DOCUMENTO_MAX).toBe(100);
     expect(LIMITES.VERSION_NOMBRE_ARCHIVO_MAX).toBe(255);
-    expect(LIMITES.VERSION_ARCHIVO_TAMANO_MAX_BYTES).toBe(5_242_880);
+    expect(LIMITES.VERSION_ARCHIVO_TAMANO_MAX_BYTES).toBe(52_428_800);
     expect(LIMITES.TAREA_DESCRIPCION_MAX).toBe(200);
     expect(LIMITES.ARTEFACTO_DIAS_SIN_AVANCE_MIN).toBe(1);
     expect(LIMITES.ARTEFACTO_DIAS_SIN_AVANCE_MAX).toBe(365);
@@ -440,5 +445,19 @@ describe('archivoPermitido', () => {
     expect(mensaje(archivo('a.pdf', 0))).toBe(MENSAJES_VALIDACION.archivoVacio);
     expect(mensaje(archivo('a.pdf', 11))).toBe(MENSAJES_VALIDACION.archivoMuyGrande(10));
     expect(mensaje(archivo('A.PDF', 10))).toBeNull();
+  });
+});
+
+describe('validarRangoFechas', () => {
+  it('rechaza un rango invertido y acepta igual, correcto, incompleto o irreal', () => {
+    // Assert
+    expect(validarRangoFechas('2026-11-10', '2026-11-01')).toBe(
+      MENSAJES_VALIDACION.rangoFechasInvertido,
+    );
+    expect(validarRangoFechas('2026-11-10', '2026-11-10')).toBeUndefined();
+    expect(validarRangoFechas('2026-11-01', '2026-11-10')).toBeUndefined();
+    expect(validarRangoFechas('2026-11-10', '')).toBeUndefined();
+    expect(validarRangoFechas('', '2026-11-01')).toBeUndefined();
+    expect(validarRangoFechas('2026-02-31', '2026-01-01')).toBeUndefined();
   });
 });

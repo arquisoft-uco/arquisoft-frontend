@@ -54,13 +54,15 @@ describe('useRegistrarEvaluacionesCuantitativasJurado', () => {
     // Assert
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(registrar).toHaveBeenCalledWith({ evaluacionJuradoId: 'ej-1', evaluaciones: PARES });
-    expect(invalidar).toHaveBeenCalledTimes(1);
+    expect(invalidar).toHaveBeenCalledTimes(3);
     expect(invalidar).toHaveBeenCalledWith({
       queryKey: ['evaluaciones', 'jurado', 'ej-1', 'cuantitativas'],
     });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluaciones', 'jurado', 'asignada'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['evaluaciones', 'jurado', 'asignadas'] });
   });
 
-  it('invalida el catálogo de ítems solo cuando el backend dice que alguno ya no existe', async () => {
+  it('invalida el catálogo si algún ítem ya no existe y las realizadas si ya estaba registrado', async () => {
     // Arrange
     const { Wrapper, invalidar } = crearContexto();
     const { result } = renderHook(() => useRegistrarEvaluacionesCuantitativasJurado('ej-1'), {
@@ -89,7 +91,11 @@ describe('useRegistrarEvaluacionesCuantitativasJurado', () => {
 
     // Assert
     await waitFor(() => expect(registrar).toHaveBeenCalledTimes(2));
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(invalidar).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(invalidar).toHaveBeenCalledWith({
+        queryKey: ['evaluaciones', 'jurado', 'ej-1', 'cuantitativas'],
+      }),
+    );
+    expect(invalidar).toHaveBeenCalledTimes(1);
   });
 });
