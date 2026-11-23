@@ -225,8 +225,14 @@ docker run -p 80:80 \
   -e SECURITY_UI_ORIGIN=https://security-ui.ejemplo.com \
   -e API_ORIGIN=https://api.ejemplo.com \
   -e KEYCLOAK_ORIGIN=https://keycloak.ejemplo.com \
+  -e STORAGE_ORIGIN=https://s3.ejemplo.com \
   arquisoft-frontend
 ```
 
 `nginx.conf.template` se procesa con `envsubst` al arrancar (`script-src` con `SECURITY_UI_ORIGIN`,
-`connect-src` con los otros tres). Sin definirlas quedan vacías.
+`connect-src` con los otros cuatro). Sin definirlas quedan vacías.
+
+`STORAGE_ORIGIN` es el endpoint S3 al que el navegador sube directo con el formulario firmado que
+entrega el backend (p. ej. al cargar una versión de un artefacto). No tiene `VITE_*` porque la URL
+llega en la respuesta del backend; en el deploy sale de la variable de Actions `STORAGE_URL`. Si
+falta, la CSP bloquea la subida y el navegador la reporta como error de red, sin status.
