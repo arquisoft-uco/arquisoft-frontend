@@ -23,6 +23,7 @@ const ASIGNACION: EvaluacionAsignadaJurado = {
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
   tieneEvaluacionesCualitativas: false,
   tieneEvaluacionesCuantitativas: true,
+  notas: { resumenCualitativo: 3.5, resumenCuantitativo: 4, notaAcumulada: 3.8 },
 };
 
 const FINALIZADA: EvaluacionAsignadaJurado = {
@@ -32,6 +33,7 @@ const FINALIZADA: EvaluacionAsignadaJurado = {
   entregable: { id: 'en-2', proyecto: 'Plataforma de riego', version: 1 },
   tieneEvaluacionesCualitativas: true,
   tieneEvaluacionesCuantitativas: true,
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 };
 
 type Hook = ReturnType<typeof useEvaluacionesAsignadasJurado>;
@@ -130,6 +132,8 @@ describe('ConsultarEvaluacionesAsignadasJurado', () => {
     const tabla = screen.getByRole('table', { name: 'Evaluaciones asignadas' });
     expect(tabla).toHaveTextContent('Sistema de monitoreo');
     expect(tabla).toHaveTextContent('Pendiente por evaluar');
+    expect(tabla).toHaveTextContent('3,80');
+    expect(tabla).toHaveTextContent('Cualitativa 3,50 · Cuantitativa 4,00');
 
     // Act
     mockHook({ data: [ASIGNACION, FINALIZADA] });

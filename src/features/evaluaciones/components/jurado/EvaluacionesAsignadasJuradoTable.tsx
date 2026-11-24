@@ -8,6 +8,8 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { varianteEstadoEvaluacionJurado } from '../../../../shared/utils/estado-variante';
 import { textoEvaluacionFaltante } from '../../utils/estados-evaluacion-jurado';
 import type { EvaluacionAsignadaJurado } from '../../models/EvaluacionAsignadaJurado';
+import { textoDesgloseNotasEvaluador } from '../../utils/formato-nota';
+import NotaEvaluacion from '../NotaEvaluacion';
 
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
 const TITULO = 'font-medium text-on-surface';
@@ -53,6 +55,16 @@ const COLUMNAS: ColumnaTabla<EvaluacionAsignadaJurado>[] = [
       <div className={TARJETA_ESTADO}>
         <InsigniaEstado asignacion={asignacion} />
       </div>
+    ),
+  },
+  {
+    id: 'notaAcumulada',
+    encabezado: 'Nota acumulada',
+    celda: (asignacion) => (
+      <NotaEvaluacion
+        valor={asignacion.notas.notaAcumulada}
+        desglose={textoDesgloseNotasEvaluador(asignacion.notas)}
+      />
     ),
   },
 ];
@@ -101,6 +113,10 @@ export default function EvaluacionesAsignadasJuradoTable({
           <div className={TARJETA_ESTADO}>
             <InsigniaEstado asignacion={asignacion} />
           </div>
+          <NotaEvaluacion
+            valor={asignacion.notas.notaAcumulada}
+            desglose={textoDesgloseNotasEvaluador(asignacion.notas)}
+          />
         </>
       )}
     />
