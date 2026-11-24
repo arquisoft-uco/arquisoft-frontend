@@ -3,16 +3,18 @@ import { useLocation } from 'react-router';
 import PageHeader from '../../../shared/components/ui/PageHeader';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { useParametrosListado } from '../../../shared/hooks/useParametrosListado';
+import ConsultarEstadosRevisionAsesor from './ConsultarEstadosRevisionAsesor';
 import ConsultarArtefactosEstudiante from './estudiante/ConsultarArtefactosEstudiante';
 import ConsultarParticipacionesEstudiante from './estudiante/ConsultarParticipacionesEstudiante';
 import ConsultarVersionesArtefactoEstudiante from './estudiante/ConsultarVersionesArtefactoEstudiante';
 
-type Vista = 'mis-artefactos' | 'versiones-revisiones' | 'artefactos-proyecto';
+type Vista = 'mis-artefactos' | 'versiones-revisiones' | 'artefactos-proyecto' | 'estados';
 
 const CONTENIDO_POR_VISTA: Record<Vista, ComponentType> = {
   'mis-artefactos': ConsultarParticipacionesEstudiante,
   'versiones-revisiones': ConsultarVersionesArtefactoEstudiante,
   'artefactos-proyecto': ConsultarArtefactosEstudiante,
+  estados: ConsultarEstadosRevisionAsesor,
 };
 
 const DESCRIPCION_POR_VISTA: Record<Vista, string> = {
@@ -22,6 +24,7 @@ const DESCRIPCION_POR_VISTA: Record<Vista, string> = {
     'Historial de las versiones que has subido, con el estado de su revisión.',
   'artefactos-proyecto':
     'Todos los artefactos de los proyectos de grado a los que perteneces, aunque no estés asignado a cada uno.',
+  estados: 'Estados por los que pasa una revisión de tu asesor y qué significa cada uno.',
 };
 
 function leerVista(valor: string): Vista {
@@ -53,6 +56,11 @@ export default function EstudianteView() {
             id: 'artefactos-proyecto',
             etiqueta: 'Artefactos proyecto',
             to: `${pathname}?vista=artefactos-proyecto`,
+          },
+          {
+            id: 'estados',
+            etiqueta: 'Estados de revisión',
+            to: `${pathname}?vista=estados`,
           },
         ]}
       />
