@@ -5,6 +5,7 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import ListaPersonas from '../../../../shared/components/ui/ListaPersonas';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage, hasApiErrorCode } from '../../../../shared/utils/api-error';
+import NotasEvaluadorPanel from './NotasEvaluadorPanel';
 import type { EvaluacionAsesor } from '../../models/EvaluacionAsesor';
 import {
   EVALUACION_ASESOR_SIN_EVALUACION_ASESOR,
@@ -75,5 +76,10 @@ export default function ConsultarEvaluacionAsesor({ consulta, onVolver }: Props)
     return <Skeleton variante="lineas" etiqueta="Cargando la evaluación del asesor" />;
   }
 
-  return <ListaPersonas personas={[data.asesor]} etiqueta="Asesor de la evaluación" />;
+  return (
+    <div className="flex flex-col gap-4">
+      <ListaPersonas personas={[data.asesor]} etiqueta="Asesor de la evaluación" />
+      <NotasEvaluadorPanel notas={data.notas} />
+    </div>
+  );
 }
