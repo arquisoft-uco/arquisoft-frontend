@@ -26,6 +26,7 @@ const evaluacion: EvaluacionAsignadaAsesor = {
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 1 },
   tieneEvaluacionesCualitativas: true,
   tieneEvaluacionesCuantitativas: false,
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 };
 
 function crearPagina(

@@ -1,5 +1,6 @@
 import type { EntregableEvaluacion } from './Evaluacion';
 import type { EstadoEvaluacion } from './EstadoEvaluacion';
+import type { NotasEvaluador } from './NotasEvaluador';
 
 export interface EvaluacionAsignadaAsesor {
   id: string;
@@ -10,4 +11,5 @@ export interface EvaluacionAsignadaAsesor {
   entregable: EntregableEvaluacion;
   tieneEvaluacionesCualitativas: boolean;
   tieneEvaluacionesCuantitativas: boolean;
+  notas: NotasEvaluador;
 }

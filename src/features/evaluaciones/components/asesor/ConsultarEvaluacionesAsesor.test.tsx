@@ -20,6 +20,7 @@ const EVALUACION: EvaluacionAsignadaAsesor = {
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 3 },
   tieneEvaluacionesCualitativas: false,
   tieneEvaluacionesCuantitativas: false,
+  notas: { resumenCualitativo: 3.5, resumenCuantitativo: 4, notaAcumulada: 3.8 },
 };
 
 function crearPagina(content: EvaluacionAsignadaAsesor[]) {
@@ -88,7 +89,9 @@ describe('ConsultarEvaluacionesAsesor', () => {
     expect(tabla.getByText('Sistema de monitoreo')).toBeInTheDocument();
     expect(tabla.getByText('3')).toBeInTheDocument();
     expect(tabla.getByText('Pendiente')).toBeInTheDocument();
-    expect(tabla.getAllByRole('columnheader')).toHaveLength(4);
+    expect(tabla.getAllByRole('columnheader')).toHaveLength(5);
+    expect(tabla.getByText('3,80')).toBeInTheDocument();
+    expect(tabla.getByText('Cualitativa 3,50 · Cuantitativa 4,00')).toBeInTheDocument();
     expect(
       tabla.getAllByRole('button', { name: /^Gestionar (cuali|cuanti)tativas de/ }),
     ).toHaveLength(2);
