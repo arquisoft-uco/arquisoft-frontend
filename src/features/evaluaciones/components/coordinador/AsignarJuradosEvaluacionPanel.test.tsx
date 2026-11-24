@@ -25,6 +25,8 @@ const EVALUACION: Evaluacion = {
   id: 'e-1',
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
   estado: { id: 'PENDIENTE', nombre: 'Pendiente' },
+  notas: { notaAsesor: null, notaJurados: null, notaFinal: null },
+  resultado: null,
 };
 
 const ID_ANA = '11111111-1111-4111-8111-111111111111';

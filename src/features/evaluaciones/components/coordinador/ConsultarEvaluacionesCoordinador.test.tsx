@@ -46,6 +46,8 @@ const EVALUACION: Evaluacion = {
   id: 'e-1',
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 1 },
   estado: { id: 'PENDIENTE', nombre: 'Pendiente' },
+  notas: { notaAsesor: null, notaJurados: null, notaFinal: null },
+  resultado: null,
 };
 
 function crearPagina(

@@ -18,6 +18,7 @@ const ASIGNACION: EvaluacionAsignadaJurado = {
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
   tieneEvaluacionesCualitativas: false,
   tieneEvaluacionesCuantitativas: false,
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 };
 
 type Consulta = ReturnType<typeof useEvaluacionAsignadaJurado>;
@@ -139,6 +140,7 @@ describe('GestionEvaluacionMarco', () => {
       entregable: { id: 'en-1', proyecto: 'Proyecto del asesor', version: 3 },
       tieneEvaluacionesCualitativas: false,
       tieneEvaluacionesCuantitativas: false,
+      notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
     };
 
     // Act

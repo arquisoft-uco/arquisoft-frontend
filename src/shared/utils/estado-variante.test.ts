@@ -13,6 +13,7 @@ import {
   varianteEstadoRevision,
   varianteEstadoRevisionAsesor,
   varianteEstadoUsuario,
+  varianteResultadoEvaluacion,
 } from './estado-variante';
 
 describe('varianteEstadoFicha', () => {
@@ -198,5 +199,16 @@ describe('varianteEstadoDocumentacion', () => {
     expect(varianteEstadoDocumentacion('NO_PUBLICADO')).toBe('neutro');
     expect(varianteEstadoDocumentacion('ESTADO_INEXISTENTE')).toBe('neutro');
     expect(varianteEstadoDocumentacion('constructor')).toBe('neutro');
+  });
+});
+
+describe('varianteResultadoEvaluacion', () => {
+  it('asigna su variante a cada resultado del catálogo y deja en neutro lo desconocido', () => {
+    // Act / Assert
+    expect(varianteResultadoEvaluacion('APROBADA')).toBe('exito');
+    expect(varianteResultadoEvaluacion('APROBADA_CON_OBSERVACIONES')).toBe('advertencia');
+    expect(varianteResultadoEvaluacion('RECHAZADA')).toBe('peligro');
+    expect(varianteResultadoEvaluacion('RESULTADO_INEXISTENTE')).toBe('neutro');
+    expect(varianteResultadoEvaluacion('constructor')).toBe('neutro');
   });
 });
