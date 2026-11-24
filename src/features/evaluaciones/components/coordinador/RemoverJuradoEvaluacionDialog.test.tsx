@@ -17,6 +17,7 @@ vi.mock('../../../../shared/hooks/useToast', () => ({
 const JURADO: EvaluacionJurado = {
   id: 'ej-1',
   jurado: { id: 'j-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 };
 
 type MutateOptions = {

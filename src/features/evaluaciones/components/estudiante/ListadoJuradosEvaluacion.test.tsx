@@ -9,6 +9,7 @@ import type { EvaluacionJurado } from '../../models/EvaluacionJurado';
 const JURADO: EvaluacionJurado = {
   id: 'ej-1',
   jurado: { id: 'j-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+  notas: { resumenCualitativo: 3.5, resumenCuantitativo: 4, notaAcumulada: 3.8 },
 };
 
 function crearPagina(content: EvaluacionJurado[]): Page<EvaluacionJurado> {
@@ -71,7 +72,9 @@ describe('ListadoJuradosEvaluacion', () => {
     expect(tabla.getByText('Ana Pérez')).toBeInTheDocument();
     expect(tabla.getByText('ana@uco.edu.co')).toBeInTheDocument();
     expect(screen.getByText('1 jurado')).toBeInTheDocument();
-    expect(tabla.getAllByRole('columnheader')).toHaveLength(2);
+    expect(tabla.getAllByRole('columnheader')).toHaveLength(3);
+    expect(tabla.getByText('3,80')).toBeInTheDocument();
+    expect(tabla.getByText('Cualitativa 3,50 · Cuantitativa 4,00')).toBeInTheDocument();
   });
 
   it('sin jurados asignados muestra el vacío y no un error', () => {

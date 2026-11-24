@@ -12,7 +12,13 @@ vi.mock('../services/evaluacionesService', () => ({
 const consultar = vi.mocked(evaluacionesService.getJuradosEvaluacion);
 
 const PAGINA: Page<EvaluacionJurado> = {
-  content: [{ id: 'ej-1', jurado: { id: 'j-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' } }],
+  content: [
+    {
+      id: 'ej-1',
+      jurado: { id: 'j-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+      notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
+    },
+  ],
   page: 0,
   size: 10,
   totalElements: 1,
