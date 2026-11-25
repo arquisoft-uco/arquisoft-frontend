@@ -63,6 +63,23 @@ describe('EvaluacionesFichaPanel', () => {
     expect(screen.getByText('Evaluada por Luis Mora')).toBeInTheDocument();
   });
 
+  it('una evaluación descartada lleva la nota «No cuenta para la decisión» y las demás no', () => {
+    // Arrange
+    mockConsulta({
+      data: [
+        APROBADA,
+        { ...SIN_ESTADO, estadoEvaluacionId: 'DESCARTADA', estadoEvaluacionNombre: 'Descartada' },
+      ],
+    });
+
+    // Act
+    render(<EvaluacionesFichaPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getAllByText('No cuenta para la decisión')).toHaveLength(1);
+    expect(screen.getByText('Descartada')).toBeInTheDocument();
+  });
+
   it('con una sola evaluación usa el singular', () => {
     // Arrange
     mockConsulta({ data: [APROBADA] });

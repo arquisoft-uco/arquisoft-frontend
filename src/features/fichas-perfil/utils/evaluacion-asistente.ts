@@ -1,10 +1,11 @@
+import { ESTADO_FICHA_DECIDIBLE } from './decision-ficha';
 import type { EstadoEvaluacion, EvaluacionFichaPerfil } from '../models/fichas-perfil';
 
 export type PasoAsistente = 'iniciar' | 'observaciones' | 'estado';
 
 export const ESTADOS_SIN_OBSERVACIONES = ['APROBADA', 'NO_APROBADA'];
 export const ESTADOS_CON_OBSERVACIONES = ['APROBADA_CON_OBSERVACIONES', 'NO_APROBADA'];
-const ESTADOS_FINALES = ['APROBADA', 'APROBADA_CON_OBSERVACIONES', 'NO_APROBADA', 'DESCARTADA'];
+const ESTADOS_FINALES = ['APROBADA', 'APROBADA_CON_OBSERVACIONES', 'NO_APROBADA'];
 
 export const PREGUNTA_GUIA_POR_ESTADO: Record<string, string> = {
   APROBADA: '¿La ficha cumple sin reservas?',
@@ -33,4 +34,55 @@ export function evaluacionEnEstadoFinal(evaluacion: EvaluacionFichaPerfil): bool
     evaluacion.estadoEvaluacionId !== null &&
     ESTADOS_FINALES.includes(evaluacion.estadoEvaluacionId)
   );
+}
+
+export function evaluacionDescartada(evaluacion: EvaluacionFichaPerfil): boolean {
+  return evaluacion.estadoEvaluacionId === 'DESCARTADA';
+}
+
+export function evaluacionEnCurso(evaluacion: EvaluacionFichaPerfil): boolean {
+  return !evaluacionEnEstadoFinal(evaluacion) && !evaluacionDescartada(evaluacion);
+}
+
+export function evaluacionVigente(
+  evaluaciones: EvaluacionFichaPerfil[],
+): EvaluacionFichaPerfil | undefined {
+  return evaluaciones[evaluaciones.length - 1];
+}
+
+export function fichaAdmiteEvaluacion(estadoId?: string): boolean {
+  return estadoId === ESTADO_FICHA_DECIDIBLE;
+}
+
+export interface AccionesEvaluacionRepresentante {
+  principal: 'iniciar' | 'evaluar' | 'reanudar' | null;
+  puedeDescartar: boolean;
+  descartadaSinAccion: boolean;
+}
+
+export function accionesEvaluacionRepresentante({
+  vigente,
+  fichaDisponible,
+}: {
+  vigente: EvaluacionFichaPerfil | undefined;
+  fichaDisponible: boolean;
+}): AccionesEvaluacionRepresentante {
+  if (!vigente) {
+    return {
+      principal: fichaDisponible ? 'iniciar' : null,
+      puedeDescartar: false,
+      descartadaSinAccion: false,
+    };
+  }
+  if (evaluacionDescartada(vigente)) {
+    return {
+      principal: fichaDisponible ? 'reanudar' : null,
+      puedeDescartar: false,
+      descartadaSinAccion: !fichaDisponible,
+    };
+  }
+  if (evaluacionEnCurso(vigente)) {
+    return { principal: 'evaluar', puedeDescartar: fichaDisponible, descartadaSinAccion: false };
+  }
+  return { principal: null, puedeDescartar: false, descartadaSinAccion: false };
 }

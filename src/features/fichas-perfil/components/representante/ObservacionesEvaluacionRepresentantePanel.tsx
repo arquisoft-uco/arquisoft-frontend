@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useObservacionesEvaluacionRepresentante } from '../../hooks/useObservacionesEvaluacionRepresentante';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import type { ObservacionEvaluacion } from '../../models/ObservacionEvaluacion';
-import { evaluacionEnEstadoFinal } from '../../utils/evaluacion-asistente';
+import { evaluacionDescartada, evaluacionEnEstadoFinal } from '../../utils/evaluacion-asistente';
 import ObservacionesEvaluacionPanelBase from '../ObservacionesEvaluacionPanelBase';
 import EditarObservacionEvaluacionForm from './EditarObservacionEvaluacionForm';
 import EliminarObservacionEvaluacionDialogo from './EliminarObservacionEvaluacionDialogo';
@@ -18,6 +18,8 @@ export default function ObservacionesEvaluacionRepresentantePanel({ evaluacion, 
   const { observaciones, isLoading, cargado, isError, error, refetch } =
     useObservacionesEvaluacionRepresentante(evaluacion.fichaPerfilId, evaluacion.id);
 
+  const descartada = evaluacionDescartada(evaluacion);
+
   return (
     <>
       <ObservacionesEvaluacionPanelBase
@@ -32,8 +34,8 @@ export default function ObservacionesEvaluacionRepresentantePanel({ evaluacion, 
         onReintentar={refetch}
         descripcionVacia="Cuando las registres, las verás aquí."
         onCerrar={onCerrar}
-        onEditar={setEnEdicion}
-        onEliminar={evaluacionEnEstadoFinal(evaluacion) ? undefined : setPorEliminar}
+        onEditar={descartada ? undefined : setEnEdicion}
+        onEliminar={descartada || evaluacionEnEstadoFinal(evaluacion) ? undefined : setPorEliminar}
       />
       {enEdicion && (
         <EditarObservacionEvaluacionForm

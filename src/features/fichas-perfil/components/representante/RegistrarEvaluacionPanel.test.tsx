@@ -1,14 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ReactNode } from 'react';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
+import { useResumenFicha } from '../../hooks/useResumenFicha';
 import { useRegistrarEvaluacion } from '../../hooks/useRegistrarEvaluacion';
 import { toast } from '../../../../shared/hooks/useToast';
 import RegistrarEvaluacionPanel from './RegistrarEvaluacionPanel';
 
 vi.mock('../../hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
+vi.mock('../../hooks/useResumenFicha', () => ({ useResumenFicha: vi.fn() }));
 vi.mock('../../hooks/useRegistrarEvaluacion', () => ({ useRegistrarEvaluacion: vi.fn() }));
+vi.mock('../../hooks/useDescartarEvaluacion', () => ({
+  useDescartarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
@@ -16,12 +22,15 @@ vi.mock('./AsistenteEvaluacion', () => ({
   default: ({
     evaluacion,
     onVerObservaciones,
+    accionTarjeta,
   }: {
     evaluacion: { id: string };
     onVerObservaciones: () => void;
+    accionTarjeta?: ReactNode;
   }) => (
     <div>
       <p>Asistente de {evaluacion.id}</p>
+      {accionTarjeta}
       <button type="button" onClick={onVerObservaciones}>
         Ver observaciones
       </button>
@@ -71,6 +80,10 @@ const reciente: EvaluacionFichaPerfil = {
 describe('RegistrarEvaluacionPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useResumenFicha).mockReturnValue({
+      resumen: { estadoId: 'DISPONIBLE_PARA_EVALUACION' },
+      search: '',
+    } as ReturnType<typeof useResumenFicha>);
     registro.mockReturnValue({
       data: undefined,
       variables: undefined,
@@ -238,5 +251,80 @@ describe('RegistrarEvaluacionPanel', () => {
     expect(toast.error).toHaveBeenCalledWith('Error al iniciar la evaluación', expect.any(String));
     expect(toast.success).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  function simularFicha(estadoId: string) {
+    vi.mocked(useResumenFicha).mockReturnValue({
+      resumen: { estadoId },
+      search: '',
+    } as ReturnType<typeof useResumenFicha>);
+  }
+
+  const descartada: EvaluacionFichaPerfil = {
+    ...reciente,
+    estadoEvaluacionId: 'DESCARTADA',
+    estadoEvaluacionNombre: 'Descartada',
+  };
+
+  it('con la evaluación descartada y la ficha disponible muestra la tarjeta con «Reanudar evaluación» y sin asistente', () => {
+    // Arrange
+    mockConsulta({ data: [descartada] });
+
+    // Act
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByText('Evaluación descartada')).toBeInTheDocument();
+    expect(screen.getByText('No cuenta para la decisión del coordinador.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reanudar evaluación' })).toBeEnabled();
+    expect(screen.queryByText(/Asistente de/)).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación descartada y la ficha no disponible avisa sin ofrecer acciones', () => {
+    // Arrange
+    simularFicha('EN_REVISION');
+    mockConsulta({ data: [descartada] });
+
+    // Act
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByText(/ya no está disponible para evaluación/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reanudar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación en curso ofrece «Descartar evaluación» en la tarjeta solo si la ficha está disponible', () => {
+    // Arrange
+    mockConsulta({ data: [reciente] });
+
+    // Act
+    const disponible = render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Descartar evaluación' })).toBeEnabled();
+    disponible.unmount();
+
+    // Arrange
+    simularFicha('EN_REVISION');
+
+    // Act
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByText('Asistente de ev-2')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descartar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('sin evaluación y con la ficha no disponible explica el motivo y no ofrece «Iniciar evaluación»', () => {
+    // Arrange
+    simularFicha('EN_REVISION');
+    mockConsulta({ data: [] });
+
+    // Act
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByText(/no está disponible para evaluación/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
   });
 });

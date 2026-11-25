@@ -25,8 +25,8 @@ const EVALUACION: EvaluacionFichaPerfil = {
   id: 'ev-1',
   fichaPerfilId: 'f-1',
   fechaCreacion: '2026-09-01T10:00:00Z',
-  estadoEvaluacionId: 'DESCARTADA',
-  estadoEvaluacionNombre: 'Descartada',
+  estadoEvaluacionId: 'APROBADA',
+  estadoEvaluacionNombre: 'Aprobada',
 };
 
 const EVALUACION_ABIERTA: EvaluacionFichaPerfil = {
@@ -121,8 +121,47 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
     // Assert
     expect(screen.getByText('Ajustar el alcance')).toBeInTheDocument();
     expect(screen.getByText('Precisar la metodología')).toBeInTheDocument();
-    expect(screen.getByText('Descartada')).toBeInTheDocument();
+    expect(screen.getByText('Aprobada')).toBeInTheDocument();
     expect(onCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('con la evaluación descartada lista las observaciones sin «Editar» ni «Eliminar»; en curso ofrece ambos', () => {
+    // Arrange
+    conObservaciones({
+      observaciones: [
+        { id: 'o-1', evaluacionFichaPerfilId: 'ev-1', observacion: 'Ajustar el alcance' },
+      ],
+    });
+
+    // Act
+    const descartada = render(
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={{
+          ...EVALUACION,
+          estadoEvaluacionId: 'DESCARTADA',
+          estadoEvaluacionNombre: 'Descartada',
+        }}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByText('Ajustar el alcance')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Editar observación' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Eliminar observación' })).not.toBeInTheDocument();
+    descartada.unmount();
+
+    // Act
+    render(
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={EVALUACION_ABIERTA}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Editar observación' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Eliminar observación' })).toBeInTheDocument();
   });
 
   it('«Editar observación» abre el formulario con el texto de esa fila y al cerrarlo el panel sigue abierto', async () => {

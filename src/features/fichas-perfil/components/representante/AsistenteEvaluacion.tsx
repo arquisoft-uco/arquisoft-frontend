@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { useObservacionesEvaluacionRepresentante } from '../../hooks/useObservacionesEvaluacionRepresentante';
@@ -12,12 +12,14 @@ interface Props {
   evaluacion: EvaluacionFichaPerfil;
   fichaPerfilId: string;
   onVerObservaciones: () => void;
+  accionTarjeta?: ReactNode;
 }
 
 export default function AsistenteEvaluacion({
   evaluacion,
   fichaPerfilId,
   onVerObservaciones,
+  accionTarjeta,
 }: Props) {
   const [paso, setPaso] = useState<'observaciones' | 'estado'>('observaciones');
   const { observaciones, tieneDatos, isError, refetch } = useObservacionesEvaluacionRepresentante(
@@ -62,6 +64,7 @@ export default function AsistenteEvaluacion({
         titulo="Evaluación en curso"
         evaluacion={evaluacion}
         onVerObservaciones={onVerObservaciones}
+        acciones={accionTarjeta}
       />
       <PasosEvaluacionIndicador paso={paso} />
       {contenido}

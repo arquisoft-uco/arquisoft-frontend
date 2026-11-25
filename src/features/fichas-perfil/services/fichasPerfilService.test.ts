@@ -52,6 +52,20 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('descartarEvaluacion', () => {
+    it('hace PATCH /fichas-perfil/evaluaciones/{id}/descarte sin cuerpo y resuelve undefined', async () => {
+      // Arrange
+      patch.mockResolvedValue({ status: 204, data: '' });
+
+      // Act
+      const resultado = await fichasPerfilService.descartarEvaluacion('ev-1');
+
+      // Assert
+      expect(patch).toHaveBeenCalledWith('/fichas-perfil/evaluaciones/ev-1/descarte');
+      expect(resultado).toBeUndefined();
+    });
+  });
+
   describe('modificarObservacionEvaluacion', () => {
     it('hace PATCH /fichas-perfil/observaciones-evaluacion/{id} con solo { observacion } y resuelve undefined', async () => {
       // Arrange
