@@ -4,6 +4,9 @@ import { render, screen } from '../../../../test-utils/render';
 import ItemsFichaRepresentantePanel from './ItemsFichaRepresentantePanel';
 import { useItemsFichaRepresentante } from '../../hooks/useItemsFichaRepresentante';
 import type { Item } from '../../models/fichas-perfil';
+import { useEvaluacionDescartada } from '../../hooks/useEvaluacionDescartada';
+
+vi.mock('../../hooks/useEvaluacionDescartada', () => ({ useEvaluacionDescartada: vi.fn() }));
 
 vi.mock('../../hooks/useTiposItem', () => ({ useTiposItem: vi.fn() }));
 vi.mock('../../hooks/useItemsFichaRepresentante', () => ({
@@ -39,6 +42,7 @@ const ITEM_2: Item = {
 describe('ItemsFichaRepresentantePanel', () => {
   beforeEach(() => {
     vi.mocked(useItemsFichaRepresentante).mockReset();
+    vi.mocked(useEvaluacionDescartada).mockReturnValue({ descartada: false, cargando: false });
   });
 
   it('consulta los ítems de la ficha indicada y muestra la carga accesible', () => {
@@ -77,6 +81,19 @@ describe('ItemsFichaRepresentantePanel', () => {
 
     // Assert
     expect(screen.getByText('Esta ficha aún no tiene ítems.')).toBeInTheDocument();
+  });
+
+  it('con la evaluación descartada y sin ítems explica cómo reanudarla en lugar del vacío genérico', () => {
+    // Arrange
+    vi.mocked(useEvaluacionDescartada).mockReturnValue({ descartada: true, cargando: false });
+    vi.mocked(useItemsFichaRepresentante).mockReturnValue(crearHookMock({ data: [] }));
+
+    // Act
+    render(<ItemsFichaRepresentantePanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByText('Tu evaluación está descartada')).toBeInTheDocument();
+    expect(screen.queryByText('Esta ficha aún no tiene ítems.')).not.toBeInTheDocument();
   });
 
   it('lista cada ítem con su tipo y su contenido, y ofrece la ayuda de tipos de ítem', () => {

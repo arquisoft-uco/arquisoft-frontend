@@ -1,8 +1,9 @@
-import { History } from 'lucide-react';
+import { Ban, History } from 'lucide-react';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
+import { useEvaluacionDescartada } from '../../hooks/useEvaluacionDescartada';
 import { useHistorialEstadosFichaRepresentante } from '../../hooks/useHistorialEstadosFichaRepresentante';
 import LineaTiempoEstados from '../LineaTiempoEstados';
 
@@ -13,6 +14,8 @@ interface Props {
 export default function EstadosFichaRepresentantePanel({ fichaPerfilId }: Props) {
   const { data, isLoading, isError, error, refetch } =
     useHistorialEstadosFichaRepresentante(fichaPerfilId);
+
+  const { descartada } = useEvaluacionDescartada(fichaPerfilId);
 
   function historial() {
     if (isError) {
@@ -27,6 +30,15 @@ export default function EstadosFichaRepresentantePanel({ fichaPerfilId }: Props)
     }
     if (isLoading || !data) {
       return <Skeleton variante="lineas" etiqueta="Cargando historial de estados…" />;
+    }
+    if (data.length === 0 && descartada) {
+      return (
+        <EmptyState
+          icono={Ban}
+          titulo="Tu evaluación está descartada"
+          descripcion="Reanúdala desde el apartado Resumen para ver los estados de la ficha."
+        />
+      );
     }
     if (data.length === 0) {
       return (

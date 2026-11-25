@@ -13,6 +13,9 @@ import RepresentanteDetalleView from './RepresentanteDetalleView';
 
 vi.mock('../hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
 vi.mock('../hooks/useEstudiantesVinculados', () => ({ useEstudiantesVinculados: vi.fn() }));
+vi.mock('../hooks/useDescartarEvaluacion', () => ({
+  useDescartarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}));
 vi.mock('../hooks/useRegistrarEvaluacion', () => ({
   useRegistrarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
@@ -25,7 +28,7 @@ function entrarComo(...roles: Rol[]) {
 const RESUMEN = {
   id: 'f-1',
   titulo: 'Ficha del comité',
-  estadoId: 'e-1',
+  estadoId: 'DISPONIBLE_PARA_EVALUACION',
   estadoNombre: 'Disponible Para Evaluacion',
   asesorNombre: 'Ana Gómez',
   asesorEmail: 'ana@uco.edu.co',
@@ -38,9 +41,11 @@ function mockEvaluaciones(parcial: {
   vi.mocked(useEvaluacionFicha).mockReturnValue(parcial as ReturnType<typeof useEvaluacionFicha>);
 }
 
+let resumenActual = RESUMEN;
+
 function Origen() {
   return (
-    <Link to="/fichas-perfil/f-1/items" state={{ resumen: RESUMEN, search: '' }}>
+    <Link to="/fichas-perfil/f-1/items" state={{ resumen: resumenActual, search: '' }}>
       Abrir
     </Link>
   );
@@ -53,7 +58,11 @@ function renderizar(rutaInicial: string, entrada?: string) {
         <Route
           path="/entrada"
           element={
-            <Navigate to={entrada} replace state={{ resumen: RESUMEN, search: '?q=comite' }} />
+            <Navigate
+              to={entrada}
+              replace
+              state={{ resumen: resumenActual, search: '?q=comite' }}
+            />
           }
         />
       )}
@@ -75,6 +84,7 @@ function renderizarConContexto(rutaDetalle: string) {
 describe('RepresentanteDetalleView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resumenActual = RESUMEN;
     resetAllStores();
     entrarComo(Rol.RepresentanteComiteCurriculum);
     mockEvaluaciones({ data: [], isSuccess: true });
@@ -164,6 +174,105 @@ describe('RepresentanteDetalleView', () => {
     // Assert
     expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación en curso y la ficha disponible ofrece «Evaluar ficha» y «Descartar evaluación», y en la pestaña Evaluaciones solo el descarte', () => {
+    // Arrange
+    mockEvaluaciones({
+      data: [{ id: 'ev-1', estadoEvaluacionId: 'EN_EVALUACION' }],
+      isSuccess: true,
+    });
+
+    // Act
+    const items = renderizarConContexto('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Evaluar ficha' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Descartar evaluación' })).toBeInTheDocument();
+    items.unmount();
+
+    // Act
+    renderizarConContexto('/fichas-perfil/f-1/evaluaciones');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Descartar evaluación' })).toBeInTheDocument();
+  });
+
+  it('con la evaluación en curso y la ficha en otro estado ofrece «Evaluar ficha» sin descartar', () => {
+    // Arrange
+    resumenActual = { ...RESUMEN, estadoId: 'EN_REVISION' };
+    mockEvaluaciones({
+      data: [{ id: 'ev-1', estadoEvaluacionId: 'EN_EVALUACION' }],
+      isSuccess: true,
+    });
+
+    // Act
+    renderizarConContexto('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Evaluar ficha' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descartar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('sin evaluación y con la ficha en otro estado no ofrece «Iniciar evaluación»', () => {
+    // Arrange
+    resumenActual = { ...RESUMEN, estadoId: 'EN_REVISION' };
+
+    // Act
+    renderizarConContexto('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByRole('heading', { level: 1, name: 'Ficha del comité' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Iniciar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('con la evaluación descartada ofrece «Reanudar evaluación» solo con la ficha disponible y fuera de la pestaña Evaluaciones', () => {
+    // Arrange
+    mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: 'DESCARTADA' }], isSuccess: true });
+
+    // Act
+    const items = renderizarConContexto('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Reanudar evaluación' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descartar evaluación' })).not.toBeInTheDocument();
+    items.unmount();
+
+    // Act
+    const evaluaciones = renderizarConContexto('/fichas-perfil/f-1/evaluaciones');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Reanudar evaluación' })).not.toBeInTheDocument();
+    evaluaciones.unmount();
+
+    // Arrange
+    resumenActual = { ...RESUMEN, estadoId: 'EN_REVISION' };
+
+    // Act
+    renderizarConContexto('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Reanudar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('con una evaluación finalizada no ofrece ninguna acción', () => {
+    // Arrange
+    mockEvaluaciones({ data: [{ id: 'ev-1', estadoEvaluacionId: 'APROBADA' }], isSuccess: true });
+
+    // Act
+    renderizarConContexto('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.getByRole('heading', { level: 1, name: 'Ficha del comité' })).toBeInTheDocument();
+    for (const nombre of [
+      'Iniciar evaluación',
+      'Evaluar ficha',
+      'Descartar evaluación',
+      'Reanudar evaluación',
+    ]) {
+      expect(screen.queryByRole('button', { name: nombre })).not.toBeInTheDocument();
+    }
   });
 
   it('sin state ni snapshot redirige al listado de fichas', () => {

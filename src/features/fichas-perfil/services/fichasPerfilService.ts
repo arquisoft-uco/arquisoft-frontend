@@ -334,6 +334,9 @@ export const fichasPerfilService = {
       .post<EvaluacionCreadaResponse>(`/fichas-perfil/${req.fichaPerfilId}/evaluaciones`)
       .then((r) => r.data),
 
+  descartarEvaluacion: (evaluacionId: string): Promise<void> =>
+    apiClient.patch(`/fichas-perfil/evaluaciones/${evaluacionId}/descarte`).then(() => undefined),
+
   agregarEstadoEvaluacion: (req: AgregarEstadoEvaluacionRequest): Promise<EstadoEvaluacionFicha> =>
     apiClient
       .post<EstadoEvaluacionFicha>('/fichas-perfil/estado-evaluacion-ficha', {

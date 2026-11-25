@@ -3,8 +3,13 @@ import RedirigirAlListado from '../../../shared/components/RedirigirAlListado';
 import { TTL_CONTEXTO_CORTO_MS } from '../../../shared/utils/contexto-temporal';
 import { useEvaluacionFicha } from '../hooks/useEvaluacionFicha';
 import { useResumenFicha } from '../hooks/useResumenFicha';
-import { evaluacionEnEstadoFinal } from '../utils/evaluacion-asistente';
+import {
+  accionesEvaluacionRepresentante,
+  evaluacionVigente,
+  fichaAdmiteEvaluacion,
+} from '../utils/evaluacion-asistente';
 import DetalleFichaEstructura from './DetalleFichaEstructura';
+import DescartarEvaluacionBoton from './representante/DescartarEvaluacionBoton';
 import EvaluarFichaBoton from './representante/EvaluarFichaBoton';
 import IniciarEvaluacionBoton from './representante/IniciarEvaluacionBoton';
 
@@ -23,13 +28,30 @@ export default function RepresentanteDetalleView() {
     { id: 'estados', etiqueta: 'Estados', to: `${base}/estados` },
     { id: 'evaluaciones', etiqueta: 'Evaluaciones', to: `${base}/evaluaciones` },
   ];
-  const vigente = isSuccess ? evaluaciones[evaluaciones.length - 1] : undefined;
+  const vigente = isSuccess ? evaluacionVigente(evaluaciones) : undefined;
   const fueraDeEvaluaciones = !pathname.startsWith(`${base}/evaluaciones`);
 
   let accion;
-  if (isSuccess && fueraDeEvaluaciones) {
-    if (!vigente) accion = <IniciarEvaluacionBoton fichaPerfilId={id} />;
-    else if (!evaluacionEnEstadoFinal(vigente)) accion = <EvaluarFichaBoton fichaPerfilId={id} />;
+  if (isSuccess) {
+    const acciones = accionesEvaluacionRepresentante({
+      vigente,
+      fichaDisponible: fichaAdmiteEvaluacion(resumen.estadoId),
+    });
+    const principal = fueraDeEvaluaciones ? acciones.principal : null;
+    if (principal || (acciones.puedeDescartar && vigente)) {
+      accion = (
+        <>
+          {principal === 'iniciar' && <IniciarEvaluacionBoton fichaPerfilId={id} />}
+          {principal === 'reanudar' && (
+            <IniciarEvaluacionBoton fichaPerfilId={id} modo="reanudar" />
+          )}
+          {principal === 'evaluar' && <EvaluarFichaBoton fichaPerfilId={id} />}
+          {acciones.puedeDescartar && vigente && (
+            <DescartarEvaluacionBoton fichaPerfilId={id} evaluacionId={vigente.id} />
+          )}
+        </>
+      );
+    }
   }
 
   return (

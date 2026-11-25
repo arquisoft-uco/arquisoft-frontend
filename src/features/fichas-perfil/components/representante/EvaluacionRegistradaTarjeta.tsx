@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ClipboardCheck, MessageSquare } from 'lucide-react';
 import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
@@ -13,12 +14,16 @@ interface Props {
   titulo: string;
   evaluacion: EvaluacionFichaPerfil;
   onVerObservaciones: () => void;
+  acciones?: ReactNode;
+  aviso?: string;
 }
 
 export default function EvaluacionRegistradaTarjeta({
   titulo,
   evaluacion,
   onVerObservaciones,
+  acciones,
+  aviso,
 }: Props) {
   return (
     <div className={TARJETA}>
@@ -38,7 +43,8 @@ export default function EvaluacionRegistradaTarjeta({
       <p className={DATO}>
         Creada el <FechaDeEstado iso={evaluacion.fechaCreacion} />
       </p>
-      <div>
+      {aviso && <p className={DATO}>{aviso}</p>}
+      <div className="flex flex-wrap gap-2">
         <Button
           variante="secundario"
           tamano="sm"
@@ -47,6 +53,7 @@ export default function EvaluacionRegistradaTarjeta({
         >
           Ver observaciones
         </Button>
+        {acciones}
       </div>
     </div>
   );

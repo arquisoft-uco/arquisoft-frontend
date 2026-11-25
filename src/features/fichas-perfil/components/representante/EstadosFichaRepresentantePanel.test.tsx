@@ -2,11 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import { useHistorialEstadosFichaRepresentante } from '../../hooks/useHistorialEstadosFichaRepresentante';
+import { useEvaluacionDescartada } from '../../hooks/useEvaluacionDescartada';
 import EstadosFichaRepresentantePanel from './EstadosFichaRepresentantePanel';
 
 vi.mock('../../hooks/useHistorialEstadosFichaRepresentante', () => ({
   useHistorialEstadosFichaRepresentante: vi.fn(),
 }));
+vi.mock('../../hooks/useEvaluacionDescartada', () => ({ useEvaluacionDescartada: vi.fn() }));
 
 const useHistorial = vi.mocked(useHistorialEstadosFichaRepresentante);
 
@@ -26,6 +28,20 @@ function simular(parcial: Partial<Resultado>) {
 describe('EstadosFichaRepresentantePanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useEvaluacionDescartada).mockReturnValue({ descartada: false, cargando: false });
+  });
+
+  it('con la evaluación descartada y sin estados explica cómo reanudarla en lugar del vacío genérico', () => {
+    // Arrange
+    vi.mocked(useEvaluacionDescartada).mockReturnValue({ descartada: true, cargando: false });
+    simular({ data: [] });
+
+    // Act
+    render(<EstadosFichaRepresentantePanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByText('Tu evaluación está descartada')).toBeInTheDocument();
+    expect(screen.queryByText('Sin estados para mostrar')).not.toBeInTheDocument();
   });
 
   it('consulta el historial de la ficha y mientras carga muestra el estado de carga', () => {

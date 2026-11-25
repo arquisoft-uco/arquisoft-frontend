@@ -31,6 +31,9 @@ export default function TarjetaEvaluacionFicha({ evaluacion, children }: Props) 
       <p className="text-sm text-on-surface-secondary">
         Evaluada por {evaluacion.representante.nombre}
       </p>
+      {evaluacion.estadoEvaluacionId === 'DESCARTADA' && (
+        <p className="text-sm text-on-surface-secondary">No cuenta para la decisión</p>
+      )}
       {children && <div>{children}</div>}
     </li>
   );

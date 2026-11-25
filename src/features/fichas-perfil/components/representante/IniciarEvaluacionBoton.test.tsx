@@ -79,4 +79,45 @@ describe('IniciarEvaluacionBoton', () => {
     expect(toast.success).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('en modo reanudar usa sus propios textos y avisa «Evaluación reanudada» al confirmar', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const mutate = vi.fn((_v: unknown, o?: Opciones) => o?.onSuccess?.());
+    mockMutacion(mutate);
+    render(<IniciarEvaluacionBoton fichaPerfilId="f-1" modo="reanudar" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reanudar evaluación' }));
+
+    // Assert
+    const dialogo = screen.getByRole('dialog', { name: '¿Reanudar evaluación?' });
+    expect(
+      within(dialogo).getByText('Retomarás tu evaluación con sus observaciones.'),
+    ).toBeInTheDocument();
+
+    // Act
+    await user.click(within(dialogo).getByRole('button', { name: 'Reanudar evaluación' }));
+
+    // Assert
+    expect(mutate).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledWith('Evaluación reanudada', expect.any(String));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('en modo reanudar un fallo avisa «Error al reanudar la evaluación»', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    mockMutacion(vi.fn((_v: unknown, o?: Opciones) => o?.onError?.(new Error('Red caída'))));
+    render(<IniciarEvaluacionBoton fichaPerfilId="f-1" modo="reanudar" />);
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reanudar evaluación' }));
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Reanudar evaluación' }),
+    );
+
+    // Assert
+    expect(toast.error).toHaveBeenCalledWith('Error al reanudar la evaluación', expect.any(String));
+  });
 });
