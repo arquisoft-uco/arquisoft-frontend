@@ -1,73 +1,22 @@
 import { FileStack, SearchX } from 'lucide-react';
-import Badge from '../../../../shared/components/ui/Badge';
 import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
-import type {
-  ColumnaTabla,
-  DireccionOrden,
-  OrdenTabla,
-} from '../../../../shared/components/ui/DataTable';
+import type { DireccionOrden, OrdenTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { ArtefactoEstudiante } from '../../models/ArtefactoEstudiante';
+import type { EstadoRevisionAsesor } from '../../models/artefactos';
+import InsigniaEstadoUltimaRevision from '../InsigniaEstadoUltimaRevision';
 import InsigniaOmitido from '../InsigniaOmitido';
+import ProyectoConInsignia from '../ProyectoConInsignia';
+import { columnasArtefactosEstudiante } from './columnasArtefactosEstudiante';
 import MenuDescargarArtefacto from './MenuDescargarArtefacto';
 
-import ProyectoConInsignia from '../ProyectoConInsignia';
-
-const DATO_SECUNDARIO = 'text-on-surface-secondary';
-const NOMBRE = 'font-medium text-on-surface';
 const TARJETA_NOMBRE = 'font-semibold text-on-surface';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
-function etiquetaVersion(artefacto: ArtefactoEstudiante): string {
-  return `Versión ${artefacto.versionDocumento}`;
-}
-
-const COLUMNAS: ColumnaTabla<ArtefactoEstudiante>[] = [
-  {
-    id: 'proyecto',
-    encabezado: 'Proyecto',
-    clave: 'nombreProyecto',
-    ordenable: true,
-    celda: (artefacto) => <ProyectoConInsignia proyecto={artefacto} className={DATO_SECUNDARIO} />,
-  },
-  {
-    id: 'documento',
-    encabezado: 'Documento',
-    clave: 'nombreDocumento',
-    ordenable: true,
-    celda: (artefacto) => (
-      <>
-        <span className={NOMBRE}>{artefacto.nombreDocumento}</span>
-        {artefacto.omitido && <InsigniaOmitido />}
-      </>
-    ),
-  },
-  {
-    id: 'version',
-    encabezado: 'Versión del documento',
-    clave: 'versionDocumento',
-    ordenable: true,
-    celda: (artefacto) => <Badge variante="neutro">{etiquetaVersion(artefacto)}</Badge>,
-  },
-  {
-    id: 'repositorio',
-    encabezado: 'Repositorio',
-    clave: 'nombreRepositorio',
-    ordenable: true,
-    celda: (artefacto) => <span className={DATO_SECUNDARIO}>{artefacto.nombreRepositorio}</span>,
-  },
-  {
-    id: 'asesor',
-    encabezado: 'Asesor',
-    clave: 'nombreAsesor',
-    ordenable: true,
-    celda: (artefacto) => <span className={DATO_SECUNDARIO}>{artefacto.nombreAsesor}</span>,
-  },
-];
-
 interface Props {
   artefactos: ArtefactoEstudiante[];
+  estados: EstadoRevisionAsesor[];
   cargando: boolean;
   hayFiltros: boolean;
   orden: OrdenTabla;
@@ -77,6 +26,7 @@ interface Props {
 
 export default function ArtefactosEstudianteTable({
   artefactos,
+  estados,
   cargando,
   hayFiltros,
   orden,
@@ -105,7 +55,7 @@ export default function ArtefactosEstudianteTable({
   return (
     <DataTable
       etiqueta="Artefactos de mis proyectos de grado"
-      columnas={COLUMNAS}
+      columnas={columnasArtefactosEstudiante(estados)}
       filas={artefactos}
       idDeFila={(artefacto) => artefacto.id}
       orden={orden}
@@ -123,8 +73,9 @@ export default function ArtefactosEstudianteTable({
           </p>
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>
-            {artefacto.nombreAsesor} · {etiquetaVersion(artefacto)} del documento
+            {artefacto.nombreAsesor} · Versión {artefacto.versionDocumento} del documento
           </p>
+          <InsigniaEstadoUltimaRevision estado={artefacto.estadoUltimaRevision} estados={estados} />
         </>
       )}
     />

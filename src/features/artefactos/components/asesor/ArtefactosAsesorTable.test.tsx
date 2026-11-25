@@ -29,6 +29,7 @@ function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosAseso
   const props = {
     artefactos: [ARTEFACTO],
     ultimaVersion: () => undefined,
+    estados: [],
     cargando: false,
     hayFiltros: false,
     orden: { clave: 'nombreProyecto', direccion: 'ASC' as const },
@@ -129,7 +130,7 @@ describe('ArtefactosAsesorTable', () => {
     expect(tabla().getByText('Omitido')).toBeInTheDocument();
   });
 
-  it('las tres columnas ordenan y entregan su clave', async () => {
+  it('las cuatro columnas ordenan y entregan su clave', async () => {
     // Arrange
     const user = userEvent.setup();
     const { onOrdenar } = renderizar();
@@ -138,11 +139,13 @@ describe('ArtefactosAsesorTable', () => {
     await user.click(tabla().getByRole('button', { name: 'Proyecto' }));
     await user.click(tabla().getByRole('button', { name: 'Documento' }));
     await user.click(tabla().getByRole('button', { name: 'Repositorio' }));
+    await user.click(tabla().getByRole('button', { name: 'Última revisión' }));
 
     // Assert
     expect(onOrdenar).toHaveBeenCalledWith('nombreProyecto', expect.any(String));
     expect(onOrdenar).toHaveBeenCalledWith('nombreDocumento', expect.any(String));
     expect(onOrdenar).toHaveBeenCalledWith('nombreRepositorio', expect.any(String));
+    expect(onOrdenar).toHaveBeenCalledWith('estadoUltimaRevision', expect.any(String));
   });
 
   it('sin artefactos y sin filtros muestra el vacío informativo sin acción', () => {
@@ -270,7 +273,25 @@ describe('ArtefactosAsesorTable', () => {
     expect(items).toEqual(['Descargar', 'Ver estudiantes']);
   });
 
-  it('muestra la guía y la insignia de la última versión; omitido o proyecto cerrado no llevan guía', () => {
+  it('la columna muestra el estado del artefacto y "Sin revisión" cuando falta, también en el omitido', () => {
+    // Arrange
+    const omitido = { ...ARTEFACTO, id: 'a-2', nombreDocumento: 'Anteproyecto', omitido: true };
+    const revisado = {
+      ...ARTEFACTO,
+      id: 'a-3',
+      nombreDocumento: 'Plano',
+      estadoUltimaRevision: 'Cerrada',
+    };
+
+    // Act
+    renderizar({ artefactos: [ARTEFACTO, omitido, revisado] });
+
+    // Assert
+    expect(tabla().getAllByText('Sin revisión')).toHaveLength(2);
+    expect(tabla().getAllByText('Cerrada')).toHaveLength(1);
+  });
+
+  it('la guía sale de la última versión; omitido o proyecto cerrado no llevan guía', () => {
     // Arrange
     const cerrada = {
       estadoRevision: 'CERRADA',
@@ -288,29 +309,18 @@ describe('ArtefactosAsesorTable', () => {
     renderizar({ artefactos: [ARTEFACTO, omitido, cancelado], ultimaVersion: () => cerrada });
 
     // Assert
-    expect(tabla().getAllByText('Cerrada')).toHaveLength(2);
     expect(
       tabla().getAllByText('Cerraste este artefacto: ya no admite nuevas versiones.'),
     ).toHaveLength(1);
   });
 
-  it('sin versiones indica la espera del estudiante y mientras carga no muestra guía ni insignia', () => {
+  it('sin versiones indica la espera del estudiante', () => {
     // Act
     renderizar({ ultimaVersion: () => null });
 
     // Assert
-    expect(tabla().getByText('Sin versiones')).toBeInTheDocument();
     expect(
       tabla().getByText('Esperando que el estudiante suba la primera versión.'),
     ).toBeInTheDocument();
-  });
-
-  it('mientras llega la última versión no muestra guía ni insignia', () => {
-    // Act
-    renderizar({ ultimaVersion: () => undefined });
-
-    // Assert
-    expect(tabla().queryByText('Sin versiones')).not.toBeInTheDocument();
-    expect(tabla().queryByText(/Esperando que el estudiante/)).not.toBeInTheDocument();
   });
 });

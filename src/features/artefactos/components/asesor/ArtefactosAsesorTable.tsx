@@ -8,11 +8,12 @@ import ArtefactosAsesorVacio from './ArtefactosAsesorVacio';
 import ArtefactoAsesorRowMenu, { type AccionesArtefactoAsesor } from './ArtefactoAsesorRowMenu';
 import type { ArtefactoAsesor } from '../../models/ArtefactoAsesor';
 import type { VersionArtefacto } from '../../models/VersionArtefacto';
+import type { EstadoRevisionAsesor } from '../../models/artefactos';
 import { estaCerrado } from '../../utils/estado-proyecto';
 import { guiaArtefactoAsesor } from '../../utils/guia-artefacto';
 import { etiquetaVersionDocumento } from '../../utils/version-documento';
-import EstadoUltimaRevision from '../EstadoUltimaRevision';
 import EnlaceVersionesArtefacto from '../EnlaceVersionesArtefacto';
+import InsigniaEstadoUltimaRevision from '../InsigniaEstadoUltimaRevision';
 import InsigniaOmitido from '../InsigniaOmitido';
 import ProyectoConInsignia from '../ProyectoConInsignia';
 
@@ -23,6 +24,7 @@ const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 interface Props extends AccionesArtefactoAsesor {
   artefactos: ArtefactoAsesor[];
   ultimaVersion: (artefactoId: string) => VersionArtefacto | null | undefined;
+  estados: EstadoRevisionAsesor[];
   cargando: boolean;
   hayFiltros: boolean;
   orden: OrdenTabla;
@@ -33,6 +35,7 @@ interface Props extends AccionesArtefactoAsesor {
 export default function ArtefactosAsesorTable({
   artefactos,
   ultimaVersion,
+  estados,
   cargando,
   hayFiltros,
   orden,
@@ -58,6 +61,12 @@ export default function ArtefactosAsesorTable({
     if (artefacto.omitido || estaCerrado(artefacto)) return null;
     const ultima = ultimaVersion(artefacto.id);
     return ultima === undefined ? null : guiaArtefactoAsesor(ultima);
+  }
+
+  function estadoRevision(artefacto: ArtefactoAsesor) {
+    return (
+      <InsigniaEstadoUltimaRevision estado={artefacto.estadoUltimaRevision} estados={estados} />
+    );
   }
 
   const columnas: ColumnaTabla<ArtefactoAsesor>[] = [
@@ -86,10 +95,10 @@ export default function ArtefactosAsesorTable({
     },
     {
       id: 'revision',
-      encabezado: 'Revisión',
-      celda: (artefacto) => (
-        <EstadoUltimaRevision ultima={ultimaVersion(artefacto.id)} omitido={artefacto.omitido} />
-      ),
+      encabezado: 'Última revisión',
+      clave: 'estadoUltimaRevision',
+      ordenable: true,
+      celda: estadoRevision,
     },
     {
       id: 'repositorio',
@@ -120,7 +129,7 @@ export default function ArtefactosAsesorTable({
           <p className={TARJETA_DATO}>{artefacto.nombreRepositorio}</p>
           <p className={TARJETA_DATO}>{versionDelDocumento(artefacto)}</p>
           {artefacto.omitido && <InsigniaOmitido />}
-          <EstadoUltimaRevision ultima={ultimaVersion(artefacto.id)} omitido={artefacto.omitido} />
+          {estadoRevision(artefacto)}
           {guia(artefacto) && <p className={TARJETA_DATO}>{guia(artefacto)}</p>}
         </>
       )}

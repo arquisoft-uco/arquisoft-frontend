@@ -11,4 +11,5 @@ export interface ArtefactoEstudiante {
   omitido: boolean;
   proyectoFinalizado: boolean;
   proyectoCancelado: boolean;
+  estadoUltimaRevision?: string;
 }

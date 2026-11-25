@@ -74,6 +74,7 @@ export default function ConsultarArtefactosAsignadosAsesor() {
           <ArtefactosAsesorTable
             artefactos={artefactos}
             ultimaVersion={ultimaVersion}
+            estados={listado.estados ?? []}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}
