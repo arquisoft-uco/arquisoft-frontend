@@ -64,6 +64,7 @@ const ITEM = {
 function conFicha(parcial: Partial<Record<keyof Mi, unknown>> = {}) {
   vi.mocked(useMiFichaPerfil).mockReturnValue({
     ficha: FICHA,
+    fichaEditable: true,
     fichas: [FICHA],
     cargada: true,
     errorFicha: false,
@@ -78,6 +79,7 @@ function conFicha(parcial: Partial<Record<keyof Mi, unknown>> = {}) {
 function conItems(parcial: Partial<Record<keyof Items, unknown>> = {}) {
   vi.mocked(useItemsMiFicha).mockReturnValue({
     fichaId: 'f-1',
+    fichaEditable: true,
     items: [ITEM],
     tiposItem: [],
     itemsCargados: true,
@@ -218,6 +220,7 @@ describe('EstudianteView', () => {
       screen.getByRole('heading', { level: 1, name: 'Sistema de monitoreo' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Editar título' })).toBeInTheDocument();
+    expect(screen.queryByText('Tu ficha no admite cambios en este estado')).not.toBeInTheDocument();
     const resumen = screen.getByRole('complementary', { name: 'Resumen de la ficha' });
     expect(within(resumen).getByText('En construccion')).toBeInTheDocument();
     expect(within(resumen).getByText('Ana Ruiz')).toBeInTheDocument();
@@ -227,6 +230,19 @@ describe('EstudianteView', () => {
       'Marta Gómez',
     );
     expect(fichasPerfilService.consultarCompanerosFichaPerfil).toHaveBeenCalledWith('f-1');
+  });
+
+  it('con la ficha fuera de construcción oculta «Editar título» y explica cómo volver a editar', () => {
+    // Arrange
+    conFicha({ fichaEditable: false });
+
+    // Act
+    render(<EstudianteView />);
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Editar título' })).not.toBeInTheDocument();
+    expect(screen.getByText('Tu ficha no admite cambios en este estado')).toBeInTheDocument();
+    expect(screen.getByText(/pide a tu asesor que la devuelva a construcción/)).toBeInTheDocument();
   });
 
   it('los compañeros se consultan con la ficha activa cuando cambia', async () => {

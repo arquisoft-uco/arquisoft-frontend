@@ -187,7 +187,7 @@ describe('AgregarItemForm', () => {
     expect(onCerrar).not.toHaveBeenCalled();
   });
 
-  it('un error de estado terminal da toast y deja el panel abierto con los datos', async () => {
+  it('un error de ficha fuera de construcción da toast y deja el panel abierto con los datos', async () => {
     // Arrange
     const user = userEvent.setup();
     const onCerrar = vi.fn();
@@ -195,8 +195,8 @@ describe('AgregarItemForm', () => {
       vi.fn((_req: unknown, opts: Opciones) =>
         opts.onError?.(
           errorApi(422, {
-            message: 'La ficha está en estado terminal.',
-            errorCode: 'ESTADO_FICHA_PERFIL_ESTADO_TERMINAL',
+            message: 'La ficha no está en construcción.',
+            errorCode: 'ESTADO_FICHA_PERFIL_NO_EN_CONSTRUCCION',
           }),
         ),
       ),
@@ -210,7 +210,7 @@ describe('AgregarItemForm', () => {
     // Assert
     expect(toast.error).toHaveBeenCalledWith(
       'Error al agregar',
-      'La ficha está en estado terminal.',
+      'La ficha no está en construcción.',
     );
     expect(onCerrar).not.toHaveBeenCalled();
     expect(enviar()).toBeEnabled();

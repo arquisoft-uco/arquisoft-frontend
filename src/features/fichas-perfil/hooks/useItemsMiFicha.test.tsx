@@ -17,7 +17,9 @@ vi.mock('../services/fichasPerfilService', () => ({
   },
 }));
 vi.mock('./useFichaPerfilIdEstudiante', () => ({ useFichaPerfilIdEstudiante: vi.fn() }));
-vi.mock('./useMiFichaPerfil', () => ({ useMiFichaPerfil: () => ({ ficha: { id: 'f-1' } }) }));
+vi.mock('./useMiFichaPerfil', () => ({
+  useMiFichaPerfil: () => ({ ficha: { id: 'f-1', estadoActual: { id: 'EN_CONSTRUCCION' } } }),
+}));
 vi.mock('./useTiposItem', () => ({ useTiposItem: vi.fn() }));
 
 const consultar = vi.mocked(fichasPerfilService.consultarItemsMiFichaPerfil);

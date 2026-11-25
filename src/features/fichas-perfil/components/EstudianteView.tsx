@@ -1,21 +1,18 @@
-import { useState, type ComponentType } from 'react';
-import { Edit3, FileText } from 'lucide-react';
+import type { ComponentType } from 'react';
+import { FileText } from 'lucide-react';
 import { useItemsMiFicha } from '../hooks/useItemsMiFicha';
 import { useMiFichaPerfil } from '../hooks/useMiFichaPerfil';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import type { ResumenFicha } from '../models/ResumenFicha';
-import Button from '../../../shared/components/ui/Button';
 import EmptyState from '../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../shared/components/ui/ErrorState';
-import PageHeader from '../../../shared/components/ui/PageHeader';
 import Skeleton from '../../../shared/components/ui/Skeleton';
 import Tabs from '../../../shared/components/ui/Tabs';
 import { usePestanaEnUrl } from '../../../shared/hooks/usePestanaEnUrl';
 import { DISPOSICION } from './disposicion';
-import { FechaDeEstado, InsigniaEstadoFicha } from './FichaCeldas';
 import ResumenFichaPanel from './ResumenFichaPanel';
+import CabeceraMiFicha from './estudiante/CabeceraMiFicha';
 import CompanerosFichaPanel from './estudiante/CompanerosFichaPanel';
-import EditarTituloForm from './estudiante/EditarTituloForm';
 import EstadosObservacionPanel from './estudiante/EstadosObservacionPanel';
 import EvaluacionesMiFichaPanel from './estudiante/EvaluacionesMiFichaPanel';
 import HistorialEstadosFichaPanel from './estudiante/HistorialEstadosFichaPanel';
@@ -52,11 +49,18 @@ function aResumen(ficha: MiFichaPerfilResponse): ResumenFicha {
 }
 
 export default function EstudianteView() {
-  const { ficha, fichas, cargada, sinFicha, errorFicha, seleccionarFicha, reintentar } =
-    useMiFichaPerfil();
+  const {
+    ficha,
+    fichaEditable,
+    fichas,
+    cargada,
+    sinFicha,
+    errorFicha,
+    seleccionarFicha,
+    reintentar,
+  } = useMiFichaPerfil();
   const { items, itemsCargados } = useItemsMiFicha();
   const [pestana, setPestana] = usePestanaEnUrl(PESTANAS_VALIDAS, 'items');
-  const [editandoTitulo, setEditandoTitulo] = useState(false);
 
   if (errorFicha) {
     return (
@@ -99,26 +103,7 @@ export default function EstudianteView() {
           onSeleccionar={seleccionarFicha}
         />
       )}
-      <PageHeader
-        titulo={ficha.tituloProyecto}
-        insignia={
-          <InsigniaEstadoFicha
-            estadoId={ficha.estadoActual.id}
-            nombre={ficha.estadoActual.nombre}
-          />
-        }
-        meta={
-          <>
-            Mi ficha de perfil · Actualizada el{' '}
-            <FechaDeEstado iso={ficha.estadoActual.fechaActualizacion} />
-          </>
-        }
-        acciones={
-          <Button variante="secundario" icono={Edit3} onClick={() => setEditandoTitulo(true)}>
-            Editar título
-          </Button>
-        }
-      />
+      <CabeceraMiFicha ficha={ficha} editable={fichaEditable} />
       <div className={DISPOSICION.contenedor}>
         <div className={DISPOSICION.principal}>
           <Tabs
@@ -137,13 +122,6 @@ export default function EstudianteView() {
           />
         </div>
       </div>
-      {editandoTitulo && (
-        <EditarTituloForm
-          key={ficha.id}
-          tituloActual={ficha.tituloProyecto}
-          onCerrar={() => setEditandoTitulo(false)}
-        />
-      )}
     </div>
   );
 }

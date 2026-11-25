@@ -29,7 +29,8 @@ function mensajeErrorEliminar(err: unknown): string {
 }
 
 export default function ItemsMiFichaPanel() {
-  const { items, itemsCargados, isLoading, isError, refetch, remover } = useItemsMiFicha();
+  const { fichaEditable, items, itemsCargados, isLoading, isError, refetch, remover } =
+    useItemsMiFicha();
   const [agregando, setAgregando] = useState(false);
   const [itemEditando, setItemEditando] = useState<Item | null>(null);
   const [itemAEliminar, setItemAEliminar] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export default function ItemsMiFichaPanel() {
     <div className={RAIZ}>
       <div className="section-header">
         <h2 className={TITULO}>Ítems de la ficha</h2>
-        {botonAgregar}
+        {fichaEditable && botonAgregar}
       </div>
       <div>
         <AyudaTiposItem />
@@ -69,38 +70,50 @@ export default function ItemsMiFichaPanel() {
         cargando={isLoading}
         error={isError}
         onReintentar={refetch}
-        acciones={(item) => (
-          <>
-            <IconButton
-              etiqueta={`Editar ítem ${item.tipoItem.nombre}`}
-              icono={Edit3}
-              onClick={() => setItemEditando(item)}
-            />
-            <IconButton
-              tono="peligro"
-              etiqueta={`Eliminar ítem ${item.tipoItem.nombre}`}
-              icono={Trash2}
-              disabled={remover.isPending}
-              onClick={() => setItemAEliminar(item.id)}
-            />
-          </>
-        )}
+        acciones={
+          fichaEditable
+            ? (item) => (
+                <>
+                  <IconButton
+                    etiqueta={`Editar ítem ${item.tipoItem.nombre}`}
+                    icono={Edit3}
+                    onClick={() => setItemEditando(item)}
+                  />
+                  <IconButton
+                    tono="peligro"
+                    etiqueta={`Eliminar ítem ${item.tipoItem.nombre}`}
+                    icono={Trash2}
+                    disabled={remover.isPending}
+                    onClick={() => setItemAEliminar(item.id)}
+                  />
+                </>
+              )
+            : undefined
+        }
         vacio={
-          <EmptyState
-            icono={FilePlus}
-            titulo="Tu ficha aún no tiene ítems"
-            descripcion="Agrega el primero para empezar a construir tu ficha."
-            accion={
-              <Button icono={Plus} onClick={() => setAgregando(true)}>
-                Agregar ítem
-              </Button>
-            }
-          />
+          fichaEditable ? (
+            <EmptyState
+              icono={FilePlus}
+              titulo="Tu ficha aún no tiene ítems"
+              descripcion="Agrega el primero para empezar a construir tu ficha."
+              accion={
+                <Button icono={Plus} onClick={() => setAgregando(true)}>
+                  Agregar ítem
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              icono={FilePlus}
+              titulo="Tu ficha no tiene ítems"
+              descripcion="Podrás agregarlos cuando la ficha vuelva a construcción."
+            />
+          )
         }
       />
 
-      {agregando && <AgregarItemForm onCerrar={() => setAgregando(false)} />}
-      {itemEditando && (
+      {agregando && fichaEditable && <AgregarItemForm onCerrar={() => setAgregando(false)} />}
+      {itemEditando && fichaEditable && (
         <EditarItemForm
           key={itemEditando.id}
           item={itemEditando}

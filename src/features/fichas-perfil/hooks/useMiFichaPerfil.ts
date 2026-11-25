@@ -3,6 +3,7 @@ import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { MiFichaPerfilResponse } from '../models/MiFichaPerfilResponse';
 import { toast } from '../../../shared/hooks/useToast';
 import { getApiErrorMessage } from '../../../shared/utils/api-error';
+import { admiteEdicionFicha } from '../utils/edicion-ficha';
 import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
 import { FICHAS_ESTUDIANTE_QUERY_KEY } from './useFichasPerfilEstudiante';
 
@@ -38,6 +39,7 @@ export function useMiFichaPerfil() {
 
   return {
     ficha: ficha ?? undefined,
+    fichaEditable: admiteEdicionFicha(ficha?.estadoActual.id),
     fichas,
     errorFicha: isError,
     cargada: isSuccess,
