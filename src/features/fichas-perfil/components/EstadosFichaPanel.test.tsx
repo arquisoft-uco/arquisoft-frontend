@@ -5,12 +5,17 @@ import { render, screen, waitFor, within } from '../../../test-utils/render';
 import EstadosFichaPanel from './EstadosFichaPanel';
 import { useEstadosFicha } from '../hooks/useEstadosFicha';
 import { useAgregarEstadoFichaPerfil } from '../hooks/useAgregarEstadoFichaPerfil';
+import { useEvaluacionesFichaAsesor } from '../hooks/useEvaluacionesFichaAsesor';
 import { toast } from '../../../shared/hooks/useToast';
 import type { ApiError } from '../../../shared/models/api-response';
 import type { EstadoFicha } from '../models/fichas-perfil';
 
 vi.mock('../hooks/useEstadosFicha', () => ({
   useEstadosFicha: vi.fn(),
+}));
+
+vi.mock('../hooks/useEvaluacionesFichaAsesor', () => ({
+  useEvaluacionesFichaAsesor: vi.fn(),
 }));
 
 vi.mock('../hooks/useAgregarEstadoFichaPerfil', () => ({
@@ -31,6 +36,20 @@ function simularEstados(parcial: Partial<ReturnType<typeof useEstadosFicha>> = {
     isError: false,
     ...parcial,
   } as ReturnType<typeof useEstadosFicha>);
+}
+
+function simularEvaluaciones(estados: string[] | 'cargando' | 'error') {
+  const resultado =
+    estados === 'cargando'
+      ? { data: undefined, isLoading: true, isError: false }
+      : estados === 'error'
+        ? { data: undefined, isLoading: false, isError: true }
+        : {
+            data: estados.map((id) => ({ estadoEvaluacionId: id })),
+            isLoading: false,
+            isError: false,
+          };
+  vi.mocked(useEvaluacionesFichaAsesor).mockReturnValue(resultado as never);
 }
 
 function simularMutacion(mutate: (id: string, opciones: OpcionesMutate) => void = vi.fn()) {
@@ -58,6 +77,7 @@ const ESTADOS: EstadoFicha[] = [
 ];
 
 const EN_CONSTRUCCION = { id: 'EN_CONSTRUCCION', nombre: 'En Construccion' };
+const DISPONIBLE = { id: 'DISPONIBLE_PARA_EVALUACION', nombre: 'Disponible Para Evaluacion' };
 
 function renderizar(estadoActual = EN_CONSTRUCCION) {
   return render(<EstadosFichaPanel fichaPerfilId="f-1" estadoActual={estadoActual} />);
@@ -73,6 +93,7 @@ describe('EstadosFichaPanel', () => {
     vi.clearAllMocks();
     simularEstados({ data: ESTADOS });
     simularMutacion();
+    simularEvaluaciones([]);
   });
 
   it('mientras carga el catálogo muestra el estado de carga accesible y el estado actual', () => {
@@ -118,6 +139,83 @@ describe('EstadosFichaPanel', () => {
     expect(screen.getByText(/estado final/)).toBeInTheDocument();
     expect(screen.queryByLabelText('Nuevo estado')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+  });
+
+  it('con la ficha en otro estado no consulta las evaluaciones', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(useEvaluacionesFichaAsesor).toHaveBeenCalledWith('f-1', false);
+    expect(screen.getByLabelText('Nuevo estado')).toBeInTheDocument();
+  });
+
+  it('con la ficha disponible y evaluaciones en curso avisa y no ofrece el formulario', () => {
+    // Arrange
+    simularEvaluaciones(['EN_EVALUACION', 'APROBADA']);
+
+    // Act
+    renderizar(DISPONIBLE);
+
+    // Assert
+    expect(useEvaluacionesFichaAsesor).toHaveBeenCalledWith('f-1', true);
+    expect(screen.getByText(/tiene 1 evaluación en curso/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Nuevo estado')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+  });
+
+  it('con la ficha disponible y una evaluación finalizada avisa que espera la decisión del coordinador', () => {
+    // Arrange
+    simularEvaluaciones(['NO_APROBADA']);
+
+    // Act
+    renderizar(DISPONIBLE);
+
+    // Assert
+    expect(screen.getByText(/espera la decisión del coordinador/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Nuevo estado')).not.toBeInTheDocument();
+  });
+
+  it('con evaluaciones solo descartadas o sin evaluaciones ofrece el formulario', () => {
+    // Arrange
+    simularEvaluaciones(['DESCARTADA']);
+
+    // Act
+    const descartadas = renderizar(DISPONIBLE);
+
+    // Assert
+    expect(screen.getByLabelText('Nuevo estado')).toBeInTheDocument();
+    descartadas.unmount();
+
+    // Arrange
+    simularEvaluaciones([]);
+
+    // Act
+    renderizar(DISPONIBLE);
+
+    // Assert
+    expect(screen.getByLabelText('Nuevo estado')).toBeInTheDocument();
+  });
+
+  it('mientras cargan las evaluaciones muestra el esqueleto y si fallan el formulario con una advertencia', () => {
+    // Arrange
+    simularEvaluaciones('cargando');
+    const cargando = renderizar(DISPONIBLE);
+
+    // Assert
+    expect(screen.getByRole('status')).toHaveTextContent('Revisando las evaluaciones…');
+    expect(screen.queryByLabelText('Nuevo estado')).not.toBeInTheDocument();
+    cargando.unmount();
+
+    // Arrange
+    simularEvaluaciones('error');
+
+    // Act
+    renderizar(DISPONIBLE);
+
+    // Assert
+    expect(screen.getByLabelText('Nuevo estado')).toBeInTheDocument();
+    expect(screen.getByText(/No pudimos revisar las evaluaciones/)).toBeInTheDocument();
   });
 
   it('sin elegir estado no abre la confirmación, no envía y pinta el error del campo', async () => {

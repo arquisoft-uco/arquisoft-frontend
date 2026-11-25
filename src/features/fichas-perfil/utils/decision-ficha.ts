@@ -35,11 +35,13 @@ export function admiteDecision(estadoId?: string): boolean {
 }
 
 export function resumirEvaluacionesParaDecision(evaluaciones: EvaluacionFichaPerfilEstudiante[]): {
+  enCurso: number;
   hayFinalizada: boolean;
   hayAprobatoria: boolean;
 } {
   const ids = evaluaciones.map((e) => e.estadoEvaluacionId);
   return {
+    enCurso: ids.filter((id) => id === 'EN_EVALUACION').length,
     hayFinalizada: ids.some((id) => id !== null && ESTADOS_EVALUACION_FINALIZADOS.includes(id)),
     hayAprobatoria: ids.some((id) => id !== null && ESTADOS_EVALUACION_APROBATORIOS.includes(id)),
   };

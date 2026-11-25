@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { EstadoFicha } from '../models/fichas-perfil';
-import { admiteCambioDeEstado, estadosDestino } from './transiciones-estado-ficha';
+import { admiteCambioDeEstado, bloqueoDeSalida, estadosDestino } from './transiciones-estado-ficha';
 
 const CATALOGO: EstadoFicha[] = [
   { id: 'EN_CONSTRUCCION', nombre: 'En Construccion', descripcion: 'a' },
@@ -45,5 +45,36 @@ describe('estadosDestino', () => {
     expect(ids('NO_APROBADA')).toEqual([]);
     expect(ids('INEXISTENTE')).toEqual([]);
     expect(estadosDestino('EN_CONSTRUCCION', [])).toEqual([]);
+  });
+});
+
+describe('bloqueoDeSalida', () => {
+  const DISPONIBLE = 'DISPONIBLE_PARA_EVALUACION';
+  const evals = (...ids: (string | null)[]) =>
+    ids.map((estadoEvaluacionId) => ({ estadoEvaluacionId }));
+
+  it('bloquea por en curso aunque haya finalizadas, con la cantidad en curso', () => {
+    // Act / Assert
+    expect(
+      bloqueoDeSalida(DISPONIBLE, evals('EN_EVALUACION', 'EN_EVALUACION', 'APROBADA')),
+    ).toEqual({ motivo: 'en-curso', cantidad: 2 });
+  });
+
+  it('bloquea por espera de decisión con cualquier finalizada y sin en curso', () => {
+    // Act / Assert
+    for (const id of ['APROBADA', 'APROBADA_CON_OBSERVACIONES', 'NO_APROBADA']) {
+      expect(bloqueoDeSalida(DISPONIBLE, evals(id, 'DESCARTADA'))).toEqual({
+        motivo: 'en-espera',
+        cantidad: 1,
+      });
+    }
+  });
+
+  it('no bloquea sin evaluaciones, con todas descartadas o fuera de disponible', () => {
+    // Act / Assert
+    expect(bloqueoDeSalida(DISPONIBLE, [])).toBeNull();
+    expect(bloqueoDeSalida(DISPONIBLE, evals('DESCARTADA', 'DESCARTADA', null))).toBeNull();
+    expect(bloqueoDeSalida('EN_CONSTRUCCION', evals('EN_EVALUACION'))).toBeNull();
+    expect(bloqueoDeSalida(undefined, evals('EN_EVALUACION'))).toBeNull();
   });
 });

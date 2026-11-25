@@ -9,9 +9,13 @@ import {
 } from '../../../test-utils/store.utils';
 import { Rol } from '../../../shared/models/rol';
 import { useEvaluacionFicha } from '../hooks/useEvaluacionFicha';
+import { useHistorialEstadosFichaRepresentante } from '../hooks/useHistorialEstadosFichaRepresentante';
 import RepresentanteDetalleView from './RepresentanteDetalleView';
 
 vi.mock('../hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
+vi.mock('../hooks/useHistorialEstadosFichaRepresentante', () => ({
+  useHistorialEstadosFichaRepresentante: vi.fn(),
+}));
 vi.mock('../hooks/useEstudiantesVinculados', () => ({ useEstudiantesVinculados: vi.fn() }));
 vi.mock('../hooks/useDescartarEvaluacion', () => ({
   useDescartarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
@@ -88,6 +92,9 @@ describe('RepresentanteDetalleView', () => {
     resetAllStores();
     entrarComo(Rol.RepresentanteComiteCurriculum);
     mockEvaluaciones({ data: [], isSuccess: true });
+    vi.mocked(useHistorialEstadosFichaRepresentante).mockReturnValue({
+      data: undefined,
+    } as ReturnType<typeof useHistorialEstadosFichaRepresentante>);
   });
 
   it('ofrece las pestañas Ítems, Estados y Evaluaciones y consulta las evaluaciones de la ficha', () => {
@@ -199,7 +206,7 @@ describe('RepresentanteDetalleView', () => {
     expect(screen.getByRole('button', { name: 'Descartar evaluación' })).toBeInTheDocument();
   });
 
-  it('con la evaluación en curso y la ficha en otro estado ofrece «Evaluar ficha» sin descartar', () => {
+  it('con la evaluación en curso y la ficha en otro estado no ofrece «Evaluar ficha» ni descartar', () => {
     // Arrange
     resumenActual = { ...RESUMEN, estadoId: 'EN_REVISION' };
     mockEvaluaciones({
@@ -211,7 +218,25 @@ describe('RepresentanteDetalleView', () => {
     renderizarConContexto('/fichas-perfil/f-1/items');
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Evaluar ficha' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Descartar evaluación' })).not.toBeInTheDocument();
+  });
+
+  it('toma el estado vigente del historial: si ya no está disponible retira las acciones', () => {
+    // Arrange
+    mockEvaluaciones({
+      data: [{ id: 'ev-1', estadoEvaluacionId: 'EN_EVALUACION' }],
+      isSuccess: true,
+    });
+    vi.mocked(useHistorialEstadosFichaRepresentante).mockReturnValue({
+      data: [{ id: 'APROBADA', nombre: 'Aprobada', fechaActualizacion: '2026-11-25T10:00:00' }],
+    } as ReturnType<typeof useHistorialEstadosFichaRepresentante>);
+
+    // Act
+    renderizarConContexto('/fichas-perfil/f-1/items');
+
+    // Assert
+    expect(screen.queryByRole('button', { name: 'Evaluar ficha' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Descartar evaluación' })).not.toBeInTheDocument();
   });
 

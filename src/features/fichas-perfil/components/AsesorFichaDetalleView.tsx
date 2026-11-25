@@ -1,8 +1,10 @@
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router';
 import RedirigirAlListado from '../../../shared/components/RedirigirAlListado';
 import Button from '../../../shared/components/ui/Button';
+import { useEvaluacionesFichaAsesor } from '../hooks/useEvaluacionesFichaAsesor';
 import { useResumenFichaAsesor } from '../hooks/useResumenFichaAsesor';
-import { admiteCambioDeEstado } from '../utils/transiciones-estado-ficha';
+import { fichaAdmiteEvaluacion } from '../utils/evaluacion-asistente';
+import { admiteCambioDeEstado, bloqueoDeSalida } from '../utils/transiciones-estado-ficha';
 import DetalleFichaEstructura from './DetalleFichaEstructura';
 
 export default function AsesorFichaDetalleView() {
@@ -10,6 +12,10 @@ export default function AsesorFichaDetalleView() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { resumen, search } = useResumenFichaAsesor(id);
+  const { data: evaluaciones } = useEvaluacionesFichaAsesor(
+    id,
+    fichaAdmiteEvaluacion(resumen?.estadoId),
+  );
 
   if (!id) return <Navigate to="/fichas-perfil" replace />;
   if (!resumen) return <RedirigirAlListado destino="/fichas-perfil" />;
@@ -23,7 +29,10 @@ export default function AsesorFichaDetalleView() {
   ];
 
   const enEstados = pathname.startsWith(`${base}/estados`);
-  const ofrecerCambio = !enEstados && admiteCambioDeEstado(resumen.estadoId);
+  const ofrecerCambio =
+    !enEstados &&
+    admiteCambioDeEstado(resumen.estadoId) &&
+    !bloqueoDeSalida(resumen.estadoId, evaluaciones ?? []);
 
   return (
     <DetalleFichaEstructura

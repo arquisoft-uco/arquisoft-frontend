@@ -27,12 +27,13 @@ export default function DecisionFichaPanel({ fichaPerfilId }: Props) {
   const { data, isLoading, isError } = useEvaluacionesFichaCoordinador(fichaPerfilId);
 
   const anticipa = !isLoading && !isError && data !== undefined;
-  const { hayFinalizada, hayAprobatoria } = resumirEvaluacionesParaDecision(data ?? []);
-  const sinFinalizada = anticipa && !hayFinalizada;
-  const sinAprobatoria = anticipa && hayFinalizada && !hayAprobatoria;
+  const { enCurso, hayFinalizada, hayAprobatoria } = resumirEvaluacionesParaDecision(data ?? []);
+  const hayEnCurso = anticipa && enCurso > 0;
+  const sinFinalizada = anticipa && !hayEnCurso && !hayFinalizada;
+  const sinAprobatoria = anticipa && !hayEnCurso && hayFinalizada && !hayAprobatoria;
 
-  const aprobarDeshabilitado = isLoading || sinFinalizada || sinAprobatoria;
-  const noAprobarDeshabilitado = isLoading || sinFinalizada;
+  const aprobarDeshabilitado = isLoading || hayEnCurso || sinFinalizada || sinAprobatoria;
+  const noAprobarDeshabilitado = isLoading || hayEnCurso || sinFinalizada;
   const elegidaEfectiva =
     elegida === 'aprobar' && !aprobarDeshabilitado
       ? 'aprobar'
@@ -98,6 +99,13 @@ export default function DecisionFichaPanel({ fichaPerfilId }: Props) {
         <p id={idError} role="alert" className="field-error">
           Elige una decisión para continuar.
         </p>
+      )}
+      {hayEnCurso && (
+        <Notice variante="info">
+          {enCurso === 1
+            ? 'Hay 1 evaluación en curso. Podrás decidir cuando todas estén finalizadas o descartadas.'
+            : `Hay ${enCurso} evaluaciones en curso. Podrás decidir cuando todas estén finalizadas o descartadas.`}
+        </Notice>
       )}
       {sinFinalizada && (
         <Notice variante="info">

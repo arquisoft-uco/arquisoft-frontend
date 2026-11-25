@@ -4,13 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
-import { useResumenFicha } from '../../hooks/useResumenFicha';
+import { useResumenFichaRepresentante } from '../../hooks/useResumenFichaRepresentante';
 import { useRegistrarEvaluacion } from '../../hooks/useRegistrarEvaluacion';
 import { toast } from '../../../../shared/hooks/useToast';
 import RegistrarEvaluacionPanel from './RegistrarEvaluacionPanel';
 
 vi.mock('../../hooks/useEvaluacionFicha', () => ({ useEvaluacionFicha: vi.fn() }));
-vi.mock('../../hooks/useResumenFicha', () => ({ useResumenFicha: vi.fn() }));
+vi.mock('../../hooks/useResumenFichaRepresentante', () => ({
+  useResumenFichaRepresentante: vi.fn(),
+}));
 vi.mock('../../hooks/useRegistrarEvaluacion', () => ({ useRegistrarEvaluacion: vi.fn() }));
 vi.mock('../../hooks/useDescartarEvaluacion', () => ({
   useDescartarEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
@@ -39,8 +41,16 @@ vi.mock('./AsistenteEvaluacion', () => ({
 }));
 vi.mock('./EstadosEvaluacionPanel', () => ({ default: () => <div>Catálogo de estados</div> }));
 vi.mock('./ObservacionesEvaluacionRepresentantePanel', () => ({
-  default: ({ evaluacion }: { evaluacion: { id: string } }) => (
-    <div>Observaciones de {evaluacion.id}</div>
+  default: ({
+    evaluacion,
+    fichaDisponible,
+  }: {
+    evaluacion: { id: string };
+    fichaDisponible: boolean;
+  }) => (
+    <div>
+      Observaciones de {evaluacion.id} {fichaDisponible ? 'editables' : 'de solo lectura'}
+    </div>
   ),
 }));
 
@@ -80,10 +90,10 @@ const reciente: EvaluacionFichaPerfil = {
 describe('RegistrarEvaluacionPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useResumenFicha).mockReturnValue({
+    vi.mocked(useResumenFichaRepresentante).mockReturnValue({
       resumen: { estadoId: 'DISPONIBLE_PARA_EVALUACION' },
       search: '',
-    } as ReturnType<typeof useResumenFicha>);
+    } as ReturnType<typeof useResumenFichaRepresentante>);
     registro.mockReturnValue({
       data: undefined,
       variables: undefined,
@@ -180,7 +190,7 @@ describe('RegistrarEvaluacionPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Ver observaciones' }));
 
     // Assert
-    expect(screen.getByText('Observaciones de ev-2')).toBeInTheDocument();
+    expect(screen.getByText('Observaciones de ev-2 editables')).toBeInTheDocument();
     expect(screen.queryByText('Evaluaciones anteriores')).not.toBeInTheDocument();
   });
 
@@ -202,7 +212,7 @@ describe('RegistrarEvaluacionPanel', () => {
     // Assert
     expect(screen.getByText('Evaluaciones anteriores')).toBeInTheDocument();
     expect(botones).toHaveLength(3);
-    expect(screen.getByText('Observaciones de ev-0')).toBeInTheDocument();
+    expect(screen.getByText('Observaciones de ev-0 editables')).toBeInTheDocument();
   });
 
   it('al confirmar el inicio lanza el toast de éxito y cierra el diálogo', async () => {
@@ -254,10 +264,10 @@ describe('RegistrarEvaluacionPanel', () => {
   });
 
   function simularFicha(estadoId: string) {
-    vi.mocked(useResumenFicha).mockReturnValue({
+    vi.mocked(useResumenFichaRepresentante).mockReturnValue({
       resumen: { estadoId },
       search: '',
-    } as ReturnType<typeof useResumenFicha>);
+    } as ReturnType<typeof useResumenFichaRepresentante>);
   }
 
   const descartada: EvaluacionFichaPerfil = {
@@ -311,8 +321,24 @@ describe('RegistrarEvaluacionPanel', () => {
     render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
 
     // Assert
-    expect(screen.getByText('Asistente de ev-2')).toBeInTheDocument();
+    expect(screen.getByText(/queda en solo lectura/)).toBeInTheDocument();
+    expect(screen.queryByText(/Asistente de/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Descartar evaluación' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ver observaciones' })).toBeInTheDocument();
+  });
+
+  it('con la evaluación finalizada y la ficha no disponible queda en solo lectura', () => {
+    // Arrange
+    simularFicha('APROBADA');
+    mockConsulta({ data: [antigua] });
+
+    // Act
+    render(<RegistrarEvaluacionPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(screen.getByText('Evaluación registrada')).toBeInTheDocument();
+    expect(screen.getByText(/queda en solo lectura/)).toBeInTheDocument();
+    expect(screen.queryByText(/Asistente de/)).not.toBeInTheDocument();
   });
 
   it('sin evaluación y con la ficha no disponible explica el motivo y no ofrece «Iniciar evaluación»', () => {

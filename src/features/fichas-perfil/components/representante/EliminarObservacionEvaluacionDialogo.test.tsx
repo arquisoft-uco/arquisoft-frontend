@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen } from '../../../../test-utils/render';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useRemoverObservacionEvaluacion } from '../../hooks/useRemoverObservacionEvaluacion';
@@ -12,6 +13,24 @@ vi.mock('../../hooks/useRemoverObservacionEvaluacion', () => ({
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
+
+const MENSAJE_NO_DISPONIBLE =
+  'La ficha de perfil debe estar disponible para evaluación para realizar esta acción. Estado actual: Aprobada';
+
+function errorFichaNoDisponible() {
+  return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+    data: {
+      error: 'Unprocessable Entity',
+      errorCode: 'ESTADO_FICHA_PERFIL_NO_DISPONIBLE_PARA_EVALUACION',
+      message: MENSAJE_NO_DISPONIBLE,
+      status: 422,
+    },
+    status: 422,
+    statusText: 'Unprocessable Entity',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
+}
 
 const OBSERVACION = { id: 'o-1', observacion: 'Ajustar el alcance' } as ObservacionEvaluacion;
 
@@ -76,7 +95,7 @@ describe('EliminarObservacionEvaluacionDialogo', () => {
     // Arrange
     const user = userEvent.setup();
     const mutate = vi.fn((_id: string, opciones: { onError: (err: Error) => void }) =>
-      opciones.onError(new Error('422')),
+      opciones.onError(errorFichaNoDisponible()),
     );
     const onCerrar = renderizar(mutate);
 
@@ -86,7 +105,7 @@ describe('EliminarObservacionEvaluacionDialogo', () => {
     // Assert
     expect(toast.error).toHaveBeenCalledWith(
       'No se pudo eliminar la observación',
-      expect.any(String),
+      MENSAJE_NO_DISPONIBLE,
     );
     expect(toast.success).not.toHaveBeenCalled();
     expect(onCerrar).toHaveBeenCalledTimes(1);

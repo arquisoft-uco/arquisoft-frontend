@@ -58,6 +58,7 @@ export interface AccionesEvaluacionRepresentante {
   principal: 'iniciar' | 'evaluar' | 'reanudar' | null;
   puedeDescartar: boolean;
   descartadaSinAccion: boolean;
+  soloLectura: boolean;
 }
 
 export function accionesEvaluacionRepresentante({
@@ -72,6 +73,7 @@ export function accionesEvaluacionRepresentante({
       principal: fichaDisponible ? 'iniciar' : null,
       puedeDescartar: false,
       descartadaSinAccion: false,
+      soloLectura: false,
     };
   }
   if (evaluacionDescartada(vigente)) {
@@ -79,10 +81,21 @@ export function accionesEvaluacionRepresentante({
       principal: fichaDisponible ? 'reanudar' : null,
       puedeDescartar: false,
       descartadaSinAccion: !fichaDisponible,
+      soloLectura: false,
     };
   }
   if (evaluacionEnCurso(vigente)) {
-    return { principal: 'evaluar', puedeDescartar: fichaDisponible, descartadaSinAccion: false };
+    return {
+      principal: fichaDisponible ? 'evaluar' : null,
+      puedeDescartar: fichaDisponible,
+      descartadaSinAccion: false,
+      soloLectura: !fichaDisponible,
+    };
   }
-  return { principal: null, puedeDescartar: false, descartadaSinAccion: false };
+  return {
+    principal: null,
+    puedeDescartar: false,
+    descartadaSinAccion: false,
+    soloLectura: !fichaDisponible,
+  };
 }
