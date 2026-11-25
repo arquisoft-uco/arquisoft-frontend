@@ -7,32 +7,25 @@ import {
   restaurarTemporizadores,
   usarTemporizadoresFalsos,
 } from '../../../../test-utils/temporizadores';
-import ConsultarFichasRepresentante from './ConsultarFichasRepresentante';
-import { useEstadosFicha } from '../../hooks/useEstadosFicha';
-import { useFichasRepresentante } from '../../hooks/useFichasRepresentante';
+import ConsultarFichasDisponibles from './ConsultarFichasDisponibles';
+import { useFichasDisponibles } from '../../hooks/useFichasDisponibles';
 import type { Page } from '../../../../shared/models/api-response';
-import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
+import type { FichaDisponibleEvaluacion } from '../../models/FichaDisponibleEvaluacion';
 
-vi.mock('../../hooks/useFichasRepresentante', () => ({ useFichasRepresentante: vi.fn() }));
-vi.mock('../../hooks/useEstadosFicha', () => ({ useEstadosFicha: vi.fn() }));
+vi.mock('../../hooks/useFichasDisponibles', () => ({ useFichasDisponibles: vi.fn() }));
 
-const ESTADOS = [
-  { id: 'APROBADA', nombre: 'Aprobada', descripcion: '' },
-  { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: '' },
-];
-
-const FICHA: FichaPerfilRepresentante = {
+const FICHA: FichaDisponibleEvaluacion = {
   id: 'f-1',
   titulo: 'Sistema de monitoreo',
   asesorNombre: 'Ana Pérez',
   asesorEmail: 'ana@uco.edu.co',
-  estadoId: 'APROBADA',
-  estadoActual: 'Aprobada',
+  estadoId: 'DISPONIBLE_PARA_EVALUACION',
+  estadoActual: 'Disponible para evaluación',
   estadoFechaActualizacion: '2026-10-01T15:30:00Z',
 };
 
 function crearPagina(
-  content: FichaPerfilRepresentante[],
+  content: FichaDisponibleEvaluacion[],
   { totalPages = 1, totalElements = content.length } = {},
 ) {
   return {
@@ -44,10 +37,10 @@ function crearPagina(
     first: true,
     last: totalPages <= 1,
     empty: content.length === 0,
-  } as Page<FichaPerfilRepresentante>;
+  } as Page<FichaDisponibleEvaluacion>;
 }
 
-function mockHook(parcial: Partial<ReturnType<typeof useFichasRepresentante>> = {}) {
+function mockHook(parcial: Partial<ReturnType<typeof useFichasDisponibles>> = {}) {
   const hook = {
     data: undefined,
     error: null,
@@ -59,29 +52,18 @@ function mockHook(parcial: Partial<ReturnType<typeof useFichasRepresentante>> = 
     page: 0,
     pageSize: 10,
     goToPage: vi.fn(),
-    filtros: { titulo: '', asesorNombre: '', asesorEmail: '', estadoIds: [] },
+    filtros: { titulo: '', asesorNombre: '', asesorEmail: '' },
     setTitulo: vi.fn(),
     setAsesorNombre: vi.fn(),
     setAsesorEmail: vi.fn(),
-    toggleEstado: vi.fn(),
-    limpiarEstados: vi.fn(),
     ordenCampo: 'tituloProyecto',
     ordenDireccion: 'ASC',
     setOrden: vi.fn(),
     limpiarFiltros: vi.fn(),
     ...parcial,
-  } as ReturnType<typeof useFichasRepresentante>;
-  vi.mocked(useFichasRepresentante).mockReturnValue(hook);
+  } as ReturnType<typeof useFichasDisponibles>;
+  vi.mocked(useFichasDisponibles).mockReturnValue(hook);
   return hook;
-}
-
-function mockCatalogo(parcial: Partial<ReturnType<typeof useEstadosFicha>> = {}) {
-  vi.mocked(useEstadosFicha).mockReturnValue({
-    data: ESTADOS,
-    isLoading: false,
-    isError: false,
-    ...parcial,
-  } as ReturnType<typeof useEstadosFicha>);
 }
 
 function EstadoDeNavegacion() {
@@ -90,7 +72,7 @@ function EstadoDeNavegacion() {
 }
 
 function tabla() {
-  return within(screen.getByRole('table', { name: 'Fichas de perfil a evaluar' }));
+  return within(screen.getByRole('table', { name: 'Fichas de perfil disponibles para evaluar' }));
 }
 
 async function abrirFiltros(user: UserEvent) {
@@ -98,10 +80,9 @@ async function abrirFiltros(user: UserEvent) {
   return within(screen.getByRole('dialog', { name: 'Filtros' }));
 }
 
-describe('ConsultarFichasRepresentante', () => {
+describe('ConsultarFichasDisponibles', () => {
   beforeEach(() => {
-    vi.mocked(useFichasRepresentante).mockReset();
-    mockCatalogo();
+    vi.mocked(useFichasDisponibles).mockReset();
   });
 
   afterEach(() => {
@@ -114,7 +95,7 @@ describe('ConsultarFichasRepresentante', () => {
     mockHook({ data: crearPagina([FICHA]) });
     render(
       <>
-        <ConsultarFichasRepresentante />
+        <ConsultarFichasDisponibles />
         <EstadoDeNavegacion />
       </>,
       { initialPath: '/fichas-perfil?q=sis' },
@@ -127,7 +108,7 @@ describe('ConsultarFichasRepresentante', () => {
     expect(screen.getByText('1 ficha')).toBeInTheDocument();
     expect(tabla().getByText('Ana Pérez')).toBeInTheDocument();
     expect(tabla().getByText('ana@uco.edu.co')).toBeInTheDocument();
-    expect(tabla().getByText('Aprobada')).toBeInTheDocument();
+    expect(tabla().getByText('Disponible para evaluación')).toBeInTheDocument();
     expect(tabla().getByText(/2026/)).toHaveAttribute('datetime', '2026-10-01T15:30:00Z');
     expect(
       screen.getByText(
@@ -138,8 +119,8 @@ describe('ConsultarFichasRepresentante', () => {
               titulo: 'Sistema de monitoreo',
               asesorNombre: 'Ana Pérez',
               asesorEmail: 'ana@uco.edu.co',
-              estadoId: 'APROBADA',
-              estadoNombre: 'Aprobada',
+              estadoId: 'DISPONIBLE_PARA_EVALUACION',
+              estadoNombre: 'Disponible para evaluación',
               fechaActualizacion: '2026-10-01T15:30:00Z',
             },
             search: '?q=sis',
@@ -148,11 +129,11 @@ describe('ConsultarFichasRepresentante', () => {
     ).toBeInTheDocument();
   });
 
-  it('los cuatro filtros llaman a su setter: título y asesor con retardo, estados al instante', async () => {
+  it('los tres filtros llaman a su setter con retardo y la barra no ofrece «Estado»', async () => {
     // Arrange
     const user = usarTemporizadoresFalsos();
     const hook = mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasRepresentante />);
+    render(<ConsultarFichasDisponibles />);
 
     // Act
     await user.type(screen.getByRole('textbox', { name: 'Buscar fichas' }), 'sis');
@@ -163,20 +144,15 @@ describe('ConsultarFichasRepresentante', () => {
     // Assert
     expect(hook.setTitulo).not.toHaveBeenCalled();
     expect(hook.setAsesorNombre).not.toHaveBeenCalled();
+    expect(panel.queryByRole('group', { name: 'Estado' })).not.toBeInTheDocument();
 
     // Act
     avanzar(300);
-    await user.click(
-      within(panel.getByRole('group', { name: 'Estado' })).getByRole('button', {
-        name: 'Aprobada',
-      }),
-    );
 
     // Assert
     expect(hook.setTitulo).toHaveBeenCalledWith('sis');
     expect(hook.setAsesorNombre).toHaveBeenCalledWith('Ana');
     expect(hook.setAsesorEmail).toHaveBeenCalledWith('ana@');
-    expect(hook.toggleEstado).toHaveBeenCalledWith('APROBADA');
   });
 
   it('cada filtro aplicado aparece con su ✕ y lo quita por separado', async () => {
@@ -184,27 +160,17 @@ describe('ConsultarFichasRepresentante', () => {
     const user = userEvent.setup();
     const hook = mockHook({
       data: crearPagina([FICHA]),
-      filtros: {
-        titulo: '',
-        asesorNombre: 'Ana',
-        asesorEmail: 'ana@',
-        estadoIds: ['APROBADA', 'NO_APROBADA'],
-      },
+      filtros: { titulo: '', asesorNombre: 'Ana', asesorEmail: 'ana@' },
     });
-    render(<ConsultarFichasRepresentante />);
+    render(<ConsultarFichasDisponibles />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Quitar filtro Asesor: Ana' }));
     await user.click(screen.getByRole('button', { name: 'Quitar filtro Correo: ana@' }));
-    await user.click(screen.getByRole('button', { name: 'Quitar filtro Estado: No Aprobada' }));
 
     // Assert
     expect(hook.setAsesorNombre).toHaveBeenCalledWith('');
     expect(hook.setAsesorEmail).toHaveBeenCalledWith('');
-    expect(hook.toggleEstado).toHaveBeenCalledWith('NO_APROBADA');
-    expect(
-      screen.getByRole('button', { name: 'Quitar filtro Estado: Aprobada' }),
-    ).toBeInTheDocument();
   });
 
   it('"Limpiar todo" quita todos los filtros', async () => {
@@ -212,9 +178,9 @@ describe('ConsultarFichasRepresentante', () => {
     const user = userEvent.setup();
     const hook = mockHook({
       data: crearPagina([FICHA]),
-      filtros: { titulo: 'sis', asesorNombre: 'Ana', asesorEmail: '', estadoIds: [] },
+      filtros: { titulo: 'sis', asesorNombre: 'Ana', asesorEmail: '' },
     });
-    render(<ConsultarFichasRepresentante />);
+    render(<ConsultarFichasDisponibles />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Limpiar todo' }));
@@ -227,7 +193,7 @@ describe('ConsultarFichasRepresentante', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasRepresentante />);
+    render(<ConsultarFichasDisponibles />);
 
     // Act
     await user.click(tabla().getByRole('button', { name: 'Ficha' }));
@@ -241,20 +207,20 @@ describe('ConsultarFichasRepresentante', () => {
   it('distingue el vacío sin datos del vacío con filtros', () => {
     // Arrange
     mockHook({ data: crearPagina([]) });
-    const { unmount } = render(<ConsultarFichasRepresentante />);
+    const { unmount } = render(<ConsultarFichasDisponibles />);
 
     // Assert
-    expect(screen.getByText('Aún no hay fichas para evaluar')).toBeInTheDocument();
+    expect(screen.getByText('No hay fichas disponibles para evaluar')).toBeInTheDocument();
     unmount();
 
     // Arrange
     mockHook({
       data: crearPagina([]),
-      filtros: { titulo: 'zzz', asesorNombre: '', asesorEmail: '', estadoIds: [] },
+      filtros: { titulo: 'zzz', asesorNombre: '', asesorEmail: '' },
     });
 
     // Act
-    render(<ConsultarFichasRepresentante />);
+    render(<ConsultarFichasDisponibles />);
 
     // Assert
     expect(screen.getByText('Sin resultados')).toBeInTheDocument();
@@ -264,39 +230,23 @@ describe('ConsultarFichasRepresentante', () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ isError: true, error: new Error('fallo') });
-    render(<ConsultarFichasRepresentante />);
+    render(<ConsultarFichasDisponibles />);
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }));
 
     // Assert
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'No se pudieron cargar las fichas de perfil',
+      'No se pudieron cargar las fichas disponibles',
     );
     expect(hook.refetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('si el catálogo de estados falla avisa en la sección y deja los demás filtros disponibles', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    mockCatalogo({ data: undefined, isError: true });
-    mockHook({ data: crearPagina([FICHA]) });
-    render(<ConsultarFichasRepresentante />);
-
-    // Act
-    const panel = await abrirFiltros(user);
-
-    // Assert
-    expect(panel.getByRole('note')).toHaveTextContent('No se pudo cargar la lista de estados');
-    expect(panel.getByRole('textbox', { name: 'Nombre del asesor' })).toBeEnabled();
-    expect(panel.getByRole('textbox', { name: 'Correo del asesor' })).toBeEnabled();
   });
 
   it('el paginador navega a la página siguiente', async () => {
     // Arrange
     const user = userEvent.setup();
     const hook = mockHook({ data: crearPagina([FICHA], { totalElements: 25, totalPages: 3 }) });
-    render(<ConsultarFichasRepresentante />);
+    render(<ConsultarFichasDisponibles />);
 
     // Act
     await user.click(

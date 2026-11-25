@@ -969,8 +969,8 @@ describe('fichasPerfilService', () => {
     });
   });
 
-  describe('getFichasRepresentante', () => {
-    const vacios = { titulo: '', asesorNombre: '', asesorEmail: '', estadoIds: [] };
+  describe('getFichasDisponiblesEvaluacion', () => {
+    const vacios = { titulo: '', asesorNombre: '', asesorEmail: '' };
     const paginaDto = {
       content: [
         {
@@ -998,15 +998,18 @@ describe('fichasPerfilService', () => {
       empty: false,
     };
 
-    it('hace POST /fichas-perfil/coordinador sin filtros y traduce la respuesta conservando la paginación', async () => {
+    it('hace POST /fichas-perfil/disponibles-evaluacion sin filtros y traduce la respuesta conservando la paginación', async () => {
       // Arrange
       post.mockResolvedValue({ status: 200, data: paginaDto });
 
       // Act
-      const resultado = await fichasPerfilService.getFichasRepresentante(0, 10, vacios);
+      const resultado = await fichasPerfilService.getFichasDisponiblesEvaluacion(0, 10, vacios);
 
       // Assert
-      expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', { pagina: 0, tamanio: 10 });
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/disponibles-evaluacion', {
+        pagina: 0,
+        tamanio: 10,
+      });
       expect(resultado).toEqual({
         ...paginaDto,
         content: [
@@ -1028,31 +1031,35 @@ describe('fichasPerfilService', () => {
       post.mockResolvedValue({ status: 200, data: paginaDto });
 
       // Act
-      await fichasPerfilService.getFichasRepresentante(0, 10, vacios, ['asesorNombre:DESC']);
+      await fichasPerfilService.getFichasDisponiblesEvaluacion(0, 10, vacios, [
+        'asesorNombre:DESC',
+      ]);
 
       // Assert
-      expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', {
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/disponibles-evaluacion', {
         pagina: 0,
         tamanio: 10,
         ordenamiento: ['asesorNombre:DESC'],
       });
     });
 
-    it('envía un solo filtro sin GRUPO y combina varios en un GRUPO AND con IN para los estados', async () => {
+    it('envía un solo filtro sin GRUPO y combina varios en un GRUPO AND sin enviar estadoFicha', async () => {
       // Arrange
       post.mockResolvedValue({ status: 200, data: paginaDto });
 
       // Act
-      await fichasPerfilService.getFichasRepresentante(1, 10, { ...vacios, titulo: ' monitoreo ' });
-      await fichasPerfilService.getFichasRepresentante(0, 10, {
+      await fichasPerfilService.getFichasDisponiblesEvaluacion(1, 10, {
+        ...vacios,
+        titulo: ' monitoreo ',
+      });
+      await fichasPerfilService.getFichasDisponiblesEvaluacion(0, 10, {
         titulo: 'monitoreo',
         asesorNombre: '',
         asesorEmail: 'ana@',
-        estadoIds: ['st-1', 'st-2'],
       });
 
       // Assert
-      expect(post).toHaveBeenNthCalledWith(1, '/fichas-perfil/coordinador', {
+      expect(post).toHaveBeenNthCalledWith(1, '/fichas-perfil/disponibles-evaluacion', {
         pagina: 1,
         tamanio: 10,
         filtros: {
@@ -1062,7 +1069,7 @@ describe('fichasPerfilService', () => {
           valor: 'monitoreo',
         },
       });
-      expect(post).toHaveBeenNthCalledWith(2, '/fichas-perfil/coordinador', {
+      expect(post).toHaveBeenNthCalledWith(2, '/fichas-perfil/disponibles-evaluacion', {
         pagina: 0,
         tamanio: 10,
         filtros: {
@@ -1076,12 +1083,6 @@ describe('fichasPerfilService', () => {
               valor: 'monitoreo',
             },
             { tipo: 'PREDICADO', campo: 'asesorEmail', operador: 'CONTIENE', valor: 'ana@' },
-            {
-              tipo: 'PREDICADO_MULTIVALOR',
-              campo: 'estadoFicha',
-              operador: 'IN',
-              valores: ['st-1', 'st-2'],
-            },
           ],
         },
       });

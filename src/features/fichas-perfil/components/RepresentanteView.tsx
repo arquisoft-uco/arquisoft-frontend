@@ -1,14 +1,14 @@
 import PageHeader from '../../../shared/components/ui/PageHeader';
-import ConsultarFichasRepresentante from './representante/ConsultarFichasRepresentante';
+import ConsultarFichasDisponibles from './representante/ConsultarFichasDisponibles';
 
 export default function RepresentanteView() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        titulo="Fichas de perfil a evaluar"
-        descripcion="Busca y abre las fichas que el comité debe revisar."
+        titulo="Fichas de perfil"
+        descripcion="Fichas disponibles para que inicies su evaluación."
       />
-      <ConsultarFichasRepresentante />
+      <ConsultarFichasDisponibles />
     </div>
   );
 }

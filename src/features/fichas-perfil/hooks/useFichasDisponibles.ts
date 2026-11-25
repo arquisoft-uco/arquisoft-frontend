@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
-import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
+import type { FiltrosFichasDisponibles } from '../models/FiltrosFichasDisponibles';
 import type { OrdenCampoFicha } from '../models/OrdenCampoFicha';
 
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
@@ -18,14 +18,13 @@ const ORDENES = [
 
 const ORDEN_POR_DEFECTO = 'tituloProyecto:ASC';
 
-export function useFichasRepresentante() {
+export function useFichasDisponibles() {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
-  const filtros: FiltrosFichasRepresentante = {
+  const filtros: FiltrosFichasDisponibles = {
     titulo: parametros.texto('q'),
     asesorNombre: parametros.texto('asesor'),
     asesorEmail: parametros.texto('correo'),
-    estadoIds: parametros.lista('estado'),
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [campo, direccion] = orden.split(':');
@@ -44,17 +43,6 @@ export function useFichasRepresentante() {
     parametros.cambiar({ correo: valor });
   }
 
-  function toggleEstado(id: string) {
-    const siguientes = filtros.estadoIds.includes(id)
-      ? filtros.estadoIds.filter((e) => e !== id)
-      : [...filtros.estadoIds, id];
-    parametros.cambiar({ estado: siguientes });
-  }
-
-  function limpiarEstados() {
-    parametros.cambiar({ estado: undefined });
-  }
-
   function setOrden(nuevoCampo: OrdenCampoFicha, nuevaDireccion: OrdenDireccion = 'ASC') {
     const nuevo = `${nuevoCampo}:${nuevaDireccion}`;
     parametros.cambiar({ orden: nuevo === ORDEN_POR_DEFECTO ? undefined : nuevo });
@@ -65,7 +53,6 @@ export function useFichasRepresentante() {
       q: undefined,
       asesor: undefined,
       correo: undefined,
-      estado: undefined,
     });
   }
 
@@ -73,20 +60,20 @@ export function useFichasRepresentante() {
     titulo: filtros.titulo.trim(),
     asesorNombre: filtros.asesorNombre.trim(),
     asesorEmail: filtros.asesorEmail.trim(),
-    estadoIds: filtros.estadoIds,
   };
 
   const query = useQuery({
     queryKey: [
       'fichas-perfil',
       'representante',
+      'disponibles',
       filtrosRecortados,
       ordenCampo,
       ordenDireccion,
       page,
     ],
     queryFn: () =>
-      fichasPerfilService.getFichasRepresentante(page, PAGE_SIZE, filtrosRecortados, [
+      fichasPerfilService.getFichasDisponiblesEvaluacion(page, PAGE_SIZE, filtrosRecortados, [
         `${ordenCampo}:${ordenDireccion}`,
       ]),
     placeholderData: keepPreviousData,
@@ -101,8 +88,6 @@ export function useFichasRepresentante() {
     setTitulo,
     setAsesorNombre,
     setAsesorEmail,
-    toggleEstado,
-    limpiarEstados,
     ordenCampo,
     ordenDireccion,
     setOrden,

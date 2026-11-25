@@ -15,8 +15,8 @@ import type { EstadoFichaPerfilAsesor } from '../models/EstadoFichaPerfilAsesor'
 import type { EstudianteVinculado } from '../models/EstudianteVinculado';
 import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaResponse';
 import type { FichaPerfil } from '../models/FichaPerfil';
-import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
-import type { FiltrosFichasRepresentante } from '../models/FiltrosFichasRepresentante';
+import type { FichaDisponibleEvaluacion } from '../models/FichaDisponibleEvaluacion';
+import type { FiltrosFichasDisponibles } from '../models/FiltrosFichasDisponibles';
 import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
 import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
 import type { AgregarEstadoAprobacionFichaPerfilRequest } from '../models/AgregarEstadoAprobacionFichaPerfilRequest';
@@ -255,19 +255,17 @@ function aObservacionItem(dto: ObservacionItemResponseDTO): ObservacionItem {
   };
 }
 
-// Forma cruda de FichaPerfilResponseDTO (POST /fichas-perfil/coordinador);
-// se traduce a FichaPerfilRepresentante (estadoId = estado.id, estadoActual = estado.nombre)
-// en getFichasRepresentante.
-interface FichaPerfilRepresentanteResponseDTO {
+// Forma cruda de FichaPerfilResponseDTO (POST /fichas-perfil/disponibles-evaluacion);
+// se traduce a FichaDisponibleEvaluacion (estadoId = estado.id, estadoActual = estado.nombre)
+// en getFichasDisponiblesEvaluacion.
+interface FichaDisponibleEvaluacionResponseDTO {
   id: string;
   tituloProyecto: string;
   asesorFicha: { id: string; identificador: string; nombre: string; email: string };
   estado: { id: string; nombre: string; fechaActualizacion: string };
 }
 
-function construirFiltrosRepresentante(
-  filtros: FiltrosFichasRepresentante,
-): NodoFiltroDTO | undefined {
+function construirFiltrosDisponibles(filtros: FiltrosFichasDisponibles): NodoFiltroDTO | undefined {
   const nodos: NodoFiltroDTO[] = [];
   const contiene = (campo: string, valor: string) => {
     const texto = valor.trim();
@@ -276,14 +274,6 @@ function construirFiltrosRepresentante(
   contiene('tituloProyecto', filtros.titulo);
   contiene('asesorNombre', filtros.asesorNombre);
   contiene('asesorEmail', filtros.asesorEmail);
-  if (filtros.estadoIds.length > 0) {
-    nodos.push({
-      tipo: 'PREDICADO_MULTIVALOR',
-      campo: 'estadoFicha',
-      operador: 'IN',
-      valores: filtros.estadoIds,
-    });
-  }
   if (nodos.length === 0) return undefined;
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };
@@ -617,18 +607,20 @@ export const fichasPerfilService = {
       .post<Page<ObservacionItemResponseDTO>>('/fichas-perfil/observaciones-item/estudiante', req)
       .then(({ data }) => ({ ...data, content: data.content.map(aObservacionItem) })),
 
-  getFichasRepresentante: (
+  getFichasDisponiblesEvaluacion: (
     page: number,
     size: number,
-    filtros: FiltrosFichasRepresentante,
+    filtros: FiltrosFichasDisponibles,
     ordenamiento?: string[],
-  ): Promise<Page<FichaPerfilRepresentante>> => {
+  ): Promise<Page<FichaDisponibleEvaluacion>> => {
     const body: ConsultaCriteriaRequest = { pagina: page, tamanio: size };
     if (ordenamiento) body.ordenamiento = ordenamiento;
-    const nodo = construirFiltrosRepresentante(filtros);
+    const nodo = construirFiltrosDisponibles(filtros);
     if (nodo) body.filtros = nodo;
     return apiClient
-      .post<Page<FichaPerfilRepresentanteResponseDTO>>('/fichas-perfil/coordinador', body)
+      .post<
+        Page<FichaDisponibleEvaluacionResponseDTO>
+      >('/fichas-perfil/disponibles-evaluacion', body)
       .then(({ data }) => ({
         ...data,
         content: data.content.map((dto) => ({

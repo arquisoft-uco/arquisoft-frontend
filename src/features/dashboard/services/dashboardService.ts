@@ -14,8 +14,6 @@ import type { EvaluacionPorEvaluar } from '../models/EvaluacionPorEvaluar';
 import type { FichaResumen } from '../models/FichaResumen';
 import type { RecursoContable } from '../models/RecursoContable';
 
-// Clave primaria del catálogo estado_ficha (migración V20260624215912); B2 de docs/pendientes.md.
-const ESTADO_POR_EVALUAR = 'DISPONIBLE_PARA_EVALUACION';
 export const ESTADO_JURADO_POR_EVALUAR = 'PENDIENTE_POR_EVALUAR';
 const TAMANIO_BANDEJA = 5;
 // Igual al valor por defecto del reporte de artefactos sin avance (artefactos/utils/dias-sin-avance.ts).
@@ -190,15 +188,9 @@ export const dashboardService = {
       pagina: 0,
       tamanio: TAMANIO_BANDEJA,
       ordenamiento: ['tituloProyecto:ASC'],
-      filtros: {
-        tipo: 'PREDICADO_MULTIVALOR',
-        campo: 'estadoFicha',
-        operador: 'IN',
-        valores: [ESTADO_POR_EVALUAR],
-      },
     };
     return apiClient
-      .post<Page<FichaCoordinadorDTO>>('/fichas-perfil/coordinador', body)
+      .post<Page<FichaCoordinadorDTO>>('/fichas-perfil/disponibles-evaluacion', body)
       .then(({ data }) => conContenido(data, aFichaResumen));
   },
 
@@ -256,11 +248,6 @@ export const dashboardService = {
   contar: (recurso: RecursoContable): Promise<number> =>
     apiClient
       .post<Page<unknown>>(RUTA_CONTEO[recurso], { pagina: 0, tamanio: 1 })
-      .then((r) => r.data.totalElements),
-
-  contarFichas: (): Promise<number> =>
-    apiClient
-      .post<Page<unknown>>('/fichas-perfil/coordinador', { pagina: 0, tamanio: 1 })
       .then((r) => r.data.totalElements),
 
   contarUsuarios: (filtro: FiltroUsuarios): Promise<number> => {
