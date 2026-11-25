@@ -45,6 +45,7 @@ describe('ConsultarEvaluacionAsesor', () => {
       data: {
         id: 'ea-1',
         asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+        notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
       },
     });
 
@@ -52,6 +53,23 @@ describe('ConsultarEvaluacionAsesor', () => {
     expect(screen.getByRole('list', { name: 'Asesor de la evaluación' })).toBeInTheDocument();
     expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
     expect(screen.getByText('ana@uco.edu.co')).toBeInTheDocument();
+  });
+
+  it('muestra las tres notas del asesor y «—» cuando no se calcularon', () => {
+    // Act
+    montar({
+      data: {
+        id: 'ea-1',
+        asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+        notas: { resumenCualitativo: 3.5, resumenCuantitativo: null, notaAcumulada: 4 },
+      },
+    });
+
+    // Assert
+    expect(screen.getByText('Notas del asesor')).toBeInTheDocument();
+    expect(screen.getByText('Resumen cualitativo').parentElement).toHaveTextContent('3,50');
+    expect(screen.getByText('Resumen cuantitativo').parentElement).toHaveTextContent('—');
+    expect(screen.getByText('Nota acumulada').parentElement).toHaveTextContent('4,00');
   });
 
   it('mientras carga expone un estado accesible', () => {

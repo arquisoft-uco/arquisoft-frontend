@@ -7,6 +7,7 @@ import type { EvaluacionJurado } from '../../models/EvaluacionJurado';
 const JURADO: EvaluacionJurado = {
   id: 'ej-1',
   jurado: { id: 'j-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 };
 
 describe('AccionesJuradoEvaluacion', () => {

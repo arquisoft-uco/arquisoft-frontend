@@ -13,6 +13,7 @@ const consultar = vi.mocked(evaluacionesService.getEvaluacionAsesor);
 const EVALUACION_ASESOR = {
   id: 'ea-1',
   asesor: { id: 'a-1', nombre: 'Ana Pérez', email: 'ana@uco.edu.co' },
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 };
 
 function crearError422() {

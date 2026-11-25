@@ -12,6 +12,8 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import { varianteEstadoEvaluacion } from '../../../../shared/utils/estado-variante';
 import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
 import type { OrdenCampoEvaluacion } from '../../models/OrdenCampoEvaluacion';
+import { textoDesgloseNotasEvaluador } from '../../utils/formato-nota';
+import NotaEvaluacion from '../NotaEvaluacion';
 
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
 const TITULO = 'font-medium text-on-surface';
@@ -62,6 +64,16 @@ const COLUMNAS: ColumnaTabla<EvaluacionAsignadaAsesor>[] = [
     clave: 'estado',
     ordenable: true,
     celda: (fila) => <InsigniaEstado fila={fila} />,
+  },
+  {
+    id: 'notaAcumulada',
+    encabezado: 'Nota acumulada',
+    celda: (fila) => (
+      <NotaEvaluacion
+        valor={fila.notas.notaAcumulada}
+        desglose={textoDesgloseNotasEvaluador(fila.notas)}
+      />
+    ),
   },
 ];
 
@@ -118,6 +130,10 @@ export default function EvaluacionesAsignadasAsesorTable({
           <div className={TARJETA_ESTADO}>
             <InsigniaEstado fila={fila} />
           </div>
+          <NotaEvaluacion
+            valor={fila.notas.notaAcumulada}
+            desglose={textoDesgloseNotasEvaluador(fila.notas)}
+          />
         </>
       )}
     />

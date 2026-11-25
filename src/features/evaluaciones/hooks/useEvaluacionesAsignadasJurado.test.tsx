@@ -24,6 +24,7 @@ const ASIGNACION: EvaluacionAsignadaJurado = {
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
   tieneEvaluacionesCualitativas: false,
   tieneEvaluacionesCuantitativas: false,
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 };
 
 const PAGINA: Page<EvaluacionAsignadaJurado> = {

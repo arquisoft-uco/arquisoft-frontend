@@ -9,6 +9,8 @@ import type {
 } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
 import type { EvaluacionJurado } from '../../models/EvaluacionJurado';
+import { textoDesgloseNotasEvaluador } from '../../utils/formato-nota';
+import NotaEvaluacion from '../NotaEvaluacion';
 
 const NOMBRE = 'font-medium text-on-surface';
 const CORREO = 'text-[13px] text-on-surface-secondary';
@@ -28,6 +30,16 @@ const COLUMNAS: ColumnaTabla<EvaluacionJurado>[] = [
     id: 'correo',
     encabezado: 'Correo',
     celda: (fila) => fila.jurado.email,
+  },
+  {
+    id: 'notaAcumulada',
+    encabezado: 'Nota acumulada',
+    celda: (fila) => (
+      <NotaEvaluacion
+        valor={fila.notas.notaAcumulada}
+        desglose={textoDesgloseNotasEvaluador(fila.notas)}
+      />
+    ),
   },
 ];
 
@@ -96,6 +108,10 @@ export default function JuradosEvaluacionTable({
         <>
           <span className={NOMBRE}>{fila.jurado.nombre}</span>
           <span className={CORREO}>{fila.jurado.email}</span>
+          <NotaEvaluacion
+            valor={fila.notas.notaAcumulada}
+            desglose={textoDesgloseNotasEvaluador(fila.notas)}
+          />
         </>
       )}
     />

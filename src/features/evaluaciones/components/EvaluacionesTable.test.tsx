@@ -8,11 +8,15 @@ const EVALUACION_1: Evaluacion = {
   id: 'e-1',
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
   estado: { id: 'PENDIENTE', nombre: 'Pendiente' },
+  notas: { notaAsesor: null, notaJurados: null, notaFinal: null },
+  resultado: null,
 };
 const EVALUACION_2: Evaluacion = {
   id: 'e-2',
   entregable: { id: 'en-2', proyecto: 'Plataforma de riego', version: 1 },
   estado: { id: 'FINALIZADA', nombre: 'Finalizada' },
+  notas: { notaAsesor: 4, notaJurados: 4.5, notaFinal: 4.2 },
+  resultado: { id: 'APROBADA', nombre: 'Aprobada' },
 };
 
 function renderizar(parcial: Partial<React.ComponentProps<typeof EvaluacionesTable>> = {}) {
@@ -44,6 +48,22 @@ describe('EvaluacionesTable', () => {
     expect(tabla().getByText('2')).toBeInTheDocument();
     expect(tabla().getByText('Pendiente')).toBeInTheDocument();
     expect(tabla().getByText('Finalizada')).toBeInTheDocument();
+  });
+
+  it('muestra la nota final con su desglose y la insignia del resultado, o «—» si no se calculó', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    const filas = tabla().getAllByRole('row');
+    const conNotas = within(filas[2]);
+    const sinCalcular = within(filas[1]);
+    expect(conNotas.getByText('4,20')).toBeInTheDocument();
+    expect(conNotas.getByText('Asesor 4,00 · Jurados 4,50')).toBeInTheDocument();
+    expect(conNotas.getByText('Aprobada')).toBeInTheDocument();
+    expect(sinCalcular.getByText('Asesor — · Jurados —')).toBeInTheDocument();
+    expect(sinCalcular.getAllByText('Sin calcular')).toHaveLength(2);
+    expect(sinCalcular.queryByText('Aprobada')).not.toBeInTheDocument();
   });
 
   it('pulsar las cabeceras Proyecto y Estado ordena por el campo correspondiente', async () => {
@@ -104,7 +124,7 @@ describe('EvaluacionesTable', () => {
     const { unmount } = renderizar();
 
     // Assert
-    expect(tabla().getAllByRole('columnheader')).toHaveLength(3);
+    expect(tabla().getAllByRole('columnheader')).toHaveLength(5);
     unmount();
 
     // Act
@@ -114,7 +134,7 @@ describe('EvaluacionesTable', () => {
     });
 
     // Assert
-    expect(tabla().getAllByRole('columnheader')).toHaveLength(4);
+    expect(tabla().getAllByRole('columnheader')).toHaveLength(6);
     expect(tabla().getByRole('button', { name: 'Asignar a e-1' })).toBeInTheDocument();
     expect(tabla().getByRole('button', { name: 'Asignar a e-2' })).toBeInTheDocument();
   });

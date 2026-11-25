@@ -36,6 +36,7 @@ const ASIGNACION = (finalizada: boolean): EvaluacionAsignadaAsesor => ({
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
   tieneEvaluacionesCualitativas: true,
   tieneEvaluacionesCuantitativas: false,
+  notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
 });
 
 function preparar(finalizada = false) {

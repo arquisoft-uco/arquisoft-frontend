@@ -1,3 +1,5 @@
+import type { NotasEvaluador } from './NotasEvaluador';
+
 export interface JuradoDeEvaluacion {
   id: string;
   nombre: string;
@@ -7,4 +9,5 @@ export interface JuradoDeEvaluacion {
 export interface EvaluacionJurado {
   id: string;
   jurado: JuradoDeEvaluacion;
+  notas: NotasEvaluador;
 }

@@ -20,6 +20,7 @@ function asignacion(id: string): EvaluacionAsignadaAsesor {
     entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 1 },
     tieneEvaluacionesCualitativas: false,
     tieneEvaluacionesCuantitativas: false,
+    notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
   };
 }
 

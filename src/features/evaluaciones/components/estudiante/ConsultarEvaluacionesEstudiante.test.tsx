@@ -19,6 +19,8 @@ const EVALUACION: Evaluacion = {
   id: 'e-1',
   entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 3 },
   estado: { id: 'PENDIENTE', nombre: 'Pendiente' },
+  notas: { notaAsesor: null, notaJurados: null, notaFinal: null },
+  resultado: null,
 };
 
 function crearPagina(content: Evaluacion[]) {
@@ -107,7 +109,7 @@ describe('ConsultarEvaluacionesEstudiante', () => {
     expect(tabla.getByText('3')).toBeInTheDocument();
     expect(tabla.getByText('Pendiente')).toBeInTheDocument();
     expect(screen.getByText('1 evaluación')).toBeInTheDocument();
-    expect(tabla.getAllByRole('columnheader')).toHaveLength(4);
+    expect(tabla.getAllByRole('columnheader')).toHaveLength(6);
     expect(screen.queryByRole('button', { name: /Asignar jurados/ })).not.toBeInTheDocument();
   });
 

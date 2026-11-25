@@ -12,6 +12,7 @@ function asignacion(estadoId = 'e-1', tiene = false): EvaluacionAsignadaAsesor {
     entregable: { id: 'en-1', proyecto: 'Sistema de monitoreo', version: 2 },
     tieneEvaluacionesCualitativas: tiene,
     tieneEvaluacionesCuantitativas: tiene,
+    notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
   };
 }
 

@@ -12,6 +12,8 @@ import EmptyState from '../../../shared/components/ui/EmptyState';
 import { varianteEstadoEvaluacion } from '../../../shared/utils/estado-variante';
 import type { Evaluacion } from '../models/Evaluacion';
 import type { OrdenCampoEvaluacion } from '../models/OrdenCampoEvaluacion';
+import { textoDesgloseNotasEvaluacion } from '../utils/formato-nota';
+import NotaEvaluacion, { InsigniaResultado } from './NotaEvaluacion';
 
 const TARJETA_ESTADO = 'flex flex-wrap items-center gap-1.5';
 const TITULO = 'font-medium text-on-surface';
@@ -62,6 +64,21 @@ const COLUMNAS: ColumnaTabla<Evaluacion>[] = [
     clave: 'estado',
     ordenable: true,
     celda: (evaluacion) => <InsigniaEstado evaluacion={evaluacion} />,
+  },
+  {
+    id: 'notaFinal',
+    encabezado: 'Nota final',
+    celda: (evaluacion) => (
+      <NotaEvaluacion
+        valor={evaluacion.notas.notaFinal}
+        desglose={textoDesgloseNotasEvaluacion(evaluacion.notas)}
+      />
+    ),
+  },
+  {
+    id: 'resultado',
+    encabezado: 'Resultado',
+    celda: (evaluacion) => <InsigniaResultado resultado={evaluacion.resultado} />,
   },
 ];
 
@@ -117,7 +134,12 @@ export default function EvaluacionesTable({
           <span className={VERSION}>Versión {evaluacion.entregable.version}</span>
           <div className={TARJETA_ESTADO}>
             <InsigniaEstado evaluacion={evaluacion} />
+            {evaluacion.resultado && <InsigniaResultado resultado={evaluacion.resultado} />}
           </div>
+          <NotaEvaluacion
+            valor={evaluacion.notas.notaFinal}
+            desglose={textoDesgloseNotasEvaluacion(evaluacion.notas)}
+          />
         </>
       )}
     />

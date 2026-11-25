@@ -87,7 +87,11 @@ describe('EvaluacionDelAsesor', () => {
     // Arrange
     vi.mocked(useResumenEvaluacion).mockReturnValue(RESUMEN_VALIDO);
     const parcial: Partial<ReturnType<typeof useEvaluacionAsesor>> = {
-      data: { id: 'ea-1', asesor: { id: 'a-1', nombre: 'Ana', email: 'ana@uco.edu.co' } },
+      data: {
+        id: 'ea-1',
+        asesor: { id: 'a-1', nombre: 'Ana', email: 'ana@uco.edu.co' },
+        notas: { resumenCualitativo: null, resumenCuantitativo: null, notaAcumulada: null },
+      },
       isLoading: false,
       isError: false,
       error: null,
