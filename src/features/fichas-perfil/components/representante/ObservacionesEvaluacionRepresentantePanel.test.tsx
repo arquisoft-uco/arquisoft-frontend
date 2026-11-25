@@ -60,7 +60,11 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
 
     // Act
     render(
-      <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={EVALUACION}
+        fichaDisponible
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Assert
@@ -76,7 +80,11 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
     const refetch = vi.fn();
     conObservaciones({ isError: true, cargado: false, error: new Error('fallo'), refetch });
     render(
-      <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={EVALUACION}
+        fichaDisponible
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Act
@@ -93,7 +101,11 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
 
     // Act
     render(
-      <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={EVALUACION}
+        fichaDisponible
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Assert
@@ -112,7 +124,11 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
       ],
     });
     render(
-      <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={onCerrar} />,
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={EVALUACION}
+        fichaDisponible
+        onCerrar={onCerrar}
+      />,
     );
 
     // Act
@@ -141,6 +157,7 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
           estadoEvaluacionId: 'DESCARTADA',
           estadoEvaluacionNombre: 'Descartada',
         }}
+        fichaDisponible
         onCerrar={vi.fn()}
       />,
     );
@@ -155,6 +172,7 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
     render(
       <ObservacionesEvaluacionRepresentantePanel
         evaluacion={EVALUACION_ABIERTA}
+        fichaDisponible
         onCerrar={vi.fn()}
       />,
     );
@@ -174,7 +192,11 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
       ],
     });
     render(
-      <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={EVALUACION}
+        fichaDisponible
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Act
@@ -199,6 +221,29 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
     expect(screen.getByText('Ajustar el alcance')).toBeInTheDocument();
   });
 
+  it('con la ficha no disponible lista las observaciones sin «Editar» ni «Eliminar» aunque la evaluación esté en curso', () => {
+    // Arrange
+    conObservaciones({
+      observaciones: [
+        { id: 'o-1', evaluacionFichaPerfilId: 'ev-1', observacion: 'Ajustar el alcance' },
+      ],
+    });
+
+    // Act
+    render(
+      <ObservacionesEvaluacionRepresentantePanel
+        evaluacion={EVALUACION_ABIERTA}
+        fichaDisponible={false}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByText('Ajustar el alcance')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Editar observación' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Eliminar observación' })).not.toBeInTheDocument();
+  });
+
   describe('Eliminar observación', () => {
     const OBSERVACIONES = [
       { id: 'o-1', evaluacionFichaPerfilId: 'ev-1', observacion: 'Ajustar el alcance' },
@@ -221,6 +266,7 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
       render(
         <ObservacionesEvaluacionRepresentantePanel
           evaluacion={EVALUACION_ABIERTA}
+          fichaDisponible
           onCerrar={vi.fn()}
         />,
       );
@@ -249,7 +295,11 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
 
       // Act
       render(
-        <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
+        <ObservacionesEvaluacionRepresentantePanel
+          evaluacion={EVALUACION}
+          fichaDisponible
+          onCerrar={vi.fn()}
+        />,
       );
 
       // Assert

@@ -49,6 +49,7 @@ describe('decision-ficha', () => {
   it('resume las evaluaciones en finalizada y aprobatoria', () => {
     // Assert
     expect(resumirEvaluacionesParaDecision([])).toEqual({
+      enCurso: 0,
       hayFinalizada: false,
       hayAprobatoria: false,
     });
@@ -58,18 +59,34 @@ describe('decision-ficha', () => {
         evaluacion('DESCARTADA'),
         evaluacion(null),
       ]),
-    ).toEqual({ hayFinalizada: false, hayAprobatoria: false });
+    ).toEqual({ enCurso: 1, hayFinalizada: false, hayAprobatoria: false });
     expect(resumirEvaluacionesParaDecision([evaluacion('NO_APROBADA')])).toEqual({
+      enCurso: 0,
       hayFinalizada: true,
       hayAprobatoria: false,
     });
     expect(resumirEvaluacionesParaDecision([evaluacion('APROBADA')])).toEqual({
+      enCurso: 0,
       hayFinalizada: true,
       hayAprobatoria: true,
     });
     expect(resumirEvaluacionesParaDecision([evaluacion('APROBADA_CON_OBSERVACIONES')])).toEqual({
+      enCurso: 0,
       hayFinalizada: true,
       hayAprobatoria: true,
     });
+  });
+
+  it('cuenta en curso solo las EN_EVALUACION, no las descartadas ni sin estado', () => {
+    // Assert
+    expect(
+      resumirEvaluacionesParaDecision([
+        evaluacion('EN_EVALUACION'),
+        evaluacion('EN_EVALUACION'),
+        evaluacion('APROBADA'),
+        evaluacion('DESCARTADA'),
+        evaluacion(null),
+      ]).enCurso,
+    ).toBe(2);
   });
 });

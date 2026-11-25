@@ -6,7 +6,7 @@ import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { TTL_CONTEXTO_CORTO_MS } from '../../../../shared/utils/contexto-temporal';
 import { useEvaluacionFicha } from '../../hooks/useEvaluacionFicha';
-import { useResumenFicha } from '../../hooks/useResumenFicha';
+import { useResumenFichaRepresentante } from '../../hooks/useResumenFichaRepresentante';
 import {
   accionesEvaluacionRepresentante,
   evaluacionVigente,
@@ -25,13 +25,16 @@ const AVISO_DESCARTADA = 'No cuenta para la decisión del coordinador.';
 const AVISO_DESCARTADA_SIN_ACCION =
   'Tu evaluación está descartada y la ficha ya no está disponible para evaluación; no hay acciones.';
 
+const AVISO_FICHA_NO_DISPONIBLE =
+  'La ficha ya no está disponible para evaluación, por eso la evaluación queda en solo lectura. Puedes consultar sus observaciones.';
+
 interface Props {
   fichaPerfilId: string;
 }
 
 export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
   const { data: evaluaciones, isLoading, isError, refetch } = useEvaluacionFicha(fichaPerfilId);
-  const { resumen } = useResumenFicha(fichaPerfilId, TTL_CONTEXTO_CORTO_MS);
+  const { resumen } = useResumenFichaRepresentante(fichaPerfilId, TTL_CONTEXTO_CORTO_MS);
   const [abierta, setAbierta] = useState<EvaluacionFichaPerfil | null>(null);
 
   if (isLoading) return <Skeleton variante="tarjetas" etiqueta="Cargando evaluación…" />;
@@ -109,6 +112,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
       <EvaluacionRegistradaTarjeta
         titulo="Evaluación registrada"
         evaluacion={actual}
+        aviso={acciones.soloLectura ? AVISO_FICHA_NO_DISPONIBLE : undefined}
         onVerObservaciones={verObservaciones}
       />
     );
@@ -122,6 +126,7 @@ export default function RegistrarEvaluacionPanel({ fichaPerfilId }: Props) {
       {abierta && (
         <ObservacionesEvaluacionRepresentantePanel
           evaluacion={abierta}
+          fichaDisponible={fichaDisponible}
           onCerrar={() => setAbierta(null)}
         />
       )}

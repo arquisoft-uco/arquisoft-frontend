@@ -8,10 +8,14 @@ import {
   setAuthenticatedUser,
 } from '../../../test-utils/store.utils';
 import { Rol } from '../../../shared/models/rol';
+import { useEvaluacionesFichaAsesor } from '../hooks/useEvaluacionesFichaAsesor';
 import { useHistorialEstadosFichaAsesor } from '../hooks/useHistorialEstadosFichaAsesor';
 import AsesorFichaDetalleView from './AsesorFichaDetalleView';
 
 vi.mock('../hooks/useEstudiantesVinculados', () => ({ useEstudiantesVinculados: vi.fn() }));
+vi.mock('../hooks/useEvaluacionesFichaAsesor', () => ({
+  useEvaluacionesFichaAsesor: vi.fn(),
+}));
 vi.mock('../hooks/useHistorialEstadosFichaAsesor', () => ({
   useHistorialEstadosFichaAsesor: vi.fn(),
 }));
@@ -68,6 +72,9 @@ describe('AsesorFichaDetalleView', () => {
     vi.mocked(useHistorialEstadosFichaAsesor).mockReturnValue({
       data: undefined,
     } as ReturnType<typeof useHistorialEstadosFichaAsesor>);
+    vi.mocked(useEvaluacionesFichaAsesor).mockReturnValue({
+      data: [],
+    } as never);
   });
 
   it('ofrece solo las pestañas Ítems, Revisiones, Observaciones y Estados', () => {
@@ -126,6 +133,38 @@ describe('AsesorFichaDetalleView', () => {
     // Assert
     expect(screen.getByText('Panel estados')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+  });
+
+  it('con la ficha disponible oculta «Cambiar estado» si hay evaluaciones en curso o finalizadas y lo ofrece si no', async () => {
+    // Arrange
+    const disponible = {
+      ...RESUMEN,
+      estadoId: 'DISPONIBLE_PARA_EVALUACION',
+      estadoNombre: 'Disponible Para Evaluacion',
+    };
+    vi.mocked(useEvaluacionesFichaAsesor).mockReturnValue({
+      data: [{ estadoEvaluacionId: 'EN_EVALUACION' }],
+    } as never);
+    const user = userEvent.setup();
+    const bloqueada = renderizar('/origen', disponible);
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+
+    // Assert
+    expect(screen.getByText('Panel ítems')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cambiar estado' })).not.toBeInTheDocument();
+    bloqueada.unmount();
+
+    // Arrange
+    vi.mocked(useEvaluacionesFichaAsesor).mockReturnValue({
+      data: [{ estadoEvaluacionId: 'DESCARTADA' }],
+    } as never);
+    renderizar('/origen', disponible);
+
+    // Act
+    await user.click(screen.getByRole('link', { name: 'Abrir' }));
+
+    // Assert
+    expect(screen.getByRole('button', { name: 'Cambiar estado' })).toBeInTheDocument();
   });
 
   it('no ofrece «Cambiar estado» si la ficha está en un estado final', async () => {

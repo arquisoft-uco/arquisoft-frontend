@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen, within } from '../../../../test-utils/render';
 import { toast } from '../../../../shared/hooks/useToast';
 import { useAgregarEstadoAprobacionFichaPerfil } from '../../hooks/useAgregarEstadoAprobacionFichaPerfil';
@@ -15,6 +16,21 @@ vi.mock('../../hooks/useEvaluacionesFichaCoordinador', () => ({
 vi.mock('../../../../shared/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
 }));
+
+function crearErrorApi(message: string) {
+  return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+    data: {
+      error: 'Unprocessable Entity',
+      errorCode: 'ESTADO_FICHA_PERFIL_EVALUACION_EN_CURSO',
+      message,
+      status: 422,
+    },
+    status: 422,
+    statusText: 'Unprocessable Entity',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
+}
 
 type Opciones = { onSuccess?: () => void; onError?: (err: Error) => void };
 
@@ -51,7 +67,7 @@ const enDialogo = (rol: 'dialog' | 'alertdialog', nombre: string) =>
 describe('DecisionFichaPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockEvaluaciones(['APROBADA', 'APROBADA', 'EN_EVALUACION']);
+    mockEvaluaciones(['APROBADA', 'APROBADA', 'DESCARTADA']);
     mockMutacion(vi.fn());
   });
 
@@ -65,7 +81,7 @@ describe('DecisionFichaPanel', () => {
 
     // Assert
     expect(screen.getByText('2 Aprobada')).toBeInTheDocument();
-    expect(screen.getByText('1 EN_EVALUACION')).toBeInTheDocument();
+    expect(screen.getByText('1 DESCARTADA')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('Elige una decisión para continuar.');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
@@ -118,7 +134,11 @@ describe('DecisionFichaPanel', () => {
   it('si el backend rechaza muestra el error en un toast y cierra el diálogo', async () => {
     // Arrange
     const user = userEvent.setup();
-    mockMutacion(vi.fn((_a: boolean, o?: Opciones) => o?.onError?.(new Error('x'))));
+    mockMutacion(
+      vi.fn((_a: boolean, o?: Opciones) =>
+        o?.onError?.(crearErrorApi('Hay 1 evaluación en curso')),
+      ),
+    );
     render(<DecisionFichaPanel fichaPerfilId="f-1" />);
 
     // Act
@@ -129,7 +149,7 @@ describe('DecisionFichaPanel', () => {
     // Assert
     expect(toast.error).toHaveBeenCalledWith(
       'No se pudo registrar la decisión',
-      expect.any(String),
+      'Hay 1 evaluación en curso',
     );
     expect(toast.success).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -137,7 +157,7 @@ describe('DecisionFichaPanel', () => {
 
   it('sin evaluaciones finalizadas deshabilita las opciones y el botón con su aviso', () => {
     // Arrange
-    mockEvaluaciones(['EN_EVALUACION']);
+    mockEvaluaciones(['DESCARTADA']);
 
     // Act
     render(<DecisionFichaPanel fichaPerfilId="f-1" />);
@@ -146,6 +166,50 @@ describe('DecisionFichaPanel', () => {
     expect(aprobar()).toBeDisabled();
     expect(noAprobar()).toBeDisabled();
     expect(registrar()).toBeDisabled();
+    expect(
+      screen.getByText('Podrás decidir cuando al menos una evaluación esté finalizada.'),
+    ).toBeInTheDocument();
+  });
+
+  it('con una evaluación en curso y otra aprobada deshabilita decidir y avisa cuántas siguen en curso', () => {
+    // Arrange
+    mockEvaluaciones(['APROBADA', 'EN_EVALUACION']);
+
+    // Act
+    render(<DecisionFichaPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(aprobar()).toBeDisabled();
+    expect(noAprobar()).toBeDisabled();
+    expect(registrar()).toBeDisabled();
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'Hay 1 evaluación en curso. Podrás decidir cuando todas estén finalizadas o descartadas.',
+    );
+    expect(screen.queryByText(/al menos una evaluación esté finalizada/)).not.toBeInTheDocument();
+  });
+
+  it('con evaluaciones finalizadas y ninguna en curso deja «No aprobar» habilitada', () => {
+    // Arrange
+    mockEvaluaciones(['NO_APROBADA', 'DESCARTADA']);
+
+    // Act
+    render(<DecisionFichaPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(noAprobar()).toBeEnabled();
+    expect(screen.queryByText(/en curso/)).not.toBeInTheDocument();
+  });
+
+  it('con todas las evaluaciones descartadas pide al menos una finalizada', () => {
+    // Arrange
+    mockEvaluaciones(['DESCARTADA', 'DESCARTADA']);
+
+    // Act
+    render(<DecisionFichaPanel fichaPerfilId="f-1" />);
+
+    // Assert
+    expect(aprobar()).toBeDisabled();
+    expect(noAprobar()).toBeDisabled();
     expect(
       screen.getByText('Podrás decidir cuando al menos una evaluación esté finalizada.'),
     ).toBeInTheDocument();

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { render, screen, within } from '../../../../test-utils/render';
 import AgregarEstadoEvaluacionPanel from './AgregarEstadoEvaluacionPanel';
 import { useEstadosEvaluacion } from '../../hooks/useEstadosEvaluacion';
@@ -21,6 +22,24 @@ const CATALOGO = [
   { id: 'NO_APROBADA', nombre: 'No Aprobada', descripcion: '' },
   { id: 'DESCARTADA', nombre: 'Descartada', descripcion: '' },
 ];
+
+const MENSAJE_NO_DISPONIBLE =
+  'La ficha de perfil debe estar disponible para evaluación para realizar esta acción. Estado actual: Aprobada';
+
+function errorFichaNoDisponible() {
+  return new AxiosError('Request failed', 'ERR_BAD_REQUEST', undefined, undefined, {
+    data: {
+      error: 'Unprocessable Entity',
+      errorCode: 'ESTADO_FICHA_PERFIL_NO_DISPONIBLE_PARA_EVALUACION',
+      message: MENSAJE_NO_DISPONIBLE,
+      status: 422,
+    },
+    status: 422,
+    statusText: 'Unprocessable Entity',
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+  });
+}
 
 const mutate = vi.fn();
 const resetMutacion = vi.fn();
@@ -176,7 +195,7 @@ describe('AgregarEstadoEvaluacionPanel', () => {
 
   it('notifica el error de la API con un toast, cierra el diálogo y conserva la selección', async () => {
     // Arrange
-    mutate.mockImplementation((_req, opts) => opts.onError(new Error('x')));
+    mutate.mockImplementation((_req, opts) => opts.onError(errorFichaNoDisponible()));
     const user = userEvent.setup();
     renderizar();
 
@@ -185,7 +204,7 @@ describe('AgregarEstadoEvaluacionPanel', () => {
     await confirmar(user);
 
     // Assert
-    expect(toast.error).toHaveBeenCalledWith('Error al registrar el estado', expect.any(String));
+    expect(toast.error).toHaveBeenCalledWith('Error al registrar el estado', MENSAJE_NO_DISPONIBLE);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Aprobada' })).toBeChecked();
   });

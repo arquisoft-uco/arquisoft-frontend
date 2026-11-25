@@ -78,7 +78,12 @@ describe('evaluacion-asistente', () => {
   });
 
   describe('accionesEvaluacionRepresentante', () => {
-    const SIN_ACCION = { principal: null, puedeDescartar: false, descartadaSinAccion: false };
+    const SIN_ACCION = {
+      principal: null,
+      puedeDescartar: false,
+      descartadaSinAccion: false,
+      soloLectura: false,
+    };
 
     it.each([
       [
@@ -104,7 +109,7 @@ describe('evaluacion-asistente', () => {
         'en curso y ficha no disponible',
         evaluacion('EN_EVALUACION'),
         false,
-        { ...SIN_ACCION, principal: 'evaluar' },
+        { ...SIN_ACCION, soloLectura: true },
       ],
       [
         'descartada y ficha disponible',
@@ -119,7 +124,12 @@ describe('evaluacion-asistente', () => {
         { ...SIN_ACCION, descartadaSinAccion: true },
       ],
       ['aprobada y ficha disponible', evaluacion('APROBADA'), true, SIN_ACCION],
-      ['no aprobada y ficha no disponible', evaluacion('NO_APROBADA'), false, SIN_ACCION],
+      [
+        'no aprobada y ficha no disponible',
+        evaluacion('NO_APROBADA'),
+        false,
+        { ...SIN_ACCION, soloLectura: true },
+      ],
     ])('%s', (_caso, vigente, fichaDisponible, esperado) => {
       // Assert
       expect(accionesEvaluacionRepresentante({ vigente, fichaDisponible })).toEqual(esperado);

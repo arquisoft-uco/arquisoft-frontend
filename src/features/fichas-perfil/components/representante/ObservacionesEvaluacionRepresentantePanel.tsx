@@ -9,10 +9,15 @@ import EliminarObservacionEvaluacionDialogo from './EliminarObservacionEvaluacio
 
 interface Props {
   evaluacion: EvaluacionFichaPerfil;
+  fichaDisponible: boolean;
   onCerrar: () => void;
 }
 
-export default function ObservacionesEvaluacionRepresentantePanel({ evaluacion, onCerrar }: Props) {
+export default function ObservacionesEvaluacionRepresentantePanel({
+  evaluacion,
+  fichaDisponible,
+  onCerrar,
+}: Props) {
   const [enEdicion, setEnEdicion] = useState<ObservacionEvaluacion | null>(null);
   const [porEliminar, setPorEliminar] = useState<ObservacionEvaluacion | null>(null);
   const { observaciones, isLoading, cargado, isError, error, refetch } =
@@ -34,8 +39,12 @@ export default function ObservacionesEvaluacionRepresentantePanel({ evaluacion, 
         onReintentar={refetch}
         descripcionVacia="Cuando las registres, las verás aquí."
         onCerrar={onCerrar}
-        onEditar={descartada ? undefined : setEnEdicion}
-        onEliminar={descartada || evaluacionEnEstadoFinal(evaluacion) ? undefined : setPorEliminar}
+        onEditar={descartada || !fichaDisponible ? undefined : setEnEdicion}
+        onEliminar={
+          descartada || !fichaDisponible || evaluacionEnEstadoFinal(evaluacion)
+            ? undefined
+            : setPorEliminar
+        }
       />
       {enEdicion && (
         <EditarObservacionEvaluacionForm
