@@ -1,19 +1,11 @@
 import { useState } from 'react';
-import ConfirmDialog from '../../../../shared/components/ConfirmDialog';
-import { toast } from '../../../../shared/hooks/useToast';
-import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useObservacionesEvaluacionRepresentante } from '../../hooks/useObservacionesEvaluacionRepresentante';
-import { useRemoverObservacionEvaluacion } from '../../hooks/useRemoverObservacionEvaluacion';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import type { ObservacionEvaluacion } from '../../models/ObservacionEvaluacion';
+import { evaluacionEnEstadoFinal } from '../../utils/evaluacion-asistente';
 import ObservacionesEvaluacionPanelBase from '../ObservacionesEvaluacionPanelBase';
 import EditarObservacionEvaluacionForm from './EditarObservacionEvaluacionForm';
-
-const CONSECUENCIAS = [
-  'La observación dejará de aparecer en esta evaluación.',
-  'Podrás volver a agregar el mismo texto.',
-  'No se puede deshacer.',
-];
+import EliminarObservacionEvaluacionDialogo from './EliminarObservacionEvaluacionDialogo';
 
 interface Props {
   evaluacion: EvaluacionFichaPerfil;
@@ -25,29 +17,6 @@ export default function ObservacionesEvaluacionRepresentantePanel({ evaluacion, 
   const [porEliminar, setPorEliminar] = useState<ObservacionEvaluacion | null>(null);
   const { observaciones, isLoading, cargado, isError, error, refetch } =
     useObservacionesEvaluacionRepresentante(evaluacion.fichaPerfilId, evaluacion.id);
-  const remover = useRemoverObservacionEvaluacion(evaluacion.fichaPerfilId, evaluacion.id);
-
-  function handleConfirmarEliminar() {
-    if (!porEliminar) return;
-    remover.mutate(porEliminar.id, {
-      onSuccess: () => {
-        toast.success('Observación eliminada', 'La observación se quitó de la evaluación.');
-        setPorEliminar(null);
-      },
-      onError: (err) => {
-        toast.error(
-          'No se pudo eliminar la observación',
-          getApiErrorMessage(err, 'Inténtalo nuevamente.'),
-        );
-        setPorEliminar(null);
-      },
-    });
-  }
-
-  function handleCancelarEliminar() {
-    if (remover.isPending) return;
-    setPorEliminar(null);
-  }
 
   return (
     <>
@@ -64,7 +33,7 @@ export default function ObservacionesEvaluacionRepresentantePanel({ evaluacion, 
         descripcionVacia="Cuando las registres, las verás aquí."
         onCerrar={onCerrar}
         onEditar={setEnEdicion}
-        onEliminar={setPorEliminar}
+        onEliminar={evaluacionEnEstadoFinal(evaluacion) ? undefined : setPorEliminar}
       />
       {enEdicion && (
         <EditarObservacionEvaluacionForm
@@ -74,15 +43,11 @@ export default function ObservacionesEvaluacionRepresentantePanel({ evaluacion, 
         />
       )}
       {porEliminar && (
-        <ConfirmDialog
-          variante="peligro"
-          titulo="¿Eliminar observación?"
-          descripcion={`«${porEliminar.observacion}»`}
-          consecuencias={CONSECUENCIAS}
-          labelConfirmar="Eliminar"
-          cargando={remover.isPending}
-          onConfirmar={handleConfirmarEliminar}
-          onCancelar={handleCancelarEliminar}
+        <EliminarObservacionEvaluacionDialogo
+          observacion={porEliminar}
+          fichaPerfilId={evaluacion.fichaPerfilId}
+          evaluacionId={evaluacion.id}
+          onCerrar={() => setPorEliminar(null)}
         />
       )}
     </>

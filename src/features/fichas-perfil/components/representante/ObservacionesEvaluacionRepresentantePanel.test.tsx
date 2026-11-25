@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../../test-utils/render';
-import { toast } from '../../../../shared/hooks/useToast';
 import { useObservacionesEvaluacionRepresentante } from '../../hooks/useObservacionesEvaluacionRepresentante';
 import { useRemoverObservacionEvaluacion } from '../../hooks/useRemoverObservacionEvaluacion';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
@@ -22,16 +21,18 @@ vi.mock('../../hooks/useRemoverObservacionEvaluacion', () => ({
   useRemoverObservacionEvaluacion: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }));
 
-vi.mock('../../../../shared/hooks/useToast', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn(), dismiss: vi.fn() },
-}));
-
 const EVALUACION: EvaluacionFichaPerfil = {
   id: 'ev-1',
   fichaPerfilId: 'f-1',
   fechaCreacion: '2026-09-01T10:00:00Z',
   estadoEvaluacionId: 'DESCARTADA',
   estadoEvaluacionNombre: 'Descartada',
+};
+
+const EVALUACION_ABIERTA: EvaluacionFichaPerfil = {
+  ...EVALUACION,
+  estadoEvaluacionId: null,
+  estadoEvaluacionNombre: null,
 };
 
 function conObservaciones(
@@ -179,7 +180,10 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
       conRemover(mutate);
       conObservaciones({ observaciones: OBSERVACIONES });
       render(
-        <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
+        <ObservacionesEvaluacionRepresentantePanel
+          evaluacion={EVALUACION_ABIERTA}
+          onCerrar={vi.fn()}
+        />,
       );
 
       // Act
@@ -200,53 +204,20 @@ describe('ObservacionesEvaluacionRepresentantePanel', () => {
       expect(mutate).not.toHaveBeenCalled();
     });
 
-    it('al confirmar envía el id de esa fila y, en éxito, lanza el toast y cierra el diálogo', async () => {
+    it('con la evaluación en estado final no ofrece «Eliminar observación» pero sí «Editar observación»', () => {
       // Arrange
-      const user = userEvent.setup();
-      const mutate = vi.fn((_id: string, opciones: { onSuccess: () => void }) =>
-        opciones.onSuccess(),
-      );
-      conRemover(mutate);
       conObservaciones({ observaciones: OBSERVACIONES });
+
+      // Act
       render(
         <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
       );
 
-      // Act
-      await user.click(screen.getAllByRole('button', { name: 'Eliminar observación' })[0]);
-      await user.click(screen.getByRole('button', { name: 'Eliminar' }));
-
       // Assert
-      expect(mutate.mock.calls[0][0]).toBe('o-1');
-      expect(toast.success).toHaveBeenCalledWith('Observación eliminada', expect.any(String));
-      expect(toast.error).not.toHaveBeenCalled();
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-      expect(screen.getByText('Ajustar el alcance')).toBeInTheDocument();
-    });
-
-    it('si el servidor rechaza lanza el toast de error y cierra el diálogo', async () => {
-      // Arrange
-      const user = userEvent.setup();
-      const mutate = vi.fn((_id: string, opciones: { onError: (err: Error) => void }) =>
-        opciones.onError(new Error('422')),
-      );
-      conRemover(mutate);
-      conObservaciones({ observaciones: OBSERVACIONES });
-      render(
-        <ObservacionesEvaluacionRepresentantePanel evaluacion={EVALUACION} onCerrar={vi.fn()} />,
-      );
-
-      // Act
-      await user.click(screen.getAllByRole('button', { name: 'Eliminar observación' })[0]);
-      await user.click(screen.getByRole('button', { name: 'Eliminar' }));
-
-      // Assert
-      expect(toast.error).toHaveBeenCalledWith(
-        'No se pudo eliminar la observación',
-        expect.any(String),
-      );
-      expect(toast.success).not.toHaveBeenCalled();
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Eliminar observación' }),
+      ).not.toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: 'Editar observación' })).toHaveLength(2);
     });
   });
 });

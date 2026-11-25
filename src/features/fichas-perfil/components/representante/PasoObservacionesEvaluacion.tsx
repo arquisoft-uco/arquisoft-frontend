@@ -5,7 +5,10 @@ import Notice from '../../../../shared/components/ui/Notice';
 import OpcionRadio from '../../../../shared/components/ui/OpcionRadio';
 import type { EvaluacionFichaPerfil } from '../../models/fichas-perfil';
 import type { ObservacionEvaluacion } from '../../models/ObservacionEvaluacion';
+import { evaluacionEnEstadoFinal } from '../../utils/evaluacion-asistente';
+import ListaObservacionesEvaluacion from '../ListaObservacionesEvaluacion';
 import AgregarObservacionEvaluacionPanel from './AgregarObservacionEvaluacionPanel';
+import EliminarObservacionEvaluacionDialogo from './EliminarObservacionEvaluacionDialogo';
 
 type Respuesta = 'si' | 'no';
 
@@ -25,6 +28,7 @@ export default function PasoObservacionesEvaluacion({
   observaciones,
   onContinuar,
 }: Props) {
+  const [porEliminar, setPorEliminar] = useState<ObservacionEvaluacion | null>(null);
   const cantidad = observaciones.length;
   const [elegida, setElegida] = useState<Respuesta | null>(cantidad > 0 ? 'si' : null);
   const respuesta: Respuesta | null = cantidad > 0 ? 'si' : elegida;
@@ -74,16 +78,22 @@ export default function PasoObservacionesEvaluacion({
                   ? '1 observación registrada'
                   : `${cantidad} observaciones registradas`}
               </h4>
-              <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-on-surface-secondary">
-                {observaciones.map((o) => (
-                  <li key={o.id} className="break-words">
-                    {o.observacion}
-                  </li>
-                ))}
-              </ul>
+              <ListaObservacionesEvaluacion
+                observaciones={observaciones}
+                onEliminar={evaluacionEnEstadoFinal(evaluacion) ? undefined : setPorEliminar}
+              />
             </div>
           )}
         </>
+      )}
+
+      {porEliminar && (
+        <EliminarObservacionEvaluacionDialogo
+          observacion={porEliminar}
+          fichaPerfilId={fichaPerfilId}
+          evaluacionId={evaluacion.id}
+          onCerrar={() => setPorEliminar(null)}
+        />
       )}
 
       <div className="actions-row sm:justify-end">
