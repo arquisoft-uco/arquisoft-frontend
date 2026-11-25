@@ -17,6 +17,8 @@ import type { FichaPerfilCreadaResponse } from '../models/FichaPerfilCreadaRespo
 import type { FichaPerfil } from '../models/FichaPerfil';
 import type { FichaDisponibleEvaluacion } from '../models/FichaDisponibleEvaluacion';
 import type { FiltrosFichasDisponibles } from '../models/FiltrosFichasDisponibles';
+import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
+import type { FiltrosFichasParticipacion } from '../models/FiltrosFichasParticipacion';
 import type { AgregarEstadoFichaPerfilRequest } from '../models/AgregarEstadoFichaPerfilRequest';
 import type { AgregarEstadoFichaPerfilResponse } from '../models/AgregarEstadoFichaPerfilResponse';
 import type { AgregarEstadoAprobacionFichaPerfilRequest } from '../models/AgregarEstadoAprobacionFichaPerfilRequest';
@@ -265,7 +267,23 @@ interface FichaDisponibleEvaluacionResponseDTO {
   estado: { id: string; nombre: string; fechaActualizacion: string };
 }
 
-function construirFiltrosDisponibles(filtros: FiltrosFichasDisponibles): NodoFiltroDTO | undefined {
+interface FichaParticipacionResponseDTO extends FichaDisponibleEvaluacionResponseDTO {
+  evaluacion: { id: string; estado: { id: string; nombre: string } };
+}
+
+function aFichaDisponible(dto: FichaDisponibleEvaluacionResponseDTO): FichaDisponibleEvaluacion {
+  return {
+    id: dto.id,
+    titulo: dto.tituloProyecto,
+    asesorNombre: dto.asesorFicha.nombre,
+    asesorEmail: dto.asesorFicha.email,
+    estadoId: dto.estado.id,
+    estadoActual: dto.estado.nombre,
+    estadoFechaActualizacion: dto.estado.fechaActualizacion,
+  };
+}
+
+function nodosTextoFicha(filtros: FiltrosFichasDisponibles): NodoFiltroDTO[] {
   const nodos: NodoFiltroDTO[] = [];
   const contiene = (campo: string, valor: string) => {
     const texto = valor.trim();
@@ -274,9 +292,32 @@ function construirFiltrosDisponibles(filtros: FiltrosFichasDisponibles): NodoFil
   contiene('tituloProyecto', filtros.titulo);
   contiene('asesorNombre', filtros.asesorNombre);
   contiene('asesorEmail', filtros.asesorEmail);
+  return nodos;
+}
+
+function agruparNodos(nodos: NodoFiltroDTO[]): NodoFiltroDTO | undefined {
   if (nodos.length === 0) return undefined;
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };
+}
+
+function construirFiltrosDisponibles(filtros: FiltrosFichasDisponibles): NodoFiltroDTO | undefined {
+  return agruparNodos(nodosTextoFicha(filtros));
+}
+
+function construirFiltrosParticipacion(
+  filtros: FiltrosFichasParticipacion,
+): NodoFiltroDTO | undefined {
+  const nodos = nodosTextoFicha(filtros);
+  if (filtros.estadoIds.length > 0) {
+    nodos.push({
+      tipo: 'PREDICADO_MULTIVALOR',
+      campo: 'estadoFicha',
+      operador: 'IN',
+      valores: filtros.estadoIds,
+    });
+  }
+  return agruparNodos(nodos);
 }
 
 // ─── Alineados con el backend expuesto ───
@@ -621,16 +662,28 @@ export const fichasPerfilService = {
       .post<
         Page<FichaDisponibleEvaluacionResponseDTO>
       >('/fichas-perfil/disponibles-evaluacion', body)
+      .then(({ data }) => ({ ...data, content: data.content.map(aFichaDisponible) }));
+  },
+
+  getFichasParticipacion: (
+    page: number,
+    size: number,
+    filtros: FiltrosFichasParticipacion,
+    ordenamiento?: string[],
+  ): Promise<Page<FichaPerfilRepresentante>> => {
+    const body: ConsultaCriteriaRequest = { pagina: page, tamanio: size };
+    if (ordenamiento) body.ordenamiento = ordenamiento;
+    const nodo = construirFiltrosParticipacion(filtros);
+    if (nodo) body.filtros = nodo;
+    return apiClient
+      .post<Page<FichaParticipacionResponseDTO>>('/fichas-perfil/representante', body)
       .then(({ data }) => ({
         ...data,
         content: data.content.map((dto) => ({
-          id: dto.id,
-          titulo: dto.tituloProyecto,
-          asesorNombre: dto.asesorFicha.nombre,
-          asesorEmail: dto.asesorFicha.email,
-          estadoId: dto.estado.id,
-          estadoActual: dto.estado.nombre,
-          estadoFechaActualizacion: dto.estado.fechaActualizacion,
+          ...aFichaDisponible(dto),
+          evaluacionId: dto.evaluacion.id,
+          evaluacionEstadoId: dto.evaluacion.estado.id,
+          evaluacionEstadoNombre: dto.evaluacion.estado.nombre,
         })),
       }));
   },

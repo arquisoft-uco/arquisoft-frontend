@@ -22,6 +22,7 @@ export const DIAS_SIN_AVANCE = 15;
 const RUTA_CONTEO: Record<RecursoContable, string> = {
   'fichas-coordinador': '/fichas-perfil/coordinador',
   'fichas-asesor': '/fichas-perfil/asesor',
+  'fichas-representante': '/fichas-perfil/representante',
   'evaluaciones-fichas-asesor': '/fichas-perfil/evaluaciones/asesor',
   'proyectos-coordinador': '/proyectos-grado/coordinador',
   'proyectos-asesor': '/proyectos-grado/asesor',

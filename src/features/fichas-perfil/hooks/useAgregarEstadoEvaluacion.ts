@@ -13,6 +13,7 @@ export function useAgregarEstadoEvaluacion(fichaPerfilId: string) {
       queryClient.invalidateQueries({
         queryKey: ['fichas-perfil', fichaPerfilId, 'representante-estados'],
       });
+      queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'representante'] });
     },
   });
 }
