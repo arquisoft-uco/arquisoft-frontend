@@ -222,6 +222,12 @@ h6 {
   width: 100%;
 }
 
+/* Botones con texto de una fila de DataTable: en la tarjeta del celular bajan a su propia línea
+   a todo el ancho; desde sm, en la celda de la tabla, toman su ancho. */
+.acciones-fila {
+  width: 100%;
+}
+
 /* Cabecera de sección: título arriba y acción de ancho completo en celular. */
 .section-header {
   display: flex;
@@ -262,6 +268,10 @@ h6 {
   }
 
   .section-header > .header-action {
+    width: auto;
+  }
+
+  .acciones-fila {
     width: auto;
   }
 }

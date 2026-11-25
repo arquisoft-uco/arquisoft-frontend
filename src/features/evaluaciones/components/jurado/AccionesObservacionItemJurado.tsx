@@ -17,7 +17,7 @@ export default function AccionesObservacionItemJurado({
   const sufijo = conVarias ? `: ${observacion.descripcion}` : undefined;
 
   return (
-    <>
+    <div className="acciones-fila flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
       {onModificar && (
         <Button
           variante="secundario"
@@ -36,6 +36,6 @@ export default function AccionesObservacionItemJurado({
           Remover observación
         </Button>
       )}
-    </>
+    </div>
   );
 }

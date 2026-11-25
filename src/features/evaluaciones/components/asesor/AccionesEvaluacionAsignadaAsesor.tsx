@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router';
 import Button from '../../../../shared/components/ui/Button';
 import type { EvaluacionAsignadaAsesor } from '../../models/EvaluacionAsignadaAsesor';
 
-const ACCIONES = 'flex flex-col items-stretch gap-2 md:flex-row md:items-center md:justify-end';
+const ACCIONES =
+  'acciones-fila flex flex-col items-stretch gap-2 md:flex-row md:items-center md:justify-end';
 
 interface Props {
   asignacion: EvaluacionAsignadaAsesor;
