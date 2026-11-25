@@ -91,7 +91,7 @@ describe('useArtefactosAsesor', () => {
       '',
       'nombreProyecto:ASC',
       '',
-      '',
+      [],
     ]);
   });
 
@@ -159,7 +159,7 @@ describe('useArtefactosAsesor', () => {
       documento: 'acta',
       repositorio: 'base',
       version: '2',
-      estadoRevision: '',
+      estadosRevision: [],
       estadoProyecto: '',
     });
     expect(consultar).toHaveBeenLastCalledWith(
@@ -232,7 +232,7 @@ describe('useArtefactosAsesor', () => {
     await waitFor(() => expect(result.current.ubicacion.search).toBe(''));
   });
 
-  it('el estado de la URL va como id en la key y como nombre en el body; «Sin revisión» envía ES_NULO', async () => {
+  it('los estados de la URL van como id en la key y como nombre en el body; sumar «Sin revisión» arma un OR', async () => {
     // Arrange
     const { result } = renderHook(usarHookConUbicacion, {
       wrapper: crearWrapper(queryClient, '/artefactos?estadoRevision=CERRADA&pagina=3'),
@@ -240,7 +240,7 @@ describe('useArtefactosAsesor', () => {
     await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
 
     // Assert
-    expect(result.current.listado.filtros.estadoRevision).toBe('CERRADA');
+    expect(result.current.listado.filtros.estadosRevision).toEqual(['CERRADA']);
     expect(result.current.listado.hayFiltros).toBe(true);
     expect(consultar).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -260,10 +260,10 @@ describe('useArtefactosAsesor', () => {
         .getAll()
         .map((q) => q.queryKey)
         .find((k) => k[1] === 'asesor'),
-    ).toContain('CERRADA');
+    ).toContainEqual(['CERRADA']);
 
     // Act
-    act(() => result.current.listado.setEstadoRevision('sin-revision'));
+    act(() => result.current.listado.toggleEstadoRevision('sin-revision'));
 
     // Assert
     await waitFor(() =>
@@ -274,14 +274,36 @@ describe('useArtefactosAsesor', () => {
             tipo: 'GRUPO',
             conector: 'AND',
             nodos: [
-              { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' },
+              {
+                tipo: 'GRUPO',
+                conector: 'OR',
+                nodos: [
+                  { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' },
+                  {
+                    tipo: 'PREDICADO',
+                    campo: 'estadoUltimaRevision',
+                    operador: 'ES',
+                    valor: 'Cerrada',
+                  },
+                ],
+              },
               ...SOLO_HABILITADOS.nodos,
             ],
           },
         }),
       ),
     );
-    expect(result.current.ubicacion.search).toBe('?estadoRevision=sin-revision');
+    expect(result.current.ubicacion.search).toBe(
+      '?estadoRevision=CERRADA&estadoRevision=sin-revision',
+    );
+
+    // Act
+    act(() => result.current.listado.toggleEstadoRevision('CERRADA'));
+
+    // Assert
+    await waitFor(() =>
+      expect(result.current.ubicacion.search).toBe('?estadoRevision=sin-revision'),
+    );
 
     // Act
     act(() => result.current.listado.limpiarFiltros());

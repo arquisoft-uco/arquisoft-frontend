@@ -13,7 +13,7 @@ const SIN_FILTROS: FiltrosArtefactosEstudiante = {
   repositorio: '',
   asesor: '',
   version: '',
-  estadoRevision: '',
+  estadosRevision: [],
 };
 
 describe('filtros de artefactos del estudiante', () => {
@@ -69,14 +69,14 @@ describe('filtros de artefactos del estudiante', () => {
 
   it('el estado de la última revisión llega como ES con el nombre o ES_NULO sin valor', () => {
     // Assert
-    expect(construirFiltros({ ...SIN_FILTROS, estadoRevision: 'Cerrada' })).toEqual({
+    expect(construirFiltros({ ...SIN_FILTROS, estadosRevision: ['Cerrada'] })).toEqual({
       tipo: 'PREDICADO',
       campo: 'estadoUltimaRevision',
       operador: 'ES',
       valor: 'Cerrada',
     });
     expect(
-      construirFiltros({ ...SIN_FILTROS, proyecto: 'riego', estadoRevision: 'sin-revision' }),
+      construirFiltros({ ...SIN_FILTROS, proyecto: 'riego', estadosRevision: ['sin-revision'] }),
     ).toEqual({
       tipo: 'GRUPO',
       conector: 'AND',

@@ -1,5 +1,5 @@
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
-import { nodoEstadoUltimaRevision } from './filtro-estado-revision';
+import { nodoEstadosUltimaRevision } from './filtro-estado-revision';
 
 export interface FiltrosArtefactosEstudiante {
   texto: string;
@@ -8,7 +8,7 @@ export interface FiltrosArtefactosEstudiante {
   repositorio: string;
   asesor: string;
   version: string;
-  estadoRevision: string;
+  estadosRevision: string[];
 }
 
 export const CAMPOS_BUSQUEDA = [
@@ -71,7 +71,7 @@ export function construirFiltros(filtros: FiltrosArtefactosEstudiante): NodoFilt
   if (version) {
     nodos.push({ tipo: 'PREDICADO', campo: 'versionDocumento', operador: 'ES', valor: version });
   }
-  nodos.push(...nodoEstadoUltimaRevision(filtros.estadoRevision));
+  nodos.push(...nodoEstadosUltimaRevision(filtros.estadosRevision));
   if (nodos.length === 0) return undefined;
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };

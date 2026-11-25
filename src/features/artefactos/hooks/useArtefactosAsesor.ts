@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import { leerEstadoProyecto } from '../utils/estado-proyecto';
 import { artefactosService } from '../services/artefactosService';
-import { useFiltroEstadoRevision } from './useFiltroEstadoRevision';
+import { useFiltroEstadosRevision } from './useFiltroEstadosRevision';
 import {
   construirFiltros,
   leerVersion,
@@ -19,19 +19,21 @@ type DireccionOrden = 'ASC' | 'DESC';
 export function useArtefactosAsesor() {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
-  const filtro = useFiltroEstadoRevision(parametros.texto('estadoRevision').trim());
+  const filtro = useFiltroEstadosRevision(parametros.lista('estadoRevision'));
   const filtros: FiltrosArtefactosAsesor = {
     texto: parametros.texto('q').trim(),
     proyecto: parametros.texto('proyecto').trim(),
     documento: parametros.texto('documento').trim(),
     repositorio: parametros.texto('repositorio').trim(),
     version: leerVersion(parametros.texto('version')),
-    estadoRevision: filtro.valor,
+    estadosRevision: filtro.ids,
     estadoProyecto: leerEstadoProyecto(parametros.texto('estadoProyecto')),
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [ordenCampo, ordenDireccion] = orden.split(':') as [string, DireccionOrden];
-  const hayFiltros = Object.values(filtros).some((valor) => valor !== '');
+  const { estadosRevision, ...filtrosDeTexto } = filtros;
+  const hayFiltros =
+    estadosRevision.length > 0 || Object.values(filtrosDeTexto).some((valor) => valor !== '');
 
   function setTexto(valor: string) {
     parametros.cambiar({ q: valor || undefined });
@@ -53,8 +55,15 @@ export function useArtefactosAsesor() {
     parametros.cambiar({ version: valor || undefined });
   }
 
-  function setEstadoRevision(valor: string) {
-    parametros.cambiar({ estadoRevision: valor || undefined });
+  function toggleEstadoRevision(id: string) {
+    const siguientes = estadosRevision.includes(id)
+      ? estadosRevision.filter((estado) => estado !== id)
+      : [...estadosRevision, id];
+    parametros.cambiar({ estadoRevision: siguientes });
+  }
+
+  function limpiarEstadosRevision() {
+    parametros.cambiar({ estadoRevision: undefined });
   }
 
   function setEstadoProyecto(valor: string) {
@@ -91,7 +100,7 @@ export function useArtefactosAsesor() {
       filtros.version,
       orden,
       filtros.estadoProyecto,
-      filtros.estadoRevision,
+      filtros.estadosRevision,
     ],
     queryFn: () =>
       artefactosService.consultarArtefactosAsesor({
@@ -99,7 +108,7 @@ export function useArtefactosAsesor() {
         tamanio: PAGE_SIZE,
         ordenamiento: ordenamientoDe(orden),
         // la UI y la key llevan el id del estado; el backend compara por nombre
-        filtros: construirFiltros({ ...filtros, estadoRevision: filtro.consulta }),
+        filtros: construirFiltros({ ...filtros, estadosRevision: filtro.consultas }),
       }),
     enabled: !filtro.esperandoCatalogo,
     placeholderData: keepPreviousData,
@@ -117,7 +126,8 @@ export function useArtefactosAsesor() {
     setRepositorio,
     setVersion,
     setEstadoProyecto,
-    setEstadoRevision,
+    toggleEstadoRevision,
+    limpiarEstadosRevision,
     estados: filtro.estados,
     orden,
     ordenCampo,

@@ -3,8 +3,7 @@ import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/
 import type { useArtefactosEstudiante } from '../../hooks/useArtefactosEstudiante';
 import {
   OPCIONES_ORDEN_ESTADO_REVISION,
-  aplicadoEstadoRevision,
-  seccionEstadoRevision,
+  opcionesChipsEstadoRevision,
 } from '../../utils/filtro-estado-revision';
 
 interface FiltroAplicado {
@@ -72,7 +71,7 @@ export default function FiltrosArtefactosEstudiante({ listado }: Props) {
     },
   ];
 
-  const seccionesTexto: SeccionFiltro[] = campos.map(({ id, etiqueta, valor, onCambiar }) => ({
+  const secciones: SeccionFiltro[] = campos.map(({ id, etiqueta, valor, onCambiar }) => ({
     id,
     etiqueta,
     valor,
@@ -80,28 +79,13 @@ export default function FiltrosArtefactosEstudiante({ listado }: Props) {
     tipo: 'texto',
   }));
 
-  const secciones: SeccionFiltro[] = [
-    ...seccionesTexto,
-    seccionEstadoRevision({
-      estados: listado.estados,
-      valor: filtros.estadoRevision,
-      onCambiar: listado.setEstadoRevision,
-    }),
-  ];
-
-  const aplicadosTexto: FiltroAplicado[] = campos
+  const aplicados: FiltroAplicado[] = campos
     .filter((campo) => campo.valor.trim() !== '')
     .map((campo) => ({
       id: campo.id,
       etiqueta: `${campo.aplicado}: ${campo.valor.trim()}`,
       onQuitar: () => campo.onCambiar(''),
     }));
-  const aplicadoRevision = aplicadoEstadoRevision({
-    estados: listado.estados,
-    valor: filtros.estadoRevision,
-    onQuitar: () => listado.setEstadoRevision(''),
-  });
-  const aplicados = aplicadoRevision ? [...aplicadosTexto, aplicadoRevision] : aplicadosTexto;
 
   function cambiarOrden(id: string) {
     const [campo, direccion] = id.split(':');
@@ -115,6 +99,13 @@ export default function FiltrosArtefactosEstudiante({ listado }: Props) {
         onCambiar: listado.setTexto,
         etiqueta: 'Buscar artefactos',
         placeholder: 'Buscar por documento, proyecto, repositorio o asesor',
+      }}
+      chips={{
+        etiqueta: 'Estado de la última revisión',
+        opciones: opcionesChipsEstadoRevision(listado.estados),
+        seleccionados: filtros.estadosRevision,
+        onAlternar: listado.toggleEstadoRevision,
+        onTodos: listado.limpiarEstadosRevision,
       }}
       popover={{ secciones }}
       orden={{

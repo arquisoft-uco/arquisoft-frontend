@@ -1,15 +1,12 @@
-import { resolverEstadoRevision, SIN_REVISION } from '../utils/filtro-estado-revision';
-import { useEstadosRevisionAsesor } from './useEstadosRevisionAsesor';
+import { useFiltroEstadosRevision } from './useFiltroEstadosRevision';
 
 export function useFiltroEstadoRevision(valorParametro: string) {
-  const { data: estados, isPending } = useEstadosRevisionAsesor();
-  const esSinRevision = valorParametro === SIN_REVISION;
-  const resuelto = esSinRevision ? undefined : resolverEstadoRevision(estados, valorParametro);
+  const filtro = useFiltroEstadosRevision(valorParametro ? [valorParametro] : []);
 
   return {
-    valor: esSinRevision ? SIN_REVISION : (resuelto?.id ?? ''),
-    consulta: esSinRevision ? SIN_REVISION : (resuelto?.nombre ?? ''),
-    esperandoCatalogo: valorParametro !== '' && !esSinRevision && isPending,
-    estados,
+    valor: filtro.ids[0] ?? '',
+    consulta: filtro.consultas[0] ?? '',
+    esperandoCatalogo: filtro.esperandoCatalogo,
+    estados: filtro.estados,
   };
 }
