@@ -1,8 +1,10 @@
-import type { OpcionFiltro, SeccionFiltro } from '../../../shared/components/ui/FilterBar';
+import type { OpcionFiltro } from '../../../shared/components/ui/FilterBar';
 import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 
 export const SIN_REVISION = 'sin-revision';
+
+const CAMPO = 'estadoUltimaRevision';
 
 export const OPCIONES_ORDEN_ESTADO_REVISION: OpcionFiltro[] = [
   { id: 'estadoUltimaRevision:ASC', etiqueta: 'Estado de revisión (A-Z)' },
@@ -21,12 +23,41 @@ export function resolverEstadoRevision(
   );
 }
 
-export function nodoEstadoUltimaRevision(consulta: string): NodoFiltroDTO[] {
-  if (!consulta) return [];
-  if (consulta === SIN_REVISION) {
-    return [{ tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' }];
+export function resolverEstadosRevision(
+  estados: EstadoRevisionAsesor[] | undefined,
+  valores: string[],
+): { ids: string[]; consultas: string[] } {
+  const ids: string[] = [];
+  const consultas: string[] = [];
+  valores.forEach((valor) => {
+    const resuelto =
+      valor.trim() === SIN_REVISION
+        ? { id: SIN_REVISION, nombre: SIN_REVISION }
+        : resolverEstadoRevision(estados, valor);
+    if (!resuelto || ids.includes(resuelto.id)) return;
+    ids.push(resuelto.id);
+    consultas.push(resuelto.nombre);
+  });
+  return { ids, consultas };
+}
+
+export function nodoEstadosUltimaRevision(consultas: string[]): NodoFiltroDTO[] {
+  const sinRevision = consultas.includes(SIN_REVISION);
+  const nombres = consultas.filter((consulta) => consulta && consulta !== SIN_REVISION);
+  const esNulo: NodoFiltroDTO = { tipo: 'PREDICADO', campo: CAMPO, operador: 'ES_NULO' };
+  const porNombre: NodoFiltroDTO =
+    nombres.length === 1
+      ? { tipo: 'PREDICADO', campo: CAMPO, operador: 'ES', valor: nombres[0] }
+      : { tipo: 'PREDICADO_MULTIVALOR', campo: CAMPO, operador: 'IN', valores: nombres };
+  if (sinRevision && nombres.length > 0) {
+    return [{ tipo: 'GRUPO', conector: 'OR', nodos: [esNulo, porNombre] }];
   }
-  return [{ tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES', valor: consulta }];
+  if (sinRevision) return [esNulo];
+  return nombres.length > 0 ? [porNombre] : [];
+}
+
+export function nodoEstadoUltimaRevision(consulta: string): NodoFiltroDTO[] {
+  return nodoEstadosUltimaRevision(consulta ? [consulta] : []);
 }
 
 export function opcionesEstadoRevision(
@@ -40,32 +71,8 @@ export function opcionesEstadoRevision(
   ];
 }
 
-interface SeccionParams {
-  estados: EstadoRevisionAsesor[] | undefined;
-  valor: string;
-  onCambiar: (valor: string) => void;
-}
-
-export function seccionEstadoRevision({ estados, valor, onCambiar }: SeccionParams): SeccionFiltro {
-  return {
-    id: 'estadoRevision',
-    etiqueta: 'Estado de la última revisión',
-    opciones: opcionesEstadoRevision(estados, true),
-    valor,
-    onCambiar,
-    deshabilitada: !estados,
-  };
-}
-
-interface AplicadoParams {
-  estados: EstadoRevisionAsesor[] | undefined;
-  valor: string;
-  onQuitar: () => void;
-}
-
-export function aplicadoEstadoRevision({ estados, valor, onQuitar }: AplicadoParams) {
-  if (!valor) return null;
-  if (valor === SIN_REVISION) return { id: 'estadoRevision', etiqueta: 'Sin revisión', onQuitar };
-  const nombre = estados?.find((estado) => estado.id === valor)?.nombre;
-  return { id: 'estadoRevision', etiqueta: `Última revisión: ${nombre ?? valor}`, onQuitar };
+export function opcionesChipsEstadoRevision(
+  estados: EstadoRevisionAsesor[] | undefined,
+): OpcionFiltro[] {
+  return opcionesEstadoRevision(estados, true).filter((opcion) => opcion.id !== '');
 }

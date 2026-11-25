@@ -82,7 +82,7 @@ describe('useArtefactosEstudiante', () => {
       '',
       '',
       'nombreProyecto:ASC',
-      '',
+      [],
     ]);
   });
 
@@ -131,7 +131,7 @@ describe('useArtefactosEstudiante', () => {
     expect(result.current.listado.orden).toBe('nombreProyecto:ASC');
   });
 
-  it('el estado de la URL va como id en la key y como nombre en el body; «Sin revisión» envía ES_NULO', async () => {
+  it('el estado de la URL va como id en la key y como nombre en el body; cambiar a «Sin revisión» envía ES_NULO', async () => {
     // Arrange
     const { result } = renderHook(usarHookConUbicacion, {
       wrapper: crearWrapper(queryClient, '/artefactos?estadoRevision=CERRADA&pagina=3'),
@@ -139,7 +139,7 @@ describe('useArtefactosEstudiante', () => {
     await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
 
     // Assert
-    expect(result.current.listado.filtros.estadoRevision).toBe('CERRADA');
+    expect(result.current.listado.filtros.estadosRevision).toEqual(['CERRADA']);
     expect(result.current.listado.hayFiltros).toBe(true);
     expect(consultar).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -157,10 +157,11 @@ describe('useArtefactosEstudiante', () => {
         .getAll()
         .map((q) => q.queryKey)
         .find((k) => k[1] === 'estudiante'),
-    ).toContain('CERRADA');
+    ).toContainEqual(['CERRADA']);
 
     // Act
-    act(() => result.current.listado.setEstadoRevision('sin-revision'));
+    act(() => result.current.listado.toggleEstadoRevision('CERRADA'));
+    act(() => result.current.listado.toggleEstadoRevision('sin-revision'));
 
     // Assert
     await waitFor(() =>

@@ -116,26 +116,45 @@ describe('ConsultarArtefactosEstudiante', () => {
     );
   });
 
-  it('con estadoRevision en la URL muestra su chip y quitarlo vuelve a consultar sin el nodo', async () => {
+  it('los chips de estado bajo la búsqueda marcan el de la URL, suman otro con un OR y «Todos» quita el nodo', async () => {
     // Arrange
     const user = userEvent.setup();
     render(<ConsultarArtefactosEstudiante />, {
       initialPath: '/artefactos?estadoRevision=CERRADA',
     });
     await screen.findByRole('table', { name: TABLA });
+    const estados = screen.getByRole('group', { name: 'Estado de la última revisión' });
+    expect(await within(estados).findByRole('button', { name: 'Cerrada' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(within(estados).getByRole('button', { name: 'Todos' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     await waitFor(() =>
-      expect(JSON.stringify(consultar.mock.lastCall)).toContain('"campo":"estadoUltimaRevision"'),
+      expect(JSON.stringify(consultar.mock.lastCall)).toContain('"valor":"Cerrada"'),
+    );
+
+    // Act
+    await user.click(within(estados).getByRole('button', { name: 'Sin revisión' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(JSON.stringify(consultar.mock.lastCall)).toContain('"operador":"ES_NULO"'),
     );
     expect(JSON.stringify(consultar.mock.lastCall)).toContain('"valor":"Cerrada"');
 
     // Act
-    await user.click(
-      screen.getByRole('button', { name: 'Quitar filtro Última revisión: Cerrada' }),
-    );
+    await user.click(within(estados).getByRole('button', { name: 'Todos' }));
 
     // Assert
     await waitFor(() =>
       expect(JSON.stringify(consultar.mock.lastCall)).not.toContain('estadoUltimaRevision'),
+    );
+    expect(within(estados).getByRole('button', { name: 'Todos' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
     );
   });
 });

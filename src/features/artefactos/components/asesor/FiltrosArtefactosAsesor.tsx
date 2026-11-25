@@ -4,8 +4,7 @@ import type { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
 import { OPCIONES_ESTADO_PROYECTO } from '../../utils/estado-proyecto';
 import {
   OPCIONES_ORDEN_ESTADO_REVISION,
-  aplicadoEstadoRevision,
-  seccionEstadoRevision,
+  opcionesChipsEstadoRevision,
 } from '../../utils/filtro-estado-revision';
 
 interface FiltroAplicado {
@@ -74,11 +73,6 @@ export default function FiltrosArtefactosAsesor({ listado }: Props) {
 
   const secciones: SeccionFiltro[] = [
     ...seccionesTexto,
-    seccionEstadoRevision({
-      estados: listado.estados,
-      valor: filtros.estadoRevision,
-      onCambiar: listado.setEstadoRevision,
-    }),
     {
       id: 'estadoProyecto',
       etiqueta: 'Estado del proyecto',
@@ -99,24 +93,16 @@ export default function FiltrosArtefactosAsesor({ listado }: Props) {
   const etiquetaEstadoProyecto = OPCIONES_ESTADO_PROYECTO.find(
     (opcion) => opcion.id === filtros.estadoProyecto,
   )?.etiqueta;
-  const aplicadoRevision = aplicadoEstadoRevision({
-    estados: listado.estados,
-    valor: filtros.estadoRevision,
-    onQuitar: () => listado.setEstadoRevision(''),
-  });
-  const aplicadosBase: FiltroAplicado[] = aplicadoRevision
-    ? [...aplicadosTexto, aplicadoRevision]
-    : aplicadosTexto;
   const aplicados: FiltroAplicado[] = filtros.estadoProyecto
     ? [
-        ...aplicadosBase,
+        ...aplicadosTexto,
         {
           id: 'estadoProyecto',
           etiqueta: `Proyecto: ${etiquetaEstadoProyecto}`,
           onQuitar: () => listado.setEstadoProyecto(''),
         },
       ]
-    : aplicadosBase;
+    : aplicadosTexto;
 
   function cambiarOrden(id: string) {
     const [campo, direccion] = id.split(':');
@@ -130,6 +116,13 @@ export default function FiltrosArtefactosAsesor({ listado }: Props) {
         onCambiar: listado.setTexto,
         etiqueta: 'Buscar artefactos',
         placeholder: 'Buscar por documento, proyecto o repositorio',
+      }}
+      chips={{
+        etiqueta: 'Estado de la última revisión',
+        opciones: opcionesChipsEstadoRevision(listado.estados),
+        seleccionados: filtros.estadosRevision,
+        onAlternar: listado.toggleEstadoRevision,
+        onTodos: listado.limpiarEstadosRevision,
       }}
       popover={{ secciones }}
       orden={{

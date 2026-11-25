@@ -1,11 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { EstadoRevisionAsesor } from '../models/artefactos';
 import {
-  aplicadoEstadoRevision,
   nodoEstadoUltimaRevision,
+  nodoEstadosUltimaRevision,
+  opcionesChipsEstadoRevision,
   opcionesEstadoRevision,
   resolverEstadoRevision,
-  seccionEstadoRevision,
+  resolverEstadosRevision,
   SIN_REVISION,
 } from './filtro-estado-revision';
 
@@ -14,19 +15,36 @@ const ESTADOS: EstadoRevisionAsesor[] = [
   { id: 'CERRADA', nombre: 'Cerrada', descripcion: 'Revisión cerrada' },
 ];
 
+const ES_NULO = { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' };
+
 describe('filtro del estado de la última revisión', () => {
   it('nodoEstadoUltimaRevision: vacío sin nodo, sentinela ES_NULO sin valor y nombre ES', () => {
     // Assert
     expect(nodoEstadoUltimaRevision('')).toEqual([]);
-    expect(nodoEstadoUltimaRevision(SIN_REVISION)).toEqual([
-      { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' },
-    ]);
+    expect(nodoEstadoUltimaRevision(SIN_REVISION)).toEqual([ES_NULO]);
     expect(nodoEstadoUltimaRevision('Cerrada')).toEqual([
       { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES', valor: 'Cerrada' },
     ]);
   });
 
-  it('opcionesEstadoRevision ofrece «Sin revisión» solo cuando se pide', () => {
+  it('nodoEstadosUltimaRevision usa IN con varios nombres y un OR con «Sin revisión»', () => {
+    // Arrange
+    const enNombres = {
+      tipo: 'PREDICADO_MULTIVALOR',
+      campo: 'estadoUltimaRevision',
+      operador: 'IN',
+      valores: ['Pendiente', 'Cerrada'],
+    };
+
+    // Assert
+    expect(nodoEstadosUltimaRevision([])).toEqual([]);
+    expect(nodoEstadosUltimaRevision(['Pendiente', 'Cerrada'])).toEqual([enNombres]);
+    expect(nodoEstadosUltimaRevision([SIN_REVISION, 'Pendiente', 'Cerrada'])).toEqual([
+      { tipo: 'GRUPO', conector: 'OR', nodos: [ES_NULO, enNombres] },
+    ]);
+  });
+
+  it('opcionesEstadoRevision ofrece «Sin revisión» solo cuando se pide y los chips omiten «Todos»', () => {
     // Assert
     expect(opcionesEstadoRevision(ESTADOS, true).map((o) => o.id)).toEqual([
       '',
@@ -40,6 +58,11 @@ describe('filtro del estado de la última revisión', () => {
       'Cerrada',
     ]);
     expect(opcionesEstadoRevision(undefined, false)).toEqual([{ id: '', etiqueta: 'Todos' }]);
+    expect(opcionesChipsEstadoRevision(ESTADOS).map((o) => o.etiqueta)).toEqual([
+      'Sin revisión',
+      'Pendiente',
+      'Cerrada',
+    ]);
   });
 
   it('resolverEstadoRevision acepta id o nombre sin distinguir mayúsculas y sin catálogo no resuelve', () => {
@@ -50,32 +73,15 @@ describe('filtro del estado de la última revisión', () => {
     expect(resolverEstadoRevision(undefined, 'CERRADA')).toBeUndefined();
   });
 
-  it('seccionEstadoRevision se deshabilita sin catálogo y aplicadoEstadoRevision arma el chip', () => {
-    // Arrange
-    const onQuitar = vi.fn();
-
+  it('resolverEstadosRevision descarta desconocidos y repetidos y conserva «Sin revisión»', () => {
     // Assert
-    expect(
-      seccionEstadoRevision({ estados: undefined, valor: '', onCambiar: vi.fn() }),
-    ).toMatchObject({
-      deshabilitada: true,
+    expect(resolverEstadosRevision(ESTADOS, ['CERRADA', 'otro', 'cerrada', SIN_REVISION])).toEqual({
+      ids: ['CERRADA', SIN_REVISION],
+      consultas: ['Cerrada', SIN_REVISION],
     });
-    expect(
-      seccionEstadoRevision({ estados: ESTADOS, valor: '', onCambiar: vi.fn() }),
-    ).toMatchObject({
-      deshabilitada: false,
+    expect(resolverEstadosRevision(undefined, ['CERRADA', SIN_REVISION])).toEqual({
+      ids: [SIN_REVISION],
+      consultas: [SIN_REVISION],
     });
-    expect(aplicadoEstadoRevision({ estados: ESTADOS, valor: '', onQuitar })).toBeNull();
-    expect(aplicadoEstadoRevision({ estados: ESTADOS, valor: SIN_REVISION, onQuitar })).toEqual({
-      id: 'estadoRevision',
-      etiqueta: 'Sin revisión',
-      onQuitar,
-    });
-    expect(aplicadoEstadoRevision({ estados: ESTADOS, valor: 'CERRADA', onQuitar })?.etiqueta).toBe(
-      'Última revisión: Cerrada',
-    );
-    expect(
-      aplicadoEstadoRevision({ estados: undefined, valor: 'CERRADA', onQuitar })?.etiqueta,
-    ).toBe('Última revisión: CERRADA');
   });
 });
