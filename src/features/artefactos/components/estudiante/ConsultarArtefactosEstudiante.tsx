@@ -20,7 +20,7 @@ export default function ConsultarArtefactosEstudiante() {
 
   return (
     <div className={RAIZ}>
-      <FiltrosArtefactosEstudiante listado={listado} />
+      <FiltrosArtefactosEstudiante listado={listado} totalResultados={data?.totalElements} />
 
       <p aria-live="polite" className={RESUMEN}>
         {textoResumen(data?.totalElements)}

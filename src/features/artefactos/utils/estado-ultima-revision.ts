@@ -9,3 +9,10 @@ export function varianteEstadoUltimaRevision(
   const estado = estados.find((e) => e.nombre === nombre);
   return estado ? varianteEstadoRevisionAsesor(estado.id) : 'neutro';
 }
+
+export function idEstadoUltimaRevision(
+  estados: EstadoRevisionAsesor[],
+  nombre: string,
+): string | undefined {
+  return estados.find((e) => e.nombre === nombre)?.id;
+}

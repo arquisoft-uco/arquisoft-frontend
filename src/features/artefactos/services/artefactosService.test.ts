@@ -248,17 +248,18 @@ describe('artefactosService', () => {
   });
 
   describe('consultas de HU-042', () => {
-    it('getParticipacionesEstudiante hace GET a /artefactos/estudiante/participaciones y devuelve data', async () => {
+    it('consultarParticipacionesEstudiante hace POST a /artefactos/estudiante/participaciones con el criterio y devuelve la página', async () => {
       // Arrange
-      const lista = [{ id: 'a-1' }];
-      get.mockResolvedValue({ data: lista });
+      const pagina = { content: [{ id: 'a-1' }], totalElements: 1 };
+      const criterio = { pagina: 0, tamanio: 10, ordenamiento: ['nombreProyecto:ASC'] };
+      post.mockResolvedValue({ data: pagina });
 
       // Act
-      const resultado = await artefactosService.getParticipacionesEstudiante();
+      const resultado = await artefactosService.consultarParticipacionesEstudiante(criterio);
 
       // Assert
-      expect(get).toHaveBeenCalledWith('/artefactos/estudiante/participaciones');
-      expect(resultado).toBe(lista);
+      expect(post).toHaveBeenCalledWith('/artefactos/estudiante/participaciones', criterio);
+      expect(resultado).toBe(pagina);
     });
   });
 

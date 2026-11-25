@@ -1,27 +1,29 @@
 import { useState } from 'react';
-import { FileStack } from 'lucide-react';
-import EmptyState from '../../../../shared/components/ui/EmptyState';
+import PaginadorListado from '../../../../shared/components/PaginadorListado';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { getApiErrorMessage } from '../../../../shared/utils/api-error';
 import { useParticipacionesEstudiante } from '../../hooks/useParticipacionesEstudiante';
-import { useUltimasVersionesEstudiante } from '../../hooks/useUltimasVersionesEstudiante';
+import type { EstadoRevisionAsesor } from '../../models/artefactos';
 import type { ArtefactoParaVersion } from '../../models/ArtefactoParaVersion';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
-import { motivoBloqueoSubida } from '../../utils/bloqueo-subida-version';
-import { guiaArtefactoEstudiante } from '../../utils/guia-artefacto';
+import { motivoBloqueoSubidaDeParticipacion } from '../../utils/bloqueo-subida-version';
+import { guiaParticipacionEstudiante } from '../../utils/guia-artefacto';
+import { OPCIONES_ORDEN_PARTICIPACIONES } from '../../utils/orden-participaciones';
+import FiltrosArtefactosEstudiante from './FiltrosArtefactosEstudiante';
 import GestionarRevisionEstudiantePanel from './GestionarRevisionEstudiantePanel';
 import ParticipacionesProyectoTabla from './ParticipacionesProyectoTabla';
 import SubirVersionArtefactoPanel from './SubirVersionArtefactoPanel';
+import VacioParticipaciones from './VacioParticipaciones';
 
 const RAIZ = 'flex flex-col gap-4';
 const RESUMEN = 'min-h-5 text-[13px] text-on-surface-secondary';
 const LISTA = 'flex flex-col gap-6';
+const SIN_ESTADOS: EstadoRevisionAsesor[] = [];
 
-function textoResumen(artefactos: number, proyectos: number): string {
-  const textoArtefactos = `${artefactos} ${artefactos === 1 ? 'artefacto' : 'artefactos'}`;
-  const textoProyectos = `${proyectos} ${proyectos === 1 ? 'proyecto' : 'proyectos'}`;
-  return `${textoArtefactos} en ${textoProyectos}`;
+function textoResumen(total?: number): string {
+  if (total === undefined) return '';
+  return `${total} ${total === 1 ? 'artefacto' : 'artefactos'}`;
 }
 
 interface PanelAbierto {
@@ -39,37 +41,31 @@ function aArtefacto(participacion: ParticipacionArtefacto): ArtefactoParaVersion
 }
 
 export default function ConsultarParticipacionesEstudiante() {
-  const { proyectos, totalArtefactos, isLoading, isError, error, refetch, isFetching } =
-    useParticipacionesEstudiante();
-  const idsArtefactos = proyectos.flatMap((proyecto) =>
-    proyecto.participaciones.filter((p) => !p.omitido).map((p) => p.id),
-  );
-  const { ultimaVersion, isError: ultimasConError } = useUltimasVersionesEstudiante(idsArtefactos);
+  const listado = useParticipacionesEstudiante();
+  const { proyectos, data, isLoading, isError, error, refetch, isFetching } = listado;
   const [panel, setPanel] = useState<PanelAbierto | null>(null);
+  const artefactosEnPagina = data?.content.length ?? 0;
 
   function motivoBloqueo(participacion: ParticipacionArtefacto): string | null | undefined {
     if (participacion.omitido) return null;
-    const ultima = ultimaVersion(participacion.id);
-    if (ultima === undefined) return ultimasConError ? null : undefined;
-    return motivoBloqueoSubida(ultima);
+    return motivoBloqueoSubidaDeParticipacion(participacion.estadoUltimaRevision, listado.estados);
   }
 
   function avisoFila(participacion: ParticipacionArtefacto): string | null | undefined {
     if (participacion.omitido) return motivoBloqueo(participacion);
-    const ultima = ultimaVersion(participacion.id);
-    if (ultima === undefined) return ultimasConError ? null : undefined;
-    return guiaArtefactoEstudiante(ultima);
+    return guiaParticipacionEstudiante(participacion.estadoUltimaRevision, listado.estados);
   }
-
-  const resumen =
-    isLoading || isError || totalArtefactos === 0
-      ? ''
-      : textoResumen(totalArtefactos, proyectos.length);
 
   return (
     <div className={RAIZ}>
+      <FiltrosArtefactosEstudiante
+        listado={listado}
+        totalResultados={data?.totalElements}
+        opcionesOrden={OPCIONES_ORDEN_PARTICIPACIONES}
+      />
+
       <p aria-live="polite" className={RESUMEN}>
-        {resumen}
+        {isLoading || isError ? '' : textoResumen(data?.totalElements)}
       </p>
 
       <div aria-busy={isFetching}>
@@ -82,10 +78,9 @@ export default function ConsultarParticipacionesEstudiante() {
             onReintentar={refetch}
           />
         ) : proyectos.length === 0 ? (
-          <EmptyState
-            icono={FileStack}
-            titulo="Aún no participas en artefactos"
-            descripcion="Aparecerán aquí cuando te asignen a un artefacto de tus proyectos de grado."
+          <VacioParticipaciones
+            hayFiltros={listado.hayFiltros}
+            onLimpiarFiltros={listado.limpiarFiltros}
           />
         ) : (
           <div className={LISTA}>
@@ -95,7 +90,7 @@ export default function ConsultarParticipacionesEstudiante() {
                 proyecto={proyecto}
                 motivoBloqueo={motivoBloqueo}
                 avisoFila={avisoFila}
-                ultimaVersion={ultimaVersion}
+                estados={listado.estados ?? SIN_ESTADOS}
                 onGestionarRevision={(p) =>
                   setPanel({ artefacto: aArtefacto(p), modo: 'gestionar' })
                 }
@@ -105,6 +100,18 @@ export default function ConsultarParticipacionesEstudiante() {
           </div>
         )}
       </div>
+
+      {!isError && !isLoading && artefactosEnPagina > 0 && (
+        <PaginadorListado
+          page={listado.page}
+          pageSize={listado.pageSize}
+          totalPages={data?.totalPages ?? 0}
+          totalElements={data?.totalElements ?? 0}
+          cantidadEnPagina={artefactosEnPagina}
+          etiquetaPlural="artefactos"
+          onPageChange={listado.goToPage}
+        />
+      )}
       {panel?.modo === 'gestionar' && (
         <GestionarRevisionEstudiantePanel
           artefacto={panel.artefacto}

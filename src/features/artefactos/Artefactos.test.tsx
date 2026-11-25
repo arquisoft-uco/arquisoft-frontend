@@ -66,7 +66,16 @@ vi.mock('./services/artefactosService', () => ({
       last: true,
       empty: true,
     }),
-    getParticipacionesEstudiante: vi.fn().mockResolvedValue([]),
+    consultarParticipacionesEstudiante: vi.fn().mockResolvedValue({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: true,
+    }),
     consultarArtefactosAsesor: vi.fn().mockResolvedValue({
       content: [],
       totalElements: 0,
@@ -305,20 +314,31 @@ describe('Artefactos', () => {
   it('el nombre del documento lleva a Versiones y revisiones filtrada y el chip la limpia', async () => {
     // Arrange
     const user = userEvent.setup();
-    vi.mocked(artefactosService.getParticipacionesEstudiante).mockResolvedValueOnce([
-      {
-        id: '3f2b8c1e-5d4a-4b7e-9c6d-1a2b3c4d5e6f',
-        proyectoGrado: 'p-1',
-        nombreProyecto: 'Sistema de riego',
-        nombreDocumento: 'Acta de inicio',
-        versionRepositorioArtefacto: 'v-1',
-        versionDocumento: 1,
-        nombreRepositorio: 'Repositorio base',
-        asesor: 'u-1',
-        nombreAsesor: 'Laura Gómez',
-        omitido: false,
-      },
-    ]);
+    vi.mocked(artefactosService.consultarParticipacionesEstudiante).mockResolvedValueOnce({
+      content: [
+        {
+          id: '3f2b8c1e-5d4a-4b7e-9c6d-1a2b3c4d5e6f',
+          proyectoGrado: 'p-1',
+          nombreProyecto: 'Sistema de riego',
+          nombreDocumento: 'Acta de inicio',
+          versionRepositorioArtefacto: 'v-1',
+          versionDocumento: 1,
+          nombreRepositorio: 'Repositorio base',
+          asesor: 'u-1',
+          nombreAsesor: 'Laura Gómez',
+          omitido: false,
+          proyectoFinalizado: false,
+          proyectoCancelado: false,
+        },
+      ],
+      totalElements: 1,
+      totalPages: 1,
+      page: 0,
+      size: 10,
+      first: true,
+      last: true,
+      empty: false,
+    });
     entrarComo(Rol.Estudiante);
     setActiveRole(Rol.Estudiante);
     renderizar();

@@ -19,6 +19,8 @@ function participacion(
     asesor: 'u-1',
     nombreAsesor: 'Laura Gómez',
     omitido: false,
+    proyectoFinalizado: false,
+    proyectoCancelado: false,
   };
 }
 
@@ -60,20 +62,16 @@ describe('agruparPorProyecto', () => {
     expect(agruparPorProyecto([])).toEqual([]);
   });
 
-  it('agrega los flags de cierre del proyecto y los deja en falso si no hay dato', () => {
+  it('toma las banderas de cierre del proyecto de la primera fila de cada grupo', () => {
     // Arrange
     const lista = [
-      participacion('a-1', 'p-1', 'Riego', 'Acta'),
-      participacion('a-2', 'p-2', 'Domótica', 'Acta'),
+      { ...participacion('a-1', 'p-1', 'Riego', 'Acta'), proyectoCancelado: true },
+      { ...participacion('a-2', 'p-2', 'Domótica', 'Acta'), proyectoFinalizado: true },
       participacion('a-3', 'p-3', 'Café', 'Acta'),
     ];
-    const cierre = new Map([
-      ['p-1', { proyectoFinalizado: false, proyectoCancelado: true }],
-      ['p-2', { proyectoFinalizado: true, proyectoCancelado: false }],
-    ]);
 
     // Act
-    const grupos = agruparPorProyecto(lista, cierre);
+    const grupos = agruparPorProyecto(lista);
 
     // Assert
     expect(grupos[0]).toMatchObject({ proyectoFinalizado: false, proyectoCancelado: true });
