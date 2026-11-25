@@ -1,6 +1,11 @@
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/ui/FilterBar';
 import type { useArtefactosEstudiante } from '../../hooks/useArtefactosEstudiante';
+import {
+  OPCIONES_ORDEN_ESTADO_REVISION,
+  aplicadoEstadoRevision,
+  seccionEstadoRevision,
+} from '../../utils/filtro-estado-revision';
 
 interface FiltroAplicado {
   id: string;
@@ -19,6 +24,7 @@ const OPCIONES_ORDEN: OpcionFiltro[] = [
   { id: 'nombreRepositorio:DESC', etiqueta: 'Repositorio (Z-A)' },
   { id: 'nombreAsesor:ASC', etiqueta: 'Asesor (A-Z)' },
   { id: 'nombreAsesor:DESC', etiqueta: 'Asesor (Z-A)' },
+  ...OPCIONES_ORDEN_ESTADO_REVISION,
 ];
 
 interface Props {
@@ -66,7 +72,7 @@ export default function FiltrosArtefactosEstudiante({ listado }: Props) {
     },
   ];
 
-  const secciones: SeccionFiltro[] = campos.map(({ id, etiqueta, valor, onCambiar }) => ({
+  const seccionesTexto: SeccionFiltro[] = campos.map(({ id, etiqueta, valor, onCambiar }) => ({
     id,
     etiqueta,
     valor,
@@ -74,13 +80,28 @@ export default function FiltrosArtefactosEstudiante({ listado }: Props) {
     tipo: 'texto',
   }));
 
-  const aplicados: FiltroAplicado[] = campos
+  const secciones: SeccionFiltro[] = [
+    ...seccionesTexto,
+    seccionEstadoRevision({
+      estados: listado.estados,
+      valor: filtros.estadoRevision,
+      onCambiar: listado.setEstadoRevision,
+    }),
+  ];
+
+  const aplicadosTexto: FiltroAplicado[] = campos
     .filter((campo) => campo.valor.trim() !== '')
     .map((campo) => ({
       id: campo.id,
       etiqueta: `${campo.aplicado}: ${campo.valor.trim()}`,
       onQuitar: () => campo.onCambiar(''),
     }));
+  const aplicadoRevision = aplicadoEstadoRevision({
+    estados: listado.estados,
+    valor: filtros.estadoRevision,
+    onQuitar: () => listado.setEstadoRevision(''),
+  });
+  const aplicados = aplicadoRevision ? [...aplicadosTexto, aplicadoRevision] : aplicadosTexto;
 
   function cambiarOrden(id: string) {
     const [campo, direccion] = id.split(':');

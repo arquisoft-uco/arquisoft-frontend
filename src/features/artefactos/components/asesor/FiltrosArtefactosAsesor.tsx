@@ -2,6 +2,11 @@ import FilterBar from '../../../../shared/components/ui/FilterBar';
 import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/ui/FilterBar';
 import type { useArtefactosAsesor } from '../../hooks/useArtefactosAsesor';
 import { OPCIONES_ESTADO_PROYECTO } from '../../utils/estado-proyecto';
+import {
+  OPCIONES_ORDEN_ESTADO_REVISION,
+  aplicadoEstadoRevision,
+  seccionEstadoRevision,
+} from '../../utils/filtro-estado-revision';
 
 interface FiltroAplicado {
   id: string;
@@ -18,6 +23,7 @@ const OPCIONES_ORDEN: OpcionFiltro[] = [
   { id: 'versionDocumento:DESC', etiqueta: 'Versión (mayor a menor)' },
   { id: 'nombreRepositorio:ASC', etiqueta: 'Repositorio (A-Z)' },
   { id: 'nombreRepositorio:DESC', etiqueta: 'Repositorio (Z-A)' },
+  ...OPCIONES_ORDEN_ESTADO_REVISION,
 ];
 
 interface Props {
@@ -68,6 +74,11 @@ export default function FiltrosArtefactosAsesor({ listado }: Props) {
 
   const secciones: SeccionFiltro[] = [
     ...seccionesTexto,
+    seccionEstadoRevision({
+      estados: listado.estados,
+      valor: filtros.estadoRevision,
+      onCambiar: listado.setEstadoRevision,
+    }),
     {
       id: 'estadoProyecto',
       etiqueta: 'Estado del proyecto',
@@ -88,16 +99,24 @@ export default function FiltrosArtefactosAsesor({ listado }: Props) {
   const etiquetaEstadoProyecto = OPCIONES_ESTADO_PROYECTO.find(
     (opcion) => opcion.id === filtros.estadoProyecto,
   )?.etiqueta;
+  const aplicadoRevision = aplicadoEstadoRevision({
+    estados: listado.estados,
+    valor: filtros.estadoRevision,
+    onQuitar: () => listado.setEstadoRevision(''),
+  });
+  const aplicadosBase: FiltroAplicado[] = aplicadoRevision
+    ? [...aplicadosTexto, aplicadoRevision]
+    : aplicadosTexto;
   const aplicados: FiltroAplicado[] = filtros.estadoProyecto
     ? [
-        ...aplicadosTexto,
+        ...aplicadosBase,
         {
           id: 'estadoProyecto',
           etiqueta: `Proyecto: ${etiquetaEstadoProyecto}`,
           onQuitar: () => listado.setEstadoProyecto(''),
         },
       ]
-    : aplicadosTexto;
+    : aplicadosBase;
 
   function cambiarOrden(id: string) {
     const [campo, direccion] = id.split(':');

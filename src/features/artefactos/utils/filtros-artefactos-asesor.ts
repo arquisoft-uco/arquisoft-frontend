@@ -2,6 +2,7 @@ import type { NodoFiltroDTO } from '../../../shared/models/query-criteria';
 
 export { leerVersion, ORDEN_POR_DEFECTO, ordenamientoDe } from './filtros-artefactos-estudiante';
 import { filtrosEstadoProyecto, type EstadoProyectoListado } from './estado-proyecto';
+import { nodoEstadoUltimaRevision } from './filtro-estado-revision';
 import { leerVersion } from './filtros-artefactos-estudiante';
 
 export interface FiltrosArtefactosAsesor {
@@ -10,6 +11,7 @@ export interface FiltrosArtefactosAsesor {
   documento: string;
   repositorio: string;
   version: string;
+  estadoRevision: string;
   estadoProyecto: EstadoProyectoListado;
 }
 
@@ -24,6 +26,8 @@ export const ORDENES = [
   'versionDocumento:DESC',
   'nombreRepositorio:ASC',
   'nombreRepositorio:DESC',
+  'estadoUltimaRevision:ASC',
+  'estadoUltimaRevision:DESC',
 ] as const;
 
 function contiene(campo: string, valor: string): NodoFiltroDTO {
@@ -52,6 +56,7 @@ export function construirFiltros(filtros: FiltrosArtefactosAsesor): NodoFiltroDT
   if (version) {
     nodos.push({ tipo: 'PREDICADO', campo: 'versionDocumento', operador: 'ES', valor: version });
   }
+  nodos.push(...nodoEstadoUltimaRevision(filtros.estadoRevision));
   nodos.push(...filtrosEstadoProyecto(filtros.estadoProyecto));
   if (nodos.length === 1) return nodos[0];
   return { tipo: 'GRUPO', conector: 'AND', nodos };

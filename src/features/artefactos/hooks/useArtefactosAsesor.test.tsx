@@ -7,7 +7,7 @@ import { artefactosService } from '../services/artefactosService';
 import { useArtefactosAsesor } from './useArtefactosAsesor';
 
 vi.mock('../services/artefactosService', () => ({
-  artefactosService: { consultarArtefactosAsesor: vi.fn() },
+  artefactosService: { consultarArtefactosAsesor: vi.fn(), getEstadosRevisionAsesor: vi.fn() },
 }));
 
 const consultar = vi.mocked(artefactosService.consultarArtefactosAsesor);
@@ -52,6 +52,9 @@ describe('useArtefactosAsesor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockResolvedValue(PAGINA_VACIA);
+    vi.mocked(artefactosService.getEstadosRevisionAsesor).mockResolvedValue([
+      { id: 'CERRADA', nombre: 'Cerrada', descripcion: 'Revisión cerrada' },
+    ]);
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
@@ -87,6 +90,7 @@ describe('useArtefactosAsesor', () => {
       '',
       '',
       'nombreProyecto:ASC',
+      '',
       '',
     ]);
   });
@@ -155,6 +159,7 @@ describe('useArtefactosAsesor', () => {
       documento: 'acta',
       repositorio: 'base',
       version: '2',
+      estadoRevision: '',
       estadoProyecto: '',
     });
     expect(consultar).toHaveBeenLastCalledWith(
@@ -225,6 +230,69 @@ describe('useArtefactosAsesor', () => {
     );
     act(() => result.current.listado.setEstadoProyecto(''));
     await waitFor(() => expect(result.current.ubicacion.search).toBe(''));
+  });
+
+  it('el estado de la URL va como id en la key y como nombre en el body; «Sin revisión» envía ES_NULO', async () => {
+    // Arrange
+    const { result } = renderHook(usarHookConUbicacion, {
+      wrapper: crearWrapper(queryClient, '/artefactos?estadoRevision=CERRADA&pagina=3'),
+    });
+    await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.listado.filtros.estadoRevision).toBe('CERRADA');
+    expect(result.current.listado.hayFiltros).toBe(true);
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: {
+          tipo: 'GRUPO',
+          conector: 'AND',
+          nodos: [
+            { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES', valor: 'Cerrada' },
+            ...SOLO_HABILITADOS.nodos,
+          ],
+        },
+      }),
+    );
+    expect(
+      queryClient
+        .getQueryCache()
+        .getAll()
+        .map((q) => q.queryKey)
+        .find((k) => k[1] === 'asesor'),
+    ).toContain('CERRADA');
+
+    // Act
+    act(() => result.current.listado.setEstadoRevision('sin-revision'));
+
+    // Assert
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          pagina: 0,
+          filtros: {
+            tipo: 'GRUPO',
+            conector: 'AND',
+            nodos: [
+              { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' },
+              ...SOLO_HABILITADOS.nodos,
+            ],
+          },
+        }),
+      ),
+    );
+    expect(result.current.ubicacion.search).toBe('?estadoRevision=sin-revision');
+
+    // Act
+    act(() => result.current.listado.limpiarFiltros());
+
+    // Assert
+    await waitFor(() => expect(result.current.ubicacion.search).toBe(''));
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({ filtros: SOLO_HABILITADOS }),
+      ),
+    );
   });
 
   it('cambiar un filtro vuelve a la página 0', async () => {

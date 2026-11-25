@@ -28,6 +28,7 @@ const ARTEFACTO: ArtefactoEstudiante = {
 function renderizar(parcial: Partial<React.ComponentProps<typeof ArtefactosEstudianteTable>> = {}) {
   const props = {
     artefactos: [ARTEFACTO],
+    estados: [],
     cargando: false,
     hayFiltros: false,
     orden: { clave: 'nombreProyecto', direccion: 'ASC' as const },
@@ -56,6 +57,23 @@ describe('ArtefactosEstudianteTable', () => {
     expect(tabla().getByText('Ana Pérez')).toBeInTheDocument();
   });
 
+  it('con estado de última revisión lo muestra y no muestra "Sin revisión"', () => {
+    // Act
+    renderizar({ artefactos: [{ ...ARTEFACTO, estadoUltimaRevision: 'Cerrada' }] });
+
+    // Assert
+    expect(tabla().getByText('Cerrada')).toBeInTheDocument();
+    expect(tabla().queryByText('Sin revisión')).not.toBeInTheDocument();
+  });
+
+  it('sin estado de última revisión muestra "Sin revisión"', () => {
+    // Act
+    renderizar();
+
+    // Assert
+    expect(tabla().getByText('Sin revisión')).toBeInTheDocument();
+  });
+
   it('muestra "Omitido" solo en la fila omitida', () => {
     // Act
     renderizar({
@@ -69,7 +87,7 @@ describe('ArtefactosEstudianteTable', () => {
     expect(tabla().getAllByText('Omitido')).toHaveLength(1);
   });
 
-  it('las cinco columnas ordenan y entregan su clave', async () => {
+  it('las seis columnas ordenan y entregan su clave', async () => {
     // Arrange
     const user = userEvent.setup();
     const { onOrdenar } = renderizar();
@@ -78,11 +96,13 @@ describe('ArtefactosEstudianteTable', () => {
     await user.click(tabla().getByRole('button', { name: 'Documento' }));
     await user.click(tabla().getByRole('button', { name: 'Versión del documento' }));
     await user.click(tabla().getByRole('button', { name: 'Asesor' }));
+    await user.click(tabla().getByRole('button', { name: 'Última revisión' }));
 
     // Assert
     expect(onOrdenar).toHaveBeenCalledWith('nombreDocumento', expect.any(String));
     expect(onOrdenar).toHaveBeenCalledWith('versionDocumento', expect.any(String));
     expect(onOrdenar).toHaveBeenCalledWith('nombreAsesor', expect.any(String));
+    expect(onOrdenar).toHaveBeenCalledWith('estadoUltimaRevision', expect.any(String));
   });
 
   it('sin artefactos y sin filtros muestra el vacío informativo sin acción', () => {

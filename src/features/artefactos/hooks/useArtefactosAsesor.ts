@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import { leerEstadoProyecto } from '../utils/estado-proyecto';
 import { artefactosService } from '../services/artefactosService';
+import { useFiltroEstadoRevision } from './useFiltroEstadoRevision';
 import {
   construirFiltros,
   leerVersion,
@@ -18,12 +19,14 @@ type DireccionOrden = 'ASC' | 'DESC';
 export function useArtefactosAsesor() {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
+  const filtro = useFiltroEstadoRevision(parametros.texto('estadoRevision').trim());
   const filtros: FiltrosArtefactosAsesor = {
     texto: parametros.texto('q').trim(),
     proyecto: parametros.texto('proyecto').trim(),
     documento: parametros.texto('documento').trim(),
     repositorio: parametros.texto('repositorio').trim(),
     version: leerVersion(parametros.texto('version')),
+    estadoRevision: filtro.valor,
     estadoProyecto: leerEstadoProyecto(parametros.texto('estadoProyecto')),
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
@@ -50,6 +53,10 @@ export function useArtefactosAsesor() {
     parametros.cambiar({ version: valor || undefined });
   }
 
+  function setEstadoRevision(valor: string) {
+    parametros.cambiar({ estadoRevision: valor || undefined });
+  }
+
   function setEstadoProyecto(valor: string) {
     parametros.cambiar({ estadoProyecto: valor || undefined });
   }
@@ -66,6 +73,7 @@ export function useArtefactosAsesor() {
       documento: undefined,
       repositorio: undefined,
       version: undefined,
+      estadoRevision: undefined,
       estadoProyecto: undefined,
     });
   }
@@ -83,14 +91,17 @@ export function useArtefactosAsesor() {
       filtros.version,
       orden,
       filtros.estadoProyecto,
+      filtros.estadoRevision,
     ],
     queryFn: () =>
       artefactosService.consultarArtefactosAsesor({
         pagina: page,
         tamanio: PAGE_SIZE,
         ordenamiento: ordenamientoDe(orden),
-        filtros: construirFiltros(filtros),
+        // la UI y la key llevan el id del estado; el backend compara por nombre
+        filtros: construirFiltros({ ...filtros, estadoRevision: filtro.consulta }),
       }),
+    enabled: !filtro.esperandoCatalogo,
     placeholderData: keepPreviousData,
   });
 
@@ -106,6 +117,8 @@ export function useArtefactosAsesor() {
     setRepositorio,
     setVersion,
     setEstadoProyecto,
+    setEstadoRevision,
+    estados: filtro.estados,
     orden,
     ordenCampo,
     ordenDireccion,

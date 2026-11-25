@@ -12,6 +12,7 @@ const vacios: FiltrosArtefactosAsesor = {
   documento: '',
   repositorio: '',
   version: '',
+  estadoRevision: '',
   estadoProyecto: '',
 };
 
@@ -83,11 +84,24 @@ describe('filtros de artefactos asignados del asesor', () => {
       documento: 'plan',
       repositorio: 'base',
       version: '2',
+      estadoRevision: '',
       estadoProyecto: '',
     });
     expect(combinado).toMatchObject({ tipo: 'GRUPO', conector: 'AND' });
     expect((combinado as { nodos: unknown[] }).nodos).toHaveLength(7);
     expect(JSON.stringify(combinado)).not.toContain('nombreAsesor');
+  });
+
+  it('el estado de la última revisión llega como ES con el nombre o ES_NULO sin valor', () => {
+    // Assert
+    expect(nodosDe({ ...vacios, estadoRevision: 'Cerrada' })).toEqual([
+      { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES', valor: 'Cerrada' },
+      ...HABILITADOS,
+    ]);
+    expect(nodosDe({ ...vacios, estadoRevision: 'sin-revision' })).toEqual([
+      { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' },
+      ...HABILITADOS,
+    ]);
   });
 
   it('una versión inválida se ignora', () => {

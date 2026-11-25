@@ -14,6 +14,9 @@ import ConsultarArtefactosAsignadosAsesor from './ConsultarArtefactosAsignadosAs
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
     consultarArtefactosAsesor: vi.fn(),
+    getEstadosRevisionAsesor: vi
+      .fn()
+      .mockResolvedValue([{ id: 'CERRADA', nombre: 'Cerrada', descripcion: '' }]),
   },
 }));
 vi.mock('../../hooks/useUltimasVersionesArtefacto', () => ({
@@ -55,6 +58,7 @@ vi.mock('../../../../shared/hooks/useAsesoresVigentes', () => ({
 }));
 
 const consultar = vi.mocked(artefactosService.consultarArtefactosAsesor);
+const TABLA = 'Artefactos asignados';
 
 const ARTEFACTO: ArtefactoAsesor = {
   proyectoFinalizado: false,
@@ -225,6 +229,29 @@ describe('ConsultarArtefactosAsignadosAsesor', () => {
       ),
     );
     expect(screen.queryByRole('button', { name: 'Quitar filtro Proyecto: riego' })).toBeNull();
+  });
+
+  it('con estadoRevision en la URL muestra su chip y quitarlo vuelve a consultar sin el nodo', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    render(<ConsultarArtefactosAsignadosAsesor />, {
+      initialPath: '/artefactos?estadoRevision=CERRADA',
+    });
+    await screen.findByRole('table', { name: TABLA });
+    await waitFor(() =>
+      expect(JSON.stringify(consultar.mock.lastCall)).toContain('"campo":"estadoUltimaRevision"'),
+    );
+    expect(JSON.stringify(consultar.mock.lastCall)).toContain('"valor":"Cerrada"');
+
+    // Act
+    await user.click(
+      screen.getByRole('button', { name: 'Quitar filtro Última revisión: Cerrada' }),
+    );
+
+    // Assert
+    await waitFor(() =>
+      expect(JSON.stringify(consultar.mock.lastCall)).not.toContain('estadoUltimaRevision'),
+    );
   });
 
   it('con estadoProyecto=cancelados envía solo el predicado de cancelados, muestra su resumen y chip, y quitarlo vuelve a habilitados', async () => {

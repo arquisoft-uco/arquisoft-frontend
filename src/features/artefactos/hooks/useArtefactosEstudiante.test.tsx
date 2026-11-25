@@ -7,7 +7,7 @@ import { artefactosService } from '../services/artefactosService';
 import { useArtefactosEstudiante } from './useArtefactosEstudiante';
 
 vi.mock('../services/artefactosService', () => ({
-  artefactosService: { consultarArtefactosEstudiante: vi.fn() },
+  artefactosService: { consultarArtefactosEstudiante: vi.fn(), getEstadosRevisionAsesor: vi.fn() },
 }));
 
 const consultar = vi.mocked(artefactosService.consultarArtefactosEstudiante);
@@ -43,6 +43,9 @@ describe('useArtefactosEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockResolvedValue(PAGINA_VACIA);
+    vi.mocked(artefactosService.getEstadosRevisionAsesor).mockResolvedValue([
+      { id: 'CERRADA', nombre: 'Cerrada', descripcion: 'Revisión cerrada' },
+    ]);
     queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   });
 
@@ -79,6 +82,7 @@ describe('useArtefactosEstudiante', () => {
       '',
       '',
       'nombreProyecto:ASC',
+      '',
     ]);
   });
 
@@ -125,6 +129,58 @@ describe('useArtefactosEstudiante', () => {
     // Assert
     await waitFor(() => expect(result.current.ubicacion.search).toBe(''));
     expect(result.current.listado.orden).toBe('nombreProyecto:ASC');
+  });
+
+  it('el estado de la URL va como id en la key y como nombre en el body; «Sin revisión» envía ES_NULO', async () => {
+    // Arrange
+    const { result } = renderHook(usarHookConUbicacion, {
+      wrapper: crearWrapper(queryClient, '/artefactos?estadoRevision=CERRADA&pagina=3'),
+    });
+    await waitFor(() => expect(result.current.listado.isSuccess).toBe(true));
+
+    // Assert
+    expect(result.current.listado.filtros.estadoRevision).toBe('CERRADA');
+    expect(result.current.listado.hayFiltros).toBe(true);
+    expect(consultar).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filtros: {
+          tipo: 'PREDICADO',
+          campo: 'estadoUltimaRevision',
+          operador: 'ES',
+          valor: 'Cerrada',
+        },
+      }),
+    );
+    expect(
+      queryClient
+        .getQueryCache()
+        .getAll()
+        .map((q) => q.queryKey)
+        .find((k) => k[1] === 'estudiante'),
+    ).toContain('CERRADA');
+
+    // Act
+    act(() => result.current.listado.setEstadoRevision('sin-revision'));
+
+    // Assert
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          pagina: 0,
+          filtros: { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' },
+        }),
+      ),
+    );
+    expect(result.current.ubicacion.search).toBe('?estadoRevision=sin-revision');
+
+    // Act
+    act(() => result.current.listado.limpiarFiltros());
+
+    // Assert
+    await waitFor(() => expect(result.current.ubicacion.search).toBe(''));
+    await waitFor(() =>
+      expect(consultar).toHaveBeenLastCalledWith(expect.objectContaining({ filtros: undefined })),
+    );
   });
 
   it('goToPage pide la página siguiente', async () => {

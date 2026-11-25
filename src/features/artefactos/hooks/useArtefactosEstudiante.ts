@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParametrosListado';
 import { artefactosService } from '../services/artefactosService';
+import { useFiltroEstadoRevision } from './useFiltroEstadoRevision';
 import {
   construirFiltros,
   leerVersion,
@@ -17,6 +18,7 @@ type DireccionOrden = 'ASC' | 'DESC';
 export function useArtefactosEstudiante() {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
+  const filtro = useFiltroEstadoRevision(parametros.texto('estadoRevision').trim());
   const filtros: FiltrosArtefactosEstudiante = {
     texto: parametros.texto('q').trim(),
     proyecto: parametros.texto('proyecto').trim(),
@@ -24,6 +26,7 @@ export function useArtefactosEstudiante() {
     repositorio: parametros.texto('repositorio').trim(),
     asesor: parametros.texto('asesor').trim(),
     version: leerVersion(parametros.texto('version')),
+    estadoRevision: filtro.valor,
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
   const [ordenCampo, ordenDireccion] = orden.split(':') as [string, DireccionOrden];
@@ -53,6 +56,10 @@ export function useArtefactosEstudiante() {
     parametros.cambiar({ version: valor || undefined });
   }
 
+  function setEstadoRevision(valor: string) {
+    parametros.cambiar({ estadoRevision: valor || undefined });
+  }
+
   function setOrden(campo: string, direccion: DireccionOrden) {
     const nuevo = `${campo}:${direccion}`;
     parametros.cambiar({ orden: nuevo === ORDEN_POR_DEFECTO ? undefined : nuevo });
@@ -66,6 +73,7 @@ export function useArtefactosEstudiante() {
       repositorio: undefined,
       asesor: undefined,
       version: undefined,
+      estadoRevision: undefined,
     });
   }
 
@@ -82,14 +90,17 @@ export function useArtefactosEstudiante() {
       filtros.asesor,
       filtros.version,
       orden,
+      filtros.estadoRevision,
     ],
     queryFn: () =>
       artefactosService.consultarArtefactosEstudiante({
         pagina: page,
         tamanio: PAGE_SIZE,
         ordenamiento: ordenamientoDe(orden),
-        filtros: construirFiltros(filtros),
+        // la UI y la key llevan el id del estado; el backend compara por nombre
+        filtros: construirFiltros({ ...filtros, estadoRevision: filtro.consulta }),
       }),
+    enabled: !filtro.esperandoCatalogo,
     placeholderData: keepPreviousData,
   });
 
@@ -105,6 +116,8 @@ export function useArtefactosEstudiante() {
     setRepositorio,
     setAsesor,
     setVersion,
+    setEstadoRevision,
+    estados: filtro.estados,
     orden,
     ordenCampo,
     ordenDireccion,

@@ -36,6 +36,7 @@ export default function ConsultarArtefactosEstudiante() {
         ) : (
           <ArtefactosEstudianteTable
             artefactos={artefactos}
+            estados={listado.estados ?? []}
             cargando={isLoading}
             hayFiltros={listado.hayFiltros}
             orden={{ clave: listado.ordenCampo, direccion: listado.ordenDireccion }}

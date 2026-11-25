@@ -13,6 +13,7 @@ const SIN_FILTROS: FiltrosArtefactosEstudiante = {
   repositorio: '',
   asesor: '',
   version: '',
+  estadoRevision: '',
 };
 
 describe('filtros de artefactos del estudiante', () => {
@@ -64,6 +65,26 @@ describe('filtros de artefactos del estudiante', () => {
       { tipo: 'PREDICADO', campo: 'nombreAsesor', operador: 'CONTIENE', valor: 'Ana' },
       { tipo: 'PREDICADO', campo: 'versionDocumento', operador: 'ES', valor: '2' },
     ]);
+  });
+
+  it('el estado de la última revisión llega como ES con el nombre o ES_NULO sin valor', () => {
+    // Assert
+    expect(construirFiltros({ ...SIN_FILTROS, estadoRevision: 'Cerrada' })).toEqual({
+      tipo: 'PREDICADO',
+      campo: 'estadoUltimaRevision',
+      operador: 'ES',
+      valor: 'Cerrada',
+    });
+    expect(
+      construirFiltros({ ...SIN_FILTROS, proyecto: 'riego', estadoRevision: 'sin-revision' }),
+    ).toEqual({
+      tipo: 'GRUPO',
+      conector: 'AND',
+      nodos: [
+        { tipo: 'PREDICADO', campo: 'nombreProyecto', operador: 'CONTIENE', valor: 'riego' },
+        { tipo: 'PREDICADO', campo: 'estadoUltimaRevision', operador: 'ES_NULO' },
+      ],
+    });
   });
 
   it('leerVersion descarta lo que no es un entero positivo', () => {

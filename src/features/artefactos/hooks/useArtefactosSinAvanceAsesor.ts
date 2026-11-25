@@ -5,13 +5,12 @@ import { leerOrden, useParametrosListado } from '../../../shared/hooks/useParame
 import { artefactosService } from '../services/artefactosService';
 import { DIAS_SIN_AVANCE_POR_DEFECTO, validarDiasSinAvance } from '../utils/dias-sin-avance';
 import { leerEstadoProyecto } from '../utils/estado-proyecto';
-import { useEstadosRevisionAsesor } from './useEstadosRevisionAsesor';
+import { useFiltroEstadoRevision } from './useFiltroEstadoRevision';
 import {
   construirFiltros,
   ordenamientoDe,
   ORDEN_POR_DEFECTO,
   ORDENES,
-  resolverEstadoRevision,
   type FiltrosArtefactosSinAvance,
 } from '../utils/filtros-artefactos-sin-avance';
 
@@ -22,12 +21,10 @@ type DireccionOrden = 'ASC' | 'DESC';
 export function useArtefactosSinAvanceAsesor() {
   const parametros = useParametrosListado();
   const page = parametros.pagina;
-  const estadoParametro = parametros.texto('estado').trim();
-  const { data: estados, isPending: estadosCargando } = useEstadosRevisionAsesor();
-  const estadoResuelto = resolverEstadoRevision(estados, estadoParametro);
+  const estadoRevision = useFiltroEstadoRevision(parametros.texto('estado').trim());
   const filtros: FiltrosArtefactosSinAvance = {
     texto: parametros.texto('q').trim(),
-    estado: estadoResuelto?.id ?? '',
+    estado: estadoRevision.valor,
     estadoProyecto: leerEstadoProyecto(parametros.texto('estadoProyecto')),
   };
   const orden = leerOrden(parametros.texto('orden'), ORDENES, ORDEN_POR_DEFECTO);
@@ -89,10 +86,10 @@ export function useArtefactosSinAvanceAsesor() {
           pagina: page,
           tamanio: PAGE_SIZE,
           ordenamiento: ordenamientoDe(orden),
-          filtros: construirFiltros({ ...filtros, estado: estadoResuelto?.nombre ?? '' }),
+          filtros: construirFiltros({ ...filtros, estado: estadoRevision.consulta }),
         },
       }),
-    enabled: dias !== null && (estadoParametro === '' || !estadosCargando),
+    enabled: dias !== null && !estadoRevision.esperandoCatalogo,
     placeholderData: keepPreviousData,
   });
 

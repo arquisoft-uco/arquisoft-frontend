@@ -3,6 +3,10 @@ import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/
 import type { useArtefactosSinAvanceAsesor } from '../../hooks/useArtefactosSinAvanceAsesor';
 import type { EstadoRevisionAsesor } from '../../models/artefactos';
 import { OPCIONES_ESTADO_PROYECTO } from '../../utils/estado-proyecto';
+import {
+  OPCIONES_ORDEN_ESTADO_REVISION,
+  opcionesEstadoRevision,
+} from '../../utils/filtro-estado-revision';
 import UmbralDiasSinAvance from './UmbralDiasSinAvance';
 
 const OPCIONES_ORDEN: OpcionFiltro[] = [
@@ -16,8 +20,7 @@ const OPCIONES_ORDEN: OpcionFiltro[] = [
   { id: 'versionDocumento:DESC', etiqueta: 'Versión (mayor a menor)' },
   { id: 'nombreRepositorio:ASC', etiqueta: 'Repositorio (A-Z)' },
   { id: 'nombreRepositorio:DESC', etiqueta: 'Repositorio (Z-A)' },
-  { id: 'estadoUltimaRevision:ASC', etiqueta: 'Estado de revisión (A-Z)' },
-  { id: 'estadoUltimaRevision:DESC', etiqueta: 'Estado de revisión (Z-A)' },
+  ...OPCIONES_ORDEN_ESTADO_REVISION,
 ];
 
 interface Props {
@@ -28,10 +31,7 @@ interface Props {
 export default function FiltrosArtefactosSinAvance({ listado, estados }: Props) {
   const { filtros } = listado;
 
-  const opcionesEstado: OpcionFiltro[] = [
-    { id: '', etiqueta: 'Todos' },
-    ...(estados ?? []).map((estado) => ({ id: estado.id, etiqueta: estado.nombre })),
-  ];
+  const opcionesEstado = opcionesEstadoRevision(estados, false);
 
   const secciones: SeccionFiltro[] = [
     {

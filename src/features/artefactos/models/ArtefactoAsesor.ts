@@ -9,4 +9,5 @@ export interface ArtefactoAsesor {
   omitido: boolean;
   proyectoFinalizado: boolean;
   proyectoCancelado: boolean;
+  estadoUltimaRevision?: string;
 }
