@@ -9,4 +9,7 @@ export interface ParticipacionArtefacto {
   asesor: string;
   nombreAsesor: string;
   omitido: boolean;
+  estadoUltimaRevision?: string;
+  proyectoFinalizado: boolean;
+  proyectoCancelado: boolean;
 }

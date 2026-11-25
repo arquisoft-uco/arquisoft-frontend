@@ -1,6 +1,6 @@
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/ui/FilterBar';
-import type { useArtefactosEstudiante } from '../../hooks/useArtefactosEstudiante';
+import type { useFiltrosArtefactosEstudiante } from '../../hooks/useFiltrosArtefactosEstudiante';
 import {
   OPCIONES_ORDEN_ESTADO_REVISION,
   opcionesChipsEstadoRevision,
@@ -27,10 +27,19 @@ const OPCIONES_ORDEN: OpcionFiltro[] = [
 ];
 
 interface Props {
-  listado: ReturnType<typeof useArtefactosEstudiante>;
+  listado: Omit<
+    ReturnType<typeof useFiltrosArtefactosEstudiante>,
+    'claveFiltros' | 'criterio' | 'habilitado'
+  >;
+  totalResultados?: number;
+  opcionesOrden?: OpcionFiltro[];
 }
 
-export default function FiltrosArtefactosEstudiante({ listado }: Props) {
+export default function FiltrosArtefactosEstudiante({
+  listado,
+  totalResultados,
+  opcionesOrden = OPCIONES_ORDEN,
+}: Props) {
   const { filtros } = listado;
 
   const campos = [
@@ -110,13 +119,13 @@ export default function FiltrosArtefactosEstudiante({ listado }: Props) {
       popover={{ secciones }}
       orden={{
         etiqueta: 'Ordenar por',
-        opciones: OPCIONES_ORDEN,
+        opciones: opcionesOrden,
         valor: listado.orden,
         onCambiar: cambiarOrden,
       }}
       aplicados={aplicados}
       onLimpiar={listado.limpiarFiltros}
-      totalResultados={listado.data?.totalElements}
+      totalResultados={totalResultados}
     />
   );
 }

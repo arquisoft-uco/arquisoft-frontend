@@ -1,5 +1,10 @@
+import type { EstadoRevisionAsesor } from '../models/artefactos';
 import type { VersionArtefacto } from '../models/VersionArtefacto';
-import { motivoBloqueoSubida } from './bloqueo-subida-version';
+import {
+  motivoBloqueoPorEstado,
+  motivoBloqueoSubida,
+  resolverPorEstadoDeParticipacion,
+} from './bloqueo-subida-version';
 import { ESTADO_REVISION_EN_PROGRESO, ESTADO_REVISION_RESUELTA } from './revision-resoluble';
 import { ESTADO_REVISION_CERRADA, ESTADO_REVISION_PENDIENTE } from './revision-version';
 
@@ -18,6 +23,15 @@ export function guiaArtefactoEstudiante(ultima: VersionArtefacto | null): string
   if (ultima === null) return ESTUDIANTE_SIN_VERSION;
   if (ultima.estadoRevision === ESTADO_REVISION_EN_PROGRESO) return ESTUDIANTE_EN_PROGRESO;
   return motivoBloqueoSubida(ultima);
+}
+
+export function guiaParticipacionEstudiante(
+  estadoUltimaRevision: string | undefined,
+  estados: EstadoRevisionAsesor[] | undefined,
+): string | null | undefined {
+  return resolverPorEstadoDeParticipacion(estadoUltimaRevision, estados, (id) =>
+    id === ESTADO_REVISION_EN_PROGRESO ? ESTUDIANTE_EN_PROGRESO : motivoBloqueoPorEstado(id),
+  );
 }
 
 export function guiaArtefactoAsesor(ultima: VersionArtefacto | null): string {

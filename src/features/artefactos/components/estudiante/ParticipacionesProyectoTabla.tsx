@@ -4,14 +4,13 @@ import InsigniaProyectoCerrado from '../../../../shared/components/InsigniaProye
 import Badge from '../../../../shared/components/ui/Badge';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla } from '../../../../shared/components/ui/DataTable';
+import type { EstadoRevisionAsesor } from '../../models/artefactos';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
-import type { VersionArtefacto } from '../../models/VersionArtefacto';
-import { estaCerrado } from '../../utils/estado-proyecto';
-import EstadoUltimaRevision from '../EstadoUltimaRevision';
-import NombreArtefacto, { type MotivoBloqueo } from './NombreArtefacto';
-import MenuArtefactoEstudiante from './MenuArtefactoEstudiante';
 import type { ProyectoConParticipaciones } from '../../utils/agrupar-participaciones';
-import { etiquetaVersionDocumento } from '../../utils/version-documento';
+import { estaCerrado } from '../../utils/estado-proyecto';
+import InsigniaEstadoUltimaRevision from '../InsigniaEstadoUltimaRevision';
+import MenuArtefactoEstudiante from './MenuArtefactoEstudiante';
+import NombreArtefacto, { type MotivoBloqueo } from './NombreArtefacto';
 
 const SECCION = 'flex flex-col gap-3';
 const ENCABEZADO = 'flex flex-wrap items-center gap-2';
@@ -20,16 +19,22 @@ const DATO_SECUNDARIO = 'text-on-surface-secondary';
 const TARJETA_DATO = 'text-[13px] text-on-surface-secondary';
 
 type AlElegir = (participacion: ParticipacionArtefacto) => void;
-type UltimaVersion = (artefactoId: string) => VersionArtefacto | null | undefined;
 
 interface Acciones {
   onGestionarRevision: AlElegir;
   onSubirVersion: AlElegir;
 }
 
+function celdaRevision(participacion: ParticipacionArtefacto, estados: EstadoRevisionAsesor[]) {
+  if (participacion.omitido) return null;
+  return (
+    <InsigniaEstadoUltimaRevision estado={participacion.estadoUltimaRevision} estados={estados} />
+  );
+}
+
 function columnasDe(
   avisoFila: MotivoBloqueo,
-  ultimaVersion: UltimaVersion,
+  estados: EstadoRevisionAsesor[],
 ): ColumnaTabla<ParticipacionArtefacto>[] {
   return [
     {
@@ -45,18 +50,13 @@ function columnasDe(
       encabezado: 'Versión del documento',
       clave: 'versionDocumento',
       celda: (participacion) => (
-        <Badge variante="neutro">{etiquetaVersionDocumento(participacion, ultimaVersion)}</Badge>
+        <Badge variante="neutro">{`Versión ${participacion.versionDocumento}`}</Badge>
       ),
     },
     {
       id: 'revision',
-      encabezado: 'Revisión',
-      celda: (participacion) => (
-        <EstadoUltimaRevision
-          ultima={ultimaVersion(participacion.id)}
-          omitido={participacion.omitido}
-        />
-      ),
+      encabezado: 'Última revisión',
+      celda: (participacion) => celdaRevision(participacion, estados),
     },
     {
       id: 'repositorio',
@@ -81,14 +81,14 @@ interface Props extends Acciones {
   proyecto: ProyectoConParticipaciones;
   motivoBloqueo: MotivoBloqueo;
   avisoFila: MotivoBloqueo;
-  ultimaVersion: UltimaVersion;
+  estados: EstadoRevisionAsesor[];
 }
 
 export default function ParticipacionesProyectoTabla({
   proyecto,
   motivoBloqueo,
   avisoFila,
-  ultimaVersion,
+  estados,
   onGestionarRevision,
   onSubirVersion,
 }: Props) {
@@ -97,8 +97,8 @@ export default function ParticipacionesProyectoTabla({
   const avisoVisible: MotivoBloqueo = (participacion) =>
     cerrado ? undefined : avisoFila(participacion);
   const columnas = useMemo(
-    () => columnasDe(cerrado ? () => undefined : avisoFila, ultimaVersion),
-    [avisoFila, ultimaVersion, cerrado],
+    () => columnasDe(cerrado ? () => undefined : avisoFila, estados),
+    [avisoFila, estados, cerrado],
   );
   const acciones = { onGestionarRevision, onSubirVersion };
 
@@ -132,13 +132,10 @@ export default function ParticipacionesProyectoTabla({
         tarjeta={(participacion) => (
           <>
             <NombreArtefacto participacion={participacion} avisoFila={avisoVisible} />
-            <EstadoUltimaRevision
-              ultima={ultimaVersion(participacion.id)}
-              omitido={participacion.omitido}
-            />
+            {celdaRevision(participacion, estados)}
             <p className={TARJETA_DATO}>{participacion.nombreRepositorio}</p>
             <p className={TARJETA_DATO}>
-              {`${participacion.nombreAsesor} · ${etiquetaVersionDocumento(participacion, ultimaVersion, ' del documento')}`}
+              {`${participacion.nombreAsesor} · Versión ${participacion.versionDocumento} del documento`}
             </p>
           </>
         )}

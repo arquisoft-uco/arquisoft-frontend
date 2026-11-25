@@ -9,69 +9,40 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, waitFor, within } from '../../../../test-utils/render';
 import type { ParticipacionArtefacto } from '../../models/ParticipacionArtefacto';
 import type { Page } from '../../../../shared/models/api-response';
-import type { VersionArtefacto } from '../../models/VersionArtefacto';
 import { artefactosService } from '../../services/artefactosService';
-import { misProyectosGradoService } from '../../../../shared/services/misProyectosGradoService';
 import ConsultarParticipacionesEstudiante from './ConsultarParticipacionesEstudiante';
 
 vi.mock('../../../../shared/services/cargaPrefirmadaService', () => ({
   cargaPrefirmadaService: { cargarArchivo: vi.fn() },
 }));
 
-vi.mock('../../../../shared/services/misProyectosGradoService', () => ({
-  misProyectosGradoService: { consultar: vi.fn() },
-}));
-
 vi.mock('../../services/artefactosService', () => ({
   artefactosService: {
-    getParticipacionesEstudiante: vi.fn(),
+    consultarParticipacionesEstudiante: vi.fn(),
+    getEstadosRevisionAsesor: vi.fn(),
     consultarVersionesArtefactoEstudiante: vi.fn(),
   },
 }));
 
-const consultarMisProyectos = vi.mocked(misProyectosGradoService.consultar);
-const getParticipaciones = vi.mocked(artefactosService.getParticipacionesEstudiante);
+const consultarParticipaciones = vi.mocked(artefactosService.consultarParticipacionesEstudiante);
+const getEstados = vi.mocked(artefactosService.getEstadosRevisionAsesor);
 const consultarVersiones = vi.mocked(artefactosService.consultarVersionesArtefactoEstudiante);
 
-function paginaCon(versiones: VersionArtefacto[]): Page<VersionArtefacto> {
+function paginaCon(content: ParticipacionArtefacto[]): Page<ParticipacionArtefacto> {
   return {
-    content: versiones,
-    totalElements: versiones.length,
+    content,
+    totalElements: content.length,
     totalPages: 1,
     page: 0,
-    size: 1,
+    size: 10,
     first: true,
     last: true,
-    empty: versiones.length === 0,
+    empty: content.length === 0,
   };
 }
 
-function ultima(artefacto: string, estadoRevision: string | null): VersionArtefacto {
-  return {
-    proyectoFinalizado: false,
-    proyectoCancelado: false,
-    id: `v-${artefacto}`,
-    artefacto,
-    version: 3,
-    fechaCreacion: '2026-03-10T15:30:00Z',
-    nombreProyecto: 'Sistema de riego',
-    nombreDocumento: 'Documento',
-    versionDocumento: 2,
-    nombreRepositorio: 'Repositorio base',
-    nombreAsesor: 'Laura Gómez',
-    revisionAsesor: estadoRevision ? `r-${artefacto}` : null,
-    estadoRevision,
-    nombreEstadoRevision: estadoRevision,
-    fechaCreacionRevision: null,
-  };
-}
-
-function simularUltimas(porArtefacto: Record<string, VersionArtefacto>) {
-  consultarVersiones.mockImplementation(({ filtros }) => {
-    const pedido = JSON.stringify(filtros);
-    const id = Object.keys(porArtefacto).find((a) => pedido.includes(a));
-    return Promise.resolve(paginaCon(id ? [porArtefacto[id]] : []));
-  });
+function simularParticipaciones(content: ParticipacionArtefacto[]) {
+  consultarParticipaciones.mockResolvedValue(paginaCon(content));
 }
 
 function participacion(
@@ -91,6 +62,8 @@ function participacion(
     asesor: 'u-1',
     nombreAsesor: 'Laura Gómez',
     omitido: false,
+    proyectoFinalizado: false,
+    proyectoCancelado: false,
   };
 }
 
@@ -104,15 +77,18 @@ async function abrirMenu(user: ReturnType<typeof userEvent.setup>, documento: st
 describe('ConsultarParticipacionesEstudiante', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    consultarVersiones.mockResolvedValue(paginaCon([]));
-    consultarMisProyectos.mockResolvedValue([]);
+    consultarVersiones.mockResolvedValue({ ...paginaCon([]), content: [] } as never);
+    getEstados.mockResolvedValue([
+      { id: 'PENDIENTE', nombre: 'Pendiente', descripcion: '' },
+      { id: 'EN_PROGRESO', nombre: 'En progreso', descripcion: '' },
+      { id: 'RESUELTA', nombre: 'Resuelta', descripcion: '' },
+      { id: 'CERRADA', nombre: 'Cerrada', descripcion: '' },
+    ]);
   });
 
   it('el nombre del documento es un enlace a sus versiones y las acciones salen del menú de la fila', async () => {
     // Arrange
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
-    ]);
+    simularParticipaciones([participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio')]);
     const user = userEvent.setup();
 
     // Act
@@ -130,21 +106,23 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(screen.queryByRole('menuitem', { name: 'Ver versiones' })).not.toBeInTheDocument();
   });
 
-  it('ofrece Subir nueva versión solo cuando la última versión lo permite y muestra el motivo si no', async () => {
+  it('ofrece Subir nueva versión según el estado de la última revisión de la fila y muestra el motivo si no', async () => {
     // Arrange
-    getParticipaciones.mockResolvedValue([
+    simularParticipaciones([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Sin revisión'),
-      participacion('a-2', 'p-1', 'Sistema de riego', 'Pendiente'),
-      participacion('a-3', 'p-1', 'Sistema de riego', 'Cerrado'),
-      participacion('a-4', 'p-1', 'Sistema de riego', 'En progreso'),
-      participacion('a-5', 'p-1', 'Sistema de riego', 'Sin versiones'),
+      {
+        ...participacion('a-2', 'p-1', 'Sistema de riego', 'Pendiente'),
+        estadoUltimaRevision: 'Pendiente',
+      },
+      {
+        ...participacion('a-3', 'p-1', 'Sistema de riego', 'Cerrado'),
+        estadoUltimaRevision: 'Cerrada',
+      },
+      {
+        ...participacion('a-4', 'p-1', 'Sistema de riego', 'En progreso'),
+        estadoUltimaRevision: 'En progreso',
+      },
     ]);
-    simularUltimas({
-      'a-1': ultima('a-1', null),
-      'a-2': ultima('a-2', 'PENDIENTE'),
-      'a-3': ultima('a-3', 'CERRADA'),
-      'a-4': ultima('a-4', 'EN_PROGRESO'),
-    });
     const user = userEvent.setup();
     render(<ConsultarParticipacionesEstudiante />);
     const tabla = await screen.findByRole('table', {
@@ -153,11 +131,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(await within(tabla).findByText('El asesor cerró este artefacto.')).toBeInTheDocument();
 
     // Assert
-    expect(within(tabla).getByText('Esperando la revisión del asesor.')).toBeInTheDocument();
     expect(within(tabla).getByText('El asesor está preparando la revisión.')).toBeInTheDocument();
-    expect(
-      within(tabla).getByText('Aún no has subido ninguna versión del artefacto.'),
-    ).toBeInTheDocument();
     expect(
       within(tabla).getByText('Atiende las observaciones del asesor y sube una nueva versión.'),
     ).toBeInTheDocument();
@@ -170,7 +144,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
     // Act
     await user.keyboard('{Escape}');
-    await abrirMenu(user, 'Sin versiones');
+    await abrirMenu(user, 'Sin revisión');
 
     // Assert
     expect(screen.getByRole('menuitem', { name: 'Subir nueva versión' })).toBeInTheDocument();
@@ -184,38 +158,20 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(screen.queryByRole('menuitem', { name: 'Ver versiones' })).not.toBeInTheDocument();
   });
 
-  it('si falla la consulta de la última versión deja ofrecer la subida y el servidor decide', async () => {
-    // Arrange
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
-    ]);
-    consultarVersiones.mockRejectedValue(new Error('falla'));
-    const user = userEvent.setup();
-
-    // Act
-    render(<ConsultarParticipacionesEstudiante />);
-    await abrirMenu(user, 'Acta de inicio');
-
-    // Assert
-    expect(
-      await screen.findByRole('menuitem', { name: 'Subir nueva versión' }),
-    ).toBeInTheDocument();
-  });
-
   it('con datos muestra un título por proyecto, sus documentos y el resumen', async () => {
     // Arrange
-    getParticipaciones.mockResolvedValue([
+    simularParticipaciones([
       participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
       participacion('a-2', 'p-1', 'Sistema de riego', 'Anteproyecto'),
       participacion('a-3', 'p-2', 'Domótica', 'Acta de inicio'),
     ]);
-    simularUltimas({ 'a-1': ultima('a-1', null) });
 
     // Act
     render(<ConsultarParticipacionesEstudiante />);
 
     // Assert
-    expect(await screen.findByText('3 artefactos en 2 proyectos')).toBeInTheDocument();
+    expect(await screen.findByText('3 artefactos')).toBeInTheDocument();
+    expect(consultarVersiones).not.toHaveBeenCalled();
     expect(screen.getByRole('heading', { level: 2, name: 'Sistema de riego' })).toBeInTheDocument();
     expect(screen.getByText('Domótica')).toBeInTheDocument();
     const tabla = screen.getByRole('table', { name: 'Artefactos del proyecto Sistema de riego' });
@@ -224,16 +180,13 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(
       (await screen.findAllByText('Laura Gómez · Versión 2 del documento')).length,
     ).toBeGreaterThan(0);
-    expect(screen.getAllByText('Laura Gómez · Sin documento cargado').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Anteproyecto').length).toBeGreaterThan(0);
   });
 
   it('Gestionar revisión abre el panel del artefacto y Cerrar lo cierra', async () => {
     // Arrange
     const user = userEvent.setup();
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
-    ]);
+    simularParticipaciones([participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio')]);
     render(<ConsultarParticipacionesEstudiante />);
 
     // Act
@@ -250,9 +203,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
   it('Subir nueva versión abre directamente el panel de subida', async () => {
     // Arrange
     const user = userEvent.setup();
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
-    ]);
+    simularParticipaciones([participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio')]);
     render(<ConsultarParticipacionesEstudiante />);
 
     // Act
@@ -268,7 +219,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
   it('Descargar pide la versión del repositorio del artefacto, también en uno omitido, donde es la única acción', async () => {
     // Arrange
     const user = userEvent.setup();
-    getParticipaciones.mockResolvedValue([
+    simularParticipaciones([
       { ...participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'), omitido: true },
       participacion('a-2', 'p-1', 'Sistema de riego', 'Anteproyecto'),
     ]);
@@ -288,9 +239,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
   it('en un artefacto activo Descargar convive con las demás acciones', async () => {
     // Arrange
     const user = userEvent.setup();
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
-    ]);
+    simularParticipaciones([participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio')]);
     render(<ConsultarParticipacionesEstudiante />);
 
     // Act
@@ -303,7 +252,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
   it('muestra el estado de carga mientras llega la lista', () => {
     // Arrange
-    getParticipaciones.mockReturnValue(new Promise(() => undefined));
+    consultarParticipaciones.mockReturnValue(new Promise(() => undefined));
 
     // Act
     render(<ConsultarParticipacionesEstudiante />);
@@ -314,7 +263,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
   it('sin participaciones muestra el estado vacío', async () => {
     // Arrange
-    getParticipaciones.mockResolvedValue([]);
+    simularParticipaciones([]);
 
     // Act
     render(<ConsultarParticipacionesEstudiante />);
@@ -325,7 +274,7 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
   it('ante un error muestra el aviso y Reintentar vuelve a consultar', async () => {
     // Arrange
-    getParticipaciones.mockRejectedValue(new Error('falla'));
+    consultarParticipaciones.mockRejectedValue(new Error('falla'));
     const user = userEvent.setup();
 
     // Act
@@ -335,23 +284,18 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
     // Assert
     expect(aviso).toHaveTextContent('No se pudo cargar tu participación');
-    await waitFor(() => expect(getParticipaciones).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(consultarParticipaciones).toHaveBeenCalledTimes(2));
   });
 
   it('con el proyecto cancelado muestra su insignia y aviso, sin guía ni Subir nueva versión', async () => {
     // Arrange
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
-    ]);
-    consultarMisProyectos.mockResolvedValue([
+    simularParticipaciones([
       {
-        id: 'p-1',
-        fichaPerfil: 'f-1',
-        tituloProyecto: 'Sistema de riego',
-        estado: { id: 'CANCELADO', nombre: 'Cancelado' },
+        ...participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+        estadoUltimaRevision: 'En progreso',
+        proyectoCancelado: true,
       },
     ]);
-    simularUltimas({ 'a-1': ultima('a-1', 'EN_PROGRESO') });
     const user = userEvent.setup();
 
     // Act
@@ -367,12 +311,14 @@ describe('ConsultarParticipacionesEstudiante', () => {
     expect(screen.queryByRole('menuitem', { name: 'Subir nueva versión' })).not.toBeInTheDocument();
   });
 
-  it('una revisión cerrada se distingue en la columna Revisión sin abrir el artefacto', async () => {
+  it('una revisión cerrada se distingue en la columna Última revisión sin abrir el artefacto', async () => {
     // Arrange
-    getParticipaciones.mockResolvedValue([
-      participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+    simularParticipaciones([
+      {
+        ...participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio'),
+        estadoUltimaRevision: 'Cerrada',
+      },
     ]);
-    simularUltimas({ 'a-1': { ...ultima('a-1', 'CERRADA'), nombreEstadoRevision: 'Cerrada' } });
 
     // Act
     render(<ConsultarParticipacionesEstudiante />);
@@ -382,5 +328,62 @@ describe('ConsultarParticipacionesEstudiante', () => {
 
     // Assert
     expect(await within(tabla).findByText('Cerrada')).toBeInTheDocument();
+  });
+
+  it('con filtros y sin coincidencias muestra Sin resultados y Limpiar filtros quita el filtro', async () => {
+    // Arrange
+    simularParticipaciones([]);
+    const user = userEvent.setup();
+
+    // Act
+    render(<ConsultarParticipacionesEstudiante />, { initialPath: '/?documento=zzz' });
+    expect(await screen.findByText('Sin resultados')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Limpiar filtros' }));
+
+    // Assert
+    expect(await screen.findByText('Aún no participas en artefactos')).toBeInTheDocument();
+    expect(screen.queryByText('Sin resultados')).not.toBeInTheDocument();
+  });
+
+  it('pide la página siguiente desde el paginador con el mismo orden por proyecto', async () => {
+    // Arrange
+    consultarParticipaciones.mockResolvedValue({
+      ...paginaCon([participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio')]),
+      totalElements: 25,
+      totalPages: 3,
+    });
+    const user = userEvent.setup();
+
+    // Act
+    render(<ConsultarParticipacionesEstudiante />);
+    expect(await screen.findByText('25 artefactos')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Página siguiente' }));
+
+    // Assert
+    await waitFor(() =>
+      expect(consultarParticipaciones).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          pagina: 1,
+          ordenamiento: ['nombreProyecto:ASC', 'nombreDocumento:ASC'],
+        }),
+      ),
+    );
+  });
+
+  it('el chip Sin revisión filtra la consulta con el estado nulo', async () => {
+    // Arrange
+    simularParticipaciones([participacion('a-1', 'p-1', 'Sistema de riego', 'Acta de inicio')]);
+    const user = userEvent.setup();
+
+    // Act
+    render(<ConsultarParticipacionesEstudiante />);
+    await screen.findByText('1 artefacto');
+    await user.click(screen.getByRole('button', { name: 'Sin revisión' }));
+
+    // Assert
+    await waitFor(() => expect(consultarParticipaciones).toHaveBeenCalledTimes(2));
+    expect(JSON.stringify(consultarParticipaciones.mock.calls[1][0].filtros)).toContain(
+      'estadoUltimaRevision',
+    );
   });
 });

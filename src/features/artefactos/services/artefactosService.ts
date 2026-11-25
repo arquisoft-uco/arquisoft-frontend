@@ -130,9 +130,11 @@ export const artefactosService = {
   eliminarVersionArtefacto: (versionId: string): Promise<void> =>
     apiClient.delete(`/artefactos/versiones/${versionId}`).then(() => undefined),
 
-  getParticipacionesEstudiante: (): Promise<ParticipacionArtefacto[]> =>
+  consultarParticipacionesEstudiante: (
+    req: ConsultaCriteriaRequest,
+  ): Promise<Page<ParticipacionArtefacto>> =>
     apiClient
-      .get<ParticipacionArtefacto[]>('/artefactos/estudiante/participaciones')
+      .post<Page<ParticipacionArtefacto>>('/artefactos/estudiante/participaciones', req)
       .then((r) => r.data),
 
   consultarArtefactosAsesor: (req: ConsultaCriteriaRequest): Promise<Page<ArtefactoAsesor>> =>
