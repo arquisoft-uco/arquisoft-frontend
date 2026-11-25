@@ -3,14 +3,14 @@ import Button from '../../../../shared/components/ui/Button';
 import DataTable from '../../../../shared/components/ui/DataTable';
 import type { ColumnaTabla, OrdenTabla } from '../../../../shared/components/ui/DataTable';
 import EmptyState from '../../../../shared/components/ui/EmptyState';
-import type { OrdenDireccion } from '../../hooks/useFichasRepresentante';
-import type { FichaPerfilRepresentante } from '../../models/FichaPerfilRepresentante';
+import type { OrdenDireccion } from '../../hooks/useFichasDisponibles';
+import type { FichaDisponibleEvaluacion } from '../../models/FichaDisponibleEvaluacion';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
 import type { ResumenFicha } from '../../models/ResumenFicha';
 import { EstadoYFechaTarjeta, AsesorDeFicha, TituloFicha } from '../FichaCeldas';
 import { columnaAsesor, columnasEstado } from '../columnasFicha';
 
-function resumenDe(ficha: FichaPerfilRepresentante): ResumenFicha {
+function resumenDe(ficha: FichaDisponibleEvaluacion): ResumenFicha {
   return {
     id: ficha.id,
     titulo: ficha.titulo,
@@ -27,7 +27,7 @@ function esOrdenCampo(clave: string): clave is OrdenCampoFicha {
 }
 
 interface Props {
-  fichas: FichaPerfilRepresentante[];
+  fichas: FichaDisponibleEvaluacion[];
   cargando: boolean;
   hayFiltros: boolean;
   orden: OrdenTabla;
@@ -35,7 +35,7 @@ interface Props {
   onLimpiarFiltros: () => void;
 }
 
-export default function FichasRepresentanteListado({
+export default function FichasDisponiblesListado({
   fichas,
   cargando,
   hayFiltros,
@@ -43,20 +43,20 @@ export default function FichasRepresentanteListado({
   onOrdenar,
   onLimpiarFiltros,
 }: Props) {
-  const titulo = (ficha: FichaPerfilRepresentante) => (
+  const titulo = (ficha: FichaDisponibleEvaluacion) => (
     <TituloFicha titulo={ficha.titulo} abrir={resumenDe(ficha)} />
   );
-  const asesor = (ficha: FichaPerfilRepresentante) => (
+  const asesor = (ficha: FichaDisponibleEvaluacion) => (
     <AsesorDeFicha nombre={ficha.asesorNombre} email={ficha.asesorEmail} />
   );
 
-  const columnas: ColumnaTabla<FichaPerfilRepresentante>[] = [
+  const columnas: ColumnaTabla<FichaDisponibleEvaluacion>[] = [
     { id: 'ficha', encabezado: 'Ficha', clave: 'tituloProyecto', ordenable: true, celda: titulo },
-    columnaAsesor<FichaPerfilRepresentante>((ficha) => ({
+    columnaAsesor<FichaDisponibleEvaluacion>((ficha) => ({
       nombre: ficha.asesorNombre,
       email: ficha.asesorEmail,
     })),
-    ...columnasEstado<FichaPerfilRepresentante>((ficha) => ({
+    ...columnasEstado<FichaDisponibleEvaluacion>((ficha) => ({
       estadoId: ficha.estadoId,
       nombre: ficha.estadoActual,
       fechaActualizacion: ficha.estadoFechaActualizacion,
@@ -81,14 +81,14 @@ export default function FichasRepresentanteListado({
   ) : (
     <EmptyState
       icono={ClipboardList}
-      titulo="Aún no hay fichas para evaluar"
-      descripcion="Cuando se registren fichas de perfil, aparecerán aquí."
+      titulo="No hay fichas disponibles para evaluar"
+      descripcion="Cuando una ficha esté lista para evaluación y no la hayas evaluado, aparecerá aquí."
     />
   );
 
   return (
     <DataTable
-      etiqueta="Fichas de perfil a evaluar"
+      etiqueta="Fichas de perfil disponibles para evaluar"
       columnas={columnas}
       filas={fichas}
       idDeFila={(ficha) => ficha.id}

@@ -15,7 +15,7 @@ describe('dashboardService', () => {
     vi.clearAllMocks();
   });
 
-  it('consultarFichasPorEvaluar filtra por estadoFicha IN [DISPONIBLE_PARA_EVALUACION] con tamaño 5 y traduce las filas', async () => {
+  it('consultarFichasPorEvaluar consulta disponibles-evaluacion sin filtros con tamaño 5 y traduce las filas', async () => {
     // Arrange
     post.mockResolvedValue({
       data: {
@@ -35,16 +35,10 @@ describe('dashboardService', () => {
     const pagina = await dashboardService.consultarFichasPorEvaluar();
 
     // Assert
-    expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', {
+    expect(post).toHaveBeenCalledWith('/fichas-perfil/disponibles-evaluacion', {
       pagina: 0,
       tamanio: 5,
       ordenamiento: ['tituloProyecto:ASC'],
-      filtros: {
-        tipo: 'PREDICADO_MULTIVALOR',
-        campo: 'estadoFicha',
-        operador: 'IN',
-        valores: ['DISPONIBLE_PARA_EVALUACION'],
-      },
     });
     expect(pagina.totalElements).toBe(9);
     expect(pagina.content[0]).toEqual({
@@ -91,15 +85,6 @@ describe('dashboardService', () => {
   it('ROLES_CONTABLES no incluye jurado', () => {
     expect(ROLES_CONTABLES).toHaveLength(7);
     expect(ROLES_CONTABLES).not.toContain(Rol.Jurado);
-  });
-
-  it('contarFichas pide una página de tamaño 1 sin filtro y devuelve totalElements', async () => {
-    post.mockResolvedValue({ data: { totalElements: 31 } });
-
-    const total = await dashboardService.contarFichas();
-
-    expect(post).toHaveBeenCalledWith('/fichas-perfil/coordinador', { pagina: 0, tamanio: 1 });
-    expect(total).toBe(31);
   });
 
   it('consultarFichasEstudiante traduce los estudiantes a nombres de integrantes', async () => {

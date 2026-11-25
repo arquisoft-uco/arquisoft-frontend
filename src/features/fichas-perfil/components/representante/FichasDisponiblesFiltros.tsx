@@ -1,8 +1,6 @@
-import Notice from '../../../../shared/components/ui/Notice';
 import FilterBar from '../../../../shared/components/ui/FilterBar';
 import type { OpcionFiltro, SeccionFiltro } from '../../../../shared/components/ui/FilterBar';
-import type { useEstadosFicha } from '../../hooks/useEstadosFicha';
-import type { OrdenDireccion, useFichasRepresentante } from '../../hooks/useFichasRepresentante';
+import type { OrdenDireccion, useFichasDisponibles } from '../../hooks/useFichasDisponibles';
 import type { OrdenCampoFicha } from '../../models/OrdenCampoFicha';
 
 interface OpcionOrden extends OpcionFiltro {
@@ -29,13 +27,11 @@ const OPCIONES_ORDEN: OpcionOrden[] = [
 ];
 
 interface Props {
-  listado: ReturnType<typeof useFichasRepresentante>;
-  estados: ReturnType<typeof useEstadosFicha>;
+  listado: ReturnType<typeof useFichasDisponibles>;
 }
 
-export default function FichasRepresentanteFiltros({ listado, estados }: Props) {
-  const { filtros, setAsesorNombre, setAsesorEmail, toggleEstado } = listado;
-  const opcionesEstado = (estados.data ?? []).map(({ id, nombre }) => ({ id, etiqueta: nombre }));
+export default function FichasDisponiblesFiltros({ listado }: Props) {
+  const { filtros, setAsesorNombre, setAsesorEmail } = listado;
 
   const secciones: SeccionFiltro[] = [
     {
@@ -51,21 +47,6 @@ export default function FichasRepresentanteFiltros({ listado, estados }: Props) 
       etiqueta: 'Correo del asesor',
       valor: filtros.asesorEmail,
       onCambiar: setAsesorEmail,
-    },
-    {
-      id: 'estado',
-      tipo: 'multiple',
-      etiqueta: 'Estado',
-      opciones: opcionesEstado,
-      valores: filtros.estadoIds,
-      onAlternar: toggleEstado,
-      onLimpiar: listado.limpiarEstados,
-      deshabilitada: estados.isLoading || estados.isError,
-      aviso: estados.isError ? (
-        <Notice variante="advertencia">
-          No se pudo cargar la lista de estados. Los demás filtros siguen disponibles.
-        </Notice>
-      ) : undefined,
     },
   ];
 
@@ -84,14 +65,6 @@ export default function FichasRepresentanteFiltros({ listado, estados }: Props) 
       onQuitar: () => setAsesorEmail(''),
     });
   }
-  filtros.estadoIds.forEach((id) => {
-    const nombre = opcionesEstado.find((opcion) => opcion.id === id)?.etiqueta ?? id;
-    aplicados.push({
-      id: `estado-${id}`,
-      etiqueta: `Estado: ${nombre}`,
-      onQuitar: () => toggleEstado(id),
-    });
-  });
 
   function cambiarOrden(id: string) {
     const opcion = OPCIONES_ORDEN.find((candidata) => candidata.id === id);

@@ -5,21 +5,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useLocation } from 'react-router';
 import { act, renderHook, waitFor } from '../../../test-utils/render';
 import type { Page } from '../../../shared/models/api-response';
-import type { FichaPerfilRepresentante } from '../models/FichaPerfilRepresentante';
+import type { FichaDisponibleEvaluacion } from '../models/FichaDisponibleEvaluacion';
 import { fichasPerfilService } from '../services/fichasPerfilService';
-import { useFichasRepresentante } from './useFichasRepresentante';
+import { useFichasDisponibles } from './useFichasDisponibles';
 
 vi.mock('../services/fichasPerfilService', () => ({
   fichasPerfilService: {
-    getFichasRepresentante: vi.fn(),
+    getFichasDisponiblesEvaluacion: vi.fn(),
   },
 }));
 
-const consultar = vi.mocked(fichasPerfilService.getFichasRepresentante);
+const consultar = vi.mocked(fichasPerfilService.getFichasDisponiblesEvaluacion);
 
-const VACIOS = { titulo: '', asesorNombre: '', asesorEmail: '', estadoIds: [] };
+const VACIOS = { titulo: '', asesorNombre: '', asesorEmail: '' };
 
-const ficha: FichaPerfilRepresentante = {
+const ficha: FichaDisponibleEvaluacion = {
   id: 'f-1',
   titulo: 'Sistema de monitoreo',
   asesorNombre: 'Ana Ruiz',
@@ -31,8 +31,8 @@ const ficha: FichaPerfilRepresentante = {
 
 function crearPagina(
   numero: number,
-  content: FichaPerfilRepresentante[],
-): Page<FichaPerfilRepresentante> {
+  content: FichaDisponibleEvaluacion[],
+): Page<FichaDisponibleEvaluacion> {
   return {
     content,
     page: numero,
@@ -59,12 +59,12 @@ function crearWrapper(entrada = '/') {
 }
 
 async function montar() {
-  const { result } = renderHook(() => useFichasRepresentante(), { wrapper: crearWrapper() });
+  const { result } = renderHook(() => useFichasDisponibles(), { wrapper: crearWrapper() });
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   return result;
 }
 
-describe('useFichasRepresentante', () => {
+describe('useFichasDisponibles', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockImplementation((page) => Promise.resolve(crearPagina(page, [ficha])));
@@ -95,7 +95,7 @@ describe('useFichasRepresentante', () => {
     );
   });
 
-  it('combina título, asesor, correo y estados, y cada setter vuelve a la página 0', async () => {
+  it('combina título, asesor y correo, y cada setter vuelve a la página 0', async () => {
     // Arrange
     const result = await montar();
     async function desdePagina1(cambio: () => void) {
@@ -109,33 +109,16 @@ describe('useFichasRepresentante', () => {
     await desdePagina1(() => result.current.setTitulo(' monitoreo '));
     await desdePagina1(() => result.current.setAsesorNombre('Ana'));
     await desdePagina1(() => result.current.setAsesorEmail('ana@'));
-    await desdePagina1(() => result.current.toggleEstado('st-1'));
 
     // Assert
     await waitFor(() =>
       expect(consultar).toHaveBeenLastCalledWith(
         0,
         10,
-        { titulo: 'monitoreo', asesorNombre: 'Ana', asesorEmail: 'ana@', estadoIds: ['st-1'] },
+        { titulo: 'monitoreo', asesorNombre: 'Ana', asesorEmail: 'ana@' },
         ['tituloProyecto:ASC'],
       ),
     );
-  });
-
-  it('toggleEstado agrega y quita, y limpiarEstados vacía la selección', async () => {
-    // Arrange
-    const result = await montar();
-
-    // Act
-    act(() => result.current.toggleEstado('st-1'));
-    act(() => result.current.toggleEstado('st-2'));
-    act(() => result.current.toggleEstado('st-1'));
-    const tras = result.current.filtros.estadoIds;
-    act(() => result.current.limpiarEstados());
-
-    // Assert
-    expect(tras).toEqual(['st-2']);
-    expect(result.current.filtros.estadoIds).toEqual([]);
   });
 
   it('setOrden cambia el campo y la dirección y vuelve a la página 0', async () => {
@@ -159,7 +142,6 @@ describe('useFichasRepresentante', () => {
     // Arrange
     const result = await montar();
     act(() => result.current.setTitulo('x'));
-    act(() => result.current.toggleEstado('st-1'));
 
     // Act
     act(() => result.current.limpiarFiltros());
@@ -173,7 +155,7 @@ describe('useFichasRepresentante', () => {
     consultar.mockRejectedValue(new Error('fallo de red'));
 
     // Act
-    const { result } = renderHook(() => useFichasRepresentante(), { wrapper: crearWrapper() });
+    const { result } = renderHook(() => useFichasDisponibles(), { wrapper: crearWrapper() });
 
     // Assert
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -181,17 +163,17 @@ describe('useFichasRepresentante', () => {
   });
 });
 
-describe('useFichasRepresentante con la URL como estado', () => {
+describe('useFichasDisponibles con la URL como estado', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consultar.mockImplementation((page) => Promise.resolve(crearPagina(page, [ficha])));
   });
 
-  it('traduce q, asesor, correo, estado repetido, orden y pagina de la URL', async () => {
+  it('traduce q, asesor, correo, orden y pagina de la URL', async () => {
     // Act
-    const { result } = renderHook(() => useFichasRepresentante(), {
+    const { result } = renderHook(() => useFichasDisponibles(), {
       wrapper: crearWrapper(
-        '/?q=monitoreo&asesor=Ana&correo=ana@&estado=st-1&estado=st-2&orden=asesorNombre:DESC&pagina=3',
+        '/?q=monitoreo&asesor=Ana&correo=ana@&orden=asesorNombre:DESC&pagina=3',
       ),
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -200,30 +182,24 @@ describe('useFichasRepresentante con la URL como estado', () => {
     expect(consultar).toHaveBeenCalledWith(
       2,
       10,
-      {
-        titulo: 'monitoreo',
-        asesorNombre: 'Ana',
-        asesorEmail: 'ana@',
-        estadoIds: ['st-1', 'st-2'],
-      },
+      { titulo: 'monitoreo', asesorNombre: 'Ana', asesorEmail: 'ana@' },
       ['asesorNombre:DESC'],
     );
   });
 
-  it('toggleEstado repite el parámetro, limpiarFiltros lo quita y el cambio borra pagina', async () => {
+  it('la query key lleva representante y disponibles, y limpiarFiltros quita los parámetros y borra pagina', async () => {
     // Arrange
     const { result } = renderHook(
-      () => ({ hook: useFichasRepresentante(), url: useLocation().search }),
+      () => ({ hook: useFichasDisponibles(), url: useLocation().search }),
       { wrapper: crearWrapper('/?pagina=2') },
     );
     await waitFor(() => expect(result.current.hook.isSuccess).toBe(true));
 
     // Act
-    act(() => result.current.hook.toggleEstado('st-1'));
-    act(() => result.current.hook.toggleEstado('st-2'));
+    act(() => result.current.hook.setTitulo('x'));
 
     // Assert
-    expect(result.current.url).toBe('?estado=st-1&estado=st-2');
+    expect(result.current.url).toBe('?q=x');
 
     // Act
     act(() => result.current.hook.limpiarFiltros());

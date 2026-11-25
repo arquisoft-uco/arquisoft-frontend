@@ -5,11 +5,9 @@ import { render, screen, within } from '../../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser } from '../../../test-utils/store.utils';
 import type { FichaResumen } from '../models/FichaResumen';
 import { useFichasPorEvaluar } from '../hooks/useFichasPorEvaluar';
-import { useTotalFichas } from '../hooks/useTotalFichas';
 import RepresentanteView from './RepresentanteView';
 
 vi.mock('../hooks/useFichasPorEvaluar', () => ({ useFichasPorEvaluar: vi.fn() }));
-vi.mock('../hooks/useTotalFichas', () => ({ useTotalFichas: vi.fn() }));
 
 const fila: FichaResumen = {
   id: 'f-9',
@@ -32,16 +30,6 @@ function bandejaMock(parcial: Partial<ReturnType<typeof useFichasPorEvaluar>> = 
   } as ReturnType<typeof useFichasPorEvaluar>);
 }
 
-function totalMock(parcial: Partial<ReturnType<typeof useTotalFichas>> = {}) {
-  vi.mocked(useTotalFichas).mockReturnValue({
-    total: 42,
-    cargado: true,
-    hayError: false,
-    reintentar: vi.fn(),
-    ...parcial,
-  } as ReturnType<typeof useTotalFichas>);
-}
-
 function Sonda() {
   const { pathname, state } = useLocation();
   return <output aria-label="Destino">{JSON.stringify({ pathname, state })}</output>;
@@ -52,7 +40,6 @@ describe('RepresentanteView', () => {
     resetAllStores();
     setAuthenticatedUser({ tokenParsed: { sub: 'u', given_name: 'Rita' } });
     bandejaMock();
-    totalMock();
   });
 
   it('muestra la bandeja, la frase y las cifras que vienen de los hooks', () => {
@@ -65,8 +52,8 @@ describe('RepresentanteView', () => {
     expect(within(bandeja).getByText(/Asesor Dos/)).toBeInTheDocument();
     expect(within(bandeja).getByText('Disponible para evaluación')).toBeInTheDocument();
     const cifras = screen.getByRole('region', { name: 'Cifras' });
-    expect(within(cifras).getByText('42')).toBeInTheDocument();
-    expect(within(cifras).getByText('Fichas en total')).toBeInTheDocument();
+    expect(within(cifras).getByText('7')).toBeInTheDocument();
+    expect(within(cifras).getByText('Fichas por evaluar')).toBeInTheDocument();
   });
 
   it('«Revisar» navega al detalle con el resumen de la fila en el state', async () => {
@@ -105,26 +92,6 @@ describe('RepresentanteView', () => {
     expect(screen.getByText('Pantalla de fichas')).toBeInTheDocument();
   });
 
-  it('una cifra que falló muestra «—» (nunca cero) y un aviso con «Reintentar» que repite solo lo fallido', async () => {
-    const user = userEvent.setup();
-    const reintentarTotal = vi.fn();
-    const reintentarBandeja = vi.fn();
-    bandejaMock({ reintentar: reintentarBandeja });
-    totalMock({ total: undefined, cargado: false, hayError: true, reintentar: reintentarTotal });
-
-    render(<RepresentanteView />);
-
-    const cifras = screen.getByRole('region', { name: 'Cifras' });
-    expect(within(cifras).getByText('—')).toBeInTheDocument();
-    expect(within(cifras).queryByText('0')).not.toBeInTheDocument();
-    expect(within(cifras).getByText('7')).toBeInTheDocument();
-
-    await user.click(within(cifras).getByRole('button', { name: 'Reintentar' }));
-
-    expect(reintentarTotal).toHaveBeenCalled();
-    expect(reintentarBandeja).not.toHaveBeenCalled();
-  });
-
   it('un error de la bandeja muestra alerta con «Reintentar» y deja las cifras visibles', async () => {
     const user = userEvent.setup();
     const reintentar = vi.fn();
@@ -140,10 +107,12 @@ describe('RepresentanteView', () => {
 
     const bandeja = screen.getByRole('region', { name: 'Fichas por evaluar' });
     expect(within(bandeja).getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText('Fichas en total')).toBeInTheDocument();
+    const cifras = screen.getByRole('region', { name: 'Cifras' });
+    expect(within(cifras).getByText('—')).toBeInTheDocument();
 
     await user.click(within(bandeja).getByRole('button', { name: 'Reintentar' }));
+    await user.click(within(cifras).getByRole('button', { name: 'Reintentar' }));
 
-    expect(reintentar).toHaveBeenCalled();
+    expect(reintentar).toHaveBeenCalledTimes(2);
   });
 });
