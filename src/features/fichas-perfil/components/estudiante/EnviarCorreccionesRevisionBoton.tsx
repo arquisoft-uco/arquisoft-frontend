@@ -20,7 +20,7 @@ export default function EnviarCorreccionesRevisionBoton({
   const idMotivo = `motivo-correcciones-${idRevision}-${useId()}`;
 
   return (
-    <div className="flex flex-col items-start gap-1 sm:items-end">
+    <div className="acciones-fila flex flex-col items-start gap-1 sm:items-end">
       <Button
         variante="primario"
         tamano="sm"

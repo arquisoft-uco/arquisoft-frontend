@@ -15,7 +15,7 @@ export default function AccionesJuradoEvaluacion({
   const nombre = jurado.jurado.nombre;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+    <div className="acciones-fila flex flex-wrap items-center gap-2 sm:justify-end">
       <Button
         tamano="sm"
         variante="secundario"

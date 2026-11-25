@@ -336,6 +336,7 @@ decisión y se desincroniza el día que cambie: usa la clase.
 | `.enlace-celda` | Enlace o botón con el nombre de una fila: una línea con puntos suspensivos y nunca menos de 24 px de alto |
 | `.actions-row` | Fila de botones: apilada y de ancho completo en celular, con la acción principal arriba; en fila a la derecha desde `sm` |
 | `.section-header` + `.header-action` | Cabecera de título más acción: apilada con botón de ancho completo en celular, en fila y separada desde `sm` |
+| `.acciones-fila` | Raíz de las acciones con texto (no `RowMenu` ni `IconButton`) que se pasan a `DataTable`: en la tarjeta del celular bajan a su propia línea a todo el ancho; desde `sm` toman su ancho en la celda |
 
 Lo que todavía no tiene clase global se escribe mobile first con utilidades y, si se repite en una
 segunda vista, sube a `index.css`:
