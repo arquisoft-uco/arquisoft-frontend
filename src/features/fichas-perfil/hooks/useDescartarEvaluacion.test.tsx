@@ -40,6 +40,7 @@ describe('useDescartarEvaluacion', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(descartarEvaluacion).toHaveBeenCalledWith('ev-1');
     expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'f-1'] });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'representante'] });
   });
 
   it('expone el error y no invalida cuando el service rechaza', async () => {

@@ -1089,6 +1089,121 @@ describe('fichasPerfilService', () => {
     });
   });
 
+  describe('getFichasParticipacion', () => {
+    const vacios = { titulo: '', asesorNombre: '', asesorEmail: '', estadoIds: [] };
+    const paginaDto = {
+      content: [
+        {
+          id: 'f-1',
+          tituloProyecto: 'Sistema de monitoreo',
+          asesorFicha: {
+            id: 'a-1',
+            identificador: 'ASE-1',
+            nombre: 'Ana Ruiz',
+            email: 'ana@uco.edu.co',
+          },
+          estado: {
+            id: 'APROBADA',
+            nombre: 'Aprobada',
+            fechaActualizacion: '2026-09-01T10:00:00',
+          },
+          evaluacion: { id: 'ev-1', estado: { id: 'DESCARTADA', nombre: 'Descartada' } },
+        },
+      ],
+      page: 0,
+      size: 10,
+      totalElements: 1,
+      totalPages: 1,
+      first: true,
+      last: true,
+      empty: false,
+    };
+
+    it('hace POST /fichas-perfil/representante con orden y traduce ficha, estado y evaluación', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: paginaDto });
+
+      // Act
+      const resultado = await fichasPerfilService.getFichasParticipacion(0, 10, vacios, [
+        'asesorNombre:DESC',
+      ]);
+
+      // Assert
+      expect(post).toHaveBeenCalledWith('/fichas-perfil/representante', {
+        pagina: 0,
+        tamanio: 10,
+        ordenamiento: ['asesorNombre:DESC'],
+      });
+      expect(resultado).toEqual({
+        ...paginaDto,
+        content: [
+          {
+            id: 'f-1',
+            titulo: 'Sistema de monitoreo',
+            asesorNombre: 'Ana Ruiz',
+            asesorEmail: 'ana@uco.edu.co',
+            estadoId: 'APROBADA',
+            estadoActual: 'Aprobada',
+            estadoFechaActualizacion: '2026-09-01T10:00:00',
+            evaluacionId: 'ev-1',
+            evaluacionEstadoId: 'DESCARTADA',
+            evaluacionEstadoNombre: 'Descartada',
+          },
+        ],
+      });
+    });
+
+    it('envía un solo filtro sin GRUPO y combina texto y estados en un GRUPO AND con IN', async () => {
+      // Arrange
+      post.mockResolvedValue({ status: 200, data: paginaDto });
+
+      // Act
+      await fichasPerfilService.getFichasParticipacion(0, 10, {
+        ...vacios,
+        estadoIds: ['APROBADA', 'NO_APROBADA'],
+      });
+      await fichasPerfilService.getFichasParticipacion(1, 10, {
+        ...vacios,
+        titulo: ' monitoreo ',
+        estadoIds: ['APROBADA'],
+      });
+
+      // Assert
+      expect(post).toHaveBeenNthCalledWith(1, '/fichas-perfil/representante', {
+        pagina: 0,
+        tamanio: 10,
+        filtros: {
+          tipo: 'PREDICADO_MULTIVALOR',
+          campo: 'estadoFicha',
+          operador: 'IN',
+          valores: ['APROBADA', 'NO_APROBADA'],
+        },
+      });
+      expect(post).toHaveBeenNthCalledWith(2, '/fichas-perfil/representante', {
+        pagina: 1,
+        tamanio: 10,
+        filtros: {
+          tipo: 'GRUPO',
+          conector: 'AND',
+          nodos: [
+            {
+              tipo: 'PREDICADO',
+              campo: 'tituloProyecto',
+              operador: 'CONTIENE',
+              valor: 'monitoreo',
+            },
+            {
+              tipo: 'PREDICADO_MULTIVALOR',
+              campo: 'estadoFicha',
+              operador: 'IN',
+              valores: ['APROBADA'],
+            },
+          ],
+        },
+      });
+    });
+  });
+
   describe('getItemsFichaRepresentante', () => {
     it('consulta GET /fichas-perfil/{id}/items/representante y traduce el DTO plano al modelo anidado', async () => {
       // Arrange

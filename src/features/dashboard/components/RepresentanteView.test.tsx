@@ -4,10 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { render, screen, within } from '../../../test-utils/render';
 import { resetAllStores, setAuthenticatedUser } from '../../../test-utils/store.utils';
 import type { FichaResumen } from '../models/FichaResumen';
+import { useConteos } from '../hooks/useConteos';
 import { useFichasPorEvaluar } from '../hooks/useFichasPorEvaluar';
 import RepresentanteView from './RepresentanteView';
 
 vi.mock('../hooks/useFichasPorEvaluar', () => ({ useFichasPorEvaluar: vi.fn() }));
+vi.mock('../hooks/useConteos', () => ({ useConteos: vi.fn() }));
 
 const fila: FichaResumen = {
   id: 'f-9',
@@ -30,6 +32,17 @@ function bandejaMock(parcial: Partial<ReturnType<typeof useFichasPorEvaluar>> = 
   } as ReturnType<typeof useFichasPorEvaluar>);
 }
 
+function conteosMock(parcial: Partial<ReturnType<typeof useConteos>> = {}) {
+  vi.mocked(useConteos).mockReturnValue({
+    valores: [4],
+    total: 4,
+    cargando: false,
+    hayError: false,
+    reintentar: vi.fn(),
+    ...parcial,
+  });
+}
+
 function Sonda() {
   const { pathname, state } = useLocation();
   return <output aria-label="Destino">{JSON.stringify({ pathname, state })}</output>;
@@ -40,6 +53,7 @@ describe('RepresentanteView', () => {
     resetAllStores();
     setAuthenticatedUser({ tokenParsed: { sub: 'u', given_name: 'Rita' } });
     bandejaMock();
+    conteosMock();
   });
 
   it('muestra la bandeja, la frase y las cifras que vienen de los hooks', () => {
@@ -54,6 +68,10 @@ describe('RepresentanteView', () => {
     const cifras = screen.getByRole('region', { name: 'Cifras' });
     expect(within(cifras).getByText('7')).toBeInTheDocument();
     expect(within(cifras).getByText('Fichas por evaluar')).toBeInTheDocument();
+    expect(within(cifras).getByText('4')).toBeInTheDocument();
+    expect(
+      within(cifras).getByRole('link', { name: /Fichas en las que participo/ }),
+    ).toHaveAttribute('href', '/fichas-perfil?vista=participo');
   });
 
   it('«Revisar» navega al detalle con el resumen de la fila en el state', async () => {
@@ -114,5 +132,27 @@ describe('RepresentanteView', () => {
     await user.click(within(cifras).getByRole('button', { name: 'Reintentar' }));
 
     expect(reintentar).toHaveBeenCalledTimes(2);
+  });
+
+  it('si falla la cifra de participación muestra «—» y «Reintentar» repite ambas fuentes', async () => {
+    const user = userEvent.setup();
+    const reintentarFichas = vi.fn();
+    const reintentarConteos = vi.fn();
+    bandejaMock({ reintentar: reintentarFichas });
+    conteosMock({
+      valores: [undefined],
+      total: undefined,
+      hayError: true,
+      reintentar: reintentarConteos,
+    });
+
+    render(<RepresentanteView />);
+
+    const cifras = screen.getByRole('region', { name: 'Cifras' });
+    expect(within(cifras).getByText('—')).toBeInTheDocument();
+    await user.click(within(cifras).getByRole('button', { name: 'Reintentar' }));
+
+    expect(reintentarFichas).toHaveBeenCalledTimes(1);
+    expect(reintentarConteos).toHaveBeenCalledTimes(1);
   });
 });

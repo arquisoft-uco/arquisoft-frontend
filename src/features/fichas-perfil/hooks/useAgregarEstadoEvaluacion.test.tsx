@@ -45,6 +45,7 @@ describe('useAgregarEstadoEvaluacion', () => {
     expect(invalidar).toHaveBeenCalledWith({
       queryKey: ['fichas-perfil', 'f-1', 'representante-estados'],
     });
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['fichas-perfil', 'representante'] });
   });
 
   it('expone el error y no invalida cuando el service rechaza', async () => {

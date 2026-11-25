@@ -9,6 +9,7 @@ export function useDescartarEvaluacion(fichaPerfilId: string) {
     // Sin devolver la promesa: al invalidar el botón se desmonta y el toast del mutate se perdería.
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['fichas-perfil', fichaPerfilId] });
+      void queryClient.invalidateQueries({ queryKey: ['fichas-perfil', 'representante'] });
     },
   });
 }

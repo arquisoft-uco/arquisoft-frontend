@@ -1,6 +1,7 @@
 export type RecursoContable =
   | 'fichas-coordinador'
   | 'fichas-asesor'
+  | 'fichas-representante'
   | 'evaluaciones-fichas-asesor'
   | 'proyectos-coordinador'
   | 'proyectos-asesor'
