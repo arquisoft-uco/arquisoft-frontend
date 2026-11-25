@@ -45,12 +45,7 @@ export default function EvaluacionRegistradaTarjeta({
       </p>
       {aviso && <p className={DATO}>{aviso}</p>}
       <div className="flex flex-wrap gap-2">
-        <Button
-          variante="secundario"
-          tamano="sm"
-          icono={MessageSquare}
-          onClick={onVerObservaciones}
-        >
+        <Button variante="secundario" icono={MessageSquare} onClick={onVerObservaciones}>
           Ver observaciones
         </Button>
         {acciones}
