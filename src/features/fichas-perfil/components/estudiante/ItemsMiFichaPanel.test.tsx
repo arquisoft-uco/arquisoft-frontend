@@ -36,6 +36,7 @@ type Resultado = ReturnType<typeof useItemsMiFicha>;
 function conEstado(parcial: Partial<Record<keyof Resultado, unknown>>) {
   vi.mocked(useItemsMiFicha).mockReturnValue({
     fichaId: 'f-1',
+    fichaEditable: true,
     items: [],
     tiposItem: TIPOS,
     itemsCargados: true,
@@ -85,6 +86,27 @@ describe('ItemsMiFichaPanel', () => {
     // Assert
     expect(screen.getByText('Objetivo')).toBeInTheDocument();
     expect(screen.getByText('Medir consumo')).toBeInTheDocument();
+  });
+
+  it('con la ficha fuera de construcción lista los ítems sin agregar, editar ni eliminar', () => {
+    // Arrange
+    conEstado({ fichaEditable: false, items: [ITEM] });
+    const { unmount } = render(<ItemsMiFichaPanel />);
+
+    // Assert
+    expect(screen.getByText('Medir consumo')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agregar ítem' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Editar ítem/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Eliminar ítem/ })).not.toBeInTheDocument();
+    unmount();
+
+    // Arrange: sin ítems, el vacío no invita a agregar
+    conEstado({ fichaEditable: false });
+    render(<ItemsMiFichaPanel />);
+
+    // Assert
+    expect(screen.getByText('Tu ficha no tiene ítems')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Agregar ítem' })).not.toBeInTheDocument();
   });
 
   it('invita a agregar el primer ítem y la acción del vacío abre el panel', async () => {

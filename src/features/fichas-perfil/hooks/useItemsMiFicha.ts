@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fichasPerfilService } from '../services/fichasPerfilService';
 import type { CrearItemRequest, ModificarItemRequest, Item } from '../models/fichas-perfil';
 import { isApiErrorWithStatus } from '../../../shared/utils/api-error';
+import { admiteEdicionFicha } from '../utils/edicion-ficha';
 import { useTiposItem } from './useTiposItem';
 import { useMiFichaPerfil } from './useMiFichaPerfil';
 import { useFichaPerfilIdEstudiante } from './useFichaPerfilIdEstudiante';
@@ -56,6 +57,7 @@ export function useItemsMiFicha() {
 
   return {
     fichaId: ficha?.id,
+    fichaEditable: admiteEdicionFicha(ficha?.estadoActual.id),
     items: itemsQuery.data ?? [],
     tiposItem: tiposItemQuery.data ?? [],
     itemsCargados: itemsQuery.isSuccess,

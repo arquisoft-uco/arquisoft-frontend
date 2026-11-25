@@ -5,6 +5,7 @@ import EmptyState from '../../../../shared/components/ui/EmptyState';
 import ErrorState from '../../../../shared/components/ui/ErrorState';
 import FormActions from '../../../../shared/components/ui/FormActions';
 import FormSection from '../../../../shared/components/ui/FormSection';
+import Notice from '../../../../shared/components/ui/Notice';
 import SidePanel from '../../../../shared/components/ui/SidePanel';
 import Skeleton from '../../../../shared/components/ui/Skeleton';
 import { toast } from '../../../../shared/hooks/useToast';
@@ -20,10 +21,16 @@ const CONTENIDO = 'flex flex-col gap-6';
 interface Props {
   fichaId: string;
   titulo: string;
+  admiteAsignar: boolean;
   onCerrar: () => void;
 }
 
-export default function EstudiantesVinculadosPanel({ fichaId, titulo, onCerrar }: Props) {
+export default function EstudiantesVinculadosPanel({
+  fichaId,
+  titulo,
+  admiteAsignar,
+  onCerrar,
+}: Props) {
   const { data, isLoading, isError, error, refetch } = useEstudiantesVinculados(fichaId);
   const { mutate: remover, isPending: quitando } = useRemoverEstudiante(fichaId);
   const [pendiente, setPendiente] = useState<EstudianteVinculado | null>(null);
@@ -68,7 +75,11 @@ export default function EstudiantesVinculadosPanel({ fichaId, titulo, onCerrar }
           <EmptyState
             icono={Users}
             titulo="Aún no hay estudiantes vinculados"
-            descripcion="Asigna estudiantes a esta ficha desde la lista de abajo."
+            descripcion={
+              admiteAsignar
+                ? 'Asigna estudiantes a esta ficha desde la lista de abajo.'
+                : 'Esta ficha no tiene estudiantes vinculados.'
+            }
           />
         ) : (
           <EstudiantesVinculadosLista
@@ -78,7 +89,13 @@ export default function EstudiantesVinculadosPanel({ fichaId, titulo, onCerrar }
           />
         )}
         <FormSection titulo="Asignar estudiantes">
-          <AsignarEstudianteForm idFichaPerfil={fichaId} vinculados={estudiantes} />
+          {admiteAsignar ? (
+            <AsignarEstudianteForm idFichaPerfil={fichaId} vinculados={estudiantes} />
+          ) : (
+            <Notice variante="info">
+              Solo se pueden asignar estudiantes mientras la ficha está en construcción.
+            </Notice>
+          )}
         </FormSection>
       </>
     );

@@ -3,6 +3,7 @@ import { UserCog, Users } from 'lucide-react';
 import Button from '../../../../shared/components/ui/Button';
 import type { Asesor } from '../../../../shared/models/Asesor';
 import type { ResumenFicha } from '../../models/ResumenFicha';
+import { admiteEdicionFicha } from '../../utils/edicion-ficha';
 import CambiarAsesorPanel from './CambiarAsesorPanel';
 import EstudiantesVinculadosPanel from './EstudiantesVinculadosPanel';
 
@@ -30,6 +31,7 @@ export default function AccionesFichaCoordinador({ resumen, onAsesorCambiado }: 
         <EstudiantesVinculadosPanel
           fichaId={resumen.id}
           titulo={resumen.titulo}
+          admiteAsignar={admiteEdicionFicha(resumen.estadoId)}
           onCerrar={cerrarPanel}
         />
       )}

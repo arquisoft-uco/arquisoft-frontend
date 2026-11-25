@@ -6,9 +6,18 @@ import type { ResumenFicha } from '../../models/ResumenFicha';
 import AccionesFichaCoordinador from './AccionesFichaCoordinador';
 
 vi.mock('./EstudiantesVinculadosPanel', () => ({
-  default: ({ fichaId, onCerrar }: { fichaId: string; onCerrar: () => void }) => (
+  default: ({
+    fichaId,
+    admiteAsignar,
+    onCerrar,
+  }: {
+    fichaId: string;
+    admiteAsignar: boolean;
+    onCerrar: () => void;
+  }) => (
     <div role="dialog" aria-label="Panel de estudiantes">
       <p>Estudiantes de {fichaId}</p>
+      <p>{admiteAsignar ? 'Asignación habilitada' : 'Asignación bloqueada'}</p>
       <button type="button" onClick={onCerrar}>
         Cerrar estudiantes
       </button>
@@ -61,6 +70,35 @@ describe('AccionesFichaCoordinador', () => {
 
     // Assert
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('solo habilita asignar estudiantes con la ficha en construcción', async () => {
+    // Arrange
+    const user = userEvent.setup();
+    const { unmount } = render(
+      <AccionesFichaCoordinador resumen={RESUMEN} onAsesorCambiado={vi.fn()} />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Ver estudiantes' }));
+
+    // Assert
+    expect(screen.getByText('Asignación bloqueada')).toBeInTheDocument();
+    unmount();
+
+    // Arrange
+    render(
+      <AccionesFichaCoordinador
+        resumen={{ ...RESUMEN, estadoId: 'EN_CONSTRUCCION' }}
+        onAsesorCambiado={vi.fn()}
+      />,
+    );
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Ver estudiantes' }));
+
+    // Assert
+    expect(screen.getByText('Asignación habilitada')).toBeInTheDocument();
   });
 
   it('"Cambiar asesor" abre el panel con el asesor actual y propaga el asesor nuevo', async () => {

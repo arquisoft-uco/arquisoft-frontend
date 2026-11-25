@@ -70,7 +70,12 @@ describe('EstudiantesVinculadosPanel', () => {
   it('muestra el título de la ficha, los estudiantes vinculados y el formulario para asignar', () => {
     // Act
     render(
-      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Assert
@@ -88,7 +93,12 @@ describe('EstudiantesVinculadosPanel', () => {
 
     // Act
     render(
-      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Assert
@@ -101,7 +111,12 @@ describe('EstudiantesVinculadosPanel', () => {
     const refetch = vi.fn();
     mockConsulta({ data: undefined, isError: true, refetch });
     render(
-      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Act
@@ -118,12 +133,38 @@ describe('EstudiantesVinculadosPanel', () => {
 
     // Act
     render(
-      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Assert
     expect(screen.getByText('Aún no hay estudiantes vinculados')).toBeInTheDocument();
     expect(screen.getByText('Formulario para asignar')).toBeInTheDocument();
+  });
+
+  it('con la ficha fuera de construcción no ofrece asignar, pero sí quitar', () => {
+    // Act
+    render(
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar={false}
+        onCerrar={vi.fn()}
+      />,
+    );
+
+    // Assert
+    expect(screen.queryByText('Formulario para asignar')).not.toBeInTheDocument();
+    expect(screen.getByRole('note')).toHaveTextContent(
+      'Solo se pueden asignar estudiantes mientras la ficha está en construcción.',
+    );
+    expect(
+      screen.getByRole('button', { name: 'Quitar a Carlos Ruiz de la ficha' }),
+    ).toBeInTheDocument();
   });
 
   it('quitar pide confirmación, y al confirmar notifica el éxito sin cerrar el panel', async () => {
@@ -134,7 +175,12 @@ describe('EstudiantesVinculadosPanel', () => {
       vi.fn((_id: string, opciones?: { onSuccess?: () => void }) => opciones?.onSuccess?.()),
     );
     render(
-      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={onCerrar} />,
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar
+        onCerrar={onCerrar}
+      />,
     );
 
     // Act
@@ -165,7 +211,12 @@ describe('EstudiantesVinculadosPanel', () => {
       ),
     );
     render(
-      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={vi.fn()} />,
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar
+        onCerrar={vi.fn()}
+      />,
     );
 
     // Act
@@ -187,7 +238,12 @@ describe('EstudiantesVinculadosPanel', () => {
     const user = userEvent.setup();
     const onCerrar = vi.fn();
     render(
-      <EstudiantesVinculadosPanel fichaId={FICHA.id} titulo={FICHA.titulo} onCerrar={onCerrar} />,
+      <EstudiantesVinculadosPanel
+        fichaId={FICHA.id}
+        titulo={FICHA.titulo}
+        admiteAsignar
+        onCerrar={onCerrar}
+      />,
     );
 
     // Act
